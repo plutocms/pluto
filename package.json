@@ -2,11 +2,12 @@
   "private": true,
   "name": "vulmix-app",
   "scripts": {
-    "dev": "mix watch --hot",
-    "prod": "mix --production",
-    "serve": "npx http-server -p 8000 -a localhost _dist --gzip --proxy http://localhost:8000?"
+    "watch": "tsc ./vulmix.config.ts --outDir ./.vulmix && mix watch --mix-config=.vulmix/laravel-mix/webpack.mix.js",
+    "dev": "tsc ./vulmix.config.ts --outDir ./.vulmix && mix watch --mix-config=.vulmix/laravel-mix/webpack.mix.js --hot",
+    "prod": "mix --mix-config=.vulmix/laravel-mix/webpack.mix.js --production",
+    "serve": "npm run prod && npx http-server -p 8000 -a localhost _dist --gzip --proxy http://localhost:8000?"
   },
   "dependencies": {
-    "vulmix": "^0.6.0-beta.preview.8-patch-1"
+    "vulmix": "0.6.0-beta"
   }
 }

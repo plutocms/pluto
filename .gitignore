@@ -1,2 +1,4 @@
 node_modules
 _dist
+.vulmix/types
+.vulmix/vulmix.config.js
