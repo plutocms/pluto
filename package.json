@@ -8,6 +8,11 @@
     "serve": "npm run prod && npx http-server -p 8000 -a localhost _dist --gzip --proxy http://localhost:8000?"
   },
   "dependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.22",
+    "prettier": "^2.8.7",
+    "prettier-plugin-tailwindcss": "^0.2.7",
+    "tailwindcss": "^3.3.1",
     "vulmix": "0.6.0-beta"
   }
 }
