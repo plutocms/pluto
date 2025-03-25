@@ -1,0 +1,26 @@
+{
+  "tailwindCSS.classAttributes": ["class", ".*-class(es)?", "theme", "ui"],
+  "tailwindCSS.experimental.classRegex": [
+    ["Theme \\=([^;]*);?", "'([^']*)'"],
+    ["Theme \\=([^;]*);?", "\"([^\"]*)\""],
+    ["Theme \\=([^;]*);?", "\\`([^\\`]*)\\`"],
+    ["Class \\=([^;]*);?", "'([^']*)'"],
+    ["Classes \\=([^;]*);?", "'([^']*)'"],
+    ["Class \\=([^;]*);?", "\"([^\"]*)\""],
+    ["Classes \\=([^;]*);?", "\"([^\"]*)\""],
+    ["Class \\=([^;]*);?", "\\`([^\\`]*)\\`"],
+    ["Classes \\=([^;]*);?", "\\`([^\\`]*)\\`"],
+    ["tw`(.*?)`", "tw\\('(.*?)'\\)", "tw\\(\\s*('(.*?)'|\"(.*?)\")\\s*\\)"],
+    ["ui:\\s*{([^)]*)\\s*}", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.gotoLocation.multipleDefinitions": "goto",
+  "cSpell.words": ["chibi", "Chibi", "ellie"]
+}
