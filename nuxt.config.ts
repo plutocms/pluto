@@ -1,11 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
   modules: [
     '@nuxt/eslint',
     '@nuxt/fonts',
     '@nuxt/icon',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@nuxtjs/supabase',
   ],
 
   // Modules configurations
@@ -18,6 +18,17 @@ export default defineNuxtConfig({
       // Required for TailwindCSS v4.
       processCSSVariables: true,
       disableLocalFallbacks: true,
+    },
+  },
+
+  supabase: {
+    cookieName: 'access_token',
+
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/', '/login', '/signup', '/product/*'],
+      cookieRedirect: false,
     },
   },
 
@@ -47,5 +58,4 @@ export default defineNuxtConfig({
   ignore: ['./scripts/**', './supabase/**'],
 
   devtools: { enabled: true },
-
 })
