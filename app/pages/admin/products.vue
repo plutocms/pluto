@@ -3,7 +3,9 @@
     <div class="flex justify-between">
       <h1 class="text-3xl">All products</h1>
 
-      <UButton icon="lucide:plus">Add product</UButton>
+      <UButton icon="lucide:plus" as="NuxtLink" to="/admin/product/new">
+        Add product
+      </UButton>
     </div>
 
     <div class="rounded-2xl bg-black/20">
