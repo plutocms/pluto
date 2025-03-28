@@ -16,7 +16,7 @@
     <UButton
       :icon="isDark ? 'i-lucide-moon' : 'i-lucide-sun'"
       color="neutral"
-      variant="ghost"
+      variant="solid"
       @click="isDark = !isDark"
     />
 
