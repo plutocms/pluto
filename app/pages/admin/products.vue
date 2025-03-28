@@ -36,7 +36,7 @@
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => (
-        <ULink to={`/admin/product/${row.getValue('slug')}/edit`}>
+        <ULink to={`/admin/product/edit/${row.getValue('slug')}`}>
           {row.getValue('name')}
         </ULink>
       ),
