@@ -6,6 +6,8 @@ export default defineNuxtConfig({
     '@nuxt/icon',
     '@nuxt/ui',
     '@nuxtjs/supabase',
+    '@vueuse/nuxt',
+    'reka-ui/nuxt',
   ],
 
   // Modules configurations
@@ -19,6 +21,10 @@ export default defineNuxtConfig({
       processCSSVariables: true,
       disableLocalFallbacks: true,
     },
+  },
+
+  reka: {
+    prefix: 'Reka',
   },
 
   supabase: {

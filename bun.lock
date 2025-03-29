@@ -9,8 +9,12 @@
         "@nuxt/icon": "1.11.0",
         "@nuxt/ui": "3.0.1",
         "@nuxtjs/supabase": "^1.5.0",
+        "@vueuse/integrations": "^13.0.0",
+        "@vueuse/nuxt": "13.0.0",
+        "change-case": "^5",
         "eslint": "^9.0.0",
         "nuxt": "^3.16.1",
+        "reka-ui": "^2.1.1",
         "typescript": "^5.6.3",
         "vue": "^3.5.13",
         "vue-router": "^4.5.0",
@@ -575,6 +579,8 @@
     "@vueuse/integrations": ["@vueuse/integrations@13.0.0", "", { "dependencies": { "@vueuse/core": "13.0.0", "@vueuse/shared": "13.0.0" }, "peerDependencies": { "async-validator": "^4", "axios": "^1", "change-case": "^5", "drauu": "^0.4", "focus-trap": "^7", "fuse.js": "^7", "idb-keyval": "^6", "jwt-decode": "^4", "nprogress": "^0.2", "qrcode": "^1.5", "sortablejs": "^1", "universal-cookie": "^7", "vue": "^3.5.0" }, "optionalPeers": ["async-validator", "axios", "change-case", "drauu", "focus-trap", "fuse.js", "idb-keyval", "jwt-decode", "nprogress", "qrcode", "sortablejs", "universal-cookie"] }, "sha512-PXARslYRWf4u0xjdW6N5eC5kVQj2z/dxfZ7ildI1okLm2AwmhL+wiWzaNMSJMxTKX4ew7kNe70yJg1QjnWmE5w=="],
 
     "@vueuse/metadata": ["@vueuse/metadata@13.0.0", "", {}, "sha512-TRNksqmvtvqsuHf7bbgH9OSXEV2b6+M3BSN4LR5oxWKykOFT9gV78+C2/0++Pq9KCp9KQ1OQDPvGlWNQpOb2Mw=="],
+
+    "@vueuse/nuxt": ["@vueuse/nuxt@13.0.0", "", { "dependencies": { "@nuxt/kit": "^3.16.0", "@vueuse/core": "13.0.0", "@vueuse/metadata": "13.0.0", "local-pkg": "^1.1.1" }, "peerDependencies": { "nuxt": "^3.0.0 || ^4.0.0-0", "vue": "^3.5.0" } }, "sha512-tVb57PW0aUGMHwvzp4uH2mo8ut3D/3c7DA936E4ValhQq2VMZMCMxaKGz1nE8etFC7p18fVypyzpe8o6CBAYFw=="],
 
     "@vueuse/shared": ["@vueuse/shared@13.0.0", "", { "peerDependencies": { "vue": "^3.5.0" } }, "sha512-9MiHhAPw+sqCF/RLo8V6HsjRqEdNEWVpDLm2WBRW2G/kSQjb8X901sozXpSCaeLG0f7TEfMrT4XNaA5m1ez7Dg=="],
 
