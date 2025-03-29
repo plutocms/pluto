@@ -121,6 +121,7 @@
 
 <script setup lang="ts">
   import type { Database } from '~~/types/supabase'
+  import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
   useHead({
     title: 'Add new product',
@@ -135,6 +136,8 @@
     images: string[] | null
   }
 
+  const productSlug = useChangeCase('', 'kebabCase')
+
   const currentSelectedImage = ref<number>(0)
 
   const form = reactive<Form>({
@@ -146,6 +149,14 @@
     images: null,
   })
 
+  watch(
+    () => form.name,
+    value => {
+      productSlug.value = value
+
+      form.slug = productSlug.value
+    }
+  )
 
   function submitForm() {
     type Payload = Omit<
