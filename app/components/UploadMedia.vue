@@ -6,12 +6,26 @@
       <template #header>
         <UTabs :items="tabs" class="w-full">
           <template #gallery>
-            <div class="grid grid-cols-5 gap-2">
-              <div
-                v-for="i in 25"
-                :key="i"
-                class="aspect-square rounded-2xl bg-black/20"
-              />
+            <div class="flex flex-col gap-y-6">
+              <div>
+                <UButton icon="lucide:refresh-cw" @click="refreshMediaList()">
+                  Refresh
+                </UButton>
+              </div>
+
+              <div class="grid grid-cols-5 gap-2">
+                <div
+                  v-for="file in mediaList?.data"
+                  :key="file.id"
+                  class="aspect-square overflow-hidden rounded-2xl bg-black/20"
+                >
+                  <img
+                    :src="getMediaUrl(file.name)"
+                    :alt="file.name"
+                    class="h-full w-full object-contain"
+                  />
+                </div>
+              </div>
             </div>
           </template>
 
@@ -65,6 +79,15 @@
   const isMediaModalOpen = defineModel<boolean>({
     default: false,
   })
+
+  const { getMediaUrl } = useMedia()
+
+  const { data: mediaList, refresh: refreshMediaList } = useFetch(
+    '/api/media/list',
+    {
+      key: '/api/media/list',
+    }
+  )
 
   function closeMediaModal() {
     isMediaModalOpen.value = false
