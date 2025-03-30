@@ -1,18 +1,36 @@
-//import { serverSupabaseClient } from '#supabase/server'
-//import type { Database } from '~~/types/supabase'
+import type { Database } from '~~/types/supabase'
+import { serverSupabaseClient } from '#supabase/server'
+import { kebabCase } from 'change-case'
 
 export default defineEventHandler(async event => {
-  //const client = await serverSupabaseClient<Database>(event)
+  const client = await serverSupabaseClient<Database>(event)
 
   const file = await readMultipartFormData(event)
 
-  if (!file) throw createError('An error occurred')
+  const year = new Date().getFullYear().toString()
+  const month = Intl.NumberFormat('en-US', {
+    minimumIntegerDigits: 2,
+  }).format(new Date().getMonth() + 1)
 
-  console.log({ file: file })
+  if (!file || !file?.[0].filename)
+    throw createError({
+      message: 'No file sent.',
+    })
 
-  /* const { data, error } = await client.storage
-    .from('bucket_name')
-    .upload('file_path', file)
+  const fileName = file[0].filename.replace(/(.*)(\.\w+$)/, `$1`)
+  const fileExtension = file[0].filename.replace(/(.*)(\.\w+$)/, `$2`)
+
+  const { data, error } = await client.storage
+    .from('media')
+    .upload(
+      `uploads/${year}-${month}-${kebabCase(fileName)}${fileExtension}`,
+      file[0].data,
+      {
+        contentType: file[0].type,
+        upsert: true,
+      }
+    )
+
   if (error) {
     createError({
       message: 'error',
@@ -21,5 +39,5 @@ export default defineEventHandler(async event => {
     return {
       data,
     }
-  } */
+  }
 })
