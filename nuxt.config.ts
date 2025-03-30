@@ -1,5 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  $meta: {
+    name: 'pluto',
+  },
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/fonts',
