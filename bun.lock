@@ -20,6 +20,7 @@
         "vue-router": "^4.5.0",
       },
       "devDependencies": {
+        "@iconify-json/lucide": "^1.2.33",
         "prettier": "^3.5.3",
         "prettier-plugin-tailwindcss": "^0.6.11",
       },
@@ -191,6 +192,8 @@
     "@humanwhocodes/module-importer": ["@humanwhocodes/module-importer@1.0.1", "", {}, "sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA=="],
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.2", "", {}, "sha512-xeO57FpIu4p1Ri3Jq/EXq4ClRm86dVF2z/+kvFnyqVYRavTZmaFaUBbWCOuuTh0o/g7DSsk6kc2vrS4Vl5oPOQ=="],
+
+    "@iconify-json/lucide": ["@iconify-json/lucide@1.2.33", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-2Ty+rI0tRHJEbM6J48G40ONvCPrcFC3o4PpAqOXZ3X+Uz2vMzrGj6tl2XHToZ64nc6lg+fC3WhkJebyyQxLVcw=="],
 
     "@iconify/collections": ["@iconify/collections@1.0.531", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-IIw9WXF/vsDLNGxFwd1BxDcX7EdZwuYFBLtgvKeAz2RKG1vI0rZT3ve90mm4OUfQkCcvHJ+ikmI44KkiMXhNSA=="],
 
