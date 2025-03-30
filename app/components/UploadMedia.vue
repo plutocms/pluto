@@ -30,31 +30,48 @@
           </template>
 
           <template #upload>
-            <div
-              class="group relative aspect-video overflow-hidden rounded-3xl bg-black/10 hover:bg-black/20"
-            >
-              <label
-                v-if="!mediaBlobList || mediaBlobList?.length === 0"
-                for="main-image"
-                class="absolute top-0 left-0 h-full w-full"
-                @click="open()"
-              />
-
+            <div class="flex gap-x-4">
               <div
-                v-if="!mediaBlobList || mediaBlobList?.length === 0"
-                class="pointer-events-none absolute top-0 left-0 grid h-full w-full place-items-center"
+                class="group relative aspect-video grow overflow-hidden rounded-3xl bg-black/10 hover:bg-black/20"
               >
-                <Icon
-                  name="lucide:plus"
-                  class="text-5xl opacity-20 transition-opacity group-hover:opacity-100"
+                <label
+                  v-if="!mediaBlobList || mediaBlobList?.length === 0"
+                  for="main-image"
+                  class="absolute top-0 left-0 h-full w-full"
+                  @click="open()"
+                />
+
+                <div
+                  v-if="!mediaBlobList || mediaBlobList?.length === 0"
+                  class="pointer-events-none absolute top-0 left-0 grid h-full w-full place-items-center"
+                >
+                  <Icon
+                    name="lucide:plus"
+                    class="text-5xl opacity-20 transition-opacity group-hover:opacity-100"
+                  />
+                </div>
+
+                <img
+                  v-if="mediaBlobList?.[0]"
+                  :src="mediaBlobList[0]"
+                  class="h-full w-full object-cover"
                 />
               </div>
 
-              <img
-                v-if="mediaBlobList?.[0]"
-                :src="mediaBlobList[0]"
-                class="h-full w-full object-cover"
-              />
+              <div class="w-[300px] shrink-0">
+                <pre>{{ files?.[0]?.name }}</pre>
+
+                <div>
+                  <UButton
+                    v-if="mediaBlobList?.[0]"
+                    color="error"
+                    icon="lucide:trash"
+                    @click="removeImage"
+                  >
+                    Remove
+                  </UButton>
+                </div>
+              </div>
             </div>
           </template>
         </UTabs>
@@ -106,13 +123,13 @@
     },
   ])
 
-  const { files, onChange, open } = useFileDialog({
+  const { files, onChange, open, reset } = useFileDialog({
     accept: 'image/*',
   })
 
   const mediaBlobList = ref<string[]>([])
 
-  onChange(() => {
+  onChange(async () => {
     const file = files.value?.[0]
     const formData = new FormData()
 
@@ -130,8 +147,17 @@
 
     mediaBlobList.value?.push(blob)
 
-    $fetch('/api/media/new', {
+    const response = await $fetch('/api/media/new', {
       method: 'POST',
+      body: formData,
     })
+
+    console.log(response)
   })
+
+  function removeImage() {
+    mediaBlobList.value = []
+
+    reset()
+  }
 </script>
