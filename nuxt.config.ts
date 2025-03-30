@@ -36,7 +36,7 @@ export default defineNuxtConfig({
   },
 
   supabase: {
-    cookieName: 'access_token',
+    cookiePrefix: 'access_token',
 
     redirectOptions: {
       login: '/login',
