@@ -134,7 +134,12 @@
       <div class="flex items-center gap-x-3">
         <UButton variant="ghost" size="xl" icon="lucide:x"> Close </UButton>
 
-        <UButton variant="solid" size="xl" icon="lucide:check">
+        <UButton
+          :disabled="isInsertButtonDisabled"
+          variant="solid"
+          size="xl"
+          icon="lucide:check"
+        >
           Insert
         </UButton>
       </div>
@@ -257,4 +262,10 @@
 
     selectedMedia.value.push(id)
   }
+
+  const isInsertButtonDisabled = computed(
+    () =>
+      (currentTab.value === '0' && selectedMedia.value.length === 0) ||
+      (currentTab.value === '1' && isUploaded.value === false)
+  )
 </script>
