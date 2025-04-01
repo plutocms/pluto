@@ -1,6 +1,6 @@
 <template>
   <Modal v-model="isMediaModalOpen" prevent-click-outside>
-    <ModalHeader @close="closeMediaModal">Title</ModalHeader>
+    <ModalHeader @close="closeMediaModal">Insert media</ModalHeader>
 
     <ModalContent>
       <template #header>
