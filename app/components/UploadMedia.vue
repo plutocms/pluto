@@ -6,11 +6,18 @@
       <template #header>
         <UTabs :items="tabs" class="w-full">
           <template #gallery>
-            <div class="flex flex-col gap-y-6">
-              <div>
-                <UButton icon="lucide:refresh-cw" @click="refreshMediaList()">
-                  Refresh
-                </UButton>
+            <div class="flex flex-col gap-y-6 pt-6">
+              <div class="flex items-center justify-between">
+
+                <div>
+                  <UButton
+                    icon="lucide:refresh-cw"
+                    :loading="mediaStatus === 'pending'"
+                    @click="refreshMediaList()"
+                  >
+                    Refresh
+                  </UButton>
+                </div>
               </div>
 
               <div class="grid grid-cols-5 gap-2">
@@ -99,12 +106,13 @@
 
   const { getMediaUrl } = useMedia()
 
-  const { data: mediaList, refresh: refreshMediaList } = useFetch(
-    '/api/media/list',
-    {
-      key: '/api/media/list',
-    }
-  )
+  const {
+    data: mediaList,
+    refresh: refreshMediaList,
+    status: mediaStatus,
+  } = useFetch('/api/media/list', {
+    key: '/api/media/list',
+  })
 
   function closeMediaModal() {
     isMediaModalOpen.value = false
