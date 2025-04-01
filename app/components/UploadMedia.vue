@@ -4,7 +4,7 @@
 
     <ModalContent>
       <template #header>
-        <UTabs :items="tabs" class="w-full">
+        <UTabs v-model="currentTab" :items="tabs" class="w-full">
           <template #gallery>
             <div class="flex flex-col gap-y-6 pt-6">
               <div class="flex items-center justify-between">
@@ -117,6 +117,8 @@
   function closeMediaModal() {
     isMediaModalOpen.value = false
   }
+
+  const currentTab = ref<'0' | '1'>('0')
 
   const tabs = ref<TabsItem[]>([
     {
