@@ -32,7 +32,7 @@
           <template #upload>
             <div class="flex gap-x-4">
               <div
-                class="group relative aspect-video grow overflow-hidden rounded-3xl bg-black/10 hover:bg-black/20"
+                class="group relative aspect-video grow overflow-hidden rounded-3xl bg-black hover:bg-black/20"
               >
                 <label
                   v-if="!mediaBlobList || mediaBlobList?.length === 0"
@@ -54,7 +54,7 @@
                 <img
                   v-if="mediaBlobList?.[0]"
                   :src="mediaBlobList[0]"
-                  class="h-full w-full object-cover"
+                  class="h-full w-full object-contain"
                 />
               </div>
 
