@@ -171,6 +171,10 @@
 
   const currentTab = ref<'0' | '1'>('0')
 
+  watch(currentTab, () => {
+    resetAll()
+  })
+
   const tabs = ref<TabsItem[]>([
     {
       label: 'Gallery',
@@ -261,6 +265,12 @@
     }
 
     selectedMedia.value.push(id)
+  }
+
+  function resetAll() {
+    reset()
+
+    selectedMedia.value = []
   }
 
   const isInsertButtonDisabled = computed(
