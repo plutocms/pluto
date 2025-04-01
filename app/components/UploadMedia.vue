@@ -65,17 +65,38 @@
                 />
               </div>
 
-              <div class="w-[300px] shrink-0">
-                <pre>{{ files?.[0]?.name }}</pre>
+              <div class="flex w-[300px] shrink-0 flex-col gap-y-4">
+                <div>{{ files?.[0]?.name }}</div>
 
-                <div>
+                <div v-if="isUploaded && files?.[0]?.name" class="truncate">
+                  <ULink
+                    :href="getMediaUrl(kebabCase(files[0].name))"
+                    target="_blank"
+                  >
+                    {{ getMediaUrl(kebabCase(files[0].name)) }}
+                  </ULink>
+                </div>
+
+                <div class="flex items-center gap-x-2">
                   <UButton
-                    v-if="mediaBlobList?.[0]"
+                    v-if="!isUploaded && mediaBlobList?.length > 0"
                     color="error"
-                    icon="lucide:trash"
+                    variant="outline"
+                    icon="lucide:x"
                     @click="removeImage"
                   >
-                    Remove
+                    Cancel
+                  </UButton>
+
+                  <UButton
+                    v-if="!isUploaded && files"
+                    :loading="isUploading"
+                    :disabled="isUploaded"
+                    icon="lucide:upload"
+                    loading-icon="lucide:loader-circle"
+                    @click="uploadMedia"
+                  >
+                    Upload{{ isUploading ? 'ing...' : '' }}
                   </UButton>
                 </div>
               </div>
@@ -99,6 +120,7 @@
 
 <script setup lang="ts">
   import type { TabsItem } from '@nuxt/ui'
+  import { kebabCase } from 'change-case'
 
   const isMediaModalOpen = defineModel<boolean>({
     default: false,
@@ -141,11 +163,8 @@
 
   onChange(async () => {
     const file = files.value?.[0]
-    const formData = new FormData()
 
     if (!file) return
-
-    formData.append('media_file', file)
 
     if (!mediaBlobList.value) {
       mediaBlobList.value = []
@@ -156,14 +175,40 @@
     if (!blob) return
 
     mediaBlobList.value?.push(blob)
-
-    const response = await $fetch('/api/media/new', {
-      method: 'POST',
-      body: formData,
-    })
-
-    console.log(response)
   })
+
+  const isUploaded = ref<boolean>(false)
+  const isUploading = ref<boolean>(false)
+
+  async function uploadMedia() {
+    let response
+    const file = files.value?.[0]
+
+    const formData = new FormData()
+
+    if (!file) return
+
+    formData.append('media_file', file)
+    formData.append('name', file.name)
+    formData.append('alt', form.value.alt)
+
+    try {
+      isUploading.value = true
+
+      response = await $fetch('/api/media/new', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response) {
+        isUploaded.value = true
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      isUploading.value = false
+    }
+  }
 
   function removeImage() {
     mediaBlobList.value = []
