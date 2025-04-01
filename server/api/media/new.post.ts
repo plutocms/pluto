@@ -27,13 +27,21 @@ export default defineEventHandler(async event => {
         }
       )
 
-    createError({
   if (mediaUploadError) {
+    throw createError({
       message: 'error',
     })
-  } else {
-    return {
-      data,
-    }
   }
+
+  const { error } = await client.from('media').insert({
+    name: `${encodeURIComponent(kebabCase(fileName))}${fileExtension}`,
+    alt: formData[2].data.toString(),
+    uid: mediaUploadData.id,
+  })
+
+  if (error) {
+    throw createError({ message: 'error' })
+  }
+
+  return { mediaUploadData }
 })
