@@ -7,11 +7,6 @@ export default defineEventHandler(async event => {
 
   const formData = await readMultipartFormData(event)
 
-  const year = new Date().getFullYear().toString()
-  const month = Intl.NumberFormat('en-US', {
-    minimumIntegerDigits: 2,
-  }).format(new Date().getMonth() + 1)
-
   if (!formData || !formData?.[0].filename)
     throw createError({
       message: 'No file sent.',
@@ -20,17 +15,17 @@ export default defineEventHandler(async event => {
   const fileName = formData[0].filename.replace(/(.*)(\.\w+$)/, `$1`)
   const fileExtension = formData[0].filename.replace(/(.*)(\.\w+$)/, `$2`)
 
-    .from('media')
-    .upload(
-      `uploads/${year}-${month}-${kebabCase(fileName)}${fileExtension}`,
-      file[0].data,
-      {
-        contentType: file[0].type,
-        upsert: true,
-      }
-    )
   const { data: mediaUploadData, error: mediaUploadError } =
     await client.storage
+      .from('media')
+      .upload(
+        `uploads/${kebabCase(fileName)}${fileExtension}`,
+        formData[0].data,
+        {
+          contentType: formData[0].type,
+          upsert: true,
+        }
+      )
 
     createError({
   if (mediaUploadError) {
