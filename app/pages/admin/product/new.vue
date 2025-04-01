@@ -1,6 +1,6 @@
 <template>
   <div>
-    <UploadMedia v-model="isMediaModalOpen" />
+    <UploadMedia v-model="isMediaModalOpen" @insert="onInsertMedia" />
 
     <div class="flex items-start justify-between gap-x-6">
       <div class="grow bg-transparent">
@@ -39,7 +39,11 @@
                 ]"
                 @click="currentSelectedImage = index"
               >
-                <img :src="image" class="h-full w-full object-cover" />
+                <img
+                  v-if="image.name"
+                  :src="getMediaUrl(image.name)"
+                  class="h-full w-full object-cover"
+                />
               </div>
             </template>
 
@@ -73,8 +77,8 @@
               </div>
 
               <img
-                v-if="form.images?.[currentSelectedImage]"
-                :src="form.images[currentSelectedImage]"
+                v-if="!!form.images?.[currentSelectedImage]?.name"
+                :src="getMediaUrl(form.images[currentSelectedImage]!.name!)"
                 class="h-full w-full object-cover"
               />
             </div>
@@ -127,18 +131,19 @@
     title: 'Add new product',
   })
 
+  const currentSelectedImage = ref<number>(0)
+  const lastImageIndex = computed<number>(() => form.images.length - 1)
+
+  type EmitValue = Database['public']['Tables']['media']['Row']
+
   interface Form {
     name: string
     slug: string
     description: string
     price: number
     productStyles: string[]
-    images: string[] | null
+    images: EmitValue[]
   }
-
-  const productSlug = useChangeCase('', 'kebabCase')
-
-  const currentSelectedImage = ref<number>(0)
 
   const form = reactive<Form>({
     name: '',
@@ -146,7 +151,7 @@
     description: '',
     price: 0,
     productStyles: [],
-    images: null,
+    images: [],
   })
 
   watch(
@@ -181,5 +186,23 @@
 
   function openMediaModal() {
     isMediaModalOpen.value = true
+  }
+
+  function closeMediaModal() {
+    isMediaModalOpen.value = false
+  }
+
+  function onInsertMedia(event: EmitValue[]) {
+    console.log('Received', event)
+
+    if (form.images.length > 0) {
+      form.images.push(...event)
+    } else {
+      form.images = event
+    }
+
+    currentSelectedImage.value = lastImageIndex.value
+
+    closeMediaModal()
   }
 </script>

@@ -139,6 +139,7 @@
           variant="solid"
           size="xl"
           icon="lucide:check"
+          @click="insertMedia"
         >
           Insert
         </UButton>
@@ -150,6 +151,7 @@
 <script setup lang="ts">
   import type { TabsItem } from '@nuxt/ui'
   import { kebabCase } from 'change-case'
+  import type { Database } from '~~/types/supabase'
 
   const isMediaModalOpen = defineModel<boolean>({
     default: false,
@@ -265,6 +267,32 @@
     }
 
     selectedMedia.value.push(id)
+  }
+
+  const transformedSelectedMedia = computed<EmitValue[]>(() => {
+    const value = selectedMedia.value
+      ?.map(item => {
+        if (!mediaList.value) return undefined
+
+        return mediaList.value.data.find(dataItem => item === dataItem.id)
+      })
+      .filter((item): item is EmitValue => item !== undefined)
+
+    return value
+  })
+
+  type EmitValue = Database['public']['Tables']['media']['Row']
+
+  const emit = defineEmits<{
+    insert: [value: EmitValue[]]
+  }>()
+
+  function insertMedia() {
+    if (!transformedSelectedMedia.value) return
+
+    emit('insert', transformedSelectedMedia.value)
+
+    resetAll()
   }
 
   function resetAll() {
