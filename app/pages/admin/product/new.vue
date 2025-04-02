@@ -131,6 +131,8 @@
     title: 'Add new product',
   })
 
+  const { getMediaUrl } = useMedia()
+
   const productSlug = useChangeCase('', 'kebabCase')
 
   const currentSelectedImage = ref<number>(0)
