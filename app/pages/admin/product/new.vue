@@ -131,6 +131,8 @@
     title: 'Add new product',
   })
 
+  const productSlug = useChangeCase('', 'kebabCase')
+
   const currentSelectedImage = ref<number>(0)
   const lastImageIndex = computed<number>(() => form.images.length - 1)
 
