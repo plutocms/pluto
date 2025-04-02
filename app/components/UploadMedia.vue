@@ -184,6 +184,8 @@
 
   watch(currentTab, () => {
     resetAll()
+
+    if (currentTab.value === '0') refreshMediaList()
   })
 
   const tabs = ref<TabsItem[]>([
