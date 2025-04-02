@@ -1,2 +1,7 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+
+@theme {
+  --color-admin-content: var(--color-slate-800);
+  --color-admin-sidebar: var(--color-slate-900);
+}
