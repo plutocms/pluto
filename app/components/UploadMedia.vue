@@ -101,6 +101,15 @@
                   </ULink>
                 </div>
 
+                <div v-if="!isUploaded && mediaBlobList?.[0]">
+                  <UFormField label="Alt text">
+                    <UInput
+                      v-model="form.alt"
+                      placeholder="e.g: Image of a cute dog"
+                    />
+                  </UFormField>
+                </div>
+
                 <div class="flex items-center gap-x-2">
                   <UButton
                     v-if="!isUploaded && mediaBlobList?.length > 0"
@@ -189,6 +198,14 @@
       slot: 'upload',
     },
   ])
+
+  interface Form {
+    alt: string
+  }
+
+  const form = ref<Form>({
+    alt: '',
+  })
 
   const { files, onChange, open, reset } = useFileDialog({
     accept: 'image/*',
