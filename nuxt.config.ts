@@ -23,12 +23,6 @@ export default defineNuxtConfig({
     defaults: {
       weights: [400, 600, 700],
     },
-
-    experimental: {
-      // Required for TailwindCSS v4.
-      processCSSVariables: true,
-      disableLocalFallbacks: true,
-    },
   },
 
   reka: {
