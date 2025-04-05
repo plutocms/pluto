@@ -8,17 +8,30 @@
           <template #gallery>
             <div class="flex flex-col gap-y-6 pt-6">
               <div class="flex items-center justify-between">
-                <div>
-                  <span v-if="selectedMedia.length === 0">
-                    Showing {{ mediaList?.data.length }} file{{
-                      mediaList?.data.length === 1 ? '' : 's'
-                    }}
-                  </span>
+                <div class="flex items-center gap-x-4">
+                  <div>
+                    <span v-if="selectedMedia.length === 0">
+                      Showing {{ mediaList?.data.length }} file{{
+                        mediaList?.data.length === 1 ? '' : 's'
+                      }}
+                    </span>
 
-                  <span v-else>
-                    {{ selectedMedia.length }} of
-                    {{ mediaList?.data.length }} files selected
-                  </span>
+                    <span v-else>
+                      {{ selectedMedia.length }} of
+                      {{ mediaList?.data.length }} files selected
+                    </span>
+                  </div>
+
+                  <div v-if="selectedMedia.length > 0">
+                    <UButton
+                      color="error"
+                      variant="outline"
+                      icon="lucide:x"
+                      @click="selectedMedia = []"
+                    >
+                      Cancel selection
+                    </UButton>
+                  </div>
                 </div>
 
                 <div>
@@ -151,6 +164,9 @@
           @click="insertMedia"
         >
           Insert
+          <span v-show="selectedMedia.length > 0"
+            >({{ selectedMedia.length }} selected)</span
+          >
         </UButton>
       </div>
     </ModalFooter>
