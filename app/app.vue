@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full">
+  <div class="grow">
     <UApp>
       <NuxtRouteAnnouncer />
       <NuxtLoadingIndicator />
@@ -19,8 +19,13 @@
 
 <style>
   html,
-  body,
+  body {
+    height: 100%;
+  }
+
   #__nuxt {
     height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 </style>

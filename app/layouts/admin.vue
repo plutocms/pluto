@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-admin-content h-full">
+  <div class="bg-admin-content flex h-full grow flex-col">
     <NavbarAdmin />
 
     <div class="flex h-full items-stretch">
