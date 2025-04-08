@@ -18,6 +18,17 @@ export default defineNuxtConfig({
     'reka-ui/nuxt',
   ],
 
+  routeRules: {
+    '/admin': {
+      redirect: {
+        to: '/admin/home',
+      },
+    },
+    '/admin/**': {
+      ssr: false,
+    },
+  },
+
   // Modules configurations
   fonts: {
     defaults: {
