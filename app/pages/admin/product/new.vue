@@ -128,9 +128,14 @@
           <UFormField label="Style">
             <UInputMenu
               v-model="form.productStyle"
+              v-model:open="isCategorySelectOpen"
               :items="productStyles"
+              :loading="isCategorySelectLoading"
+              loading-icon="line-md:loading-loop"
               class="w-full"
               create-item
+              @create="createCategory"
+              @update:open="onCategorySelectOpen"
             />
           </UFormField>
         </div>
@@ -144,6 +149,7 @@
 <script setup lang="ts">
   import type { Database } from '~~/types/supabase'
   import { useChangeCase } from '@vueuse/integrations/useChangeCase'
+  import { kebabCase } from 'change-case'
 
   useHead({
     title: 'Add new product',
@@ -167,7 +173,8 @@
     images: EmitValue[]
   }
 
-  const { data: categories } = await useFetch('/api/category/list')
+  const { data: categories, refresh: refreshCategories } =
+    await useFetch('/api/category/list')
 
   const productStyles = computed(() => {
     if (!categories.value?.data) return
@@ -239,5 +246,43 @@
     currentSelectedImage.value = lastImageIndex.value
 
     closeMediaModal()
+  }
+
+  const isCategorySelectOpen = ref<boolean>(false)
+  const isCategorySelectLoading = ref<boolean>(false)
+
+  function onCategorySelectOpen(event: boolean) {
+    if (event === true) {
+      refreshCategories()
+    }
+  }
+
+  async function createCategory(item: string) {
+    type Category = Database['public']['Tables']['categories']['Row']
+
+    const payload: Omit<Category, 'id' | 'description'> = {
+      label: item,
+      slug: kebabCase(item),
+    }
+
+    isCategorySelectLoading.value = true
+
+    await $fetch('/api/category/new', {
+      method: 'POST',
+      body: payload,
+    })
+      .then(async () => {
+        await refreshCategories()
+
+        form.productStyle = item
+
+        isCategorySelectOpen.value = false
+      })
+      .catch(error => {
+        console.error(error.message)
+      })
+      .finally(() => {
+        isCategorySelectLoading.value = false
+      })
   }
 </script>
