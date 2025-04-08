@@ -191,6 +191,7 @@
       name: form.name || 'Untitled',
       description: form.description || null,
       price: form.price ?? 0,
+      images: form.images.map(image => getMediaUrl(image.name ?? '')),
     }
 
     $fetch('/api/product/new', {
