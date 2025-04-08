@@ -27,37 +27,50 @@
 
     <div class="flex gap-x-6 px-4 py-8">
       <div class="grow">
-        <div class="flex gap-x-4">
-          <div class="flex flex-col gap-y-3">
-            <template v-if="form.images && form.images?.length > 0">
-              <div
-                v-for="(image, index) in form.images"
-                :key="index"
-                :class="[
-                  'h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20',
-                  currentSelectedImage === index && 'ring-2 ring-green-400',
-                ]"
-                @click="currentSelectedImage = index"
-              >
-                <img
-                  v-if="image.name"
-                  :src="getMediaUrl(image.name)"
-                  class="h-full w-full object-cover"
-                />
-              </div>
-            </template>
-
+        <div class="flex h-[500px] gap-x-1">
+          <ScrollArea class="w-20 rounded-2xl">
             <div
-              class="sticky bottom-0 grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20"
-              @click="openMediaModal"
+              class="box-content flex w-full flex-col gap-y-3 pt-1 pr-4 pl-1"
             >
-              <Icon name="lucide:plus" class="text-2xl" />
-            </div>
-          </div>
+              <template v-if="form.images && form.images?.length > 0">
+                <div
+                  v-for="(image, index) in form.images"
+                  :key="index"
+                  :class="[
+                    'h-14 w-14 overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20',
+                    currentSelectedImage === index && 'ring-2 ring-green-400',
+                  ]"
+                  @click="currentSelectedImage = index"
+                >
+                  <img
+                    v-if="image.name"
+                    :src="getMediaUrl(image.name)"
+                    class="h-full w-full object-cover"
+                  />
+                </div>
+              </template>
 
-          <div class="grow">
+              <div
+                class="bg-admin-content sticky -bottom-0.5 mb-8 -ml-0.5 w-full py-2 pl-0.5"
+              >
+                <div
+                  class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black/100"
+                  @click="openMediaModal"
+                >
+                  <Icon name="lucide:plus" class="text-2xl" />
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
+
+          <div class="aspect-square w-[600px]">
             <div
-              class="group relative aspect-video overflow-hidden rounded-3xl bg-black/10 hover:bg-black/20"
+              :class="[
+                'group relative h-full overflow-hidden rounded-3xl',
+                form.images.length > 0
+                  ? 'bg-black'
+                  : 'bg-black/10 hover:bg-black/20',
+              ]"
             >
               <label
                 v-if="!form.images || form.images?.length === 0"
@@ -79,7 +92,7 @@
               <img
                 v-if="!!form.images?.[currentSelectedImage]?.name"
                 :src="getMediaUrl(form.images[currentSelectedImage]!.name!)"
-                class="h-full w-full object-cover"
+                class="h-full w-full object-contain"
               />
             </div>
           </div>
