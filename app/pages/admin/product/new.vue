@@ -146,6 +146,7 @@
               :loading="isCategorySelectLoading"
               loading-icon="line-md:loading-loop"
               class="w-full"
+              placeholder="e.g: Chibi"
               create-item
               @create="createCategory"
               @update:open="onCategorySelectOpen"
