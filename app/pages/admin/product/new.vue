@@ -99,8 +99,8 @@
         </div>
       </div>
 
-      <div class="flex w-[300px] shrink-0 flex-col gap-y-6">
-        <div>
+      <div class="w-[300px] shrink-0">
+        <div class="flex flex-col gap-y-6">
           <UFormField label="Description">
             <UTextarea
               v-model="form.description"
@@ -108,15 +108,11 @@
               class="w-full"
             />
           </UFormField>
-        </div>
 
-        <div>
           <UFormField label="Slug" :help="`/product/${form.slug}`">
             <UInput v-model="form.slug" placeholder="slug" class="w-full" />
           </UFormField>
-        </div>
 
-        <div>
           <UFormField label="Price">
             <UInputNumber
               v-model="form.price"
