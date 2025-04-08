@@ -7,7 +7,14 @@ export default defineEventHandler(async event => {
   const client = await serverSupabaseClient<Database>(event)
   const body = await readBody<FormBody>(event)
 
-  const { error } = await client.from('products').insert(body)
+  if (!body) throw createError({ statusMessage: 'No payload sent.' })
+
+  const payload: FormBody = {
+    ...body,
+    created_at: new Date().toISOString(),
+  }
+
+  const { error } = await client.from('products').insert(payload).select()
 
   if (error) {
     throw createError({ statusMessage: error.message })
