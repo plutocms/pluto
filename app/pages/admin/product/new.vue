@@ -3,6 +3,19 @@
     <UploadMedia v-model="isMediaModalOpen" @insert="onInsertMedia" />
 
     <div class="flex items-start justify-between gap-x-6">
+      <div class="self-center pt-6 pl-6">
+        <UButton
+          as="NuxtLink"
+          to="/admin/products"
+          variant="subtle"
+          color="neutral"
+          class="h-10 w-10 shrink-0 rounded-full text-3xl"
+          title="Back to Products list"
+          icon="lucide:arrow-left"
+          square
+        />
+      </div>
+
       <div class="grow bg-transparent">
         <input
           v-model="form.name"
