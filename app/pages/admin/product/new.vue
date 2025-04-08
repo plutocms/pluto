@@ -20,7 +20,7 @@
         <input
           v-model="form.name"
           v-autofocus
-          placeholder="Product name"
+          placeholder="Add title"
           type="text"
           class="h-full w-full px-4 pt-8 text-4xl font-bold outline-0"
         />
