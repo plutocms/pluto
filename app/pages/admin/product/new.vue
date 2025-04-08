@@ -124,6 +124,15 @@
               }"
             />
           </UFormField>
+
+          <UFormField label="Style">
+            <UInputMenu
+              v-model="form.productStyle"
+              :items="productStyles"
+              class="w-full"
+              create-item
+            />
+          </UFormField>
         </div>
       </div>
     </div>
@@ -154,16 +163,28 @@
     slug: string
     description: string
     price: number
-    productStyles: string[]
+    productStyle: string
     images: EmitValue[]
   }
+
+  const { data: categories } = await useFetch('/api/category/list')
+
+  const productStyles = computed(() => {
+    if (!categories.value?.data) return
+
+    const transformedData = categories.value.data.map(item => {
+      return item.label
+    })
+
+    return transformedData
+  })
 
   const form = reactive<Form>({
     name: '',
     slug: '',
     description: '',
     price: 0,
-    productStyles: [],
+    productStyle: '',
     images: [],
   })
 
