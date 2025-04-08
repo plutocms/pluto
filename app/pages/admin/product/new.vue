@@ -135,6 +135,7 @@
                 currencyDisplay: 'symbol',
                 currencySign: 'accounting',
               }"
+              class="w-full"
             />
           </UFormField>
 
