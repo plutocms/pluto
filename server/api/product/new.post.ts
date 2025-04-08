@@ -1,7 +1,10 @@
 import { serverSupabaseClient } from '#supabase/server'
 import type { Database } from '~~/types/supabase'
 
-type FormBody = Database['public']['Tables']['products']['Insert']
+type Media = Database['public']['Tables']['media']['Row']
+type FormBody = Database['public']['Tables']['products']['Insert'] & {
+  media: Media[]
+}
 
 export default defineEventHandler(async event => {
   const client = await serverSupabaseClient<Database>(event)
@@ -9,8 +12,9 @@ export default defineEventHandler(async event => {
 
   if (!body) throw createError({ statusMessage: 'No payload sent.' })
 
-  const payload: FormBody = {
-    ...body,
+  const { media: _, ...bodyWithoutMedia } = body
+  const payload: Omit<FormBody, 'media'> = {
+    ...bodyWithoutMedia,
     created_at: new Date().toISOString(),
   }
 
@@ -20,8 +24,18 @@ export default defineEventHandler(async event => {
     throw createError({ statusMessage: error.message })
   }
 
+  const { error: mediaError } = await client
+    .from('media')
+    .insert(body.media)
+    .select()
+
+  if (mediaError) {
+    throw createError({ statusMessage: mediaError.message })
+  }
+
   return {
     message: 'Product created successfully',
     statusCode: 200,
+    data: body,
   }
 })

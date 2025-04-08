@@ -45,9 +45,9 @@
             <div
               class="box-content flex w-full flex-col gap-y-3 pt-1 pr-4 pl-1"
             >
-              <template v-if="form.images && form.images?.length > 0">
+              <template v-if="form.media && form.media?.length > 0">
                 <div
-                  v-for="(image, index) in form.images"
+                  v-for="(image, index) in form.media"
                   :key="index"
                   :class="[
                     'h-14 w-14 overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20',
@@ -80,20 +80,20 @@
             <div
               :class="[
                 'group relative h-full overflow-hidden rounded-3xl',
-                form.images.length > 0
+                form.media.length > 0
                   ? 'bg-black'
                   : 'bg-black/10 hover:bg-black/20',
               ]"
             >
               <label
-                v-if="!form.images || form.images?.length === 0"
+                v-if="!form.media || form.media?.length === 0"
                 for="main-image"
                 class="absolute top-0 left-0 h-full w-full"
                 @click="openMediaModal"
               />
 
               <div
-                v-if="!form.images || form.images?.length === 0"
+                v-if="!form.media || form.media?.length === 0"
                 class="pointer-events-none absolute top-0 left-0 grid h-full w-full place-items-center"
               >
                 <Icon
@@ -103,8 +103,8 @@
               </div>
 
               <img
-                v-if="!!form.images?.[currentSelectedImage]?.name"
-                :src="getMediaUrl(form.images[currentSelectedImage]!.name!)"
+                v-if="!!form.media?.[currentSelectedImage]?.name"
+                :src="getMediaUrl(form.media[currentSelectedImage]!.name!)"
                 class="h-full w-full object-contain"
               />
             </div>
@@ -171,9 +171,9 @@
   const productSlug = useChangeCase('', 'kebabCase')
 
   const currentSelectedImage = ref<number>(0)
-  const lastImageIndex = computed<number>(() => form.images.length - 1)
+  const lastImageIndex = computed<number>(() => form.media.length - 1)
 
-  type EmitValue = Database['public']['Tables']['media']['Row']
+  type Media = Database['public']['Tables']['media']['Row']
 
   interface Form {
     name: string
@@ -181,7 +181,7 @@
     description: string
     price: number
     productStyle: string
-    images: EmitValue[]
+    media: Media[]
   }
 
   const { data: categories, refresh: refreshCategories } =
@@ -203,7 +203,7 @@
     description: '',
     price: 0,
     productStyle: '',
-    images: [],
+    media: [],
   })
 
   watch(
@@ -219,14 +219,14 @@
     type Payload = Omit<
       Database['public']['Tables']['products']['Insert'],
       'id' | 'created_at'
-    >
+    > & { media: Media[] }
 
     const payload: Payload = {
       slug: form.slug,
       name: form.name || 'Untitled',
       description: form.description || null,
       price: form.price ?? 0,
-      images: form.images.map(image => getMediaUrl(image.name ?? '')),
+      media: form.media,
     }
 
     $fetch('/api/product/new', {
@@ -245,13 +245,11 @@
     isMediaModalOpen.value = false
   }
 
-  function onInsertMedia(event: EmitValue[]) {
-    console.log('Received', event)
-
-    if (form.images.length > 0) {
-      form.images.push(...event)
+  function onInsertMedia(event: Media[]) {
+    if (form.media.length > 0) {
+      form.media.push(...event)
     } else {
-      form.images = event
+      form.media = event
     }
 
     currentSelectedImage.value = lastImageIndex.value
