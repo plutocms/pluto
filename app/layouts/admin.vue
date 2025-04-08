@@ -24,7 +24,7 @@
   const menu = ref<NavigationMenuItem[]>([
     {
       label: 'Home',
-      href: '/admin',
+      href: '/admin/home',
     },
     {
       label: 'Products',
