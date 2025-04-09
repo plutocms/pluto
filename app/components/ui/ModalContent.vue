@@ -8,7 +8,7 @@
       <slot name="header" />
     </div>
 
-    <div class="px-1">
+    <div class="px-1 pt-6">
       <slot />
     </div>
   </div>
