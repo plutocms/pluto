@@ -141,7 +141,7 @@
 
           <UFormField label="Style">
             <UInputMenu
-              v-model="form.productStyle"
+              v-model="form.product_style"
               v-model:open="isCategorySelectOpen"
               :items="productStyles"
               :loading="isCategorySelectLoading"
@@ -182,7 +182,7 @@
     slug: string
     description: string
     price: number
-    productStyle: string
+    product_style: string
     media: Media[]
   }
 
@@ -204,7 +204,7 @@
     slug: '',
     description: '',
     price: 0,
-    productStyle: '',
+    product_style: '',
     media: [],
   })
 
@@ -229,6 +229,7 @@
       description: form.description || null,
       price: form.price ?? 0,
       media: form.media,
+      product_style: form.product_style,
     }
 
     $fetch('/api/product/new', {
@@ -285,7 +286,7 @@
       .then(async () => {
         await refreshCategories()
 
-        form.productStyle = item
+        form.product_style = item
 
         isCategorySelectOpen.value = false
       })
