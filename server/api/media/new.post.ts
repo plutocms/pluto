@@ -1,6 +1,6 @@
 import type { Database } from '~~/types/supabase'
 import { serverSupabaseClient } from '#supabase/server'
-import { kebabCase } from 'change-case'
+import { fileNameToKebabCase } from '~/utils/string'
 
 export default defineEventHandler(async event => {
   const client = await serverSupabaseClient<Database>(event)
@@ -12,20 +12,15 @@ export default defineEventHandler(async event => {
       message: 'No file sent.',
     })
 
-  const fileName = formData[0].filename.replace(/(.*)(\.\w+$)/, `$1`)
-  const fileExtension = formData[0].filename.replace(/(.*)(\.\w+$)/, `$2`)
+  const fileName = fileNameToKebabCase(formData[0].filename)
 
   const { data: mediaUploadData, error: mediaUploadError } =
     await client.storage
       .from('media')
-      .upload(
-        `uploads/${kebabCase(fileName)}${fileExtension}`,
-        formData[0].data,
-        {
-          contentType: formData[0].type,
-          upsert: true,
-        }
-      )
+      .upload(`uploads/${fileName}`, formData[0].data, {
+        contentType: formData[0].type,
+        upsert: true,
+      })
 
   if (mediaUploadError) {
     throw createError({
@@ -34,7 +29,7 @@ export default defineEventHandler(async event => {
   }
 
   const { error } = await client.from('media').insert({
-    name: `${encodeURIComponent(kebabCase(fileName))}${fileExtension}`,
+    name: fileName,
     alt: formData[2].data.toString(),
     uid: mediaUploadData.id,
   })

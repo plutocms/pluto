@@ -107,10 +107,10 @@
 
                 <div v-if="isUploaded && files?.[0]?.name" class="truncate">
                   <ULink
-                    :href="getMediaUrl(kebabCase(files[0].name))"
+                    :href="getMediaUrl(fileNameToKebabCase(files[0].name))"
                     target="_blank"
                   >
-                    {{ getMediaUrl(kebabCase(files[0].name)) }}
+                    {{ getMediaUrl(fileNameToKebabCase(files[0].name)) }}
                   </ULink>
                 </div>
 
@@ -175,7 +175,6 @@
 
 <script setup lang="ts">
   import type { TabsItem } from '@nuxt/ui'
-  import { kebabCase } from 'change-case'
   import type { Database } from '~~/types/supabase'
 
   const isMediaModalOpen = defineModel<boolean>({
