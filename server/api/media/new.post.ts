@@ -24,19 +24,22 @@ export default defineEventHandler(async event => {
 
   if (mediaUploadError) {
     throw createError({
-      message: 'error',
+      message: mediaUploadError.message,
     })
   }
 
-  const { error } = await client.from('media').insert({
-    name: fileName,
-    alt: formData[2].data.toString(),
-    uid: mediaUploadData.id,
-  })
+  const { data, error } = await client
+    .from('media')
+    .insert({
+      name: fileName,
+      alt: formData[2].data.toString(),
+    })
+    .select()
+    .single()
 
   if (error) {
-    throw createError({ message: 'error' })
+    throw createError({ message: error.message })
   }
 
-  return { mediaUploadData }
+  return { mediaUploadData, data }
 })

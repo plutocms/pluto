@@ -249,6 +249,9 @@
   const isUploaded = ref<boolean>(false)
   const isUploading = ref<boolean>(false)
 
+  type Media = Database['public']['Tables']['media']['Row']
+  const uploadedMedia = ref<Media | null>(null)
+
   async function uploadMedia() {
     let response
     const file = files.value?.[0]
@@ -271,6 +274,8 @@
 
       if (response) {
         isUploaded.value = true
+
+        uploadedMedia.value = response.data
       }
     } catch (error) {
       console.error(error)
@@ -318,13 +323,19 @@
   type EmitValue = Database['public']['Tables']['media']['Row']
 
   const emit = defineEmits<{
-    insert: [value: EmitValue[]]
+    insert: [value: EmitValue | EmitValue[] | null]
   }>()
 
   function insertMedia() {
-    if (!transformedSelectedMedia.value) return
+    if (currentTab.value === '0') {
+      if (!transformedSelectedMedia.value) return
 
-    emit('insert', transformedSelectedMedia.value)
+      emit('insert', transformedSelectedMedia.value)
+    } else {
+      if (!uploadedMedia.value) return
+
+      emit('insert', uploadedMedia.value)
+    }
 
     resetAll()
   }

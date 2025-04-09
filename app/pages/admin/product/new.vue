@@ -248,11 +248,17 @@
     isMediaModalOpen.value = false
   }
 
-  function onInsertMedia(event: Media[]) {
-    if (form.media.length > 0) {
-      form.media.push(...event)
+  function onInsertMedia(event: Media | Media[] | null) {
+    if (Array.isArray(event)) {
+      if (form.media.length > 0) {
+        form.media.push(...event)
+      } else {
+        form.media = event
+      }
     } else {
-      form.media = event
+      if (event) {
+        form.media.push(event)
+      }
     }
 
     currentSelectedImage.value = lastImageIndex.value
