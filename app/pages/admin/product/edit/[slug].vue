@@ -21,6 +21,7 @@
   const { data: product } = await useFetch(
     `/api/product/edit/${route.params.slug}`,
     {
+      key: `/api/product/edit/${route.params.slug}`,
       transform: res => res?.data,
     }
   )
