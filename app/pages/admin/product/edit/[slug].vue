@@ -19,9 +19,9 @@
   const route = useRoute('admin-product-edit-slug')
 
   const { data: product } = await useFetch(
-    `/api/product/edit/${route.params.slug}`,
+    `/api/product/get/${route.params.slug}`,
     {
-      key: `/api/product/edit/${route.params.slug}`,
+      key: `/api/product/get/${route.params.slug}`,
       transform: res => res?.data,
     }
   )
