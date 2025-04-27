@@ -51,8 +51,6 @@
           />
         </div>
       </div>
-
-      <pre>{{ selectedMedia }}</pre>
     </div>
   </div>
 </template>
