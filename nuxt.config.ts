@@ -44,9 +44,9 @@ export default defineNuxtConfig({
     cookiePrefix: 'access_token',
 
     redirectOptions: {
-      login: '/login',
-      callback: '/confirm',
-      exclude: ['/', '/login', '/signup', '/product/*'],
+      login: '/admin/login',
+      callback: '/auth/confirm',
+      exclude: ['/admin/login', '/admin/signup'],
       cookieRedirect: false,
     },
   },
