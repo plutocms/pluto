@@ -6,3 +6,7 @@ export function fileNameToKebabCase(name: string) {
 
   return `${encodeURIComponent(kebabCase(fileName))}${fileExtension}`
 }
+
+export function slugify(text: string) {
+  return kebabCase(text.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+}

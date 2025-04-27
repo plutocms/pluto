@@ -168,7 +168,6 @@
 <script lang="ts">
   import type { Database } from '~~/types/supabase'
   import { useChangeCase } from '@vueuse/integrations/useChangeCase'
-  import { kebabCase } from 'change-case'
 
   type Product = Database['public']['Tables']['products']['Row']
   type Media = Database['public']['Tables']['media']['Row']
@@ -223,11 +222,20 @@
   })
 
   watch(
-    () => form.value?.name,
+    () => form.value.name,
     value => {
-      productSlug.value = value ?? ''
+      productSlug.value = slugify(value) ?? ''
 
-      form.value.slug = productSlug.value
+      form.value.slug = slugify(productSlug.value)
+    }
+  )
+
+  watch(
+    () => form.value.slug,
+    value => {
+      productSlug.value = slugify(value) ?? ''
+
+      form.value.slug = slugify(productSlug.value)
     }
   )
 
@@ -263,7 +271,7 @@
         return
       }
 
-      await $fetch(`/api/product/edit/${route.params.slug}`, {
+      await $fetch(`/api/product/edit/${payload.slug}`, {
         method: 'PUT',
         body: payload,
       })
@@ -318,7 +326,7 @@
 
     const payload: Omit<Category, 'id' | 'description'> = {
       label: item,
-      slug: kebabCase(item),
+      slug: slugify(item),
     }
 
     isCategorySelectLoading.value = true
