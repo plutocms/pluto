@@ -103,7 +103,7 @@
               </div>
 
               <div class="flex w-[300px] shrink-0 flex-col gap-y-4">
-                <div>{{ files?.[0]?.name }}</div>
+                <div class="wrap-break-word">{{ files?.[0]?.name }}</div>
 
                 <div v-if="isUploaded && files?.[0]?.name" class="truncate">
                   <ULink
