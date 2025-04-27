@@ -22,12 +22,12 @@ export default defineEventHandler(async event => {
     created_at: new Date().toISOString(),
   }
 
-  const { error } = await client
+  const { data, error } = await client
     .from('products')
-    .update(payload)
-    .eq('slug', params.slug)
-    .select()
-    .maybeSingle()
+    .upsert(payload)
+    .eq('slug', body.slug)
+    .select('*')
+    .single()
 
   if (error) {
     throw createError({ statusMessage: error.message })
@@ -38,10 +38,10 @@ export default defineEventHandler(async event => {
     product_id: body.id,
   }))
 
-  const { error: mediaError } = await client
+  const { data: media, error: mediaError } = await client
     .from('media')
     .upsert(mediaPayload, { onConflict: 'id' })
-    .select()
+    .select('*')
 
   if (mediaError) {
     throw createError({ statusMessage: mediaError.message })
@@ -50,6 +50,6 @@ export default defineEventHandler(async event => {
   return {
     message: 'Product created successfully',
     statusCode: 200,
-    data: body,
+    data: { ...data, media },
   }
 })
