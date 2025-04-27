@@ -1,6 +1,6 @@
 import type { Database } from '~~/types/supabase'
 import { serverSupabaseClient } from '#supabase/server'
-import { fileNameToKebabCase } from '~/utils/string'
+import { fileNameToKebabCase } from '#layers/pluto/app/utils/string'
 
 export default defineEventHandler(async event => {
   const client = await serverSupabaseClient<Database>(event)
