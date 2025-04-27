@@ -4,7 +4,6 @@ Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduct
 
 ## Requirements
 
-- [Node.js](https://nodejs.org) version 20 or higher (LTS)
 - [Bun](https://bun.sh/) version 1.2.9 or higher
 
 ## Setup
