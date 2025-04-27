@@ -89,8 +89,8 @@
         }),
     },
     {
-      accessorKey: 'product_styles',
-      header: 'Styles',
+      accessorKey: 'product_style',
+      header: 'Style',
     },
     {
       accessorKey: 'slug',
