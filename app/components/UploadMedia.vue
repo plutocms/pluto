@@ -181,6 +181,10 @@
     default: false,
   })
 
+  const props = defineProps<{
+    productId?: number
+  }>()
+
   const { getMediaUrl } = useMedia()
 
   const {
@@ -313,7 +317,10 @@
       ?.map(item => {
         if (!mediaList.value) return undefined
 
-        return mediaList.value.data.find(dataItem => item === dataItem.id)
+        return {
+          ...mediaList.value.data.find(dataItem => item === dataItem.id),
+          product_id: props.productId ?? null,
+        }
       })
       .filter((item): item is EmitValue => item !== undefined)
 
