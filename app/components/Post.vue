@@ -275,6 +275,8 @@
         method: 'PUT',
         body: payload,
       })
+
+      navigateTo(`/admin/product/edit/${payload.slug}`)
     } catch (error) {
       console.error('An error occurred')
     } finally {
