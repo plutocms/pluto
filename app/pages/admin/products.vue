@@ -59,9 +59,9 @@
   })
 
   const { data: products, refresh: refreshProducts } = await useFetch(
-    '/api/products',
+    '/api/product/list',
     {
-      key: '/api/products',
+      key: '/api/product/list',
     }
   )
 
