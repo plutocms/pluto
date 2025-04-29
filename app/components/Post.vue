@@ -183,7 +183,7 @@
     title: 'Add new product',
   })
 
-  const route = useRoute('admin-product-edit-slug')
+  const route = useRoute('admin-product-edit-id')
 
   const props = defineProps<{
     productId?: number
@@ -261,22 +261,20 @@
       isSubmitting.value = true
 
       if (!isEditing.value) {
-        await $fetch('/api/product/new', {
+        const { data } = await $fetch('/api/product/new', {
           method: 'POST',
           body: payload,
         })
 
-        navigateTo(`/admin/product/edit/${payload.slug}`)
+        navigateTo(`/admin/product/edit/${data.id}`)
 
         return
       }
 
-      await $fetch(`/api/product/edit/${payload.slug}`, {
+      await $fetch(`/api/product/edit/${payload.id}`, {
         method: 'PUT',
         body: payload,
       })
-
-      navigateTo(`/admin/product/edit/${payload.slug}`)
     } catch (error) {
       console.error('An error occurred')
     } finally {

@@ -46,6 +46,9 @@ export default defineEventHandler(async event => {
   return {
     message: 'Product created successfully',
     statusCode: 200,
-    data: body,
+    data: {
+      id: data.id,
+      ...body,
+    },
   }
 })

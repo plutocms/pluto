@@ -7,12 +7,12 @@
 <script setup lang="ts">
   import type { Form } from '#layers/pluto/app/components/Post.vue'
 
-  const route = useRoute('admin-product-edit-slug')
+  const route = useRoute('admin-product-edit-id')
 
   const { data: product } = await useFetch(
-    `/api/product/get/${route.params.slug}`,
+    `/api/product/get/${route.params.id}`,
     {
-      key: `/api/product/get/${route.params.slug}`,
+      key: `/api/product/get/${route.params.id}`,
       transform: res => res?.data,
     }
   )

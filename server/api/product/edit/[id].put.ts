@@ -24,7 +24,7 @@ export default defineEventHandler(async event => {
   const { data, error } = await client
     .from('products')
     .update(payload)
-    .eq('slug', body.slug)
+    .eq('id', Number(body.id))
     .select('*')
     .single()
 
