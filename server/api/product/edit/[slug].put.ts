@@ -19,12 +19,11 @@ export default defineEventHandler(async event => {
 
   const payload: Omit<FormBody, 'media'> = {
     ...bodyWithoutMedia,
-    created_at: new Date().toISOString(),
   }
 
   const { data, error } = await client
     .from('products')
-    .upsert(payload)
+    .update(payload)
     .eq('slug', body.slug)
     .select('*')
     .single()
