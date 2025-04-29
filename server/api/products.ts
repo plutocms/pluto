@@ -4,7 +4,10 @@ import type { Database } from '~~/types/supabase'
 export default defineEventHandler(async event => {
   const client = await serverSupabaseClient<Database>(event)
 
-  const { data, error } = await client.from('products').select('*, media(*)')
+  const { data, error } = await client
+    .from('products')
+    .select('*, media(*)')
+    .order('created_at', { ascending: false })
 
   if (error) {
     throw createError({ statusMessage: error.message })
