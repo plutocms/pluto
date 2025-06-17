@@ -1,10 +1,14 @@
 {
   "recommendations": [
-    "bradlc.vscode-tailwindcss",
+    "Vue.volar",
     "EditorConfig.EditorConfig",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
     "antfu.goto-alias",
     "antfu.iconify",
-    "esbenp.prettier-vscode"
+    "streetsidesoftware.code-spell-checker",
+    "usernamehw.errorlens"
   ],
   "unwantedRecommendations": ["octref.vetur"]
 }
