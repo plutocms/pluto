@@ -8,5 +8,5 @@ export function fileNameToKebabCase(name: string) {
 }
 
 export function slugify(text: string) {
-  return kebabCase(text.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+  return kebabCase(text.normalize('NFD').replace(/[\u0300-\u036F]/g, ''))
 }

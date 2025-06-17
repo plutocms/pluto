@@ -1,3 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
   <nav
     class="sticky top-0 z-50 h-10 shrink-0 border-b border-black/10 bg-black/90 text-white dark:border-white/5 dark:bg-black"
@@ -9,5 +11,3 @@
     </div>
   </nav>
 </template>
-
-<script setup lang="ts"></script>

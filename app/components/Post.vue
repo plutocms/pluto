@@ -1,3 +1,191 @@
+<script lang="ts">
+import type { Database } from '~~/types/supabase'
+import { useChangeCase } from '@vueuse/integrations/useChangeCase'
+
+type Product = Database['public']['Tables']['products']['Row']
+type Media = Database['public']['Tables']['media']['Row']
+
+export interface Form extends Omit<Product, 'id' | 'created_at'> {
+  media: Media[]
+  product_style: string
+}
+</script>
+
+<script setup lang="ts">
+const props = defineProps<{
+  productId?: number
+}>()
+
+useHead({
+  title: 'Add new product',
+})
+
+const route = useRoute('admin-product-edit-id')
+
+const { getMediaUrl } = useMedia()
+
+const productSlug = useChangeCase('', 'kebabCase')
+
+const currentSelectedImage = ref<number>(0)
+const lastImageIndex = computed<number>(() => form.value.media?.length - 1)
+const isEditing = computed<boolean>(() => route.path.includes('edit'))
+
+const { data: categories, refresh: refreshCategories } =
+  await useFetch('/api/category/list')
+
+const productStyles = computed(() => {
+  if (!categories.value?.data) {
+    return
+  }
+
+  const transformedData = categories.value.data.map((item) => {
+    return item.label
+  })
+
+  return transformedData
+})
+
+const form = defineModel<Form>({
+  default: {
+    name: '',
+    slug: '',
+    description: '',
+    price: 0,
+    product_style: '',
+    media: [],
+  },
+})
+
+watch(
+  () => form.value.name,
+  (value) => {
+    if (form.value.slug !== route.params.id) {
+      productSlug.value = slugify(value) ?? ''
+
+      form.value.slug = slugify(productSlug.value)
+    }
+  }
+)
+
+watch(
+  () => form.value.slug,
+  (value) => {
+    productSlug.value = slugify(value) ?? ''
+
+    form.value.slug = slugify(productSlug.value)
+  }
+)
+
+const isSubmitting = ref<boolean>(false)
+
+async function submitForm() {
+  type Payload = Omit<
+    Database['public']['Tables']['products']['Insert'],
+    'created_at'
+  > & { media: Media[] }
+
+  const payload: Payload = {
+    id: props.productId ?? undefined,
+    slug: form.value?.slug ?? '',
+    name: form.value?.name || 'Untitled',
+    description: form.value?.description || null,
+    price: form.value?.price ?? 0,
+    media: form.value?.media,
+    product_style: form.value?.product_style,
+  }
+
+  try {
+    isSubmitting.value = true
+
+    if (!isEditing.value) {
+      const { data } = await $fetch('/api/product/new', {
+        method: 'POST',
+        body: payload,
+      })
+
+      navigateTo(`/admin/product/edit/${data.id}`)
+
+      return
+    }
+
+    await $fetch(`/api/product/edit/${payload.id}`, {
+      method: 'PUT',
+      body: payload,
+    })
+  } catch (error) {
+    console.error('An error occurred')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const isMediaModalOpen = ref<boolean>(false)
+
+function openMediaModal() {
+  isMediaModalOpen.value = true
+}
+
+function closeMediaModal() {
+  isMediaModalOpen.value = false
+}
+
+function handleInsertMedia(event: Media | Media[] | null) {
+  if (Array.isArray(event)) {
+    if (form.value.media?.length > 0) {
+      form.value.media.push(...event)
+    } else {
+      form.value.media = event
+    }
+  } else {
+    if (event) {
+      form.value.media.push(event)
+    }
+  }
+
+  currentSelectedImage.value = lastImageIndex.value
+
+  closeMediaModal()
+}
+
+const isCategorySelectOpen = ref<boolean>(false)
+const isCategorySelectLoading = ref<boolean>(false)
+
+function onCategorySelectOpen(event: boolean) {
+  if (event === true) {
+    refreshCategories()
+  }
+}
+
+async function createCategory(item: string) {
+  type Category = Database['public']['Tables']['categories']['Row']
+
+  const payload: Omit<Category, 'id' | 'description'> = {
+    label: item,
+    slug: slugify(item),
+  }
+
+  isCategorySelectLoading.value = true
+
+  await $fetch('/api/category/new', {
+    method: 'POST',
+    body: payload,
+  })
+    .then(async () => {
+      await refreshCategories()
+
+      form.value.product_style = item
+
+      isCategorySelectOpen.value = false
+    })
+    .catch((error) => {
+      console.error(error.message)
+    })
+    .finally(() => {
+      isCategorySelectLoading.value = false
+    })
+}
+</script>
+
 <template>
   <div>
     <UploadMedia
@@ -32,10 +220,10 @@
 
       <div class="pt-4 pr-4">
         <UButton
-          type="button"
           :icon="isEditing ? 'lucide:save' : 'lucide:check'"
           :loading="isSubmitting"
           :disabled="form.name === ''"
+          type="button"
           size="xl"
           @click="submitForm"
         >
@@ -56,9 +244,9 @@
                   v-for="(image, index) in form.media"
                   :key="index"
                   :class="[
-                    'h-14 w-14 overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20',
                     currentSelectedImage === index && 'ring-2 ring-green-400',
                   ]"
+                  class="h-14 w-14 overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20"
                   @click="currentSelectedImage = index"
                 >
                   <img
@@ -85,11 +273,11 @@
           <div class="aspect-square w-[600px]">
             <div
               :class="[
-                'group relative h-full overflow-hidden rounded-3xl',
                 form.media?.length > 0
                   ? 'bg-black'
                   : 'bg-black/10 hover:bg-black/20',
               ]"
+              class="group relative h-full overflow-hidden rounded-3xl"
             >
               <label
                 v-if="!form.media || form.media?.length === 0"
@@ -128,7 +316,7 @@
             />
           </UFormField>
 
-          <UFormField label="Slug" :help="`/product/${form.slug}`">
+          <UFormField :help="`/product/${form.slug}`" label="Slug">
             <UInput v-model="form.slug" placeholder="slug" class="w-full" />
           </UFormField>
 
@@ -164,189 +352,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts">
-  import type { Database } from '~~/types/supabase'
-  import { useChangeCase } from '@vueuse/integrations/useChangeCase'
-
-  type Product = Database['public']['Tables']['products']['Row']
-  type Media = Database['public']['Tables']['media']['Row']
-
-  export interface Form extends Omit<Product, 'id' | 'created_at'> {
-    media: Media[]
-    product_style: string
-  }
-</script>
-
-<script setup lang="ts">
-  useHead({
-    title: 'Add new product',
-  })
-
-  const route = useRoute('admin-product-edit-id')
-
-  const props = defineProps<{
-    productId?: number
-  }>()
-
-  const { getMediaUrl } = useMedia()
-
-  const productSlug = useChangeCase('', 'kebabCase')
-
-  const currentSelectedImage = ref<number>(0)
-  const lastImageIndex = computed<number>(() => form.value.media?.length - 1)
-  const isEditing = computed<boolean>(() => route.path.includes('edit'))
-
-  const { data: categories, refresh: refreshCategories } =
-    await useFetch('/api/category/list')
-
-  const productStyles = computed(() => {
-    if (!categories.value?.data) return
-
-    const transformedData = categories.value.data.map(item => {
-      return item.label
-    })
-
-    return transformedData
-  })
-
-  const form = defineModel<Form>({
-    default: {
-      name: '',
-      slug: '',
-      description: '',
-      price: 0,
-      product_style: '',
-      media: [],
-    },
-  })
-
-  watch(
-    () => form.value.name,
-    value => {
-      productSlug.value = slugify(value) ?? ''
-
-      form.value.slug = slugify(productSlug.value)
-    }
-  )
-
-  watch(
-    () => form.value.slug,
-    value => {
-      productSlug.value = slugify(value) ?? ''
-
-      form.value.slug = slugify(productSlug.value)
-    }
-  )
-
-  const isSubmitting = ref<boolean>(false)
-
-  async function submitForm() {
-    type Payload = Omit<
-      Database['public']['Tables']['products']['Insert'],
-      'created_at'
-    > & { media: Media[] }
-
-    const payload: Payload = {
-      id: props.productId ?? undefined,
-      slug: form.value?.slug ?? '',
-      name: form.value?.name || 'Untitled',
-      description: form.value?.description || null,
-      price: form.value?.price ?? 0,
-      media: form.value?.media,
-      product_style: form.value?.product_style,
-    }
-
-    try {
-      isSubmitting.value = true
-
-      if (!isEditing.value) {
-        const { data } = await $fetch('/api/product/new', {
-          method: 'POST',
-          body: payload,
-        })
-
-        navigateTo(`/admin/product/edit/${data.id}`)
-
-        return
-      }
-
-      await $fetch(`/api/product/edit/${payload.id}`, {
-        method: 'PUT',
-        body: payload,
-      })
-    } catch (error) {
-      console.error('An error occurred')
-    } finally {
-      isSubmitting.value = false
-    }
-  }
-
-  const isMediaModalOpen = ref<boolean>(false)
-
-  function openMediaModal() {
-    isMediaModalOpen.value = true
-  }
-
-  function closeMediaModal() {
-    isMediaModalOpen.value = false
-  }
-
-  function handleInsertMedia(event: Media | Media[] | null) {
-    console.log(event)
-
-    if (Array.isArray(event)) {
-      if (form.value.media?.length > 0) {
-        form.value.media.push(...event)
-      } else {
-        form.value.media = event
-      }
-    } else {
-      if (event) {
-        form.value.media.push(event)
-      }
-    }
-
-    currentSelectedImage.value = lastImageIndex.value
-
-    closeMediaModal()
-  }
-
-  const isCategorySelectOpen = ref<boolean>(false)
-  const isCategorySelectLoading = ref<boolean>(false)
-
-  function onCategorySelectOpen(event: boolean) {
-    if (event === true) {
-      refreshCategories()
-    }
-  }
-
-  async function createCategory(item: string) {
-    type Category = Database['public']['Tables']['categories']['Row']
-
-    const payload: Omit<Category, 'id' | 'description'> = {
-      label: item,
-      slug: slugify(item),
-    }
-
-    isCategorySelectLoading.value = true
-
-    await $fetch('/api/category/new', {
-      method: 'POST',
-      body: payload,
-    })
-      .then(async () => {
-        await refreshCategories()
-
-        form.value.product_style = item
-
-        isCategorySelectOpen.value = false
-      })
-      .catch(error => {
-        console.error(error.message)
-      })
-      .finally(() => {
-        isCategorySelectLoading.value = false
-      })
-  }
-</script>

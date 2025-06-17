@@ -1,3 +1,122 @@
+<script setup lang="tsx">
+import type { TableColumn } from '@nuxt/ui'
+import type { Database } from '~~/types/supabase'
+import { NuxtLink, UButton, ULink } from '#components'
+
+type FilteredData = Database['public']['Tables']['products']['Row']
+
+useHead({
+  title: 'All products',
+})
+
+const { data: products, refresh: refreshProducts } = await useFetch(
+  '/api/product/list',
+  {
+    key: '/api/product/list',
+  }
+)
+
+const columns = ref<TableColumn<FilteredData>[]>([
+  {
+    accessorKey: 'id',
+    header: '#',
+  },
+  {
+    accessorKey: 'name',
+    header: 'Name',
+    cell: ({ row }) => (
+      <div class="flex flex-col gap-y-1">
+        <div>
+          <ULink to={`/admin/product/edit/${row.getValue('id')}`}>
+            {row.getValue('name')}
+          </ULink>
+        </div>
+
+        <div class="opacity-0 group-hover:opacity-100">
+          <div class="flex gap-x-3">
+            <NuxtLink
+              to={`/admin/product/edit/${row.getValue('id')}`}
+              class="cursor-pointer px-0 py-0.5 text-blue-300 hover:underline"
+            >
+              Edit
+            </NuxtLink>
+
+            <a
+              class="cursor-pointer px-0 py-0.5 text-red-400 hover:underline"
+              onClick={(event: Event) => {
+                event.preventDefault()
+                openRemoveProductModal(row.getValue('id'))
+              }}
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'price',
+    header: 'Price',
+    cell: ({ row }) =>
+      formatCurrency(row.getValue('price'), {
+        currency: 'BRL',
+        spaceBetween: true,
+      }),
+  },
+  {
+    accessorKey: 'product_style',
+    header: 'Style',
+  },
+  {
+    accessorKey: 'slug',
+    header: 'Slug',
+  },
+  {
+    accessorKey: 'created_at',
+    header: 'Created at',
+    cell: ({ row }) => new Date(row.getValue('created_at')).toLocaleString(),
+  },
+])
+
+const currentProductId = ref<number | null>(null)
+const isDeleteProductModalOpen = ref<boolean>(false)
+
+function openRemoveProductModal(productId: number | null) {
+  if (!productId) {
+    return
+  }
+
+  currentProductId.value = productId
+
+  isDeleteProductModalOpen.value = true
+}
+
+function closeRemoveProductModal() {
+  currentProductId.value = null
+
+  isDeleteProductModalOpen.value = false
+}
+
+async function deleteProduct(productId: number | null) {
+  if (!productId) {
+    return
+  }
+
+  try {
+    await $fetch(`/api/product/delete/${productId}`, {
+      method: 'DELETE',
+    })
+
+    refreshProducts()
+
+    closeRemoveProductModal()
+  } catch (error) {
+    console.error(error)
+  }
+}
+</script>
+
 <template>
   <div>
     <Modal v-model="isDeleteProductModalOpen">
@@ -41,110 +160,17 @@
       </div>
 
       <div class="rounded-2xl bg-black/20">
-        <UTable ref="table" :data="products?.data" :columns="columns" />
+        <UTable
+          :data="products?.data"
+          :columns="columns"
+          :meta="{
+            class: {
+              tr: 'group',
+              td: 'py-1!',
+            },
+          }"
+        />
       </div>
     </div>
   </div>
 </template>
-
-<script setup lang="tsx">
-  import type { TableColumn } from '@nuxt/ui'
-  import type { Database } from '~~/types/supabase'
-  import { UButton, UIcon, ULink } from '#components'
-
-  type FilteredData = Database['public']['Tables']['products']['Row']
-
-  useHead({
-    title: 'All products',
-  })
-
-  const { data: products, refresh: refreshProducts } = await useFetch(
-    '/api/product/list',
-    {
-      key: '/api/product/list',
-    }
-  )
-
-  const columns = ref<TableColumn<FilteredData>[]>([
-    {
-      accessorKey: 'id',
-      header: '#',
-    },
-    {
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }) => (
-        <ULink to={`/admin/product/edit/${row.getValue('id')}`}>
-          {row.getValue('name')}
-        </ULink>
-      ),
-    },
-    {
-      accessorKey: 'price',
-      header: 'Price',
-      cell: ({ row }) =>
-        formatCurrency(row.getValue('price'), {
-          currency: 'BRL',
-          spaceBetween: true,
-        }),
-    },
-    {
-      accessorKey: 'product_style',
-      header: 'Style',
-    },
-    {
-      accessorKey: 'slug',
-      header: 'Slug',
-    },
-    {
-      accessorKey: 'created_at',
-      header: 'Created at',
-      cell: ({ row }) => new Date(row.getValue('created_at')).toLocaleString(),
-    },
-    {
-      header: 'Actions',
-      cell: ({ row }) => (
-        <UButton
-          variant="ghost"
-          color="error"
-          onClick={() => openRemoveProductModal(row.getValue('id'))}
-        >
-          <UIcon name="lucide:trash" />
-        </UButton>
-      ),
-    },
-  ])
-
-  const currentProductId = ref<number | null>(null)
-  const isDeleteProductModalOpen = ref<boolean>(false)
-
-  function openRemoveProductModal(productId: number | null) {
-    if (!productId) return
-
-    currentProductId.value = productId
-
-    isDeleteProductModalOpen.value = true
-  }
-
-  function closeRemoveProductModal() {
-    currentProductId.value = null
-
-    isDeleteProductModalOpen.value = false
-  }
-
-  async function deleteProduct(productId: number | null) {
-    if (!productId) return
-
-    try {
-      await $fetch(`/api/product/delete/${productId}`, {
-        method: 'DELETE',
-      })
-
-      refreshProducts()
-
-      closeRemoveProductModal()
-    } catch (error) {
-      console.error(error)
-    }
-  }
-</script>

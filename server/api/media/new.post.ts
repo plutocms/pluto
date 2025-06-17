@@ -1,16 +1,17 @@
 import type { Database } from '~~/types/supabase'
-import { serverSupabaseClient } from '#supabase/server'
 import { fileNameToKebabCase } from '#layers/pluto/app/utils/string'
+import { serverSupabaseClient } from '#supabase/server'
 
-export default defineEventHandler(async event => {
+export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient<Database>(event)
 
   const formData = await readMultipartFormData(event)
 
-  if (!formData || !formData?.[0].filename)
+  if (!formData || !formData?.[0].filename) {
     throw createError({
       message: 'No file sent.',
     })
+  }
 
   const fileName = fileNameToKebabCase(formData[0].filename)
 

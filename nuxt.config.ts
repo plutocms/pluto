@@ -1,9 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  $meta: {
-    name: 'pluto',
-  },
-
   modules: [
     '@nuxt/eslint',
     '@nuxt/fonts',
@@ -13,6 +9,24 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     'reka-ui/nuxt',
   ],
+
+  $meta: {
+    name: 'pluto',
+  },
+
+  // Imports
+  components: {
+    dirs: [
+      {
+        path: './components',
+        pathPrefix: false,
+      },
+    ],
+  },
+
+  devtools: { enabled: true },
+
+  ignore: ['./scripts/**', './supabase/**'],
 
   routeRules: {
     '/admin': {
@@ -24,6 +38,19 @@ export default defineNuxtConfig({
       ssr: false,
     },
   },
+
+  // css: ['#layers/pluto/app/assets/css/tailwind.css'],
+
+  // Nuxt configuration
+  future: {
+    compatibilityVersion: 4,
+  },
+
+  experimental: {
+    typedPages: true,
+  },
+
+  compatibilityDate: '2024-11-01',
 
   eslint: {
     config: {
@@ -55,31 +82,4 @@ export default defineNuxtConfig({
       cookieRedirect: false,
     },
   },
-
-  // Imports
-  components: {
-    dirs: [
-      {
-        path: './components',
-        pathPrefix: false,
-      },
-    ],
-  },
-
-  css: ['~/assets/css/tailwind.css'],
-
-  // Nuxt configuration
-  future: {
-    compatibilityVersion: 4,
-  },
-
-  experimental: {
-    typedPages: true,
-  },
-
-  compatibilityDate: '2024-11-01',
-
-  ignore: ['./scripts/**', './supabase/**'],
-
-  devtools: { enabled: true },
 })

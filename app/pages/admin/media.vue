@@ -1,3 +1,37 @@
+<script setup lang="ts">
+useHead({
+  title: 'Media',
+})
+
+const { getMediaUrl } = useMedia()
+
+const selectedMedia = ref<number[]>([])
+
+const {
+  data: mediaList,
+  refresh: refreshMediaList,
+  status: mediaStatus,
+} = useFetch('/api/media/list', {
+  key: '/api/media/list',
+})
+
+function isSelected(id: number) {
+  return selectedMedia.value.includes(id)
+}
+
+function selectMedia(id: number) {
+  if (selectedMedia.value.includes(id)) {
+    const index = selectedMedia.value.indexOf(id)
+
+    selectedMedia.value.splice(index, 1)
+
+    return
+  }
+
+  selectedMedia.value.push(id)
+}
+</script>
+
 <template>
   <div class="flex flex-col gap-y-4 p-4">
     <div class="flex flex-col gap-y-6">
@@ -9,16 +43,16 @@
             }}
           </span>
 
-          <span v-else
-            >{{ selectedMedia.length }} of {{ mediaList?.data.length }} files
-            selected</span
-          >
+          <span v-else>
+            {{ selectedMedia.length }} of {{ mediaList?.data.length }} files
+            selected
+          </span>
         </div>
 
         <div>
           <UButton
-            icon="lucide:refresh-cw"
             :loading="mediaStatus === 'pending'"
+            icon="lucide:refresh-cw"
             @click="refreshMediaList()"
           >
             Refresh
@@ -54,37 +88,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-  useHead({
-    title: 'Media',
-  })
-
-  const { getMediaUrl } = useMedia()
-
-  const selectedMedia = ref<number[]>([])
-
-  const {
-    data: mediaList,
-    refresh: refreshMediaList,
-    status: mediaStatus,
-  } = useFetch('/api/media/list', {
-    key: '/api/media/list',
-  })
-
-  function isSelected(id: number) {
-    return selectedMedia.value.includes(id)
-  }
-
-  function selectMedia(id: number) {
-    if (selectedMedia.value.includes(id)) {
-      const index = selectedMedia.value.indexOf(id)
-
-      selectedMedia.value.splice(index, 1)
-
-      return
-    }
-
-    selectedMedia.value.push(id)
-  }
-</script>

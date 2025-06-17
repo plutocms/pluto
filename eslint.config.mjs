@@ -8,6 +8,8 @@ export default withNuxt(
     rules: {
       'style/arrow-parens': ['warn', 'always'],
 
+      'style/brace-style': ['warn', '1tbs'],
+
       'vue/block-order': [
         'warn',
         {

@@ -1,12 +1,12 @@
-import { serverSupabaseClient } from '#supabase/server'
 import type { Database } from '~~/types/supabase'
+import { serverSupabaseClient } from '#supabase/server'
 
-export default defineEventHandler(async event => {
+export default defineEventHandler(async (event) => {
   if (!event.context.params?.id) {
     throw createError({ message: 'No id provided.' })
   }
 
-  const id = parseInt(event.context.params?.id)
+  const id = Number.parseInt(event.context.params?.id)
 
   const client = await serverSupabaseClient<Database>(event)
 

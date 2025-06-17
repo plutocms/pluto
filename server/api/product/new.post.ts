@@ -1,16 +1,18 @@
-import { serverSupabaseClient } from '#supabase/server'
 import type { Database } from '~~/types/supabase'
+import { serverSupabaseClient } from '#supabase/server'
 
 type Media = Database['public']['Tables']['media']['Row']
 type FormBody = Database['public']['Tables']['products']['Insert'] & {
   media: Media[]
 }
 
-export default defineEventHandler(async event => {
+export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient<Database>(event)
   const body = await readBody<FormBody>(event)
 
-  if (!body) throw createError({ statusMessage: 'No payload sent.' })
+  if (!body) {
+    throw createError({ statusMessage: 'No payload sent.' })
+  }
 
   const { media: _, ...bodyWithoutMedia } = body
 
@@ -29,7 +31,7 @@ export default defineEventHandler(async event => {
     throw createError({ statusMessage: error.message })
   }
 
-  const mediaPayload = body.media.map(media => ({
+  const mediaPayload = body.media.map((media) => ({
     ...media,
     product_id: data.id,
   }))

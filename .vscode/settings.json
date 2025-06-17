@@ -13,9 +13,6 @@
     ["tw`(.*?)`", "tw\\('(.*?)'\\)", "tw\\(\\s*('(.*?)'|\"(.*?)\")\\s*\\)"],
     ["ui:\\s*{([^)]*)\\s*}", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
   ],
-  "editor.quickSuggestions": {
-    "strings": true
-  },
   "files.associations": {
     "*.css": "tailwindcss"
   },
@@ -28,6 +25,10 @@
   "editor.formatOnSave": true,
   "editor.gotoLocation.multipleDefinitions": "goto",
   "cSpell.words": ["chibi", "Chibi", "ellie"]
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+
   "eslint.useFlatConfig": true,
   "eslint.validate": [
     "javascript",

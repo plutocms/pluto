@@ -1,3 +1,44 @@
+<script setup lang="ts">
+import type { ClassNameValue } from 'tailwind-merge'
+import { twMerge } from 'tailwind-merge'
+
+interface Props {
+  hideCloseButton?: boolean
+  hideDivider?: boolean | null
+  class?: ClassNameValue
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  hideCloseButton: false,
+  hideDivider: false,
+  class: '',
+})
+
+const emit = defineEmits(['close'])
+
+const closeModel = defineModel<() => void>('close')
+
+const resolvedClasses = computed(() => {
+  const defaultClasses = `
+      sticky -top-4 left-0
+      z-51
+      -mx-4 -mt-4
+      flex flex-col gap-x-6
+      w-[calc(100%_+_2rem)]
+      px-4
+      rounded-t-lg
+    `
+
+  return twMerge([defaultClasses, props.class])
+})
+
+function closeModal() {
+  emit('close')
+
+  closeModel.value?.()
+}
+</script>
+
 <template>
   <div :class="resolvedClasses">
     <div
@@ -26,43 +67,3 @@
     <USeparator v-if="props.hideDivider === false" color="neutral" />
   </div>
 </template>
-
-<script setup lang="ts">
-  import { twMerge, type ClassNameValue } from 'tailwind-merge'
-
-  interface Props {
-    hideCloseButton?: boolean
-    hideDivider?: boolean | null
-    class?: ClassNameValue
-  }
-
-  const props = withDefaults(defineProps<Props>(), {
-    hideCloseButton: false,
-    hideDivider: false,
-    class: '',
-  })
-
-  const emit = defineEmits(['close'])
-
-  const closeModel = defineModel<() => void>('close')
-
-  const resolvedClasses = computed(() => {
-    const defaultClasses = `
-      sticky -top-4 left-0
-      z-51
-      -mx-4 -mt-4
-      flex flex-col gap-x-6
-      w-[calc(100%_+_2rem)]
-      px-4
-      rounded-t-lg
-    `
-
-    return twMerge([defaultClasses, props.class])
-  })
-
-  function closeModal() {
-    emit('close')
-
-    closeModel.value?.()
-  }
-</script>

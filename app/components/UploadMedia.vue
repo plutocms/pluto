@@ -1,3 +1,204 @@
+<script setup lang="ts">
+import type { TabsItem } from '@nuxt/ui'
+import type { Database } from '~~/types/supabase'
+
+const props = defineProps<{
+  productId?: number
+}>()
+
+const emit = defineEmits<{
+  insert: [value: EmitValue | EmitValue[] | null]
+}>()
+
+const isMediaModalOpen = defineModel<boolean>({
+  default: false,
+})
+
+const { getMediaUrl } = useMedia()
+
+const {
+  data: mediaList,
+  refresh: refreshMediaList,
+  status: mediaStatus,
+} = useFetch('/api/media/list', {
+  key: '/api/media/list',
+})
+
+function closeMediaModal() {
+  isMediaModalOpen.value = false
+}
+
+const currentTab = ref<'0' | '1'>('0')
+
+watch(currentTab, () => {
+  resetAll()
+
+  if (currentTab.value === '0') {
+    refreshMediaList()
+  }
+})
+
+const tabs = ref<TabsItem[]>([
+  {
+    label: 'Gallery',
+    icon: 'lucide:blocks',
+    slot: 'gallery',
+  },
+  {
+    label: 'Upload from your computer',
+    icon: 'lucide:upload',
+    slot: 'upload',
+  },
+])
+
+interface Form {
+  alt: string
+}
+
+const form = ref<Form>({
+  alt: '',
+})
+
+const { files, onChange, open, reset } = useFileDialog({
+  accept: 'image/*',
+})
+
+const mediaBlobList = ref<string[]>([])
+
+onChange(async () => {
+  const file = files.value?.[0]
+
+  if (!file) {
+    return
+  }
+
+  if (!mediaBlobList.value) {
+    mediaBlobList.value = []
+  }
+
+  const blob = useObjectURL(file).blob.value
+
+  if (!blob) {
+    return
+  }
+
+  mediaBlobList.value?.push(blob)
+})
+
+const isUploaded = ref<boolean>(false)
+const isUploading = ref<boolean>(false)
+
+type Media = Database['public']['Tables']['media']['Row']
+const uploadedMedia = ref<Media | null>(null)
+
+async function uploadMedia() {
+  let response
+  const file = files.value?.[0]
+
+  const formData = new FormData()
+
+  if (!file) {
+    return
+  }
+
+  formData.append('media_file', file)
+  formData.append('name', file.name)
+  formData.append('alt', form.value.alt)
+
+  try {
+    isUploading.value = true
+
+    response = await $fetch('/api/media/new', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (response) {
+      isUploaded.value = true
+
+      uploadedMedia.value = response.data
+    }
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isUploading.value = false
+  }
+}
+
+function removeImage() {
+  mediaBlobList.value = []
+
+  reset()
+}
+
+const selectedMedia = ref<number[]>([])
+
+function isSelected(id: number) {
+  return selectedMedia.value.includes(id)
+}
+
+function selectMedia(id: number) {
+  if (selectedMedia.value.includes(id)) {
+    const index = selectedMedia.value.indexOf(id)
+
+    selectedMedia.value.splice(index, 1)
+
+    return
+  }
+
+  selectedMedia.value.push(id)
+}
+
+const transformedSelectedMedia = computed<EmitValue[]>(() => {
+  const value = selectedMedia.value
+    ?.map((item) => {
+      if (!mediaList.value) {
+        return undefined
+      }
+
+      return {
+        ...mediaList.value.data.find((dataItem) => item === dataItem.id),
+        product_id: props.productId ?? null,
+      }
+    })
+    .filter((item): item is EmitValue => item !== undefined)
+
+  return value
+})
+
+type EmitValue = Database['public']['Tables']['media']['Row']
+
+function insertMedia() {
+  if (currentTab.value === '0') {
+    if (!transformedSelectedMedia.value) {
+      return
+    }
+
+    emit('insert', transformedSelectedMedia.value)
+  } else {
+    if (!uploadedMedia.value) {
+      return
+    }
+
+    emit('insert', uploadedMedia.value)
+  }
+
+  resetAll()
+}
+
+function resetAll() {
+  reset()
+
+  selectedMedia.value = []
+}
+
+const isInsertButtonDisabled = computed(
+  () =>
+    (currentTab.value === '0' && selectedMedia.value.length === 0) ||
+    (currentTab.value === '1' && isUploaded.value === false)
+)
+</script>
+
 <template>
   <Modal v-model="isMediaModalOpen" prevent-click-outside>
     <ModalHeader @close="closeMediaModal">Insert media</ModalHeader>
@@ -36,8 +237,8 @@
 
                 <div>
                   <UButton
-                    icon="lucide:refresh-cw"
                     :loading="mediaStatus === 'pending'"
+                    icon="lucide:refresh-cw"
                     @click="refreshMediaList()"
                   >
                     Refresh
@@ -164,198 +365,11 @@
           @click="insertMedia"
         >
           Insert
-          <span v-show="selectedMedia.length > 0"
-            >({{ selectedMedia.length }} selected)</span
-          >
+          <span v-show="selectedMedia.length > 0">
+            ({{ selectedMedia.length }} selected)
+          </span>
         </UButton>
       </div>
     </ModalFooter>
   </Modal>
 </template>
-
-<script setup lang="ts">
-  import type { TabsItem } from '@nuxt/ui'
-  import type { Database } from '~~/types/supabase'
-
-  const isMediaModalOpen = defineModel<boolean>({
-    default: false,
-  })
-
-  const props = defineProps<{
-    productId?: number
-  }>()
-
-  const { getMediaUrl } = useMedia()
-
-  const {
-    data: mediaList,
-    refresh: refreshMediaList,
-    status: mediaStatus,
-  } = useFetch('/api/media/list', {
-    key: '/api/media/list',
-  })
-
-  function closeMediaModal() {
-    isMediaModalOpen.value = false
-  }
-
-  const currentTab = ref<'0' | '1'>('0')
-
-  watch(currentTab, () => {
-    resetAll()
-
-    if (currentTab.value === '0') refreshMediaList()
-  })
-
-  const tabs = ref<TabsItem[]>([
-    {
-      label: 'Gallery',
-      icon: 'lucide:blocks',
-      slot: 'gallery',
-    },
-    {
-      label: 'Upload from your computer',
-      icon: 'lucide:upload',
-      slot: 'upload',
-    },
-  ])
-
-  interface Form {
-    alt: string
-  }
-
-  const form = ref<Form>({
-    alt: '',
-  })
-
-  const { files, onChange, open, reset } = useFileDialog({
-    accept: 'image/*',
-  })
-
-  const mediaBlobList = ref<string[]>([])
-
-  onChange(async () => {
-    const file = files.value?.[0]
-
-    if (!file) return
-
-    if (!mediaBlobList.value) {
-      mediaBlobList.value = []
-    }
-
-    const blob = useObjectURL(file).blob.value
-
-    if (!blob) return
-
-    mediaBlobList.value?.push(blob)
-  })
-
-  const isUploaded = ref<boolean>(false)
-  const isUploading = ref<boolean>(false)
-
-  type Media = Database['public']['Tables']['media']['Row']
-  const uploadedMedia = ref<Media | null>(null)
-
-  async function uploadMedia() {
-    let response
-    const file = files.value?.[0]
-
-    const formData = new FormData()
-
-    if (!file) return
-
-    formData.append('media_file', file)
-    formData.append('name', file.name)
-    formData.append('alt', form.value.alt)
-
-    try {
-      isUploading.value = true
-
-      response = await $fetch('/api/media/new', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (response) {
-        isUploaded.value = true
-
-        uploadedMedia.value = response.data
-      }
-    } catch (error) {
-      console.error(error)
-    } finally {
-      isUploading.value = false
-    }
-  }
-
-  function removeImage() {
-    mediaBlobList.value = []
-
-    reset()
-  }
-
-  const selectedMedia = ref<number[]>([])
-
-  function isSelected(id: number) {
-    return selectedMedia.value.includes(id)
-  }
-
-  function selectMedia(id: number) {
-    if (selectedMedia.value.includes(id)) {
-      const index = selectedMedia.value.indexOf(id)
-
-      selectedMedia.value.splice(index, 1)
-
-      return
-    }
-
-    selectedMedia.value.push(id)
-  }
-
-  const transformedSelectedMedia = computed<EmitValue[]>(() => {
-    const value = selectedMedia.value
-      ?.map(item => {
-        if (!mediaList.value) return undefined
-
-        return {
-          ...mediaList.value.data.find(dataItem => item === dataItem.id),
-          product_id: props.productId ?? null,
-        }
-      })
-      .filter((item): item is EmitValue => item !== undefined)
-
-    return value
-  })
-
-  type EmitValue = Database['public']['Tables']['media']['Row']
-
-  const emit = defineEmits<{
-    insert: [value: EmitValue | EmitValue[] | null]
-  }>()
-
-  function insertMedia() {
-    if (currentTab.value === '0') {
-      if (!transformedSelectedMedia.value) return
-
-      emit('insert', transformedSelectedMedia.value)
-    } else {
-      if (!uploadedMedia.value) return
-
-      emit('insert', uploadedMedia.value)
-    }
-
-    resetAll()
-  }
-
-  function resetAll() {
-    reset()
-
-    selectedMedia.value = []
-  }
-
-  const isInsertButtonDisabled = computed(
-    () =>
-      (currentTab.value === '0' && selectedMedia.value.length === 0) ||
-      (currentTab.value === '1' && isUploaded.value === false)
-  )
-</script>

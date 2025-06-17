@@ -1,3 +1,29 @@
+<script setup lang="ts">
+definePageMeta({
+  layout: 'auth',
+})
+
+useHead({
+  title: 'Login',
+})
+
+const supabase = useSupabaseClient()
+
+const form = ref({
+  email: '',
+  password: '',
+})
+
+async function submitForm() {
+  await supabase.auth.signInWithPassword({
+    email: form.value.email,
+    password: form.value.password,
+  })
+
+  navigateTo('/admin')
+}
+</script>
+
 <template>
   <div class="grid h-full place-items-center">
     <UCard class="w-[400px]">
@@ -30,29 +56,3 @@
     </UCard>
   </div>
 </template>
-
-<script setup lang="ts">
-  definePageMeta({
-    layout: 'auth',
-  })
-
-  useHead({
-    title: 'Login',
-  })
-
-  const supabase = useSupabaseClient()
-
-  const form = ref({
-    email: '',
-    password: '',
-  })
-
-  async function submitForm() {
-    await supabase.auth.signInWithPassword({
-      email: form.value.email,
-      password: form.value.password,
-    })
-
-    navigateTo('/admin')
-  }
-</script>
