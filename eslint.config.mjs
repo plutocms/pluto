@@ -6,6 +6,8 @@ import withNuxt from './.nuxt/eslint.config.mjs'
 export default withNuxt(
   antfu({
     rules: {
+      'node/prefer-global/process': ['off', 'never'],
+
       'style/arrow-parens': ['warn', 'always'],
 
       'style/brace-style': ['warn', '1tbs'],
