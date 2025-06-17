@@ -1,4 +1,7 @@
 {
+  "css.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
   "tailwindCSS.classAttributes": ["class", ".*-class(es)?", "theme", "ui"],
   "tailwindCSS.experimental.classRegex": [
     ["Theme \\=([^;]*);?", "'([^']*)'"],
