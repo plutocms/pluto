@@ -66,4 +66,6 @@
     "postcss",
     "mjs"
   ],
+
+  "vue.inlayHints.missingProps": true
 }
