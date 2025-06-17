@@ -30,6 +30,7 @@
     "@antfu/eslint-config": "^4.14.1",
     "@iconify-json/lucide": "^1.2.33",
     "@nuxt/eslint": "^1.4.1",
+    "@types/bun": "^1.2.16",
     "eslint": "^9.29.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
