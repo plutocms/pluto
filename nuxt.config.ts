@@ -25,6 +25,15 @@ export default defineNuxtConfig({
     },
   },
 
+  eslint: {
+    config: {
+      nuxt: {
+        sortConfigKeys: true,
+      },
+      standalone: false,
+    },
+  },
+
   // Modules configurations
   fonts: {
     defaults: {

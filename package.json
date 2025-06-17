@@ -8,11 +8,12 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "supabase-types": "bun ./scripts/supabase-typegen",
     "prettier": "prettier --write .",
-    "supabase-types": "bun ./scripts/supabase-typegen"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix && prettier --write ."
   },
   "dependencies": {
-    "@nuxt/eslint": "1.2.0",
     "@nuxt/fonts": "^0.11.1",
     "@nuxt/icon": "1.11.0",
     "@nuxt/ui": "^3.0.2",
@@ -20,16 +21,18 @@
     "@vueuse/integrations": "^13.0.0",
     "@vueuse/nuxt": "13.0.0",
     "change-case": "^5",
-    "eslint": "^9.0.0",
     "nuxt": "^3.17.0",
     "reka-ui": "^2.1.1",
-    "typescript": "^5.6.3",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^4.14.1",
     "@iconify-json/lucide": "^1.2.33",
+    "@nuxt/eslint": "^1.4.1",
+    "eslint": "^9.29.0",
     "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.11"
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "typescript": "^5.8.3"
   }
 }
