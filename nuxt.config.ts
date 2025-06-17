@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase',
     '@vueuse/nuxt',
     'reka-ui/nuxt',
+    '@nuxtjs/tailwindcss',
   ],
 
   $meta: {
