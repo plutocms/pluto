@@ -27,10 +27,19 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.gotoLocation.multipleDefinitions": "goto",
-  "cSpell.words": ["chibi", "Chibi", "ellie"]
   "editor.quickSuggestions": {
     "strings": true
   },
+
+  "cSpell.words": [
+    "bunx",
+    "defu",
+    "nuxt",
+    "nuxtjs",
+    "oklch",
+    "pinia",
+    "tailwindcss"
+  ],
 
   "eslint.useFlatConfig": true,
   "eslint.validate": [
