@@ -1,6 +1,8 @@
 <script setup lang="ts">
+const websiteName = 'Pluto Admin'
+
 useHead({
-  titleTemplate: '%s - Pluto Admin',
+  titleTemplate: (title) => (title ? `${title} - ${websiteName}` : websiteName),
 })
 </script>
 
