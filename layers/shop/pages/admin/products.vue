@@ -166,7 +166,7 @@ async function deleteProduct(productId: number | null) {
           :meta="{
             class: {
               tr: 'group',
-              td: 'py-1!',
+              // td: 'py-1!',
             },
           }"
         />
