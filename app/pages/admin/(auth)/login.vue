@@ -1,4 +1,9 @@
 <script setup lang="ts">
+interface Form {
+  email: string
+  password: string
+}
+
 definePageMeta({
   layout: 'auth',
 })
@@ -9,7 +14,7 @@ useHead({
 
 const supabase = useSupabaseClient()
 
-const form = ref({
+const form = ref<Form>({
   email: '',
   password: '',
 })
