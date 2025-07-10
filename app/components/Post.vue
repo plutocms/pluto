@@ -201,7 +201,7 @@ async function createCategory(item: string) {
           to="/admin/products"
           variant="subtle"
           color="neutral"
-          class="h-10 w-10 shrink-0 rounded-full text-3xl"
+          class="h-10 w-10 shrink-0 rounded-full text-2xl"
           title="Back to Products list"
           icon="lucide:arrow-left"
           square
