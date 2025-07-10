@@ -13,19 +13,48 @@ useHead({
 })
 
 const supabase = useSupabaseClient()
+const toast = useToast()
 
 const form = ref<Form>({
   email: '',
   password: '',
 })
 
-async function submitForm() {
-  await supabase.auth.signInWithPassword({
-    email: form.value.email,
-    password: form.value.password,
-  })
+const isSubmitting = ref<boolean>(false)
 
-  navigateTo('/admin')
+async function submitForm() {
+  isSubmitting.value = true
+
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: form.value.email,
+      password: form.value.password,
+    })
+
+    if (error) {
+      toast.add({
+        title: 'Uh oh! Something went wrong.',
+        description: error?.message,
+        icon: 'lucide:circle-x',
+        color: 'error',
+      })
+    }
+
+    navigateTo('/admin')
+  } catch (error) {
+    if (import.meta.dev) {
+      console.error(error)
+    }
+
+    toast.add({
+      title: 'Uh oh! Something went wrong.',
+      description: 'This was not your fault. It was ours.',
+      icon: 'lucide:circle-x',
+      color: 'error',
+    })
+
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -55,7 +84,13 @@ async function submitForm() {
 
           <div class="flex items-center justify-between gap-x-4">
             <UFormField>
-              <UButton type="submit"> Login </UButton>
+              <UButton
+                :loading="isSubmitting"
+                type="submit"
+                icon="lucide:log-in"
+              >
+                Login
+              </UButton>
             </UFormField>
 
             <UFormField>
