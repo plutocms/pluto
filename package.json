@@ -33,7 +33,7 @@
     "@iconify-json/lucide": "^1.2.33",
     "@iconify-json/simple-icons": "^1.2.41",
     "@nuxt/eslint": "^1.4.1",
-    "@types/bun": "^1.2.16",
+    "@types/bun": "^1.2.18",
     "eslint": "^9.29.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
