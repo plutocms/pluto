@@ -5,6 +5,7 @@ export default defineAppConfig({
         {
           size: 'xl',
           class: 'px-6 py-2',
+          square: false,
         },
       ],
 
