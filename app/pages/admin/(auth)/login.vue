@@ -48,9 +48,11 @@ async function submitForm() {
             />
           </UFormField>
 
-          <UFormField>
-            <UButton type="submit" size="lg"> Login </UButton>
-          </UFormField>
+          <div class="flex items-center justify-between gap-x-4">
+            <UFormField>
+              <UButton type="submit"> Login </UButton>
+            </UFormField>
+          </div>
         </div>
       </form>
     </UCard>

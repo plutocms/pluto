@@ -355,12 +355,11 @@ const isInsertButtonDisabled = computed(
 
     <ModalFooter>
       <div class="flex items-center gap-x-3">
-        <UButton variant="ghost" size="xl" icon="lucide:x"> Close </UButton>
+        <UButton variant="ghost" icon="lucide:x"> Close </UButton>
 
         <UButton
           :disabled="isInsertButtonDisabled"
           variant="solid"
-          size="xl"
           icon="lucide:check"
           @click="insertMedia"
         >

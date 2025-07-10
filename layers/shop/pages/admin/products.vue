@@ -129,7 +129,6 @@ async function deleteProduct(productId: number | null) {
       <ModalFooter>
         <div class="flex items-center gap-4">
           <UButton
-            size="xl"
             icon="lucide:x"
             variant="ghost"
             color="neutral"
@@ -139,7 +138,6 @@ async function deleteProduct(productId: number | null) {
           </UButton>
 
           <UButton
-            size="xl"
             icon="lucide:trash"
             color="error"
             @click="deleteProduct(currentProductId)"
