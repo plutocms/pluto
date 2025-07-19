@@ -11,7 +11,8 @@
     "supabase-types": "bun ./scripts/supabase-typegen",
     "prettier": "prettier --write .",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix && prettier --write ."
+    "lint:fix": "eslint . --fix && prettier --write .",
+    "typecheck": "nuxt prepare && vue-tsc -b --noEmit"
   },
   "dependencies": {
     "@nuxt/fonts": "^0.11.1",
@@ -22,7 +23,7 @@
     "@vueuse/integrations": "^13.0.0",
     "@vueuse/nuxt": "13.0.0",
     "change-case": "^5",
-    "nuxt": "^3.17.5",
+    "nuxt": "^4.0.0",
     "reka-ui": "^2.1.1",
     "tailwind-merge": "^3.3.1",
     "vue": "^3.5.16",

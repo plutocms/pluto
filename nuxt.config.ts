@@ -42,11 +42,6 @@ export default defineNuxtConfig({
 
   // css: ['#layers/pluto/app/assets/css/tailwind.css'],
 
-  // Nuxt configuration
-  future: {
-    compatibilityVersion: 4,
-  },
-
   experimental: {
     typedPages: true,
   },
