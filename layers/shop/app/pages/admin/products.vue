@@ -1,6 +1,6 @@
 <script setup lang="tsx">
 import type { TableColumn } from '@nuxt/ui'
-import type { Database } from '~~/types/supabase'
+import type { Database } from '#shared/types/supabase'
 import { NuxtLink, UButton, ULink } from '#components'
 
 type FilteredData = Database['public']['Tables']['products']['Row']

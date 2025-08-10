@@ -1,5 +1,5 @@
-import type { Database } from '~~/types/supabase'
-import { fileNameToKebabCase } from '#layers/pluto/app/utils/string'
+import type { Database } from '#shared/types/supabase'
+import { fileNameToKebabCase } from '#layers/shop/app/utils/string'
 import { serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
   const formData = await readMultipartFormData(event)
 
-  if (!formData || !formData?.[0].filename) {
+  if (!formData || !formData?.[0]?.filename) {
     throw createError({
       message: 'No file sent.',
     })
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     .from('media')
     .insert({
       name: fileName,
-      alt: formData[2].data.toString(),
+      alt: formData[2]?.data.toString(),
     })
     .select()
     .single()
