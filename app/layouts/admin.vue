@@ -31,6 +31,11 @@ const menu = ref<NavigationMenuItem[]>([
     href: '/admin/media',
     icon: 'lucide:images',
   },
+  {
+    label: 'Settings',
+    href: '/admin/settings',
+    icon: 'lucide:settings',
+  },
 ])
 </script>
 
