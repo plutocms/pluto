@@ -77,13 +77,17 @@ const items = ref<DropdownMenuItem[][]>([
             <li class="h-full">
               <ULink
                 href="https://emibiscuit.vercel.app"
-                class="flex h-full items-center gap-x-2 bg-transparent px-2 transition-none hover:bg-white/20"
+                class="group block h-full bg-transparent py-1 transition-none"
                 target="_blank"
                 title="emibiscuit.com"
               >
-                <span> View site </span>
+                <span
+                  class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-white/20"
+                >
+                  <span> View site </span>
 
-                <Icon name="lucide:external-link" />
+                  <Icon name="lucide:external-link" />
+                </span>
               </ULink>
             </li>
           </ul>
