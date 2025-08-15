@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { User } from '#shared/types/user'
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { User } from '~~/types/user'
 
 const supabase = useSupabaseClient()
 
