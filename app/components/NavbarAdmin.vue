@@ -13,7 +13,7 @@ const user = userData?.user_metadata as User
 const items = ref<DropdownMenuItem[][]>([
   [
     {
-      label: user?.first_name || '',
+      label: `${user?.first_name} ${user?.last_name}` || '',
       avatar: {
         icon: 'lucide:user',
         class: 'bg-green-600',
@@ -93,25 +93,31 @@ const items = ref<DropdownMenuItem[][]>([
       <div class="flex items-center gap-3">
         <ColorModeButton />
 
-        <div>
+        <div class="h-full">
           <UDropdownMenu
             :items="items"
             :ui="{
               content: 'w-48',
             }"
           >
-            <UTooltip :text="`${user.first_name} ${user.last_name}` || ''">
-              <UAvatar
-                :ui="{
-                  root: 'rounded-xl',
-                  icon: 'text-white text-lg',
-                }"
-                :alt="user.first_name || ''"
-                size="sm"
-                icon="lucide:user"
-                class="bg-green-600"
-              />
-            </UTooltip>
+            <button class="group h-full py-1">
+              <div
+                class="flex h-full items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 group-hover:bg-white/20"
+              >
+                <UAvatar
+                  :ui="{
+                    root: 'rounded-xl',
+                    icon: 'text-white text-lg',
+                  }"
+                  :alt="user.first_name || ''"
+                  size="sm"
+                  icon="lucide:user"
+                  class="bg-green-600"
+                />
+
+                <span class="text-sm font-bold">{{ user.first_name }}</span>
+              </div>
+            </button>
           </UDropdownMenu>
         </div>
       </div>
