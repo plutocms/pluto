@@ -24,4 +24,4 @@ logs
 !.env.example
 
 # Custom
-types/supabase.ts
+shared/types/supabase.ts
