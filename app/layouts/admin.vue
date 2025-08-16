@@ -14,6 +14,7 @@ const menu = ref<NavigationMenuItem[]>([
     onSelect: () => {
       navigateTo('/admin/products')
     },
+    defaultOpen: true,
     children: [
       {
         label: 'Create new product',
