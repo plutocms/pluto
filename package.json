@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "bun run supabase-types && nuxt dev",
+    "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "postinstall": "bun run supabase-types && nuxt prepare",
     "supabase-types": "bun ./scripts/supabase-typegen",
     "prettier": "prettier --write .",
     "lint": "eslint .",
