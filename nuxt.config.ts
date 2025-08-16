@@ -40,8 +40,6 @@ export default defineNuxtConfig({
     },
   },
 
-  // css: ['#layers/pluto/app/assets/css/tailwind.css'],
-
   experimental: {
     typedPages: true,
   },
