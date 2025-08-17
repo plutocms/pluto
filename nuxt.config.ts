@@ -5,7 +5,6 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@nuxt/icon',
     '@nuxt/ui',
-    '@nuxtjs/supabase',
     '@vueuse/nuxt',
     'reka-ui/nuxt',
     '@nuxtjs/tailwindcss',
@@ -26,8 +25,6 @@ export default defineNuxtConfig({
   },
 
   devtools: { enabled: true },
-
-  ignore: ['./scripts/**', './supabase/**'],
 
   routeRules: {
     '/admin': {
@@ -64,16 +61,5 @@ export default defineNuxtConfig({
 
   reka: {
     prefix: 'Reka',
-  },
-
-  supabase: {
-    cookiePrefix: 'access_token',
-
-    redirectOptions: {
-      login: '/admin/login',
-      callback: '/auth/confirm',
-      include: ['/admin/signup'],
-      saveRedirectToCookie: false,
-    },
   },
 })
