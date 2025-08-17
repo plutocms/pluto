@@ -1,5 +1,5 @@
 import type { Database } from '#shared/types/supabase'
-import { fileNameToKebabCase } from '#layers/shop/app/utils/string'
+import { fileNameToKebabCase } from '#layers/pluto/shared/utils/string'
 import { serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
