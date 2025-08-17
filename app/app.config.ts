@@ -15,5 +15,11 @@ export default defineAppConfig({
         size: 'xl',
       },
     },
+
+    input: {
+      defaultVariants: {
+        size: 'xl',
+      },
+    },
   },
 })
