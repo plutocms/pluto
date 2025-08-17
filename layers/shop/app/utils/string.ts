@@ -10,3 +10,12 @@ export function fileNameToKebabCase(name: string) {
 export function slugify(text: string) {
   return kebabCase(text.normalize('NFD').replace(/[\u0300-\u036F]/g, ''))
 }
+
+export function domainFromUrl(url: string | null | undefined) {
+  if (!url) {
+    return
+  }
+
+  const match = url.match(/^(?:https?:\/\/)?(?:www\.)?([^/]+)/i)
+  return match ? match[1] : ''
+}

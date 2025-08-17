@@ -4,11 +4,17 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 
 const supabase = useSupabaseClient()
 
+const has_settings_modified = useState('has_settings_modified')
+
 const {
   data: { user: userData },
 } = await supabase.auth.getUser()
 
 const user = userData?.user_metadata as User
+
+const { data: settingsData, status } = await useFetch('/api/settings', {
+  watch: [has_settings_modified],
+})
 
 const items = ref<DropdownMenuItem[][]>([
   [
@@ -69,24 +75,38 @@ const items = ref<DropdownMenuItem[][]>([
     <div class="flex h-full items-stretch justify-between px-4">
       <div class="flex items-center gap-x-3">
         <div>
-          <ULink to="/admin/home" class="font-bold"> Logo </ULink>
+          <ULink
+            :title="settingsData?.settings.website_title"
+            to="/admin/home"
+            class="font-bold"
+          >
+            {{ settingsData?.settings.website_title }}
+          </ULink>
         </div>
 
         <div class="h-full">
           <ul class="flex h-full items-center text-sm">
             <li class="h-full">
               <ULink
-                href="https://emibiscuit.vercel.app"
+                :title="domainFromUrl(settingsData?.settings.website_url)"
+                :href="settingsData?.settings.website_url"
+                :disabled="status === 'pending'"
                 class="group block h-full bg-transparent py-1 transition-none"
                 target="_blank"
-                title="emibiscuit.com"
               >
                 <span
                   class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-white/20"
                 >
                   <span> View site </span>
 
-                  <Icon name="lucide:external-link" />
+                  <Icon
+                    :name="
+                      status === 'pending'
+                        ? 'lucide:loader-circle'
+                        : 'lucide:external-link'
+                    "
+                    :class="[status === 'pending' ? 'animate-spin' : '']"
+                  />
                 </span>
               </ULink>
             </li>
