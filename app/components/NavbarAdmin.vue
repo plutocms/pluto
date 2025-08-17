@@ -110,6 +110,22 @@ const items = ref<DropdownMenuItem[][]>([
                 </span>
               </ULink>
             </li>
+
+            <li class="h-full">
+              <ULink
+                to="/admin/product/new"
+                class="group block h-full bg-transparent py-1 transition-none"
+                active-class="text-current cursor-default"
+              >
+                <span
+                  class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-white/20"
+                >
+                  <Icon name="lucide:plus" />
+
+                  <span> Add product </span>
+                </span>
+              </ULink>
+            </li>
           </ul>
         </div>
       </div>
