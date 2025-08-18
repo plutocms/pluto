@@ -1,5 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  extends: ['layers/shop', 'layers/ui', 'layers/supabase'],
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/fonts',
