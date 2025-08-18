@@ -17,13 +17,8 @@ defineOptions({
 })
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 'default',
-  customSize: undefined,
   isOpen: false,
   preventClickOutside: false,
-  class: '',
-  scrollAreaClass: '',
-  backgroundClass: '',
 })
 
 const emit = defineEmits(['update:isOpen', 'scroll'])
@@ -49,10 +44,23 @@ const resolvedClasses = computed(() => {
 
   return twMerge([
     defaultClasses,
-    props.size && props.size === 'small' ? 'w-[320px]' : null,
-    props.size && props.size === 'medium' ? 'w-[768px]' : null,
-    props.size && props.size === 'large' ? 'w-[1280px]' : null,
-    props.size && props.size === 'default' ? 'w-[936px]' : null,
+
+    !props.customSize && props.size && props.size === 'small'
+      ? 'w-[320px]'
+      : null,
+
+    !props.customSize && props.size && props.size === 'medium'
+      ? 'w-[768px]'
+      : null,
+
+    !props.customSize && props.size && props.size === 'large'
+      ? 'w-[1280px]'
+      : null,
+
+    !props.customSize && props.size && props.size === 'default'
+      ? 'w-[936px]'
+      : null,
+
     props.class,
   ])
 })
