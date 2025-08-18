@@ -42,12 +42,7 @@ function closeModal() {
 <template>
   <div :class="resolvedClasses">
     <div
-      :class="
-        twMerge([
-          'bg-opacity-90 absolute top-0 left-0 z-[-1] h-full w-full backdrop-blur-md',
-          'bg-(--ui-bg)',
-        ])
-      "
+      class="absolute top-0 left-0 z-[-1] h-full w-full rounded-t-3xl bg-(--ui-bg) backdrop-blur-md"
     />
 
     <div class="flex items-center justify-between py-4">
