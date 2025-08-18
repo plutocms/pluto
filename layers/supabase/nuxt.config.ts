@@ -21,5 +21,6 @@ export default defineNuxtConfig({
       include: ['/admin/signup'],
       saveRedirectToCookie: false,
     },
+    redirect: false,
   },
 })

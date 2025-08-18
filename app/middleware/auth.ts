@@ -14,4 +14,13 @@ export default defineNuxtRouteMiddleware((to) => {
   ) {
     return navigateTo('/admin/home')
   }
+
+  if (
+    !user.value &&
+    to.path.startsWith('/admin/') &&
+    to.path !== '/admin/signup' &&
+    to.path !== '/admin/login'
+  ) {
+    return navigateTo('/admin/login')
+  }
 })
