@@ -4,7 +4,7 @@ const user = useSupabaseUser()
 
 <template>
   <div>
-    <NavbarAdmin v-if="user && user.user_metadata.is_admin" />
+    <NavbarAdmin v-if="user" />
 
     <slot />
   </div>
