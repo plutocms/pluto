@@ -1,16 +1,9 @@
 <script setup lang="ts">
-import type { User } from '#shared/types/user'
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-const supabase = useSupabaseClient()
+const { userData, logout } = useAuth()
 
 const has_settings_modified = useState('has_settings_modified')
-
-const {
-  data: { user: userData },
-} = await supabase.auth.getUser()
-
-const user = userData?.user_metadata as User
 
 const { data: settingsData, status } = await useFetch('/api/settings', {
   watch: [has_settings_modified],
@@ -19,7 +12,7 @@ const { data: settingsData, status } = await useFetch('/api/settings', {
 const items = ref<DropdownMenuItem[][]>([
   [
     {
-      label: `${user?.first_name} ${user?.last_name}` || '',
+      label: `${userData.value?.first_name} ${userData.value?.last_name}` || '',
       avatar: {
         icon: 'lucide:user',
         class: 'bg-green-600',
@@ -59,9 +52,7 @@ const items = ref<DropdownMenuItem[][]>([
       kbds: ['meta', 'shift', 'q'],
       class: 'cursor-pointer',
       async onSelect() {
-        await supabase.auth.signOut()
-
-        navigateTo('/admin/login')
+        logout()
       },
     },
   ],
@@ -149,13 +140,15 @@ const items = ref<DropdownMenuItem[][]>([
                     root: 'rounded-xl',
                     icon: 'text-white text-lg',
                   }"
-                  :alt="user?.first_name || ''"
+                  :alt="userData?.first_name || ''"
                   size="sm"
                   icon="lucide:user"
                   class="bg-green-600"
                 />
 
-                <span class="text-sm font-bold">{{ user?.first_name }}</span>
+                <span class="text-sm font-bold">{{
+                  userData?.first_name
+                }}</span>
               </div>
             </button>
           </UDropdownMenu>

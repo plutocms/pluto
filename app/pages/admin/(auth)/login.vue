@@ -12,49 +12,15 @@ useHead({
   title: 'Login',
 })
 
-const supabase = useSupabaseClient()
-const toast = useToast()
+const { isSubmitting, login } = useAuth()
 
 const form = ref<Form>({
   email: '',
   password: '',
 })
 
-const isSubmitting = ref<boolean>(false)
-
-async function submitForm() {
-  isSubmitting.value = true
-
-  try {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: form.value.email,
-      password: form.value.password,
-    })
-
-    if (error) {
-      toast.add({
-        title: 'Uh oh! Something went wrong.',
-        description: error?.message,
-        icon: 'lucide:circle-x',
-        color: 'error',
-      })
-    }
-
-    navigateTo('/admin')
-  } catch (error) {
-    if (import.meta.dev) {
-      console.error(error)
-    }
-
-    toast.add({
-      title: 'Uh oh! Something went wrong.',
-      description: 'This was not your fault. It was ours.',
-      icon: 'lucide:circle-x',
-      color: 'error',
-    })
-
-    isSubmitting.value = false
-  }
+function submitForm() {
+  login(form.value)
 }
 </script>
 

@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware((to) => {
-  const user = useSupabaseUser()
+  const { user } = useAuth()
 
   if (
     user.value &&
