@@ -119,7 +119,7 @@ async function deleteProduct(productId: number | null) {
 
 <template>
   <div>
-    <Modal v-model="isDeleteProductModalOpen">
+    <Modal v-model="isDeleteProductModalOpen" :custom-size="680">
       <ModalHeader @close="closeRemoveProductModal">Remove product</ModalHeader>
 
       <ModalContent>
