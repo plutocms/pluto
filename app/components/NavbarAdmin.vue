@@ -130,6 +130,7 @@ const items = ref<DropdownMenuItem[][]>([
             :ui="{
               content: 'w-48',
             }"
+            :modal="false"
           >
             <button class="group h-full py-1">
               <div
