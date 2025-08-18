@@ -65,6 +65,17 @@ function submitForm() {
               </UButton>
             </UFormField>
           </div>
+
+          <div>
+            <UButton
+              variant="link"
+              icon="lucide:arrow-left"
+              to="/"
+              class="px-0"
+            >
+              Back to Home
+            </UButton>
+          </div>
         </div>
       </form>
     </UCard>
