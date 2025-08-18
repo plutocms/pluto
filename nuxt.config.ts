@@ -12,6 +12,22 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
   ],
 
+  $development: {
+    vite: {
+      optimizeDeps: {
+        include: [
+          '@vue/devtools-core',
+          '@vue/devtools-kit',
+          'tailwind-merge',
+          'reka-ui',
+          'change-case',
+          'yup',
+          '@vueuse/integrations/useChangeCase',
+        ],
+      },
+    },
+  },
+
   $meta: {
     name: 'pluto',
   },
