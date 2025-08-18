@@ -29,7 +29,7 @@ function submitForm() {
     <UCard class="w-[400px]">
       <form @submit.prevent="submitForm">
         <div class="flex flex-col gap-y-6">
-          <h1>Login</h1>
+          <h1 class="text-3xl font-bold">Login</h1>
 
           <UFormField>
             <UInput
