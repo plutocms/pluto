@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-const { userData, logout } = useAuth()
+const { isLoggedIn, userData, logout } = useAuth()
 
 const has_settings_modified = useState('has_settings_modified')
 
@@ -31,6 +31,11 @@ const items = ref<DropdownMenuItem[][]>([
       type: 'link',
       to: '/admin/settings',
       kbds: ['meta', ','],
+      onSelect() {
+        if (isLoggedIn.value) {
+          navigateTo('/admin/settings')
+        }
+      },
     },
   ],
 
@@ -51,12 +56,14 @@ const items = ref<DropdownMenuItem[][]>([
       icon: 'i-lucide-log-out',
       kbds: ['meta', 'shift', 'q'],
       class: 'cursor-pointer',
-      async onSelect() {
+      onSelect() {
         logout()
       },
     },
   ],
 ])
+
+defineShortcuts(extractShortcuts(items.value))
 </script>
 
 <template>
