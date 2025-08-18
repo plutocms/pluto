@@ -88,7 +88,7 @@ const items = ref<DropdownMenuItem[][]>([
           <ul class="flex h-full items-center text-sm">
             <li class="h-full">
               <ULink
-                :title="domainFromUrl(settingsData?.settings.website_url)"
+                :title="`Visit ${domainFromUrl(settingsData?.settings.website_url)}`"
                 :href="settingsData?.settings.website_url"
                 :disabled="status === 'pending'"
                 class="group block h-full bg-transparent py-1 transition-none"
