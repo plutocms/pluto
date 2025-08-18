@@ -40,6 +40,7 @@ const resolvedClasses = computed(() => {
       pt-6 pb-3 px-4 my-4
       shadow-2xl
       bg-(--ui-bg)
+      light:text-zinc-800 text-white
     `
 
   return twMerge([
