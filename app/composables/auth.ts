@@ -48,8 +48,16 @@ export function useAuth() {
     }
   }
 
-  function logout() {
+  interface LogoutOptions {
+    redirectTo?: string
+  }
+
+  function logout(options?: LogoutOptions) {
     supabase.auth.signOut()
+
+    if (options?.redirectTo) {
+      navigateTo(options.redirectTo)
+    }
   }
 
   return {
