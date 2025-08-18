@@ -7,8 +7,6 @@ useHead({
   title: 'Sign Up',
 })
 
-const supabase = useSupabaseClient()
-
 const form = ref({
   email: '',
   first_name: '',
@@ -16,19 +14,22 @@ const form = ref({
   password: '',
 })
 
-async function submitForm() {
-  await supabase.auth.signUp({
-    email: form.value.email,
-    password: form.value.password,
-    options: {
-      data: {
-        first_name: form.value.first_name,
-        last_name: form.value.last_name,
-      },
-    },
-  })
+const isSubmitting = ref<boolean>(false)
 
-  navigateTo('/admin')
+async function submitForm() {
+  isSubmitting.value = true
+  try {
+    await $fetch('/api/signup', {
+      method: 'POST',
+      body: form.value,
+    })
+
+    navigateTo('/admin/login?rel=new')
+  } catch (error) {
+    console.error('Error signing up:', error)
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -88,7 +89,13 @@ async function submitForm() {
             </UFormField>
 
             <UFormField>
-              <UButton type="submit"> Create account </UButton>
+              <UButton
+                :disabled="isSubmitting"
+                :loading="isSubmitting"
+                type="submit"
+              >
+                Create account
+              </UButton>
             </UFormField>
           </div>
         </div>
