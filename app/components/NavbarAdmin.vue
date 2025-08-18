@@ -149,13 +149,13 @@ const items = ref<DropdownMenuItem[][]>([
                     root: 'rounded-xl',
                     icon: 'text-white text-lg',
                   }"
-                  :alt="user.first_name || ''"
+                  :alt="user?.first_name || ''"
                   size="sm"
                   icon="lucide:user"
                   class="bg-green-600"
                 />
 
-                <span class="text-sm font-bold">{{ user.first_name }}</span>
+                <span class="text-sm font-bold">{{ user?.first_name }}</span>
               </div>
             </button>
           </UDropdownMenu>
