@@ -28,6 +28,8 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  css: ['#layers/pluto/app/assets/css/tailwind.css'],
+
   routeRules: {
     '/admin': {
       redirect: {
