@@ -40,7 +40,7 @@ async function submitForm() {
         <div class="flex flex-col gap-y-6">
           <h1>Create Account</h1>
 
-          <UFormField>
+          <UFormField label="Email">
             <UInput
               v-model="form.email"
               type="email"
@@ -50,7 +50,7 @@ async function submitForm() {
           </UFormField>
 
           <div class="flex gap-x-4">
-            <UFormField>
+            <UFormField label="First Name">
               <UInput
                 v-model="form.first_name"
                 placeholder="e.g: John"
@@ -58,7 +58,7 @@ async function submitForm() {
               />
             </UFormField>
 
-            <UFormField>
+            <UFormField label="Last Name">
               <UInput
                 v-model="form.last_name"
                 placeholder="e.g: Doe"
@@ -67,7 +67,7 @@ async function submitForm() {
             </UFormField>
           </div>
 
-          <UFormField>
+          <UFormField label="Password">
             <UInput
               v-model="form.password"
               placeholder="••••"
