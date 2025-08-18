@@ -6,7 +6,7 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="h-full">
+  <div class="light:text-zinc-800 h-full text-white">
     <NuxtPage />
   </div>
 </template>

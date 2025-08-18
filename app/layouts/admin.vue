@@ -41,11 +41,11 @@ const menu = ref<NavigationMenuItem[]>([
 </script>
 
 <template>
-  <div class="bg-admin-content flex h-full grow flex-col">
+  <div class="bg-admin-content light:bg-white flex h-full grow flex-col">
     <NavbarAdmin />
 
     <div class="flex h-full items-stretch">
-      <div class="bg-admin-sidebar w-64 shrink-0 px-4 py-4">
+      <div class="bg-admin-sidebar light:bg-zinc-200 w-64 shrink-0 px-4 py-4">
         <UNavigationMenu
           :items="menu"
           :ui="{

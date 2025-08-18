@@ -214,7 +214,7 @@ async function createCategory(item: string) {
           v-autofocus
           placeholder="Add title"
           type="text"
-          class="h-full w-full px-4 pt-8 text-4xl font-bold outline-0"
+          class="h-full w-full px-4 pt-8 text-4xl font-bold text-zinc-900 outline-0 dark:text-white"
         />
       </div>
 
@@ -258,7 +258,7 @@ async function createCategory(item: string) {
               </template>
 
               <div
-                class="bg-admin-content sticky -bottom-0.5 mb-8 -ml-0.5 w-full py-2 pl-0.5"
+                class="dark:bg-admin-content sticky -bottom-0.5 mb-8 -ml-0.5 w-full py-2 pl-0.5"
               >
                 <div
                   class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black/100"
