@@ -5,7 +5,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { isLoggedIn } = useAuth()
+const { isLoggedIn, logout } = useAuth()
 const toast = useToast()
 
 const visibility = useDocumentVisibility()
@@ -18,13 +18,11 @@ watch(visibility, async (current, previous) => {
       route.path !== '/admin/login' &&
       route.path !== '/admin/signup'
     ) {
-      await navigateTo(
-        `/admin/login?redirect=${encodeURIComponent(route.path)}`
-      )
+      await logout({ redirectTo: route.path })
 
       toast.add({
-        title: 'Session expired',
-        description: 'Please log in again.',
+        title: 'You are not logged in',
+        description: 'Please log in to continue.',
         icon: 'lucide:circle-x',
         color: 'error',
       })

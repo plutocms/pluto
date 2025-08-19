@@ -14,10 +14,14 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   if (
     !isLoggedIn.value &&
-    to.path.startsWith('/admin/') &&
+    to.path.startsWith('/admin') &&
     to.path !== '/admin/signup' &&
     to.path !== '/admin/login'
   ) {
-    logout({ redirectTo: from.path })
+    if (from.query.redirect) {
+      logout({ redirectTo: from.query.redirect as string, showToast: true })
+    } else {
+      logout()
+    }
   }
 })

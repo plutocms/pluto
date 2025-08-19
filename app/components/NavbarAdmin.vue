@@ -57,7 +57,7 @@ const items = ref<DropdownMenuItem[][]>([
       kbds: ['meta', 'shift', 'q'],
       class: 'cursor-pointer',
       onSelect() {
-        logout()
+        logout({ showToast: true })
       },
     },
   ],

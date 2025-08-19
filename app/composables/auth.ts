@@ -54,24 +54,29 @@ export function useAuth() {
 
   interface LogoutOptions {
     redirectTo?: string
+    showToast?: boolean
   }
 
   async function logout(options?: LogoutOptions) {
     await supabase.auth.signOut()
 
-    toast.add({
-      title: 'Logged out',
-      description: 'You have been logged out successfully.',
-      icon: 'lucide:check',
-      color: 'success',
-    })
+    await nextTick()
 
-    if (options?.redirectTo) {
-      return navigateTo(options.redirectTo)
+    if (options?.showToast) {
+      toast.add({
+        title: 'Logged out',
+        description: 'You have been logged out successfully.',
+        icon: 'lucide:check',
+        color: 'success',
+      })
     }
 
-    if (route.path.startsWith('/admin/')) {
-      return navigateTo('/admin/login')
+    if (options?.redirectTo) {
+      return navigateTo(`/admin/login?redirect=${options.redirectTo}`)
+    }
+
+    if (route.path.startsWith('/admin')) {
+      navigateTo('/admin/login')
     }
   }
 
