@@ -23,6 +23,7 @@ export default defineNuxtConfig({
           'change-case',
           'yup',
           '@vueuse/integrations/useChangeCase',
+          '@tresjs/cientos',
         ],
       },
     },
