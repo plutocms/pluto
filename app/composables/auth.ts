@@ -47,7 +47,7 @@ export function useAuth() {
         icon: 'lucide:circle-x',
         color: 'error',
       })
-    } finally {
+
       isSubmitting.value = false
     }
   }
