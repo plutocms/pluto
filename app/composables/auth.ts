@@ -1,7 +1,11 @@
+// We use `useRoute` from `vue-router` to suppress Nuxt warnings.
+import { useRoute } from 'vue-router'
+
 export function useAuth() {
   const toast = useToast()
   const supabase = useSupabaseClient()
   const user = useSupabaseUser()
+  const route = useRoute()
 
   const userData = computed(() => user.value?.user_metadata)
 
@@ -31,7 +35,7 @@ export function useAuth() {
         })
       }
 
-      navigateTo('/admin')
+      navigateTo((route.query.redirect as string) ?? '/admin/home')
     } catch (error) {
       if (import.meta.dev) {
         console.error(error)
@@ -43,7 +47,7 @@ export function useAuth() {
         icon: 'lucide:circle-x',
         color: 'error',
       })
-
+    } finally {
       isSubmitting.value = false
     }
   }
@@ -52,11 +56,22 @@ export function useAuth() {
     redirectTo?: string
   }
 
-  function logout(options?: LogoutOptions) {
-    supabase.auth.signOut()
+  async function logout(options?: LogoutOptions) {
+    await supabase.auth.signOut()
+
+    toast.add({
+      title: 'Logged out',
+      description: 'You have been logged out successfully.',
+      icon: 'lucide:check',
+      color: 'success',
+    })
 
     if (options?.redirectTo) {
-      navigateTo(options.redirectTo)
+      return navigateTo(options.redirectTo)
+    }
+
+    if (route.path.startsWith('/admin/')) {
+      return navigateTo('/admin/login')
     }
   }
 

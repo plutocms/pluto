@@ -1,26 +1,23 @@
-export default defineNuxtRouteMiddleware((to) => {
-  const { user } = useAuth()
+export default defineNuxtRouteMiddleware((to, from) => {
+  const { isLoggedIn, logout } = useAuth()
 
   if (
-    user.value &&
+    isLoggedIn.value &&
     (to.path === '/admin/login' || to.path === '/admin/signup')
   ) {
-    return navigateTo('/admin/home')
+    return navigateTo(
+      to.query.redirect
+        ? decodeURIComponent(to.query.redirect as string)
+        : '/admin/home'
+    )
   }
 
   if (
-    user.value &&
-    (to.path === '/admin/login' || to.path === '/admin/signup')
-  ) {
-    return navigateTo('/admin/home')
-  }
-
-  if (
-    !user.value &&
+    !isLoggedIn.value &&
     to.path.startsWith('/admin/') &&
     to.path !== '/admin/signup' &&
     to.path !== '/admin/login'
   ) {
-    return navigateTo('/admin/login')
+    logout({ redirectTo: from.path })
   }
 })
