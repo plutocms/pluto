@@ -37,7 +37,11 @@ export default defineNuxtConfig({
   components: {
     dirs: [
       {
-        path: './components',
+        path: '#layers/pluto/app/components',
+        pathPrefix: false,
+      },
+      {
+        path: '~/components',
         pathPrefix: false,
       },
     ],
