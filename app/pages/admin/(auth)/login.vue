@@ -36,6 +36,7 @@ function submitForm() {
               v-model="form.email"
               placeholder="victor@example.com"
               class="w-full"
+              autocomplete="email"
             />
           </UFormField>
 
