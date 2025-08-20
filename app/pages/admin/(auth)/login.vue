@@ -31,7 +31,7 @@ function submitForm() {
         <div class="flex flex-col gap-y-6">
           <h1 class="text-3xl font-bold">Login</h1>
 
-          <UFormField>
+          <UFormField label="Email">
             <UInput
               v-model="form.email"
               placeholder="victor@example.com"
@@ -39,7 +39,7 @@ function submitForm() {
             />
           </UFormField>
 
-          <UFormField>
+          <UFormField label="Password">
             <UInput
               v-model="form.password"
               placeholder="••••"
