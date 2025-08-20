@@ -5,5 +5,9 @@ useHead({
 </script>
 
 <template>
-  <div>Home</div>
+  <main>
+    <AdminView>
+      <h1 class="text-4xl font-bold">Admin Dashboard</h1>
+    </AdminView>
+  </main>
 </template>

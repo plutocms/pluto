@@ -61,41 +61,46 @@ async function submitForm() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-8 p-6">
-    <h1 class="text-4xl">Settings</h1>
+  <AdminView>
+    <h1 class="text-4xl font-bold">Settings</h1>
 
-    <UForm :schema="schema" :state="form" @submit="submitForm">
-      <div class="flex flex-col gap-y-6">
-        <UFormField label="Website Title" name="website_title">
-          <UInput v-model="form.website_title" placeholder="e.g. My Website" />
-        </UFormField>
+    <UCard>
+      <UForm :schema="schema" :state="form" @submit="submitForm">
+        <div class="flex flex-col gap-y-6">
+          <UFormField label="Website Title" name="website_title">
+            <UInput
+              v-model="form.website_title"
+              placeholder="e.g. My Website"
+            />
+          </UFormField>
 
-        <UFormField label="Website Description" name="website_description">
-          <UInput
-            v-model="form.website_description"
-            placeholder="e.g. My Website Description"
-          />
-        </UFormField>
+          <UFormField label="Website Description" name="website_description">
+            <UInput
+              v-model="form.website_description"
+              placeholder="e.g. My Website Description"
+            />
+          </UFormField>
 
-        <UFormField label="Website URL" name="website_url">
-          <UInput
-            v-model="form.website_url"
-            type="url"
-            placeholder="e.g. https://example.com"
-          />
-        </UFormField>
+          <UFormField label="Website URL" name="website_url">
+            <UInput
+              v-model="form.website_url"
+              type="url"
+              placeholder="e.g. https://example.com"
+            />
+          </UFormField>
 
-        <div>
-          <UButton
-            :loading="isSubmitting"
-            :disabled="isSubmitting"
-            type="submit"
-            icon="lucide:save"
-          >
-            Save
-          </UButton>
+          <div>
+            <UButton
+              :loading="isSubmitting"
+              :disabled="isSubmitting"
+              type="submit"
+              icon="lucide:save"
+            >
+              Save
+            </UButton>
+          </div>
         </div>
-      </div>
-    </UForm>
-  </div>
+      </UForm>
+    </UCard>
+  </AdminView>
 </template>

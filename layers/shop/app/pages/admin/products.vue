@@ -148,16 +148,16 @@ async function deleteProduct(productId: number | null) {
       </ModalFooter>
     </Modal>
 
-    <div class="flex flex-col gap-y-4 p-4">
+    <AdminView>
       <div class="flex justify-between">
-        <h1 class="text-3xl">All products</h1>
+        <h1 class="text-4xl font-bold">All products</h1>
 
         <UButton icon="lucide:plus" as="NuxtLink" to="/admin/product/new">
           Add product
         </UButton>
       </div>
 
-      <div class="rounded-2xl bg-black/20">
+      <UCard :ui="{ body: 'sm:p-0 p-0' }">
         <UTable
           :data="products?.data"
           :columns="columns"
@@ -168,7 +168,7 @@ async function deleteProduct(productId: number | null) {
             },
           }"
         />
-      </div>
-    </div>
+      </UCard>
+    </AdminView>
   </div>
 </template>
