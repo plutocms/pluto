@@ -68,7 +68,7 @@ defineShortcuts(extractShortcuts(items.value))
 
 <template>
   <nav
-    class="sticky top-0 z-50 h-10 shrink-0 border-b border-black/10 bg-black/90 text-white dark:border-white/5 dark:bg-black"
+    class="sticky top-0 z-50 h-10 shrink-0 border-b border-black/10 bg-white text-white dark:border-white/5 dark:bg-black"
   >
     <div class="flex h-full items-stretch justify-between px-4">
       <div class="flex items-center gap-x-3">
@@ -93,7 +93,7 @@ defineShortcuts(extractShortcuts(items.value))
                 target="_blank"
               >
                 <span
-                  class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-white/20"
+                  class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-black/10 dark:group-hover:bg-white/20"
                 >
                   <span> View site </span>
 
@@ -116,7 +116,7 @@ defineShortcuts(extractShortcuts(items.value))
                 active-class="text-current cursor-default"
               >
                 <span
-                  class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-white/20"
+                  class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-black/10 dark:group-hover:bg-white/20"
                 >
                   <Icon name="lucide:plus" />
 
@@ -154,7 +154,7 @@ defineShortcuts(extractShortcuts(items.value))
                   class="bg-green-600"
                 />
 
-                <span class="text-sm font-bold">{{
+                <span class="text-sm font-bold text-zinc-800 dark:text-white">{{
                   userData?.first_name
                 }}</span>
               </div>
