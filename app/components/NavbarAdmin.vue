@@ -68,7 +68,7 @@ defineShortcuts(extractShortcuts(items.value))
 
 <template>
   <nav
-    class="sticky top-0 z-50 h-10 shrink-0 border-b border-black/10 bg-white text-white dark:border-white/5 dark:bg-black"
+    class="light:bg-white sticky top-0 z-50 h-10 shrink-0 border-b border-black/10 bg-black text-white dark:border-white/5"
   >
     <div class="flex h-full items-stretch justify-between px-4">
       <div class="flex items-center gap-x-3">
