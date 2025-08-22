@@ -16,7 +16,23 @@ export default defineAppConfig({
       },
     },
 
+    formField: {
+      defaultVariants: {
+        size: 'xl',
+      },
+    },
+
     input: {
+      slots: {
+        root: 'w-full',
+      },
+
+      compoundVariants: [
+        {
+          class: 'w-full',
+        },
+      ],
+
       defaultVariants: {
         size: 'xl',
       },
