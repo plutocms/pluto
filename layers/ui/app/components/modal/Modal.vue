@@ -37,7 +37,7 @@ const resolvedClasses = computed(() => {
       relative
       w-[936px] h-fit
       rounded-2xl
-      pt-6 pb-3 px-4 my-4
+      pt-6 pb-3 px-4 my-4 mx-4
       shadow-2xl
       bg-(--ui-bg)
       light:text-zinc-800 text-white
