@@ -200,7 +200,7 @@ const isInsertButtonDisabled = computed(
 </script>
 
 <template>
-  <Modal v-model="isMediaModalOpen" prevent-click-outside>
+  <Modal v-model="isMediaModalOpen" :custom-size="1200" prevent-click-outside>
     <ModalHeader @close="closeMediaModal">Insert media</ModalHeader>
 
     <ModalContent>
