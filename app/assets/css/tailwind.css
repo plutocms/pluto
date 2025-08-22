@@ -1,5 +1,15 @@
-@import 'tailwindcss' source('../../..');
+@import 'tailwindcss';
 @import '@nuxt/ui';
+
+@source '../../components/**/*';
+@source '../../layouts/**/*';
+@source '../../pages/**/*';
+@source '../../app.vue';
+
+@source '../../../layers/**/app/components/**/*';
+@source '../../../layers/**/app/layouts/**/*';
+@source '../../../layers/**/app/pages/**/*';
+@source '../../../layers/**/app/app.vue';
 
 @theme {
   --color-admin-content: var(--color-slate-800);
