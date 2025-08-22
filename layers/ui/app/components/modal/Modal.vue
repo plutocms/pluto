@@ -73,7 +73,7 @@ const resolvedOverlayClasses = computed(() => {
       left-0 top-0
       z-[51]
       h-screen w-screen
-      bg-black/50
+      bg-black/90
     `
 
   return twMerge([defaultClasses])
