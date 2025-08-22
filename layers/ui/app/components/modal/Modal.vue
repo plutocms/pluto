@@ -35,7 +35,7 @@ const resolvedClasses = computed(() => {
   const defaultClasses = `
       group
       relative
-      w-full h-fit
+      w-[936px] h-fit
       rounded-2xl
       pt-6 pb-3 px-4 my-4
       shadow-2xl
