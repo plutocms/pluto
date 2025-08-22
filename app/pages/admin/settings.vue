@@ -67,21 +67,25 @@ async function submitForm() {
     <UCard>
       <UForm :schema="schema" :state="form" @submit="submitForm">
         <div class="flex flex-col gap-y-6">
-          <UFormField label="Website Title" name="website_title">
+          <UFormField label="Website Title" name="website_title" class="w-1/2">
             <UInput
               v-model="form.website_title"
               placeholder="e.g. My Website"
             />
           </UFormField>
 
-          <UFormField label="Website Description" name="website_description">
+          <UFormField
+            label="Website Description"
+            name="website_description"
+            class="w-1/2"
+          >
             <UInput
               v-model="form.website_description"
               placeholder="e.g. My Website Description"
             />
           </UFormField>
 
-          <UFormField label="Website URL" name="website_url">
+          <UFormField label="Website URL" name="website_url" class="w-1/2">
             <UInput
               v-model="form.website_url"
               type="url"
