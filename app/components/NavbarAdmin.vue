@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
+const route = useRoute()
+
 const { isLoggedIn, userData, logout } = useAuth()
 
 const has_settings_modified = useState('has_settings_modified')
@@ -84,7 +86,7 @@ defineShortcuts(extractShortcuts(items.value))
 
         <div class="h-full">
           <ul class="flex h-full items-center text-sm">
-            <li class="h-full">
+            <li v-if="route.path.startsWith('/admin')" class="h-full">
               <ULink
                 :title="`Visit ${domainFromUrl(settingsData?.settings.website_url)}`"
                 :href="settingsData?.settings.website_url"
