@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
 
+@source '../../../app/app.config.ts';
 @source '../../components/**/*';
 @source '../../layouts/**/*';
 @source '../../pages/**/*';
