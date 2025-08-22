@@ -207,7 +207,7 @@ const isInsertButtonDisabled = computed(
       <template #header>
         <UTabs v-model="currentTab" :items="tabs" class="w-full">
           <template #gallery>
-            <div class="flex flex-col gap-y-6 pt-6">
+            <div class="@container flex flex-col gap-y-6 pt-6">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-x-4">
                   <div>
@@ -246,7 +246,9 @@ const isInsertButtonDisabled = computed(
                 </div>
               </div>
 
-              <div class="grid grid-cols-5 gap-3">
+              <div
+                class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @md:grid-cols-4 @lg:grid-cols-5"
+              >
                 <div
                   v-for="file in mediaList?.data"
                   :key="file.id"
