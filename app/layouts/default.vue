@@ -1,10 +1,10 @@
 <script setup lang="ts">
-const { user } = useAuth()
+const { isLoggedIn } = useAuth()
 </script>
 
 <template>
   <div>
-    <NavbarAdmin v-if="user" />
+    <NavbarAdmin v-if="isLoggedIn" />
 
     <slot />
   </div>
