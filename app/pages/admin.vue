@@ -32,7 +32,7 @@ watch(visibility, async (current, previous) => {
 </script>
 
 <template>
-  <div class="light:text-zinc-800 h-full text-white">
+  <div class="light:text-zinc-800 h-full dark:text-white">
     <NuxtPage />
   </div>
 </template>

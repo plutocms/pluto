@@ -70,7 +70,7 @@ defineShortcuts(extractShortcuts(items.value))
 
 <template>
   <nav
-    class="light:bg-white sticky top-0 z-50 h-10 shrink-0 border-b border-black/10 bg-black text-white dark:border-white/5"
+    class="light:bg-white light:border-black/10 sticky top-0 z-50 h-10 shrink-0 border-b dark:border-white/5 dark:bg-black dark:text-white"
   >
     <div class="flex h-full items-stretch justify-between px-4">
       <div class="flex items-center gap-x-3">
@@ -95,7 +95,7 @@ defineShortcuts(extractShortcuts(items.value))
                 target="_blank"
               >
                 <span
-                  class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-black/10 dark:group-hover:bg-white/20"
+                  class="light:group-hover:bg-black/10 box-content flex h-full items-center gap-x-2 rounded-sm px-2 dark:group-hover:bg-white/20"
                 >
                   <span> View site </span>
 
@@ -118,7 +118,7 @@ defineShortcuts(extractShortcuts(items.value))
                 active-class="text-current cursor-default"
               >
                 <span
-                  class="text-vulmix box-content flex h-full items-center gap-x-2 rounded-sm px-2 group-hover:bg-black/10 dark:group-hover:bg-white/20"
+                  class="light:group-hover:bg-black/10 box-content flex h-full items-center gap-x-2 rounded-sm px-2 dark:group-hover:bg-white/20"
                 >
                   <Icon name="lucide:plus" />
 
@@ -156,9 +156,11 @@ defineShortcuts(extractShortcuts(items.value))
                   class="bg-green-600"
                 />
 
-                <span class="text-sm font-bold text-zinc-800 dark:text-white">{{
-                  userData?.first_name
-                }}</span>
+                <span
+                  class="light:text-zinc-800 text-sm font-bold dark:text-white"
+                >
+                  {{ userData?.first_name }}
+                </span>
               </div>
             </button>
           </UDropdownMenu>
