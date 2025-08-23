@@ -53,7 +53,24 @@ const form = defineModel<Form>({
     price: 0,
     product_style: '',
     media: [],
+    is_custom: false,
+    stock_quantity: null,
+    availability: 'preorder',
   },
+})
+
+const availabilityOptions = computed(() => {
+  return [
+    {
+      label: 'In Stock',
+      value: 'in_stock',
+      disabled: form.value.is_custom,
+    },
+    {
+      label: 'Preorder',
+      value: 'preorder',
+    },
+  ]
 })
 
 watch(
@@ -92,6 +109,9 @@ async function submitForm() {
     price: form.value?.price ?? 0,
     media: form.value?.media,
     product_style: form.value?.product_style,
+    is_custom: form.value?.is_custom ?? false,
+    stock_quantity: form.value?.stock_quantity,
+    availability: form.value?.availability,
   }
 
   try {
@@ -184,6 +204,21 @@ async function createCategory(item: string) {
       isCategorySelectLoading.value = false
     })
 }
+
+watch(
+  () => form.value.is_custom,
+  (value) => {
+    if (value) {
+      form.value.availability = 'preorder'
+
+      form.value.stock_quantity = null
+
+      return
+    }
+
+    form.value.stock_quantity = 0
+  }
+)
 </script>
 
 <template>
@@ -322,15 +357,37 @@ async function createCategory(item: string) {
 
           <UFormField label="Price">
             <UInputNumber
-              v-model="form.price"
+              v-model.number="form.price"
               :format-options="{
                 style: 'currency',
-                currency: 'USD',
+                currency: 'BRL',
                 currencyDisplay: 'symbol',
                 currencySign: 'accounting',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
               }"
               class="w-full"
             />
+          </UFormField>
+
+          <UFormField label="Is custom">
+            <USwitch v-model="form.is_custom" />
+          </UFormField>
+
+          <UFormField label="Availability">
+            <USelect
+              v-model="form.availability"
+              :items="availabilityOptions"
+              value="preorder"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            v-if="form.availability === 'in_stock'"
+            label="Stock Quantity"
+          >
+            <UInputNumber v-model="form.stock_quantity" class="w-full" />
           </UFormField>
 
           <UFormField label="Style">
