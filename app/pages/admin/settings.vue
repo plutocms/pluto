@@ -6,6 +6,10 @@ type Form = Record<
   string
 >
 
+useHead({
+  title: 'Settings',
+})
+
 const toast = useToast()
 
 const has_settings_modified = useState('has_settings_modified', () => {
