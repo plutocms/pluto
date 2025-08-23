@@ -16,11 +16,11 @@ const props = defineProps<{
   productId?: number
 }>()
 
-useHead({
-  title: 'Add new product',
-})
-
 const route = useRoute('admin-product-edit-id')
+
+useHead({
+  title: route.params.id ? 'Edit product' : 'Add new product',
+})
 
 const { getMediaUrl } = useMedia()
 
