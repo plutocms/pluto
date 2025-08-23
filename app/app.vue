@@ -7,27 +7,7 @@ useHead({
 </script>
 
 <template>
-  <div class="grow">
-    <UApp>
-      <NuxtRouteAnnouncer />
-      <NuxtLoadingIndicator />
-
-      <NuxtLayout>
-        <NuxtPage />
-      </NuxtLayout>
-    </UApp>
-  </div>
+  <PlutoRoot>
+    <NuxtPage />
+  </PlutoRoot>
 </template>
-
-<style>
-html,
-body {
-  height: 100%;
-}
-
-#__nuxt {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-</style>
