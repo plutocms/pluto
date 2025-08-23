@@ -2,15 +2,7 @@
 export default defineNuxtConfig({
   extends: ['layers/shop', 'layers/ui', 'layers/supabase'],
 
-  modules: [
-    '@nuxt/eslint',
-    '@nuxt/fonts',
-    '@nuxt/icon',
-    '@nuxt/ui',
-    '@vueuse/nuxt',
-    'reka-ui/nuxt',
-    '@nuxtjs/tailwindcss',
-  ],
+  modules: ['@nuxt/eslint', '@nuxt/fonts', '@nuxt/ui', '@vueuse/nuxt'],
 
   $development: {
     vite: {
