@@ -1,3 +1,5 @@
+const websiteName = process.env.WEBSITE_NAME || 'Untitled'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   extends: ['layers/shop', 'layers/ui', 'layers/supabase'],
@@ -42,6 +44,12 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   css: ['#layers/pluto/app/assets/css/tailwind.css'],
+
+  runtimeConfig: {
+    public: {
+      websiteName,
+    },
+  },
 
   routeRules: {
     '/admin': {
