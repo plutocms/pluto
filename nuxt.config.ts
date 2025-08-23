@@ -43,6 +43,12 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  app: {
+    head: {
+      titleTemplate: `%s - ${websiteName}`,
+    },
+  },
+
   css: ['#layers/pluto/app/assets/css/tailwind.css'],
 
   runtimeConfig: {
