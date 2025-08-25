@@ -1,5 +1,4 @@
 <script lang="ts">
-import type { Database } from '#shared/types/supabase'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 type Product = Database['public']['Tables']['products']['Row']

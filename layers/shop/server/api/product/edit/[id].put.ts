@@ -1,4 +1,3 @@
-import type { Database } from '#shared/types/supabase'
 import { serverSupabaseClient } from '#supabase/server'
 
 type Media = Database['public']['Tables']['media']['Row']

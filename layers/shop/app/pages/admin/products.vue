@@ -1,5 +1,4 @@
 <script setup lang="tsx">
-import type { Database } from '#shared/types/supabase'
 import type { TableColumn } from '@nuxt/ui'
 import { NuxtLink, UButton, ULink } from '#components'
 

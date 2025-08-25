@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
-import type { Database } from '#shared/types/supabase'
 
 const props = defineProps<{
   productId?: number
