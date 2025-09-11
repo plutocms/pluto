@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-const route = useRoute()
+const route = useRoute('admin-product-edit-id')
 
 const { isLoggedIn, userData, logout } = useAuth()
 
@@ -107,6 +107,21 @@ defineShortcuts(extractShortcuts(items.value))
                     "
                     :class="[status === 'pending' ? 'animate-spin' : '']"
                   />
+                </span>
+              </ULink>
+            </li>
+
+            <li v-if="route.path.startsWith('/product/')" class="h-full">
+              <ULink
+                :to="`/admin/product/edit/${route.params.id}`"
+                class="group block h-full bg-transparent py-1 transition-none"
+              >
+                <span
+                  class="light:group-hover:bg-black/10 box-content flex h-full items-center gap-x-2 rounded-sm px-2 dark:group-hover:bg-white/20"
+                >
+                  <Icon name="lucide:pen-line" />
+
+                  <span> Edit product </span>
                 </span>
               </ULink>
             </li>
