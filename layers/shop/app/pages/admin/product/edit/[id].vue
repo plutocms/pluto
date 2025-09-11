@@ -18,9 +18,26 @@ useHead({
 const form = ref<Form>()
 
 onMounted(() => {
-  form.value = product.value
-    ? { ...product.value, product_style: product.value.product_style ?? '' }
-    : undefined
+  if (product.value) {
+    const media = product.value.media.map((item) => ({
+      ...item,
+      is_saved: true,
+    }))
+    // Move all .glb media to the end
+    const glbMedia = media.filter((item) =>
+      item.name?.toLowerCase().endsWith('.glb')
+    )
+    const otherMedia = media.filter(
+      (item) => !item.name?.toLowerCase().endsWith('.glb')
+    )
+    form.value = {
+      ...product.value,
+      product_style: product.value.product_style ?? '',
+      media: [...otherMedia, ...glbMedia],
+    }
+  } else {
+    form.value = undefined
+  }
 })
 </script>
 

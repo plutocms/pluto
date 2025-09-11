@@ -2,7 +2,9 @@
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 type Product = Database['public']['Tables']['products']['Row']
-type Media = Database['public']['Tables']['media']['Row']
+type Media = Database['public']['Tables']['media']['Row'] & {
+  is_saved?: boolean
+}
 
 export interface Form extends Omit<Product, 'id' | 'created_at'> {
   media: Media[]
@@ -28,6 +30,7 @@ const productSlug = useChangeCase('', 'kebabCase')
 const currentSelectedImage = ref<number>(0)
 const lastImageIndex = computed<number>(() => form.value.media?.length - 1)
 const isEditing = computed<boolean>(() => route.path.includes('edit'))
+const removedMediaIds = ref<number[]>([])
 
 const { data: categories, refresh: refreshCategories } =
   await useFetch('/api/category/list')
@@ -100,17 +103,18 @@ async function submitForm() {
     'created_at'
   > & { media: Media[] }
 
-  const payload: Payload = {
+  const payload: Payload & { removedMediaIds?: number[] } = {
     id: props.productId ?? undefined,
     slug: form.value?.slug ?? '',
     name: form.value?.name || 'Untitled',
     description: form.value?.description || null,
     price: form.value?.price ?? 0,
-    media: form.value?.media,
+    media: form.value?.media?.map(({ is_saved, ...rest }) => rest),
     product_style: form.value?.product_style,
     is_custom: form.value?.is_custom ?? false,
     stock_quantity: form.value?.stock_quantity,
     availability: form.value?.availability,
+    removedMediaIds: isEditing.value ? removedMediaIds.value : undefined,
   }
 
   try {
@@ -128,13 +132,20 @@ async function submitForm() {
     }
 
     await $fetch(`/api/product/edit/${payload.id}`, {
-      method: 'PUT',
+      method: 'POST',
       body: payload,
     })
+
+    removedMediaIds.value = []
   } catch (error) {
     console.error('An error occurred')
   } finally {
     isSubmitting.value = false
+
+    // set all media is_saved to true
+    form.value.media.forEach((media) => {
+      media.is_saved = true
+    })
   }
 }
 
@@ -148,7 +159,32 @@ function closeMediaModal() {
   isMediaModalOpen.value = false
 }
 
+function is3d(item: Media | Media[] | null) {
+  if (Array.isArray(item)) {
+    return item.some((i) => i.name?.endsWith('.glb'))
+  }
+
+  return item?.name?.endsWith('.glb')
+}
+
+function removeMedia(index: number) {
+  const removed = form.value.media[index]
+  if (removed && removed.id) {
+    removedMediaIds.value.push(removed.id)
+  }
+  form.value.media.splice(index, 1)
+
+  if (currentSelectedImage.value === index) {
+    currentSelectedImage.value = 0
+  } else if (currentSelectedImage.value > index) {
+    currentSelectedImage.value -= 1
+  }
+}
+
 function handleInsertMedia(event: Media | Media[] | null) {
+  // Remove previous .glb media before inserting new one
+  form.value.media = form.value.media.filter((m) => !m.name?.endsWith('.glb'))
+
   if (Array.isArray(event)) {
     if (form.value.media?.length > 0) {
       form.value.media.push(...event)
@@ -253,16 +289,29 @@ watch(
       </div>
 
       <div class="pt-4 pr-4">
-        <UButton
-          :icon="isEditing ? 'lucide:save' : 'lucide:check'"
-          :loading="isSubmitting"
-          :disabled="form.name === ''"
-          type="button"
-          size="xl"
-          @click="submitForm"
-        >
-          {{ isEditing ? 'Save' : 'Publish' }}
-        </UButton>
+        <div class="flex gap-x-2">
+          <UButton
+            :icon="isEditing ? 'lucide:save' : 'lucide:check'"
+            :loading="isSubmitting"
+            :disabled="form.name === ''"
+            type="button"
+            size="xl"
+            @click="submitForm"
+          >
+            {{ isEditing ? 'Save' : 'Publish' }}
+          </UButton>
+
+          <UButton
+            v-if="isEditing"
+            :to="`/product/${props.productId}-${form.slug}`"
+            icon="lucide:eye"
+            variant="link"
+            as="NuxtLink"
+            target="_blank"
+          >
+            Preview
+          </UButton>
+        </div>
       </div>
     </div>
 
@@ -279,7 +328,10 @@ watch(
                   :key="index"
                   :class="[
                     currentSelectedImage === index && 'ring-2 ring-green-400',
+                    !image.is_saved && 'opacity-50',
+                    is3d(image) ? 'hidden' : '',
                   ]"
+                  :title="!image.is_saved ? 'Unsaved' : ''"
                   class="h-14 w-14 overflow-hidden rounded-2xl bg-black/10 hover:bg-black/20"
                   @click="currentSelectedImage = index"
                 >
@@ -294,11 +346,21 @@ watch(
               <div
                 class="dark:bg-admin-content light:bg-white sticky -bottom-0.5 mb-8 -ml-0.5 w-full py-2 pl-0.5"
               >
-                <div
-                  class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black/100"
-                  @click="openMediaModal"
-                >
-                  <Icon name="lucide:plus" class="text-2xl" />
+                <div class="flex flex-col gap-y-3">
+                  <div
+                    v-if="form.media && form.media.find((m) => is3d(m))"
+                    class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black/100"
+                    @click="openMediaModal"
+                  >
+                    <Icon name="lucide:rotate-3d" class="text-2xl" />
+                  </div>
+
+                  <div
+                    class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black/100"
+                    @click="openMediaModal"
+                  >
+                    <Icon name="lucide:plus" class="text-2xl" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -319,6 +381,19 @@ watch(
                 class="absolute top-0 left-0 h-full w-full"
                 @click="openMediaModal"
               />
+
+              <div class="absolute right-0 bottom-0 p-3">
+                <UButton
+                  v-if="form.media && form.media.length > 0"
+                  variant="soft"
+                  color="error"
+                  title="Remove media"
+                  square
+                  @click="removeMedia(currentSelectedImage)"
+                >
+                  <Icon name="lucide:trash" class="text-2xl" />
+                </UButton>
+              </div>
 
               <div
                 v-if="!form.media || form.media?.length === 0"
@@ -350,7 +425,10 @@ watch(
             />
           </UFormField>
 
-          <UFormField :help="`/product/${form.slug}`" label="Slug">
+          <UFormField
+            :help="`/product/${props.productId}-${form.slug}`"
+            label="Slug"
+          >
             <UInput v-model="form.slug" placeholder="slug" class="w-full" />
           </UFormField>
 

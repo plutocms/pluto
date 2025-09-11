@@ -23,11 +23,19 @@ const {
   key: '/api/media/list',
 })
 
+const imageList = computed(() => {
+  return mediaList.value?.data.filter((item) => !item.name?.endsWith('.glb'))
+})
+
+const threeDModelList = computed(() => {
+  return mediaList.value?.data.filter((item) => item.name?.endsWith('.glb'))
+})
+
 function closeMediaModal() {
   isMediaModalOpen.value = false
 }
 
-const currentTab = ref<'0' | '1'>('0')
+const currentTab = ref<'0' | '1' | '2'>('0')
 
 watch(currentTab, () => {
   resetAll()
@@ -42,6 +50,11 @@ const tabs = ref<TabsItem[]>([
     label: 'Gallery',
     icon: 'lucide:blocks',
     slot: 'gallery',
+  },
+  {
+    label: '3D Models',
+    icon: 'lucide:rotate-3d',
+    slot: 'three-dimensional',
   },
   {
     label: 'Upload from your computer',
@@ -59,7 +72,7 @@ const form = ref<Form>({
 })
 
 const { files, onChange, open, reset } = useFileDialog({
-  accept: 'image/*',
+  accept: 'image/*,.glb',
 })
 
 const mediaBlobList = ref<string[]>([])
@@ -148,6 +161,10 @@ function selectMedia(id: number) {
   selectedMedia.value.push(id)
 }
 
+function selectSingleMedia(id: number) {
+  selectedMedia.value = [id]
+}
+
 const transformedSelectedMedia = computed<EmitValue[]>(() => {
   const value = selectedMedia.value
     ?.map((item) => {
@@ -168,7 +185,7 @@ const transformedSelectedMedia = computed<EmitValue[]>(() => {
 type EmitValue = Database['public']['Tables']['media']['Row']
 
 function insertMedia() {
-  if (currentTab.value === '0') {
+  if (currentTab.value === '0' || currentTab.value === '1') {
     if (!transformedSelectedMedia.value) {
       return
     }
@@ -194,7 +211,8 @@ function resetAll() {
 const isInsertButtonDisabled = computed(
   () =>
     (currentTab.value === '0' && selectedMedia.value.length === 0) ||
-    (currentTab.value === '1' && isUploaded.value === false)
+    (currentTab.value === '1' && selectedMedia.value.length === 0) ||
+    (currentTab.value === '2' && isUploaded.value === false)
 )
 </script>
 
@@ -211,14 +229,14 @@ const isInsertButtonDisabled = computed(
                 <div class="flex items-center gap-x-4">
                   <div>
                     <span v-if="selectedMedia.length === 0">
-                      Showing {{ mediaList?.data.length }} file{{
-                        mediaList?.data.length === 1 ? '' : 's'
+                      Showing {{ imageList?.length }} file{{
+                        imageList?.length === 1 ? '' : 's'
                       }}
                     </span>
 
                     <span v-else>
                       {{ selectedMedia.length }} of
-                      {{ mediaList?.data.length }} files selected
+                      {{ imageList?.length }} files selected
                     </span>
                   </div>
 
@@ -249,7 +267,7 @@ const isInsertButtonDisabled = computed(
                 class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @md:grid-cols-4 @lg:grid-cols-5"
               >
                 <div
-                  v-for="file in mediaList?.data"
+                  v-for="file in imageList"
                   :key="file.id"
                   class="group/image-select relative aspect-square overflow-hidden rounded-2xl bg-black select-none hover:ring-1 has-[[aria-checked='true']]:ring-2 has-[[aria-checked='true']]:ring-green-400"
                 >
@@ -275,6 +293,58 @@ const isInsertButtonDisabled = computed(
             </div>
           </template>
 
+          <template #three-dimensional>
+            <div class="@container flex flex-col gap-y-6 pt-6">
+              <div class="flex items-center justify-between">
+                <div>You can only select one 3D model at a time.</div>
+
+                <div>
+                  <UButton
+                    :loading="mediaStatus === 'pending'"
+                    icon="lucide:refresh-cw"
+                    @click="refreshMediaList()"
+                  >
+                    Refresh
+                  </UButton>
+                </div>
+              </div>
+
+              <div
+                class="grid grid-cols-2 gap-3 @sm:grid-cols-3 @md:grid-cols-4 @lg:grid-cols-5"
+              >
+                <div
+                  v-for="file in threeDModelList"
+                  :key="file.id"
+                  class="group/image-select relative aspect-square overflow-hidden rounded-2xl bg-black select-none hover:ring-1 has-[[aria-checked='true']]:ring-2 has-[[aria-checked='true']]:ring-green-400"
+                >
+                  <label
+                    class="absolute top-0 left-0 grid h-full w-full items-start justify-end"
+                  >
+                    <div class="rounded-bl-2xl bg-black/80 p-2">
+                      <UCheckbox
+                        :model-value="isSelected(file.id)"
+                        @change="selectSingleMedia(file.id)"
+                      />
+                    </div>
+                  </label>
+
+                  <div
+                    class="pointer-events-none grid size-full place-items-center"
+                  >
+                    <div class="flex flex-col items-center gap-y-2">
+                      <Icon
+                        name="lucide:rotate-3d"
+                        class="text-5xl opacity-20 transition-opacity group-hover/image-select:opacity-100"
+                      />
+
+                      <div class="text-sm text-gray-500">{{ file.name }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <template #upload>
             <div class="flex gap-x-4">
               <div
@@ -295,6 +365,8 @@ const isInsertButtonDisabled = computed(
                     name="lucide:plus"
                     class="text-5xl opacity-20 transition-opacity group-hover:opacity-100"
                   />
+
+                  <div class="text-sm text-gray-500">Click to upload</div>
                 </div>
 
                 <img
