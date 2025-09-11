@@ -38,6 +38,7 @@
     "nuxtjs",
     "oklch",
     "pinia",
+    "plutocms",
     "tailwindcss"
   ],
 
