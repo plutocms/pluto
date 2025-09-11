@@ -8,6 +8,9 @@ const form = ref<Form>({
   product_style: '',
   media: [],
   slug: '',
+  availability: 'in_stock',
+  is_custom: false,
+  stock_quantity: null,
 })
 </script>
 
