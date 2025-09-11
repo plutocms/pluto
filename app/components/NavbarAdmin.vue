@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
+import { domainFromUrl } from '#imports'
 
 const route = useRoute('admin-product-edit-id')
 

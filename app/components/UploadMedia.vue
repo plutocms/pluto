@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
+import { fileNameToKebabCase } from '#imports'
 
 const props = defineProps<{
   productId?: number
