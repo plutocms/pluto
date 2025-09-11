@@ -33,6 +33,10 @@ export function useAuth() {
           icon: 'lucide:circle-x',
           color: 'error',
         })
+
+        isSubmitting.value = false
+
+        return
       }
 
       navigateTo((route.query.redirect as string) ?? '/admin/home')
