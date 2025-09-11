@@ -23,6 +23,8 @@ useHead({
   title: route.params.id ? 'Edit product' : 'Add new product',
 })
 
+const toast = useToast()
+
 const { getMediaUrl } = useMedia()
 
 const productSlug = useChangeCase('', 'kebabCase')
@@ -126,6 +128,12 @@ async function submitForm() {
         body: payload,
       })
 
+      toast.add({
+        title: 'Product created',
+        description: 'Your product has been created successfully.',
+        color: 'success',
+      })
+
       navigateTo(`/admin/product/edit/${data.id}`)
 
       return
@@ -136,9 +144,21 @@ async function submitForm() {
       body: payload,
     })
 
+    toast.add({
+      title: 'Product updated',
+      description: 'Your product has been updated successfully.',
+      color: 'success',
+    })
+
     removedMediaIds.value = []
   } catch (error) {
     console.error('An error occurred')
+
+    toast.add({
+      title: 'Error',
+      description: 'An error occurred while saving the product.',
+      color: 'error',
+    })
   } finally {
     isSubmitting.value = false
 
@@ -169,9 +189,11 @@ function is3d(item: Media | Media[] | null) {
 
 function removeMedia(index: number) {
   const removed = form.value.media[index]
+
   if (removed && removed.id) {
     removedMediaIds.value.push(removed.id)
   }
+
   form.value.media.splice(index, 1)
 
   if (currentSelectedImage.value === index) {
@@ -179,6 +201,12 @@ function removeMedia(index: number) {
   } else if (currentSelectedImage.value > index) {
     currentSelectedImage.value -= 1
   }
+
+  toast.add({
+    title: 'Media removed',
+    description: 'The selected media has been removed.',
+    color: 'info',
+  })
 }
 
 function handleInsertMedia(event: Media | Media[] | null) {
@@ -198,6 +226,12 @@ function handleInsertMedia(event: Media | Media[] | null) {
   }
 
   currentSelectedImage.value = lastImageIndex.value
+
+  toast.add({
+    title: 'Media added',
+    description: 'The selected media has been added.',
+    color: 'success',
+  })
 
   closeMediaModal()
 }
@@ -231,6 +265,12 @@ async function createCategory(item: string) {
       form.value.product_style = item
 
       isCategorySelectOpen.value = false
+
+      toast.add({
+        title: `${item} created`,
+        description: 'Your category has been created successfully.',
+        color: 'success',
+      })
     })
     .catch((error) => {
       console.error(error.message)
