@@ -41,7 +41,9 @@ const menu = ref<NavigationMenuItem[]>([
 </script>
 
 <template>
-  <div class="dark:bg-admin-content light:bg-white flex h-full grow flex-col">
+  <div
+    class="dark:bg-admin-content light:bg-white font-outfit flex h-full grow flex-col"
+  >
     <NavbarAdmin />
 
     <div class="flex h-full items-stretch">

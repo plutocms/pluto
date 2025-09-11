@@ -15,4 +15,6 @@
 @theme {
   --color-admin-content: var(--color-slate-800);
   --color-admin-sidebar: var(--color-slate-900);
+
+  --font-outfit: 'Outfit', sans-serif;
 }
