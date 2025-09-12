@@ -51,10 +51,10 @@ function closeModal() {
       </h2>
 
       <div v-if="props.hideCloseButton === false">
-        <UButton class="top-3" size="sm" variant="ghost" @click="closeModal">
+        <UButton size="sm" variant="ghost" square @click="closeModal">
           <span class="sr-only">Close</span>
 
-          <Icon name="lucide:x" class="text-2xl" />
+          <Icon name="lucide:x" class="text-xl" />
         </UButton>
       </div>
     </div>
