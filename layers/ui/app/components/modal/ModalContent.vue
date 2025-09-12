@@ -12,7 +12,7 @@ import { twMerge } from 'tailwind-merge'
       <slot name="header" />
     </div>
 
-    <div class="px-1 pt-6">
+    <div class="px-4 pt-6">
       <slot />
     </div>
   </div>

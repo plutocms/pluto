@@ -222,7 +222,7 @@ const isInsertButtonDisabled = computed(
     <ModalHeader @close="closeMediaModal">Insert media</ModalHeader>
 
     <ModalContent>
-      <template #header>
+      <div>
         <UTabs v-model="currentTab" :items="tabs" class="w-full">
           <template #gallery>
             <div class="@container flex flex-col gap-y-6 pt-6">
@@ -424,7 +424,7 @@ const isInsertButtonDisabled = computed(
             </div>
           </template>
         </UTabs>
-      </template>
+      </div>
     </ModalContent>
 
     <ModalFooter>

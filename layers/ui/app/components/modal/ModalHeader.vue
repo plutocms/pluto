@@ -22,9 +22,9 @@ const resolvedClasses = computed(() => {
   const defaultClasses = `
       sticky -top-4 left-0
       z-51
-      -mx-4 -mt-4
+      -mt-4
       flex flex-col gap-x-6
-      w-[calc(100%_+_2rem)]
+      w-full
       px-4
       rounded-t-lg
     `
@@ -42,12 +42,12 @@ function closeModal() {
 <template>
   <div :class="resolvedClasses">
     <div
-      class="absolute top-0 left-0 z-[-1] h-full w-full rounded-t-3xl bg-(--ui-bg) backdrop-blur-md"
+      class="absolute top-0 left-0 z-[-1] h-full w-full rounded-t-lg bg-(--ui-bg) backdrop-blur-md"
     />
 
-    <div class="flex items-center justify-between py-4">
+    <div class="flex items-start justify-between py-4">
       <h2 :class="twMerge(['text-3xl leading-10 font-medium'])">
-        <slot />
+        <slot />ssss
       </h2>
 
       <div v-if="props.hideCloseButton === false">

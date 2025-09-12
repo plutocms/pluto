@@ -31,9 +31,7 @@ const resolvedAlign = computed(() => {
 const resolvedClasses = computed(() => {
   const defaultClasses = `
       sticky -bottom-4 z-51
-      -mx-4
-      w-[calc(100%_+_2rem)]
-      px-4
+      w-full
       mt-8
     `
 
@@ -48,7 +46,7 @@ const resolvedClasses = computed(() => {
     <div
       :class="
         twMerge([
-          'bg-opacity-90 absolute top-0 left-0 z-[-1] h-full w-full backdrop-blur-md',
+          'bg-opacity-90 absolute top-0 left-0 z-[-1] h-full w-full rounded-b-lg backdrop-blur-md',
           'bg-(--ui-bg)',
         ])
       "
