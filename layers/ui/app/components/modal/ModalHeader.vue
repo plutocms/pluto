@@ -47,7 +47,7 @@ function closeModal() {
 
     <div class="flex items-start justify-between py-4">
       <h2 :class="twMerge(['text-3xl leading-10 font-medium'])">
-        <slot />ssss
+        <slot />
       </h2>
 
       <div v-if="props.hideCloseButton === false">
