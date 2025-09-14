@@ -76,7 +76,7 @@ export type Database = {
           is_custom: boolean
           name: string
           price: number
-          product_style: string | null
+          product_style: number | null
           slug: string
           stock_quantity: number | null
         }
@@ -88,7 +88,7 @@ export type Database = {
           is_custom?: boolean
           name: string
           price: number
-          product_style?: string | null
+          product_style?: number | null
           slug: string
           stock_quantity?: number | null
         }
@@ -100,11 +100,19 @@ export type Database = {
           is_custom?: boolean
           name?: string
           price?: number
-          product_style?: string | null
+          product_style?: number | null
           slug?: string
           stock_quantity?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_product_style_fkey"
+            columns: ["product_style"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

@@ -11,7 +11,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { data, error } = await client.from('categories').insert(body).select()
+  const { data, error } = await client
+    .from('categories')
+    .insert(body)
+    .select()
+    .single()
 
   if (error) {
     throw createError({

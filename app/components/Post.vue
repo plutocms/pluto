@@ -2,13 +2,16 @@
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 type Product = Database['public']['Tables']['products']['Row']
+type ProductPayload = Database['public']['Tables']['products']['Insert']
 type Media = Database['public']['Tables']['media']['Row'] & {
   is_saved?: boolean
 }
+type Category = Database['public']['Tables']['categories']['Row']
 
-export interface Form extends Omit<Product, 'id' | 'created_at'> {
+export interface Form
+  extends Omit<Product, 'id' | 'created_at' | 'product_style'> {
   media: Media[]
-  product_style: string
+  product_style: number | undefined
 }
 </script>
 
@@ -39,14 +42,10 @@ const { data: categories, refresh: refreshCategories } =
 
 const productStyles = computed(() => {
   if (!categories.value?.data) {
-    return
+    return []
   }
 
-  const transformedData = categories.value.data.map((item) => {
-    return item.label
-  })
-
-  return transformedData
+  return categories.value?.data
 })
 
 const form = defineModel<Form>({
@@ -55,7 +54,7 @@ const form = defineModel<Form>({
     slug: '',
     description: '',
     price: 0,
-    product_style: '',
+    product_style: null,
     media: [],
     is_custom: false,
     stock_quantity: null,
@@ -99,11 +98,17 @@ watch(
 
 const isSubmitting = ref<boolean>(false)
 
+function getProductStyleFromId(id: number): Category | null {
+  const category = productStyles.value.find((item) => item.id === id)
+
+  return category || null
+}
+
 async function submitForm() {
-  type Payload = Omit<
-    Database['public']['Tables']['products']['Insert'],
-    'created_at'
-  > & { media: Media[] }
+  type Payload = Omit<ProductPayload, 'created_at' | 'product_style'> & {
+    media: Media[]
+    product_style: Category | null
+  }
 
   const payload: Payload & { removedMediaIds?: number[] } = {
     id: props.productId ?? undefined,
@@ -112,7 +117,7 @@ async function submitForm() {
     description: form.value?.description || null,
     price: form.value?.price ?? 0,
     media: form.value?.media?.map(({ is_saved, ...rest }) => rest),
-    product_style: form.value?.product_style,
+    product_style: getProductStyleFromId(form.value.product_style ?? 0),
     is_custom: form.value?.is_custom ?? false,
     stock_quantity: form.value?.stock_quantity,
     availability: form.value?.availability,
@@ -245,12 +250,10 @@ function onCategorySelectOpen(event: boolean) {
   }
 }
 
-async function createCategory(item: string) {
-  type Category = Database['public']['Tables']['categories']['Row']
-
+async function createCategory(name: string) {
   const payload: Omit<Category, 'id' | 'description'> = {
-    label: item,
-    slug: slugify(item),
+    label: name,
+    slug: slugify(name),
   }
 
   isCategorySelectLoading.value = true
@@ -259,15 +262,15 @@ async function createCategory(item: string) {
     method: 'POST',
     body: payload,
   })
-    .then(async () => {
+    .then(async (response) => {
       await refreshCategories()
 
-      form.value.product_style = item
+      form.value.product_style = response.data?.id
 
       isCategorySelectOpen.value = false
 
       toast.add({
-        title: `${item} created`,
+        title: `${name} created`,
         description: 'Your category has been created successfully.',
         color: 'success',
       })
@@ -513,6 +516,8 @@ watch(
               v-model:open="isCategorySelectOpen"
               :items="productStyles"
               :loading="isCategorySelectLoading"
+              value-key="id"
+              label-key="label"
               loading-icon="line-md:loading-loop"
               class="w-full"
               placeholder="e.g: Chibi"
