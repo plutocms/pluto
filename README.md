@@ -1,6 +1,9 @@
-> 🚧 Work In Progress: Pluto is experimental. Breaking changes are expected. Not production ready yet.
+<img width="335" height="105" alt="image" src="https://github.com/user-attachments/assets/1cf11470-ea54-416e-a940-7221fffef1e2" />
 
 # Pluto
+
+> [!WARNING]
+> 🚧 Work In Progress: Pluto is experimental. Breaking changes are expected. Not production ready yet.
 
 Pluto is a modular, layer-driven Content Management System (CMS) built with Nuxt 3. A modern alternative to monolithic systems like WordPress. Extend functionality through Nuxt Layers: choose only what is needed (auth, storage, e-commerce, blog, database connectors, etc.).
 
