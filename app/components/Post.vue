@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { Category } from '#layers/pluto/app/composables/category'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 type Product = Database['public']['Tables']['products']['Row']
@@ -6,7 +7,6 @@ type ProductPayload = Database['public']['Tables']['products']['Insert']
 type Media = Database['public']['Tables']['media']['Row'] & {
   is_saved?: boolean
 }
-type Category = Database['public']['Tables']['categories']['Row']
 
 export interface Form
   extends Omit<Product, 'id' | 'created_at' | 'product_style'> {
@@ -28,6 +28,9 @@ useHead({
 
 const toast = useToast()
 
+const { categories, refreshCategories, getCategoryFromId, createCategory } =
+  await useCategory()
+
 const { getMediaUrl } = useMedia()
 
 const productSlug = useChangeCase('', 'kebabCase')
@@ -37,15 +40,12 @@ const lastImageIndex = computed<number>(() => form.value.media?.length - 1)
 const isEditing = computed<boolean>(() => route.path.includes('edit'))
 const removedMediaIds = ref<number[]>([])
 
-const { data: categories, refresh: refreshCategories } =
-  await useFetch('/api/category/list')
-
 const productStyles = computed(() => {
-  if (!categories.value?.data) {
+  if (!categories.value) {
     return []
   }
 
-  return categories.value?.data
+  return categories.value
 })
 
 const form = defineModel<Form>({
@@ -98,12 +98,6 @@ watch(
 
 const isSubmitting = ref<boolean>(false)
 
-function getProductStyleFromId(id: number): Category | null {
-  const category = productStyles.value.find((item) => item.id === id)
-
-  return category || null
-}
-
 async function submitForm() {
   type Payload = Omit<ProductPayload, 'created_at' | 'product_style'> & {
     media: Media[]
@@ -117,7 +111,7 @@ async function submitForm() {
     description: form.value?.description || null,
     price: form.value?.price ?? 0,
     media: form.value?.media?.map(({ is_saved, ...rest }) => rest),
-    product_style: getProductStyleFromId(form.value.product_style ?? 0),
+    product_style: getCategoryFromId(form.value.product_style),
     is_custom: form.value?.is_custom ?? false,
     stock_quantity: form.value?.stock_quantity,
     availability: form.value?.availability,
@@ -248,39 +242,6 @@ function onCategorySelectOpen(event: boolean) {
   if (event === true) {
     refreshCategories()
   }
-}
-
-async function createCategory(name: string) {
-  const payload: Omit<Category, 'id' | 'description'> = {
-    label: name,
-    slug: slugify(name),
-  }
-
-  isCategorySelectLoading.value = true
-
-  await $fetch('/api/category/new', {
-    method: 'POST',
-    body: payload,
-  })
-    .then(async (response) => {
-      await refreshCategories()
-
-      form.value.product_style = response.data?.id
-
-      isCategorySelectOpen.value = false
-
-      toast.add({
-        title: `${name} created`,
-        description: 'Your category has been created successfully.',
-        color: 'success',
-      })
-    })
-    .catch((error) => {
-      console.error(error.message)
-    })
-    .finally(() => {
-      isCategorySelectLoading.value = false
-    })
 }
 
 watch(
@@ -522,7 +483,23 @@ watch(
               class="w-full"
               placeholder="e.g: Chibi"
               create-item
-              @create="createCategory"
+              @create="
+                (value) =>
+                  createCategory({
+                    name: value,
+                    onSuccess(category) {
+                      form.product_style = category.id
+
+                      isCategorySelectOpen = false
+                    },
+                    onRequest() {
+                      isCategorySelectLoading = true
+                    },
+                    onResponse() {
+                      isCategorySelectLoading = false
+                    },
+                  })
+              "
               @update:open="onCategorySelectOpen"
             />
           </UFormField>
