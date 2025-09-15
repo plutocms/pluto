@@ -75,7 +75,7 @@ Check the official [Nuxt Layers documentation](https://nuxt.com/docs/4.x/getting
 
 ## Roadmap (Subject to Change)
 
-Check #1.
+Check [the roadmap here](https://github.com/ojvribeiro/pluto/issues/47).
 
 ## Contributing
 
