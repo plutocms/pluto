@@ -67,6 +67,15 @@ export default withNuxt(
         },
       ],
 
+      'vue/comma-dangle': [
+        'warn',
+        {
+          arrays: 'always-multiline',
+          objects: 'always-multiline',
+          functions: 'never',
+        },
+      ],
+
       'style/operator-linebreak': 'off',
 
       'vue/singleline-html-element-content-newline': 'off',
