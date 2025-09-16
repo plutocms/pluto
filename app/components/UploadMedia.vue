@@ -14,15 +14,7 @@ const isMediaModalOpen = defineModel<boolean>({
   default: false,
 })
 
-const { getMediaUrl } = useMedia()
-
-const {
-  data: mediaList,
-  refresh: refreshMediaList,
-  status: mediaStatus,
-} = useFetch('/api/media/list', {
-  key: '/api/media/list',
-})
+const { mediaList, refreshMediaList, mediaStatus, getMediaUrl } = useMedia()
 
 const imageList = computed(() => {
   return mediaList.value?.data.filter((item) => !item.name?.endsWith('.glb'))
