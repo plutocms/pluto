@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability: {
+        Row: {
+          created_at: string
+          id: number
+          label: string | null
+          slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          label?: string | null
+          slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          label?: string | null
+          slug?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           description: string | null
@@ -69,7 +90,7 @@ export type Database = {
       }
       products: {
         Row: {
-          availability: Database["public"]["Enums"]["Availability"]
+          availability: number | null
           created_at: string
           description: string | null
           id: number
@@ -81,7 +102,7 @@ export type Database = {
           stock_quantity: number | null
         }
         Insert: {
-          availability?: Database["public"]["Enums"]["Availability"]
+          availability?: number | null
           created_at: string
           description?: string | null
           id?: number
@@ -93,7 +114,7 @@ export type Database = {
           stock_quantity?: number | null
         }
         Update: {
-          availability?: Database["public"]["Enums"]["Availability"]
+          availability?: number | null
           created_at?: string
           description?: string | null
           id?: number
@@ -105,6 +126,13 @@ export type Database = {
           stock_quantity?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_availability_fkey"
+            columns: ["availability"]
+            isOneToOne: false
+            referencedRelation: "availability"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_product_style_fkey"
             columns: ["product_style"]

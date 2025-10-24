@@ -1,5 +1,4 @@
 <script lang="ts">
-import type { Category } from '#layers/pluto/app/composables/category'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 type Product = Database['public']['Tables']['products']['Row']
@@ -9,9 +8,13 @@ type Media = Database['public']['Tables']['media']['Row'] & {
 }
 
 export interface Form
-  extends Omit<Product, 'id' | 'created_at' | 'product_style'> {
+  extends Omit<
+    Product,
+    'id' | 'created_at' | 'product_style' | 'availability'
+  > {
   media: Media[]
   product_style: number | undefined
+  availability: number | undefined
 }
 </script>
 
@@ -28,8 +31,8 @@ useHead({
 
 const toast = useToast()
 
-const { categories, refreshCategories, getCategoryFromId, createCategory } =
-  await useCategory()
+const { availabilityStatus } = await useAvailabilityStatus()
+const { categories, refreshCategories, createCategory } = await useCategory()
 
 const { getMediaUrl } = useMedia()
 
@@ -58,21 +61,21 @@ const form = defineModel<Form>({
     media: [],
     is_custom: false,
     stock_quantity: null,
-    availability: 'preorder',
+    availability: { id: 2, label: 'Pre-order', slug: 'preorder' },
   },
 })
 
 const availabilityOptions = computed(() => {
   return [
     {
-      label: 'In Stock',
-      value: 'in_stock',
-      disabled: form.value.is_custom,
+      label: 'Select availability',
+      value: null,
     },
-    {
-      label: 'Preorder',
-      value: 'preorder',
-    },
+    ...(availabilityStatus.value?.map((status) => ({
+      id: status.id,
+      label: status.label || '',
+      value: status.id || 0,
+    })) ?? []),
   ]
 })
 
@@ -99,9 +102,8 @@ watch(
 const isSubmitting = ref<boolean>(false)
 
 async function submitForm() {
-  type Payload = Omit<ProductPayload, 'created_at' | 'product_style'> & {
+  type Payload = Omit<ProductPayload, 'created_at'> & {
     media: Media[]
-    product_style: Category | null
   }
 
   const payload: Payload & { removedMediaIds?: number[] } = {
@@ -111,7 +113,7 @@ async function submitForm() {
     description: form.value?.description || null,
     price: form.value?.price ?? 0,
     media: form.value?.media?.map(({ is_saved, ...rest }) => rest),
-    product_style: getCategoryFromId(form.value.product_style),
+    product_style: form.value.product_style,
     is_custom: form.value?.is_custom ?? false,
     stock_quantity: form.value?.stock_quantity,
     availability: form.value?.availability,
@@ -248,7 +250,7 @@ watch(
   () => form.value.is_custom,
   (value) => {
     if (value) {
-      form.value.availability = 'preorder'
+      form.value.availability = 2 // Commissioned
 
       form.value.stock_quantity = null
 
@@ -459,16 +461,20 @@ watch(
             <USelect
               v-model="form.availability"
               :items="availabilityOptions"
-              value="preorder"
+              value-key="value"
+              label-key="label"
               class="w-full"
             />
           </UFormField>
 
-          <UFormField
-            v-if="form.availability === 'in_stock'"
-            label="Stock Quantity"
-          >
-            <UInputNumber v-model="form.stock_quantity" class="w-full" />
+          <UFormField v-if="form.availability === 1" label="Stock Quantity">
+            <UInputNumber
+              v-model="form.stock_quantity"
+              :min="0"
+              :default-value="0"
+              placeholder="0"
+              class="w-full"
+            />
           </UFormField>
 
           <UFormField label="Style">
