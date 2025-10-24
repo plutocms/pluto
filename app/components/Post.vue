@@ -61,7 +61,7 @@ const form = defineModel<Form>({
     media: [],
     is_custom: false,
     stock_quantity: null,
-    availability: { id: 2, label: 'Pre-order', slug: 'preorder' },
+    availability: null,
   },
 })
 
@@ -69,6 +69,7 @@ const availabilityOptions = computed(() => {
   return [
     {
       label: 'Select availability',
+      disabled: true,
       value: null,
     },
     ...(availabilityStatus.value?.map((status) => ({
@@ -258,7 +259,8 @@ watch(
     }
 
     form.value.stock_quantity = 0
-  }
+  },
+  { immediate: true }
 )
 </script>
 
@@ -462,16 +464,16 @@ watch(
               v-model="form.availability"
               :items="availabilityOptions"
               value-key="value"
-              label-key="label"
               class="w-full"
             />
           </UFormField>
+
+          {{ form.availability }}
 
           <UFormField v-if="form.availability === 1" label="Stock Quantity">
             <UInputNumber
               v-model="form.stock_quantity"
               :min="0"
-              :default-value="0"
               placeholder="0"
               class="w-full"
             />
