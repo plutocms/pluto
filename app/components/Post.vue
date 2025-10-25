@@ -357,14 +357,14 @@ watch(
                 <div class="flex flex-col gap-y-3">
                   <div
                     v-if="form.media && form.media.find((m) => is3d(m))"
-                    class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black/100"
+                    class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black"
                     @click="openMediaModal"
                   >
                     <Icon name="lucide:rotate-3d" class="text-2xl" />
                   </div>
 
                   <div
-                    class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black/100"
+                    class="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-black/90 hover:bg-black"
                     @click="openMediaModal"
                   >
                     <Icon name="lucide:plus" class="text-2xl" />
