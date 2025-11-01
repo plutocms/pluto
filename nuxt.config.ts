@@ -64,6 +64,11 @@ export default defineNuxtConfig({
     includeWorkspace: true,
   },
 
+  hooks: {
+    // TODO: Remove once Nuxt releases a fix (https://github.com/nuxt/nuxt/issues/33582)
+    'vite:extendConfig': extendViteConfig,
+  },
+
   eslint: {
     config: {
       nuxt: {
@@ -84,3 +89,26 @@ export default defineNuxtConfig({
     prefix: 'Reka',
   },
 })
+
+// TODO: Remove once Nuxt releases a fix (https://github.com/nuxt/nuxt/issues/33582)
+function extendViteConfig(config: import('vite').UserConfig) {
+  const plugin = config.plugins?.find((plugin) =>
+    isPlugin(plugin, 'nuxt:environments')
+  )
+  if (plugin) {
+    plugin.enforce = 'pre'
+  }
+}
+
+// TODO: Remove once Nuxt releases a fix (https://github.com/nuxt/nuxt/issues/33582)
+function isPlugin(
+  plugin: unknown,
+  name: string
+): plugin is import('vite').Plugin {
+  return !!(
+    plugin &&
+    typeof plugin === 'object' &&
+    'name' in plugin &&
+    plugin.name === name
+  )
+}
