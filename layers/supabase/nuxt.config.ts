@@ -13,6 +13,7 @@ export default defineNuxtConfig({
   ignore: ['./scripts/**', './supabase/**'],
 
   supabase: {
+    types: '#layers/supabase/shared/types/supabase',
     cookiePrefix: 'access_token',
 
     redirectOptions: {
@@ -21,6 +22,7 @@ export default defineNuxtConfig({
       include: ['/admin/signup'],
       saveRedirectToCookie: false,
     },
+
     redirect: false,
   },
 })
