@@ -10,7 +10,19 @@ export interface ProductItem extends Product {
   availability: Availability | null
 }
 
+export interface ProductData {
+  data: ProductItem[]
+}
+
 export async function useProduct(productId?: number | null | undefined) {
+  const list = ref<ProductData | null>(null)
+
+  if (!productId) {
+    const productsData = await $fetch<ProductData>(`/api/product/list`)
+
+    list.value = productsData || null
+  }
+
   const product = ref<ProductItem | null>(null)
 
   if (productId) {
