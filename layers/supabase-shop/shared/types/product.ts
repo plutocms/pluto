@@ -5,4 +5,4 @@ export interface ProductWithMedia extends Product {
   media: Media[]
 }
 
-export type CartItem = ProductWithMedia
+export type CartItem = ProductItem
