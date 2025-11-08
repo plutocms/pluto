@@ -33,5 +33,5 @@ export async function useProduct(productId?: number | null | undefined) {
     product.value = productData.data || null
   }
 
-  return { product }
+  return { list, product }
 }
