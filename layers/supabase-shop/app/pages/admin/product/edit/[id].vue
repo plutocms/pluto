@@ -23,17 +23,21 @@ onMounted(() => {
       ...item,
       is_saved: true,
     }))
+
     // Move all .glb media to the end
     const glbMedia = media.filter((item) =>
       item.name?.toLowerCase().endsWith('.glb')
     )
+
     const otherMedia = media.filter(
       (item) => !item.name?.toLowerCase().endsWith('.glb')
     )
+
     form.value = {
       ...product.value,
-      product_style: product.value.product_style ?? '',
+      category: product.value.category,
       media: [...otherMedia, ...glbMedia],
+      availability: product.value.availability,
     }
   } else {
     form.value = undefined

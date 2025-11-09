@@ -141,37 +141,37 @@ export type Database = {
       products: {
         Row: {
           availability: number | null
+          category: number | null
           created_at: string
           description: string | null
           id: number
           is_custom: boolean
           name: string
           price: number
-          product_style: number | null
           slug: string
           stock_quantity: number | null
         }
         Insert: {
           availability?: number | null
+          category?: number | null
           created_at: string
           description?: string | null
           id?: number
           is_custom?: boolean
           name: string
           price: number
-          product_style?: number | null
           slug: string
           stock_quantity?: number | null
         }
         Update: {
           availability?: number | null
+          category?: number | null
           created_at?: string
           description?: string | null
           id?: number
           is_custom?: boolean
           name?: string
           price?: number
-          product_style?: number | null
           slug?: string
           stock_quantity?: number | null
         }
@@ -184,8 +184,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "products_product_style_fkey"
-            columns: ["product_style"]
+            foreignKeyName: "products_category_fkey"
+            columns: ["category"]
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]

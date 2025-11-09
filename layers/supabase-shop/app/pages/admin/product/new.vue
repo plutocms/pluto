@@ -5,10 +5,10 @@ const form = ref<Form>({
   name: '',
   description: '',
   price: 0,
-  product_style: '',
+  category: null,
   media: [],
   slug: '',
-  availability: 'in_stock',
+  availability: null,
   is_custom: false,
   stock_quantity: null,
 })

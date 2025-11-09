@@ -64,8 +64,8 @@ const columns = ref<TableColumn<FilteredData>[]>([
       }),
   },
   {
-    accessorKey: 'product_style',
-    header: 'Style',
+    accessorKey: 'category',
+    header: 'Category',
   },
   {
     accessorKey: 'slug',

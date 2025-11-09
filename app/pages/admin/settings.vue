@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { object, string } from 'yup'
 
-type Form = Record<
-  Database['public']['Tables']['settings']['Insert']['setting_name'],
-  string
+type Form = Partial<
+  Record<
+    Database['public']['Tables']['settings']['Insert']['setting_name'],
+    string
+  >
 >
 
 useHead({

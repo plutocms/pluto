@@ -1,13 +1,15 @@
 type Product = Omit<
   Database['public']['Tables']['products']['Row'],
-  'availability'
+  'availability' | 'category'
 >
 type Media = Database['public']['Tables']['media']['Row']
 type Availability = Database['public']['Tables']['availability']['Row']
+type Category = Database['public']['Tables']['categories']['Row']
 
 export interface ProductItem extends Product {
   media: Media[]
-  availability: Availability | null
+  availability: Availability
+  category: Category
 }
 
 export interface ProductData {

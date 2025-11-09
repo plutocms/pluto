@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { InputMenuItem, SelectItem } from '@nuxt/ui'
 import { useChangeCase } from '@vueuse/integrations/useChangeCase'
 
 type Product = Database['public']['Tables']['products']['Row']
@@ -6,15 +7,14 @@ type ProductPayload = Database['public']['Tables']['products']['Insert']
 type Media = Database['public']['Tables']['media']['Row'] & {
   is_saved?: boolean
 }
+type Category = Database['public']['Tables']['categories']['Row']
+type Availability = Database['public']['Tables']['availability']['Row']
 
 export interface Form
-  extends Omit<
-    Product,
-    'id' | 'created_at' | 'product_style' | 'availability'
-  > {
+  extends Omit<Product, 'id' | 'created_at' | 'category' | 'availability'> {
   media: Media[]
-  product_style: number | undefined
-  availability: number | undefined
+  category: Category | null
+  availability: Availability | number | null
 }
 </script>
 
@@ -43,12 +43,16 @@ const lastImageIndex = computed<number>(() => form.value.media?.length - 1)
 const isEditing = computed<boolean>(() => route.path.includes('edit'))
 const removedMediaIds = ref<number[]>([])
 
-const productStyles = computed(() => {
+const categoryList = computed<InputMenuItem[]>(() => {
   if (!categories.value) {
     return []
   }
 
-  return categories.value
+  return categories.value.map((category) => ({
+    id: category.id,
+    label: category.label,
+    value: category.id,
+  }))
 })
 
 const form = defineModel<Form>({
@@ -57,7 +61,7 @@ const form = defineModel<Form>({
     slug: '',
     description: '',
     price: 0,
-    product_style: null,
+    category: null,
     media: [],
     is_custom: false,
     stock_quantity: null,
@@ -65,18 +69,22 @@ const form = defineModel<Form>({
   },
 })
 
-const availabilityOptions = computed(() => {
+const availabilityOptions = computed<SelectItem[]>(() => {
   return [
     {
       label: 'Select availability',
       disabled: true,
       value: null,
     },
-    ...(availabilityStatus.value?.map((status) => ({
-      id: status.id,
-      label: status.label || '',
-      value: status.id || 0,
-    })) ?? []),
+    ...(availabilityStatus.value?.map(
+      (status) =>
+        ({
+          id: status.id,
+          label: status.label || '',
+          value: status.id || 0,
+          disabled: form.value.is_custom && status.slug !== 'commission',
+        }) as SelectItem
+    ) ?? []),
   ]
 })
 
@@ -103,8 +111,9 @@ watch(
 const isSubmitting = ref<boolean>(false)
 
 async function submitForm() {
-  type Payload = Omit<ProductPayload, 'created_at'> & {
+  type Payload = Omit<ProductPayload, 'created_at' | 'availability'> & {
     media: Media[]
+    availability: Availability
   }
 
   const payload: Payload & { removedMediaIds?: number[] } = {
@@ -114,10 +123,10 @@ async function submitForm() {
     description: form.value?.description || null,
     price: form.value?.price ?? 0,
     media: form.value?.media?.map(({ is_saved, ...rest }) => rest),
-    product_style: form.value.product_style,
+    category: form.value.category?.id ?? null,
     is_custom: form.value?.is_custom ?? false,
     stock_quantity: form.value?.stock_quantity,
-    availability: form.value?.availability,
+    availability: form.value?.availability as Availability,
     removedMediaIds: isEditing.value ? removedMediaIds.value : undefined,
   }
 
@@ -250,7 +259,7 @@ function onCategorySelectOpen(event: boolean) {
 watch(
   () => form.value.is_custom,
   (value) => {
-    if (value) {
+    if (value === true) {
       form.value.availability = 2 // Commissioned
 
       form.value.stock_quantity = null
@@ -463,12 +472,11 @@ watch(
             <USelect
               v-model="form.availability"
               :items="availabilityOptions"
-              value-key="value"
+              :default-value="2"
+              value-key="id"
               class="w-full"
             />
           </UFormField>
-
-          {{ form.availability }}
 
           <UFormField v-if="form.availability === 1" label="Stock Quantity">
             <UInputNumber
@@ -479,11 +487,11 @@ watch(
             />
           </UFormField>
 
-          <UFormField label="Style">
+          <UFormField label="Category">
             <UInputMenu
-              v-model="form.product_style"
+              v-model="form.category"
               v-model:open="isCategorySelectOpen"
-              :items="productStyles"
+              :items="categoryList"
               :loading="isCategorySelectLoading"
               value-key="id"
               label-key="label"
@@ -496,7 +504,7 @@ watch(
                   createCategory({
                     name: value,
                     onSuccess(category) {
-                      form.product_style = category.id
+                      form.category = category
 
                       isCategorySelectOpen = false
                     },
