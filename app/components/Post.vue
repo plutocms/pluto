@@ -451,7 +451,7 @@ watch(
 
           <UFormField label="Price">
             <UInputNumber
-              v-model.number="form.price"
+              v-model="form.price"
               :format-options="{
                 style: 'currency',
                 currency: 'BRL',
