@@ -429,7 +429,7 @@ watch(
         </div>
       </div>
 
-      <div class="w-[300px] shrink-0">
+      <div class="bg-admin-sidebar w-[300px] shrink-0 rounded-2xl p-6">
         <div class="flex flex-col gap-y-6">
           <UFormField label="Description">
             <UTextarea
