@@ -2,8 +2,6 @@
 import type { TableColumn } from '@nuxt/ui'
 import { NuxtLink, UButton, ULink } from '#components'
 
-type FilteredData = Database['public']['Tables']['products']['Row']
-
 useHead({
   title: 'All products',
 })
@@ -15,7 +13,7 @@ const { data: products, refresh: refreshProducts } = await useFetch(
   }
 )
 
-const columns = ref<TableColumn<FilteredData>[]>([
+const columns = ref<TableColumn<ProductItem>[]>([
   {
     accessorKey: 'id',
     header: '#',
@@ -64,7 +62,7 @@ const columns = ref<TableColumn<FilteredData>[]>([
       }),
   },
   {
-    accessorKey: 'category',
+    accessorKey: 'category.label',
     header: 'Category',
   },
   {

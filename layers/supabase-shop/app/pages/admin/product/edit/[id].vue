@@ -35,9 +35,9 @@ onMounted(() => {
 
     form.value = {
       ...product.value,
-      category: product.value.category,
+      category: product.value.category?.id ?? null,
       media: [...otherMedia, ...glbMedia],
-      availability: product.value.availability,
+      availability: product.value.availability?.id ?? null,
     }
   } else {
     form.value = undefined

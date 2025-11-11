@@ -7,14 +7,12 @@ type ProductPayload = Database['public']['Tables']['products']['Insert']
 type Media = Database['public']['Tables']['media']['Row'] & {
   is_saved?: boolean
 }
-type Category = Database['public']['Tables']['categories']['Row']
-type Availability = Database['public']['Tables']['availability']['Row']
 
 export interface Form
   extends Omit<Product, 'id' | 'created_at' | 'category' | 'availability'> {
   media: Media[]
-  category: Category | null
-  availability: Availability | number | null
+  category: number | null
+  availability: number | null
 }
 </script>
 
@@ -111,9 +109,8 @@ watch(
 const isSubmitting = ref<boolean>(false)
 
 async function submitForm() {
-  type Payload = Omit<ProductPayload, 'created_at' | 'availability'> & {
+  type Payload = Omit<ProductPayload, 'created_at'> & {
     media: Media[]
-    availability: Availability
   }
 
   const payload: Payload & { removedMediaIds?: number[] } = {
@@ -123,10 +120,10 @@ async function submitForm() {
     description: form.value?.description || null,
     price: form.value?.price ?? 0,
     media: form.value?.media?.map(({ is_saved, ...rest }) => rest),
-    category: form.value.category?.id ?? null,
+    category: form.value.category ?? null,
     is_custom: form.value?.is_custom ?? false,
     stock_quantity: form.value?.stock_quantity,
-    availability: form.value?.availability as Availability,
+    availability: form.value?.availability,
     removedMediaIds: isEditing.value ? removedMediaIds.value : undefined,
   }
 
@@ -493,7 +490,7 @@ watch(
               v-model:open="isCategorySelectOpen"
               :items="categoryList"
               :loading="isCategorySelectLoading"
-              value-key="id"
+              value-key="value"
               label-key="label"
               loading-icon="line-md:loading-loop"
               class="w-full"
@@ -504,7 +501,7 @@ watch(
                   createCategory({
                     name: value,
                     onSuccess(category) {
-                      form.category = category
+                      form.category = category.id
 
                       isCategorySelectOpen = false
                     },
