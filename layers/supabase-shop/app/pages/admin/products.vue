@@ -6,12 +6,7 @@ useHead({
   title: 'All products',
 })
 
-const { data: products, refresh: refreshProducts } = await useFetch(
-  '/api/product/list',
-  {
-    key: '/api/product/list',
-  }
-)
+const { list: products, refresh: refreshProducts } = await useProduct()
 
 const columns = ref<TableColumn<ProductItem>[]>([
   {
