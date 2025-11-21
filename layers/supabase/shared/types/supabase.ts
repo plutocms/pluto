@@ -88,40 +88,90 @@ export type Database = {
           },
         ]
       }
+      posts: {
+        Row: {
+          author_id: string
+          content: string | null
+          created_at: string
+          deleted_at: string | null
+          excerpt: string | null
+          id: number
+          is_draft: boolean | null
+          published_at: string | null
+          slug: string
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_id: string
+          content?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          excerpt?: string | null
+          id?: number
+          is_draft?: boolean | null
+          published_at?: string | null
+          slug: string
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string
+          content?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          excerpt?: string | null
+          id?: number
+          is_draft?: boolean | null
+          published_at?: string | null
+          slug?: string
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           availability: number | null
+          category: number | null
           created_at: string
           description: string | null
           id: number
           is_custom: boolean
           name: string
           price: number
-          product_style: number | null
           slug: string
           stock_quantity: number | null
         }
         Insert: {
           availability?: number | null
+          category?: number | null
           created_at: string
           description?: string | null
           id?: number
           is_custom?: boolean
           name: string
           price: number
-          product_style?: number | null
           slug: string
           stock_quantity?: number | null
         }
         Update: {
           availability?: number | null
+          category?: number | null
           created_at?: string
           description?: string | null
           id?: number
           is_custom?: boolean
           name?: string
           price?: number
-          product_style?: number | null
           slug?: string
           stock_quantity?: number | null
         }
@@ -134,8 +184,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "products_product_style_fkey"
-            columns: ["product_style"]
+            foreignKeyName: "products_category_fkey"
+            columns: ["category"]
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
@@ -190,7 +240,13 @@ export type Database = {
     }
     Enums: {
       Availability: "preorder" | "in_stock"
-      Settings: "website_title" | "website_url" | "website_description"
+      Settings:
+        | "website_title"
+        | "website_url"
+        | "website_description"
+        | "is_database_set"
+        | "is_website_set"
+        | "is_admin_set"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -319,7 +375,14 @@ export const Constants = {
   public: {
     Enums: {
       Availability: ["preorder", "in_stock"],
-      Settings: ["website_title", "website_url", "website_description"],
+      Settings: [
+        "website_title",
+        "website_url",
+        "website_description",
+        "is_database_set",
+        "is_website_set",
+        "is_admin_set",
+      ],
     },
   },
 } as const

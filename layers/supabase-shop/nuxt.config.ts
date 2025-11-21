@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
   $meta: {
-    name: 'shop',
+    name: 'supabase-shop',
   },
 })

@@ -2,9 +2,9 @@ const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: ['layers/shop', 'layers/ui', 'layers/supabase'],
+  extends: ['layers/ui', 'layers/supabase', 'layers/supabase-shop'],
 
-  modules: ['@nuxt/eslint', '@nuxt/fonts', '@nuxt/ui', '@vueuse/nuxt'],
+  modules: ['@nuxt/eslint', '@vueuse/nuxt'],
 
   $development: {
     vite: {
@@ -35,8 +35,6 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ['#layers/pluto/app/assets/css/tailwind.css'],
-
   runtimeConfig: {
     public: {
       websiteName,
@@ -62,6 +60,7 @@ export default defineNuxtConfig({
 
   typescript: {
     includeWorkspace: true,
+    typeCheck: false,
   },
 
   eslint: {
@@ -78,9 +77,5 @@ export default defineNuxtConfig({
     defaults: {
       weights: [400, 600, 700],
     },
-  },
-
-  reka: {
-    prefix: 'Reka',
   },
 })
