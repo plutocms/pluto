@@ -60,6 +60,7 @@ export default defineNuxtConfig({
 
   typescript: {
     includeWorkspace: true,
+    typeCheck: false,
   },
 
   eslint: {
