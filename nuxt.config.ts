@@ -4,7 +4,7 @@ const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 export default defineNuxtConfig({
   extends: ['layers/ui', 'layers/supabase', 'layers/supabase-shop'],
 
-  modules: ['@nuxt/eslint', '@nuxt/fonts', '@nuxt/ui', '@vueuse/nuxt'],
+  modules: ['@nuxt/eslint', '@vueuse/nuxt'],
 
   $development: {
     vite: {
@@ -34,8 +34,6 @@ export default defineNuxtConfig({
       titleTemplate: `%s - ${websiteName}`,
     },
   },
-
-  css: ['#layers/pluto/app/assets/css/tailwind.css'],
 
   runtimeConfig: {
     public: {
@@ -78,9 +76,5 @@ export default defineNuxtConfig({
     defaults: {
       weights: [400, 600, 700],
     },
-  },
-
-  reka: {
-    prefix: 'Reka',
   },
 })

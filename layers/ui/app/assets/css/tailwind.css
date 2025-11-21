@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@source '../..';
+@source '../../../../../app/';
+@source '../../../../*/app';
+@source 'node_modules/.c12/*/app';
+@source 'node_modules/.c12/*/layers/*/app';
+
+@theme {
+  --color-admin-content: var(--color-slate-800);
+  --color-admin-sidebar: var(--color-slate-900);
+
+  --font-outfit: 'Outfit', sans-serif;
+}
