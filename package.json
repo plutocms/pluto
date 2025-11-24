@@ -17,7 +17,7 @@
   "dependencies": {
     "@nuxt/fonts": "^0.11.4",
     "@nuxt/icon": "^2.1.0",
-    "@nuxt/ui": "^4.1.0",
+    "@nuxt/ui": "^4.2.1",
     "@nuxtjs/supabase": "1.6.2",
     "@tailwindcss/vite": "^4.1.17",
     "@vueuse/integrations": "^14.0.0",
