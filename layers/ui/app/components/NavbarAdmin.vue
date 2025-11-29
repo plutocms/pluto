@@ -6,6 +6,8 @@ const route = useRoute('admin-product-edit-id')
 
 const { isLoggedIn, userData, logout } = useAuth()
 
+const { actions: adminActions } = useAdminActions()
+
 const has_settings_modified = useState('has_settings_modified')
 
 const { data: settingsData, status } = await useFetch('/api/settings', {
@@ -87,61 +89,37 @@ defineShortcuts(extractShortcuts(items.value))
 
         <div class="h-full">
           <ul class="flex h-full items-center text-sm">
-            <li v-if="route.path.startsWith('/admin')" class="h-full">
-              <ULink
-                :title="`Visit ${domainFromUrl(settingsData?.settings.website_url)}`"
-                :href="settingsData?.settings.website_url"
-                :disabled="status === 'pending'"
-                class="group block h-full bg-transparent py-1 transition-none"
-                target="_blank"
-              >
-                <span
-                  class="light:group-hover:bg-black/10 box-content flex h-full items-center gap-x-2 rounded-sm px-2 dark:group-hover:bg-white/20"
-                >
-                  <span> View site </span>
+            <ActionButton
+              :show="route.path.startsWith('/admin')"
+              :title="`Visit ${domainFromUrl(settingsData?.settings.website_url)}`"
+              :icon="
+                status === 'pending'
+                  ? 'lucide:loader-circle'
+                  : 'lucide:external-link'
+              "
+              :disabled="status === 'pending'"
+              :to="settingsData?.settings.website_url"
+              target="_blank"
+              label="View site"
+            />
 
-                  <Icon
-                    :name="
-                      status === 'pending'
-                        ? 'lucide:loader-circle'
-                        : 'lucide:external-link'
-                    "
-                    :class="[status === 'pending' ? 'animate-spin' : '']"
-                  />
-                </span>
-              </ULink>
-            </li>
+            <ClientOnly>
+              <template #fallback>
+                <li class="h-full">
+                  <div
+                    class="light:text-zinc-800/50 flex h-full items-center gap-x-2 rounded-sm px-2 text-white/50"
+                  >
+                    <Icon name="svg-spinners:ring-resize" />
+                  </div>
+                </li>
+              </template>
 
-            <li v-if="route.path.startsWith('/product/')" class="h-full">
-              <ULink
-                :to="`/admin/product/edit/${route.params.id}`"
-                class="group block h-full bg-transparent py-1 transition-none"
-              >
-                <span
-                  class="light:group-hover:bg-black/10 box-content flex h-full items-center gap-x-2 rounded-sm px-2 dark:group-hover:bg-white/20"
-                >
-                  <Icon name="lucide:pen-line" />
-
-                  <span> Edit product </span>
-                </span>
-              </ULink>
-            </li>
-
-            <li class="h-full">
-              <ULink
-                to="/admin/product/new"
-                class="group block h-full bg-transparent py-1 transition-none"
-                active-class="text-current cursor-default"
-              >
-                <span
-                  class="light:group-hover:bg-black/10 box-content flex h-full items-center gap-x-2 rounded-sm px-2 dark:group-hover:bg-white/20"
-                >
-                  <Icon name="lucide:plus" />
-
-                  <span> Add product </span>
-                </span>
-              </ULink>
-            </li>
+              <component
+                :is="action"
+                v-for="(action, i) in adminActions"
+                :key="i"
+              />
+            </ClientOnly>
           </ul>
         </div>
       </div>
