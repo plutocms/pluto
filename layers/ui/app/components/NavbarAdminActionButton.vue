@@ -1,5 +1,7 @@
 <script setup lang="ts">
-interface Props extends /* @vue-ignore */ NavbarAdminActionButtonProps {}
+import type { NavbarAdminActionButtonProps } from '#layers/ui/shared/types/navbar'
+
+type Props = NavbarAdminActionButtonProps
 
 const props = defineProps<Props>()
 </script>
