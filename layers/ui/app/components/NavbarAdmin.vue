@@ -2,6 +2,8 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { domainFromUrl } from '#imports'
 
+const host = useRequestURL().host
+
 const route = useRoute('admin-product-edit-id')
 
 const { isLoggedIn, userData, logout } = useAuth()
@@ -12,6 +14,14 @@ const has_settings_modified = useState('has_settings_modified')
 
 const { data: settingsData, status } = await useFetch('/api/settings', {
   watch: [has_settings_modified],
+})
+
+const maybeDevUrl = computed(() => {
+  if (import.meta.dev) {
+    return `http://${host}`
+  }
+
+  return settingsData.value?.settings.website_url || ''
 })
 
 const items = ref<DropdownMenuItem[][]>([
@@ -91,14 +101,14 @@ defineShortcuts(extractShortcuts(items.value))
           <ul class="flex h-full items-center text-sm">
             <NavbarAdminActionButton
               :show="route.path.startsWith('/admin')"
-              :title="`Visit ${domainFromUrl(settingsData?.settings.website_url)}`"
+              :title="`Visit ${domainFromUrl(maybeDevUrl)}`"
               :icon="
                 status === 'pending'
                   ? 'lucide:loader-circle'
                   : 'lucide:external-link'
               "
               :disabled="status === 'pending'"
-              :to="settingsData?.settings.website_url"
+              :to="maybeDevUrl"
               target="_blank"
               label="View site"
             />
