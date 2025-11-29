@@ -1,7 +1,7 @@
 <script setup lang="ts">
-interface Props extends NavbarAdminActionButtonProps {}
+import type { NavbarAdminActionButtonProps } from '#imports'
 
-const props = defineProps<Props>()
+const props = defineProps<NavbarAdminActionButtonProps>()
 </script>
 
 <template>

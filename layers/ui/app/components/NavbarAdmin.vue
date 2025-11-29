@@ -6,7 +6,7 @@ const route = useRoute('admin-product-edit-id')
 
 const { isLoggedIn, userData, logout } = useAuth()
 
-const { actions: adminActions } = useAdminActions()
+const { actions: adminActions } = useNavbarAdminActions()
 
 const has_settings_modified = useState('has_settings_modified')
 
@@ -89,7 +89,7 @@ defineShortcuts(extractShortcuts(items.value))
 
         <div class="h-full">
           <ul class="flex h-full items-center text-sm">
-            <ActionButton
+            <NavbarAdminActionButton
               :show="route.path.startsWith('/admin')"
               :title="`Visit ${domainFromUrl(settingsData?.settings.website_url)}`"
               :icon="
