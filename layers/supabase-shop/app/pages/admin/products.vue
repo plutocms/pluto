@@ -28,13 +28,13 @@ const columns = ref<TableColumn<ProductItem>[]>([
           <div class="flex gap-x-3">
             <NuxtLink
               to={`/admin/product/edit/${row.getValue('id')}`}
-              class="cursor-pointer px-0 py-0.5 text-blue-300 hover:underline"
+              class="text-info cursor-pointer px-0 py-0.5 hover:underline"
             >
               Edit
             </NuxtLink>
 
             <a
-              class="cursor-pointer px-0 py-0.5 text-red-400 hover:underline"
+              class="text-error cursor-pointer px-0 py-0.5 hover:underline"
               onClick={(event: Event) => {
                 event.preventDefault()
                 openRemoveProductModal(row.getValue('id'))
