@@ -2,7 +2,7 @@ const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: ['layers/ui', 'layers/supabase-shop'],
+  extends: ['layers/ui'],
 
   modules: ['@nuxt/eslint', '@vueuse/nuxt'],
 
