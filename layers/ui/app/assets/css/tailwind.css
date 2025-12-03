@@ -3,9 +3,7 @@
 
 @source '../..';
 @source '../../../../../app/**';
-@source '../../../../*/app/**';
-@source 'node_modules/.c12/*/app/**';
-@source 'node_modules/.c12/*/layers/*/app/**';
+@source '../../../../ui/*/app/**';
 
 @theme {
   --color-admin-content: var(--color-slate-800);
