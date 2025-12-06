@@ -9,16 +9,7 @@ export default defineNuxtConfig({
   $development: {
     vite: {
       optimizeDeps: {
-        include: [
-          '@vue/devtools-core',
-          '@vue/devtools-kit',
-          'tailwind-merge',
-          'reka-ui',
-          'change-case',
-          'yup',
-          '@vueuse/integrations/useChangeCase',
-          '@tresjs/cientos',
-        ],
+        include: ['@vue/devtools-core', '@vue/devtools-kit'],
       },
     },
   },
