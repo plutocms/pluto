@@ -17,6 +17,36 @@ Pluto is a modular, layer-driven Content Management System (CMS) built with Nuxt
 - Developer-focused: composables, typed schemas, minimal core
 - Dashboard is owned: fork + modify without forking an opaque binary
 
+## Getting Started
+
+First, install the Pluto layer in your Nuxt 3 project. You can either use the repository or install it directly via npm/yarn/pnpm/bun.
+
+```bash
+npm install @plutocms/pluto
+```
+
+Also, install `typescript` as a dev dependency if you haven't already. This is required for Nuxt Layers to function properly.
+
+```bash
+npm install --save-dev typescript
+```
+
+Then, extend your Nuxt configuration to include the Pluto layer, setting the install option to true, so Pluto's dependencies are installed automatically.
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  extends: [
+    ['@plutocms/pluto', { install: true }],
+
+    // Then, add any additional layers you want to use here
+    ['@plutocms/supabase', { install: true }],
+    ['@plutocms/blog', { install: true }],
+    ['@plutocms/shop', { install: true }],
+  ],
+})
+```
+
 ## Core Concepts
 
 - Content Types: Define structured entities (e.g. Post, Product, Page)
@@ -44,37 +74,8 @@ Pluto is a modular, layer-driven Content Management System (CMS) built with Nuxt
 
 For now, some layers are being developed (`/layers` directory) in this same repository, but will eventually be extracted into their own packages.
 
-## Quick Start (Local)
-
-```bash
-# Clone to fully customize dashboard
-git clone https://github.com/your-org/pluto
-
-cd pluto
-
-npm install   # or yarn / pnpm / bun
-
-# Start dev
-npm run dev # or yarn / pnpm / bun
-
-# Access: http://localhost:3000
-```
-
 > [!NOTE]
 > Optional layers may require environment variables; see ./env.example when added.
-
-In your project's Nuxt config, extend the Pluto layer (relative path, github, npm, etc.):
-
-```ts
-// nuxt.config.ts
-export default defineNuxtConfig({
-  modules: ['../pluto'],
-})
-```
-
-## Creating a Custom Layer
-
-Check the official [Nuxt Layers documentation](https://nuxt.com/docs/4.x/getting-started/layers) for detailed instructions.
 
 ## Roadmap (Subject to Change)
 
@@ -89,14 +90,14 @@ Check [the roadmap here](https://github.com/ojvribeiro/pluto/issues/47).
 
 ## Philosophy
 
-- Minimal core, everything else a layer
+- Minimal core, everything is a layer
 - Transparent, hackable dashboard (no locked UI bundle)
 - Declarative schemas
 - Runtime flexibility: choose infra, not dictated by core
 
 ## Why Not Just WordPress?
 
-- Modern SSR + SPA hydration via Nuxt 3
+- Modern SSR + SPA hydration via Nuxt
 - TypeScript-first developer experience
 - Layer-based opt-in features instead of plugin global mutations
 - Deployment portability (Edge / Serverless friendly)
