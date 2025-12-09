@@ -12,11 +12,20 @@ const form = ref({
   first_name: '',
   last_name: '',
   password: '',
+  confirm_password: '',
 })
 
 const isSubmitting = ref<boolean>(false)
 
+const passwordMatch = computed(() => {
+  return form.value.password === form.value.confirm_password
+})
+
 async function submitForm() {
+  if (!passwordMatch.value) {
+    return
+  }
+
   isSubmitting.value = true
   try {
     await $fetch('/api/signup', {
@@ -67,9 +76,18 @@ async function submitForm() {
             </UFormField>
           </div>
 
-          <UFormField label="Password">
+          <UFormField :error="!passwordMatch" label="Password">
             <UInput
               v-model="form.password"
+              placeholder="••••"
+              class="w-full"
+              type="password"
+            />
+          </UFormField>
+
+          <UFormField :error="!passwordMatch" label="Confirm Password">
+            <UInput
+              v-model="form.confirm_password"
               placeholder="••••"
               class="w-full"
               type="password"
@@ -90,7 +108,7 @@ async function submitForm() {
 
             <UFormField>
               <UButton
-                :disabled="isSubmitting"
+                :disabled="isSubmitting || !passwordMatch"
                 :loading="isSubmitting"
                 type="submit"
               >
