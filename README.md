@@ -5,11 +5,11 @@
 > [!WARNING]
 > 🚧 Work In Progress: Pluto is experimental. Breaking changes are expected. Not production ready yet.
 
-Pluto is a modular, layer-driven Content Management System (CMS) built with Nuxt 3. A modern alternative to monolithic systems like WordPress. Extend functionality through Nuxt Layers: choose only what is needed (auth, storage, e-commerce, blog, database connectors, etc.).
+Pluto is a modular, layer-driven Content Management System (CMS) built with Nuxt. A modern alternative to monolithic systems like WordPress. Extend functionality through Nuxt Layers: choose only what is needed (auth, storage, e-commerce, blog, database connectors, etc.).
 
 ## Highlights
 
-- Nuxt 3 + Nuxt Layers architecture
+- Nuxt + Nuxt Layers architecture
 - Headless-first: consume via API (_with typed routes!_), built-in composables (like `useAuth` or `useProduct`) or server-rendered pages
 - Opt-in feature layers (Supabase, Blog, Shop, DB connectors, etc.)
 - Core primitives: Content Types, Taxonomies, Custom Fields, Media, Permissions
@@ -19,7 +19,7 @@ Pluto is a modular, layer-driven Content Management System (CMS) built with Nuxt
 
 ## Getting Started
 
-First, install the Pluto layer in your Nuxt 3 project. You can either use the repository or install it directly via npm/yarn/pnpm/bun.
+First, install the Pluto layer in your Nuxt project. You can either use the repository or install it directly via npm/yarn/pnpm/bun.
 
 ```bash
 npm install @plutocms/pluto
