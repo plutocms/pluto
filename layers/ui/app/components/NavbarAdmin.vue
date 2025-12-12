@@ -4,7 +4,7 @@ import { domainFromUrl } from '#imports'
 
 const host = useRequestURL().host
 
-const route = useRoute('admin-product-edit-id')
+const route = useRoute()
 
 const { isLoggedIn, userData, logout } = useAuth()
 
