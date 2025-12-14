@@ -6,7 +6,7 @@ const host = useRequestURL().host
 
 const route = useRoute()
 
-const { isLoggedIn, userData, logout } = useAuth()
+const { isLoggedIn, user, logout } = await useAuth()
 
 const { actions: adminActions } = useNavbarAdminActions()
 
@@ -27,7 +27,7 @@ const maybeDevUrl = computed(() => {
 const items = ref<DropdownMenuItem[][]>([
   [
     {
-      label: `${userData.value?.first_name} ${userData.value?.last_name}` || '',
+      label: `${user?.first_name} ${user?.last_name}` || '',
       avatar: {
         icon: 'lucide:user',
         class: 'bg-green-600',
@@ -154,7 +154,7 @@ defineShortcuts(extractShortcuts(items.value))
                     root: 'rounded-xl',
                     icon: 'text-white text-lg',
                   }"
-                  :alt="userData?.first_name || ''"
+                  :alt="user?.first_name || ''"
                   size="sm"
                   icon="lucide:user"
                   class="bg-green-600"
@@ -163,7 +163,7 @@ defineShortcuts(extractShortcuts(items.value))
                 <span
                   class="light:text-zinc-800 text-sm font-bold dark:text-white"
                 >
-                  {{ userData?.first_name }}
+                  {{ user?.first_name }}
                 </span>
               </div>
             </button>

@@ -5,7 +5,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { isLoggedIn, logout } = useAuth()
+const { isLoggedIn, logout } = await useAuth()
 const toast = useToast()
 
 const visibility = useDocumentVisibility()

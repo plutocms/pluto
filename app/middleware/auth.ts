@@ -1,5 +1,5 @@
-export default defineNuxtRouteMiddleware((to, from) => {
-  const { isLoggedIn, logout } = useAuth()
+export default defineNuxtRouteMiddleware(async (to, from) => {
+  const { isLoggedIn, logout } = await useAuth()
 
   if (
     isLoggedIn.value &&

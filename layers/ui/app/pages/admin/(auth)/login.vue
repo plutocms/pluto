@@ -12,7 +12,7 @@ useHead({
   title: 'Login',
 })
 
-const { isSubmitting, login } = useAuth()
+const { isSubmitting, login } = await useAuth()
 
 const form = ref<Form>({
   email: '',
