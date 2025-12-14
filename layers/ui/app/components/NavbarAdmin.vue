@@ -87,14 +87,17 @@ defineShortcuts(extractShortcuts(items.value))
   >
     <div class="flex h-full items-stretch justify-between px-4">
       <div class="flex items-center gap-x-3">
-        <div>
-          <ULink
-            :title="settingsData?.settings.website_title"
+        <div class="h-full py-1">
+          <NuxtLink
+            title="Go to dashboard home"
             to="/admin/home"
-            class="font-bold"
+            class="group block h-full"
           >
-            {{ settingsData?.settings.website_title }}
-          </ULink>
+            <img
+              src="/img/pluto.png"
+              class="block h-full grayscale-100 group-hover:grayscale-0"
+            />
+          </NuxtLink>
         </div>
 
         <div class="h-full">
