@@ -47,7 +47,7 @@ async function submitForm() {
     <UCard class="w-[400px]">
       <form @submit.prevent="submitForm">
         <div class="flex flex-col gap-y-6">
-          <h1>Create Account</h1>
+          <h1 class="text-3xl font-bold">Create Account</h1>
 
           <UFormField label="Email">
             <UInput
