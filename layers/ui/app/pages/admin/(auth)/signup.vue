@@ -30,7 +30,12 @@ async function submitForm() {
   try {
     await $fetch('/api/signup', {
       method: 'POST',
-      body: form.value,
+      body: {
+        email: form.value.email,
+        first_name: form.value.first_name,
+        last_name: form.value.last_name,
+        password: form.value.password,
+      },
     })
 
     navigateTo('/admin/login?rel=new')
