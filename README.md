@@ -10,25 +10,19 @@ Pluto is a modular, layer-driven Content Management System (CMS) built with Nuxt
 ## Highlights
 
 - Nuxt + Nuxt Layers architecture
-- Headless-first: consume via API (_with typed routes!_), built-in composables (like `useAuth` or `useProduct`) or server-rendered pages
+- Headless-first: consume via API (_with typed routes!_) or built-in composables (like `useAuth` or `useProduct`)
 - Opt-in feature layers (Supabase, Blog, Shop, DB connectors, etc.)
 - Core primitives: Content Types, Taxonomies, Custom Fields, Media, Permissions
 - Deploy anywhere: Node, Edge, Serverless, Static (hybrid), Docker
 - Developer-focused: composables, typed schemas, minimal core
-- Dashboard is owned: fork + modify without forking an opaque binary
+- Dashboard is owned: fork as needed or just use it as is
 
 ## Getting Started
 
-First, install the Pluto layer in your Nuxt project. You can either use the repository or install it directly via npm/yarn/pnpm/bun.
+First, install `typescript` as a dev dependency if you haven't already. This is required for Nuxt Layers to function properly.
 
 ```bash
-npm install @plutocms/pluto
-```
-
-Also, install `typescript` as a dev dependency if you haven't already. This is required for Nuxt Layers to function properly.
-
-```bash
-npm install --save-dev typescript
+npm i -D typescript
 ```
 
 Then, extend your Nuxt configuration to include the Pluto layer, setting the install option to true, so Pluto's dependencies are installed automatically.
@@ -37,12 +31,12 @@ Then, extend your Nuxt configuration to include the Pluto layer, setting the ins
 // nuxt.config.ts
 export default defineNuxtConfig({
   extends: [
-    ['@plutocms/pluto', { install: true }],
+    ['github:plutocms/pluto', { install: true }],
 
     // Then, add any additional layers you want to use here
-    ['@plutocms/supabase', { install: true }],
-    ['@plutocms/blog', { install: true }],
-    ['@plutocms/shop', { install: true }],
+    ['github:plutocms/supabase', { install: true }],
+    ['github:plutocms/blog', { install: true }],
+    ['github:plutocms/shop', { install: true }],
   ],
 })
 ```
@@ -55,7 +49,6 @@ export default defineNuxtConfig({
 - Media: Pluggable storage (e.g. Supabase, S3, local)
 - Auth & Identity: Provided by optional layers (e.g. Supabase)
 - Policies: Role / capability mapping (planned)
-- Connectors: Abstract CRUD + queries across different databases (planned)
 
 ## Layer Examples (Planned / In Progress)
 
