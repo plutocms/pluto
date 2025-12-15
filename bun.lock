@@ -24,7 +24,7 @@
       },
       "devDependencies": {
         "@antfu/eslint-config": "^6.1.0",
-        "@iconify-json/lucide": "^1.2.71",
+        "@iconify-json/lucide": "^1.2.81",
         "@iconify-json/simple-icons": "^1.2.55",
         "@nuxt/eslint": "^1.8.0",
         "@types/bun": "^1.3.1",
@@ -223,7 +223,7 @@
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.3", "", {}, "sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ=="],
 
-    "@iconify-json/lucide": ["@iconify-json/lucide@1.2.73", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-++HFkqDNu4jqG5+vYT+OcVj9OiuPCw9wQuh8G5QWQnBRSJ9eKwSStiU8ORgOoK07xJsm/0VIHySMniXUUXP9Gw=="],
+    "@iconify-json/lucide": ["@iconify-json/lucide@1.2.81", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-6Kz/+SEuD5bkg0KImi0yFem9l6njKp4e1qF1LpQbgRfk7ngsJR/qjlB4y5rM8N1iKiDR/p19cqhmwZxyCWek+w=="],
 
     "@iconify-json/simple-icons": ["@iconify-json/simple-icons@1.2.58", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-XtXEoRALqztdNc9ujYBj2tTCPKdIPKJBdLNDebFF46VV1aOAwTbAYMgNsK5GMCpTJupLCmpBWDn+gX5SpECorQ=="],
 
