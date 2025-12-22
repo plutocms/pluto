@@ -27,7 +27,7 @@ const maybeDevUrl = computed(() => {
 const items = ref<DropdownMenuItem[][]>([
   [
     {
-      label: `${user?.first_name} ${user?.last_name}` || '',
+      label: `${user.value?.first_name} ${user.value?.last_name}` || '',
       avatar: {
         icon: 'lucide:user',
         class: 'bg-green-600',
