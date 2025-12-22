@@ -1,8 +1,8 @@
-const actions = ref([])
+const actions = ref<Component[]>([])
 
 export function useNavbarAdminActions() {
   const addAction = (action: Component) => {
-    actions.value.push(action as never)
+    actions.value.push(action)
   }
 
   return {
