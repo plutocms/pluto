@@ -10,7 +10,7 @@ const { isLoggedIn, user, logout } = await useAuth()
 
 const { actions: adminActions } = useNavbarAdminActions()
 
-const has_settings_modified = useState('has_settings_modified')
+const has_settings_modified = useState<boolean>('has_settings_modified')
 
 const { data: settingsData, status } = await useFetch('/api/settings', {
   watch: [has_settings_modified],
