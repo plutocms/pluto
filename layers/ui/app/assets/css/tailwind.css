@@ -3,7 +3,6 @@
 
 @source '../..';
 @source '../../../../../app/**';
-@source '../../../../ui/*/app/**';
 
 @theme {
   --color-admin-content: var(--color-slate-800);
