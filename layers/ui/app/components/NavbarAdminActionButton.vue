@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NavbarAdminActionButtonProps } from '../../shared/types/navbar'
+import type { NavbarAdminActionButtonProps } from '#layers/utils/shared/types/navbar'
 
 type Props = NavbarAdminActionButtonProps
 
