@@ -8,7 +8,7 @@ const props = defineProps<Props>()
 
 <template>
   <li v-if="props.show" class="h-full">
-    <ULink
+    <NuxtLink
       :to="props.to?.toString()"
       :title="props.title"
       :disabled="props.disabled"
@@ -22,6 +22,6 @@ const props = defineProps<Props>()
 
         <span> {{ props.label }} </span>
       </span>
-    </ULink>
+    </NuxtLink>
   </li>
 </template>
