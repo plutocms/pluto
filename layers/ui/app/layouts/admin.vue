@@ -1,32 +1,15 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
+const { actions: sidebarActions } = useSidebarAdminActions()
+
 const menu = ref<NavigationMenuItem[]>([
   {
     label: 'Home',
     href: '/admin/home',
     icon: 'lucide:house',
   },
-  {
-    label: 'Products',
-    href: '/admin/products',
-    icon: 'lucide:box',
-    onSelect: () => {
-      navigateTo('/admin/products')
-    },
-    defaultOpen: true,
-    children: [
-      {
-        label: 'Create new product',
-        href: '/admin/product/new',
-      },
-
-      {
-        label: 'All products',
-        href: '/admin/products',
-      },
-    ],
-  },
+  ...sidebarActions.value,
   {
     label: 'Media',
     href: '/admin/media',
