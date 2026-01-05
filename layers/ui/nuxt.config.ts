@@ -1,6 +1,8 @@
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
+  extends: ['github:plutocms/utils'],
+
   modules: ['@nuxt/ui', 'reka-ui/nuxt'],
 
   $meta: {
