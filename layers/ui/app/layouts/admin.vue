@@ -11,11 +11,6 @@ const menu = ref<NavigationMenuItem[]>([
   },
   ...sidebarActions.value,
   {
-    label: 'Media',
-    href: '/admin/media',
-    icon: 'lucide:images',
-  },
-  {
     label: 'Settings',
     href: '/admin/settings',
     icon: 'lucide:settings',
