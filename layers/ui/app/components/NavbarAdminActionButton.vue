@@ -7,17 +7,15 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <li v-if="props.show" class="h-full">
+  <li v-if="props.show" class="nav-item">
     <NuxtLink
       :to="props.to?.toString()"
       :title="props.title"
       :disabled="props.disabled"
       :target="props.target"
-      class="group block h-full bg-transparent py-1 transition-none"
+      class="nav-link"
     >
-      <span
-        class="light:group-hover:bg-black/10 box-content flex h-full items-center gap-x-2 rounded-sm px-2 dark:group-hover:bg-white/20"
-      >
+      <span class="nav-content">
         <Icon v-if="props.icon" :name="props.icon" />
 
         <span> {{ props.label }} </span>
@@ -25,3 +23,38 @@ const props = defineProps<Props>()
     </NuxtLink>
   </li>
 </template>
+
+<style scoped>
+.nav-item {
+  height: 100%;
+  list-style: none;
+}
+
+.nav-link {
+  display: block;
+  height: 100%;
+  background-color: transparent;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  transition-property: none;
+}
+
+.nav-content {
+  box-sizing: content-box;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.125rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.nav-link:hover .nav-content {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .nav-link:hover .nav-content {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+</style>
