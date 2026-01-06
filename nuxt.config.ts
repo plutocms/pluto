@@ -2,7 +2,10 @@ const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: ['layers/ui', 'github:plutocms/utils'],
+  extends: [
+    ['github:plutocms/utils', { giget: { silent: true } }],
+    'layers/ui',
+  ],
 
   modules: ['@nuxt/eslint', '@vueuse/nuxt'],
 
