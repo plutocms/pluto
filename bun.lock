@@ -12,7 +12,6 @@
         "@tailwindcss/vite": "^4.1.17",
         "@vueuse/integrations": "^14.0.0",
         "@vueuse/nuxt": "^14.0.0",
-        "change-case": "^5",
         "mysql2": "^3.15.3",
         "nuxt": "^4.2.2",
         "reka-ui": "^2.6.0",
