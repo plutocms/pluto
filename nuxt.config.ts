@@ -2,14 +2,11 @@ const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: [
-    ['github:plutocms/utils', { giget: { silent: true } }],
-    'layers/ui',
-  ],
-
   modules: ['@nuxt/eslint', '@vueuse/nuxt'],
 
   $development: {
+    extends: ['../utils/', './layers/ui'],
+
     vite: {
       optimizeDeps: {
         include: ['@vue/devtools-core', '@vue/devtools-kit'],
@@ -19,6 +16,10 @@ export default defineNuxtConfig({
 
   $meta: {
     name: 'pluto',
+  },
+
+  $production: {
+    extends: ['github:plutocms/utils', './layers/ui'],
   },
 
   devtools: { enabled: true },
