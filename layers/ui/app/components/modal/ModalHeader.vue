@@ -42,7 +42,7 @@ function closeModal() {
 <template>
   <div :class="resolvedClasses">
     <div
-      class="absolute top-0 left-0 z-[-1] h-full w-full rounded-t-lg bg-(--ui-bg) backdrop-blur-md"
+      class="bg-default absolute top-0 left-0 z-[-1] h-full w-full rounded-t-lg backdrop-blur-md"
     />
 
     <div class="flex items-start justify-between py-4">

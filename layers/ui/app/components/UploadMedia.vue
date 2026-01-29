@@ -262,7 +262,7 @@ const isInsertButtonDisabled = computed(
                 <div
                   v-for="file in imageList"
                   :key="file.id"
-                  class="group/image-select relative aspect-square overflow-hidden rounded-2xl bg-black select-none hover:ring-1 has-[[aria-checked='true']]:ring-2 has-[[aria-checked='true']]:ring-green-400"
+                  class="group/image-select relative aspect-square overflow-hidden rounded-2xl bg-black select-none hover:ring-1 has-aria-checked:ring-2 has-aria-checked:ring-green-400"
                 >
                   <label
                     class="absolute top-0 left-0 grid h-full w-full items-start justify-end"
@@ -308,7 +308,7 @@ const isInsertButtonDisabled = computed(
                 <div
                   v-for="file in threeDModelList"
                   :key="file.id"
-                  class="group/image-select relative aspect-square overflow-hidden rounded-2xl bg-black select-none hover:ring-1 has-[[aria-checked='true']]:ring-2 has-[[aria-checked='true']]:ring-green-400"
+                  class="group/image-select relative aspect-square overflow-hidden rounded-2xl bg-black select-none hover:ring-1 has-aria-checked:ring-2 has-aria-checked:ring-green-400"
                 >
                   <label
                     class="absolute top-0 left-0 grid h-full w-full items-start justify-end"
@@ -369,7 +369,7 @@ const isInsertButtonDisabled = computed(
                 />
               </div>
 
-              <div class="flex w-[300px] shrink-0 flex-col gap-y-4">
+              <div class="flex w-75 shrink-0 flex-col gap-y-4">
                 <div class="wrap-break-word">{{ files?.[0]?.name }}</div>
 
                 <div v-if="isUploaded && files?.[0]?.name" class="truncate">

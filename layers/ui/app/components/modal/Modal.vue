@@ -35,11 +35,11 @@ const resolvedClasses = computed(() => {
   const defaultClasses = `
       group
       relative
-      w-[936px] h-fit
+      w-234 h-fit
       rounded-lg
       my-4 mx-4
       shadow-2xl
-      bg-(--ui-bg)
+      bg-default
       light:text-zinc-800 dark:text-white
     `
 
@@ -50,16 +50,12 @@ const resolvedClasses = computed(() => {
       ? 'w-[320px]'
       : null,
 
-    !props.customSize && props.size && props.size === 'medium'
-      ? 'w-[768px]'
-      : null,
+    !props.customSize && props.size && props.size === 'medium' ? 'w-3xl' : null,
 
-    !props.customSize && props.size && props.size === 'large'
-      ? 'w-[1280px]'
-      : null,
+    !props.customSize && props.size && props.size === 'large' ? 'w-7xl' : null,
 
     !props.customSize && props.size && props.size === 'default'
-      ? 'w-[936px]'
+      ? 'w-234'
       : null,
 
     props.class,
@@ -71,7 +67,7 @@ const resolvedOverlayClasses = computed(() => {
       pointer-events-auto
       fixed
       left-0 top-0
-      z-[51]
+      z-51
       h-screen w-screen
       bg-black/90
     `

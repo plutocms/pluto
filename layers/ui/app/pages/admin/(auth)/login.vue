@@ -26,7 +26,7 @@ function submitForm() {
 
 <template>
   <div class="grid h-full place-items-center">
-    <UCard class="w-[400px]">
+    <UCard class="w-100">
       <form @submit.prevent="submitForm">
         <div class="flex flex-col gap-y-6">
           <h1 class="text-3xl font-bold">Login</h1>

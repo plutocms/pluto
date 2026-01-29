@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge'
   <div class="flex flex-col gap-8 py-1">
     <div
       v-if="$slots.header"
-      :class="twMerge(['bg-opacity-90 sticky z-[50] backdrop-blur-md'])"
+      :class="twMerge(['bg-opacity-90 sticky z-50 backdrop-blur-md'])"
       style="top: var(--header-top-offset)"
     >
       <slot name="header" />

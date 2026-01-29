@@ -47,7 +47,7 @@ const resolvedClasses = computed(() => {
       :class="
         twMerge([
           'bg-opacity-90 absolute top-0 left-0 z-[-1] h-full w-full rounded-b-lg backdrop-blur-md',
-          'bg-(--ui-bg)',
+          'bg-default',
         ])
       "
     />

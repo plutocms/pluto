@@ -7,8 +7,7 @@ const props = defineProps<{
 }>()
 
 const resolvedClasses = computed(() => {
-  const defaultClasses =
-    'mx-auto max-w-full transition-all px-4 sm:px-6 w-[1400px]'
+  const defaultClasses = 'mx-auto max-w-full transition-all px-4 sm:px-6 w-350'
 
   return twMerge([defaultClasses, props.class])
 })

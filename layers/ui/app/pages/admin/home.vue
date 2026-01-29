@@ -13,7 +13,7 @@ useHead({
         <div
           v-for="i in 6"
           :key="i"
-          class="h-[200px] rounded-3xl border border-gray-500"
+          class="h-50 rounded-3xl border border-gray-500"
         />
       </div>
     </AdminView>
