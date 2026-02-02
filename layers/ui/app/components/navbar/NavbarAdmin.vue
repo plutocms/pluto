@@ -86,7 +86,7 @@ defineShortcuts(extractShortcuts(items.value))
   >
     <div class="flex h-full items-stretch justify-between px-4">
       <div class="flex items-center gap-x-3">
-        <div class="h-full py-1">
+        <div class="h-full shrink-0 py-1">
           <NuxtLink
             title="Go to dashboard home"
             to="/admin/home"
