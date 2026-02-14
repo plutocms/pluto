@@ -64,6 +64,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-08-15',
 
   vite: {
+    // @ts-expect-error - Vite plugin types are not compatible with Nuxt's Vite configuration
     plugins: [tailwindcss()],
   },
 
