@@ -1,10 +1,22 @@
+import tailwindcss from '@tailwindcss/vite'
+
 const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: ['github:plutocms/utils', './layers/ui'],
+  extends: ['github:plutocms/utils'],
 
-  modules: ['@nuxt/eslint', '@vueuse/nuxt'],
+  modules: [
+    '@nuxt/eslint',
+    '@nuxt/ui',
+    '@vueuse/nuxt',
+    [
+      'reka-ui/nuxt',
+      {
+        prefix: 'Reka',
+      },
+    ],
+  ],
 
   $development: {
     vite: {
@@ -25,6 +37,8 @@ export default defineNuxtConfig({
       titleTemplate: `%s - ${websiteName}`,
     },
   },
+
+  css: ['#layers/ui/app/assets/css/tailwind.css'],
 
   runtimeConfig: {
     public: {
@@ -48,6 +62,10 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2025-08-15',
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
 
   typescript: {
     includeWorkspace: true,
