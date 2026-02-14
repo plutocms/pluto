@@ -38,7 +38,7 @@ export default defineNuxtConfig({
     },
   },
 
-  css: ['#layers/ui/app/assets/css/tailwind.css'],
+  css: ['#layers/pluto/app/assets/css/tailwind.css'],
 
   runtimeConfig: {
     public: {
