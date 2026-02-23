@@ -101,33 +101,35 @@ function closeModal() {
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition name="fade">
-      <div
-        v-if="model === true"
-        :class="resolvedOverlayClasses"
-        @click="props.preventClickOutside === false ? closeModal() : null"
-      >
-        <div ref="scrollRef" class="h-full overflow-y-scroll py-4">
-          <div class="flex min-h-full items-center justify-center">
-            <div
-              :class="twMerge(['modal-content my-auto', resolvedClasses])"
-              :style="{
-                width:
-                  !props.size && props.customSize
-                    ? `${props.customSize}px`
-                    : '',
-              }"
-              v-bind="$attrs"
-              @click.stop
-            >
-              <slot />
+  <div>
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="model === true"
+          :class="resolvedOverlayClasses"
+          @click="props.preventClickOutside === false ? closeModal() : null"
+        >
+          <div ref="scrollRef" class="h-full overflow-y-scroll py-4">
+            <div class="flex min-h-full items-center justify-center">
+              <div
+                :class="twMerge(['modal-content my-auto', resolvedClasses])"
+                :style="{
+                  width:
+                    !props.size && props.customSize
+                      ? `${props.customSize}px`
+                      : '',
+                }"
+                v-bind="$attrs"
+                @click.stop
+              >
+                <slot />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </Transition>
-  </Teleport>
+      </Transition>
+    </Teleport>
+  </div>
 </template>
 
 <style scoped>
