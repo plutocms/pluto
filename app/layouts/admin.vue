@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
-
 const { actions: sidebarActions } = useSidebarAdminActions()
 
-const menu = ref<NavigationMenuItem[]>([
+const menu = ref([
   {
     label: 'Home',
     href: '/admin/home',
