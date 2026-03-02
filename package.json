@@ -1,8 +1,26 @@
 {
-  "name": "plutocms",
-  "type": "module",
+  "name": "@plutocms/pluto",
   "version": "0.0.1-alpha.1",
-  "private": true,
+  "description": "The layerable CMS",
+  "keywords": [
+    "pluto",
+    "cms",
+    "nuxt",
+    "vue",
+    "wordpress"
+  ],
+  "homepage": "https://github.com/plutocms/pluto#readme",
+  "bugs": {
+    "url": "https://github.com/plutocms/pluto/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutocms/pluto.git"
+  },
+  "license": "MIT",
+  "author": "Victor Ribeiro",
+  "type": "module",
+  "main": "nuxt.config.ts",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev --no-fork",
