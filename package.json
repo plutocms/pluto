@@ -33,7 +33,7 @@
     "typecheck": "nuxt prepare && vue-tsc -b --noEmit"
   },
   "dependencies": {
-    "@plutocms/utils": "^0.0.1-alpha.3"
+    "@plutocms/utils": "^0.0.1-alpha.4"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.4.3",

@@ -5,7 +5,7 @@
     "": {
       "name": "plutocms",
       "dependencies": {
-        "@plutocms/utils": "^0.0.1-alpha.3",
+        "@plutocms/utils": "^0.0.1-alpha.4",
       },
       "devDependencies": {
         "@antfu/eslint-config": "^7.4.3",
@@ -454,7 +454,7 @@
 
     "@pkgr/core": ["@pkgr/core@0.2.9", "", {}, "sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA=="],
 
-    "@plutocms/utils": ["@plutocms/utils@0.0.1-alpha.3", "", {}, "sha512-5LEM0q7lnba+IzW7YkMjY7bWIiZWWR7EtTYiF1TkItHBOvDu9gLEMZn5gYbJ7l5H90v/3TZdByUyOTmZ5vQfHQ=="],
+    "@plutocms/utils": ["@plutocms/utils@0.0.1-alpha.4", "", {}, "sha512-Qwcu8aR59ZY0sk8UDYNew4fCWescQg8pmeYxEjXmlLi8TesYM08cq37EN6TWsf4GE6IjoTLcAZWaBEgHFH7BHA=="],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 
