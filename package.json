@@ -20,7 +20,7 @@
     "vue",
     "wordpress"
   ],
-  "main": "nuxt.config.ts",
+  "main": "./nuxt.config.ts",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev --no-fork",
@@ -33,28 +33,28 @@
     "typecheck": "nuxt prepare && vue-tsc -b --noEmit"
   },
   "dependencies": {
-    "@nuxt/ui": "^4.4.0",
-    "@plutocms/utils": "^0.0.1-alpha.3",
-    "@tailwindcss/vite": "^4.2.1",
-    "@vueuse/nuxt": "^14.0.0",
-    "mysql2": "^3.15.3",
-    "nuxt": "^4.3.1",
-    "reka-ui": "^2.8.2",
-    "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.2.1",
-    "vue": "^3.5.28",
-    "vue-router": "^5.0.3"
+    "@plutocms/utils": "^0.0.1-alpha.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.4.3",
     "@iconify-json/lucide": "^1.2.71",
     "@iconify-json/simple-icons": "^1.2.55",
     "@nuxt/eslint": "^1.15.1",
+    "@nuxt/ui": "^4.5.1",
+    "@tailwindcss/vite": "^4.2.1",
     "@types/bun": "^1.3.9",
+    "@vueuse/nuxt": "^14.2.1",
     "eslint": "^10.0.2",
+    "mysql2": "^3.18.2",
+    "nuxt": "^4.3.1",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "typescript": "^5.9.3"
+    "reka-ui": "^2.8.2",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.1",
+    "typescript": "^5.9.3",
+    "vue": "^3.5.29",
+    "vue-router": "^5.0.3"
   },
   "trustedDependencies": [
     "@parcel/watcher",
