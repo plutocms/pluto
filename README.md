@@ -51,8 +51,8 @@ Then:
 
 ```bash
 cd your-project
-npm install
-npm run dev
+bun install # or pnpm install
+bun run dev # or pnpm dev
 ```
 
 ## Architecture overview
