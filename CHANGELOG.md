@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.0.3
+
+[compare changes](https://github.com/plutocms/pluto/compare/v0.0.2...v0.0.3)
+
+### 🩹 Fixes
+
+- Update npm publishing configuration for OIDC trusted publishing ([72eb117](https://github.com/plutocms/pluto/commit/72eb117))
+
+### ❤️ Contributors
+
+- Victor Ribeiro <devjvribeiro@gmail.com>
+
 ## v0.0.2
 
 [compare changes](https://github.com/plutocms/pluto/compare/v0.0.1...v0.0.2)
