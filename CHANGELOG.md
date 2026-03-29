@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.0.2
+
+[compare changes](https://github.com/plutocms/pluto/compare/v0.0.1...v0.0.2)
+
+### 🩹 Fixes
+
+- Update release workflow to correctly set up Node.js and npm publishing ([eba0a6a](https://github.com/plutocms/pluto/commit/eba0a6a))
+
+### ❤️ Contributors
+
+- Victor Ribeiro <devjvribeiro@gmail.com>
+
 ## v0.0.1
 
 
