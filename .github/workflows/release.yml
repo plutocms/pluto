@@ -37,7 +37,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -72,8 +71,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to npm
-        # No token needed — OIDC trusted publishing handles auth automatically.
-        # Provenance is also generated automatically; no --provenance flag required.
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # OIDC trusted publishing — no token needed. --provenance triggers OIDC auth.
+        run: npm publish --provenance --access public
