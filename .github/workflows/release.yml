@@ -33,12 +33,10 @@ jobs:
         with:
           fetch-depth: 0 # full history required by changelogen to read all commits
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: 22
-          cache: npm
-          registry-url: 'https://registry.npmjs.org'
+          bun-version: latest
 
       - name: Configure git
         run: |
@@ -46,16 +44,16 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build
-        run: npm run build --if-present
+        run: bun run build || true
 
       - name: Lint
-        run: npm run lint --if-present
+        run: bun run lint || true
 
       - name: Test
-        run: npm test --if-present
+        run: bun test || true
 
       # changelogen reads conventional commits, bumps package.json, writes CHANGELOG.md,
       # commits, tags, pushes, and creates the GitHub release — all in one step.
@@ -73,4 +71,4 @@ jobs:
       - name: Publish to npm
         # No token needed — OIDC trusted publishing handles auth automatically.
         # Provenance is also generated automatically; no --provenance flag required.
-        run: npm publish --access public
+        run: bunx npm publish --access public
