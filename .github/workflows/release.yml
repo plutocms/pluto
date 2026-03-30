@@ -21,11 +21,11 @@ concurrency:
 
 jobs:
   release:
-    name: Release
+    name: Create Release PR
     runs-on: ubuntu-latest
     permissions:
-      contents: write # push commits, create tags & GitHub releases
-      id-token: write # npm provenance attestation
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -57,18 +57,27 @@ jobs:
       - name: Test
         run: bun test || true
 
-      # changelogen reads conventional commits, bumps package.json, writes CHANGELOG.md,
-      # commits, tags, pushes, and creates the GitHub release — all in one step.
-      - name: Bump version, generate changelog & create release
+      # Bump package.json, update CHANGELOG.md, and commit — but do NOT push or release
+      - name: Bump version and generate changelog
         run: |
           BUMP="${{ inputs.bump }}"
           if [ -n "$BUMP" ]; then
-            npx changelogen@latest --$BUMP --push --release
+            npx changelogen@latest --$BUMP
           else
-            npx changelogen@latest --bump --push --release
+            npx changelogen@latest --bump
           fi
+
+      # Create a release branch from the changelogen commit and open a PR
+      - name: Create release PR
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          BRANCH="release/v$VERSION"
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "v$VERSION" \
+            --body "Release v$VERSION" \
+            --base main \
+            --head "$BRANCH"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to npm
-        run: npm publish --provenance --access public
