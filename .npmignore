@@ -1,0 +1,26 @@
+# .gitignore
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+node_modules
+.yalc
+yalc.lock
+
+logs
+*.log
+
+.DS_Store
+.fleet
+.idea
+
+.env
+.env.*
+!.env.example
+
+# NPM
+.agents
+.workflows
