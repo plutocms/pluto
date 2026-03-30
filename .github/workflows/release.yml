@@ -57,26 +57,18 @@ jobs:
       - name: Test
         run: bun test || true
 
-      # Bump version and changelog, but do NOT push or create release yet
-      - name: Bump version and generate changelog
-        id: changelogen_bump
+      # changelogen reads conventional commits, bumps package.json, writes CHANGELOG.md,
+      # commits, tags, pushes, and creates the GitHub release — all in one step.
+      - name: Bump version, generate changelog & create release
         run: |
           BUMP="${{ inputs.bump }}"
           if [ -n "$BUMP" ]; then
-            npx changelogen@latest --$BUMP
+            npx changelogen@latest --$BUMP --push --release
           else
-            npx changelogen@latest --bump
+            npx changelogen@latest --bump --push --release
           fi
-
-      - name: Publish to npm
-        id: npm_publish
-        run: npm publish --provenance --access public
-
-      # Only push commit/tag and create GitHub release if publish succeeds
-      - name: Push commit and tags, create GitHub release
-        if: steps.npm_publish.outcome == 'success'
-        run: |
-          git push --follow-tags origin HEAD
-          npx changelogen@latest --release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
