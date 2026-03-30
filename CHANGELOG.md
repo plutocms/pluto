@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.0.7
+
+[compare changes](https://github.com/plutocms/pluto/compare/v0.0.6...v0.0.7)
+
+### 🩹 Fixes
+
+- Reorder setup steps for Bun and Node.js in release workflow ([84b206c](https://github.com/plutocms/pluto/commit/84b206c))
+
+### ❤️ Contributors
+
+- Victor Ribeiro <devjvribeiro@gmail.com>
+
 ## v0.0.6
 
 [compare changes](https://github.com/plutocms/pluto/compare/v0.0.5...v0.0.6)
