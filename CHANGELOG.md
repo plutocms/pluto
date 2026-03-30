@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.0.6
+
+[compare changes](https://github.com/plutocms/pluto/compare/v0.0.5...v0.0.6)
+
+### 🩹 Fixes
+
+- Remove npm registry URL and NODE_AUTH_TOKEN from release workflow ([bc10443](https://github.com/plutocms/pluto/commit/bc10443))
+
+### ❤️ Contributors
+
+- Victor Ribeiro <devjvribeiro@gmail.com>
+
 ## v0.0.5
 
 [compare changes](https://github.com/plutocms/pluto/compare/v0.0.4...v0.0.5)
