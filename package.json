@@ -1,7 +1,7 @@
 {
   "name": "@plutocms/pluto",
   "type": "module",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "The layerable CMS",
   "author": "Victor Ribeiro",
   "license": "MIT",

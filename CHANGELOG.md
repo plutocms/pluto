@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.0.5
+
+[compare changes](https://github.com/plutocms/pluto/compare/v0.0.4...v0.0.5)
+
+### 🩹 Fixes
+
+- Add npm registry URL and NODE_AUTH_TOKEN for publishing ([2a54bac](https://github.com/plutocms/pluto/commit/2a54bac))
+
+### ❤️ Contributors
+
+- Victor Ribeiro <devjvribeiro@gmail.com>
+
 ## v0.0.4
 
 [compare changes](https://github.com/plutocms/pluto/compare/v0.0.3...v0.0.4)
