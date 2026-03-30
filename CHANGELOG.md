@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v0.0.8
+
+[compare changes](https://github.com/plutocms/pluto/compare/v0.0.7...v0.0.8)
+
+### 🩹 Fixes
+
+- Reorder npm publish step in release workflow ([aee9845](https://github.com/plutocms/pluto/commit/aee9845))
+- Update Node.js version to 24 in release workflow ([e25eaa6](https://github.com/plutocms/pluto/commit/e25eaa6))
+
+### ❤️ Contributors
+
+- Victor Ribeiro <devjvribeiro@gmail.com>
+
 ## v0.0.7
 
 [compare changes](https://github.com/plutocms/pluto/compare/v0.0.6...v0.0.7)
