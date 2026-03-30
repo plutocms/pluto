@@ -57,8 +57,14 @@ jobs:
       - name: Test
         run: bun test || true
 
-      # Bump package.json, update CHANGELOG.md, and commit — but do NOT push or release
-      - name: Bump version and generate changelog
+      # Create a release branch before changelogen, run changelogen and commit on the branch, push, then open PR
+      - name: Create release branch
+        run: |
+          VERSION_BEFORE=$(node -p "require('./package.json').version")
+          BRANCH="release/v$VERSION_BEFORE"
+          git checkout -b "$BRANCH"
+
+      - name: Bump version and generate changelog (on release branch)
         run: |
           BUMP="${{ inputs.bump }}"
           if [ -n "$BUMP" ]; then
@@ -66,14 +72,20 @@ jobs:
           else
             npx changelogen@latest --bump
           fi
+          git add package.json CHANGELOG.md
+          VERSION=$(node -p "require('./package.json').version")
+          git commit -m "chore(release): v$VERSION"
 
-      # Create a release branch from the changelogen commit and open a PR
+      - name: Push release branch
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          BRANCH="release/v$VERSION"
+          git push origin "$BRANCH"
+
       - name: Create release PR
         run: |
           VERSION=$(node -p "require('./package.json').version")
           BRANCH="release/v$VERSION"
-          git checkout -b "$BRANCH"
-          git push origin "$BRANCH"
           gh pr create \
             --title "v$VERSION" \
             --body "Release v$VERSION" \
