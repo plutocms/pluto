@@ -69,6 +69,8 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           BRANCH="release/v$VERSION"
           git push origin "$BRANCH"
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Create release PR
         run: |
@@ -79,6 +81,8 @@ jobs:
             --body "Release v$VERSION" \
             --base main \
             --head "$BRANCH"
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Bump version and generate changelog (on release branch)
         run: |
@@ -91,6 +95,5 @@ jobs:
           git add package.json CHANGELOG.md
           VERSION=$(node -p "require('./package.json').version")
           git commit -m "chore(release): v$VERSION"
-
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
