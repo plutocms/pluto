@@ -64,18 +64,6 @@ jobs:
           BRANCH="release/v$VERSION_BEFORE"
           git checkout -b "$BRANCH"
 
-      - name: Bump version and generate changelog (on release branch)
-        run: |
-          BUMP="${{ inputs.bump }}"
-          if [ -n "$BUMP" ]; then
-            npx changelogen@latest --$BUMP
-          else
-            npx changelogen@latest --bump
-          fi
-          git add package.json CHANGELOG.md
-          VERSION=$(node -p "require('./package.json').version")
-          git commit -m "chore(release): v$VERSION"
-
       - name: Push release branch
         run: |
           VERSION=$(node -p "require('./package.json').version")
@@ -91,5 +79,18 @@ jobs:
             --body "Release v$VERSION" \
             --base main \
             --head "$BRANCH"
+
+      - name: Bump version and generate changelog (on release branch)
+        run: |
+          BUMP="${{ inputs.bump }}"
+          if [ -n "$BUMP" ]; then
+            npx changelogen@latest --$BUMP
+          else
+            npx changelogen@latest --bump
+          fi
+          git add package.json CHANGELOG.md
+          VERSION=$(node -p "require('./package.json').version")
+          git commit -m "chore(release): v$VERSION"
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
