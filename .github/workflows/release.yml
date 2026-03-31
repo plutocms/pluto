@@ -64,7 +64,31 @@ jobs:
           BRANCH="release/v$VERSION_BEFORE"
           git checkout -b "$BRANCH"
 
+      # Run changelogen and only commit if there are changes
+      - name: Bump version and generate changelog (on release branch)
+        id: changelogen
+        run: |
+          BUMP="${{ inputs.bump }}"
+          if [ -n "$BUMP" ]; then
+            npx changelogen@latest --$BUMP
+          else
+            npx changelogen@latest --bump
+          fi
+          git add package.json CHANGELOG.md || true
+          VERSION=$(node -p "require('./package.json').version")
+          # Only commit if there are changes
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(release): v$VERSION"
+            echo "has_changes=true" >> $GITHUB_ENV
+          else
+            echo "No changes to commit. Skipping PR creation."
+            echo "has_changes=false" >> $GITHUB_ENV
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Push release branch
+        if: env.has_changes == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
           BRANCH="release/v$VERSION"
@@ -73,6 +97,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Create release PR
+        if: env.has_changes == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
           BRANCH="release/v$VERSION"
@@ -81,19 +106,5 @@ jobs:
             --body "Release v$VERSION" \
             --base main \
             --head "$BRANCH"
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Bump version and generate changelog (on release branch)
-        run: |
-          BUMP="${{ inputs.bump }}"
-          if [ -n "$BUMP" ]; then
-            npx changelogen@latest --$BUMP
-          else
-            npx changelogen@latest --bump
-          fi
-          git add package.json CHANGELOG.md
-          VERSION=$(node -p "require('./package.json').version")
-          git commit -m "chore(release): v$VERSION"
         env:
           GH_TOKEN: ${{ github.token }}
