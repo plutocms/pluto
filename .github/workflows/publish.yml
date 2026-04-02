@@ -48,4 +48,4 @@ jobs:
           git push origin "v$VERSION"
           gh release create "v$VERSION" --generate-notes --title "v$VERSION"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
