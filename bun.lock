@@ -221,7 +221,7 @@
 
     "@iconify-json/lucide": ["@iconify-json/lucide@1.2.100", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-vCrhQ/6T530HEMkWOkSyedvMiuQdVU1tMHEs32k4tklJmCmjokH3Dej6ycvfLt7kftBSQ2kPSUiyOpoW3uOF5g=="],
 
-    "@iconify-json/simple-icons": ["@iconify-json/simple-icons@1.2.74", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-yqaohfY6jnYjTVpuTkaBQHrWbdUrQyWXhau0r/0EZiNWYXPX/P8WWwl1DoLH5CbvDjjcWQw5J0zADhgCUklOqA=="],
+    "@iconify-json/simple-icons": ["@iconify-json/simple-icons@1.2.76", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-lLRlA8yaf+1L5VCPRvR9lynoSklsddKHEylchmZJKdj/q2xVQ1ZAEJ8SCQlv9cbgtMefnlyM98U+8Si2aoFZPA=="],
 
     "@iconify/collections": ["@iconify/collections@1.0.656", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-X17vsrStihw4gEdgT2+46E+ioM506JJh/Jp/reJGZ2URcWhhS4aMnsi9onoGTQ8ppydZ0GJrPuvOyhySiteKsA=="],
 
