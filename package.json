@@ -62,6 +62,7 @@
     "tailwindcss": "^4.2.1",
     "typescript": "^6.0.2",
     "vue": "^3.5.29",
-    "vue-router": "^5.0.3"
+    "vue-router": "^5.0.3",
+    "vue-tsc": "^3.3.7"
   }
 }
