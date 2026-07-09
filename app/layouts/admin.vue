@@ -1,13 +1,20 @@
 <script setup lang="ts">
+import type { NavigationMenuItem } from '@nuxt/ui'
+
+// `to` is typed per-app via Nuxt's typed pages, so it differs across every
+// app that extends this layout as a layer. This menu only ever uses `href`,
+// so drop `to` here to avoid a cross-app type mismatch on that field.
+type SidebarMenuItem = Omit<NavigationMenuItem, 'to'>
+
 const { actions: sidebarActions } = useSidebarAdminActions()
 
-const menu = ref([
+const menu = shallowRef<SidebarMenuItem[]>([
   {
     label: 'Home',
     href: '/admin/home',
     icon: 'lucide:house',
   },
-  ...sidebarActions.value,
+  ...(sidebarActions.value as unknown as SidebarMenuItem[]),
   {
     label: 'Settings',
     href: '/admin/settings',
