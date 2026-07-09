@@ -5,6 +5,8 @@ import withNuxt from './.nuxt/eslint.config.mjs'
 // See: https://eslint.vuejs.org/rules
 export default withNuxt(
   antfu({
+    ignores: ['**/*.md', '.agents/**', '.github/**'],
+
     rules: {
       'node/prefer-global/process': ['off', 'never'],
 
