@@ -5,7 +5,7 @@
     "": {
       "name": "plutocms",
       "dependencies": {
-        "@plutocms/utils": "^0.0.1-alpha.7",
+        "@plutocms/utils": "^0.1.0",
         "@vueuse/nuxt": "^14.3.0",
       },
       "devDependencies": {
@@ -463,7 +463,7 @@
 
     "@pkgr/core": ["@pkgr/core@0.2.9", "", {}, "sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA=="],
 
-    "@plutocms/utils": ["@plutocms/utils@0.0.1-alpha.7", "", { "dependencies": { "@nuxt/eslint": "^1.15.2" } }, "sha512-qLWf47vCfntZVj/9VUw7KcJ11wgzP7gw5xEOZreOKvOprz5vYuTWvBN0II8vYBdH++UtNeuXYFj/DsSWj9LqTw=="],
+    "@plutocms/utils": ["@plutocms/utils@0.1.0", "", { "dependencies": { "@nuxt/eslint": "^1.15.2" } }, "sha512-o+9BMLSKA3PjqDD2OM/rIyQ2pCq6iahins+rBxCoehnA38aakoOfSWoQpn3P7h9azj9y3ek9As9f1RvfLsh8uw=="],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 

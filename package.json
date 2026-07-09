@@ -41,7 +41,7 @@
     "vue-demi"
   ],
   "dependencies": {
-    "@plutocms/utils": "^0.0.1-alpha.7",
+    "@plutocms/utils": "^0.1.0",
     "@vueuse/nuxt": "^14.3.0"
   },
   "devDependencies": {
