@@ -1,7 +1,4 @@
 {
-  "css.lint.unknownAtRules": "ignore",
-  "less.lint.unknownAtRules": "ignore",
-  "scss.lint.unknownAtRules": "ignore",
   "tailwindCSS.classAttributes": ["class", ".*-class(es)?", "theme", "ui"],
   "tailwindCSS.experimental.classRegex": [
     ["Theme \\=([^;]*);?", "'([^']*)'"],
@@ -15,58 +12,5 @@
     ["Classes \\=([^;]*);?", "\\`([^\\`]*)\\`"],
     ["tw`(.*?)`", "tw\\('(.*?)'\\)", "tw\\(\\s*('(.*?)'|\"(.*?)\")\\s*\\)"],
     ["ui:\\s*{([^)]*)\\s*}", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-  ],
-  "files.associations": {
-    "*.css": "tailwindcss"
-  },
-
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "never",
-    "source.fixAll.eslint": "explicit"
-  },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
-  "editor.gotoLocation.multipleDefinitions": "goto",
-  "editor.quickSuggestions": {
-    "strings": true
-  },
-
-  "cSpell.words": [
-    "bunx",
-    "defu",
-    "nuxt",
-    "nuxtjs",
-    "oklch",
-    "pinia",
-    "plutocms",
-    "tailwindcss"
-  ],
-
-  "eslint.useFlatConfig": true,
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "vue",
-    "html",
-    "markdown",
-    "json",
-    "jsonc",
-    "yaml",
-    "toml",
-    "xml",
-    "gql",
-    "graphql",
-    "astro",
-    "svelte",
-    "css",
-    "less",
-    "scss",
-    "pcss",
-    "postcss",
-    "mjs"
-  ],
-
-  "vue.inlayHints.missingProps": true
+  ]
 }
