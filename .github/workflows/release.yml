@@ -4,37 +4,74 @@ on:
   push:
     branches: [main]
 
+  # Escape hatch: the GitHub release and tag are created before `npm publish`
+  # runs, so a failed publish cannot be retried by re-running release-please.
+  # Use this to publish an existing tag without cutting a new version.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish to npm (e.g. v0.1.2)
+        type: string
+        required: true
+
 concurrency:
-  group: release
+  group: release-${{ github.ref }}
   cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   release-please:
     name: Release Please
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Run release-please
         id: release
         uses: googleapis/release-please-action@v4
         with:
+          # A PAT makes release-please's PRs trigger CI; github.token does not.
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+
+  # Re-run lint/typecheck/build against the tagged tree. release-please's own
+  # commit lands on main and is only covered by CI running in parallel with
+  # this workflow — without this gate a red main could still publish.
+  verify:
+    name: Verify
+    needs: release-please
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || needs.release-please.outputs.release_created == 'true') }}
+    uses: ./.github/workflows/ci.yml
+    with:
+      # `env` is not available in a reusable-workflow `with:`, so this
+      # expression is repeated in the publish job below.
+      ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || needs.release-please.outputs.tag_name }}
 
   publish:
     name: Publish to npm
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
+    needs: [release-please, verify]
+    if: ${{ !cancelled() && needs.verify.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write # npm provenance via OIDC trusted publishing
       contents: read
+    env:
+      TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || needs.release-please.outputs.tag_name }}
     steps:
-      - name: Checkout
+      # Check out the tag, not the branch head: another commit can land on main
+      # between the release commit and this job, which would otherwise publish
+      # a tree that does not match the released version.
+      - name: Checkout ${{ env.TAG }}
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          persist-credentials: false
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -47,8 +84,32 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org/
 
+      # Trusted publishing needs npm >= 11.5.1. Node 24 currently bundles a new
+      # enough npm, but pinning the dependency explicitly keeps the release from
+      # breaking if the bundled version ever moves backwards.
+      - name: Upgrade npm
+        run: npm install --global npm@latest
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      # Guards against a hand-edited version in package.json drifting from the
+      # tag release-please created.
+      - name: Check package version matches tag
+        run: |
+          set -euo pipefail
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "$TAG" ]; then
+            echo "::error::package.json is $version but the tag is $TAG"
+            exit 1
+          fi
+          echo "package.json version $version matches tag $TAG"
+
+      # Surfaces the exact tarball contents in the job log, so an accidental
+      # addition (a stray scratch directory, a lockfile) is visible after the
+      # fact instead of only on npm.
+      - name: Inspect tarball contents
+        run: npm publish --dry-run --access public
 
       - name: Publish to npm
         # No token needed — OIDC trusted publishing handles auth automatically.

@@ -5,8 +5,25 @@ on:
   push:
     branches: [main]
 
+  # Lets the Release workflow re-run these exact checks against a release tag
+  # before anything is published to npm. Keeping the checks here means there is
+  # one definition of "green" shared by PRs, main, and releases.
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to check out. Defaults to the triggering ref.
+        type: string
+        required: false
+        default: ''
+
 permissions:
   contents: read
+
+# Supersede in-flight runs for the same branch/PR, but never cancel a run that
+# a release is waiting on.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ inputs.ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ci:
@@ -15,6 +32,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -24,11 +44,18 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Lint
-        run: bun run lint
-
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Build
-        run: bun run build
+      # Not every repo defines every script (create-pluto has no `typecheck`,
+      # supabase-storage has no `build`). Running only what exists keeps this
+      # file byte-identical across all Pluto repos.
+      - name: Run checks
+        run: |
+          set -euo pipefail
+          for script in lint typecheck build; do
+            if node -e "process.exit(require('./package.json').scripts?.['$script'] ? 0 : 1)"; then
+              echo "::group::bun run $script"
+              bun run "$script"
+              echo "::endgroup::"
+            else
+              echo "no \"$script\" script in package.json — skipped"
+            fi
+          done

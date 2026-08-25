@@ -21,6 +21,16 @@ logs
 .env.*
 !.env.example
 
-# NPM
+# Repo tooling — never needed by consumers of the layer
 .agents
-.workflows
+.claude
+.github
+.vscode
+.editorconfig
+.prettierrc
+eslint.config.mjs
+bun.lock
+skills-lock.json
+release-please-config.json
+.release-please-manifest.json
+test

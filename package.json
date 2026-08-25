@@ -67,5 +67,8 @@
   },
   "overrides": {
     "eslint-flat-config-utils": "^3.2.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
