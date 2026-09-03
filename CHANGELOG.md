@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.2.0](https://github.com/plutocms/pluto/compare/v0.1.0...v0.2.0) (2026-09-03)
+
+
+### Features
+
+* allow overriding the utils layer path via env var ([9c32fa3](https://github.com/plutocms/pluto/commit/9c32fa306bf712fd2dcb3493d90db5e6bf0b4716))
+* enhance CI and release workflows with improved tagging and verification steps ([8e4695a](https://github.com/plutocms/pluto/commit/8e4695a84442ed9b16629dedb983e30dc6fa582e))
+
 ## [0.1.0](https://github.com/plutocms/pluto/compare/v0.0.10...v0.1.0) (2026-07-09)
 
 
