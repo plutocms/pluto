@@ -30,7 +30,8 @@
     "prettier": "prettier --write .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix && prettier --write .",
-    "typecheck": "nuxt prepare && vue-tsc -b --noEmit"
+    "typecheck": "nuxt prepare && vue-tsc -b --noEmit",
+    "test": "vitest run"
   },
   "trustedDependencies": [
     "@parcel/watcher",
@@ -61,6 +62,7 @@
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.2",
     "typescript": "6.0.3",
+    "vitest": "^5.0.0",
     "vue": "^3.5.39",
     "vue-router": "^5.1.0",
     "vue-tsc": "^3.3.7"

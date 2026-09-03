@@ -50,7 +50,7 @@ jobs:
       - name: Run checks
         run: |
           set -euo pipefail
-          for script in lint typecheck build; do
+          for script in lint typecheck test build; do
             if node -e "process.exit(require('./package.json').scripts?.['$script'] ? 0 : 1)"; then
               echo "::group::bun run $script"
               bun run "$script"
