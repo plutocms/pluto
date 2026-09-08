@@ -4,10 +4,11 @@ import withNuxt from './.nuxt/eslint.config.mjs'
 
 // See: https://eslint.vuejs.org/rules
 export default withNuxt(
+  { ignores: ['**/*.md', '.agents/**/*'] },
   antfu({
-    ignores: ['**/*.md', '.agents/**', '.github/**'],
-
     rules: {
+      'antfu/consistent-chaining': 'off',
+
       'node/prefer-global/process': ['off', 'never'],
 
       'style/arrow-parens': ['warn', 'always'],
@@ -65,22 +66,59 @@ export default withNuxt(
         {
           arrays: 'always-multiline',
           objects: 'always-multiline',
+          imports: 'always-multiline',
+          exports: 'always-multiline',
           functions: 'never',
         },
       ],
+
+      '@typescript-eslint/comma-dangle': ['error', {
+        arrays: 'always-multiline',
+        objects: 'always-multiline',
+        imports: 'always-multiline',
+        exports: 'always-multiline',
+        functions: 'never',
+        enums: 'always-multiline',
+        generics: 'always-multiline',
+        tuples: 'always-multiline',
+      }],
 
       'vue/comma-dangle': [
         'warn',
         {
           arrays: 'always-multiline',
           objects: 'always-multiline',
+          imports: 'always-multiline',
+          exports: 'always-multiline',
           functions: 'never',
         },
       ],
 
       'style/operator-linebreak': 'off',
 
+      'style/no-mixed-operators': 'off',
+
+      'style/indent': 'off',
+
       'vue/singleline-html-element-content-newline': 'off',
+      'vue/prefer-separate-static-class': 'off',
+
+      'curly': ['warn', 'all'],
+
+      'style/quote-props': ['warn', 'consistent'],
+
+      'style/object-curly-newline': [
+        'warn',
+        {
+          TSTypeLiteral: { minProperties: 1 },
+        },
+      ],
+      'vue/operator-linebreak': 'off',
+      'vue/html-indent': 'off',
+      'vue/brace-style': 'off',
+      'style/indent-binary-ops': 'off',
+
+      'unicorn/number-literal-case': 'off',
     },
   })
 )
