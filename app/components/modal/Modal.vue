@@ -35,9 +35,9 @@ const resolvedClasses = computed(() => {
   const defaultClasses = `
       group
       relative
-      w-234 h-fit
+      w-234 max-w-[calc(100vw-1rem)] h-fit
       rounded-lg
-      my-4 mx-4
+      my-2 mx-2 sm:my-4 sm:mx-4
       shadow-2xl
       bg-default
       light:text-zinc-800 dark:text-white
@@ -68,7 +68,7 @@ const resolvedOverlayClasses = computed(() => {
       fixed
       left-0 top-0
       z-51
-      h-screen w-screen
+      h-dvh w-screen
       bg-black/90
     `
 
@@ -109,14 +109,14 @@ function closeModal() {
           :class="resolvedOverlayClasses"
           @click="props.preventClickOutside === false ? closeModal() : null"
         >
-          <div ref="scrollRef" class="h-full overflow-y-scroll py-4">
+          <div ref="scrollRef" class="h-full overflow-y-auto py-2 sm:py-4">
             <div class="flex min-h-full items-center justify-center">
               <div
                 :class="twMerge(['modal-content my-auto', resolvedClasses])"
                 :style="{
                   width:
                     !props.size && props.customSize
-                      ? `${props.customSize}px`
+                      ? `min(${props.customSize}px, calc(100vw - 1rem))`
                       : '',
                 }"
                 v-bind="$attrs"
