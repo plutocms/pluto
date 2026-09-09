@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.3.0](https://github.com/plutocms/pluto/compare/v0.2.1...v0.3.0) (2026-09-09)
+
+
+### Features
+
+* make admin shell responsive ([#119](https://github.com/plutocms/pluto/issues/119)) ([5a4808d](https://github.com/plutocms/pluto/commit/5a4808de34e1a3796c496a8fad093290a8f7fb90))
+
 ## [0.2.1](https://github.com/plutocms/pluto/compare/v0.2.0...v0.2.1) (2026-09-08)
 
 
