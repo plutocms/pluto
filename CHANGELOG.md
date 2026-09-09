@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.3.1](https://github.com/plutocms/pluto/compare/v0.3.0...v0.3.1) (2026-09-09)
+
+
+### Bug Fixes
+
+* **navbar:** render registered admin navbar ([#121](https://github.com/plutocms/pluto/issues/121)) ([0fa66dd](https://github.com/plutocms/pluto/commit/0fa66dde70acc7e8f8fb2a5685d9971ae0eba303))
+
 ## [0.3.0](https://github.com/plutocms/pluto/compare/v0.2.1...v0.3.0) (2026-09-09)
 
 
