@@ -3,7 +3,7 @@ import { twMerge } from 'tailwind-merge'
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 py-1">
+  <div class="flex flex-col gap-5 py-1 sm:gap-8">
     <div
       v-if="$slots.header"
       :class="twMerge(['bg-opacity-90 sticky z-50 backdrop-blur-md'])"
@@ -12,7 +12,7 @@ import { twMerge } from 'tailwind-merge'
       <slot name="header" />
     </div>
 
-    <div class="px-4 pt-6">
+    <div class="px-3 pt-4 sm:px-4 sm:pt-6">
       <slot />
     </div>
   </div>

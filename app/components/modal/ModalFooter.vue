@@ -52,7 +52,10 @@ const resolvedClasses = computed(() => {
       "
     />
 
-    <div :class="resolvedAlign" class="flex py-4">
+    <div
+      :class="resolvedAlign"
+      class="flex flex-wrap gap-2 px-3 py-3 sm:px-4 sm:py-4"
+    >
       <slot />
     </div>
   </div>
