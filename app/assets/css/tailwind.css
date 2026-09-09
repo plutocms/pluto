@@ -2,11 +2,10 @@
 @import '@nuxt/ui';
 
 @source '../..';
-@source '../../../../../app/**';
 
 @theme {
-  --color-admin-content: var(--color-slate-800);
-  --color-admin-sidebar: var(--color-slate-900);
+  --color-admin-content: var(--color-zinc-800);
+  --color-admin-sidebar: var(--color-zinc-900);
 
   --font-outfit: 'Outfit', sans-serif;
 }

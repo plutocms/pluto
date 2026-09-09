@@ -1,14 +1,20 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const { navbar } = useNavbarAdmin()
+</script>
 
 <template>
-  <div class="grow">
-    <UApp>
+  <div class="flex min-h-0 min-w-0 w-full grow flex-col">
+    <UApp class="flex min-h-0 min-w-0 w-full grow flex-col">
       <NuxtRouteAnnouncer />
       <NuxtLoadingIndicator />
 
-      <NuxtLayout>
-        <slot />
-      </NuxtLayout>
+      <component :is="navbar" v-if="navbar" />
+
+      <div class="min-h-0 min-w-0 w-full grow">
+        <NuxtLayout>
+          <slot />
+        </NuxtLayout>
+      </div>
     </UApp>
   </div>
 </template>
