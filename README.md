@@ -63,11 +63,15 @@ Pluto CMS is built around **layers**, each responsible for a specific concern.
 
 The core layer provides the foundation for your CMS:
 
-- `<PlutoRoot>`: Wraps your entire app (used in `app.vue`). Includes `NuxtLayout`, `NuxtLoadingIndicator`, and base styles.
+- `<PlutoRoot>`: Wraps your entire app (used in `app.vue`). Includes the registered admin navbar, `NuxtLayout`, `NuxtLoadingIndicator`, and base styles.
 - `<ColorModeButton>`: Light/dark mode toggle with zero configuration.
 - Built-in auth and admin layouts
 - `<PlutoNavbarAdmin>` and `<PlutoNavbarAdminActions>`
   Provide structure for injecting actions from other layers
+
+Backend layers can provide the complete admin navbar with
+`useNavbarAdmin().registerNavbar(component)`. Feature layers can append controls
+with `useNavbarAdminActions().addAction(component)`.
 
 ### Backend layers
 

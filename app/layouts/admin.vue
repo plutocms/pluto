@@ -36,10 +36,8 @@ watch(
 
 <template>
   <div
-    class="dark:bg-admin-content light:bg-white font-outfit flex h-dvh min-h-0 grow flex-col overflow-hidden"
+    class="dark:bg-admin-content light:bg-white font-outfit flex h-full min-h-0 grow flex-col overflow-hidden"
   >
-    <NavbarAdmin />
-
     <div class="relative flex min-h-0 flex-1 items-stretch">
       <Transition name="sidebar-fade">
         <button

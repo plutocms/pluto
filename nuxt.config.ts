@@ -1,5 +1,3 @@
-import tailwindcss from '@tailwindcss/vite'
-
 const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
 // Point PLUTO_UTILS_PATH at a local checkout (e.g. `../utils`) to test
@@ -66,10 +64,6 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2025-08-15',
-
-  vite: {
-    plugins: [tailwindcss()],
-  },
 
   typescript: {
     includeWorkspace: true,
