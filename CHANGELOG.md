@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.3.2](https://github.com/plutocms/pluto/compare/v0.3.1...v0.3.2) (2026-09-10)
+
+
+### Bug Fixes
+
+* move icon sets from devDependencies to dependencies ([9ed15ac](https://github.com/plutocms/pluto/commit/9ed15ac5d789e72918dc644325b3dc64fe7cc663))
+
 ## [0.3.1](https://github.com/plutocms/pluto/compare/v0.3.0...v0.3.1) (2026-09-09)
 
 
