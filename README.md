@@ -69,9 +69,24 @@ The core layer provides the foundation for your CMS:
 - `<PlutoNavbarAdmin>` and `<PlutoNavbarAdminActions>`
   Provide structure for injecting actions from other layers
 
-Backend layers can provide the complete admin navbar with
-`useNavbarAdmin().registerNavbar(component)`. Feature layers can append controls
-with `useNavbarAdminActions().addAction(component)`.
+A layer plugs into the admin UI with one function, `definePlutoExtension`, called from a
+plugin. It registers any of: the admin navbar, navbar actions, sidebar nav entries, admin page
+metadata, dashboard widgets, and a settings panel or driver:
+
+```ts
+// app/plugins/pluto-registrations.ts
+export default defineNuxtPlugin(() => {
+  definePlutoExtension({
+    id: 'supabase-blog',
+    nav: [{ id: 'posts', label: 'Posts', icon: 'lucide:file-text', to: '/admin/posts' }],
+  })
+})
+```
+
+See `.claude/skills/extension-registry/SKILL.md` for the full type of each registrable thing
+and the ordering/dedupe rules. The old `useNavbarAdmin().registerNavbar(component)` and
+`useNavbarAdminActions().addAction(component)` composables still work, through a compatibility
+bridge, but `definePlutoExtension` is the current recommended way to plug in.
 
 ### Backend layers
 

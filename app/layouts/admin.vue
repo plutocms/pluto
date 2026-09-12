@@ -6,27 +6,34 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 // so drop `to` here to avoid a cross-app type mismatch on that field.
 type SidebarMenuItem = Omit<NavigationMenuItem, 'to'>
 
-const { actions: sidebarActions } = useSidebarAdminActions()
+function toMenuItem(item: PlutoNavItem): SidebarMenuItem {
+  return {
+    label: item.label,
+    icon: item.icon,
+    href: item.to,
+    // Top-level items SPA-navigate instead of doing a full page load. This
+    // matches what supabase-blog and supabase-shop's own (pre-registry)
+    // sidebar entries already did — the registry now does it for every
+    // item instead of only theirs. Children stay href-only, same as those
+    // two layers' own child entries did.
+    onSelect: item.to ? () => navigateTo(item.to) : undefined,
+    defaultOpen: item.defaultOpen,
+    children: item.children?.map((child) => ({
+      label: child.label,
+      href: child.to,
+    })),
+  }
+}
+
+const { items: navItems } = usePlutoAdminNav()
+const menu = computed<SidebarMenuItem[]>(() => navItems.value.map(toMenuItem))
+
 const route = useRoute()
 const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
 
 function closeSidebar() {
   isSidebarOpen.value = false
 }
-
-const menu = shallowRef<SidebarMenuItem[]>([
-  {
-    label: 'Home',
-    href: '/admin/home',
-    icon: 'lucide:house',
-  },
-  ...(sidebarActions.value as unknown as SidebarMenuItem[]),
-  {
-    label: 'Settings',
-    href: '/admin/settings',
-    icon: 'lucide:settings',
-  },
-])
 
 watch(
   () => route.fullPath,
