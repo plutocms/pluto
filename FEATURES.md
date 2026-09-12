@@ -14,5 +14,6 @@ policies shared by every project here.
   permissions driver. @.claude/skills/permissions/SKILL.md
 - Content model: a typed content-type contract (`defineContentType`, field types, payload
   validation, field-to-column mapping) and a media-adapter contract, with registry wiring and
-  consumer composables. Client-side contracts only; no server registry or generated UI yet.
-  @.claude/skills/content-model/SKILL.md
+  consumer composables, plus a server-side content registry and generic list/get/create/update/
+  delete routes backed by a `PlutoContentAdapter` a backend layer implements. No real adapter or
+  generated UI yet. @.claude/skills/content-model/SKILL.md
