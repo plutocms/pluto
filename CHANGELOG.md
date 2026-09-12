@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.5.0](https://github.com/plutocms/pluto/compare/v0.4.0...v0.5.0) (2026-09-12)
+
+
+### Features
+
+* **permissions:** add capability registry and usePlutoPermissions composable ([#129](https://github.com/plutocms/pluto/issues/129)) ([c98419f](https://github.com/plutocms/pluto/commit/c98419fc967f8e20678389169e937db759c308bc))
+
 ## [0.4.0](https://github.com/plutocms/pluto/compare/v0.3.2...v0.4.0) (2026-09-12)
 
 
