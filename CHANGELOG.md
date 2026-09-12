@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.6.0](https://github.com/plutocms/pluto/compare/v0.5.0...v0.6.0) (2026-09-12)
+
+
+### Features
+
+* **content:** add content-model contracts (wave 1) ([#131](https://github.com/plutocms/pluto/issues/131)) ([95e157b](https://github.com/plutocms/pluto/commit/95e157b41a60b17ae8311878eb2ef79356feef43))
+
 ## [0.5.0](https://github.com/plutocms/pluto/compare/v0.4.0...v0.5.0) (2026-09-12)
 
 
