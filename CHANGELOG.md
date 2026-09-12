@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.7.0](https://github.com/plutocms/pluto/compare/v0.6.0...v0.7.0) (2026-09-12)
+
+
+### Features
+
+* **content:** add server-side content registry and generic CRUD routes (wave 2) ([#133](https://github.com/plutocms/pluto/issues/133)) ([7846340](https://github.com/plutocms/pluto/commit/784634081f5a267fbe33dde8264e6b848bf7bdda))
+
 ## [0.6.0](https://github.com/plutocms/pluto/compare/v0.5.0...v0.6.0) (2026-09-12)
 
 
