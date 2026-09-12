@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.4.0](https://github.com/plutocms/pluto/compare/v0.3.2...v0.4.0) (2026-09-12)
+
+
+### Features
+
+* **registry:** add typed extension registry for admin UI ([#127](https://github.com/plutocms/pluto/issues/127)) ([f3c6b0a](https://github.com/plutocms/pluto/commit/f3c6b0a38870ab738b4267e8b6252bb0720dae13))
+
+
+### Bug Fixes
+
+* **deps:** move nuxt runtime modules to dependencies ([#125](https://github.com/plutocms/pluto/issues/125)) ([7d66096](https://github.com/plutocms/pluto/commit/7d660962dcd0b8ce7703da3487a861be2a5064a4)), closes [#79](https://github.com/plutocms/pluto/issues/79)
+
 ## [0.3.2](https://github.com/plutocms/pluto/compare/v0.3.1...v0.3.2) (2026-09-10)
 
 
