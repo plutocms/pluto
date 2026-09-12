@@ -21,4 +21,9 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.settingsDriver ? [definition.settingsDriver] : []
   )
   registry.dashboardWidgets.set(definition.id, definition.dashboardWidgets ?? [])
+  registry.capabilities.set(definition.id, definition.capabilities ?? [])
+  registry.permissionsDrivers.set(
+    definition.id,
+    definition.permissionsDriver ? [definition.permissionsDriver] : []
+  )
 }
