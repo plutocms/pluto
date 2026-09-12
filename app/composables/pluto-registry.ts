@@ -21,6 +21,8 @@ export function usePlutoRegistry(): PlutoRegistry {
       settingsPanels: createOwnedRegistry<PlutoSettingsPanel>(),
       settingsDrivers: createOwnedRegistry<PlutoSettingsDriver>(),
       dashboardWidgets: createOwnedRegistry<PlutoDashboardWidget>(),
+      capabilities: createOwnedRegistry<PlutoCapability>(),
+      permissionsDrivers: createOwnedRegistry<PlutoPermissionsDriver>(),
     }
   }
 

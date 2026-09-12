@@ -59,6 +59,32 @@ export interface PlutoSettingsDriver extends PlutoEntry {
   save: (patch: Record<string, string>) => Promise<void>
 }
 
+/**
+ * A capability a layer defines. `key` is the real capability string, for
+ * example 'posts:publish'. It is kept separate from `id` on purpose: the
+ * registry rewrites `id` to '<extensionId>:<id>' (see registry-factory.ts),
+ * which would corrupt a capability string if `id` were reused as the
+ * capability itself. `id` identifies this registry entry; `key` identifies
+ * the permission.
+ */
+export interface PlutoCapability extends PlutoEntry {
+  /** Format: '<namespace>:<action>', lowercase, for example 'posts:publish'. */
+  key: string
+  label: string
+  description?: string
+}
+
+/**
+ * Loads the current user's capability list. One backend layer registers
+ * this, the same way one layer registers a PlutoSettingsDriver. `load`
+ * returns a flat list of capability key strings the user holds. The
+ * single entry '*' means "every capability" (used by the built-in admin
+ * role).
+ */
+export interface PlutoPermissionsDriver extends PlutoEntry {
+  load: () => Promise<string[]>
+}
+
 export interface PlutoExtension {
   /** Layer name. Use the package's $meta.name, e.g. 'supabase-blog'. */
   id: string
@@ -69,6 +95,8 @@ export interface PlutoExtension {
   dashboardWidgets?: PlutoDashboardWidget[]
   settingsPanels?: PlutoSettingsPanel[]
   settingsDriver?: PlutoSettingsDriver
+  capabilities?: PlutoCapability[]
+  permissionsDriver?: PlutoPermissionsDriver
 }
 
 /**
@@ -91,4 +119,6 @@ export interface PlutoRegistry {
   settingsPanels: PlutoRegistryBucket<PlutoSettingsPanel>
   settingsDrivers: PlutoRegistryBucket<PlutoSettingsDriver>
   dashboardWidgets: PlutoRegistryBucket<PlutoDashboardWidget>
+  capabilities: PlutoRegistryBucket<PlutoCapability>
+  permissionsDrivers: PlutoRegistryBucket<PlutoPermissionsDriver>
 }
