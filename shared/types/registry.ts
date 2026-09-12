@@ -1,4 +1,6 @@
 import type { Component, ComputedRef } from 'vue'
+import type { PlutoContentType, PlutoFieldType } from './content'
+import type { PlutoMediaAdapter } from './media'
 
 export interface PlutoEntry {
   /** Unique inside this extension. Stored as `<extensionId>:<id>`. */
@@ -85,6 +87,32 @@ export interface PlutoPermissionsDriver extends PlutoEntry {
   load: () => Promise<string[]>
 }
 
+/**
+ * A content type a layer declares, wrapped for the registry. `type.name`
+ * is the content type's real identity — see the doc comment on
+ * `PlutoContentType.name` in `shared/types/content.ts` for why it is kept
+ * separate from this entry's `id`.
+ */
+export interface PlutoContentTypeEntry extends PlutoEntry {
+  type: PlutoContentType
+}
+
+/**
+ * A component that renders one field type, or one named `widget`, in the
+ * generic content form (a later wave). `fieldType` and `widget` are both
+ * optional so an entry can match by either — see
+ * `usePlutoContentFieldWidget` for the resolution order.
+ */
+export interface PlutoContentFieldWidget extends PlutoEntry {
+  fieldType?: PlutoFieldType
+  widget?: string
+  component: Component
+}
+
+export interface PlutoMediaAdapterEntry extends PlutoEntry {
+  adapter: PlutoMediaAdapter
+}
+
 export interface PlutoExtension {
   /** Layer name. Use the package's $meta.name, e.g. 'supabase-blog'. */
   id: string
@@ -97,6 +125,9 @@ export interface PlutoExtension {
   settingsDriver?: PlutoSettingsDriver
   capabilities?: PlutoCapability[]
   permissionsDriver?: PlutoPermissionsDriver
+  contentTypes?: PlutoContentTypeEntry[]
+  contentFieldWidgets?: PlutoContentFieldWidget[]
+  mediaAdapters?: PlutoMediaAdapterEntry[]
 }
 
 /**
@@ -121,4 +152,7 @@ export interface PlutoRegistry {
   dashboardWidgets: PlutoRegistryBucket<PlutoDashboardWidget>
   capabilities: PlutoRegistryBucket<PlutoCapability>
   permissionsDrivers: PlutoRegistryBucket<PlutoPermissionsDriver>
+  contentTypes: PlutoRegistryBucket<PlutoContentTypeEntry>
+  contentFieldWidgets: PlutoRegistryBucket<PlutoContentFieldWidget>
+  mediaAdapters: PlutoRegistryBucket<PlutoMediaAdapterEntry>
 }
