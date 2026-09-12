@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { navbar } = useNavbarAdmin()
+const { component: navbar } = usePlutoNavbarShell()
 </script>
 
 <template>

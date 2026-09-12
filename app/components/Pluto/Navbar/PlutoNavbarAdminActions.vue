@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const { actions } = useNavbarAdminActions()
+const { items } = usePlutoNavbarActions()
 </script>
 
 <template>
-  <component :is="action" v-for="(action, i) in actions" :key="i" />
+  <component :is="item.component" v-for="item in items" :key="item.id" />
 </template>
