@@ -26,4 +26,7 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.id,
     definition.permissionsDriver ? [definition.permissionsDriver] : []
   )
+  registry.contentTypes.set(definition.id, definition.contentTypes ?? [])
+  registry.contentFieldWidgets.set(definition.id, definition.contentFieldWidgets ?? [])
+  registry.mediaAdapters.set(definition.id, definition.mediaAdapters ?? [])
 }

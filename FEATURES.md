@@ -12,3 +12,7 @@ policies shared by every project here.
 - Permissions: a typed capability registry and a `usePlutoPermissions()` composable that let a
   layer declare capabilities and check what the current user holds, backed by a registered
   permissions driver. @.claude/skills/permissions/SKILL.md
+- Content model: a typed content-type contract (`defineContentType`, field types, payload
+  validation, field-to-column mapping) and a media-adapter contract, with registry wiring and
+  consumer composables. Client-side contracts only; no server registry or generated UI yet.
+  @.claude/skills/content-model/SKILL.md
