@@ -115,10 +115,11 @@ it.
 
 ## Known limits, out of scope for this pass
 
-- `usePlutoSettings()` can load and save values for a settings *panel* that is already
-  registered, but it cannot yet persist a brand-new setting *key* — `@plutocms/supabase`'s
-  settings table still stores a fixed 3-value enum, not generic keys. Migrating that table is
-  separate follow-up work in a different repo.
+- `@plutocms/supabase` (0.6.0+) stores settings under free-text, namespaced keys (for example
+  `blog.posts_per_page`), not the fixed 3-value enum it started with — see
+  `db/migrations/003_settings_generic_keys.sql` in that repo. A layer other than core can
+  register its own settings panel and persist a genuinely new key through it, as long as the
+  key is namespaced with the layer's own name so two layers can never collide.
 - `usePlutoAdminPages()` has no legacy bridge and is not wired into any page's UI yet (no
   breadcrumb component). It ships so a later pass can build on it.
 - There is no drag-and-drop, per-user layout persistence, or relative (`before`/`after`)
