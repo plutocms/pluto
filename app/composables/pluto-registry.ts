@@ -24,5 +24,9 @@ export function usePlutoRegistry(): PlutoRegistry {
     }
   }
 
-  return nuxtApp._plutoRegistry
+  // Cast rather than rely on control-flow narrowing of a global-augmented
+  // property: that narrowing is fragile across vue-tsc's separate project
+  // references (app/server/shared), and has been observed to resolve to
+  // `unknown` instead of `PlutoRegistry` in some of them.
+  return nuxtApp._plutoRegistry as PlutoRegistry
 }
