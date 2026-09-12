@@ -1,3 +1,5 @@
+import type { H3Event } from 'h3'
+
 export type PlutoFieldType =
   | 'text'
   | 'textarea'
@@ -181,6 +183,19 @@ export interface PlutoContentType {
   basePath?: string
   navOrder?: number
   i18n?: PlutoContentI18n
+  /**
+   * Server-only lifecycle hooks, run by the generic write handlers
+   * (`server/utils/pluto-content-handlers.ts`) after the adapter call
+   * succeeds and before the response goes out. Lets a layer with extra
+   * logic around a write — for example `supabase-shop` reconciling
+   * `product_media` rows after a product write — hook in without a bespoke
+   * endpoint just for that, and without polluting the generic adapter
+   * contract with a per-layer concern.
+   */
+  hooks?: {
+    afterCreate?: (ctx: PlutoContentContext, item: PlutoContentItem, rawBody: Record<string, unknown>) => Promise<void> | void
+    afterUpdate?: (ctx: PlutoContentContext, item: PlutoContentItem, rawBody: Record<string, unknown>) => Promise<void> | void
+  }
 }
 
 /**
@@ -193,4 +208,46 @@ export interface PlutoContentType {
  */
 export type PlutoContentItem = Record<string, unknown> & {
   id: string | number
+}
+
+/** Options for a generic list read. See `server/utils/pluto-content-handlers.ts`. */
+export interface PlutoContentQuery {
+  limit?: number
+  offset?: number
+  search?: string
+  sort?: {
+    field: string
+    direction: 'asc' | 'desc'
+  }
+  includeUnpublished?: boolean
+}
+
+export interface PlutoContentListResult {
+  data: PlutoContentItem[]
+  total?: number
+}
+
+/** Per-request context an adapter method receives: the H3 event, and the content type being read or written. */
+export interface PlutoContentContext {
+  event: H3Event
+  type: PlutoContentType
+}
+
+/**
+ * Lets a backend layer (`@plutocms/supabase`, and so on) plug its own
+ * storage into the generic content server routes, without core knowing
+ * which backend is in use — the same role `PlutoMediaAdapter` plays for
+ * media. Exactly one adapter is meaningful per app, registered through
+ * `registerContentAdapter` (see `server/utils/pluto-content.ts`).
+ */
+export interface PlutoContentAdapter {
+  id: string
+  list: (ctx: PlutoContentContext, query: PlutoContentQuery) => Promise<PlutoContentListResult>
+  get: (ctx: PlutoContentContext, idOrSlug: string | number) => Promise<PlutoContentItem | null>
+  create: (ctx: PlutoContentContext, values: Record<string, unknown>) => Promise<PlutoContentItem>
+  update: (ctx: PlutoContentContext, id: string | number, values: Record<string, unknown>) => Promise<PlutoContentItem>
+  remove: (ctx: PlutoContentContext, id: string | number) => Promise<void>
+  /** Throws when `event`'s caller does not hold `capability`. Optional — see the fail-open rule in the content-model skill. */
+  authorize?: (event: H3Event, capability: string) => Promise<void>
+  describe?: (ctx: PlutoContentContext) => Promise<string[] | null>
 }
