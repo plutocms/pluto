@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.8.0](https://github.com/plutocms/pluto/compare/v0.7.0...v0.8.0) (2026-09-13)
+
+
+### Features
+
+* **content:** add generated admin UI for content model (wave 3) ([#135](https://github.com/plutocms/pluto/issues/135)) ([b08c5c2](https://github.com/plutocms/pluto/commit/b08c5c28f58380c805d527c1f7a7c9d194fb08f9))
+
 ## [0.7.0](https://github.com/plutocms/pluto/compare/v0.6.0...v0.7.0) (2026-09-12)
 
 
