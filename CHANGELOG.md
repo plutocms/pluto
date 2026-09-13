@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.10.0](https://github.com/plutocms/pluto/compare/v0.9.1...v0.10.0) (2026-09-13)
+
+
+### Features
+
+* **content:** add virtual field flag for column-less content-type fields ([#143](https://github.com/plutocms/pluto/issues/143)) ([cf9091e](https://github.com/plutocms/pluto/commit/cf9091e57d21520d92197ba562eef073ef469ee1))
+
 ## [0.9.1](https://github.com/plutocms/pluto/compare/v0.9.0...v0.9.1) (2026-09-13)
 
 
