@@ -140,6 +140,12 @@ and so on.
 `name` is the field's key on a `PlutoContentItem` and its default storage column. Set `column`
 only when the storage column name differs from `name` — see "Field-to-column mapping" below.
 
+Set `virtual: true` on a field that has no storage column at all. A virtual field still passes
+through validation and the generic form payload, but `mapFieldsToColumns` and
+`mapColumnsToFields` both skip it — its value never reaches a database write. Use it when a
+layer's `hooks.afterCreate`/`afterUpdate` needs extra data from the form that it reconciles into
+a different table itself (see "Hooks" below).
+
 ## Validating a payload
 
 `validateContentPayload(type, payload, options)` checks a field-keyed payload against a content
@@ -319,6 +325,12 @@ reconciling `product_media` rows after a product write — can hook in without a
 just for that, and without polluting the generic `PlutoContentAdapter` contract with a per-layer
 concern. If a hook throws, the error propagates. It is never swallowed, so a failed hook fails
 the whole write.
+
+A field with `virtual: true` is how a hook gets data that has no storage column in the first
+place. `mapFieldsToColumns` drops a virtual field before the adapter ever sees it, but the
+generic form still sends it, so `rawBody` still carries it — `supabase-shop`'s `product_media`
+reconciliation reads its media list this way, straight off `rawBody`, with no matching column on
+`products`.
 
 ## `usePlutoContentList(typeName)` and `usePlutoContentItem(typeName, id)`
 
