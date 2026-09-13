@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.8.1](https://github.com/plutocms/pluto/compare/v0.8.0...v0.8.1) (2026-09-13)
+
+
+### Bug Fixes
+
+* **dashboard:** move PlutoDashboardWidgets out of a mismatched subfolder ([#137](https://github.com/plutocms/pluto/issues/137)) ([bd4d3bf](https://github.com/plutocms/pluto/commit/bd4d3bfece1e9ac6680595ea4c6c471b50370bd2))
+
 ## [0.8.0](https://github.com/plutocms/pluto/compare/v0.7.0...v0.8.0) (2026-09-13)
 
 
