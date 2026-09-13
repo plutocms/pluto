@@ -1,3 +1,5 @@
+import type { PlutoContentType } from '../types/content'
+
 /**
  * Declares a content type. This is an identity function: it returns `type`
  * unchanged. Its only job is type inference at the call site — wrapping a

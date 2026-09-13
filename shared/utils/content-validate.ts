@@ -1,3 +1,5 @@
+import type { PlutoContentType } from '../types/content'
+
 export interface ContentValidationError {
   field: string
   message: string
