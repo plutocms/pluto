@@ -29,6 +29,15 @@ const canDelete = computed(
 
 const basePath = computed(() => contentType.value?.basePath ?? `/admin/content/${props.type}`)
 
+// newPath/editPath exist so an already-deployed layer's URLs never have
+// to change to adopt this component — see the doc comments on
+// PlutoContentType.newPath/editPath for why a single basePath cannot
+// always express both.
+const newPath = computed(() => contentType.value?.newPath ?? `${basePath.value}/new`)
+function editPath(id: string | number) {
+  return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
+}
+
 const { items, pending, refresh, remove } = usePlutoContentList(props.type)
 
 const listFields = computed(() =>
@@ -102,7 +111,7 @@ async function confirmDelete() {
 
         <div v-if="canWrite" class="flex lg:shrink-0">
           <UButton
-            :to="`${basePath}/new`"
+            :to="newPath"
             icon="lucide:plus"
             as="NuxtLink"
             class="flex-1 justify-center lg:flex-none"
@@ -117,7 +126,7 @@ async function confirmDelete() {
           <div class="flex flex-col gap-4">
             <div class="min-w-0">
               <NuxtLink
-                :to="`${basePath}/${item.id}`"
+                :to="editPath(item.id)"
                 class="block truncate text-lg font-semibold hover:underline"
               >
                 {{ item[contentType.titleField] }}
@@ -134,7 +143,7 @@ async function confirmDelete() {
             <div class="flex gap-2 border-t border-default pt-3">
               <UButton
                 v-if="canWrite"
-                :to="`${basePath}/${item.id}`"
+                :to="editPath(item.id)"
                 icon="lucide:pen-line"
                 color="neutral"
                 variant="soft"
@@ -165,7 +174,7 @@ async function confirmDelete() {
               <div class="flex justify-end gap-3">
                 <NuxtLink
                   v-if="canWrite"
-                  :to="`${basePath}/${row.original.id}`"
+                  :to="editPath(row.original.id)"
                   class="text-info px-0 py-0.5 hover:underline"
                 >
                   Edit

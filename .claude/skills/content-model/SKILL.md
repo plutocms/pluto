@@ -460,6 +460,34 @@ list page (`path: basePath, title: labelPlural`) and a "new" page (`path: `${bas
 (`items.value.find(page => page.path === route.path)`) needs no change: these are plain objects
 with a matching `path`, same as every other registered page.
 
+## `newPath`/`editPath` — for a layer whose URLs are not symmetric
+
+`PlutoContentList` and `PlutoContentForm` build every link they need from one `basePath`: the
+"add new" button is `${basePath}/new`, a row's edit link is `${basePath}/${id}`, and a
+post-create redirect goes to that same edit link. This is not only for `autoRoutes`-derived
+nav/pages — it is used unconditionally, including with `autoRoutes: false`.
+
+A layer adopting this system for an *existing* content type does not get to choose new URLs —
+that would be a breaking change for an already-deployed site, the one thing this whole project
+holds itself to never doing. `supabase-blog`'s `posts` is the first case that actually hit this:
+its create URL is `/admin/post/new` (singular) but its edit URL is `/admin/post/edit/:id`
+(singular, with an extra literal `edit` segment) — no single `basePath` string produces both.
+
+`newPath?: string` and `editPath?: (id: string | number) => string` exist for exactly this.
+Leave both unset and the defaults above apply unchanged. Set `newPath` to the literal create URL,
+and `editPath` to a function returning the literal edit URL for a given id, when a layer's real
+URLs do not fit the `basePath` pattern:
+
+```ts
+basePath: '/admin/posts',
+newPath: '/admin/post/new',
+editPath: (id) => `/admin/post/edit/${id}`,
+```
+
+`basePath` itself still matters even when both overrides are set — it is still what
+`autoRoutes !== false` derives nav/pages from, and still the fallback either override defers to
+when unset.
+
 ## Known limits, out of scope for this pass
 
 - No real (non-memory) `PlutoContentAdapter` implementation. `@plutocms/supabase`'s job, a
