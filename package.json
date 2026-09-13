@@ -44,6 +44,7 @@
   "dependencies": {
     "@iconify-json/lucide": "^1.2.116",
     "@iconify-json/simple-icons": "^1.2.89",
+    "@internationalized/date": "^3.12.2",
     "@nuxt/eslint": "^1.16.0",
     "@nuxt/ui": "^4.9.0",
     "@plutocms/utils": "^0.2.1",
