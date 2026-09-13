@@ -5,12 +5,15 @@ publish workflow — as one typed contract. A later wave reads that contract to 
 adapter and an admin UI.
 
 **Wave 1** shipped the contract itself: types, validation, mapping helpers, registry wiring, and
-the three consumer composables. **Wave 2** (this wave) adds core's server side: the server-side
-content registry, the generic list/get/create/update/delete routes, and the `PlutoContentAdapter`
-contract a backend layer implements against. **Still missing after this wave:** a real adapter
-implementation (that is `@plutocms/supabase`'s job, in a later wave, against a different repo),
-and any generated admin UI. See "Known limits" at the end of this file for the exact remaining
-list.
+the three consumer composables. **Wave 2** added core's server side: the server-side content
+registry, the generic list/get/create/update/delete routes, and the `PlutoContentAdapter`
+contract a backend layer implements against. **Wave 3** (this wave) adds the generic admin UI:
+the two data-fetching composables, `PlutoContentField` and its eight built-in widgets,
+`PlutoContentList` and `PlutoContentForm`, the three generated `/admin/content/**` pages, and
+nav/pages derivation for auto-routed content types. **Still missing after this wave:** a real
+adapter implementation, and per-layer adoption (a layer switching its own hand-written admin
+pages over to the generic ones) — both `@plutocms/supabase`'s job, in later waves, against
+different repos. See "Known limits" at the end of this file for the exact remaining list.
 
 It extends the [extension registry](../extension-registry/SKILL.md) and builds on the same
 pattern as [permissions](../permissions/SKILL.md). Read both first. This feature adds:
@@ -43,6 +46,23 @@ pattern as [permissions](../permissions/SKILL.md). Read both first. This feature
 - `test/fixtures/memory-content-adapter.ts` — an in-memory `PlutoContentAdapter`, test-only.
 - `test/content-server-registry.test.ts`, `test/content-handlers.test.ts` — unit tests for
   everything above.
+
+**Wave 3:**
+
+- `app/composables/pluto-content-list.ts` — `usePlutoContentList(typeName)`.
+- `app/composables/pluto-content-item.ts` — `usePlutoContentItem(typeName, id)`.
+- `app/components/Pluto/Content/PlutoContentField.vue` — resolves and renders one field's widget.
+- `app/components/Pluto/Content/fields/PlutoField{Text,Slug,Number,Boolean,Date,Select,Reference}.vue`
+  — the eight built-in widgets (`PlutoFieldText` covers both `text` and `textarea`).
+- `app/components/Pluto/Content/PlutoContentList.vue`, `PlutoContentForm.vue` — the generic
+  list and form components.
+- `app/pages/admin/content/[type]/index.vue`, `new.vue`, `[id].vue` — the three generated pages.
+- `app/plugins/pluto-core-registrations.ts` (extended) — registers the eight built-in widgets,
+  alongside core's existing Home/Settings nav anchors.
+- `app/composables/pluto-admin-nav.ts`, `pluto-admin-pages.ts` (extended) — a third nav source,
+  and two page-metadata entries, synthesized per auto-routed content type.
+- `test/pluto-content-list.test.ts`, `test/pluto-content-item.test.ts`,
+  `test/pluto-admin-nav-content.test.ts` — unit tests for everything above.
 
 ## Declaring a content type
 
@@ -300,18 +320,163 @@ just for that, and without polluting the generic `PlutoContentAdapter` contract 
 concern. If a hook throws, the error propagates. It is never swallowed, so a failed hook fails
 the whole write.
 
+## `usePlutoContentList(typeName)` and `usePlutoContentItem(typeName, id)`
+
+Two composables, not one — a deliberate refinement of an earlier design note that described a
+single `usePlutoContent`. Splitting list-mode and single-item-mode avoids the exact flaw this
+file already warns about for the old `usePost`/`useProduct` pattern (see `supabase-blog`'s
+`app/composables/post.ts`, kept only as a cautionary reference, never a pattern to copy):
+
+- **The always-both-fetches flaw.** The old pattern ran a list fetch AND a single-item fetch
+  from one composable on every call, and threw away whichever one the caller did not need — a
+  list page paid for an item fetch it never used, and an edit page paid for a list fetch it
+  never used. `usePlutoContentList` only ever fetches a list. `usePlutoContentItem` only ever
+  fetches a single item, and only when `id` is defined — "new entry" mode (`id` is `undefined`)
+  never fires a GET at all; `item` starts as an empty object instead.
+- **The fake-thenable flaw.** The old pattern returned an object with its own hand-rolled
+  `.then()`, so `await usePost()` silently worked but hid which underlying fetch it actually
+  waited on. Neither composable here does this. Each returns plain refs and explicit async
+  methods — a caller `await`s `refresh()`, `save()`, or `remove()` directly.
+
+```ts
+const { items, total, pending, error, refresh, remove } = usePlutoContentList('post')
+await remove(id) // DELETEs, then refreshes
+
+const { item, pending, error, refresh, save, remove } = usePlutoContentItem('post', () => route.params.id)
+await save(payload) // POSTs when id is undefined, PATCHes when id is defined
+```
+
+`id` is read once, with `toValue`, at composable-creation time — not watched for later changes.
+Each generated page mounts fresh on every route change, so there is no case in this wave where
+`id` changes under a still-mounted `PlutoContentForm`.
+
+## `PlutoContentField` and the eight built-in widgets
+
+`PlutoContentField.vue` resolves a field's widget through `usePlutoContentFieldWidget(field)`
+(wave 1) and renders it, passing `field`/`modelValue`/`disabled` through and re-emitting
+`update:modelValue` unchanged. It never needs to know which concrete widget it dispatched to —
+every widget shares that same three-prop contract.
+
+When no widget resolves, `PlutoContentField` renders a `UFormField` showing the field's `label`
+and the message `No widget registered for field type "<type>".`, instead of silently rendering
+nothing. A missing widget should fail visibly and legibly, not disappear.
+
+Core ships eight widgets, under `app/components/Pluto/Content/fields/`:
+
+| `PlutoField.type` | Widget | Notes |
+|---|---|---|
+| `text`, `textarea` | `PlutoFieldText` | `UInput` for `text`, `UTextarea` for `textarea` |
+| `slug` | `PlutoFieldSlug` | A plain `UInput` plus a `field.preview + modelValue` preview line. Does **not** own auto-derivation from another field — see below. |
+| `number` | `PlutoFieldNumber` | `UInputNumber` |
+| `boolean` | `PlutoFieldBoolean` | `USwitch` |
+| `date` | `PlutoFieldDate` | `UInputDate`, converting to/from `@internationalized/date`'s `CalendarDate` at its own boundary — a content item stores a plain ISO date string |
+| `select` | `PlutoFieldSelect` | `USelect`, mapping `field.options` to `{ label, value }` |
+| `reference` | `PlutoFieldReference` | `UInputMenu`, populated from `field.optionsUrl` when set |
+
+**`richtext` and `media` have no core widget, on purpose.** Core has no real rich-text editor and
+no real file picker to offer for either — a layer registers those (`supabase-blog` registers
+`richtext`, `supabase-storage` registers `media`), through its own `contentFieldWidgets` entries,
+the same registration mechanism core's own eight widgets use.
+
+`PlutoFieldReference` only resolves `field.optionsUrl` in this wave. When it's set, the widget
+fetches it expecting `{ data: Array<Record<string, unknown>> }`, maps each row through
+`field.labelKey`/`field.valueKey` (default `'label'`/`'id'`), and renders a searchable
+`UInputMenu`. When it's unset (for example `field.target` names a content type instead), it
+renders a disabled `UInputMenu` with a placeholder noting no options source is configured,
+rather than throwing — resolving `field.target` against another content type's own list endpoint
+is later work.
+
+## `PlutoContentList` and `PlutoContentForm`
+
+`PlutoContentList` renders a content type's items: a desktop `UTable` and a mobile `UCard` grid
+(the same breakpoint pattern `supabase-blog/app/pages/admin/posts.vue` already used), an "Add
+`<labelPlural>`" button, and a delete-confirm modal built from core's own `Modal`/`ModalHeader`/
+`ModalContent`/`ModalFooter` — never `UModal` directly, matching this repo's established pattern.
+
+`PlutoContentForm` renders a two-column form (fields with `region !== 'side'` in the wide column,
+`region: 'side'` in the sidebar, both sorted by `order`), a Save button, and client-side
+validation through `validateContentPayload` before it ever calls `save()` — the server validates
+again regardless (wave 2), so this is a UX nicety, not the enforcement point. On a successful
+create, it navigates to the new item's edit URL; on a successful update, it shows a success toast
+and stays put.
+
+Both components gate write/delete visibility with the same rule:
+
+```ts
+const canWrite = computed(() => !type.capabilities?.write || can(type.capabilities.write))
+```
+
+**Never call `can('')` as a stand-in for "no capability declared."** When a content type
+declares no capability for an operation, that operation is open to anyone who can reach the
+page — the UI must reflect that directly, the same rule wave 2 already enforces server-side (see
+"Capability enforcement: write and delete" above).
+
+### The slug bug this wave deliberately does not repeat
+
+`supabase-blog/app/components/PostForm.vue` re-derives its slug from the title on every
+keystroke, unconditionally — including while editing an already-published, already-shared post,
+silently changing a live URL out from under it. `PlutoContentForm`'s slug auto-derivation stops
+the moment either:
+
+1. The form is in edit mode (an `id` prop is present) — an existing entry's slug is presumed
+   already meaningful, and never auto-changes without the user directly touching the slug field.
+2. The user has typed into the slug field directly, even while creating a new entry — tracked by
+   a local `slugTouched` flag, flipped the moment the slug field's own `update:modelValue` fires.
+
+If you are comparing this against `PostForm.vue` later: this is the fix, not a regression from
+copying its watcher too literally.
+
+## Nav and pages derivation for auto-routed content types
+
+`usePlutoAdminNav()` synthesizes one `PlutoNavItem` per content type where
+`type.autoRoutes !== false`, alongside its two existing sources (the registry's own `nav`
+bucket, and the legacy `@plutocms/utils` sidebar bridge):
+
+```ts
+{
+  id: `content:${type.name}`,
+  order: type.navOrder ?? 100,
+  label: type.labelPlural,
+  icon: type.icon,
+  to: type.basePath ?? `/admin/content/${type.name}`,
+  enabled: () => !type.capabilities?.read || can(type.capabilities.read),
+  children: [/* "All <labelPlural>" and "Create new <label>" */],
+}
+```
+
+**No capability declared means always visible** — stated here as plainly as the equivalent
+server-side rule already is above: when `type.capabilities.read` is unset, the nav entry shows
+unconditionally; when it is set, `can(...)` decides. This is the same rule `PlutoContentList`'s
+and `PlutoContentForm`'s own `canWrite`/`canDelete` follow, applied to nav visibility instead.
+
+This wave also fixed a latent gap while adding this: `PlutoEntry.enabled` was already read and
+enforced for the registry's own `nav` bucket (inside `createOwnedRegistry`), but the merged nav
+computed never applied it to the legacy-bridge source. It now applies the same `enabled?.() ??
+true` filter uniformly across all three sources.
+
+`usePlutoAdminPages()` synthesizes two `PlutoAdminPage` entries per auto-routed content type — a
+list page (`path: basePath, title: labelPlural`) and a "new" page (`path: `${basePath}/new``,
+`parent: content:<name>`, matching the nav entry's id). The existing `current` lookup
+(`items.value.find(page => page.path === route.path)`) needs no change: these are plain objects
+with a matching `path`, same as every other registered page.
+
 ## Known limits, out of scope for this pass
 
 - No real (non-memory) `PlutoContentAdapter` implementation. `@plutocms/supabase`'s job, a
   separate repo, a later wave. `test/fixtures/memory-content-adapter.ts` exists only for this
   repo's own tests — it is never registered in the real app.
-- No generated admin UI — no `PlutoContentList`, `PlutoContentForm`, or field widget components,
-  and no Nitro plugin wiring a real adapter into a running app. `autoRoutes` and `basePath` on
-  `PlutoContentType` are declared for that later wave to read; nothing reads them yet.
+- No per-layer adoption. `supabase-blog` and `supabase-shop` still run their own hand-written
+  admin pages (`PostForm.vue` and so on) — switching them over to `PlutoContentList`/
+  `PlutoContentForm` is a later wave's job, once a real adapter exists for them to declare
+  content types against.
+- `PlutoFieldReference` does not resolve `field.target` (a same-app content-type reference with
+  no `optionsUrl`) — it needs the generic list endpoint of *another* content type, which is later
+  work. It renders the documented disabled placeholder instead.
 - No query-string support for `filter` or a custom `sort` override on the generic list route.
   `PlutoContentQuery` has room for both; this wave only wires `limit`, `offset`, and `search`
   from the query string, with sort always coming from `type.defaultSort`.
 - No i18n. `PlutoContentI18n` exists on `PlutoContentType.i18n` as a reserved, unused field.
   Nothing reads or acts on it. Only `strategy: 'row'` will ever be valid, so declaring the shape
   now avoids a breaking rename later.
-- No built-in media adapter and no media picker UI. `PlutoMediaAdapter` is a contract only.
+- No built-in media adapter and no media picker UI. `PlutoMediaAdapter` is a contract only, and
+  the `media` field type still has no core widget (see above).
