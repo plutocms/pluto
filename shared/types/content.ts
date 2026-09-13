@@ -177,10 +177,34 @@ export interface PlutoContentType {
     field: string
     direction: 'asc' | 'desc'
   }
-  /** Whether a later wave should generate list/edit/create admin routes for this content type. */
+  /** Whether nav/pages entries should be derived automatically for this content type. `false` when a layer keeps its own hand-declared `nav`/`pages` at its own URLs. */
   autoRoutes?: boolean
-  /** Base admin path for generated routes, for example '/admin/posts'. Only meaningful when `autoRoutes` is true. */
+  /**
+   * Base admin path `PlutoContentList`/`PlutoContentForm` build their own
+   * links from, for example '/admin/posts'. Used regardless of
+   * `autoRoutes` — it is not only for auto-derived nav/pages, it is also
+   * what the generic components' own "add new" button, row edit links,
+   * and post-create redirect are built from. Defaults to
+   * `/admin/content/<name>` when unset.
+   */
   basePath?: string
+  /**
+   * Overrides the "create new" link the generic list page links to.
+   * Defaults to `${basePath}/new`. Set this when an existing layer's
+   * create URL does not follow that convention (for example
+   * `/admin/post/new`, singular, alongside a plural `basePath`) — this
+   * field exists specifically so an already-deployed URL never has to
+   * change to adopt the content model.
+   */
+  newPath?: string
+  /**
+   * Overrides the edit link (and the post-create redirect target) for a
+   * given id. Defaults to `${basePath}/${id}`. Set this when an existing
+   * layer's edit URL does not follow that convention (for example
+   * `/admin/post/edit/:id`, with an extra literal segment `basePath`
+   * alone cannot express) — the same reasoning as `newPath`.
+   */
+  editPath?: (id: string | number) => string
   navOrder?: number
   i18n?: PlutoContentI18n
   /**

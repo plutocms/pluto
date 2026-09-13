@@ -27,6 +27,14 @@ const canWrite = computed(
 const editing = computed(() => props.id !== undefined)
 const basePath = computed(() => contentType.value?.basePath ?? `/admin/content/${props.type}`)
 
+// editPath exists so an already-deployed layer's edit URL never has to
+// change to adopt this component — see the doc comment on
+// PlutoContentType.editPath for why a single basePath cannot always
+// express it.
+function editPath(id: string | number) {
+  return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
+}
+
 const { item, save } = usePlutoContentItem(props.type, () => props.id)
 
 function sortedFields(region: 'main' | 'side') {
@@ -131,7 +139,7 @@ async function onSave() {
     const saved = await save(payload)
 
     if (!editing.value) {
-      await navigateTo(`${basePath.value}/${saved.id}`)
+      await navigateTo(editPath(saved.id))
       return
     }
 
