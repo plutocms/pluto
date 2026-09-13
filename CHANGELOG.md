@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.9.0](https://github.com/plutocms/pluto/compare/v0.8.1...v0.9.0) (2026-09-13)
+
+
+### Features
+
+* **content:** add newPath/editPath overrides to PlutoContentType ([#139](https://github.com/plutocms/pluto/issues/139)) ([8a69550](https://github.com/plutocms/pluto/commit/8a69550bb1825a6edd143d9e47720815ce2d9b3e))
+
 ## [0.8.1](https://github.com/plutocms/pluto/compare/v0.8.0...v0.8.1) (2026-09-13)
 
 
