@@ -25,7 +25,7 @@ It adds:
 - `app/composables/pluto-settings.ts` — `usePlutoSettingsPanels()` and `usePlutoSettings()`.
 - `app/plugins/pluto-core-registrations.ts` — core's own Home and Settings nav entries and
   page metadata.
-- `app/components/Pluto/Admin/PlutoDashboardWidgets.vue` — renders every registered dashboard
+- `app/components/Pluto/PlutoDashboardWidgets.vue` — renders every registered dashboard
   widget on `/admin/home`.
 - `app/pages/admin/settings.vue` — renders every registered settings panel, backed by whichever
   settings driver is registered.
