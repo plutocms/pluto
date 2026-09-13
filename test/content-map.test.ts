@@ -53,3 +53,32 @@ describe('mapFieldsToColumns / mapColumnsToFields', () => {
     expect(columns).not.toHaveProperty('body_html')
   })
 })
+
+describe('virtual fields', () => {
+  const typeWithVirtual: PlutoContentType = {
+    ...type,
+    fields: [
+      ...type.fields,
+      { name: 'media', type: 'text', label: 'Media', virtual: true },
+    ],
+  }
+
+  it('mapFieldsToColumns never includes a virtual field, even when the payload has a value for it', () => {
+    const columns = mapFieldsToColumns(typeWithVirtual, {
+      title: 'Hello',
+      body: '<p>Hi</p>',
+      media: ['a.png'],
+    })
+
+    expect(columns).toEqual({ title: 'Hello', body_html: '<p>Hi</p>' })
+    expect(columns).not.toHaveProperty('media')
+  })
+
+  it('mapColumnsToFields never includes a virtual field, even when the row has a matching column', () => {
+    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', media: ['a.png'] }
+    const item = mapColumnsToFields(typeWithVirtual, row)
+
+    expect(item).toEqual({ id: 42, title: 'Hello', body: '<p>Hi</p>' })
+    expect(item).not.toHaveProperty('media')
+  })
+})

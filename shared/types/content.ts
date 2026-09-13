@@ -25,6 +25,8 @@ export interface PlutoFieldBase {
   description?: string
   /** Storage column, when it differs from `name`. Falls back to `name` when unset. */
   column?: string
+  /** This field has no storage column. Its value never reaches `mapFieldsToColumns`'s output, but still passes through validation and the generic form payload — letting a `hooks.afterCreate`/`afterUpdate` read it from `rawBody` without a matching database column. */
+  virtual?: boolean
   required?: boolean
   /** Show this field as a column in the generic list view. Default false. */
   inList?: boolean

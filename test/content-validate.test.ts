@@ -102,4 +102,18 @@ describe('validateContentPayload', () => {
 
     expect(errors).toContainEqual(expect.objectContaining({ field: 'title' }))
   })
+
+  it('still validates a required virtual field, even though it has no storage column', () => {
+    const typeWithVirtual: PlutoContentType = {
+      ...type,
+      fields: [
+        ...type.fields,
+        { name: 'media', type: 'text', label: 'Media', required: true, virtual: true },
+      ],
+    }
+
+    const errors = validateContentPayload(typeWithVirtual, validPayload)
+
+    expect(errors).toContainEqual(expect.objectContaining({ field: 'media' }))
+  })
 })
