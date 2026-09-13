@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.9.1](https://github.com/plutocms/pluto/compare/v0.9.0...v0.9.1) (2026-09-13)
+
+
+### Bug Fixes
+
+* **content:** import content types explicitly instead of relying on auto-import ([#141](https://github.com/plutocms/pluto/issues/141)) ([57bd5ab](https://github.com/plutocms/pluto/commit/57bd5ab7d8c9c4748fe679196a0ed08222040082))
+
 ## [0.9.0](https://github.com/plutocms/pluto/compare/v0.8.1...v0.9.0) (2026-09-13)
 
 
