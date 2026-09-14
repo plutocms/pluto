@@ -113,6 +113,34 @@ export interface PlutoMediaAdapterEntry extends PlutoEntry {
   adapter: PlutoMediaAdapter
 }
 
+/** State passed to a `PlutoContentAction`'s `show` test and `onSelect` handler. */
+export interface PlutoContentActionContext {
+  type: PlutoContentType
+  item: Record<string, unknown>
+  editing: boolean
+  saving: boolean
+  save: () => Promise<void>
+  remove: () => Promise<void>
+}
+
+/**
+ * A button a layer adds to the generic content form (a later wave). Matched
+ * against a content type the same way `PlutoContentFieldWidget` matches a
+ * field: by exact name, or by `'*'` for every content type.
+ */
+export interface PlutoContentAction extends PlutoEntry {
+  /** Content type `name`, or '*' for every content type. */
+  contentType: string | '*'
+  label: string
+  icon?: string
+  color?: string
+  variant?: string
+  /** Where the action renders. Default 'toolbar'. */
+  placement?: 'toolbar' | 'aside'
+  show?: (ctx: PlutoContentActionContext) => boolean
+  onSelect: (ctx: PlutoContentActionContext) => void | Promise<void>
+}
+
 export interface PlutoExtension {
   /** Layer name. Use the package's $meta.name, e.g. 'supabase-blog'. */
   id: string
@@ -127,6 +155,7 @@ export interface PlutoExtension {
   permissionsDriver?: PlutoPermissionsDriver
   contentTypes?: PlutoContentTypeEntry[]
   contentFieldWidgets?: PlutoContentFieldWidget[]
+  contentActions?: PlutoContentAction[]
   mediaAdapters?: PlutoMediaAdapterEntry[]
 }
 
@@ -154,5 +183,6 @@ export interface PlutoRegistry {
   permissionsDrivers: PlutoRegistryBucket<PlutoPermissionsDriver>
   contentTypes: PlutoRegistryBucket<PlutoContentTypeEntry>
   contentFieldWidgets: PlutoRegistryBucket<PlutoContentFieldWidget>
+  contentActions: PlutoRegistryBucket<PlutoContentAction>
   mediaAdapters: PlutoRegistryBucket<PlutoMediaAdapterEntry>
 }

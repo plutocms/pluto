@@ -500,6 +500,24 @@ editPath: (id) => `/admin/post/edit/${id}`,
 `autoRoutes !== false` derives nav/pages from, and still the fallback either override defers to
 when unset.
 
+## `form`, `capabilities.publish`, and the publish workflow
+
+A later wave (see the [admin view chrome](../admin-view-chrome/SKILL.md) skill) added two more
+optional fields to `PlutoContentType`, and one more field to `PlutoContentTypeCapabilities`:
+
+- `form?: { layout?, aside?, asideCollapsed?, width? }` — layout knobs for the generic form
+  (`PlutoContentForm`), for example a minimal-chrome `layout: 'focus'` for a writing surface.
+- `capabilities.publish?: string` — the capability required to publish. Falls back to
+  `capabilities.write` when unset, the same "no capability declared means open" rule every other
+  capability check here already follows.
+
+A content type that declares `status` (see "Declaring a content type" above) gets a
+draft/published workflow in the generic form for free: Save/Publish/Update buttons, an Unpublish
+action, and a status badge. `mapColumnsToFields` reads the status column back into `item.status`
+symmetrically with the write side, so the form always knows the current status. Full detail —
+the button logic, the payload shape, the `contentActions` registry bucket a layer uses to add its
+own form buttons — lives in the admin-view-chrome skill, not duplicated here.
+
 ## Known limits, out of scope for this pass
 
 - No real (non-memory) `PlutoContentAdapter` implementation. `@plutocms/supabase`'s job, a

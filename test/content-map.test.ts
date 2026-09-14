@@ -82,3 +82,62 @@ describe('virtual fields', () => {
     expect(item).not.toHaveProperty('media')
   })
 })
+
+describe('mapColumnsToFields status symmetry', () => {
+  const typeWithStatus: PlutoContentType = {
+    ...type,
+    status: {
+      values: [
+        { label: 'Draft', value: 'draft' },
+        { label: 'Published', value: 'published' },
+      ],
+      publishedValue: 'published',
+    },
+  }
+
+  it('maps the status column to item.status when type.status is set', () => {
+    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', status: 'published' }
+    const item = mapColumnsToFields(typeWithStatus, row)
+
+    expect(item.status).toBe('published')
+  })
+
+  it('uses a custom status column name when type.status.column is set', () => {
+    const typeWithCustomColumn: PlutoContentType = {
+      ...type,
+      status: {
+        column: 'workflow_state',
+        values: [
+          { label: 'Draft', value: 'draft' },
+          { label: 'Published', value: 'published' },
+        ],
+        publishedValue: 'published',
+      },
+    }
+    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', workflow_state: 'draft' }
+    const item = mapColumnsToFields(typeWithCustomColumn, row)
+
+    expect(item.status).toBe('draft')
+  })
+
+  it('leaves status out of the mapped result when type.status is unset', () => {
+    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', status: 'published' }
+    const item = mapColumnsToFields(type, row)
+
+    expect(item).not.toHaveProperty('status')
+  })
+
+  it('does not overwrite a declared field named status with the workflow fallback', () => {
+    const typeWithStatusField: PlutoContentType = {
+      ...typeWithStatus,
+      fields: [
+        ...type.fields,
+        { name: 'status', type: 'text', label: 'Status', column: 'custom_status' },
+      ],
+    }
+    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', custom_status: 'from-field', status: 'from-workflow' }
+    const item = mapColumnsToFields(typeWithStatusField, row)
+
+    expect(item.status).toBe('from-field')
+  })
+})

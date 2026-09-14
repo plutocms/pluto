@@ -28,76 +28,49 @@ function toMenuItem(item: PlutoNavItem): SidebarMenuItem {
 const { items: navItems } = usePlutoAdminNav()
 const menu = computed<SidebarMenuItem[]>(() => navItems.value.map(toMenuItem))
 
-const route = useRoute()
+// This key is a cross-repo contract: `supabase`'s own mobile navbar
+// (`app/components/navbar/NavbarAdmin.vue`) writes to this exact state key
+// to open the sidebar from its own hamburger button. Keep the name as-is.
 const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
-
-function closeSidebar() {
-  isSidebarOpen.value = false
-}
-
-watch(
-  () => route.fullPath,
-  closeSidebar
-)
 </script>
 
 <template>
-  <div
-    class="dark:bg-admin-content light:bg-white font-outfit flex h-full min-h-0 grow flex-col overflow-hidden"
+  <UDashboardGroup
+    :class="(base: string) => base.replace('inset-0', 'inset-x-0 bottom-0 top-(--ui-header-height)')"
+    storage="cookie"
+    storage-key="pluto-admin"
+    unit="rem"
   >
-    <div class="relative flex min-h-0 flex-1 items-stretch">
-      <Transition name="sidebar-fade">
-        <button
-          v-if="isSidebarOpen"
-          type="button"
-          aria-label="Close navigation"
-          class="fixed inset-x-0 top-14 bottom-0 z-40 bg-black/50 backdrop-blur-xs lg:hidden"
-          @click="closeSidebar"
-        />
-      </Transition>
+    <UDashboardSidebar
+      id="admin"
+      v-model:open="isSidebarOpen"
+      :default-size="16"
+      :min-size="12"
+      :max-size="24"
+      :ui="{
+        root: 'min-h-0 dark:bg-admin-sidebar light:bg-zinc-100',
+        content: 'lg:hidden w-[min(18rem,85vw)]',
+      }"
+      resizable
+    >
+      <UNavigationMenu
+        :items="menu"
+        :ui="{ link: 'text-base gap-x-3 font-normal' }"
+        orientation="vertical"
+        class="data-[orientation=vertical]:w-full"
+        highlight
+      />
+    </UDashboardSidebar>
 
-      <aside
-        :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="dark:bg-admin-sidebar light:bg-zinc-100 border-default fixed inset-y-14 left-0 z-50 flex w-[min(18rem,85vw)] shrink-0 flex-col border-r px-3 py-4 shadow-2xl transition-transform duration-200 lg:static lg:inset-auto lg:z-auto lg:w-64 lg:translate-x-0 lg:shadow-none"
-      >
-        <div class="mb-3 flex items-center justify-between px-2 lg:hidden">
-          <span class="text-muted text-sm font-semibold">Navigation</span>
-          <UButton
-            icon="lucide:x"
-            color="neutral"
-            variant="ghost"
-            aria-label="Close navigation"
-            square
-            @click="closeSidebar"
-          />
-        </div>
-
-        <UNavigationMenu
-          :items="menu"
-          :ui="{
-            link: 'text-base gap-x-3 font-normal',
-          }"
-          orientation="vertical"
-          class="data-[orientation=vertical]:w-full"
-          highlight
-        />
-      </aside>
-
-      <div class="min-w-0 grow overflow-x-hidden overflow-y-auto">
+    <UDashboardPanel
+      :ui="{
+        root: 'min-h-0 dark:bg-admin-content light:bg-white font-outfit',
+        body: 'p-0 gap-0 overflow-x-hidden',
+      }"
+    >
+      <template #body>
         <slot />
-      </div>
-    </div>
-  </div>
+      </template>
+    </UDashboardPanel>
+  </UDashboardGroup>
 </template>
-
-<style scoped>
-.sidebar-fade-enter-active,
-.sidebar-fade-leave-active {
-  transition: opacity 200ms ease;
-}
-
-.sidebar-fade-enter-from,
-.sidebar-fade-leave-to {
-  opacity: 0;
-}
-</style>
