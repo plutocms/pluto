@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ButtonProps, DropdownMenuItem } from '@nuxt/ui'
+
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
   type: string
@@ -23,6 +25,13 @@ const { can } = usePlutoPermissions()
 const canWrite = computed(
   () => !contentType.value?.capabilities?.write || can(contentType.value.capabilities.write)
 )
+const canPublish = computed(() => {
+  const cap = contentType.value?.capabilities?.publish ?? contentType.value?.capabilities?.write
+  return !cap || can(cap)
+})
+const canDelete = computed(
+  () => !contentType.value?.capabilities?.delete || can(contentType.value.capabilities.delete)
+)
 
 const editing = computed(() => props.id !== undefined)
 const basePath = computed(() => contentType.value?.basePath ?? `/admin/content/${props.type}`)
@@ -35,7 +44,7 @@ function editPath(id: string | number) {
   return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
 }
 
-const { item, save } = usePlutoContentItem(props.type, () => props.id)
+const { item, save, remove } = usePlutoContentItem(props.type, () => props.id)
 
 function sortedFields(region: 'main' | 'side') {
   return computed(() =>
@@ -96,13 +105,32 @@ function updateField(field: PlutoField, value: unknown) {
   item.value[field.name] = value
 }
 
+// --- Status / publish workflow ----------------------------------------------
+
+const statusConfig = computed(() => contentType.value?.status || null)
+const publishedValue = computed(() => statusConfig.value?.publishedValue ?? 'published')
+const draftValue = computed(
+  () =>
+    statusConfig.value?.default ??
+    statusConfig.value?.values.find((value) => value.value !== publishedValue.value)?.value
+)
+const currentStatus = computed(
+  () => (item.value.status as string | undefined) ?? statusConfig.value?.default
+)
+const isPublished = computed(
+  () => statusConfig.value !== null && currentStatus.value === publishedValue.value
+)
+const statusLabel = computed(
+  () => statusConfig.value?.values.find((value) => value.value === currentStatus.value)?.label ?? currentStatus.value
+)
+
 // --- Save -------------------------------------------------------------------
 
 const toast = useToast()
 const saving = ref(false)
 const validationErrors = ref<ContentValidationError[]>([])
 
-function buildPayload(): Record<string, unknown> {
+function buildPayload(statusOverride?: string): Record<string, unknown> {
   const type = contentType.value
   if (!type) {
     return {}
@@ -115,16 +143,20 @@ function buildPayload(): Record<string, unknown> {
     }
   }
 
+  if (statusOverride !== undefined) {
+    payload.status = statusOverride
+  }
+
   return payload
 }
 
-async function onSave() {
+async function onSave(statusOverride?: string) {
   const type = contentType.value
   if (!type) {
     return
   }
 
-  const payload = buildPayload()
+  const payload = buildPayload(statusOverride)
   const errors = validateContentPayload(type, payload, { partial: editing.value })
 
   if (errors.length > 0) {
@@ -143,8 +175,15 @@ async function onSave() {
       return
     }
 
+    const title =
+      statusOverride === publishedValue.value
+        ? 'Published'
+        : statusOverride === draftValue.value
+          ? 'Unpublished'
+          : 'Saved'
+
     toast.add({
-      title: 'Saved',
+      title,
       description: `${type.label} updated successfully.`,
       color: 'success',
     })
@@ -161,52 +200,203 @@ async function onSave() {
     saving.value = false
   }
 }
+
+// --- Delete -------------------------------------------------------------------
+
+const isDeleteModalOpen = ref(false)
+const deleting = ref(false)
+
+function openDeleteModal() {
+  isDeleteModalOpen.value = true
+}
+
+function closeDeleteModal() {
+  isDeleteModalOpen.value = false
+}
+
+async function confirmDelete() {
+  deleting.value = true
+
+  try {
+    await remove()
+    closeDeleteModal()
+    await navigateTo(basePath.value)
+  } catch {
+    toast.add({
+      title: 'Error',
+      description: 'An error occurred while removing.',
+      color: 'error',
+    })
+  } finally {
+    deleting.value = false
+  }
+}
+
+// --- Layout / aside -----------------------------------------------------------
+
+const layout = computed(() => contentType.value?.form?.layout ?? 'default')
+const showAside = computed(() => {
+  const configured = contentType.value?.form?.aside
+  if (configured === true || configured === false) {
+    return configured
+  }
+  return sideFields.value.length > 0
+})
+const asideCollapsedByDefault = computed(
+  () => contentType.value?.form?.asideCollapsed ?? layout.value === 'focus'
+)
+// Remember the open/closed state per content type across visits.
+const asideOpen = useCookie<boolean>(`pluto-content-aside-${props.type}`, {
+  default: () => !asideCollapsedByDefault.value,
+})
+
+function toggleAside() {
+  asideOpen.value = !asideOpen.value
+}
+
+// --- Registry content actions --------------------------------------------------
+
+const toolbarActions = usePlutoContentActions(props.type, 'toolbar')
+
+// Only rendered from the template inside the `v-if="contentType"` branch, so
+// `contentType.value` is always set by the time this is read.
+function buildActionContext(): PlutoContentActionContext {
+  return {
+    type: contentType.value as PlutoContentType,
+    item: item.value,
+    editing: editing.value,
+    saving: saving.value,
+    save: () => onSave(),
+    remove: () => confirmDelete(),
+  }
+}
+
+const unpublishDeleteItems = computed<DropdownMenuItem[][]>(() => [
+  [
+    ...(statusConfig.value && isPublished.value && canPublish.value
+      ? [
+          {
+            label: 'Unpublish',
+            icon: 'lucide:eye-off',
+            onSelect: () => onSave(draftValue.value),
+          },
+        ]
+      : []),
+    ...(editing.value && canDelete.value
+      ? [
+          {
+            label: 'Delete',
+            icon: 'lucide:trash',
+            color: 'error' as const,
+            onSelect: () => openDeleteModal(),
+          },
+        ]
+      : []),
+  ],
+])
 </script>
 
 <template>
-  <div v-if="contentType">
-    <AdminView>
-      <UAlert
-        v-if="validationErrors.length > 0"
-        color="error"
-        title="Please fix the following before saving"
+  <PlutoAdminPanel v-if="contentType" :width="layout === 'focus' ? 'full' : 'container'">
+    <template #toolbar>
+      <PlutoViewToolbar
+        :back-to="basePath"
+        :title="layout === 'focus' ? (editing ? `Edit ${contentType.label}` : `New ${contentType.label}`) : undefined"
       >
-        <template #description>
-          <ul class="list-disc pl-4">
-            <li v-for="fieldError in validationErrors" :key="fieldError.field">
-              {{ fieldError.message }}
-            </li>
-          </ul>
-        </template>
-      </UAlert>
+        <template #right>
+          <UBadge v-if="statusConfig" :color="isPublished ? 'success' : 'neutral'" variant="subtle">
+            {{ statusLabel }}
+          </UBadge>
 
-      <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
-        <div class="flex flex-1 flex-col gap-6">
-          <h1 class="text-3xl font-bold lg:text-4xl">
-            {{ editing ? `Edit ${contentType.label}` : `New ${contentType.label}` }}
-          </h1>
+          <template v-for="action in toolbarActions" :key="action.id">
+            <UButton
+              v-if="action.show?.(buildActionContext()) !== false"
+              :icon="action.icon"
+              :color="(action.color as ButtonProps['color'])"
+              :variant="(action.variant as ButtonProps['variant'])"
+              @click="action.onSelect(buildActionContext())"
+            >
+              {{ action.label }}
+            </UButton>
+          </template>
 
-          <PlutoContentField
-            v-for="field in mainFields"
-            :key="field.name"
-            :field="field"
-            :model-value="item[field.name]"
-            :disabled="!canWrite || saving"
-            @update:model-value="updateField(field, $event)"
-          />
-        </div>
-
-        <div class="flex w-full shrink-0 flex-col gap-6 lg:max-w-xs">
           <UButton
-            v-if="canWrite"
+            v-if="canWrite && (!statusConfig || !isPublished)"
             :loading="saving"
             icon="lucide:save"
-            class="justify-center"
-            @click="onSave"
+            variant="subtle"
+            @click="onSave()"
           >
-            Save
+            Save{{ statusConfig ? ' draft' : '' }}
           </UButton>
 
+          <UButton
+            v-if="canWrite && statusConfig && isPublished"
+            :loading="saving"
+            icon="lucide:save"
+            @click="onSave()"
+          >
+            Update
+          </UButton>
+
+          <UButton
+            v-if="canPublish && statusConfig && !isPublished"
+            :loading="saving"
+            icon="lucide:upload"
+            @click="onSave(publishedValue)"
+          >
+            Publish
+          </UButton>
+
+          <UDropdownMenu
+            v-if="(editing && canDelete) || (statusConfig && isPublished && canPublish)"
+            :items="unpublishDeleteItems"
+          >
+            <UButton icon="lucide:ellipsis-vertical" color="neutral" variant="ghost" square />
+          </UDropdownMenu>
+
+          <UButton
+            v-if="showAside"
+            :icon="asideOpen ? 'lucide:panel-right-close' : 'lucide:panel-right-open'"
+            color="neutral"
+            variant="ghost"
+            square
+            @click="toggleAside"
+          />
+        </template>
+      </PlutoViewToolbar>
+    </template>
+
+    <UAlert
+      v-if="validationErrors.length > 0"
+      color="error"
+      title="Please fix the following before saving"
+    >
+      <template #description>
+        <ul class="list-disc pl-4">
+          <li v-for="fieldError in validationErrors" :key="fieldError.field">
+            {{ fieldError.message }}
+          </li>
+        </ul>
+      </template>
+    </UAlert>
+
+    <h1 v-if="layout !== 'focus'" class="text-3xl font-bold lg:text-4xl">
+      {{ editing ? `Edit ${contentType.label}` : `New ${contentType.label}` }}
+    </h1>
+
+    <PlutoContentField
+      v-for="field in mainFields"
+      :key="field.name"
+      :field="field"
+      :model-value="item[field.name]"
+      :disabled="!canWrite || saving"
+      @update:model-value="updateField(field, $event)"
+    />
+
+    <template v-if="showAside" #aside>
+      <PlutoViewAside v-model:open="asideOpen" title="Settings">
+        <div class="flex flex-col gap-6">
           <PlutoContentField
             v-for="field in sideFields"
             :key="field.name"
@@ -216,15 +406,35 @@ async function onSave() {
             @update:model-value="updateField(field, $event)"
           />
         </div>
-      </div>
-    </AdminView>
-  </div>
+      </PlutoViewAside>
+    </template>
+  </PlutoAdminPanel>
 
-  <AdminView v-else>
+  <PlutoAdminPanel v-else>
     <UAlert
       :description="`No content type named &quot;${type}&quot; is registered.`"
       color="error"
       title="Content type not found"
     />
-  </AdminView>
+  </PlutoAdminPanel>
+
+  <Modal v-model="isDeleteModalOpen" :custom-size="480">
+    <ModalHeader @close="closeDeleteModal">Remove {{ contentType?.label }}</ModalHeader>
+
+    <ModalContent>
+      <p>Do you really want to remove this item?</p>
+    </ModalContent>
+
+    <ModalFooter>
+      <div class="flex items-center gap-4">
+        <UButton icon="lucide:x" variant="ghost" color="neutral" @click="closeDeleteModal">
+          Cancel
+        </UButton>
+
+        <UButton :loading="deleting" icon="lucide:trash" color="error" @click="confirmDelete">
+          Remove
+        </UButton>
+      </div>
+    </ModalFooter>
+  </Modal>
 </template>

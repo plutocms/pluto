@@ -19,3 +19,7 @@ policies shared by every project here.
   admin UI (list/form components, eight built-in field widgets, generated
   `/admin/content/**` pages, and nav/pages derivation). No real adapter yet.
   @.claude/skills/content-model/SKILL.md
+- Admin view chrome: per-view shell components (`PlutoAdminPanel`, `PlutoViewToolbar`,
+  `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
+  registry bucket that lets a layer add its own buttons to that form.
+  @.claude/skills/admin-view-chrome/SKILL.md
