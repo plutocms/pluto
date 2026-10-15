@@ -15,7 +15,9 @@ if (!contentType.value) {
   // The generated page (`app/pages/admin/content/[type]/{new,[id]}.vue`)
   // already resolves the type and 404s before this component ever mounts,
   // so this should not normally happen.
-  console.error(`PlutoContentForm: content type "${props.type}" was not found in the registry.`)
+  console.error(
+    `PlutoContentForm: content type "${props.type}" was not found in the registry.`
+  )
 }
 
 const { can } = usePlutoPermissions()
@@ -23,18 +25,26 @@ const { can } = usePlutoPermissions()
 // "No capability declared" means the operation is open to anyone who can
 // reach this page — never call can('') as a stand-in for that.
 const canWrite = computed(
-  () => !contentType.value?.capabilities?.write || can(contentType.value.capabilities.write)
+  () =>
+    !contentType.value?.capabilities?.write ||
+    can(contentType.value.capabilities.write)
 )
 const canPublish = computed(() => {
-  const cap = contentType.value?.capabilities?.publish ?? contentType.value?.capabilities?.write
+  const cap =
+    contentType.value?.capabilities?.publish ??
+    contentType.value?.capabilities?.write
   return !cap || can(cap)
 })
 const canDelete = computed(
-  () => !contentType.value?.capabilities?.delete || can(contentType.value.capabilities.delete)
+  () =>
+    !contentType.value?.capabilities?.delete ||
+    can(contentType.value.capabilities.delete)
 )
 
 const editing = computed(() => props.id !== undefined)
-const basePath = computed(() => contentType.value?.basePath ?? `/admin/content/${props.type}`)
+const basePath = computed(
+  () => contentType.value?.basePath ?? `/admin/content/${props.type}`
+)
 
 // editPath exists so an already-deployed layer's edit URL never has to
 // change to adopt this component — see the doc comment on
@@ -49,7 +59,9 @@ const { item, save, remove } = usePlutoContentItem(props.type, () => props.id)
 function sortedFields(region: 'main' | 'side') {
   return computed(() =>
     (contentType.value?.fields ?? [])
-      .filter((field) => field.inForm !== false && (field.region ?? 'main') === region)
+      .filter(
+        (field) => field.inForm !== false && (field.region ?? 'main') === region
+      )
       .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
   )
 }
@@ -72,7 +84,9 @@ const sideFields = sortedFields('side')
 //    the moment a 'slug' field's own `update:modelValue` fires.
 const slugTouched = ref(false)
 const slugField = computed(() =>
-  contentType.value?.fields.find((field): field is PlutoSlugField => field.type === 'slug')
+  contentType.value?.fields.find(
+    (field): field is PlutoSlugField => field.type === 'slug'
+  )
 )
 
 function slugify(value: string): string {
@@ -108,20 +122,28 @@ function updateField(field: PlutoField, value: unknown) {
 // --- Status / publish workflow ----------------------------------------------
 
 const statusConfig = computed(() => contentType.value?.status || null)
-const publishedValue = computed(() => statusConfig.value?.publishedValue ?? 'published')
+const publishedValue = computed(
+  () => statusConfig.value?.publishedValue ?? 'published'
+)
 const draftValue = computed(
   () =>
     statusConfig.value?.default ??
-    statusConfig.value?.values.find((value) => value.value !== publishedValue.value)?.value
+    statusConfig.value?.values.find(
+      (value) => value.value !== publishedValue.value
+    )?.value
 )
 const currentStatus = computed(
   () => (item.value.status as string | undefined) ?? statusConfig.value?.default
 )
 const isPublished = computed(
-  () => statusConfig.value !== null && currentStatus.value === publishedValue.value
+  () =>
+    statusConfig.value !== null && currentStatus.value === publishedValue.value
 )
 const statusLabel = computed(
-  () => statusConfig.value?.values.find((value) => value.value === currentStatus.value)?.label ?? currentStatus.value
+  () =>
+    statusConfig.value?.values.find(
+      (value) => value.value === currentStatus.value
+    )?.label ?? currentStatus.value
 )
 
 // --- Save -------------------------------------------------------------------
@@ -157,7 +179,9 @@ async function onSave(statusOverride?: string) {
   }
 
   const payload = buildPayload(statusOverride)
-  const errors = validateContentPayload(type, payload, { partial: editing.value })
+  const errors = validateContentPayload(type, payload, {
+    partial: editing.value,
+  })
 
   if (errors.length > 0) {
     validationErrors.value = errors
@@ -297,18 +321,32 @@ const unpublishDeleteItems = computed<DropdownMenuItem[][]>(() => [
 </script>
 
 <template>
-  <PlutoAdminPanel v-if="contentType" :width="layout === 'focus' ? 'full' : 'container'">
+  <PlutoViewAdminPanel
+    v-if="contentType"
+    :width="layout === 'focus' ? 'full' : 'container'"
+  >
     <template #toolbar>
       <PlutoViewToolbar
         :back-to="basePath"
-        :title="layout === 'focus' ? (editing ? `Edit ${contentType.label}` : `New ${contentType.label}`) : undefined"
+        :title="
+          layout === 'focus'
+            ? editing
+              ? `Edit ${contentType.label}`
+              : `New ${contentType.label}`
+            : undefined
+        "
       >
         <template #right>
-          <UBadge v-if="statusConfig" :color="isPublished ? 'success' : 'neutral'" variant="subtle">
+          <UBadge
+            v-if="statusConfig"
+            :color="isPublished ? 'success' : 'neutral'"
+            variant="subtle"
+          >
             {{ statusLabel }}
           </UBadge>
 
           <template v-for="action in toolbarActions" :key="action.id">
+            <!-- prettier-ignore -->
             <UButton
               v-if="action.show?.(buildActionContext()) !== false"
               :icon="action.icon"
@@ -349,15 +387,25 @@ const unpublishDeleteItems = computed<DropdownMenuItem[][]>(() => [
           </UButton>
 
           <UDropdownMenu
-            v-if="(editing && canDelete) || (statusConfig && isPublished && canPublish)"
+            v-if="
+              (editing && canDelete) ||
+              (statusConfig && isPublished && canPublish)
+            "
             :items="unpublishDeleteItems"
           >
-            <UButton icon="lucide:ellipsis-vertical" color="neutral" variant="ghost" square />
+            <UButton
+              icon="lucide:ellipsis-vertical"
+              color="neutral"
+              variant="ghost"
+              square
+            />
           </UDropdownMenu>
 
           <UButton
             v-if="showAside"
-            :icon="asideOpen ? 'lucide:panel-right-close' : 'lucide:panel-right-open'"
+            :icon="
+              asideOpen ? 'lucide:panel-right-close' : 'lucide:panel-right-open'
+            "
             color="neutral"
             variant="ghost"
             square
@@ -408,18 +456,20 @@ const unpublishDeleteItems = computed<DropdownMenuItem[][]>(() => [
         </div>
       </PlutoViewAside>
     </template>
-  </PlutoAdminPanel>
+  </PlutoViewAdminPanel>
 
-  <PlutoAdminPanel v-else>
+  <PlutoViewAdminPanel v-else>
     <UAlert
       :description="`No content type named &quot;${type}&quot; is registered.`"
       color="error"
       title="Content type not found"
     />
-  </PlutoAdminPanel>
+  </PlutoViewAdminPanel>
 
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
-    <ModalHeader @close="closeDeleteModal">Remove {{ contentType?.label }}</ModalHeader>
+    <ModalHeader @close="closeDeleteModal">
+      Remove {{ contentType?.label }}
+    </ModalHeader>
 
     <ModalContent>
       <p>Do you really want to remove this item?</p>
@@ -427,11 +477,21 @@ const unpublishDeleteItems = computed<DropdownMenuItem[][]>(() => [
 
     <ModalFooter>
       <div class="flex items-center gap-4">
-        <UButton icon="lucide:x" variant="ghost" color="neutral" @click="closeDeleteModal">
+        <UButton
+          icon="lucide:x"
+          variant="ghost"
+          color="neutral"
+          @click="closeDeleteModal"
+        >
           Cancel
         </UButton>
 
-        <UButton :loading="deleting" icon="lucide:trash" color="error" @click="confirmDelete">
+        <UButton
+          :loading="deleting"
+          icon="lucide:trash"
+          color="error"
+          @click="confirmDelete"
+        >
           Remove
         </UButton>
       </div>

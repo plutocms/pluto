@@ -8,7 +8,7 @@ lets a layer add its own buttons to that form.
 It extends the [content model](../content-model/SKILL.md). Read that skill file first. This
 feature adds:
 
-- `app/components/Pluto/View/PlutoAdminPanel.vue`, `PlutoViewToolbar.vue`, `PlutoViewAside.vue`
+- `app/components/Pluto/View/PlutoViewAdminPanel.vue`, `PlutoViewToolbar.vue`, `PlutoViewAside.vue`
   — the three per-view chrome primitives described below.
 - `PlutoContentType.form` on `shared/types/content.ts` — layout knobs for the generic form.
 - `PlutoContentTypeCapabilities.publish` on `shared/types/content.ts` — the publish capability.
@@ -17,7 +17,7 @@ feature adds:
 - `app/composables/pluto-content-actions.ts` — `usePlutoContentActions(typeName, placement)`.
 - `shared/utils/content-map.ts` (extended) — `mapColumnsToFields` now also returns `item.status`.
 - `PlutoContentList.vue` and `PlutoContentForm.vue` (rewired) — both now render inside
-  `PlutoAdminPanel`, and `PlutoContentForm` adds the publish workflow UI.
+  `PlutoViewAdminPanel`, and `PlutoContentForm` adds the publish workflow UI.
 - `test/content-actions.test.ts` — unit tests for `usePlutoContentActions`.
 
 ## Three chrome primitives, not the global layout
@@ -27,11 +27,11 @@ Do not confuse these with `app/layouts/admin.vue` or `PlutoNavbarAdmin.vue`. Tho
 `PlutoNavbarAdmin` is the single global top bar registered through `PlutoNavbarShell`. A page's
 own content renders inside the layout's body slot.
 
-`PlutoAdminPanel`, `PlutoViewToolbar`, and `PlutoViewAside` are **per-view, one set per page**.
+`PlutoViewAdminPanel`, `PlutoViewToolbar`, and `PlutoViewAside` are **per-view, one set per page**.
 They give one page (a content list, a content form, or any other admin page) its own local
 toolbar and optional aside, inside the space the global layout already gives it.
 
-### `PlutoAdminPanel`
+### `PlutoViewAdminPanel`
 
 The outer shell for one view. Props:
 
