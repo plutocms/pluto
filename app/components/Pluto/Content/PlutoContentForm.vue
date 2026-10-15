@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ButtonProps, DropdownMenuItem } from '@nuxt/ui'
+import type { ButtonProps } from '@nuxt/ui'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -295,7 +295,11 @@ function buildActionContext(): PlutoContentActionContext {
   }
 }
 
-const unpublishDeleteItems = computed<DropdownMenuItem[][]>(() => [
+// No explicit `DropdownMenuItem` annotation. A consumer that links this
+// layer from source can resolve a second copy of `@nuxt/ui`. A named type
+// from one copy then fails to match the component from the other copy. An
+// inferred, structural type matches both.
+const unpublishDeleteItems = computed(() => [
   [
     ...(statusConfig.value && isPublished.value && canPublish.value
       ? [
