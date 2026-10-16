@@ -43,6 +43,14 @@ export function mapFieldsToColumns(
  * `mapFieldsToColumns` — it has no column to read back from `row` in the
  * first place, so this only guards against a stray column that happens to
  * share the field's name.
+ *
+ * When `type.status` is set, this also maps the status column
+ * (`type.status.column`, default `'status'`) to `item.status`, unless a
+ * declared field already set `item.status` above. This mirrors the write
+ * side: `@plutocms/supabase`'s `content-adapter.ts` already writes the
+ * status column for a content type with workflow enabled, even when no
+ * field named `status` is declared. Without this, a generic list/form
+ * read back a row with no `status` key at all.
  */
 export function mapColumnsToFields(
   type: PlutoContentType,
@@ -58,6 +66,13 @@ export function mapColumnsToFields(
     const column = fieldColumn(field)
     if (Object.hasOwn(row, column)) {
       item[field.name] = row[column]
+    }
+  }
+
+  if (type.status) {
+    const statusColumn = type.status.column ?? 'status'
+    if (!Object.hasOwn(item, 'status') && Object.hasOwn(row, statusColumn)) {
+      item.status = row[statusColumn]
     }
   }
 

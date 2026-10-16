@@ -25,6 +25,7 @@ export function usePlutoRegistry(): PlutoRegistry {
       permissionsDrivers: createOwnedRegistry<PlutoPermissionsDriver>(),
       contentTypes: createOwnedRegistry<PlutoContentTypeEntry>(),
       contentFieldWidgets: createOwnedRegistry<PlutoContentFieldWidget>(),
+      contentActions: createOwnedRegistry<PlutoContentAction>(),
       mediaAdapters: createOwnedRegistry<PlutoMediaAdapterEntry>(),
     }
   }

@@ -110,6 +110,8 @@ export interface PlutoContentTypeCapabilities {
   read?: string
   write?: string
   delete?: string
+  /** Capability required to publish. Falls back to `write` when unset. */
+  publish?: string
 }
 
 export interface PlutoContentStatus {
@@ -209,6 +211,17 @@ export interface PlutoContentType {
   editPath?: (id: string | number) => string
   navOrder?: number
   i18n?: PlutoContentI18n
+  /** Layout options for the generic content form (a later wave). */
+  form?: {
+    /** 'default' = heading + container. 'focus' = minimal chrome for a writing surface. */
+    layout?: 'default' | 'focus'
+    /** true = always show. false = never. 'auto' (default) = show when any field has region 'side'. */
+    aside?: boolean | 'auto'
+    /** Aside starts closed. Default false, or true when layout is 'focus'. */
+    asideCollapsed?: boolean
+    /** Drop the max-width container in the main region. Default false, or true when layout is 'focus'. */
+    width?: 'container' | 'full'
+  }
   /**
    * Server-only lifecycle hooks, run by the generic write handlers
    * (`server/utils/pluto-content-handlers.ts`) after the adapter call

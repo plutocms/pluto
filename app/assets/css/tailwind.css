@@ -9,3 +9,18 @@
 
   --font-outfit: 'Outfit', sans-serif;
 }
+
+/*
+ * Set the header height outside a layer. This overrides Nuxt UI's own
+ * `@layer theme` value for the same variable. The values match the
+ * navbar's own height classes (`h-14` / `lg:h-10`).
+ */
+:root {
+  --ui-header-height: 3.5rem;
+}
+
+@media (width >= 64rem) {
+  :root {
+    --ui-header-height: 2.5rem;
+  }
+}
