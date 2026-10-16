@@ -21,6 +21,19 @@ const open = defineModel<boolean>('open', { default: false })
 function close() {
   open.value = false
 }
+
+// Open the slideover on mobile only. A `lg:hidden` class alone is not
+// enough: an open slideover is a modal dialog, so it disables pointer
+// events on the rest of the page even while it is hidden. On desktop, the
+// page then stops taking clicks as soon as the aside opens. It also mounts
+// the slot a second time.
+const isDesktop = useMediaQuery('(min-width: 64rem)')
+const slideoverOpen = computed({
+  get: () => open.value && !isDesktop.value,
+  set: (value: boolean) => {
+    open.value = value
+  },
+})
 </script>
 
 <template>
@@ -45,9 +58,8 @@ function close() {
   </aside>
 
   <USlideover
-    v-model:open="open"
+    v-model:open="slideoverOpen"
     :title="title"
-    :ui="{ overlay: 'lg:hidden', content: 'lg:hidden' }"
     side="right"
   >
     <template #body>
