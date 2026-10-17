@@ -463,3 +463,56 @@ describe('deleteContentItem', () => {
     expect(authorize).not.toHaveBeenCalled()
   })
 })
+
+describe('contentActivity', () => {
+  // Thursday 2026-10-15, 10:00 UTC. Its week starts on Monday 2026-10-12.
+  const now = new Date('2026-10-15T10:00:00Z')
+
+  it('reports unsupported when the adapter has no countCreated', async () => {
+    const { registerContentAdapter, contentActivity } = await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter())
+
+    const result = await contentActivity(ctxFor(contentType()), { weeks: 4, now })
+
+    expect(result).toEqual({ supported: false, interval: 'week', points: [] })
+  })
+
+  it('counts one Monday-to-Monday UTC range per week, oldest first', async () => {
+    const { registerContentAdapter, contentActivity } = await loadHandlers()
+    const ranges: {
+ from: string
+to: string
+}[] = []
+    registerContentAdapter({
+      ...createMemoryContentAdapter(),
+      countCreated: async (_ctx, range) => {
+        ranges.push(range)
+        return ranges.length
+      },
+    })
+
+    const result = await contentActivity(ctxFor(contentType()), { weeks: 3, now })
+
+    expect(result.supported).toBe(true)
+    expect(result.points.map((point) => point.start)).toEqual(['2026-09-28', '2026-10-05', '2026-10-12'])
+    expect(ranges[2]).toEqual({ from: '2026-10-12T00:00:00.000Z', to: '2026-10-19T00:00:00.000Z' })
+    expect(result.points.map((point) => point.count)).toEqual([1, 2, 3])
+  })
+
+  it('clamps weeks between 1 and the maximum', async () => {
+    const { registerContentAdapter, contentActivity, CONTENT_ACTIVITY_MAX_WEEKS } = await loadHandlers()
+    registerContentAdapter({ ...createMemoryContentAdapter(), countCreated: async () => 0 })
+
+    expect((await contentActivity(ctxFor(contentType()), { weeks: 0, now })).points).toHaveLength(1)
+    expect((await contentActivity(ctxFor(contentType()), { weeks: 999, now })).points).toHaveLength(CONTENT_ACTIVITY_MAX_WEEKS)
+  })
+
+  it('reports unsupported when the adapter returns null for the type', async () => {
+    const { registerContentAdapter, contentActivity } = await loadHandlers()
+    registerContentAdapter({ ...createMemoryContentAdapter(), countCreated: async () => null })
+
+    const result = await contentActivity(ctxFor(contentType()), { weeks: 4, now })
+
+    expect(result).toEqual({ supported: false, interval: 'week', points: [] })
+  })
+})

@@ -1,0 +1,40 @@
+/*
+ * The pluto layer's CSS. It is not a Tailwind entry.
+ *
+ * The app's CSS entry owns the one Tailwind build of the app:
+ *
+ *   @import 'tailwindcss';
+ *   @import '@nuxt/ui';
+ *   @import '#build/pluto.css';
+ *
+ * `#build/pluto.css` imports this file (and the same file of every other
+ * Pluto layer). Rules for this file:
+ * - Do not import tailwindcss or @nuxt/ui here.
+ * - Use only @theme, @custom-variant, @utility, unlayered rules, and
+ *   imports of plain CSS files next to this one.
+ * - Add no @source for app/: Nuxt UI already scans every layer's app/ dir.
+ * See the single-tailwind-build skill.
+ */
+@import './admin-theme.css';
+
+@theme {
+  --color-admin-content: var(--color-zinc-800);
+  --color-admin-sidebar: var(--color-zinc-900);
+
+  --font-outfit: 'Outfit', sans-serif;
+}
+
+/*
+ * Set the header height outside a layer. This overrides Nuxt UI's own
+ * `@layer theme` value for the same variable. The values match the
+ * navbar's own height classes (`h-14` / `lg:h-10`).
+ */
+:root {
+  --ui-header-height: 3.5rem;
+}
+
+@media (width >= 64rem) {
+  :root {
+    --ui-header-height: 2.5rem;
+  }
+}

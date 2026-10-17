@@ -35,6 +35,9 @@ const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
 
 const commandGroups = usePlutoCommandPalette()
 
+// Keep the consumer app's public-site theme out of the admin.
+usePlutoAdminTheme()
+
 // Start the dashboard group below the fixed admin navbar. An inline `top`
 // overrides the `top: 0` from the group's `inset-0` base class, whatever
 // order the classes merge in. Do not use a class replacer function here:
@@ -57,8 +60,8 @@ const groupStyle = { top: 'var(--ui-header-height)' }
       :min-size="12"
       :max-size="24"
       :ui="{
-        root: 'min-h-0 dark:bg-admin-sidebar light:bg-zinc-100',
-        content: 'lg:hidden w-[min(18rem,85vw)]',
+        root: 'min-h-0 bg-(--pluto-admin-sidebar)',
+        content: 'lg:hidden w-[min(18rem,85vw)] bg-(--pluto-admin-sidebar)',
         header: 'h-auto py-3',
       }"
       resizable
@@ -73,16 +76,16 @@ const groupStyle = { top: 'var(--ui-header-height)' }
 
       <UNavigationMenu
         :items="menu"
-        :ui="{ link: 'text-base gap-x-3 font-normal' }"
+        :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-[18px]' }"
         orientation="vertical"
+        variant="pill"
         class="data-[orientation=vertical]:w-full"
-        highlight
       />
     </UDashboardSidebar>
 
     <UDashboardPanel
       :ui="{
-        root: 'min-h-0 dark:bg-admin-content light:bg-white font-outfit',
+        root: 'min-h-0 bg-(--pluto-admin-canvas)',
         body: 'p-0 gap-0 overflow-x-hidden',
       }"
     >

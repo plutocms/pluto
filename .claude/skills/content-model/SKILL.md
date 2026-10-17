@@ -271,7 +271,13 @@ tests everything else. The list route accepts `limit`, `offset`, and `search` as
 sorting always comes from `type.defaultSort`, never from the query string, in this wave.
 It also accepts `published=1` (or `true`) for a type with a status workflow: the adapter then
 gets `includeUnpublished: false` and returns published rows only. The dashboard content
-overview uses it with `limit=1` to count published rows (see the `content-overview` skill).
+overview uses it with `limit=1` to count published rows (see the `dashboard` skill).
+
+An adapter may also implement the optional `countCreated(ctx, { from, to })`. It counts the
+items created from `from` (inclusive) to `to` (exclusive), both ISO timestamps, and returns
+`null` when the type has no created timestamp. `GET /api/_pluto/content-activity/<type>` calls
+it once per week for the dashboard activity chart. Without it, the chart leaves the type out.
+`@plutocms/supabase` implements it with one exact-count HEAD query per range.
 
 ## Capability enforcement: read is never checked here
 

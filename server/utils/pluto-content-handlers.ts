@@ -171,3 +171,62 @@ export async function deleteContentItem(ctx: PlutoContentContext, id: string | n
 
   await requireContentAdapter().remove(ctx, id)
 }
+
+/** Most weeks the activity route accepts. */
+export const CONTENT_ACTIVITY_MAX_WEEKS = 52
+
+/** Monday 00:00 UTC of the week that contains `date`. */
+function startOfWeekUtc(date: Date): Date {
+  const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+  const daysSinceMonday = (start.getUTCDay() + 6) % 7
+  start.setUTCDate(start.getUTCDate() - daysSinceMonday)
+  return start
+}
+
+/**
+ * Counts the items created in each of the last `weeks` weeks, oldest first.
+ * The last point is the current week, so far. Weeks start on Monday, UTC.
+ *
+ * No capability check, for the same reason as `listContentItems`: it only
+ * returns counts, and the adapter's backing store already limits what the
+ * caller can see.
+ *
+ * Returns `supported: false` with no points when the adapter has no
+ * `countCreated`, or when it returns `null` for this content type.
+ */
+export async function contentActivity(
+  ctx: PlutoContentContext,
+  options: {
+ weeks: number
+now?: Date
+}
+): Promise<PlutoContentActivity> {
+  const adapter = requireContentAdapter()
+  const unsupported: PlutoContentActivity = { supported: false, interval: 'week', points: [] }
+
+  if (!adapter.countCreated) {
+    return unsupported
+  }
+
+  const weeks = Math.min(CONTENT_ACTIVITY_MAX_WEEKS, Math.max(1, Math.trunc(options.weeks)))
+  const thisWeek = startOfWeekUtc(options.now ?? new Date())
+  const DAY = 24 * 60 * 60 * 1000
+
+  const ranges = Array.from({ length: weeks }, (_, index) => {
+    const from = new Date(thisWeek.getTime() - (weeks - 1 - index) * 7 * DAY)
+    const to = new Date(from.getTime() + 7 * DAY)
+    return { from: from.toISOString(), to: to.toISOString() }
+  })
+
+  const counts = await Promise.all(ranges.map((range) => adapter.countCreated!(ctx, range)))
+
+  if (counts.includes(null)) {
+    return unsupported
+  }
+
+  return {
+    supported: true,
+    interval: 'week',
+    points: ranges.map((range, index) => ({ start: range.from.slice(0, 10), count: counts[index] as number })),
+  }
+}

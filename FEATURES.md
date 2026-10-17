@@ -26,6 +26,13 @@ policies shared by every project here.
 - Command palette: Cmd/Ctrl+K and a sidebar search button open a `UDashboardSearch` with
   "New <type>" commands for writable content types, every admin nav destination, and theme
   commands. @.claude/skills/command-palette/SKILL.md
-- Content overview: core's dashboard widget with one stat tile per content type (total, and a
-  published/draft meter for types with a status workflow), counted through `limit=1` list
-  requests and the list route's `published=1` filter. @.claude/skills/content-overview/SKILL.md
+- Dashboard: the admin home with a date and title header, a create menu, and core widgets:
+  content tiles (total, +N this week, published/draft meter), a `UChart` weekly activity
+  chart backed by the optional adapter `countCreated`, and quick actions.
+  @.claude/skills/dashboard/SKILL.md
+- Admin theme: the admin keeps its own palette, chart colors, surfaces, and font under
+  `data-pluto-admin`, so the consumer app's site theme does not reach it.
+  @.claude/skills/admin-theme/SKILL.md
+- Single Tailwind build: the app owns the only Tailwind build. The pluto-css module generates
+  `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
+  about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md
