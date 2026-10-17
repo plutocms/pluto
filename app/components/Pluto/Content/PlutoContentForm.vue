@@ -327,6 +327,7 @@ const unpublishDeleteItems = computed(() => [
 <template>
   <PlutoViewAdminPanel
     v-if="contentType"
+    :aside-open="showAside && asideOpen"
     :width="layout === 'focus' ? 'full' : 'container'"
   >
     <template #toolbar>

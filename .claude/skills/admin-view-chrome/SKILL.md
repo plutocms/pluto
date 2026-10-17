@@ -38,13 +38,17 @@ The outer shell for one view. Props:
 - `width?: 'container' | 'full'` — default `'container'`. `'container'` wraps the main slot in a
   max-width `UContainer`. `'full'` drops that wrap, for a view that wants to use the whole width
   (a writing surface, a media grid).
+- `asideOpen?: boolean` — default `false`. Pass the same value as the aside's `v-model:open`.
+  While it is `true` on desktop, the aside sits in a resizable panel (see "Resizable aside"
+  below). Without it, the aside keeps its fixed `width`.
 
 Slots:
 
 - `#toolbar` — a shrink-to-fit row pinned above the scrollable area. Put a `PlutoViewToolbar`
   here.
 - default — the scrollable main content.
-- `#aside` — a shrink-to-fit column beside the main content. Put a `PlutoViewAside` here. Leave
+- `#aside` — a column beside the main content, resizable when `asideOpen` is set. Put a
+  `PlutoViewAside` here. Leave
   this slot empty on a view with nothing to show beside the main content — an empty aside slot
   renders as a zero-width wrapper, so it costs nothing to leave unused.
 
@@ -65,10 +69,27 @@ a small button that belongs next to the title, like a refresh button).
 
 ### `PlutoViewAside`
 
-A right-hand panel bound to an `open` model (`v-model:open`). On a wide screen it renders as a
-plain `<aside>` beside the main content. On a narrow screen it renders as a `USlideover`
-instead — the same content, two different presentations, picked by CSS breakpoint, not by
-JavaScript. Props: `title?: string`, `width?: number` (desktop width in px, default 320).
+A right-hand panel bound to an `open` model (`v-model:open`). On a wide screen (`lg`, 64rem and
+up) it renders as a plain `<aside>` beside the main content. On a narrow screen it renders as a
+`USlideover` instead. Props: `title?: string`, `width?: number` (desktop width in px, default
+320; ignored inside a resizable panel).
+
+The slideover opens on narrow screens only, through a `useMediaQuery` check. Do not replace that
+check with a `lg:hidden` class. An open slideover is a modal dialog. It disables pointer events
+on the rest of the page even while CSS hides it, so the desktop page stops taking clicks.
+
+### Resizable aside
+
+`PlutoViewAdminPanel` puts the main content and the aside in a Nuxt UI `USplitter` when
+`asideOpen` is `true` on desktop. The user drags the handle to resize the aside, between 240px
+and 560px. The panel stores the width in px in the `pluto-view-aside-width` cookie and applies it
+the next time the aside opens. `PlutoViewAside` reads the `plutoViewAsideResizableKey` injection
+and fills the panel instead of using its own `width`.
+
+Do not use the splitter's `sizeUnit: 'px'` or `autoSaveId` here. When the aside panel joins with
+the aside already open (a page reload), reka-ui skips the px conversion and reads the px value as
+a raw size, so the aside takes most of the width. The panel converts px to percentages itself,
+against the measured row width.
 
 Like `PlutoViewToolbar`, this is a hand-built stand-in rather than Nuxt UI's own
 `UDashboardSidebar`, for the same reason: `UDashboardSidebar` listens to a global toggle hook,
