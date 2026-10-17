@@ -32,6 +32,8 @@ const menu = computed<SidebarMenuItem[]>(() => navItems.value.map(toMenuItem))
 // (`app/components/navbar/NavbarAdmin.vue`) writes to this exact state key
 // to open the sidebar from its own hamburger button. Keep the name as-is.
 const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
+
+const commandGroups = usePlutoCommandPalette()
 </script>
 
 <template>
@@ -53,6 +55,14 @@ const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
       }"
       resizable
     >
+      <!--
+        The search button must sit inside UDashboardGroup. Outside it, the
+        button has no dashboard context and its click does nothing.
+      -->
+      <template #header>
+        <UDashboardSearchButton class="w-full" />
+      </template>
+
       <UNavigationMenu
         :items="menu"
         :ui="{ link: 'text-base gap-x-3 font-normal' }"
@@ -72,5 +82,8 @@ const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
         <slot />
       </template>
     </UDashboardPanel>
+
+    <!-- Cmd/Ctrl+K. See usePlutoCommandPalette for the commands. -->
+    <UDashboardSearch :groups="commandGroups" placeholder="Search pages and actions…" />
   </UDashboardGroup>
 </template>
