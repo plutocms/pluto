@@ -8,7 +8,11 @@
 withDefaults(
   defineProps<{
     title?: string
-    /** Desktop width, in px. Default 320. */
+    /**
+     * Desktop width, in px. Default 320. Ignored inside a
+     * PlutoViewAdminPanel that gets `aside-open`: its resizable panel sets
+     * the width.
+     */
     width?: number
   }>(),
   {
@@ -28,6 +32,7 @@ function close() {
 // page then stops taking clicks as soon as the aside opens. It also mounts
 // the slot a second time.
 const isDesktop = useMediaQuery('(min-width: 64rem)')
+const resizable = inject(plutoViewAsideResizableKey, ref(false))
 const slideoverOpen = computed({
   get: () => open.value && !isDesktop.value,
   set: (value: boolean) => {
@@ -37,10 +42,15 @@ const slideoverOpen = computed({
 </script>
 
 <template>
+  <!--
+    Inside a resizable PlutoViewAdminPanel the splitter panel owns the
+    width and its handle draws the border. Elsewhere, keep the fixed width.
+  -->
   <aside
     v-if="open"
-    :style="{ width: `${width}px` }"
-    class="border-default hidden h-full shrink-0 flex-col border-s lg:flex"
+    :style="resizable ? undefined : { width: `${width}px` }"
+    :class="resizable ? 'w-full' : 'border-default shrink-0 border-s'"
+    class="hidden h-full flex-col lg:flex"
   >
     <div class="border-default flex h-12 shrink-0 items-center justify-between gap-1.5 border-b px-4">
       <h2 class="text-highlighted truncate text-sm font-semibold">{{ title }}</h2>
