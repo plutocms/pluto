@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+@import './admin-theme.css';
 
 @source '../..';
 
