@@ -32,11 +32,18 @@ const menu = computed<SidebarMenuItem[]>(() => navItems.value.map(toMenuItem))
 // (`app/components/navbar/NavbarAdmin.vue`) writes to this exact state key
 // to open the sidebar from its own hamburger button. Keep the name as-is.
 const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
+
+// Start the dashboard group below the fixed admin navbar. An inline `top`
+// overrides the `top: 0` from the group's `inset-0` base class, whatever
+// order the classes merge in. Do not use a class replacer function here:
+// in @nuxt/ui 4.12 a replacer only runs for themes with slots, and the
+// group theme has only `base`, so the replacer was silently ignored.
+const groupStyle = { top: 'var(--ui-header-height)' }
 </script>
 
 <template>
   <UDashboardGroup
-    :class="(base: string) => base.replace('inset-0', 'inset-x-0 bottom-0 top-(--ui-header-height)')"
+    :style="groupStyle"
     storage="cookie"
     storage-key="pluto-admin"
     unit="rem"
