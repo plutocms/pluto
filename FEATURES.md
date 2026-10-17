@@ -26,3 +26,6 @@ policies shared by every project here.
 - Command palette: Cmd/Ctrl+K and a sidebar search button open a `UDashboardSearch` with
   "New <type>" commands for writable content types, every admin nav destination, and theme
   commands. @.claude/skills/command-palette/SKILL.md
+- Content overview: core's dashboard widget with one stat tile per content type (total, and a
+  published/draft meter for types with a status workflow), counted through `limit=1` list
+  requests and the list route's `published=1` filter. @.claude/skills/content-overview/SKILL.md

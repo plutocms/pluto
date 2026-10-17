@@ -269,6 +269,9 @@ handlers file, as plain exported async functions, so it can be unit-tested by ca
 directly — no live Nitro server, no `@nuxt/test-utils` — the same way this workspace already
 tests everything else. The list route accepts `limit`, `offset`, and `search` as query params;
 sorting always comes from `type.defaultSort`, never from the query string, in this wave.
+It also accepts `published=1` (or `true`) for a type with a status workflow: the adapter then
+gets `includeUnpublished: false` and returns published rows only. The dashboard content
+overview uses it with `limit=1` to count published rows (see the `content-overview` skill).
 
 ## Capability enforcement: read is never checked here
 

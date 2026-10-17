@@ -69,6 +69,10 @@ export async function authorizeContentOperation(event: H3Event, capability: stri
  * asks the adapter for everything, unfiltered by capability, because it is
  * admin-surface-only in intent — a public-facing read path is a layer's
  * own hand-written endpoint, not this generic one.
+ *
+ * `published: true` narrows the result to published rows. The dashboard
+ * uses it, with `limit: 1`, to count published rows next to the total.
+ * It only narrows the result, so it needs no capability check either.
  */
 export async function listContentItems(
   ctx: PlutoContentContext,
@@ -76,6 +80,7 @@ export async function listContentItems(
     limit?: number
     offset?: number
     search?: string
+    published?: boolean
   }
 ): Promise<PlutoContentListResult> {
   return requireContentAdapter().list(ctx, {
@@ -83,7 +88,7 @@ export async function listContentItems(
     offset: query.offset,
     search: query.search,
     sort: ctx.type.defaultSort,
-    includeUnpublished: true,
+    includeUnpublished: query.published !== true,
   })
 }
 
