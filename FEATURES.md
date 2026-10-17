@@ -23,3 +23,6 @@ policies shared by every project here.
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
   registry bucket that lets a layer add its own buttons to that form.
   @.claude/skills/admin-view-chrome/SKILL.md
+- Command palette: Cmd/Ctrl+K and a sidebar search button open a `UDashboardSearch` with
+  "New <type>" commands for writable content types, every admin nav destination, and theme
+  commands. @.claude/skills/command-palette/SKILL.md

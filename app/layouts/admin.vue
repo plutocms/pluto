@@ -33,6 +33,8 @@ const menu = computed<SidebarMenuItem[]>(() => navItems.value.map(toMenuItem))
 // to open the sidebar from its own hamburger button. Keep the name as-is.
 const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
 
+const commandGroups = usePlutoCommandPalette()
+
 // Start the dashboard group below the fixed admin navbar. An inline `top`
 // overrides the `top: 0` from the group's `inset-0` base class, whatever
 // order the classes merge in. Do not use a class replacer function here:
@@ -57,9 +59,18 @@ const groupStyle = { top: 'var(--ui-header-height)' }
       :ui="{
         root: 'min-h-0 dark:bg-admin-sidebar light:bg-zinc-100',
         content: 'lg:hidden w-[min(18rem,85vw)]',
+        header: 'h-auto py-3',
       }"
       resizable
     >
+      <!--
+        The search button must sit inside UDashboardGroup. Outside it, the
+        button has no dashboard context and its click does nothing.
+      -->
+      <template #header>
+        <UDashboardSearchButton class="w-full" />
+      </template>
+
       <UNavigationMenu
         :items="menu"
         :ui="{ link: 'text-base gap-x-3 font-normal' }"
@@ -79,5 +90,8 @@ const groupStyle = { top: 'var(--ui-header-height)' }
         <slot />
       </template>
     </UDashboardPanel>
+
+    <!-- Cmd/Ctrl+K. See usePlutoCommandPalette for the commands. -->
+    <UDashboardSearch :groups="commandGroups" placeholder="Search pages and actions…" />
   </UDashboardGroup>
 </template>
