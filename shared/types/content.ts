@@ -289,4 +289,28 @@ export interface PlutoContentAdapter {
   /** Throws when `event`'s caller does not hold `capability`. Optional — see the fail-open rule in the content-model skill. */
   authorize?: (event: H3Event, capability: string) => Promise<void>
   describe?: (ctx: PlutoContentContext) => Promise<string[] | null>
+  /**
+   * Counts the items created from `range.from` (inclusive) to `range.to`
+   * (exclusive), both ISO timestamps. Optional. Return `null` when the
+   * content type has no created timestamp. The dashboard activity chart
+   * calls it once per week; without it, the chart leaves the type out.
+   */
+  countCreated?: (ctx: PlutoContentContext, range: {
+ from: string
+to: string
+}) => Promise<number | null>
+}
+
+/** One week of the content activity series. */
+export interface PlutoContentActivityPoint {
+  /** Start of the week, an ISO date (YYYY-MM-DD), Monday, UTC. */
+  start: string
+  count: number
+}
+
+export interface PlutoContentActivity {
+  /** `false` when the adapter, or this content type, cannot count by creation date. */
+  supported: boolean
+  interval: 'week'
+  points: PlutoContentActivityPoint[]
 }

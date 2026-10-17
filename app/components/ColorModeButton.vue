@@ -15,9 +15,11 @@ const isDark = computed({
   <ClientOnly v-if="!colorMode?.forced">
     <UButton
       :icon="isDark ? 'i-lucide-moon' : 'i-lucide-sun'"
+      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
       color="neutral"
-      variant="solid"
-      size="sm"
+      variant="ghost"
+      size="md"
+      square
       @click="isDark = !isDark"
     />
 

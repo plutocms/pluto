@@ -5,7 +5,9 @@ import PlutoFieldReference from '../components/Pluto/Content/fields/PlutoFieldRe
 import PlutoFieldSelect from '../components/Pluto/Content/fields/PlutoFieldSelect.vue'
 import PlutoFieldSlug from '../components/Pluto/Content/fields/PlutoFieldSlug.vue'
 import PlutoFieldText from '../components/Pluto/Content/fields/PlutoFieldText.vue'
+import PlutoDashboardContentActivity from '../components/Pluto/Dashboard/PlutoDashboardContentActivity.vue'
 import PlutoDashboardContentOverview from '../components/Pluto/Dashboard/PlutoDashboardContentOverview.vue'
+import PlutoDashboardQuickActions from '../components/Pluto/Dashboard/PlutoDashboardQuickActions.vue'
 
 // Registers core's own Home and Settings anchors, plus the eight built-in
 // content field widgets. `order: 0` and `order: 1000` are reserved for the
@@ -54,6 +56,23 @@ export default defineNuxtPlugin(() => {
         colSpan: 3,
         component: PlutoDashboardContentOverview,
         enabled: () => usePlutoContentTypes().items.value.length > 0,
+      },
+      // The activity chart and the quick actions share the next row (2 + 1
+      // columns). A layer widget with the default order (100) goes below.
+      {
+        id: 'content-activity',
+        order: 10,
+        title: 'Content activity',
+        colSpan: 2,
+        component: PlutoDashboardContentActivity,
+        enabled: () => usePlutoContentTypes().items.value.length > 0,
+      },
+      {
+        id: 'quick-actions',
+        order: 20,
+        title: 'Quick actions',
+        colSpan: 1,
+        component: PlutoDashboardQuickActions,
       },
     ],
   })

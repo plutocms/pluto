@@ -1,7 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+usePlutoAdminTheme()
+</script>
 
 <template>
-  <div class="bg-admin-content font-outfit flex min-h-dvh grow flex-col">
+  <div class="flex min-h-dvh grow flex-col bg-(--pluto-admin-canvas)">
     <slot />
   </div>
 </template>
