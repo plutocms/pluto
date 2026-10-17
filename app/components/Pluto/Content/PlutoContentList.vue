@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
+import type { ButtonProps, TableColumn } from '@nuxt/ui'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -48,7 +48,38 @@ function editPath(id: string | number) {
   return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
 }
 
-const { items, pending, refresh, remove } = usePlutoContentList(props.type)
+const { items, pending, error, refresh, remove } = usePlutoContentList(props.type)
+
+// What to show while the list has no rows. With rows, the list shows
+// them, and a failed refresh shows an alert above them instead.
+const emptyState = computed<'loading' | 'error' | 'empty' | null>(() => {
+  if (items.value.length > 0) {
+    return null
+  }
+  if (pending.value) {
+    return 'loading'
+  }
+  return error.value ? 'error' : 'empty'
+})
+
+function retry() {
+  refresh().catch(() => {})
+}
+
+// Buttons navigate with `navigateTo`, not `to`: `to` is typed per app
+// through typed pages, so a computed button list cannot type it here.
+const emptyActions = computed<ButtonProps[]>(() => {
+  const type = contentType.value
+  if (!type) {
+    return []
+  }
+  if (emptyState.value === 'error') {
+    return [{ label: 'Try again', icon: 'lucide:refresh-ccw', color: 'neutral', variant: 'outline', onClick: retry }]
+  }
+  return canWrite.value
+    ? [{ label: `New ${type.label}`, icon: 'lucide:plus', onClick: () => navigateTo(newPath.value) }]
+    : []
+})
 
 const listFields = computed(() =>
   (contentType.value?.fields ?? [])
@@ -98,19 +129,54 @@ async function confirmDelete() {
             variant="ghost"
             title="Refresh"
             square
-            @click="refresh()"
+            @click="retry"
           />
         </template>
 
         <template v-if="canWrite" #right>
           <UButton :to="newPath" icon="lucide:plus" as="NuxtLink">
-            Add {{ contentType.labelPlural }}
+            New {{ contentType.label }}
           </UButton>
         </template>
       </PlutoViewToolbar>
     </template>
 
-    <div class="grid gap-3 lg:hidden">
+    <UEmpty
+      v-if="emptyState === 'loading'"
+      :title="`Loading ${contentType.labelPlural.toLowerCase()}…`"
+      variant="naked"
+      loading
+    />
+
+    <UEmpty
+      v-else-if="emptyState === 'error'"
+      :title="`Could not load ${contentType.labelPlural.toLowerCase()}`"
+      :actions="emptyActions"
+      description="Check your connection and try again."
+      icon="lucide:circle-alert"
+      variant="naked"
+    />
+
+    <UEmpty
+      v-else-if="emptyState === 'empty'"
+      :title="`No ${contentType.labelPlural.toLowerCase()} yet`"
+      :description="canWrite ? `Create the first ${contentType.label.toLowerCase()} to see it here.` : 'There is nothing here yet.'"
+      :icon="contentType.icon ?? 'lucide:inbox'"
+      :actions="emptyActions"
+      variant="naked"
+    />
+
+    <UAlert
+      v-if="!emptyState && error"
+      :actions="[{ label: 'Try again', color: 'error', variant: 'outline', onClick: retry }]"
+      :title="`Could not refresh ${contentType.labelPlural.toLowerCase()}`"
+      description="The list below may be out of date."
+      color="error"
+      variant="subtle"
+      icon="lucide:circle-alert"
+    />
+
+    <div v-if="!emptyState" class="grid gap-3 lg:hidden">
       <UCard v-for="item in items" :key="item.id">
         <div class="flex flex-col gap-4">
           <div class="min-w-0">
@@ -156,7 +222,7 @@ async function confirmDelete() {
       </UCard>
     </div>
 
-    <UCard :ui="{ body: 'sm:p-0 p-0' }" class="hidden lg:block">
+    <UCard v-if="!emptyState" :ui="{ body: 'sm:p-0 p-0' }" class="hidden lg:block">
       <div class="overflow-x-auto">
         <UTable
           :data="items"
