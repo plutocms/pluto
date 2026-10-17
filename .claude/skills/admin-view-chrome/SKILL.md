@@ -95,6 +95,22 @@ Like `PlutoViewToolbar`, this is a hand-built stand-in rather than Nuxt UI's own
 `UDashboardSidebar`, for the same reason: `UDashboardSidebar` listens to a global toggle hook,
 and a second instance of it here would fight the app-level sidebar for that hook.
 
+## List states in `PlutoContentList`
+
+While the list has no rows, `PlutoContentList` shows one Nuxt UI `UEmpty` instead of the cards
+(mobile) and the table (desktop):
+
+- **Loading** — the first request is pending. Title "Loading <plural>…" with a spinner.
+- **Error** — the request failed. Title "Could not load <plural>" and a "Try again" button.
+- **Empty** — the request returned no rows. Title "No <plural> yet", the content type icon,
+  and a "New <label>" button if the user has `capabilities.write`.
+
+With rows, a failed refresh keeps the rows and shows a `UAlert` above them, with a "Try again"
+button. The toolbar Refresh button and both "Try again" buttons call `retry()`, which catches
+the rejection. Do not call `refresh()` directly from a button: it rethrows, and the failure
+becomes an unhandled rejection. The toolbar create button reads "New <label>", the same text
+as the command palette.
+
 ## `PlutoContentType.form` — form layout knobs
 
 ```ts
