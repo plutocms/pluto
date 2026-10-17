@@ -11,10 +11,17 @@ const props = withDefaults(
      * resizable panel. The panel width persists across visits.
      */
     asideOpen?: boolean
+    /**
+     * Fill the main region's height, and let the content scroll inside its
+     * own region, not the whole page. For a view with one long scrolling
+     * list, such as a virtualized table. Default false.
+     */
+    fill?: boolean
   }>(),
   {
     width: 'container',
     asideOpen: false,
+    fill: false,
   }
 )
 
@@ -86,7 +93,7 @@ const items = computed<SplitterItem[]>(() => [
         @dragging="onDragging"
       >
         <template #main>
-          <main class="min-h-0 w-full overflow-y-auto">
+          <main :class="fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'" class="min-h-0 w-full">
             <!--
               'container' matches AdminView's own padding/gap classes, so a view
               moving from AdminView to this panel looks the same. 'full' adds
@@ -95,6 +102,7 @@ const items = computed<SplitterItem[]>(() => [
             -->
             <UContainer
               v-if="width === 'container'"
+              :class="{ 'h-full min-h-0': fill }"
               class="flex max-w-300 flex-col gap-y-6 px-4 py-6 sm:px-6 lg:gap-y-8 lg:px-8 lg:py-10"
             >
               <slot />

@@ -96,3 +96,83 @@ describe('usePlutoContentList', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 })
+
+describe('usePlutoContentList with pageSize', () => {
+  const rows = (from: number, count: number) => Array.from({ length: count }, (_, i) => ({ id: from + i }))
+
+  it('fetches the first page with limit and offset', async () => {
+    fetchMock.mockResolvedValue({ data: rows(1, 2), total: 5 })
+    const { usePlutoContentList } = await loadComposable()
+
+    const list = usePlutoContentList('post', { pageSize: 2 })
+    await vi.waitFor(() => expect(list.pending.value).toBe(false))
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/_pluto/content/post', { query: { limit: 2, offset: 0 } })
+    expect(list.items.value).toHaveLength(2)
+    expect(list.hasMore.value).toBe(true)
+  })
+
+  it('loadMore() appends the next page until the total is reached', async () => {
+    fetchMock
+      .mockResolvedValueOnce({ data: rows(1, 2), total: 3 })
+      .mockResolvedValueOnce({ data: rows(3, 1), total: 3 })
+    const { usePlutoContentList } = await loadComposable()
+
+    const list = usePlutoContentList('post', { pageSize: 2 })
+    await vi.waitFor(() => expect(list.pending.value).toBe(false))
+    await list.loadMore()
+
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/_pluto/content/post', { query: { limit: 2, offset: 2 } })
+    expect(list.items.value.map((item) => item.id)).toEqual([1, 2, 3])
+    expect(list.hasMore.value).toBe(false)
+
+    await list.loadMore()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('without a total, a full page means there may be another one', async () => {
+    fetchMock
+      .mockResolvedValueOnce({ data: rows(1, 2) })
+      .mockResolvedValueOnce({ data: rows(3, 1) })
+    const { usePlutoContentList } = await loadComposable()
+
+    const list = usePlutoContentList('post', { pageSize: 2 })
+    await vi.waitFor(() => expect(list.pending.value).toBe(false))
+    expect(list.hasMore.value).toBe(true)
+
+    await list.loadMore()
+    expect(list.hasMore.value).toBe(false)
+  })
+
+  it('remove() drops the row in place, without a refetch', async () => {
+    fetchMock.mockResolvedValueOnce({ data: rows(1, 2), total: 5 })
+    const { usePlutoContentList } = await loadComposable()
+
+    const list = usePlutoContentList('post', { pageSize: 2 })
+    await vi.waitFor(() => expect(list.pending.value).toBe(false))
+
+    fetchMock.mockResolvedValueOnce(undefined)
+    await list.remove(1)
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(list.items.value.map((item) => item.id)).toEqual([2])
+    expect(list.total.value).toBe(4)
+  })
+
+  it('drops a page that finishes after a newer refresh()', async () => {
+    let resolveFirst!: (value: unknown) => void
+    fetchMock
+      .mockReturnValueOnce(new Promise((resolve) => {
+ resolveFirst = resolve
+}))
+      .mockResolvedValueOnce({ data: rows(10, 1), total: 1 })
+    const { usePlutoContentList } = await loadComposable()
+
+    const list = usePlutoContentList('post', { pageSize: 2 })
+    await list.refresh()
+    resolveFirst({ data: rows(1, 2), total: 5 })
+    await vi.waitFor(() => expect(list.pending.value).toBe(false))
+
+    expect(list.items.value.map((item) => item.id)).toEqual([10])
+  })
+})

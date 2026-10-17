@@ -367,6 +367,15 @@ const { item, pending, error, refresh, save, remove } = usePlutoContentItem('pos
 await save(payload) // POSTs when id is undefined, PATCHes when id is defined
 ```
 
+`usePlutoContentList(typeName, { pageSize })` loads the list page by page. It requests
+`?limit=<pageSize>&offset=<n>`, appends each page, and also returns `loadingMore`, `hasMore`,
+and `loadMore()`. `hasMore` compares the loaded rows with `total`; without a `total`, a full page
+means there may be another one. `remove(id)` then drops the row in place instead of a refetch,
+so the loaded pages and the scroll position stay. A response that finishes after a newer
+`refresh()` is dropped. Without `pageSize`, one request returns every row, as before (an adapter
+can cap it: the Supabase adapter returns at most 1000 rows). `PlutoContentList` uses
+`pageSize: 50`.
+
 `id` is read once, with `toValue`, at composable-creation time — not watched for later changes.
 Each generated page mounts fresh on every route change, so there is no case in this wave where
 `id` changes under a still-mounted `PlutoContentForm`.

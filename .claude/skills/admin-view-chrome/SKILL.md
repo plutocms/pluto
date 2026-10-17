@@ -41,6 +41,10 @@ The outer shell for one view. Props:
 - `asideOpen?: boolean` — default `false`. Pass the same value as the aside's `v-model:open`.
   While it is `true` on desktop, the aside sits in a resizable panel (see "Resizable aside"
   below). Without it, the aside keeps its fixed `width`.
+- `fill?: boolean` — default `false`. The main region fills the panel's height and does not
+  scroll. The content scrolls inside its own region instead, for a view with one long list
+  (such as a virtualized table). The content must be a flex column child that takes
+  `flex-1 min-h-0` and scrolls itself.
 
 Slots:
 
@@ -110,6 +114,21 @@ button. The toolbar Refresh button and both "Try again" buttons call `retry()`, 
 the rejection. Do not call `refresh()` directly from a button: it rethrows, and the failure
 becomes an unhandled rejection. The toolbar create button reads "New <label>", the same text
 as the command palette.
+
+### Long lists
+
+`PlutoContentList` loads 50 rows at a time (`usePlutoContentList(type, { pageSize: 50 })`). It
+uses `PlutoViewAdminPanel` with `fill`, so the list scrolls inside its own region and the page
+does not scroll:
+
+- Desktop: `UTable` with `virtualize` (only the visible rows render) and `sticky` (the header
+  row stays at the top). The table fills the remaining height.
+- Mobile: the card list is a flex column that scrolls. Each card has `shrink-0`. In a grid or
+  flex container with a fixed height, a card without it collapses to its border.
+- `useInfiniteScroll` on the table and on the card list calls `loadMore()` 240px before the
+  end. It stops while an error shows, so a failing page does not load in a loop.
+- A footer shows "Showing <loaded> of <total> <plural>", and "Loading more…" while a page
+  loads.
 
 ## `PlutoContentType.form` — form layout knobs
 
