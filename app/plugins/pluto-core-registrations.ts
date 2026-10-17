@@ -5,6 +5,7 @@ import PlutoFieldReference from '../components/Pluto/Content/fields/PlutoFieldRe
 import PlutoFieldSelect from '../components/Pluto/Content/fields/PlutoFieldSelect.vue'
 import PlutoFieldSlug from '../components/Pluto/Content/fields/PlutoFieldSlug.vue'
 import PlutoFieldText from '../components/Pluto/Content/fields/PlutoFieldText.vue'
+import PlutoDashboardContentOverview from '../components/Pluto/Dashboard/PlutoDashboardContentOverview.vue'
 
 // Registers core's own Home and Settings anchors, plus the eight built-in
 // content field widgets. `order: 0` and `order: 1000` are reserved for the
@@ -40,6 +41,20 @@ export default defineNuxtPlugin(() => {
       { id: 'date', fieldType: 'date', component: PlutoFieldDate },
       { id: 'select', fieldType: 'select', component: PlutoFieldSelect },
       { id: 'reference', fieldType: 'reference', component: PlutoFieldReference },
+    ],
+    // `order: 0` puts the content overview first. It spans the full row
+    // because it lays out its own grid of tiles. It is disabled while no
+    // content type is registered, so the dashboard shows its own empty
+    // message instead of a blank cell.
+    dashboardWidgets: [
+      {
+        id: 'content-overview',
+        order: 0,
+        title: 'Content',
+        colSpan: 3,
+        component: PlutoDashboardContentOverview,
+        enabled: () => usePlutoContentTypes().items.value.length > 0,
+      },
     ],
   })
 })

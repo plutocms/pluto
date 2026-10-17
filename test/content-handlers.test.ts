@@ -98,7 +98,21 @@ describe('listContentItems', () => {
     expect(authorize).not.toHaveBeenCalled()
   })
 
-  it('always requests includeUnpublished from the adapter', async () => {
+  it('narrows to published rows when published is true', async () => {
+    const { registerContentAdapter, listContentItems } = await loadHandlers()
+
+    const adapter = createMemoryContentAdapter()
+    const listSpy = vi.spyOn(adapter, 'list')
+    registerContentAdapter(adapter)
+
+    const ctx = ctxFor(contentType())
+
+    await listContentItems(ctx, { limit: 1, published: true })
+
+    expect(listSpy).toHaveBeenCalledWith(ctx, expect.objectContaining({ limit: 1, includeUnpublished: false }))
+  })
+
+  it('requests includeUnpublished from the adapter by default', async () => {
     const { registerContentAdapter, listContentItems } = await loadHandlers()
 
     const adapter = createMemoryContentAdapter()
