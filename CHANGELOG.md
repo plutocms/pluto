@@ -1,6 +1,26 @@
 # Changelog
 
 
+## [0.12.0](https://github.com/plutocms/pluto/compare/v0.11.0...v0.12.0) (2026-10-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **admin:** An app with its own Tailwind entry must import @nuxt/ui and #build/pluto.css after tailwindcss:
+
+### Features
+
+* **admin:** add a Cmd/Ctrl+K command palette ([#150](https://github.com/plutocms/pluto/issues/150)) ([540a4fb](https://github.com/plutocms/pluto/commit/540a4fb5f6fb5ed8b3d32fc05efe70f862222ff8))
+* **admin:** add a content overview widget to the dashboard ([#152](https://github.com/plutocms/pluto/issues/152)) ([b925f83](https://github.com/plutocms/pluto/commit/b925f8383d64b64b47738bfad2617a8ecbeb3172))
+* **admin:** make the view aside resizable ([#147](https://github.com/plutocms/pluto/issues/147)) ([f400cc1](https://github.com/plutocms/pluto/commit/f400cc1fa54fbcab7b4bc30c18d8f3cddad026d9))
+* **admin:** redesign the dashboard, isolate the admin theme, and use one Tailwind build ([#153](https://github.com/plutocms/pluto/issues/153)) ([e1461b9](https://github.com/plutocms/pluto/commit/e1461b9a58267e71b42e2bceadc7c1f6d471861e))
+* **content:** add loading, empty, and error states to the content list ([#151](https://github.com/plutocms/pluto/issues/151)) ([7d26540](https://github.com/plutocms/pluto/commit/7d2654027c4329b8fc08843a672b43d73a4e7e55))
+
+
+### Bug Fixes
+
+* **admin:** start the dashboard group below the navbar again ([#149](https://github.com/plutocms/pluto/issues/149)) ([32d4970](https://github.com/plutocms/pluto/commit/32d497013c487b317d376376e645a502f9054a35))
+
 ## [0.11.0](https://github.com/plutocms/pluto/compare/v0.10.0...v0.11.0) (2026-10-16)
 
 
