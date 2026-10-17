@@ -135,6 +135,36 @@ export default defineNuxtConfig({
 })
 ```
 
+### Styles: one Tailwind build
+
+Your app owns the only Tailwind build. Pluto layers do not register their own. Start your
+CSS entry with these three imports, then add your own theme after them:
+
+```css
+/* app/assets/css/main.css */
+@import 'tailwindcss';
+@import '@nuxt/ui';
+@import '#build/pluto.css';
+
+@theme {
+  /* your site's tokens */
+}
+```
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  css: ['~/assets/css/main.css'],
+})
+```
+
+`#build/pluto.css` brings in the CSS of every Pluto layer, including the admin theme. Nuxt UI
+already scans the source of every layer. If your app has no Tailwind entry, Pluto uses a
+fallback entry. If the setup is wrong, the build prints a `pluto-css` warning with the fix.
+
+The admin keeps its own palette and font. Your site's `app.config` colors and `@theme`
+tokens do not change the admin.
+
 ## Dashboard & headless usage
 
 Although Pluto is built on Nuxt, it is not limited to Nuxt-only consumption.
