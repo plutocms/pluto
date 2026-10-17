@@ -10,12 +10,13 @@ import {
 describe('findLayerCssFiles', () => {
   it('returns existing layer files, base layer first', () => {
     // Nuxt lists layers top first: the app, then the layers it extends.
-    const appDirs = ['C:\\site\\app\\', 'C:\\layers\\shop\\app\\', 'C:\\layers\\ui\\app\\', 'C:\\layers\\pluto\\app\\']
-    const existing = new Set(['C:/layers/shop/app/assets/css/pluto-layer.css', 'C:/layers/pluto/app/assets/css/pluto-layer.css'])
+    // POSIX input, so the test runs the same on Windows and on Linux CI.
+    const appDirs = ['/site/app/', '/layers/shop/app/', '/layers/ui/app/', '/layers/pluto/app/']
+    const existing = new Set(['/layers/shop/app/assets/css/pluto-layer.css', '/layers/pluto/app/assets/css/pluto-layer.css'])
 
     expect(findLayerCssFiles(appDirs, (path) => existing.has(path))).toEqual([
-      'C:/layers/pluto/app/assets/css/pluto-layer.css',
-      'C:/layers/shop/app/assets/css/pluto-layer.css',
+      '/layers/pluto/app/assets/css/pluto-layer.css',
+      '/layers/shop/app/assets/css/pluto-layer.css',
     ])
   })
 })
