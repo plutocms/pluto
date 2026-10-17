@@ -48,7 +48,31 @@ function editPath(id: string | number) {
   return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
 }
 
-const { items, pending, error, refresh, remove } = usePlutoContentList(props.type)
+// Load the list 50 rows at a time. The table is virtualized, so only the
+// visible rows render, and the next page loads when the user scrolls near
+// the end of the table (or of the card list, on mobile).
+const PAGE_SIZE = 50
+const { items, total, pending, loadingMore, hasMore, error, refresh, loadMore, remove } = usePlutoContentList(
+  props.type,
+  { pageSize: PAGE_SIZE }
+)
+
+const tableRef = useTemplateRef<{
+ $el: HTMLElement
+}>('table')
+const mobileListRef = useTemplateRef<HTMLElement>('mobileList')
+
+function loadMoreSafely() {
+  // A failure lands in `error`, and the alert offers "Try again".
+  loadMore().catch(() => {})
+}
+
+// Stop while an error shows, so a failing page does not load in a loop.
+const canLoadMore = () => hasMore.value && !error.value
+useInfiniteScroll(() => tableRef.value?.$el, loadMoreSafely, { distance: 240, canLoadMore })
+useInfiniteScroll(mobileListRef, loadMoreSafely, { distance: 240, canLoadMore })
+
+const number = new Intl.NumberFormat()
 
 // What to show while the list has no rows. With rows, the list shows
 // them, and a failed refresh shows an alert above them instead.
@@ -119,7 +143,7 @@ async function confirmDelete() {
 </script>
 
 <template>
-  <PlutoViewAdminPanel v-if="contentType">
+  <PlutoViewAdminPanel v-if="contentType" fill>
     <template #toolbar>
       <PlutoViewToolbar :title="contentType.labelPlural">
         <template #trailing>
@@ -176,8 +200,12 @@ async function confirmDelete() {
       icon="lucide:circle-alert"
     />
 
-    <div v-if="!emptyState" class="grid gap-3 lg:hidden">
-      <UCard v-for="item in items" :key="item.id">
+    <div
+      v-if="!emptyState"
+      ref="mobileList"
+      class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto lg:hidden"
+    >
+      <UCard v-for="item in items" :key="item.id" class="shrink-0">
         <div class="flex flex-col gap-4">
           <div class="min-w-0">
             <NuxtLink
@@ -222,15 +250,18 @@ async function confirmDelete() {
       </UCard>
     </div>
 
-    <UCard v-if="!emptyState" :ui="{ body: 'sm:p-0 p-0' }" class="hidden lg:block">
-      <div class="overflow-x-auto">
-        <UTable
-          :data="items"
-          :columns="columns"
-          :loading="pending"
-          empty="No items yet."
-        >
-          <template #actions-cell="{ row }">
+    <UTable
+      v-if="!emptyState"
+      ref="table"
+      :data="items"
+      :columns="columns"
+      :loading="pending || loadingMore"
+      class="ring-default hidden min-h-0 flex-1 rounded-lg ring lg:block"
+      empty="No items yet."
+      sticky
+      virtualize
+    >
+      <template #actions-cell="{ row }">
             <div class="flex justify-end gap-3">
               <NuxtLink
                 v-if="canWrite"
@@ -249,10 +280,15 @@ async function confirmDelete() {
                 Remove
               </button>
             </div>
-          </template>
-        </UTable>
-      </div>
-    </UCard>
+      </template>
+    </UTable>
+
+    <p v-if="!emptyState" class="text-muted shrink-0 text-xs tabular-nums" aria-live="polite">
+      Showing {{ number.format(items.length) }}
+      <template v-if="total !== undefined">of {{ number.format(total) }}</template>
+      {{ contentType.labelPlural.toLowerCase() }}
+      <template v-if="loadingMore">· Loading more…</template>
+    </p>
   </PlutoViewAdminPanel>
 
   <PlutoViewAdminPanel v-else>
