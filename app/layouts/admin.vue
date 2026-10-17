@@ -59,6 +59,7 @@ const groupStyle = { top: 'var(--ui-header-height)' }
       :ui="{
         root: 'min-h-0 dark:bg-admin-sidebar light:bg-zinc-100',
         content: 'lg:hidden w-[min(18rem,85vw)]',
+        header: 'h-auto py-3',
       }"
       resizable
     >
