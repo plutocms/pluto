@@ -78,9 +78,19 @@ up) it renders as a plain `<aside>` beside the main content. On a narrow screen 
 `USlideover` instead. Props: `title?: string`, `width?: number` (desktop width in px, default
 320; ignored inside a resizable panel).
 
-The slideover opens on narrow screens only, through a `useMediaQuery` check. Do not replace that
-check with a `lg:hidden` class. An open slideover is a modal dialog. It disables pointer events
-on the rest of the page even while CSS hides it, so the desktop page stops taking clicks.
+A `useMediaQuery` check renders the plain `<aside>` on wide screens only, and the `USlideover`
+on narrow screens only, so the slot mounts once. Do not replace that check with `hidden lg:flex`
+or `lg:hidden` classes:
+
+- CSS hides a copy, but the copy stays mounted. Each copy fetches its own field options, so a
+  narrow screen made two requests per option list on every open.
+- An open slideover is a modal dialog. It disables pointer events on the rest of the page even
+  while CSS hides it, so the desktop page stops taking clicks.
+
+The slideover sets `unmount-on-hide="false"`. After the first open, its slot stays mounted
+(hidden) when it closes. A reopen keeps the widget state, such as an open picker or a typed
+search, and does not fetch the field options again. Field values live in the form state, so
+they were never lost; only the widgets' own local state was.
 
 ### Resizable aside
 

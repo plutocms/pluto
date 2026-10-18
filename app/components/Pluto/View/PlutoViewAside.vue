@@ -26,11 +26,11 @@ function close() {
   open.value = false
 }
 
-// Open the slideover on mobile only. A `lg:hidden` class alone is not
-// enough: an open slideover is a modal dialog, so it disables pointer
-// events on the rest of the page even while it is hidden. On desktop, the
-// page then stops taking clicks as soon as the aside opens. It also mounts
-// the slot a second time.
+// Render the plain aside on desktop only, and the slideover on mobile only,
+// so the slot mounts once. CSS classes (`hidden lg:flex`, `lg:hidden`) are
+// not enough: they hide a copy, but the copy stays mounted and fetches its
+// own data. An open slideover is also a modal dialog. It disables pointer
+// events on the rest of the page even while CSS hides it.
 const isDesktop = useMediaQuery('(min-width: 64rem)')
 const resizable = inject(plutoViewAsideResizableKey, ref(false))
 const slideoverOpen = computed({
@@ -47,10 +47,10 @@ const slideoverOpen = computed({
     width and its handle draws the border. Elsewhere, keep the fixed width.
   -->
   <aside
-    v-if="open"
+    v-if="open && isDesktop"
     :style="resizable ? undefined : { width: `${width}px` }"
     :class="resizable ? 'w-full' : 'border-default shrink-0 border-s'"
-    class="hidden h-full flex-col lg:flex"
+    class="flex h-full flex-col"
   >
     <div class="border-default flex h-12 shrink-0 items-center justify-between gap-1.5 border-b px-4">
       <h2 class="text-highlighted truncate text-sm font-semibold">{{ title }}</h2>
@@ -67,9 +67,16 @@ const slideoverOpen = computed({
     </div>
   </aside>
 
+  <!--
+    `unmount-on-hide="false"` keeps the slot mounted after the first open,
+    so a reopen keeps the widget state (an open picker, a typed search) and
+    does not fetch the field options again.
+  -->
   <USlideover
+    v-if="!isDesktop"
     v-model:open="slideoverOpen"
     :title="title"
+    :unmount-on-hide="false"
     side="right"
   >
     <template #body>
