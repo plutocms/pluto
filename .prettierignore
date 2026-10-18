@@ -1,0 +1,2 @@
+# Agent skill files keep their own formatting. Prettier must not rewrite them.
+.agents/**/*.md
