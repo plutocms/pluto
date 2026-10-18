@@ -173,7 +173,7 @@
   --ui-text: var(--ui-color-neutral-200);
   --ui-text-highlighted: #fff;
   --ui-text-inverted: var(--ui-color-neutral-900);
-  --ui-bg: var(--ui-color-neutral-900);
+  --ui-bg: oklch(24% 0.006 286);
   --ui-bg-muted: var(--ui-color-neutral-800);
   --ui-bg-elevated: var(--ui-color-neutral-800);
   --ui-bg-accented: var(--ui-color-neutral-700);
@@ -190,10 +190,10 @@
   --ui-chart-5: oklch(58.8% 0.158 241.966); /* sky-600 */
   --ui-chart-6: oklch(64.8% 0.2 131.684); /* lime-600 */
 
-  /* Cards (--ui-bg, zinc-900) sit one step above the canvas (zinc-950). */
-  --pluto-admin-canvas: oklch(14.1% 0.005 285.823);
-  --pluto-admin-sidebar: oklch(14.1% 0.005 285.823);
-  --pluto-admin-navbar: oklch(14.1% 0.005 285.823);
+  /* A dim dark gray, not pitch black. Cards (--ui-bg) sit one step above. */
+  --pluto-admin-canvas: oklch(21% 0.006 285.885);
+  --pluto-admin-sidebar: oklch(21% 0.006 285.885);
+  --pluto-admin-navbar: oklch(21% 0.006 285.885);
 }
 
 :root[data-pluto-admin] body {

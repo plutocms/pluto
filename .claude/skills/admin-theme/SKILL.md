@@ -53,13 +53,13 @@ scoped element, the `:root` tokens would still hold the app's colors.
 | neutral | zinc |
 
 Surfaces (`--pluto-admin-canvas`, `--pluto-admin-sidebar`, `--pluto-admin-navbar`): white and
-zinc-50 in light mode, zinc-950 in dark mode. Cards (`--ui-bg`) are zinc-900 in dark mode, one
-step above the canvas.
+zinc-50 in light mode. In dark mode they are zinc-900, a dim dark gray, not pitch black. Dark
+cards (`--ui-bg`) are `oklch(24% 0.006 286)`, one step above the canvas.
 
 Chart series (`--ui-chart-1` to `-6`): primary, then amber, teal, rose, sky, lime. Light uses
 amber-600, teal-600, rose-500, sky-600, lime-700. Dark uses the same, with lime-600. The
 dataviz palette checks pass for both: lightness band, chroma floor, colorblind separation,
-normal-vision separation, and 3:1 contrast (on white and on zinc-900). Run the checks again
+normal-vision separation, and 3:1 contrast (on white and on the dark card surface). Run the checks again
 before you change a slot.
 
 ## Rules for admin code
