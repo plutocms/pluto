@@ -52,8 +52,11 @@ scoped element, the `:root` tokens would still hold the app's colors.
 | error | red |
 | neutral | zinc |
 
-Surfaces (`--pluto-admin-canvas`, `--pluto-admin-sidebar`, `--pluto-admin-navbar`): white and
-zinc-50 in light mode. In dark mode they go from darkest at the top to lightest in the content:
+Surfaces (`--pluto-admin-canvas`, `--pluto-admin-sidebar`, `--pluto-admin-navbar`): in light
+mode, a white canvas, a zinc-50 sidebar, and a zinc-950 (near black) navbar. The navbar is near
+black in both modes. `PlutoNavbarAdmin` sets `data-pluto-admin-dark`, so its text and buttons
+take the dark tokens in light mode too. In dark mode the surfaces go from darkest at the top to
+lightest in the content:
 
 | Surface | Dark value |
 |---|---|

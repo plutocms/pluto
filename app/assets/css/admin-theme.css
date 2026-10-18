@@ -9,6 +9,10 @@
  * - `[data-pluto-admin-scope]`: for admin chrome that also shows on the
  *   public site, such as the admin navbar for a logged-in admin.
  *
+ * `[data-pluto-admin-dark]` takes the dark tokens in both color modes. The
+ * admin navbar is near black in light mode too, so its text and buttons need
+ * the dark values.
+ *
  * Every value is a literal. The consumer app styles its public site through
  * its own app.config colors and @theme. Both reach the admin unless the admin
  * pins its own values: app.config colors set Nuxt UI's --ui-color-* scales on
@@ -149,17 +153,18 @@
   --ui-chart-5: oklch(58.8% 0.158 241.966); /* sky-600 */
   --ui-chart-6: oklch(53.2% 0.157 131.589); /* lime-700 */
 
-  /* Surfaces */
+  /* Surfaces. The navbar is near black in both modes. */
   --pluto-admin-canvas: #fff;
   --pluto-admin-sidebar: oklch(98.5% 0 none);
-  --pluto-admin-navbar: #fff;
+  --pluto-admin-navbar: oklch(14.1% 0.005 285.823);
 
   --ui-radius: 0.375rem;
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root[data-pluto-admin].dark,
-.dark [data-pluto-admin-scope] {
+.dark [data-pluto-admin-scope],
+[data-pluto-admin-dark] {
   --ui-primary: var(--ui-color-primary-400);
   --ui-secondary: var(--ui-color-secondary-400);
   --ui-success: var(--ui-color-success-400);
