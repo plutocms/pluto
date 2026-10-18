@@ -34,7 +34,11 @@ params?: MessageParams
  * Turns an error into text for an admin. Order:
  *
  * 1. The translated `data.i18n` of a server `createPlutoError`.
- * 2. The server `statusMessage`, then the server `message` (English).
+ * 2. The `statusMessage`, then the `message`, of the response body
+ *    (English). Then the `statusMessage` of the error itself. A `$fetch`
+ *    error copies that one from the HTTP status text. The status text can
+ *    be a generic phrase ("Unsupported Media Type") and is empty over
+ *    HTTP/2, so the body comes first.
  * 3. The translated fallback key.
  */
 export function resolveErrorText(
@@ -53,6 +57,6 @@ te: (key: string) => boolean
     return i18n.t(tag.key, tag.params)
   }
 
-  const server = nonEmpty(source?.statusMessage) ?? nonEmpty(data?.statusMessage) ?? nonEmpty(data?.message)
+  const server = nonEmpty(data?.statusMessage) ?? nonEmpty(data?.message) ?? nonEmpty(source?.statusMessage)
   return server ?? i18n.t(fallbackKey)
 }
