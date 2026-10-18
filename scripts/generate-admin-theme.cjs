@@ -13,7 +13,10 @@ const scales = Object.entries(roles).map(([role, hue]) => `  /* ${role}: ${hue} 
 const semantic = (shade) => Object.keys(roles).filter((r) => r !== 'neutral').map((r) => `  --ui-${r}: var(--ui-color-${r}-${shade});`).join('\n')
 const n = (s) => `var(--ui-color-neutral-${s})`
 const neutralLight = { 'text-dimmed': n(400), 'text-muted': n(500), 'text-toned': n(600), 'text': n(700), 'text-highlighted': n(900), 'text-inverted': '#fff', 'bg': '#fff', 'bg-muted': n(50), 'bg-elevated': n(100), 'bg-accented': n(200), 'bg-inverted': n(900), 'border': n(200), 'border-muted': n(200), 'border-accented': n(300), 'border-inverted': n(900) }
-const neutralDark = { 'text-dimmed': n(500), 'text-muted': n(400), 'text-toned': n(300), 'text': n(200), 'text-highlighted': '#fff', 'text-inverted': n(900), 'bg': n(900), 'bg-muted': n(800), 'bg-elevated': n(800), 'bg-accented': n(700), 'bg-inverted': '#fff', 'border': n(800), 'border-muted': n(700), 'border-accented': n(700), 'border-inverted': '#fff' }
+// Dark cards sit one step above the zinc-900 canvas: between zinc-900 and
+// zinc-800. The chart palette passes the dataviz checks on this surface.
+const CARD_DARK = 'oklch(24% 0.006 286)'
+const neutralDark = { 'text-dimmed': n(500), 'text-muted': n(400), 'text-toned': n(300), 'text': n(200), 'text-highlighted': '#fff', 'text-inverted': n(900), 'bg': CARD_DARK, 'bg-muted': n(800), 'bg-elevated': n(800), 'bg-accented': n(700), 'bg-inverted': '#fff', 'border': n(800), 'border-muted': n(700), 'border-accented': n(700), 'border-inverted': '#fff' }
 const tokens = (o) => Object.entries(o).map(([k, val]) => `  --ui-${k}: ${val};`).join('\n')
 // Validated with the dataviz palette checks on white (light) and zinc-900
 // (dark). Re-run the checks before you change a slot.
@@ -76,10 +79,10 @@ ${tokens(neutralDark)}
 
 ${chart(chartDark)}
 
-  /* Cards (--ui-bg, zinc-900) sit one step above the canvas (zinc-950). */
-  --pluto-admin-canvas: ${v('zinc-950')};
-  --pluto-admin-sidebar: ${v('zinc-950')};
-  --pluto-admin-navbar: ${v('zinc-950')};
+  /* A dim dark gray, not pitch black. Cards (--ui-bg) sit one step above. */
+  --pluto-admin-canvas: ${v('zinc-900')};
+  --pluto-admin-sidebar: ${v('zinc-900')};
+  --pluto-admin-navbar: ${v('zinc-900')};
 }
 
 :root[data-pluto-admin] body {
