@@ -230,7 +230,9 @@ On the client, `usePlutoErrorText()` returns `(error, fallbackKey?) => string`. 
 
 1. The translated `data.i18n` (the key must exist). It reads `error.data.data.i18n` for a
    `$fetch` error, and `error.data.i18n` for an error that Nuxt created on the client.
-2. The server `statusMessage`, then the server `message`.
+2. The `statusMessage`, then the `message`, of the response body. Then the `statusMessage` of
+   the error itself, which a `$fetch` error copies from the HTTP status text (generic, and empty
+   over HTTP/2).
 3. The translated fallback key. The default is `pluto.errors.unknown`.
 
 Use it where the UI shows a server error, as `PlutoContentForm` does for a failed save or delete.

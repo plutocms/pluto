@@ -61,6 +61,15 @@ describe('resolveErrorText', () => {
     expect(resolveErrorText(noKey, 'pluto.form.saveError', pt)).toBe('Forbidden')
   })
 
+  it('prefers the response body message over the HTTP status text', () => {
+    const fetchError = {
+      statusMessage: 'Unsupported Media Type',
+      data: { statusCode: 415, statusMessage: 'File type "text/plain" is not allowed.' },
+    }
+
+    expect(resolveErrorText(fetchError, 'pluto.form.saveError', en)).toBe('File type "text/plain" is not allowed.')
+  })
+
   it('uses the server message when there is no statusMessage', () => {
     expect(resolveErrorText({ data: { message: 'Boom' } }, 'pluto.form.saveError', en)).toBe('Boom')
   })
