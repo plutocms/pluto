@@ -37,6 +37,10 @@ const css = `/*
  * - \`[data-pluto-admin-scope]\`: for admin chrome that also shows on the
  *   public site, such as the admin navbar for a logged-in admin.
  *
+ * \`[data-pluto-admin-dark]\` takes the dark tokens in both color modes. The
+ * admin navbar is near black in light mode too, so its text and buttons need
+ * the dark values.
+ *
  * Every value is a literal. The consumer app styles its public site through
  * its own app.config colors and @theme. Both reach the admin unless the admin
  * pins its own values: app.config colors set Nuxt UI's --ui-color-* scales on
@@ -64,17 +68,18 @@ ${tokens(neutralLight)}
 
 ${chart(chartLight)}
 
-  /* Surfaces */
+  /* Surfaces. The navbar is near black in both modes. */
   --pluto-admin-canvas: #fff;
   --pluto-admin-sidebar: ${v('zinc-50')};
-  --pluto-admin-navbar: #fff;
+  --pluto-admin-navbar: ${v('zinc-950')};
 
   --ui-radius: 0.375rem;
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root[data-pluto-admin].dark,
-.dark [data-pluto-admin-scope] {
+.dark [data-pluto-admin-scope],
+[data-pluto-admin-dark] {
 ${semantic(400)}
 
 ${tokens(neutralDark)}
