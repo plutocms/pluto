@@ -1,0 +1,33 @@
+{
+  "pluto": {
+    "common": {
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "delete": "Excluir",
+      "tryAgain": "Tentar novamente",
+      "close": "Fechar",
+      "loading": "Carregando..."
+    },
+    "settings": {
+      "language": {
+        "cardTitle": "Suas preferências",
+        "label": "Idioma",
+        "description": "Escolha o idioma do painel. Vale só para a sua conta.",
+        "automatic": "Automático (navegador)",
+        "saved": "Idioma atualizado",
+        "saveFailed": "Não foi possível salvar o idioma",
+        "saveFailedDescription": "O idioma mudou apenas neste dispositivo. {reason}"
+      }
+    },
+    "validation": {
+      "required": "Preencha \"{label}\".",
+      "number": "Informe um número em \"{label}\".",
+      "integer": "Informe um número inteiro em \"{label}\".",
+      "min": "Informe em \"{label}\" um valor de no mínimo {min}.",
+      "max": "Informe em \"{label}\" um valor de no máximo {max}.",
+      "boolean": "Use apenas verdadeiro ou falso em \"{label}\".",
+      "option": "Escolha uma das opções permitidas em \"{label}\".",
+      "maxLength": "Use no máximo {max} caracteres em \"{label}\"."
+    }
+  }
+}

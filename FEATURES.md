@@ -33,6 +33,10 @@ policies shared by every project here.
 - Admin theme: the admin keeps its own palette, chart colors, surfaces, and font under
   `data-pluto-admin`, so the consumer app's site theme does not reach it.
   @.claude/skills/admin-theme/SKILL.md
+- Internationalization (i18n): a custom engine for the admin and the public site. The pluto-i18n
+  module merges each layer's `i18n/locales/<code>.json`, `usePlutoI18n()` and
+  `usePlutoSiteI18n()` translate and format, a per-user admin language is chosen on the Settings
+  page and stored through a registered locale driver. @.claude/skills/i18n/SKILL.md
 - Single Tailwind build: the app owns the only Tailwind build. The pluto-css module generates
   `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md

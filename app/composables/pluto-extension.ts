@@ -20,6 +20,10 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.id,
     definition.settingsDriver ? [definition.settingsDriver] : []
   )
+  registry.localeDrivers.set(
+    definition.id,
+    definition.localeDriver ? [definition.localeDriver] : []
+  )
   registry.dashboardWidgets.set(definition.id, definition.dashboardWidgets ?? [])
   registry.capabilities.set(definition.id, definition.capabilities ?? [])
   registry.permissionsDrivers.set(

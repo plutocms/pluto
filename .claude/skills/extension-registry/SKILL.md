@@ -8,7 +8,8 @@ It adds:
 
 - `shared/types/registry.ts` — the `PlutoExtension` shape and the type of each registrable
   thing (`PlutoNavItem`, `PlutoNavbarShell`, `PlutoNavbarAction`, `PlutoAdminPage`,
-  `PlutoDashboardWidget`, `PlutoSettingsPanel`, `PlutoSettingsDriver`), plus `PlutoRegistry`.
+  `PlutoDashboardWidget`, `PlutoSettingsPanel`, `PlutoSettingsDriver`, `PlutoLocaleDriver`),
+  plus `PlutoRegistry`.
 - `shared/types/registry.d.ts` — augments `#app`'s `NuxtApp` with an optional `_plutoRegistry`
   field.
 - `app/composables/internal/registry-factory.ts` — `createOwnedRegistry()`, the generic,
@@ -31,7 +32,7 @@ It adds:
   settings driver is registered.
 - `test/registry.test.ts` — unit tests for `createOwnedRegistry`, run under plain Vitest.
 
-## The six registrable things
+## The registrable things
 
 A layer's `definePlutoExtension` call can set any of these. Every field is optional; a layer
 sets only what it has.
@@ -45,6 +46,7 @@ sets only what it has.
 | `dashboardWidgets` | `PlutoDashboardWidget[]` | Cards shown on `/admin/home`. |
 | `settingsPanels` | `PlutoSettingsPanel[]` | Forms shown on `/admin/settings`. |
 | `settingsDriver` | `PlutoSettingsDriver` | Load/save functions for settings storage. One layer normally provides it. |
+| `localeDriver` | `PlutoLocaleDriver` | Load/save functions for the current user's admin language. One layer normally provides it. |
 
 Every entry (`PlutoNavItem`, `PlutoDashboardWidget`, and so on) extends `PlutoEntry`:
 
@@ -55,6 +57,24 @@ Every entry (`PlutoNavItem`, `PlutoDashboardWidget`, and so on) extends `PlutoEn
 - `enabled` — an optional function called inside a `computed`. Return `false` to hide the entry.
   Because it runs inside the registry's own reactive computation, a value it reads (for example
   a feature flag ref) changing later shows or hides the entry automatically.
+
+## Text in an entry: key or literal
+
+Every user-visible string in an entry (`label`, `title`, `description`, and so on) is a plain
+`string`. It can be an English literal, or a translation key such as `supabase-blog.nav.posts`.
+The component that renders the entry passes the string through `tx()` from `usePlutoI18n()`.
+`tx()` translates the value only when it looks like a key and the key exists. Any other value
+comes back unchanged. So an existing layer with English literals keeps working, and a layer can
+move to keys one entry at a time. See the i18n skill.
+
+## The locale driver
+
+`localeDriver` is a `PlutoLocaleDriver`: `load(): Promise<string | null>` returns the stored
+locale code, or `null` for Automatic (browser language). `save(locale: string | null)` stores the
+choice. It follows the settings-driver pattern: the last registered driver wins. A backend layer
+(for example `@plutocms/supabase`) registers it. Core calls `load` from
+`usePlutoI18n().syncUserLocale()`, and `save` from `usePlutoI18n().setLocale()`. With no driver,
+the choice lives in the `pluto-admin-locale` cookie only.
 
 ## Ordering and dedupe
 

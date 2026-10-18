@@ -1,0 +1,33 @@
+{
+  "pluto": {
+    "common": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "tryAgain": "Try again",
+      "close": "Close",
+      "loading": "Loading..."
+    },
+    "settings": {
+      "language": {
+        "cardTitle": "Your preferences",
+        "label": "Language",
+        "description": "Choose the language of the admin. It applies to your account only.",
+        "automatic": "Automatic (browser)",
+        "saved": "Language updated",
+        "saveFailed": "Could not save your language",
+        "saveFailedDescription": "The language changed on this device only. {reason}"
+      }
+    },
+    "validation": {
+      "required": "\"{label}\" is required.",
+      "number": "\"{label}\" must be a number.",
+      "integer": "\"{label}\" must be an integer.",
+      "min": "\"{label}\" must be at least {min}.",
+      "max": "\"{label}\" must be at most {max}.",
+      "boolean": "\"{label}\" must be a boolean.",
+      "option": "\"{label}\" must be one of the allowed options.",
+      "maxLength": "\"{label}\" must be at most {max} characters."
+    }
+  }
+}

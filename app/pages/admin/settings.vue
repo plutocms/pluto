@@ -18,6 +18,9 @@ onMounted(() => {
     <AdminView>
       <h1 class="text-3xl font-bold lg:text-4xl">Settings</h1>
 
+      <!-- Per-user, so it needs no capability and no settings driver. -->
+      <PlutoSettingsLanguage />
+
       <UAlert
         v-if="!hasDriver"
         color="warning"

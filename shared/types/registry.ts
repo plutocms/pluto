@@ -62,6 +62,17 @@ export interface PlutoSettingsDriver extends PlutoEntry {
 }
 
 /**
+ * Loads and saves the current user's admin language. One backend layer
+ * registers this, the same way one layer registers a PlutoSettingsDriver.
+ * `load` returns the stored locale code, or null when the user chose
+ * Automatic (browser language). `save` stores a code, or null for Automatic.
+ */
+export interface PlutoLocaleDriver extends PlutoEntry {
+  load: () => Promise<string | null>
+  save: (locale: string | null) => Promise<void>
+}
+
+/**
  * A capability a layer defines. `key` is the real capability string, for
  * example 'posts:publish'. It is kept separate from `id` on purpose: the
  * registry rewrites `id` to '<extensionId>:<id>' (see registry-factory.ts),
@@ -151,6 +162,7 @@ export interface PlutoExtension {
   dashboardWidgets?: PlutoDashboardWidget[]
   settingsPanels?: PlutoSettingsPanel[]
   settingsDriver?: PlutoSettingsDriver
+  localeDriver?: PlutoLocaleDriver
   capabilities?: PlutoCapability[]
   permissionsDriver?: PlutoPermissionsDriver
   contentTypes?: PlutoContentTypeEntry[]
@@ -178,6 +190,7 @@ export interface PlutoRegistry {
   pages: PlutoRegistryBucket<PlutoAdminPage>
   settingsPanels: PlutoRegistryBucket<PlutoSettingsPanel>
   settingsDrivers: PlutoRegistryBucket<PlutoSettingsDriver>
+  localeDrivers: PlutoRegistryBucket<PlutoLocaleDriver>
   dashboardWidgets: PlutoRegistryBucket<PlutoDashboardWidget>
   capabilities: PlutoRegistryBucket<PlutoCapability>
   permissionsDrivers: PlutoRegistryBucket<PlutoPermissionsDriver>
