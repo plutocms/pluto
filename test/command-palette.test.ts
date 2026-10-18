@@ -2,6 +2,7 @@ import type { PlutoContentType } from '../shared/types/content'
 import type { PlutoNavItem } from '../shared/types/registry'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
+import { createI18nStub } from './fixtures/i18n-stub'
 
 // Same Nuxt-global stubbing as test/pluto-admin-nav-content.test.ts.
 // pluto-command-palette.ts uses auto-imported globals and sibling
@@ -11,15 +12,18 @@ const contentTypes = ref<{
  type: Partial<PlutoContentType>
 }[]>([])
 let granted: Set<string>
+let locale = 'en'
 const navigateTo = vi.fn()
 
 beforeEach(() => {
   navItems.value = []
   contentTypes.value = []
   granted = new Set()
+  locale = 'en'
   navigateTo.mockReset()
 
   vi.stubGlobal('computed', computed)
+  vi.stubGlobal('usePlutoI18n', () => createI18nStub(locale))
   vi.stubGlobal('navigateTo', navigateTo)
   vi.stubGlobal('usePlutoAdminNav', () => ({ items: navItems }))
   vi.stubGlobal('usePlutoContentTypes', () => ({ items: contentTypes }))
@@ -95,6 +99,47 @@ describe('usePlutoCommandPalette', () => {
     granted.add('posts:publish')
     vi.resetModules()
     expect((await groups())[0]!.items!.map((item) => item.label)).toEqual(['New Post', 'New FAQ'])
+  })
+
+  it('translates its own group labels', async () => {
+    contentTypes.value = [{ type: post }]
+    navItems.value = [{ id: 'b', label: 'Settings', to: '/admin/settings' }]
+
+    expect((await groups()).map((group) => group.label)).toEqual(['Create', 'Go to'])
+
+    locale = 'pt-BR'
+    vi.resetModules()
+    expect((await groups()).map((group) => group.label)).toEqual(['Criar', 'Ir para'])
+  })
+
+  it('resolves a key label and passes a plain label through', async () => {
+    navItems.value = [
+      { id: 'a', label: 'pluto.nav.home', to: '/admin/home' },
+      { id: 'b', label: 'Posts', to: '/admin/posts', children: [{ label: 'pluto.content.typeNotFound', to: '/admin/posts/x' }] },
+    ]
+
+    const [goTo] = await groups()
+
+    expect(goTo!.items!.map((item) => item.label)).toEqual(['Home', 'Posts', 'Content type not found'])
+    expect(goTo!.items![2]).toMatchObject({ suffix: 'Posts' })
+  })
+
+  it('uses the convention keys of a content type, with the English literal as the fallback', async () => {
+    contentTypes.value = [
+      { type: { name: 'post', label: 'Post', labelPlural: 'Posts' } },
+      { type: { name: 'unknown-type', label: 'Thing', labelPlural: 'Things' } },
+    ]
+    const messages = { 'content.post.label': 'Artigo', 'content.post.labelPlural': 'Artigos', 'content.post.new': 'Novo artigo' }
+    vi.stubGlobal('usePlutoI18n', () => ({
+      ...createI18nStub(),
+      te: (key: string) => key in messages,
+      t: (key: string, params?: Record<string, unknown>) => messages[key as keyof typeof messages] ?? (params ? `New ${params.label}` : key),
+    }))
+
+    const [create] = await groups()
+
+    expect(create!.items!.map((item) => item.label)).toEqual(['Novo artigo', 'New Thing'])
+    expect(create!.items!.map((item) => item.suffix)).toEqual(['Artigos', 'Things'])
   })
 
   it('drops empty groups', async () => {

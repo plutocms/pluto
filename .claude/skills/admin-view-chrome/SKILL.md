@@ -140,6 +140,13 @@ does not scroll:
 - A footer shows "Showing <loaded> of <total> <plural>", and "Loading more…" while a page
   loads.
 
+### List text and numbers
+
+Every list string is a key in `pluto.list.*` (and `pluto.common.*`). A phrase takes the labels as
+parameters, such as `{labelPlural}`, so a language can reorder the words. The code passes the
+label in lowercase (`usePlutoContentText(...).labelPluralLower`). The counts in the footer use
+`n()` from `usePlutoI18n()`, so they follow the admin language. See the i18n skill.
+
 ## `PlutoContentType.form` — form layout knobs
 
 ```ts

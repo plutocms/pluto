@@ -1,8 +1,11 @@
 <script setup lang="ts">
-const websiteName = 'Pluto Admin'
+const { t } = usePlutoI18n()
 
 useHead({
-  titleTemplate: (title) => (title ? `${title} - ${websiteName}` : websiteName),
+  titleTemplate: (title) => {
+    const websiteName = t('pluto.app.name')
+    return title ? `${title} - ${websiteName}` : websiteName
+  },
 })
 </script>
 

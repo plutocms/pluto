@@ -10,6 +10,9 @@ const props = defineProps<{
 
 const { byName } = usePlutoContentTypes()
 const contentType = computed(() => byName(props.type))
+const { t } = usePlutoI18n()
+const text = usePlutoContentText(contentType)
+const errorText = usePlutoErrorText()
 
 if (!contentType.value) {
   // The generated page (`app/pages/admin/content/[type]/{new,[id]}.vue`)
@@ -139,18 +142,35 @@ const isPublished = computed(
   () =>
     statusConfig.value !== null && currentStatus.value === publishedValue.value
 )
-const statusLabel = computed(
-  () =>
-    statusConfig.value?.values.find(
-      (value) => value.value === currentStatus.value
-    )?.label ?? currentStatus.value
-)
+const statusLabel = computed(() => {
+  const value = currentStatus.value
+  if (value === undefined) {
+    return undefined
+  }
+  const literal = statusConfig.value?.values.find(
+    (entry) => entry.value === value
+  )?.label
+  return text.statusLabel(value, literal)
+})
 
 // --- Save -------------------------------------------------------------------
 
 const toast = useToast()
 const saving = ref(false)
 const validationErrors = ref<ContentValidationError[]>([])
+
+// A validation error with a `code` shows the translated message. The
+// `message` of the error stays English, and shows when there is no code.
+function validationText(error: ContentValidationError): string {
+  if (!error.code) {
+    return error.message
+  }
+  const field = contentType.value?.fields.find((entry) => entry.name === error.field)
+  return t(`pluto.validation.${error.code}`, {
+    ...error.params,
+    label: field ? text.fieldLabel(field) : error.field,
+  })
+}
 
 function buildPayload(statusOverride?: string): Record<string, unknown> {
   const type = contentType.value
@@ -201,23 +221,23 @@ async function onSave(statusOverride?: string) {
 
     const title =
       statusOverride === publishedValue.value
-        ? 'Published'
+        ? t('pluto.form.published')
         : statusOverride === draftValue.value
-          ? 'Unpublished'
-          : 'Saved'
+          ? t('pluto.form.unpublished')
+          : t('pluto.form.saved')
 
     toast.add({
       title,
-      description: `${type.label} updated successfully.`,
+      description: t('pluto.form.updated', { label: text.label }),
       color: 'success',
     })
-  } catch {
+  } catch (error) {
     // A raced permissions check, or any other server-side rejection
     // (a 403 included), surfaces here rather than as an unhandled
     // rejection.
     toast.add({
-      title: 'Error',
-      description: 'An error occurred while saving.',
+      title: t('pluto.common.error'),
+      description: errorText(error, 'pluto.form.saveError'),
       color: 'error',
     })
   } finally {
@@ -245,10 +265,10 @@ async function confirmDelete() {
     await remove()
     closeDeleteModal()
     await navigateTo(basePath.value)
-  } catch {
+  } catch (error) {
     toast.add({
-      title: 'Error',
-      description: 'An error occurred while removing.',
+      title: t('pluto.common.error'),
+      description: errorText(error, 'pluto.form.removeError'),
       color: 'error',
     })
   } finally {
@@ -257,6 +277,12 @@ async function confirmDelete() {
 }
 
 // --- Layout / aside -----------------------------------------------------------
+
+const heading = computed(() =>
+  editing.value
+    ? t('pluto.content.edit', { label: text.label })
+    : text.newLabel
+)
 
 const layout = computed(() => contentType.value?.form?.layout ?? 'default')
 const showAside = computed(() => {
@@ -304,7 +330,7 @@ const unpublishDeleteItems = computed(() => [
     ...(statusConfig.value && isPublished.value && canPublish.value
       ? [
           {
-            label: 'Unpublish',
+            label: t('pluto.form.unpublish'),
             icon: 'lucide:eye-off',
             onSelect: () => onSave(draftValue.value),
           },
@@ -313,7 +339,7 @@ const unpublishDeleteItems = computed(() => [
     ...(editing.value && canDelete.value
       ? [
           {
-            label: 'Delete',
+            label: t('pluto.common.delete'),
             icon: 'lucide:trash',
             color: 'error' as const,
             onSelect: () => openDeleteModal(),
@@ -333,13 +359,7 @@ const unpublishDeleteItems = computed(() => [
     <template #toolbar>
       <PlutoViewToolbar
         :back-to="basePath"
-        :title="
-          layout === 'focus'
-            ? editing
-              ? `Edit ${contentType.label}`
-              : `New ${contentType.label}`
-            : undefined
-        "
+        :title="layout === 'focus' ? heading : undefined"
       >
         <template #right>
           <UBadge
@@ -370,7 +390,7 @@ const unpublishDeleteItems = computed(() => [
             variant="subtle"
             @click="onSave()"
           >
-            Save{{ statusConfig ? ' draft' : '' }}
+            {{ statusConfig ? t('pluto.form.saveDraft') : t('pluto.common.save') }}
           </UButton>
 
           <UButton
@@ -379,7 +399,7 @@ const unpublishDeleteItems = computed(() => [
             icon="lucide:save"
             @click="onSave()"
           >
-            Update
+            {{ t('pluto.form.update') }}
           </UButton>
 
           <UButton
@@ -388,7 +408,7 @@ const unpublishDeleteItems = computed(() => [
             icon="lucide:upload"
             @click="onSave(publishedValue)"
           >
-            Publish
+            {{ t('pluto.form.publish') }}
           </UButton>
 
           <UDropdownMenu
@@ -422,25 +442,26 @@ const unpublishDeleteItems = computed(() => [
 
     <UAlert
       v-if="validationErrors.length > 0"
+      :title="t('pluto.form.fixErrors')"
       color="error"
-      title="Please fix the following before saving"
     >
       <template #description>
         <ul class="list-disc pl-4">
           <li v-for="fieldError in validationErrors" :key="fieldError.field">
-            {{ fieldError.message }}
+            {{ validationText(fieldError) }}
           </li>
         </ul>
       </template>
     </UAlert>
 
     <h1 v-if="layout !== 'focus'" class="text-3xl font-bold lg:text-4xl">
-      {{ editing ? `Edit ${contentType.label}` : `New ${contentType.label}` }}
+      {{ heading }}
     </h1>
 
     <PlutoContentField
       v-for="field in mainFields"
       :key="field.name"
+      :type="type"
       :field="field"
       :model-value="item[field.name]"
       :disabled="!canWrite || saving"
@@ -448,11 +469,12 @@ const unpublishDeleteItems = computed(() => [
     />
 
     <template v-if="showAside" #aside>
-      <PlutoViewAside v-model:open="asideOpen" title="Settings">
+      <PlutoViewAside v-model:open="asideOpen" :title="t('pluto.common.settings')">
         <div class="flex flex-col gap-6">
           <PlutoContentField
             v-for="field in sideFields"
             :key="field.name"
+            :type="type"
             :field="field"
             :model-value="item[field.name]"
             :disabled="!canWrite || saving"
@@ -465,19 +487,19 @@ const unpublishDeleteItems = computed(() => [
 
   <PlutoViewAdminPanel v-else>
     <UAlert
-      :description="`No content type named &quot;${type}&quot; is registered.`"
+      :description="t('pluto.content.typeNotFoundDescription', { type })"
+      :title="t('pluto.content.typeNotFound')"
       color="error"
-      title="Content type not found"
     />
   </PlutoViewAdminPanel>
 
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
     <ModalHeader @close="closeDeleteModal">
-      Remove {{ contentType?.label }}
+      {{ t('pluto.form.removeTitle', { label: text.label }) }}
     </ModalHeader>
 
     <ModalContent>
-      <p>Do you really want to remove this item?</p>
+      <p>{{ t('pluto.content.removeConfirm') }}</p>
     </ModalContent>
 
     <ModalFooter>
@@ -488,7 +510,7 @@ const unpublishDeleteItems = computed(() => [
           color="neutral"
           @click="closeDeleteModal"
         >
-          Cancel
+          {{ t('pluto.common.cancel') }}
         </UButton>
 
         <UButton
@@ -497,7 +519,7 @@ const unpublishDeleteItems = computed(() => [
           color="error"
           @click="confirmDelete"
         >
-          Remove
+          {{ t('pluto.common.remove') }}
         </UButton>
       </div>
     </ModalFooter>

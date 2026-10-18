@@ -1,7 +1,21 @@
-/** Capabilities declared by every layer, in registry order. */
+/**
+ * Capabilities declared by every layer, in registry order. The label and the
+ * description are key-or-literal. They resolve with `tx()` inside the
+ * `computed`, so a locale switch updates them.
+ */
 export function usePlutoCapabilities() {
   const registry = usePlutoRegistry()
-  return { items: registry.capabilities.list }
+  const { tx } = usePlutoI18n()
+
+  const items = computed<PlutoCapability[]>(() =>
+    registry.capabilities.list.value.map((capability) => ({
+      ...capability,
+      label: tx(capability.label),
+      description: capability.description === undefined ? undefined : tx(capability.description),
+    }))
+  )
+
+  return { items }
 }
 
 /**

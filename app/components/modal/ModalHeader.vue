@@ -16,6 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['close'])
 
+const { t } = usePlutoI18n()
+
 const closeModel = defineModel<() => void>('close')
 
 const resolvedClasses = computed(() => {
@@ -56,7 +58,7 @@ function closeModal() {
 
       <div v-if="props.hideCloseButton === false">
         <UButton size="sm" variant="ghost" square @click="closeModal">
-          <span class="sr-only">Close</span>
+          <span class="sr-only">{{ t('pluto.common.close') }}</span>
 
           <Icon name="lucide:x" class="text-xl" />
         </UButton>

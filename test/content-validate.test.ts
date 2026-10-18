@@ -1,6 +1,7 @@
 import type { PlutoContentType } from '../shared/types/content'
 import { describe, expect, it } from 'vitest'
 import { validateContentPayload } from '../shared/utils/content-validate'
+import { createI18nStub } from './fixtures/i18n-stub'
 
 const type: PlutoContentType = {
   name: 'post',
@@ -115,5 +116,82 @@ describe('validateContentPayload', () => {
     const errors = validateContentPayload(typeWithVirtual, validPayload)
 
     expect(errors).toContainEqual(expect.objectContaining({ field: 'media' }))
+  })
+})
+
+describe('validateContentPayload — code and params', () => {
+  const find = (payload: Record<string, unknown>, field: string) =>
+    validateContentPayload(type, payload).find((error) => error.field === field)
+
+  it('gives the code "required" with no params', () => {
+    expect(find({ ...validPayload, title: '' }, 'title')).toEqual({
+      field: 'title',
+      message: '"Title" is required.',
+      code: 'required',
+    })
+  })
+
+  it('gives the code "number" for a value that is not a number', () => {
+    expect(find({ ...validPayload, count: 'abc' }, 'count')).toMatchObject({ message: '"Count" must be a number.', code: 'number' })
+  })
+
+  it('gives the code "integer"', () => {
+    expect(find({ ...validPayload, count: 2.5 }, 'count')).toMatchObject({ message: '"Count" must be an integer.', code: 'integer' })
+  })
+
+  it('gives the code "min" with the min param', () => {
+    expect(find({ ...validPayload, count: 0 }, 'count')).toMatchObject({
+      message: '"Count" must be at least 1.',
+      code: 'min',
+      params: { min: 1 },
+    })
+  })
+
+  it('gives the code "max" with the max param', () => {
+    expect(find({ ...validPayload, count: 9 }, 'count')).toMatchObject({
+      message: '"Count" must be at most 5.',
+      code: 'max',
+      params: { max: 5 },
+    })
+  })
+
+  it('gives the code "boolean"', () => {
+    expect(find({ ...validPayload, active: 'yes' }, 'active')).toMatchObject({ message: '"Active" must be a boolean.', code: 'boolean' })
+  })
+
+  it('gives the code "option"', () => {
+    expect(find({ ...validPayload, kind: 'z' }, 'kind')).toMatchObject({
+      message: '"Kind" must be one of the allowed options.',
+      code: 'option',
+    })
+  })
+
+  it('gives the code "maxLength" with the max param', () => {
+    expect(find({ ...validPayload, title: 'way too long a title' }, 'title')).toMatchObject({
+      message: '"Title" must be at most 10 characters.',
+      code: 'maxLength',
+      params: { max: 10 },
+    })
+  })
+
+  it('has an en message under pluto.validation.<code> that equals the English message', () => {
+    const { t } = createI18nStub('en')
+    const payloads = [
+      { ...validPayload, title: '' },
+      { ...validPayload, count: 'abc' },
+      { ...validPayload, count: 2.5 },
+      { ...validPayload, count: 0 },
+      { ...validPayload, count: 9 },
+      { ...validPayload, active: 'yes' },
+      { ...validPayload, kind: 'z' },
+      { ...validPayload, title: 'way too long a title' },
+    ]
+    const errors = payloads.flatMap((payload) => validateContentPayload(type, payload))
+    const labels: Record<string, string> = { title: 'Title', count: 'Count', active: 'Active', kind: 'Kind' }
+
+    expect(new Set(errors.map((error) => error.code)).size).toBe(8)
+    for (const error of errors) {
+      expect(t(`pluto.validation.${error.code}`, { ...error.params, label: labels[error.field] })).toBe(error.message)
+    }
   })
 })

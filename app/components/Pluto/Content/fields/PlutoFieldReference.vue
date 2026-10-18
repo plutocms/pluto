@@ -48,6 +48,7 @@ async function loadOptions() {
 
 onMounted(loadOptions)
 
+const { t } = usePlutoI18n()
 const hasOptionsSource = computed(() => Boolean(props.field.optionsUrl))
 const value = computed(() => props.modelValue as string | number | undefined)
 </script>
@@ -69,9 +70,9 @@ const value = computed(() => props.modelValue as string | number | undefined)
     <UInputMenu
       v-else
       :items="[]"
+      :placeholder="t('pluto.fields.noOptionsSource')"
       value-key="value"
       label-key="label"
-      placeholder="No options source configured for this reference field."
       class="w-full"
       disabled
     />

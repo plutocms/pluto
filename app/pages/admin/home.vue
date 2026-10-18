@@ -1,9 +1,11 @@
 <script setup lang="ts">
+const { t, d } = usePlutoI18n()
+
 useHead({
-  title: 'Dashboard',
+  title: () => t('pluto.pages.dashboard'),
 })
 
-const today = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())
+const today = computed(() => d(new Date(), { weekday: 'long', month: 'long', day: 'numeric' }))
 
 // The header's Create button reuses the command palette's Create commands.
 const groups = usePlutoCommandPalette()
@@ -21,7 +23,7 @@ function run(item: {
     <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p class="text-muted text-sm">{{ today }}</p>
-        <h1 class="text-highlighted text-2xl font-semibold tracking-tight lg:text-3xl">Dashboard</h1>
+        <h1 class="text-highlighted text-2xl font-semibold tracking-tight lg:text-3xl">{{ t('pluto.pages.dashboard') }}</h1>
       </div>
 
       <UButton
@@ -33,7 +35,7 @@ function run(item: {
       />
 
       <UDropdownMenu v-else-if="createItems.length > 1" :items="createItems" :content="{ align: 'end' }">
-        <UButton label="Create" icon="lucide:plus" trailing-icon="lucide:chevron-down" size="md" />
+        <UButton :label="t('pluto.common.create')" icon="lucide:plus" trailing-icon="lucide:chevron-down" size="md" />
       </UDropdownMenu>
     </header>
 

@@ -8,6 +8,8 @@ const props = defineProps<{
 
 const { byName } = usePlutoContentTypes()
 const contentType = computed(() => byName(props.type))
+const { t, n } = usePlutoI18n()
+const text = usePlutoContentText(contentType)
 
 if (!contentType.value) {
   // The generated page (`app/pages/admin/content/[type]/index.vue`) already
@@ -72,8 +74,6 @@ const canLoadMore = () => hasMore.value && !error.value
 useInfiniteScroll(() => tableRef.value?.$el, loadMoreSafely, { distance: 240, canLoadMore })
 useInfiniteScroll(mobileListRef, loadMoreSafely, { distance: 240, canLoadMore })
 
-const number = new Intl.NumberFormat()
-
 // What to show while the list has no rows. With rows, the list shows
 // them, and a failed refresh shows an alert above them instead.
 const emptyState = computed<'loading' | 'error' | 'empty' | null>(() => {
@@ -98,10 +98,10 @@ const emptyActions = computed<ButtonProps[]>(() => {
     return []
   }
   if (emptyState.value === 'error') {
-    return [{ label: 'Try again', icon: 'lucide:refresh-ccw', color: 'neutral', variant: 'outline', onClick: retry }]
+    return [{ label: t('pluto.common.tryAgain'), icon: 'lucide:refresh-ccw', color: 'neutral', variant: 'outline', onClick: retry }]
   }
   return canWrite.value
-    ? [{ label: `New ${type.label}`, icon: 'lucide:plus', onClick: () => navigateTo(newPath.value) }]
+    ? [{ label: text.newLabel, icon: 'lucide:plus', onClick: () => navigateTo(newPath.value) }]
     : []
 })
 
@@ -114,7 +114,7 @@ const listFields = computed(() =>
 const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
   ...listFields.value.map((field) => ({
     accessorKey: field.name,
-    header: field.label,
+    header: text.fieldLabel(field),
   })),
   { id: 'actions', header: '' },
 ])
@@ -140,18 +140,27 @@ async function confirmDelete() {
   await remove(pendingDeleteId.value)
   closeDeleteModal()
 }
+
+// The footer line: "Showing 5 of 20 posts", plus "Loading more…" while a
+// page loads. The phrase has the plural label as a parameter, so a language
+// can put it anywhere.
+const footer = computed(() => {
+  const params = { loaded: n(items.value.length), total: total.value === undefined ? '' : n(total.value), labelPlural: text.labelPluralLower }
+  const summary = t(total.value === undefined ? 'pluto.list.showing' : 'pluto.list.showingOf', params)
+  return loadingMore.value ? `${summary} · ${t('pluto.list.loadingMore')}` : summary
+})
 </script>
 
 <template>
   <PlutoViewAdminPanel v-if="contentType" fill>
     <template #toolbar>
-      <PlutoViewToolbar :title="contentType.labelPlural">
+      <PlutoViewToolbar :title="text.labelPlural">
         <template #trailing>
           <UButton
             :loading="pending"
+            :title="t('pluto.common.refresh')"
             icon="lucide:refresh-ccw"
             variant="ghost"
-            title="Refresh"
             square
             @click="retry"
           />
@@ -159,7 +168,7 @@ async function confirmDelete() {
 
         <template v-if="canWrite" #right>
           <UButton :to="newPath" icon="lucide:plus" as="NuxtLink">
-            New {{ contentType.label }}
+            {{ text.newLabel }}
           </UButton>
         </template>
       </PlutoViewToolbar>
@@ -167,24 +176,24 @@ async function confirmDelete() {
 
     <UEmpty
       v-if="emptyState === 'loading'"
-      :title="`Loading ${contentType.labelPlural.toLowerCase()}…`"
+      :title="t('pluto.list.loading', { labelPlural: text.labelPluralLower })"
       variant="naked"
       loading
     />
 
     <UEmpty
       v-else-if="emptyState === 'error'"
-      :title="`Could not load ${contentType.labelPlural.toLowerCase()}`"
+      :title="t('pluto.list.loadFailed', { labelPlural: text.labelPluralLower })"
       :actions="emptyActions"
-      description="Check your connection and try again."
+      :description="t('pluto.list.loadFailedHint')"
       icon="lucide:circle-alert"
       variant="naked"
     />
 
     <UEmpty
       v-else-if="emptyState === 'empty'"
-      :title="`No ${contentType.labelPlural.toLowerCase()} yet`"
-      :description="canWrite ? `Create the first ${contentType.label.toLowerCase()} to see it here.` : 'There is nothing here yet.'"
+      :title="t('pluto.list.empty', { labelPlural: text.labelPluralLower })"
+      :description="canWrite ? t('pluto.list.emptyCanWrite', { label: text.labelLower }) : t('pluto.list.emptyReadOnly')"
       :icon="contentType.icon ?? 'lucide:inbox'"
       :actions="emptyActions"
       variant="naked"
@@ -192,9 +201,9 @@ async function confirmDelete() {
 
     <UAlert
       v-if="!emptyState && error"
-      :actions="[{ label: 'Try again', color: 'error', variant: 'outline', onClick: retry }]"
-      :title="`Could not refresh ${contentType.labelPlural.toLowerCase()}`"
-      description="The list below may be out of date."
+      :actions="[{ label: t('pluto.common.tryAgain'), color: 'error', variant: 'outline', onClick: retry }]"
+      :title="t('pluto.list.refreshFailed', { labelPlural: text.labelPluralLower })"
+      :description="t('pluto.list.refreshFailedHint')"
       color="error"
       variant="subtle"
       icon="lucide:circle-alert"
@@ -218,7 +227,7 @@ async function confirmDelete() {
 
           <dl class="grid grid-cols-2 gap-3 text-sm">
             <div v-for="field in listFields" :key="field.name">
-              <dt class="text-muted">{{ field.label }}</dt>
+              <dt class="text-muted">{{ text.fieldLabel(field) }}</dt>
               <dd class="font-medium">{{ item[field.name] }}</dd>
             </div>
           </dl>
@@ -232,7 +241,7 @@ async function confirmDelete() {
               variant="soft"
               class="flex-1 justify-center"
             >
-              Edit
+              {{ t('pluto.common.edit') }}
             </UButton>
 
             <UButton
@@ -243,7 +252,7 @@ async function confirmDelete() {
               class="flex-1 justify-center"
               @click="openDeleteModal(item.id)"
             >
-              Remove
+              {{ t('pluto.common.remove') }}
             </UButton>
           </div>
         </div>
@@ -256,8 +265,8 @@ async function confirmDelete() {
       :data="items"
       :columns="columns"
       :loading="pending || loadingMore"
+      :empty="t('pluto.list.emptyTable')"
       class="ring-default hidden min-h-0 flex-1 rounded-lg ring lg:block"
-      empty="No items yet."
       sticky
       virtualize
     >
@@ -268,7 +277,7 @@ async function confirmDelete() {
                 :to="editPath(row.original.id)"
                 class="text-info px-0 py-0.5 hover:underline"
               >
-                Edit
+                {{ t('pluto.common.edit') }}
               </NuxtLink>
 
               <button
@@ -277,33 +286,30 @@ async function confirmDelete() {
                 class="text-error cursor-pointer px-0 py-0.5 hover:underline"
                 @click="openDeleteModal(row.original.id)"
               >
-                Remove
+                {{ t('pluto.common.remove') }}
               </button>
             </div>
       </template>
     </UTable>
 
     <p v-if="!emptyState" class="text-muted shrink-0 text-xs tabular-nums" aria-live="polite">
-      Showing {{ number.format(items.length) }}
-      <template v-if="total !== undefined">of {{ number.format(total) }}</template>
-      {{ contentType.labelPlural.toLowerCase() }}
-      <template v-if="loadingMore">· Loading more…</template>
+      {{ footer }}
     </p>
   </PlutoViewAdminPanel>
 
   <PlutoViewAdminPanel v-else>
     <UAlert
-      :description="`No content type named &quot;${type}&quot; is registered.`"
+      :description="t('pluto.content.typeNotFoundDescription', { type })"
+      :title="t('pluto.content.typeNotFound')"
       color="error"
-      title="Content type not found"
     />
   </PlutoViewAdminPanel>
 
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
-    <ModalHeader @close="closeDeleteModal">Remove item</ModalHeader>
+    <ModalHeader @close="closeDeleteModal">{{ t('pluto.list.removeTitle') }}</ModalHeader>
 
     <ModalContent>
-      <p>Do you really want to remove this item?</p>
+      <p>{{ t('pluto.content.removeConfirm') }}</p>
     </ModalContent>
 
     <ModalFooter>
@@ -314,11 +320,11 @@ async function confirmDelete() {
           color="neutral"
           @click="closeDeleteModal"
         >
-          Cancel
+          {{ t('pluto.common.cancel') }}
         </UButton>
 
         <UButton icon="lucide:trash" color="error" @click="confirmDelete">
-          Remove
+          {{ t('pluto.common.remove') }}
         </UButton>
       </div>
     </ModalFooter>

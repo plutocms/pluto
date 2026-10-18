@@ -1,3 +1,5 @@
+import { contentTextFor } from './internal/content-text'
+
 // The old `NavigationMenuItem`/`NavigationMenuChildItem` shape (from
 // `@plutocms/utils`) always carries a plain `href`, never Nuxt's typed `to`.
 // This narrows just the field the bridge below reads.
@@ -22,6 +24,11 @@ interface LegacyHrefLink {
  *    when `type.capabilities.read` is unset, the entry is always visible;
  *    when it is set, `can(...)` decides.
  *
+ * Labels are key-or-literal. They resolve with `tx()` after the legacy dedupe
+ * above, which compares the raw labels. A content type's labels come from
+ * `usePlutoContentText`, so the convention keys apply. The `computed` reads
+ * the active locale, so a locale switch updates the labels.
+ *
  * `entry.enabled` is read and enforced uniformly across all three sources
  * here. Source 1 already filters on it a second time, inside
  * `createOwnedRegistry` itself (see
@@ -35,6 +42,8 @@ export function usePlutoAdminNav() {
   const legacy = useSidebarAdminActions()
   const { items: contentTypes } = usePlutoContentTypes()
   const { can } = usePlutoPermissions()
+  const i18n = usePlutoI18n()
+  const { t, tx } = i18n
 
   const items = computed<PlutoNavItem[]>(() => {
     const registered = registry.nav.list.value
@@ -55,27 +64,35 @@ export function usePlutoAdminNav() {
         })),
       }))
 
+    // Resolve the labels now, after the dedupe above has compared the raw ones.
+    const resolveLabels = (item: PlutoNavItem): PlutoNavItem => ({
+      ...item,
+      label: tx(item.label),
+      children: item.children?.map((child) => ({ ...child, label: tx(child.label) })),
+    })
+
     const contentNav: PlutoNavItem[] = contentTypes.value
       .filter((entry) => entry.type.autoRoutes !== false)
       .map((entry) => {
         const type = entry.type
+        const text = contentTextFor(type, i18n)
         const basePath = type.basePath ?? `/admin/content/${type.name}`
 
         return {
           id: `content:${type.name}`,
           order: type.navOrder ?? 100,
-          label: type.labelPlural,
+          label: text.labelPlural,
           icon: type.icon,
           to: basePath,
           enabled: () => !type.capabilities?.read || can(type.capabilities.read),
           children: [
-            { label: `All ${type.labelPlural}`, to: basePath },
-            { label: `Create new ${type.label}`, to: `${basePath}/new` },
+            { label: t('pluto.content.all', { labelPlural: text.labelPlural }), to: basePath },
+            { label: t('pluto.content.createNew', { label: text.label }), to: `${basePath}/new` },
           ],
         }
       })
 
-    return [...registered, ...bridged, ...contentNav]
+    return [...registered.map(resolveLabels), ...bridged.map(resolveLabels), ...contentNav]
       .filter((item) => item.enabled?.() ?? true)
       .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
   })

@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
-import { createError } from 'h3'
 import { validateContentPayload } from '../../shared/utils/content-validate'
 import { getContentAdapter, getContentType } from './pluto-content'
+import { createPlutoError } from './pluto-error'
 
 /**
  * The real logic behind the generic content routes, kept in plain exported
@@ -14,7 +14,12 @@ export function requireContentType(name: string): PlutoContentType {
   const type = getContentType(name)
 
   if (!type) {
-    throw createError({ statusCode: 404, statusMessage: `Content type "${name}" not found.` })
+    throw createPlutoError({
+      statusCode: 404,
+      message: `Content type "${name}" not found.`,
+      key: 'pluto.errors.contentTypeNotFound',
+      params: { name },
+    })
   }
 
   return type
@@ -24,7 +29,11 @@ export function requireContentAdapter(): PlutoContentAdapter {
   const adapter = getContentAdapter()
 
   if (!adapter) {
-    throw createError({ statusCode: 500, statusMessage: 'No content adapter is registered.' })
+    throw createPlutoError({
+      statusCode: 500,
+      message: 'No content adapter is registered.',
+      key: 'pluto.errors.noContentAdapter',
+    })
   }
 
   return adapter
@@ -97,7 +106,7 @@ export async function getContentItem(ctx: PlutoContentContext, idOrSlug: string 
   const item = await requireContentAdapter().get(ctx, idOrSlug)
 
   if (!item) {
-    throw createError({ statusCode: 404, statusMessage: 'Not found.' })
+    throw createPlutoError({ statusCode: 404, message: 'Not found.', key: 'pluto.errors.notFound' })
   }
 
   return item
@@ -105,7 +114,11 @@ export async function getContentItem(ctx: PlutoContentContext, idOrSlug: string 
 
 function requirePlainObjectBody(body: unknown): Record<string, unknown> {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    throw createError({ statusCode: 400, statusMessage: 'Request body must be a JSON object.' })
+    throw createPlutoError({
+      statusCode: 400,
+      message: 'Request body must be a JSON object.',
+      key: 'pluto.errors.bodyNotObject',
+    })
   }
 
   return body as Record<string, unknown>
@@ -122,7 +135,12 @@ export async function createContentItem(ctx: PlutoContentContext, body: unknown)
 
   const errors = validateContentPayload(ctx.type, payload)
   if (errors.length > 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Validation failed.', data: { errors } })
+    throw createPlutoError({
+      statusCode: 400,
+      message: 'Validation failed.',
+      key: 'pluto.errors.validationFailed',
+      data: { errors },
+    })
   }
 
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
@@ -151,7 +169,12 @@ export async function updateContentItem(
 
   const errors = validateContentPayload(ctx.type, payload, { partial: true })
   if (errors.length > 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Validation failed.', data: { errors } })
+    throw createPlutoError({
+      statusCode: 400,
+      message: 'Validation failed.',
+      key: 'pluto.errors.validationFailed',
+      data: { errors },
+    })
   }
 
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)

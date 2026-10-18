@@ -20,6 +20,12 @@ Core registers three widgets. A layer adds more with `definePlutoExtension`
 - `app/plugins/pluto-core-registrations.ts` — registers the three widgets.
 - Tests: `test/content-stats.test.ts`, `test/content-handlers.test.ts` (`contentActivity`).
 
+## Translation
+
+All dashboard text is translated (`pluto.dashboard.*`, `pluto.pages.dashboard`). Numbers and dates
+use `n()` and `d()` from `usePlutoI18n()`, so they follow the admin language. The widget titles
+are keys that `usePlutoDashboardWidgets` resolves. See the i18n skill.
+
 ## Core widgets
 
 | id | order | colSpan | Shows |

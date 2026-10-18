@@ -14,6 +14,9 @@ import PlutoDashboardQuickActions from '../components/Pluto/Dashboard/PlutoDashb
 // Home/Settings nav entries, so every other layer's nav item sorts between
 // them by default (default order is 100).
 //
+// Labels and titles are translation keys, not English text. The consumer
+// composables resolve them with `tx()`. See the i18n skill.
+//
 // Everything core itself contributes to the registry lives in this one
 // `definePlutoExtension` call — `definePlutoExtension` replaces a layer's
 // whole contribution on every call, not just the buckets that call passes,
@@ -27,12 +30,12 @@ export default defineNuxtPlugin(() => {
   definePlutoExtension({
     id: 'pluto',
     nav: [
-      { id: 'home', order: 0, label: 'Home', icon: 'lucide:house', to: '/admin/home' },
-      { id: 'settings', order: 1000, label: 'Settings', icon: 'lucide:settings', to: '/admin/settings' },
+      { id: 'home', order: 0, label: 'pluto.nav.home', icon: 'lucide:house', to: '/admin/home' },
+      { id: 'settings', order: 1000, label: 'pluto.nav.settings', icon: 'lucide:settings', to: '/admin/settings' },
     ],
     pages: [
-      { id: 'home', path: '/admin/home', title: 'Dashboard', icon: 'lucide:house' },
-      { id: 'settings', path: '/admin/settings', title: 'Settings', icon: 'lucide:settings' },
+      { id: 'home', path: '/admin/home', title: 'pluto.pages.dashboard', icon: 'lucide:house' },
+      { id: 'settings', path: '/admin/settings', title: 'pluto.pages.settings', icon: 'lucide:settings' },
     ],
     contentFieldWidgets: [
       { id: 'text', fieldType: 'text', component: PlutoFieldText },
@@ -52,7 +55,7 @@ export default defineNuxtPlugin(() => {
       {
         id: 'content-overview',
         order: 0,
-        title: 'Content',
+        title: 'pluto.dashboard.overview.title',
         colSpan: 3,
         component: PlutoDashboardContentOverview,
         enabled: () => usePlutoContentTypes().items.value.length > 0,
@@ -62,7 +65,7 @@ export default defineNuxtPlugin(() => {
       {
         id: 'content-activity',
         order: 10,
-        title: 'Content activity',
+        title: 'pluto.dashboard.activity.title',
         colSpan: 2,
         component: PlutoDashboardContentActivity,
         enabled: () => usePlutoContentTypes().items.value.length > 0,
@@ -70,7 +73,7 @@ export default defineNuxtPlugin(() => {
       {
         id: 'quick-actions',
         order: 20,
-        title: 'Quick actions',
+        title: 'pluto.dashboard.quickActions.title',
         colSpan: 1,
         component: PlutoDashboardQuickActions,
       },

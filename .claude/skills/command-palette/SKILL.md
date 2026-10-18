@@ -25,6 +25,10 @@ The palette shows these groups, in this order. An empty group does not show.
    parent label as a suffix and its parent icon.
 3. **Theme** — System, Light, and Dark. `UDashboardSearch` adds this group itself.
 
+The group labels ("Create", "Go to"), the search placeholder, and every command label are
+translated. A "New <label>" command uses `usePlutoContentText`. A nav label resolves with `tx()`.
+A language switch updates the palette. See the i18n skill.
+
 Each destination shows once. The Create group is built first, so a nav link to a create path
 (for example "Create new post") does not show again in Go to. A nav child with the same path as
 its parent shows once, as the parent.

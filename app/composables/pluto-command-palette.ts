@@ -1,4 +1,5 @@
 import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui'
+import { contentTextFor } from './internal/content-text'
 
 /**
  * Builds the admin command palette groups (`UDashboardSearch` in the
@@ -19,7 +20,12 @@ export function usePlutoCommandPalette() {
   const { items: navItems } = usePlutoAdminNav()
   const { items: contentTypes } = usePlutoContentTypes()
   const { can } = usePlutoPermissions()
+  const i18n = usePlutoI18n()
+  const { t, tx } = i18n
 
+  // Everything the palette shows resolves inside the `computed`, so a locale
+  // switch updates it. Nav labels arrive resolved from `usePlutoAdminNav`.
+  // `tx()` leaves a resolved label as it is.
   return computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => {
     const seen = new Set<string>()
 
@@ -38,22 +44,23 @@ export function usePlutoCommandPalette() {
         return []
       }
       const basePath = type.basePath ?? `/admin/content/${type.name}`
-      return command(`New ${type.label}`, type.newPath ?? `${basePath}/new`, {
+      const text = contentTextFor(type, i18n)
+      return command(text.newLabel, type.newPath ?? `${basePath}/new`, {
         icon: 'lucide:plus',
-        suffix: type.labelPlural,
+        suffix: text.labelPlural,
       })
     })
 
     const goTo = navItems.value.flatMap((item) => [
-      ...(item.to ? command(item.label, item.to, { icon: item.icon }) : []),
+      ...(item.to ? command(tx(item.label), item.to, { icon: item.icon }) : []),
       ...(item.children ?? []).flatMap((child) =>
-        child.to ? command(child.label, child.to, { icon: item.icon, suffix: item.label }) : []
+        child.to ? command(tx(child.label), child.to, { icon: item.icon, suffix: tx(item.label) }) : []
       ),
     ])
 
     return [
-      { id: 'pluto-create', label: 'Create', items: create },
-      { id: 'pluto-go-to', label: 'Go to', items: goTo },
+      { id: 'pluto-create', label: t('pluto.common.create'), items: create },
+      { id: 'pluto-go-to', label: t('pluto.palette.goTo'), items: goTo },
     ].filter((group) => group.items.length > 0)
   })
 }
