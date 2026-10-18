@@ -53,8 +53,14 @@ scoped element, the `:root` tokens would still hold the app's colors.
 | neutral | zinc |
 
 Surfaces (`--pluto-admin-canvas`, `--pluto-admin-sidebar`, `--pluto-admin-navbar`): white and
-zinc-50 in light mode. In dark mode they are zinc-900, a dim dark gray, not pitch black. Dark
-cards (`--ui-bg`) are `oklch(24% 0.006 286)`, one step above the canvas.
+zinc-50 in light mode. In dark mode they go from darkest at the top to lightest in the content:
+
+| Surface | Dark value |
+|---|---|
+| Navbar (`--pluto-admin-navbar`) | zinc-950, near black |
+| Sidebar (`--pluto-admin-sidebar`) | `oklch(17.5% 0.0055 286)`, between zinc-950 and zinc-900 |
+| Canvas (`--pluto-admin-canvas`) | zinc-900, a dim dark gray, not pitch black |
+| Cards (`--ui-bg`) | `oklch(24% 0.006 286)`, one step above the canvas |
 
 Chart series (`--ui-chart-1` to `-6`): primary, then amber, teal, rose, sky, lime. Light uses
 amber-600, teal-600, rose-500, sky-600, lime-700. Dark uses the same, with lime-600. The

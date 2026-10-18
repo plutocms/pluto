@@ -16,6 +16,8 @@ const neutralLight = { 'text-dimmed': n(400), 'text-muted': n(500), 'text-toned'
 // Dark cards sit one step above the zinc-900 canvas: between zinc-900 and
 // zinc-800. The chart palette passes the dataviz checks on this surface.
 const CARD_DARK = 'oklch(24% 0.006 286)'
+// The dark sidebar sits between the zinc-950 navbar and the zinc-900 canvas.
+const SIDEBAR_DARK = 'oklch(17.5% 0.0055 286)'
 const neutralDark = { 'text-dimmed': n(500), 'text-muted': n(400), 'text-toned': n(300), 'text': n(200), 'text-highlighted': '#fff', 'text-inverted': n(900), 'bg': CARD_DARK, 'bg-muted': n(800), 'bg-elevated': n(800), 'bg-accented': n(700), 'bg-inverted': '#fff', 'border': n(800), 'border-muted': n(700), 'border-accented': n(700), 'border-inverted': '#fff' }
 const tokens = (o) => Object.entries(o).map(([k, val]) => `  --ui-${k}: ${val};`).join('\n')
 // Validated with the dataviz palette checks on white (light) and zinc-900
@@ -79,10 +81,14 @@ ${tokens(neutralDark)}
 
 ${chart(chartDark)}
 
-  /* A dim dark gray, not pitch black. Cards (--ui-bg) sit one step above. */
+  /*
+   * Four steps, darkest at the top: a near-black navbar, a darker sidebar,
+   * a dim dark gray canvas (not pitch black), and cards (--ui-bg) one step
+   * above the canvas.
+   */
+  --pluto-admin-navbar: ${v('zinc-950')};
+  --pluto-admin-sidebar: ${SIDEBAR_DARK};
   --pluto-admin-canvas: ${v('zinc-900')};
-  --pluto-admin-sidebar: ${v('zinc-900')};
-  --pluto-admin-navbar: ${v('zinc-900')};
 }
 
 :root[data-pluto-admin] body {

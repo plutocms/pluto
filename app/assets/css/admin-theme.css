@@ -190,10 +190,14 @@
   --ui-chart-5: oklch(58.8% 0.158 241.966); /* sky-600 */
   --ui-chart-6: oklch(64.8% 0.2 131.684); /* lime-600 */
 
-  /* A dim dark gray, not pitch black. Cards (--ui-bg) sit one step above. */
+  /*
+   * Four steps, darkest at the top: a near-black navbar, a darker sidebar,
+   * a dim dark gray canvas (not pitch black), and cards (--ui-bg) one step
+   * above the canvas.
+   */
+  --pluto-admin-navbar: oklch(14.1% 0.005 285.823);
+  --pluto-admin-sidebar: oklch(17.5% 0.0055 286);
   --pluto-admin-canvas: oklch(21% 0.006 285.885);
-  --pluto-admin-sidebar: oklch(21% 0.006 285.885);
-  --pluto-admin-navbar: oklch(21% 0.006 285.885);
 }
 
 :root[data-pluto-admin] body {
