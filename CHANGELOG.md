@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.14.1](https://github.com/plutocms/pluto/compare/v0.14.0...v0.14.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* **i18n:** prefer the response body message in usePlutoErrorText ([#165](https://github.com/plutocms/pluto/issues/165)) ([0c5d183](https://github.com/plutocms/pluto/commit/0c5d183f66fa328e0e18b1a27ced77f7d0fded89))
+
 ## [0.14.0](https://github.com/plutocms/pluto/compare/v0.13.0...v0.14.0) (2026-10-18)
 
 
