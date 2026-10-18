@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.14.0](https://github.com/plutocms/pluto/compare/v0.13.0...v0.14.0) (2026-10-18)
+
+
+### Features
+
+* **i18n:** add the admin and site translation system ([#161](https://github.com/plutocms/pluto/issues/161)) ([c8d91fb](https://github.com/plutocms/pluto/commit/c8d91fbc1ad34fb14da36328de41b7e449eb5991))
+* **i18n:** translate the core admin UI ([#163](https://github.com/plutocms/pluto/issues/163)) ([d40750d](https://github.com/plutocms/pluto/commit/d40750d80365041d6b17c9e4e8aa0a4a298653aa))
+
 ## [0.13.0](https://github.com/plutocms/pluto/compare/v0.12.0...v0.13.0) (2026-10-18)
 
 
