@@ -3,6 +3,7 @@ import type { PlutoContentType } from '../shared/types/content'
 import type { PlutoRegistry } from '../shared/types/registry'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
+import { createI18nStub } from './fixtures/i18n-stub'
 
 // A minimal stand-in for `@plutocms/utils`' own `NavigationMenuItem`, just
 // the fields `usePlutoAdminNav`'s legacy bridge reads.
@@ -39,6 +40,7 @@ beforeEach(() => {
 
   vi.stubGlobal('useNuxtApp', () => fakeNuxtApp)
   vi.stubGlobal('computed', computed)
+  vi.stubGlobal('usePlutoI18n', () => createI18nStub())
   vi.stubGlobal('ref', ref)
   vi.stubGlobal('useState', <T>(key: string, init: () => T) => {
     if (!stateStore.has(key)) {
@@ -115,6 +117,80 @@ describe('usePlutoAdminNav — pre-existing registry + legacy-bridge merge (regr
 
     expect(items.value).toHaveLength(1)
     expect(items.value[0]?.to).toBe('/admin/posts')
+  })
+})
+
+describe('usePlutoAdminNav — labels', () => {
+  it('resolves a key label and passes a plain label through', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [
+        { id: 'home', order: 0, label: 'pluto.nav.home', to: '/admin/home' },
+        { id: 'posts', order: 10, label: 'Posts', to: '/admin/posts', children: [{ label: 'pluto.nav.settings', to: '/x' }] },
+      ],
+    })
+
+    const { items } = usePlutoAdminNav()
+
+    expect(items.value.map((item) => item.label)).toEqual(['Home', 'Posts'])
+    expect(items.value[1]?.children?.[0]?.label).toBe('Settings')
+  })
+
+  it('compares the raw labels in the legacy dedupe, before it resolves the keys', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [{ id: 'home', label: 'pluto.nav.home', to: '/admin/home' }],
+    })
+    // The legacy item uses the resolved text, which does not match the raw key.
+    legacyActions.value = [{ label: 'Home', href: '/admin/legacy-home' }]
+
+    const { items } = usePlutoAdminNav()
+
+    expect(items.value.map((item) => item.to)).toEqual(['/admin/home', '/admin/legacy-home'])
+  })
+
+  it('translates the labels again when the locale changes', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    const locale = ref('en')
+    vi.stubGlobal('usePlutoI18n', () => createI18nStub(locale))
+
+    definePlutoExtension({ id: 'test-layer', nav: [{ id: 'home', label: 'pluto.nav.home', to: '/admin/home' }] })
+
+    const { items } = usePlutoAdminNav()
+
+    expect(items.value[0]?.label).toBe('Home')
+
+    locale.value = 'pt-BR'
+
+    expect(items.value[0]?.label).toBe('Início')
+  })
+
+  it('uses the convention keys of a content type, with the English literal as the fallback', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    const messages: Record<string, string> = { 'content.post.labelPlural': 'Artigos', 'content.post.label': 'Artigo' }
+    vi.stubGlobal('usePlutoI18n', () => ({
+      ...createI18nStub(),
+      te: (key: string) => key in messages,
+      t: (key: string, params?: Record<string, unknown>) =>
+        messages[key] ?? (key === 'pluto.content.all' ? `All ${params?.labelPlural}` : `Create new ${params?.label}`),
+    }))
+
+    definePlutoExtension({
+      id: 'test-layer',
+      contentTypes: [
+        { id: 'posts', type: contentType('post', { label: 'Post', labelPlural: 'Posts' }) },
+        { id: 'pages', type: contentType('page', { label: 'Page', labelPlural: 'Pages' }) },
+      ],
+    })
+
+    const entries = usePlutoAdminNav().items.value
+
+    expect(entries.map((entry) => entry.label)).toEqual(['Artigos', 'Pages'])
+    expect(entries[0]?.children?.map((child) => child.label)).toEqual(['All Artigos', 'Create new Artigo'])
   })
 })
 

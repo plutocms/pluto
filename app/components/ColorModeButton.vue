@@ -1,5 +1,6 @@
 <script setup>
 const colorMode = useColorMode()
+const { t } = usePlutoI18n()
 
 const isDark = computed({
   get() {
@@ -15,7 +16,7 @@ const isDark = computed({
   <ClientOnly v-if="!colorMode?.forced">
     <UButton
       :icon="isDark ? 'i-lucide-moon' : 'i-lucide-sun'"
-      :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+      :aria-label="isDark ? t('pluto.common.switchToLightMode') : t('pluto.common.switchToDarkMode')"
       color="neutral"
       variant="ghost"
       size="md"

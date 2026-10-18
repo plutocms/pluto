@@ -548,8 +548,16 @@ to the literal when a key does not exist. The convention keys, under the namespa
 - `content.<name>.fields.<field>.options.<value>`
 - `content.<name>.status.<value>`
 
-The layer that declares the type owns these keys, in its own `i18n/locales/<code>.json`. **P2
-will wire these.** Until then, core reads the English literals only.
+The layer that declares the type owns these keys, in its own `i18n/locales/<code>.json`. Core
+declares no type, so core's own locale files have no `content` namespace.
+
+The keys are wired. `usePlutoContentText(type)` resolves them, with the English literal as the
+fallback, and these places use it: the list (title, columns, empty states, "New <label>"), the
+form (title, field text, status badge, validation messages, toasts), the dashboard tiles and the
+activity chart, the quick actions, the command palette, and the nav and page entries that content
+types create. `PlutoContentField` passes a translated copy of the field to the widget, so a
+third-party widget gets the translated label with no change. Server code and anything that reads
+`type.label` keeps English. See the i18n skill.
 
 ## Known limits, out of scope for this pass
 

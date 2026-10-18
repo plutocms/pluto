@@ -1,14 +1,110 @@
 {
   "pluto": {
+    "app": {
+      "name": "Pluto Admin"
+    },
     "common": {
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete",
       "tryAgain": "Try again",
       "close": "Close",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "remove": "Remove",
+      "edit": "Edit",
+      "refresh": "Refresh",
+      "settings": "Settings",
+      "create": "Create",
+      "error": "Error",
+      "switchToLightMode": "Switch to light mode",
+      "switchToDarkMode": "Switch to dark mode"
+    },
+    "nav": {
+      "home": "Home",
+      "settings": "Settings"
+    },
+    "pages": {
+      "dashboard": "Dashboard",
+      "settings": "Settings"
+    },
+    "palette": {
+      "goTo": "Go to",
+      "placeholder": "Search pages and actions…"
+    },
+    "content": {
+      "new": "New {label}",
+      "edit": "Edit {label}",
+      "all": "All {labelPlural}",
+      "createNew": "Create new {label}",
+      "typeNotFound": "Content type not found",
+      "typeNotFoundDescription": "No content type named \"{type}\" is registered.",
+      "removeConfirm": "Do you really want to remove this item?"
+    },
+    "form": {
+      "published": "Published",
+      "unpublished": "Unpublished",
+      "saved": "Saved",
+      "updated": "{label} updated successfully.",
+      "saveError": "An error occurred while saving.",
+      "removeError": "An error occurred while removing.",
+      "saveDraft": "Save draft",
+      "update": "Update",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "fixErrors": "Please fix the following before saving",
+      "removeTitle": "Remove {label}"
+    },
+    "list": {
+      "loading": "Loading {labelPlural}…",
+      "loadFailed": "Could not load {labelPlural}",
+      "loadFailedHint": "Check your connection and try again.",
+      "empty": "No {labelPlural} yet",
+      "emptyCanWrite": "Create the first {label} to see it here.",
+      "emptyReadOnly": "There is nothing here yet.",
+      "refreshFailed": "Could not refresh {labelPlural}",
+      "refreshFailedHint": "The list below may be out of date.",
+      "emptyTable": "No items yet.",
+      "removeTitle": "Remove item",
+      "showing": "Showing {loaded} {labelPlural}",
+      "showingOf": "Showing {loaded} of {total} {labelPlural}",
+      "loadingMore": "Loading more…"
+    },
+    "fields": {
+      "noWidget": "No widget registered for field type \"{type}\".",
+      "noOptionsSource": "No options source configured for this reference field."
+    },
+    "dashboard": {
+      "noWidgets": "No dashboard widgets are registered yet. A layer can add one with",
+      "overview": {
+        "title": "Content",
+        "label": "Content overview",
+        "loadFailed": "Could not load the content counts",
+        "thisWeek": "this week",
+        "noneThisWeek": "none new this week",
+        "meter": "{published} of {total} {labelPlural} published",
+        "published": "published | published | published",
+        "drafts": "drafts | draft | drafts"
+      },
+      "activity": {
+        "title": "Content activity",
+        "subtitle": "Items created per week, last {weeks} weeks",
+        "created": "created | created | created",
+        "loadFailed": "Could not load the activity",
+        "unavailable": "Activity is not available",
+        "unavailableHint": "The content backend cannot count items by creation date yet.",
+        "none": "Nothing created in the last {weeks} weeks",
+        "noneHint": "New items show up here week by week.",
+        "weekOf": "Week of"
+      },
+      "quickActions": {
+        "title": "Quick actions",
+        "pressBefore": "Press",
+        "pressAfter": "to search everything."
+      }
     },
     "settings": {
+      "noStorage": "No settings storage",
+      "noStorageHint": "No installed layer provides settings storage yet.",
       "language": {
         "cardTitle": "Your preferences",
         "label": "Language",
@@ -18,6 +114,14 @@
         "saveFailed": "Could not save your language",
         "saveFailedDescription": "The language changed on this device only. {reason}"
       }
+    },
+    "errors": {
+      "unknown": "Something went wrong.",
+      "contentTypeNotFound": "Content type \"{name}\" not found.",
+      "noContentAdapter": "No content adapter is registered.",
+      "notFound": "Not found.",
+      "bodyNotObject": "Request body must be a JSON object.",
+      "validationFailed": "Validation failed."
     },
     "validation": {
       "required": "\"{label}\" is required.",

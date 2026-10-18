@@ -67,6 +67,13 @@ The component that renders the entry passes the string through `tx()` from `useP
 comes back unchanged. So an existing layer with English literals keeps working, and a layer can
 move to keys one entry at a time. See the i18n skill.
 
+Core's own registrations (`app/plugins/pluto-core-registrations.ts`) use keys, for example
+`pluto.nav.home` and `pluto.dashboard.activity.title`. The consumer composables resolve every
+entry text inside a `computed`: `usePlutoAdminNav` (after the legacy dedupe, which compares the
+raw labels), `usePlutoCommandPalette`, `usePlutoSettingsPanels`, `usePlutoDashboardWidgets`,
+`usePlutoAdminPages`, `usePlutoContentActions`, and `usePlutoCapabilities`. A language switch
+updates them. A registry field stays a `string`.
+
 ## The locale driver
 
 `localeDriver` is a `PlutoLocaleDriver`: `load(): Promise<string | null>` returns the stored

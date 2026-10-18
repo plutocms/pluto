@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { items } = usePlutoDashboardWidgets()
+const { t } = usePlutoI18n()
 </script>
 
 <template>
@@ -15,7 +16,7 @@ const { items } = usePlutoDashboardWidgets()
 
   <UCard v-else>
     <p class="text-muted text-sm">
-      No dashboard widgets are registered yet. A layer can add one with
+      {{ t('pluto.dashboard.noWidgets') }}
       <code>definePlutoExtension</code>.
     </p>
   </UCard>

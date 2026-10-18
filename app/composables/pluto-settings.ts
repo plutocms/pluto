@@ -1,7 +1,21 @@
-/** Settings panels registered by every layer, in registry order. */
+/**
+ * Settings panels registered by every layer, in registry order. The title and
+ * the description are key-or-literal. They resolve with `tx()` inside the
+ * `computed`, so a locale switch updates them.
+ */
 export function usePlutoSettingsPanels() {
   const registry = usePlutoRegistry()
-  return { items: registry.settingsPanels.list }
+  const { tx } = usePlutoI18n()
+
+  const items = computed<PlutoSettingsPanel[]>(() =>
+    registry.settingsPanels.list.value.map((panel) => ({
+      ...panel,
+      title: tx(panel.title),
+      description: panel.description === undefined ? undefined : tx(panel.description),
+    }))
+  )
+
+  return { items }
 }
 
 /**

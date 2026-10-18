@@ -1,6 +1,7 @@
 import type { PlutoRegistry } from '../shared/types/registry'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
+import { createI18nStub } from './fixtures/i18n-stub'
 
 // pluto-registry.ts, pluto-extension.ts, and pluto-permissions.ts all lean
 // on Nuxt's auto-imported globals (`useNuxtApp`, `computed`, `ref`,
@@ -18,6 +19,7 @@ beforeEach(() => {
 
   vi.stubGlobal('useNuxtApp', () => fakeNuxtApp)
   vi.stubGlobal('computed', computed)
+  vi.stubGlobal('usePlutoI18n', () => createI18nStub())
   vi.stubGlobal('ref', ref)
   // A minimal stand-in for Nuxt's useState: one ref per key, created once
   // and reused for the life of the test.

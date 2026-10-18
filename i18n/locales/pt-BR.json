@@ -1,14 +1,110 @@
 {
   "pluto": {
+    "app": {
+      "name": "Pluto Admin"
+    },
     "common": {
       "save": "Salvar",
       "cancel": "Cancelar",
       "delete": "Excluir",
       "tryAgain": "Tentar novamente",
       "close": "Fechar",
-      "loading": "Carregando..."
+      "loading": "Carregando...",
+      "remove": "Remover",
+      "edit": "Editar",
+      "refresh": "Atualizar",
+      "settings": "Configurações",
+      "create": "Criar",
+      "error": "Erro",
+      "switchToLightMode": "Mudar para o tema claro",
+      "switchToDarkMode": "Mudar para o tema escuro"
+    },
+    "nav": {
+      "home": "Início",
+      "settings": "Configurações"
+    },
+    "pages": {
+      "dashboard": "Painel",
+      "settings": "Configurações"
+    },
+    "palette": {
+      "goTo": "Ir para",
+      "placeholder": "Buscar páginas e ações…"
+    },
+    "content": {
+      "new": "Criar {label}",
+      "edit": "Editar {label}",
+      "all": "Ver {labelPlural}",
+      "createNew": "Criar {label}",
+      "typeNotFound": "Tipo de conteúdo não encontrado",
+      "typeNotFoundDescription": "Nenhum tipo de conteúdo chamado \"{type}\" está registrado.",
+      "removeConfirm": "Deseja mesmo remover este item?"
+    },
+    "form": {
+      "published": "Publicado",
+      "unpublished": "Não publicado",
+      "saved": "Salvo",
+      "updated": "{label}: alterações salvas.",
+      "saveError": "Ocorreu um erro ao salvar.",
+      "removeError": "Ocorreu um erro ao remover.",
+      "saveDraft": "Salvar rascunho",
+      "update": "Atualizar",
+      "publish": "Publicar",
+      "unpublish": "Despublicar",
+      "fixErrors": "Corrija os itens abaixo antes de salvar",
+      "removeTitle": "Remover {label}"
+    },
+    "list": {
+      "loading": "Carregando {labelPlural}…",
+      "loadFailed": "Não foi possível carregar {labelPlural}",
+      "loadFailedHint": "Verifique a conexão e tente novamente.",
+      "empty": "Ainda não há {labelPlural}",
+      "emptyCanWrite": "Use “Criar {label}” para adicionar o primeiro item.",
+      "emptyReadOnly": "Ainda não há nada aqui.",
+      "refreshFailed": "Não foi possível atualizar {labelPlural}",
+      "refreshFailedHint": "A lista abaixo pode estar desatualizada.",
+      "emptyTable": "Nenhum item ainda.",
+      "removeTitle": "Remover item",
+      "showing": "Mostrando {loaded} {labelPlural}",
+      "showingOf": "Mostrando {loaded} de {total} {labelPlural}",
+      "loadingMore": "Carregando mais…"
+    },
+    "fields": {
+      "noWidget": "Nenhum widget registrado para o tipo de campo \"{type}\".",
+      "noOptionsSource": "Nenhuma fonte de opções configurada para este campo de referência."
+    },
+    "dashboard": {
+      "noWidgets": "Ainda não há widgets registrados no painel. Uma camada pode adicionar um com",
+      "overview": {
+        "title": "Conteúdo",
+        "label": "Visão geral do conteúdo",
+        "loadFailed": "Não foi possível carregar as contagens de conteúdo",
+        "thisWeek": "esta semana",
+        "noneThisWeek": "nada novo esta semana",
+        "meter": "Publicação: {published} de {total} {labelPlural}",
+        "published": "publicados | publicado | publicados",
+        "drafts": "rascunhos | rascunho | rascunhos"
+      },
+      "activity": {
+        "title": "Atividade de conteúdo",
+        "subtitle": "Itens criados por semana, últimas {weeks} semanas",
+        "created": "criados | criado | criados",
+        "loadFailed": "Não foi possível carregar a atividade",
+        "unavailable": "Atividade indisponível",
+        "unavailableHint": "O backend de conteúdo ainda não consegue contar itens pela data de criação.",
+        "none": "Nada criado nas últimas {weeks} semanas",
+        "noneHint": "Os novos itens aparecem aqui semana a semana.",
+        "weekOf": "Semana de"
+      },
+      "quickActions": {
+        "title": "Ações rápidas",
+        "pressBefore": "Pressione",
+        "pressAfter": "para buscar tudo."
+      }
     },
     "settings": {
+      "noStorage": "Sem armazenamento de configurações",
+      "noStorageHint": "Nenhuma camada instalada oferece armazenamento de configurações ainda.",
       "language": {
         "cardTitle": "Suas preferências",
         "label": "Idioma",
@@ -18,6 +114,14 @@
         "saveFailed": "Não foi possível salvar o idioma",
         "saveFailedDescription": "O idioma mudou apenas neste dispositivo. {reason}"
       }
+    },
+    "errors": {
+      "unknown": "Algo deu errado.",
+      "contentTypeNotFound": "Tipo de conteúdo \"{name}\" não encontrado.",
+      "noContentAdapter": "Nenhum adaptador de conteúdo está registrado.",
+      "notFound": "Não encontrado.",
+      "bodyNotObject": "O corpo da requisição deve ser um objeto JSON.",
+      "validationFailed": "Falha na validação."
     },
     "validation": {
       "required": "Preencha \"{label}\".",

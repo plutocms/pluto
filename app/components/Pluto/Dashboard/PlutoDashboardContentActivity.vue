@@ -7,11 +7,12 @@
 const WEEKS = 12
 
 const { data: series, status, refresh } = usePlutoContentActivity(WEEKS)
+const { t, n, d } = usePlutoI18n()
+const texts = usePlutoContentTexts()
 
-const number = new Intl.NumberFormat()
 // The week starts are UTC dates. Format them in UTC so a viewer west of
 // UTC does not see the previous day.
-const weekLabel = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })
+const weekLabel = (start: string) => d(new Date(`${start}T00:00:00Z`), { month: 'short', day: 'numeric', timeZone: 'UTC' })
 
 const rows = computed(() => {
   const first = series.value[0]
@@ -19,7 +20,7 @@ const rows = computed(() => {
     return []
   }
   return first.points.map((point, index) => {
-    const row: Record<string, string | number> = { week: weekLabel.format(new Date(`${point.start}T00:00:00Z`)) }
+    const row: Record<string, string | number> = { week: weekLabel(point.start) }
     for (const entry of series.value) {
       row[entry.name] = entry.points[index]?.count ?? 0
     }
@@ -27,7 +28,9 @@ const rows = computed(() => {
   })
 })
 
-const categories = computed(() => series.value.map((entry) => ({ key: entry.name, label: entry.labelPlural })))
+// The series carry the English labels. The content text resolves the keys.
+const seriesLabel = (entry: PlutoContentActivitySeries) => texts(entry.name).labelPlural
+const categories = computed(() => series.value.map((entry) => ({ key: entry.name, label: seriesLabel(entry) })))
 
 const total = computed(() =>
   series.value.reduce((sum, entry) => sum + entry.points.reduce((acc, point) => acc + point.count, 0), 0)
@@ -45,12 +48,12 @@ function retry() {
     <template #header>
       <div class="flex items-start justify-between gap-4">
         <div>
-          <h3 class="text-highlighted font-semibold">Content activity</h3>
-          <p class="text-muted text-sm">Items created per week, last {{ WEEKS }} weeks</p>
+          <h3 class="text-highlighted font-semibold">{{ t('pluto.dashboard.activity.title') }}</h3>
+          <p class="text-muted text-sm">{{ t('pluto.dashboard.activity.subtitle', { weeks: WEEKS }) }}</p>
         </div>
         <div v-if="status === 'success' && series.length" class="text-right">
-          <p class="text-highlighted text-2xl font-semibold tabular-nums">{{ number.format(total) }}</p>
-          <p class="text-muted text-xs">created</p>
+          <p class="text-highlighted text-2xl font-semibold tabular-nums">{{ n(total) }}</p>
+          <p class="text-muted text-xs">{{ t('pluto.dashboard.activity.created', total) }}</p>
         </div>
       </div>
     </template>
@@ -59,26 +62,26 @@ function retry() {
 
     <UAlert
       v-else-if="status === 'error'"
-      :actions="[{ label: 'Try again', color: 'error', variant: 'outline', onClick: retry }]"
+      :actions="[{ label: t('pluto.common.tryAgain'), color: 'error', variant: 'outline', onClick: retry }]"
+      :title="t('pluto.dashboard.activity.loadFailed')"
       color="error"
       variant="subtle"
       icon="lucide:circle-alert"
-      title="Could not load the activity"
     />
 
     <UEmpty
       v-else-if="!series.length"
+      :title="t('pluto.dashboard.activity.unavailable')"
+      :description="t('pluto.dashboard.activity.unavailableHint')"
       icon="lucide:chart-line"
-      title="Activity is not available"
-      description="The content backend cannot count items by creation date yet."
       variant="naked"
     />
 
     <UEmpty
       v-else-if="total === 0"
-      :title="`Nothing created in the last ${WEEKS} weeks`"
+      :title="t('pluto.dashboard.activity.none', { weeks: WEEKS })"
+      :description="t('pluto.dashboard.activity.noneHint')"
       icon="lucide:chart-line"
-      description="New items show up here week by week."
       variant="naked"
     />
 
@@ -88,18 +91,18 @@ function retry() {
         :data="rows"
         :categories="categories"
         :height="256"
-        :format="(value: number) => number.format(value)"
-        :aria-label="`Items created per week, last ${WEEKS} weeks`"
+        :format="(value: number) => n(value)"
+        :aria-label="t('pluto.dashboard.activity.subtitle', { weeks: WEEKS })"
         index="week"
         curve="monotone"
       />
 
       <table class="sr-only">
-        <caption>Items created per week, last {{ WEEKS }} weeks</caption>
+        <caption>{{ t('pluto.dashboard.activity.subtitle', { weeks: WEEKS }) }}</caption>
         <thead>
           <tr>
-            <th scope="col">Week of</th>
-            <th v-for="entry in series" :key="entry.name" scope="col">{{ entry.labelPlural }}</th>
+            <th scope="col">{{ t('pluto.dashboard.activity.weekOf') }}</th>
+            <th v-for="entry in series" :key="entry.name" scope="col">{{ seriesLabel(entry) }}</th>
           </tr>
         </thead>
         <tbody>

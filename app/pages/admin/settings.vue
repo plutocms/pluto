@@ -1,6 +1,8 @@
 <script setup lang="ts">
+const { t } = usePlutoI18n()
+
 useHead({
-  title: 'Settings',
+  title: () => t('pluto.pages.settings'),
 })
 
 const { items } = usePlutoSettingsPanels()
@@ -16,16 +18,16 @@ onMounted(() => {
 <template>
   <main>
     <AdminView>
-      <h1 class="text-3xl font-bold lg:text-4xl">Settings</h1>
+      <h1 class="text-3xl font-bold lg:text-4xl">{{ t('pluto.pages.settings') }}</h1>
 
       <!-- Per-user, so it needs no capability and no settings driver. -->
       <PlutoSettingsLanguage />
 
       <UAlert
         v-if="!hasDriver"
+        :title="t('pluto.settings.noStorage')"
+        :description="t('pluto.settings.noStorageHint')"
         color="warning"
-        title="No settings storage"
-        description="No installed layer provides settings storage yet."
       />
 
       <template v-else>
@@ -40,7 +42,7 @@ onMounted(() => {
 
         <div class="flex">
           <UButton :loading="status === 'saving'" icon="lucide:save" @click="save">
-            Save
+            {{ t('pluto.common.save') }}
           </UButton>
         </div>
       </template>

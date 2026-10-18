@@ -20,6 +20,10 @@ The message format stays vue-i18n compatible: `{name}` for values, and ` | ` for
   detection, and the first-locale resolve.
 - `app/composables/pluto-i18n.ts` — `usePlutoI18n()` (admin scope) and `usePlutoSiteI18n()` (site
   scope).
+- `app/composables/pluto-content-text.ts` and `internal/content-text.ts` — `usePlutoContentText(type)`,
+  `usePlutoContentTexts()`, and the pure `createContentText`.
+- `app/composables/pluto-error.ts` and `internal/error-text.ts` — `usePlutoErrorText()`.
+- `server/utils/pluto-error.ts` — `createPlutoError()`.
 - `app/plugins/pluto-i18n.ts` — resolves both locales and awaits their messages before render.
 - `app/components/Pluto/Settings/PlutoSettingsLanguage.vue` — the language card on
   `/admin/settings`.
@@ -132,11 +136,105 @@ locale named in its own language through `Intl.DisplayNames` ("English", "Portug
 change switches at once and shows a success toast. If `driver.save` throws, the switch stays on
 this device and an error toast shows the reason.
 
+## How to translate a component
+
+1. Call `const { t, n, d } = usePlutoI18n()` in `<script setup>`.
+2. Replace each literal with `t('pluto.<area>.<name>')`. Put a shared word in `pluto.common.*`.
+3. Pass a value as a parameter: `t('pluto.list.empty', { labelPlural })`. Never build a sentence
+   from pieces in code. Word order differs between languages.
+4. Add the key to `i18n/locales/en.json` and `i18n/locales/pt-BR.json`. Both files need the same
+   keys, the same `{placeholders}`, and the same number of plural forms. A test checks this.
+5. Format numbers and dates with `n()` and `d()`. Do not call `Intl` or `toLocale*String()` with
+   the browser default. They follow the admin language.
+6. Use a getter for `useHead`, so a language switch updates the title:
+   `useHead({ title: () => t('pluto.pages.settings') })`.
+7. Read `t()` inside a template or a `computed`. A value that you read once in setup does not
+   change when the language changes.
+
+**The English text stays byte-identical.** The English value of a key is the exact text the UI
+showed before: same punctuation, same ellipsis character, same capital letters. Do not reword
+English while you extract it.
+
+A phrase takes the content type labels as parameters, for example `{label}` and `{labelPlural}`.
+The code passes them in lowercase for use inside a sentence (`text.labelPluralLower`). The title
+case form (`text.labelPlural`) is for headings. pt-BR phrases are verb-first and gender-neutral,
+for example "Ainda não há {labelPlural}".
+
+A test (`test/i18n-locale-files.test.ts`) scans `app/`, `shared/` and `server/` for literal
+`t('pluto.…')`, `tx('pluto.…')`, `key: 'pluto.…'`, and key-shaped strings in plugin
+registrations. Every key it finds must exist in `en.json`. A key that you build at run time
+(for example `pluto.validation.${code}`) the scan cannot see. Keep such keys in a list in the
+test.
+
+### Plurals
+
+`t(key, count)` takes a number as the plural count. It also sets `{count}`. Example:
+`"drafts": "draft | drafts"`. Use three forms (`zero | one | other`) when 0 needs its own text.
+
+## Content type text: `usePlutoContentText`
+
+A content type keeps English literals. `usePlutoContentText(type)` takes a type (or a ref, or a
+getter) and returns the text of the type:
+
+| Value | Key tried first | Fallback |
+|---|---|---|
+| `label`, `labelPlural` | `content.<name>.label`, `.labelPlural` | `type.label`, `type.labelPlural` |
+| `labelLower`, `labelPluralLower` | the two above, in lowercase | the same |
+| `newLabel` | `content.<name>.new` | the phrase `pluto.content.new` with the label |
+| `fieldLabel(field)` | `content.<name>.fields.<field>.label` | `field.label` |
+| `field(field)` | `…fields.<field>.label`, `.description`, `.placeholder`, `.options.<value>` | the literals |
+| `statusLabel(value, literal?)` | `content.<name>.status.<value>` | `literal`, else the value |
+
+A key counts only when it exists. A type with no keys keeps its English text. `field(field)`
+returns a translated **copy**, and never changes the field of the type. `PlutoContentField`
+passes this copy to the widget, so a widget from any layer shows translated text with no change.
+`PlutoContentField` has an optional `type` prop (the type name) for this. Without it, the field
+keeps its own text.
+
+Use `usePlutoContentTexts()` (it returns `(name) => text`) where one component shows many types.
+In a composable that loops over types, use `contentTextFor(type, usePlutoI18n())` from
+`internal/content-text.ts`.
+
+Server code, and any code that reads `type.label` directly, keeps the English text. Core declares
+no content type. The layer that declares a type adds the `content.<name>.*` keys to its own
+locale files. The locale-file test allows the top-level `content` namespace for this.
+
+## Registry text
+
+A registry entry holds a key or a literal. The consumer composables resolve it with `tx()` inside
+a `computed`, so a language switch updates it: `usePlutoAdminNav`, `usePlutoCommandPalette`,
+`usePlutoSettingsPanels`, `usePlutoDashboardWidgets`, `usePlutoAdminPages`,
+`usePlutoContentActions`, and `usePlutoCapabilities`. `usePlutoAdminNav` resolves the labels
+after the legacy dedupe, which compares the raw labels. Core's own registrations
+(`app/plugins/pluto-core-registrations.ts`) use keys, such as `pluto.nav.home`.
+
 ## Validation messages
 
-Core has the keys `pluto.validation.*` (`required`, `number`, `integer`, `min`, `max`, `boolean`,
-`option`, `maxLength`). The English text is the same as the messages of `validateContentPayload`.
-The validator still returns English. **P2 will wire the codes and params to these keys.**
+`validateContentPayload` returns `ContentValidationError`: `{ field, message, code?, params? }`.
+`message` is English and never changes. `code` is one of `required`, `number`, `integer`, `min`,
+`max`, `boolean`, `option`, `maxLength`. `params` holds the values: `{ min }`, `{ max }`.
+
+Each code has a key `pluto.validation.<code>`. The placeholders are `{label}` and the params.
+`PlutoContentForm` shows `t('pluto.validation.<code>', { label, ...params })` with the translated
+field label when the error has a `code`. Without a code, it shows `message`. A new rule needs a
+new code, a key in both locale files, and a test.
+
+## Server errors
+
+A server route throws `createPlutoError({ statusCode, message, key, params?, data? })` (from
+`server/utils/pluto-error.ts`, auto-imported in Nitro). The `statusMessage` is the English
+`message`. The response also holds `data.i18n = { key, params }`, next to any other `data`.
+Server code and logs stay English.
+
+On the client, `usePlutoErrorText()` returns `(error, fallbackKey?) => string`. The order is:
+
+1. The translated `data.i18n` (the key must exist). It reads `error.data.data.i18n` for a
+   `$fetch` error, and `error.data.i18n` for an error that Nuxt created on the client.
+2. The server `statusMessage`, then the server `message`.
+3. The translated fallback key. The default is `pluto.errors.unknown`.
+
+Use it where the UI shows a server error, as `PlutoContentForm` does for a failed save or delete.
+Core keys for the content routes are `pluto.errors.*`.
 
 ## Testing
 
@@ -148,10 +246,10 @@ vi.stubGlobal('computed', computed)
 vi.stubGlobal('usePlutoI18n', () => createI18nStub())
 ```
 
-## Left for the next pass (P2)
+## Not translated
 
-- Translate the strings of the existing admin components.
-- `ContentValidationError` gets a `code` and `params`.
-- `createPlutoError` for server errors, and `usePlutoErrorText()` on the client.
-- `usePlutoContentText(type)`, and the lookup of the `content.<name>.*` convention keys (see the
-  content-model skill).
+- A DB-backed label (categories, availability, roles) stays as stored.
+- The 404 of the generated content pages (`createError` with `statusMessage`) stays English. The
+  app's error page owns that screen.
+- The placeholder page `app/pages/index.vue` of the core playground app stays English.
+- Shop currency formatting stays BRL.

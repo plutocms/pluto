@@ -7,6 +7,12 @@ const props = defineProps<{
   field: PlutoField
   modelValue: unknown
   disabled?: boolean
+  /**
+   * A content type's `name`. Set it so the field text uses the
+   * `content.<name>.fields.*` translation keys. Without it, the field keeps
+   * its own English text.
+   */
+  type?: string
 }>()
 
 const emit = defineEmits<{
@@ -14,21 +20,29 @@ const emit = defineEmits<{
 }>()
 
 const widget = usePlutoContentFieldWidget(props.field)
+
+const { t } = usePlutoI18n()
+const { byName } = usePlutoContentTypes()
+const text = usePlutoContentText(() => (props.type ? byName(props.type) : undefined))
+
+// The widget gets a translated copy, so a widget from any layer shows the
+// translated text with no change. Without a type, the copy keeps the original.
+const translated = computed(() => (props.type ? text.field(props.field) : props.field))
 </script>
 
 <template>
   <component
     :is="widget"
     v-if="widget"
-    :field="field"
+    :field="translated"
     :model-value="modelValue"
     :disabled="disabled"
     @update:model-value="emit('update:modelValue', $event)"
   />
 
-  <UFormField v-else :label="field.label">
+  <UFormField v-else :label="translated.label">
     <p class="text-muted text-sm">
-      No widget registered for field type "{{ field.type }}".
+      {{ t('pluto.fields.noWidget', { type: field.type }) }}
     </p>
   </UFormField>
 </template>

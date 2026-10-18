@@ -9,7 +9,8 @@ const { items: contentTypes } = usePlutoContentTypes()
 const { stats, pending, error, refresh } = usePlutoContentStats()
 const { data: activity } = usePlutoContentActivity()
 
-const number = new Intl.NumberFormat()
+const { t, n } = usePlutoI18n()
+const texts = usePlutoContentTexts()
 
 function retry() {
   refresh().catch(() => {})
@@ -26,14 +27,14 @@ function thisWeek(stat: PlutoContentStat): number | undefined {
 </script>
 
 <template>
-  <section v-if="contentTypes.length" aria-label="Content overview">
+  <section v-if="contentTypes.length" :aria-label="t('pluto.dashboard.overview.label')">
     <UAlert
       v-if="error && !stats.length"
-      :actions="[{ label: 'Try again', color: 'error', variant: 'outline', onClick: retry }]"
+      :actions="[{ label: t('pluto.common.tryAgain'), color: 'error', variant: 'outline', onClick: retry }]"
+      :title="t('pluto.dashboard.overview.loadFailed')"
       color="error"
       variant="subtle"
       icon="lucide:circle-alert"
-      title="Could not load the content counts"
     />
 
     <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -57,7 +58,7 @@ function thisWeek(stat: PlutoContentStat): number | undefined {
         <UCard class="group-hover:ring-accented h-full transition-shadow group-hover:shadow-sm">
           <div class="flex flex-col gap-3">
             <div class="flex items-start justify-between gap-3">
-              <p class="text-muted text-sm font-medium">{{ stat.labelPlural }}</p>
+              <p class="text-muted text-sm font-medium">{{ texts(stat.name).labelPlural }}</p>
               <span class="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-md">
                 <UIcon :name="stat.icon ?? 'lucide:file'" class="size-4" />
               </span>
@@ -65,14 +66,14 @@ function thisWeek(stat: PlutoContentStat): number | undefined {
 
             <div class="flex items-baseline gap-2">
               <p class="text-highlighted text-3xl font-semibold tracking-tight tabular-nums">
-                {{ number.format(stat.total) }}
+                {{ n(stat.total) }}
               </p>
               <p v-if="thisWeek(stat) !== undefined" class="text-sm">
                 <template v-if="thisWeek(stat)">
-                  <span class="text-success font-medium tabular-nums">+{{ number.format(thisWeek(stat)!) }}</span>
-                  <span class="text-muted"> this week</span>
+                  <span class="text-success font-medium tabular-nums">+{{ n(thisWeek(stat)!) }}</span>
+                  <span class="text-muted"> {{ t('pluto.dashboard.overview.thisWeek') }}</span>
                 </template>
-                <span v-else class="text-dimmed">none new this week</span>
+                <span v-else class="text-dimmed">{{ t('pluto.dashboard.overview.noneThisWeek') }}</span>
               </p>
             </div>
 
@@ -80,7 +81,7 @@ function thisWeek(stat: PlutoContentStat): number | undefined {
               <div
                 :aria-valuenow="stat.published"
                 :aria-valuemax="stat.total"
-                :aria-label="`${stat.published} of ${stat.total} ${stat.labelPlural.toLowerCase()} published`"
+                :aria-label="t('pluto.dashboard.overview.meter', { published: stat.published, total: stat.total, labelPlural: texts(stat.name).labelPluralLower })"
                 role="meter"
                 aria-valuemin="0"
                 class="bg-accented flex h-1.5 overflow-hidden rounded-full"
@@ -89,10 +90,10 @@ function thisWeek(stat: PlutoContentStat): number | undefined {
               </div>
 
               <p class="text-muted text-sm">
-                <span class="text-highlighted font-medium tabular-nums">{{ number.format(stat.published) }}</span>
-                published ·
-                <span class="tabular-nums">{{ number.format(stat.drafts ?? 0) }}</span>
-                {{ stat.drafts === 1 ? 'draft' : 'drafts' }}
+                <span class="text-highlighted font-medium tabular-nums">{{ n(stat.published) }}</span>
+                {{ t('pluto.dashboard.overview.published', stat.published) }} ·
+                <span class="tabular-nums">{{ n(stat.drafts ?? 0) }}</span>
+                {{ t('pluto.dashboard.overview.drafts', stat.drafts ?? 0) }}
               </p>
             </template>
           </div>

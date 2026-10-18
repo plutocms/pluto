@@ -34,6 +34,7 @@ const menu = computed<SidebarMenuItem[]>(() => navItems.value.map(toMenuItem))
 const isSidebarOpen = useState<boolean>('pluto-admin-sidebar-open', () => false)
 
 const commandGroups = usePlutoCommandPalette()
+const { t } = usePlutoI18n()
 
 // Keep the consumer app's public-site theme out of the admin.
 usePlutoAdminTheme()
@@ -95,6 +96,6 @@ const groupStyle = { top: 'var(--ui-header-height)' }
     </UDashboardPanel>
 
     <!-- Cmd/Ctrl+K. See usePlutoCommandPalette for the commands. -->
-    <UDashboardSearch :groups="commandGroups" placeholder="Search pages and actions…" />
+    <UDashboardSearch :groups="commandGroups" :placeholder="t('pluto.palette.placeholder')" />
   </UDashboardGroup>
 </template>

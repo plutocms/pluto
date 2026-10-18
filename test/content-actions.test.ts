@@ -1,6 +1,7 @@
 import type { PlutoRegistry } from '../shared/types/registry'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
+import { createI18nStub } from './fixtures/i18n-stub'
 
 // pluto-content-actions.ts leans on Nuxt's auto-imported `usePlutoRegistry`
 // and `computed`. Outside a Nuxt build nothing injects them — stub the same
@@ -16,6 +17,7 @@ beforeEach(() => {
 
   vi.stubGlobal('useNuxtApp', () => fakeNuxtApp)
   vi.stubGlobal('computed', computed)
+  vi.stubGlobal('usePlutoI18n', () => createI18nStub())
   vi.stubGlobal('ref', ref)
   vi.stubGlobal('useState', <T>(key: string, init: () => T) => {
     if (!stateStore.has(key)) {
