@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.13.0](https://github.com/plutocms/pluto/compare/v0.12.0...v0.13.0) (2026-10-18)
+
+
+### Features
+
+* **admin:** mount the aside once and keep it mounted on mobile ([#158](https://github.com/plutocms/pluto/issues/158)) ([dcca464](https://github.com/plutocms/pluto/commit/dcca464ead4ec5f46b2c26c0eea0f94260553ac9))
+* **content:** page and virtualize long content lists ([#154](https://github.com/plutocms/pluto/issues/154)) ([b8d35b0](https://github.com/plutocms/pluto/commit/b8d35b05230169713a3e7cacbdfd95f52c72936a))
+
+
+### Bug Fixes
+
+* **admin:** darken the navbar and sidebar in dark mode ([#159](https://github.com/plutocms/pluto/issues/159)) ([011fd2f](https://github.com/plutocms/pluto/commit/011fd2f616daf961486e99f69a0e8f0f0db5e51f))
+* **admin:** make the navbar near black in light mode too ([#160](https://github.com/plutocms/pluto/issues/160)) ([f39656a](https://github.com/plutocms/pluto/commit/f39656a5b52081c05e8128b4d0828970b96a14e5))
+* **admin:** use a dim dark gray instead of pitch black in dark mode ([#156](https://github.com/plutocms/pluto/issues/156)) ([500c900](https://github.com/plutocms/pluto/commit/500c900783980d760d6fade406dfc15334a61a4e))
+* **admin:** use the theme text color in the modal ([#157](https://github.com/plutocms/pluto/issues/157)) ([e73c613](https://github.com/plutocms/pluto/commit/e73c613eead017fabbae66ef6f6a7624ec5a5a04))
+
 ## [0.12.0](https://github.com/plutocms/pluto/compare/v0.11.0...v0.12.0) (2026-10-17)
 
 
