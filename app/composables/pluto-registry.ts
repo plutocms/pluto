@@ -20,6 +20,7 @@ export function usePlutoRegistry(): PlutoRegistry {
       pages: createOwnedRegistry<PlutoAdminPage>(),
       settingsPanels: createOwnedRegistry<PlutoSettingsPanel>(),
       settingsDrivers: createOwnedRegistry<PlutoSettingsDriver>(),
+      localeDrivers: createOwnedRegistry<PlutoLocaleDriver>(),
       dashboardWidgets: createOwnedRegistry<PlutoDashboardWidget>(),
       capabilities: createOwnedRegistry<PlutoCapability>(),
       permissionsDrivers: createOwnedRegistry<PlutoPermissionsDriver>(),

@@ -536,6 +536,21 @@ symmetrically with the write side, so the form always knows the current status. 
 the button logic, the payload shape, the `contentActions` registry bucket a layer uses to add its
 own form buttons — lives in the admin-view-chrome skill, not duplicated here.
 
+## Translating the labels of a content type
+
+A content type keeps English literals in its declaration (`label`, `labelPlural`, field labels,
+and so on). Core looks up convention keys in the i18n system (see the i18n skill) and falls back
+to the literal when a key does not exist. The convention keys, under the namespace
+`content.<name>`:
+
+- `content.<name>.label`, `content.<name>.labelPlural`, `content.<name>.new`
+- `content.<name>.fields.<field>.label`, `.description`, `.placeholder`
+- `content.<name>.fields.<field>.options.<value>`
+- `content.<name>.status.<value>`
+
+The layer that declares the type owns these keys, in its own `i18n/locales/<code>.json`. **P2
+will wire these.** Until then, core reads the English literals only.
+
 ## Known limits, out of scope for this pass
 
 - No real (non-memory) `PlutoContentAdapter` implementation. `@plutocms/supabase`'s job, a
@@ -551,8 +566,9 @@ own form buttons — lives in the admin-view-chrome skill, not duplicated here.
 - No query-string support for `filter` or a custom `sort` override on the generic list route.
   `PlutoContentQuery` has room for both; this wave only wires `limit`, `offset`, and `search`
   from the query string, with sort always coming from `type.defaultSort`.
-- No i18n. `PlutoContentI18n` exists on `PlutoContentType.i18n` as a reserved, unused field.
-  Nothing reads or acts on it. Only `strategy: 'row'` will ever be valid, so declaring the shape
-  now avoids a breaking rename later.
+- `PlutoContentI18n` (`PlutoContentType.i18n`) is still a reserved, unused field. It is about
+  translating **stored content** (one row in many languages). That is a different concern from
+  translating the admin UI text, which the i18n skill covers. Nothing reads or acts on it. Only
+  `strategy: 'row'` will ever be valid, so declaring the shape now avoids a breaking rename later.
 - No built-in media adapter and no media picker UI. `PlutoMediaAdapter` is a contract only, and
   the `media` field type still has no core widget (see above).
