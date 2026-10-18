@@ -29,7 +29,7 @@
     "postinstall": "nuxt prepare",
     "prettier": "prettier --write .",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix && prettier --write .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "nuxt prepare && vue-tsc -b --noEmit",
     "test": "vitest run"
   },
