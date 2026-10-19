@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.14.3](https://github.com/plutocms/pluto/compare/v0.14.2...v0.14.3) (2026-10-19)
+
+
+### Bug Fixes
+
+* **admin:** open the admin menu from the navbar on public pages ([#170](https://github.com/plutocms/pluto/issues/170)) ([cc08177](https://github.com/plutocms/pluto/commit/cc081777f211d87abf835dde50e8892b7c2904d8))
+
 ## [0.14.2](https://github.com/plutocms/pluto/compare/v0.14.1...v0.14.2) (2026-10-19)
 
 
