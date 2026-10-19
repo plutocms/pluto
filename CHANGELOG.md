@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.14.2](https://github.com/plutocms/pluto/compare/v0.14.1...v0.14.2) (2026-10-19)
+
+
+### Bug Fixes
+
+* **admin:** keep the admin navbar 40px high on mobile ([#167](https://github.com/plutocms/pluto/issues/167)) ([9f9cc74](https://github.com/plutocms/pluto/commit/9f9cc744859c028505334570c95447bb7e4439c7))
+* **i18n:** keep the app's own html lang on public routes ([#169](https://github.com/plutocms/pluto/issues/169)) ([9368625](https://github.com/plutocms/pluto/commit/9368625c30d8405fe88d89b2ec49c58cf19bb861))
+
 ## [0.14.1](https://github.com/plutocms/pluto/compare/v0.14.0...v0.14.1) (2026-10-18)
 
 
