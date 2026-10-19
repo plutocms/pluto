@@ -120,7 +120,12 @@ server value.
 Nuxt UI has one locale for each page. `PlutoRoot.vue` passes `:locale` to `UApp`: the admin
 locale's Nuxt UI object on routes under `/admin`, and the site locale's on the rest. The module
 picks the Nuxt UI file for each code: `pt-BR` gives `pt_br`, else the base language, else `en`.
-`PlutoRoot.vue` sets `<html lang dir>` with the same rule.
+`PlutoRoot.vue` sets `<html lang dir>` on routes under `/admin`, from the admin locale. On the
+other routes it sets them from the site locale only when the app uses the site scope, which
+means the app sets `plutoI18n.siteLocale` or `plutoI18n.siteLocales`
+(`runtimeConfig.public.plutoI18n.siteManaged`). Otherwise the app keeps its own
+`app.head.htmlAttrs`. Example: a Portuguese site with `lang: 'pt-BR'` in `nuxt.config.ts` and
+no site options keeps `pt-BR`.
 
 ## The locale driver
 
