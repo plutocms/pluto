@@ -26,15 +26,10 @@
 
 /*
  * Set the header height outside a layer. This overrides Nuxt UI's own
- * `@layer theme` value for the same variable. The values match the
- * navbar's own height classes (`h-14` / `lg:h-10`).
+ * `@layer theme` value for the same variable. The admin navbar is 2.5rem
+ * (40px) high at every width. A public site that shows the admin navbar
+ * to a logged-in admin offsets its own header by the same 40px (`top-10`).
  */
 :root {
-  --ui-header-height: 3.5rem;
-}
-
-@media (width >= 64rem) {
-  :root {
-    --ui-header-height: 2.5rem;
-  }
+  --ui-header-height: 2.5rem;
 }
