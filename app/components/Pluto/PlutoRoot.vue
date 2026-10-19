@@ -11,10 +11,16 @@ const isAdmin = computed(() => route.path === '/admin' || route.path.startsWith(
 const active = computed(() => (isAdmin.value ? admin : site))
 const uiLocale = computed(() => active.value.uiLocale.value)
 
+// Pluto owns <html lang> on admin routes. On public routes it sets it only
+// when the app uses the site scope (it sets plutoI18n.siteLocale or
+// siteLocales). Otherwise the app keeps its own app.head.htmlAttrs.
+const { siteManaged } = useRuntimeConfig().public.plutoI18n
+const managesLang = computed(() => isAdmin.value || Boolean(siteManaged))
+
 useHead({
   htmlAttrs: {
-    lang: computed(() => active.value.locale.value),
-    dir: computed(() => uiLocale.value?.dir ?? 'ltr'),
+    lang: computed(() => (managesLang.value ? active.value.locale.value : undefined)),
+    dir: computed(() => (managesLang.value ? (uiLocale.value?.dir ?? 'ltr') : undefined)),
   },
 })
 </script>

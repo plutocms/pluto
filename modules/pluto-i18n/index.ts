@@ -55,6 +55,7 @@ export default defineNuxtModule<PlutoI18nOptions>({
       adminLocales: resolved.adminLocales,
       siteLocales: resolved.siteLocales,
       siteLocale: resolved.siteLocale,
+      siteManaged: resolved.siteManaged,
     }
 
     addTemplate({

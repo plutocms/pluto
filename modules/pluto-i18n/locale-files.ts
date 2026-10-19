@@ -146,6 +146,11 @@ export interface ResolvedI18nOptions {
   adminLocales: string[]
   siteLocales: string[]
   siteLocale: string
+  /**
+   * True when the app sets `siteLocale` or `siteLocales`: the app uses the
+   * site scope, so Pluto sets `<html lang>` on public routes too.
+   */
+  siteManaged: boolean
   warnings: string[]
 }
 
@@ -183,5 +188,7 @@ export function resolveI18nOptions(options: PlutoI18nOptions, discovered: string
     siteLocale = defaultLocale
   }
 
-  return { defaultLocale, adminLocales, siteLocales, siteLocale, warnings }
+  const siteManaged = options.siteLocale !== undefined || options.siteLocales !== undefined
+
+  return { defaultLocale, adminLocales, siteLocales, siteLocale, siteManaged, warnings }
 }

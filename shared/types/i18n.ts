@@ -11,4 +11,9 @@ export interface PlutoI18nRuntimeConfig {
   siteLocales: string[]
   /** The public site's locale before a visitor picks one. */
   siteLocale: string
+  /**
+   * True when the app sets `siteLocale` or `siteLocales`. Only then does
+   * Pluto set `<html lang>` on public routes. Otherwise the app keeps its own.
+   */
+  siteManaged: boolean
 }

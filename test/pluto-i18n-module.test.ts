@@ -147,8 +147,15 @@ describe('resolveI18nOptions', () => {
       adminLocales: ['en', 'pt-BR'],
       siteLocales: ['en', 'pt-BR'],
       siteLocale: 'en',
+      siteManaged: false,
       warnings: [],
     })
+  })
+
+  it('marks the site as managed only when the app sets a site option', () => {
+    expect(resolveI18nOptions({ siteLocale: 'pt-BR' }, ['en', 'pt-BR']).siteManaged).toBe(true)
+    expect(resolveI18nOptions({ siteLocales: ['en'] }, ['en', 'pt-BR']).siteManaged).toBe(true)
+    expect(resolveI18nOptions({ adminLocales: ['en'] }, ['en', 'pt-BR']).siteManaged).toBe(false)
   })
 
   it('keeps the options that name a discovered locale', () => {
