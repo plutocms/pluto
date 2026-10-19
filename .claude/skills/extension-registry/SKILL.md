@@ -48,6 +48,18 @@ sets only what it has.
 | `settingsDriver` | `PlutoSettingsDriver` | Load/save functions for settings storage. One layer normally provides it. |
 | `localeDriver` | `PlutoLocaleDriver` | Load/save functions for the current user's admin language. One layer normally provides it. |
 
+### The admin menu on small screens
+
+`usePlutoAdminMenu()` turns the `nav` entries into `UNavigationMenu` items, and
+`usePlutoAdminMenuOpen()` holds the open state (the `pluto-admin-sidebar-open` state key). The
+navbar's menu button sets that state.
+
+- On `/admin/**`, the admin layout's `UDashboardSidebar` opens.
+- On a public page, the admin layout is not there. `PlutoRoot` renders `PlutoNavbarAdminMenu`
+  instead: a left `USlideover` with the same menu and the admin theme (`data-pluto-admin-scope`).
+- `PlutoRoot` closes the menu after every navigation. The watch is in `PlutoRoot`, because the
+  public-page menu unmounts when the route moves into `/admin`.
+
 Every entry (`PlutoNavItem`, `PlutoDashboardWidget`, and so on) extends `PlutoEntry`:
 
 - `id` — unique inside the extension. Core stores it as `"<extensionId>:<id>"`, so two layers

@@ -8,6 +8,14 @@ const route = useRoute()
 const admin = usePlutoI18n()
 const site = usePlutoSiteI18n()
 const isAdmin = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'))
+
+// Close the admin menu after a navigation, so it is not open on the next
+// page. The watch lives here because the public-page menu unmounts when the
+// route moves into /admin, before its own watch could run.
+const adminMenuOpen = usePlutoAdminMenuOpen()
+watch(() => route.fullPath, () => {
+  adminMenuOpen.value = false
+})
 const active = computed(() => (isAdmin.value ? admin : site))
 const uiLocale = computed(() => active.value.uiLocale.value)
 
@@ -32,6 +40,12 @@ useHead({
       <NuxtLoadingIndicator />
 
       <component :is="navbar" v-if="navbar" />
+
+      <!--
+        Public pages have no admin sidebar. The admin navbar menu button
+        opens this slideover there instead.
+      -->
+      <PlutoNavbarAdminMenu v-if="navbar && !isAdmin" />
 
       <div class="min-h-0 min-w-0 w-full grow">
         <NuxtLayout>
