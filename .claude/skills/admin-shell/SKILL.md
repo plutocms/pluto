@@ -72,10 +72,13 @@ these paths.
 
 1. With no auth driver, it does nothing. A backend with its own guard (supabase 0.10, with its own
    `auth` middleware) is not affected.
-2. It awaits `driver.ready()`. A rejection counts as signed out.
-3. It calls `guardDecision` with `normalizePublicPaths(driver.publicPaths)`. On a redirect, it calls
+2. It never touches a path outside `/admin`.
+3. It awaits `driver.ready()`. A rejection counts as signed out.
+4. It calls `driver.guard(to)` when the driver has one. A returned local path that is not the
+   current path is a redirect. Nothing returned, or a rejection, goes on to the next step. Supabase
+   uses this hook to send a new install to `/admin/setup` before the sign-in rule.
+5. It calls `guardDecision` with `normalizePublicPaths(driver.publicPaths)`. On a redirect, it calls
    `navigateTo(to, { replace: true })`.
-4. It never touches a path outside `/admin`.
 
 A signed-out user on a private admin path goes to `/admin/login?redirect=<fullPath>`. A signed-in
 user on a public auth path goes to the checked `redirect` target, or to `/admin/home`. The server
@@ -95,7 +98,17 @@ page. The name follows the folder rule of Nuxt: a file `PlutoAuthCard.vue` in `A
 - The footer links `links.signUp` and `links.forgotPassword`, when the driver gives them.
 - A "Back to the site" link.
 
-With no driver, the card shows an alert: no sign-in method is set up. The texts are in
+The card also frames the other auth pages of a backend (sign up, password reset). Give it a
+default slot, and the slot replaces the driver's form and links. The props `title` and
+`description` (key-or-literal) replace the heading. Example:
+
+```vue
+<PlutoAdminAuthCard title="supabase.auth.signup.title">
+  <SignUpForm />
+</PlutoAdminAuthCard>
+```
+
+With no driver and no slot, the card shows an alert: no sign-in method is set up. The texts are in
 `pluto.auth.*`, in English and Brazilian Portuguese.
 
 ## Admin banners
@@ -217,9 +230,12 @@ Delete:
 
 - `pages/admin.vue`. Core's parent route replaces it. Move its extra work to a banner
   (`adminBanners`, for example the migrations banner) or to a plugin.
-- The `(auth)/login.vue` frame. Keep the other `(auth)` pages with the `auth` layout. They can use
-  `PlutoAdminAuthCard` or a plain card. Do not keep a file at the core login path.
+- The `(auth)/login.vue` frame. Keep the other `(auth)` pages with the `auth` layout. Wrap their body in
+  `PlutoAdminAuthCard` (default slot, `title` prop), so every auth page has the same frame. Do not keep a file at the core login path.
 - The `auth` route middleware. Core's guard replaces it.
+- A named setup middleware that must run before the sign-in rule. Move its check into
+  `driver.guard`. Nuxt runs the global middleware of an extended layer (core) before the app's
+  own, so a file prefix such as `00.` cannot put a layer's middleware first.
 - `NavbarAdmin*` and the `navbar` registration (`useNavbarAdmin`).
 - The permissions and locale sync plugins. `app/plugins/pluto-auth-sync.client.ts` does both.
 

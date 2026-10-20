@@ -224,6 +224,21 @@ forgotPassword?: string
 }
   /** Paths that need no sign-in. '/admin/login' is always one. */
   publicPaths?: Array<string | PlutoAuthPublicPath>
+  /**
+   * A check that runs before the sign-in rule, on every `/admin` path, after
+   * `ready()`. Return a local path to redirect there, or nothing to go on.
+   * Supabase uses it to send a new install to the setup page first. A path the
+   * check returns must handle itself: core does not run the check again on it
+   * when it equals the current path. It must never reject.
+   */
+  guard?: (to: PlutoAuthGuardTarget) => string | undefined | void | Promise<string | undefined | void>
+}
+
+/** The route facts that the driver's `guard` gets. */
+export interface PlutoAuthGuardTarget {
+  path: string
+  fullPath: string
+  query: Record<string, unknown>
 }
 
 /** An item a layer adds to the user menu of the admin navbar. */

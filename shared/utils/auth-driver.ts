@@ -19,7 +19,7 @@ export function validatePlutoAuthDriver(driver: Partial<PlutoAuthDriver> | null 
       problems.push(`"${name}" must be a function.`)
     }
   }
-  for (const name of ['loggedIn', 'refresh'] as const) {
+  for (const name of ['loggedIn', 'refresh', 'guard'] as const) {
     if (driver[name] !== undefined && typeof driver[name] !== 'function') {
       problems.push(`"${name}" must be a function when set.`)
     }
