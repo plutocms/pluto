@@ -61,6 +61,7 @@ export function usePlutoAdminBar() {
   const { loggedIn, publicPaths } = usePlutoAuth()
   const permissions = usePlutoPermissions()
   const capabilitiesKnown = usePlutoCapabilitiesKnown()
+  const mounted = usePlutoAppMounted()
 
   const isStaff = computed(() => !permissions.hasDriver.value || permissions.granted.value.length > 0)
 
@@ -69,7 +70,9 @@ export function usePlutoAdminBar() {
       path: route.path,
       loggedIn: loggedIn.value,
       isStaff: isStaff.value,
-      capabilitiesKnown: capabilitiesKnown.value,
+      // The public-page rule also waits for the mount, so the first client
+      // render matches the server HTML. The admin rule does not read it.
+      capabilitiesKnown: capabilitiesKnown.value && mounted.value,
       publicPaths: publicPaths.value,
     })
   )

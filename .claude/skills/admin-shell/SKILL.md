@@ -154,9 +154,11 @@ sign-in it loads the capabilities and syncs the admin language. On sign-out it c
 capabilities. It also sets `usePlutoCapabilitiesKnown()`, a state that is `true` only after the
 capabilities loaded in the browser. The server never sets it.
 
-- On a public page, the bar needs `capabilitiesKnown`. It is `false` on the server and in the
-  first client render, so the server HTML and the first client render agree. There is no
-  hydration mismatch.
+- On a public page, the bar needs `capabilitiesKnown` and `usePlutoAppMounted()`. The second one
+  becomes `true` at the first `app:suspense:resolve`, when Nuxt ends the hydration. The
+  capabilities alone are not enough: with no permissions driver, or a fast session read, they can
+  be known before hydration. Both are `false` on the server and in the first client render, so
+  the server HTML and the first client render agree. There is no hydration mismatch.
 - A customer never sees the bar, because the bar waits for the answer before it shows.
 - On `/admin/**` the bar does not wait. It renders from `loggedIn()`.
 

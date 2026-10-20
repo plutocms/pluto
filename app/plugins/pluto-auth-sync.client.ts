@@ -10,11 +10,26 @@
  * the server never knows the capabilities, so the state stays false there.
  * With no permissions driver, there is nothing to load, and the state is true.
  */
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
   const { loggedIn } = usePlutoAuth()
   const permissions = usePlutoPermissions()
   const { syncUserLocale } = usePlutoI18n()
   const known = usePlutoCapabilitiesKnown()
+
+  // The public-page bar waits for the mount too. The session and the
+  // capabilities can be ready before hydration (no permissions driver, or a
+  // fast session read). A bar, or an app offset, that shows in the first
+  // client render but not in the server HTML is a hydration mismatch.
+  const mounted = usePlutoAppMounted()
+  if (nuxtApp.isHydrating) {
+    // 'app:mounted' fires before async pages and layouts hydrate. Wait for
+    // the first Suspense resolve, where Nuxt ends the hydration.
+    nuxtApp.hooks.hookOnce('app:suspense:resolve', () => {
+      mounted.value = true
+    })
+  } else {
+    mounted.value = true
+  }
 
   // The permissions driver can register after this plugin runs, so watch it too.
   watch(

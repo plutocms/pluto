@@ -13,6 +13,14 @@ export function usePlutoCapabilitiesKnown() {
 }
 
 /**
+ * True after the app hydrated in the browser. False on the server and during
+ * hydration. `pluto-auth-sync.client.ts` sets it.
+ */
+export function usePlutoAppMounted() {
+  return useState<boolean>('pluto-app-mounted', () => false)
+}
+
+/**
  * The sign-in backend of the admin, through the registered auth driver. The
  * last registered driver wins. With no driver, `user` is null and `loggedIn`
  * is false. In development, a driver that breaks the contract logs one warning
