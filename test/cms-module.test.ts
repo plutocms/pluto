@@ -91,7 +91,7 @@ describe('pluto-cms module wiring', () => {
     expect(middleware[0]!.handler).toMatch(/middleware[\\/]pluto-cms-origin$/)
   })
 
-  it('adds the Nitro plugin, the client plugin and the route middleware', async () => {
+  it('adds the Nitro plugin and the client plugin', async () => {
     await run({ enabled: true, github: repo })
 
     expect(kitCalls.serverPlugins).toHaveLength(1)
@@ -100,45 +100,11 @@ describe('pluto-cms module wiring', () => {
     expect((kitCalls.plugins[0] as {
  src: string
 }).src).toMatch(/app[\\/]plugins[\\/]pluto-cms$/)
-    expect(kitCalls.routeMiddleware).toHaveLength(1)
-    expect(kitCalls.routeMiddleware[0]).toMatchObject({ name: 'pluto-cms-auth', global: true })
+    // Core owns the route guard and the login page, so the module adds none.
+    expect(kitCalls.routeMiddleware).toHaveLength(0)
+    expect(kitCalls.pageExtenders).toHaveLength(0)
     expect(kitCalls.importsDirs).toHaveLength(1)
     expect(kitCalls.importsDirs[0]).toMatch(/app[\\/]composables$/)
-  })
-
-  it('adds the login page under app/components/Pluto/Cms', async () => {
-    await run({ enabled: true, github: repo })
-    const pages: {
- name?: string
-path: string
-file?: string
-}[] = [{ path: '/admin/home' }]
-
-    expect(kitCalls.pageExtenders).toHaveLength(1)
-    kitCalls.pageExtenders[0]!(pages)
-
-    expect(pages).toHaveLength(2)
-    expect(pages[1]).toMatchObject({ name: 'pluto-cms-login', path: '/admin/login' })
-    expect(pages[1]!.file!.replaceAll('\\', '/')).toMatch(/\/app\/components\/Pluto\/Cms\/PlutoCmsLoginPage\.vue$/)
-  })
-
-  it('does not overwrite an existing /admin/login page', async () => {
-    await run({ enabled: true, github: repo })
-    const pages = [{ name: 'login', path: '/admin/login', file: '/app/pages/admin/login.vue' }]
-
-    kitCalls.pageExtenders[0]!(pages)
-
-    expect(pages).toEqual([{ name: 'login', path: '/admin/login', file: '/app/pages/admin/login.vue' }])
-  })
-
-  it('does not overwrite a nested /admin/login page', async () => {
-    await run({ enabled: true, github: repo })
-    const pages = [{ path: '/admin', children: [{ path: 'login' }] }]
-
-    kitCalls.pageExtenders[0]!(pages as never)
-
-    // The /admin parent gets the admin layout; its login child is kept and no page is added.
-    expect(pages).toEqual([{ path: '/admin', meta: { layout: 'admin' }, children: [{ path: 'login' }] }])
   })
 
   it('puts the server settings in the private runtime config, and no secret in the public one', async () => {

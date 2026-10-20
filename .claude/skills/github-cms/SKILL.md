@@ -30,9 +30,9 @@ A supabase app that does not set `plutoCms.enabled` sees no change and no log li
   `runtime/server/github/app-token.ts`, `runtime/server/api/auth/**`,
   `runtime/server/middleware/pluto-cms-origin.ts`, `runtime/server/plugins/pluto-cms.ts` — the
   authentication and the wiring (see "Authentication" and "Wiring").
-- `runtime/app/{composables,plugins,middleware}/` — the client side.
-- `app/components/Pluto/Cms/` — the login page, the navbar, the dashboard warning, the editor
-  widget and `PlutoMarkdown`.
+- `runtime/app/{composables,plugins}/` — the client side.
+- `app/components/Pluto/Cms/` — the sign-in form (`PlutoCmsSignIn`), the dashboard warning, the
+  editor widget and `PlutoMarkdown`.
 - `runtime/server/utils/{markdown,sanitize-html,public-content}.ts`,
   `runtime/server/api/public/[type]/`, `runtime/shared/public-types.ts` and
   `runtime/app/composables/pluto-cms-content.ts` — the public read side (see "Public read").
@@ -160,12 +160,13 @@ When `plutoCms.enabled` is true, and only then, the module adds:
   the Markdown adapter. `getAccess(event)` gives the signed-in user (their GitHub token and
   capabilities) or `null`.
 - A client plugin, `runtime/app/plugins/pluto-cms.ts`. It calls `definePlutoExtension` with the
-  navbar, the post content type, the post capabilities, the permissions driver and the public-repo
-  dashboard widget. It also loads the capabilities when the session appears.
-- A global route middleware, `runtime/app/middleware/pluto-cms-auth.ts`.
+  auth driver, the post content type, the post capabilities, the permissions driver and the
+  public-repo dashboard widget. Core loads the capabilities when the session appears.
 - The auto-import dir `runtime/app/composables` (`usePlutoCmsSession`).
-- The page `/admin/login` with `extendPages`. If the app already has that page, the module keeps
-  it, adds nothing and logs a warning.
+
+The module adds no page, no route middleware and no navbar. Core owns the `/admin` parent route,
+the `/admin/login` page, the route guard and the navbar. The CMS is the reference auth driver.
+See the [admin shell](../admin-shell/SKILL.md) skill.
 
 The module puts the non-secret server settings in the private `runtimeConfig.plutoCms`: `apiUrl`,
 `skipDeploy`, `headTtl`, `cacheStorage`, `postType`, `fsRoot`. `utils/cms-config.ts` reads all
@@ -175,8 +176,7 @@ The `fs` store root is the project dir (the same layout as the repo), so a post 
 `<project>/content/posts/<slug>.md`.
 
 The Vue files are in `app/components/Pluto/Cms/`, because Tailwind scans the `app/` dir of a layer
-only: `PlutoCmsLoginPage`, `PlutoCmsNavbar`, `PlutoCmsNavbarProvider` and
-`PlutoCmsPublicRepoWarning`. They use explicit imports for the session composable, so the type
+only: `PlutoCmsSignIn` and `PlutoCmsPublicRepoWarning`. They use explicit imports for the session composable, so the type
 check works when the CMS is off.
 
 ## Authentication
@@ -277,15 +277,25 @@ never change state.
 - `usePlutoCmsSession()` gives `{ user, capabilities, repo, loggedIn, status, ready, refresh,
   logout }`. It uses `useFetch` with the key `pluto-cms-session` and `server: false`, so the
   server HTML of a public page never holds a user (a CDN may cache it). The admin is client-only.
-- The route middleware sends a signed-out user on `/admin/**` (not `/admin/login`) to
-  `/admin/login?redirect=<fullPath>`. A signed-in user on `/admin/login` goes to `/admin/home`.
-  This is a UI guard only. The server checks every request.
-- The login page has one "Sign in with GitHub" button. It is a full page load to the login route.
-  It shows an error for `forbidden`, `not_installed` (with a link to
+- The auth driver (`id: 'pluto-cms-auth'`) maps the session: `user()` gives `id`, `name`, `username`
+  (the GitHub login) and `avatarUrl`. `loggedIn()` reads `usePlutoCmsSession().loggedIn`. The
+  session loads in the browser only, so `loggedIn()` is `false` on the server and in the first
+  client render. This keeps the hydration stable. The navbar appears after hydration. `ready()`
+  waits for the first session read, `refresh()` reads it again and `signOut()` posts to the logout
+  route.
+- Core's route guard sends a signed-out user on `/admin/**` (not `/admin/login`) to
+  `/admin/login?redirect=<fullPath>`. A signed-in user on `/admin/login` goes to the redirect or to
+  `/admin/home`. This is a UI guard only. The server checks every request.
+- The login page is core's `/admin/login`. The driver gives the title and the description
+  (`pluto.cms.login.*`) and the `signIn` component, `PlutoCmsSignIn`. It has one "Sign in with
+  GitHub" button. It is a full page load to the login route. It shows an error for `forbidden`, `not_installed` (with a link to
   `https://github.com/apps/<appSlug>/installations/new` when `github.appSlug` is set), `state` and
   any other value.
-- The navbar shows on `/admin/**` (not the login page), and on public pages when a user is signed
-  in. The user menu has Settings and Sign out.
+- Core renders the navbar. It shows on `/admin/**` (not the login page), and on public pages for
+  staff. The user menu has Settings and Sign out. In the local dev flow (`fs` store, local request)
+  the dev user is signed in with no GitHub step, so the bar shows.
+- A public layout that offsets its own header should use `usePlutoAdminBar().visible`. The core
+  blog template still uses `usePlutoCmsSession().loggedIn` with `useMounted()`. It keeps working.
 - When the repo is public, the dashboard shows a warning: drafts are visible on GitHub.
 - All text uses the keys `pluto.cms.*` in `i18n/locales/en.json` and `pt-BR.json`.
 
@@ -475,10 +485,9 @@ provider, GitHub App Manifest setup, scheduled posts, and configurable collectio
 
 ## Rules found in live testing
 
-- **Admin layout.** In a supabase app, the supabase layer's `pages/admin.vue` parent route sets
-  `layout: 'admin'`. The standalone CMS has no such route, so the module sets the `admin` layout
-  on every `/admin/**` page (`applyAdminLayout` in `modules/pluto-cms/pages.ts`). A page that sets
-  its own layout keeps it. `/admin/login` uses the `auth` layout.
+- **Admin layout.** Core's `app/pages/admin.vue` parent route sets `layout: 'admin'` for every
+  `/admin/**` page. The module sets no layout. `/admin/login` sets the `auth` layout itself. The
+  login page path is `app/pages/admin/(auth)/login.vue`. The supabase layer ships the same path.
 - **The dev local user and `nuxt dev`.** `nuxt dev` proxies each request to its Nitro worker. The
   worker socket has no remote address, and the dev proxy appends the real client address as the
   LAST `x-forwarded-for` entry. `isLocalRequest` accepts that case only when the last entry is a

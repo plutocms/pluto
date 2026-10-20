@@ -7,6 +7,9 @@ const isSidebarOpen = usePlutoAdminMenuOpen()
 const commandGroups = usePlutoCommandPalette()
 const { t } = usePlutoI18n()
 
+// Banners from the layers (adminBanners), sorted by order. They show above the page.
+const banners = usePlutoRegistry().adminBanners.list
+
 // Keep the consumer app's public-site theme out of the admin.
 usePlutoAdminTheme()
 
@@ -62,6 +65,7 @@ const groupStyle = { top: 'var(--ui-header-height)' }
       }"
     >
       <template #body>
+        <component :is="banner.component" v-for="banner in banners" :key="banner.id" />
         <slot />
       </template>
     </UDashboardPanel>

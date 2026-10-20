@@ -64,14 +64,14 @@ Pluto CMS is built around **layers**, each responsible for a specific concern.
 
 The core layer provides the foundation for your CMS:
 
-- `<PlutoRoot>`: Wraps your entire app (used in `app.vue`). Includes the registered admin navbar, `NuxtLayout`, `NuxtLoadingIndicator`, and base styles.
+- `<PlutoRoot>`: Wraps your entire app (used in `app.vue`). Includes the admin navbar, `NuxtLayout`, `NuxtLoadingIndicator`, and base styles.
 - `<ColorModeButton>`: Light/dark mode toggle with zero configuration.
-- Built-in auth and admin layouts
+- Built-in auth and admin layouts, the `/admin` route, the `/admin/login` page, the route guard and the admin navbar. A backend layer plugs in with an auth driver (`authDriver` in `definePlutoExtension`). See `.claude/skills/admin-shell/SKILL.md`.
 - `<PlutoNavbarAdmin>` and `<PlutoNavbarAdminActions>`
   Provide structure for injecting actions from other layers
 
 A layer plugs into the admin UI with one function, `definePlutoExtension`, called from a
-plugin. It registers any of: the admin navbar, navbar actions, sidebar nav entries, admin page
+plugin. It registers any of: an auth driver, navbar actions, sidebar nav entries, admin page
 metadata, dashboard widgets, and a settings panel or driver:
 
 ```ts

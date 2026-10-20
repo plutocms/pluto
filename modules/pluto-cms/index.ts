@@ -3,16 +3,13 @@ import {
   addComponent,
   addImportsDir,
   addPlugin,
-  addRouteMiddleware,
   addServerHandler,
   addServerPlugin,
   createResolver,
   defineNuxtModule,
-  extendPages,
   useLogger,
 } from '@nuxt/kit'
 import { PLUTO_CMS_SECRET_ENV, resolvePlutoCmsOptions } from './options'
-import { applyAdminLayout } from './pages'
 
 export type { PlutoCmsOptions } from './options'
 
@@ -106,13 +103,9 @@ export default defineNuxtModule<PlutoCmsOptions>({
     addServerHandler({ middleware: true, handler: server('middleware/pluto-cms-origin') })
     addServerPlugin(server('plugins/pluto-cms'))
 
-    // Client: the extension plugin, the route guard and the session composable.
+    // Client: the extension plugin and the session composable. Core owns the
+    // admin routes, the login page and the route guard.
     addPlugin({ src: resolver.resolve('./runtime/app/plugins/pluto-cms') })
-    addRouteMiddleware({
-      name: 'pluto-cms-auth',
-      path: resolver.resolve('./runtime/app/middleware/pluto-cms-auth'),
-      global: true,
-    })
     addImportsDir(resolver.resolve('./runtime/app/composables'))
 
     // `PlutoMarkdown` shows the sanitized HTML of a public item. The file lives
@@ -123,24 +116,6 @@ export default defineNuxtModule<PlutoCmsOptions>({
       filePath: resolver.resolve('../../app/components/Pluto/Cms/PlutoMarkdown.vue'),
     })
 
-    // The login page. The component lives under `app/`, so Tailwind scans it.
-    // An app that has its own /admin/login page keeps it.
-    extendPages((pages) => {
-      // Admin pages need the admin layout. The supabase layer's parent route
-      // sets it there; the standalone CMS sets it per page.
-      applyAdminLayout(pages)
-
-      if (hasPage(pages, '/admin/login')) {
-        logger.warn('The app already has a /admin/login page. The standalone CMS keeps it and adds no login page.')
-        return
-      }
-      pages.push({
-        name: 'pluto-cms-login',
-        path: '/admin/login',
-        file: resolver.resolve('../../app/components/Pluto/Cms/PlutoCmsLoginPage.vue'),
-      })
-    })
-
     // Public read routes. They are anonymous and cacheable. See the github-cms skill.
     addServerHandler({ route: '/api/_pluto/cms/:type', method: 'get', handler: server('api/public/[type]/index.get') })
     addServerHandler({ route: '/api/_pluto/cms/:type/:slug', method: 'get', handler: server('api/public/[type]/[slug].get') })
@@ -148,19 +123,6 @@ export default defineNuxtModule<PlutoCmsOptions>({
     logger.info(`Standalone CMS on. Storage: ${resolved.storage}. Dir: ${resolved.dir}.`)
   },
 })
-
-interface PageLike {
-  path: string
-  children?: PageLike[]
-}
-
-/** True when a page, at any depth, has this full path. */
-function hasPage(pages: PageLike[], path: string, parent = ''): boolean {
-  return pages.some((page) => {
-    const full = page.path.startsWith('/') ? page.path : `${parent.replace(/\/+$/, '')}/${page.path}`
-    return full === path || hasPage(page.children ?? [], path, full)
-  })
-}
 
 /** `GITHUB_APP_ID` becomes `githubAppId`. */
 function toCamelCase(name: string): string {

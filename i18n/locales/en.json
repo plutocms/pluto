@@ -155,7 +155,6 @@
         "description": "Sign in with the GitHub account that can edit this site.",
         "signIn": "Sign in with GitHub",
         "installApp": "Install the GitHub App",
-        "backToSite": "Back to the site",
         "errors": {
           "forbidden": {
             "title": "No access",
@@ -174,15 +173,6 @@
             "description": "GitHub did not complete the sign-in. Try again."
           }
         }
-      },
-      "navbar": {
-        "openNavigation": "Open navigation",
-        "goHome": "Go to the dashboard",
-        "viewSite": "View site",
-        "viewSiteTitle": "Open the public site in a new tab",
-        "openUserMenu": "Open the user menu",
-        "defaultUserName": "Editor",
-        "signOut": "Sign out"
       },
       "publicRepo": {
         "title": "This repository is public",
@@ -230,6 +220,16 @@
       "boolean": "\"{label}\" must be a boolean.",
       "option": "\"{label}\" must be one of the allowed options.",
       "maxLength": "\"{label}\" must be at most {max} characters."
+    },
+    "auth": {
+      "signIn": "Sign in",
+      "backToSite": "Back to the site",
+      "noMethod": {
+        "title": "No sign-in method",
+        "description": "This admin has no sign-in method. Add a backend that registers an auth driver."
+      },
+      "signUp": "Sign up",
+      "forgotPassword": "Forgot your password?"
     }
   }
 }
