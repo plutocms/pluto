@@ -176,6 +176,33 @@
         "title": "This repository is public",
         "description": "This repository is public. Drafts are visible on GitHub."
       },
+      "editor": {
+        "placeholder": "Write your post in Markdown or use the toolbar.",
+        "toolbar": "Formatting",
+        "undo": "Undo",
+        "redo": "Redo",
+        "headings": "Headings",
+        "heading1": "Heading 1",
+        "heading2": "Heading 2",
+        "heading3": "Heading 3",
+        "heading4": "Heading 4",
+        "bold": "Bold",
+        "italic": "Italic",
+        "strike": "Strikethrough",
+        "code": "Inline code",
+        "link": "Link",
+        "linkPopover": {
+          "placeholder": "Paste a link",
+          "apply": "Apply the link",
+          "open": "Open the link",
+          "remove": "Remove the link"
+        },
+        "lists": "Lists",
+        "bulletList": "Bulleted list",
+        "orderedList": "Numbered list",
+        "blockquote": "Quote",
+        "codeBlock": "Code block"
+      },
       "capabilities": {
         "readDrafts": "Read draft posts",
         "publish": "Create, edit and publish posts",

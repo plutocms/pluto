@@ -127,6 +127,34 @@ describe('fs store', () => {
     expect(await store.head()).not.toBe(before)
   })
 
+  // The root is the project dir in dev. The head must read the content dir
+  // only, never `node_modules` or build output.
+  it('makes the head from headDir only', async () => {
+    const store = createFsStore({ root, headDir: 'content' })
+    await mkdir(join(root, 'content'), { recursive: true })
+    await writeFile(join(root, 'content', 'a.md'), 'A')
+    const head = await store.head()
+
+    await mkdir(join(root, 'node_modules', 'pkg'), { recursive: true })
+    await writeFile(join(root, 'node_modules', 'pkg', 'index.js'), 'x')
+    await writeFile(join(root, 'package.json'), '{}')
+    expect(await store.head()).toBe(head)
+
+    await writeFile(join(root, 'content', 'b.md'), 'B')
+    expect(await store.head()).not.toBe(head)
+  })
+
+  it('never reads node_modules or dot dirs for the head', async () => {
+    const store = createFsStore({ root })
+    const head = await store.head()
+    await mkdir(join(root, 'node_modules', 'pkg'), { recursive: true })
+    await writeFile(join(root, 'node_modules', 'pkg', 'index.js'), 'x')
+    await mkdir(join(root, '.nuxt'), { recursive: true })
+    await writeFile(join(root, '.nuxt', 'app.js'), 'x')
+
+    expect(await store.head()).toBe(head)
+  })
+
   it('refuses paths outside the root and changes nothing', async () => {
     const store = createFsStore({ root })
     const head = await store.head()

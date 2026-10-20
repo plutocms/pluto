@@ -14,6 +14,7 @@ export const kitCalls = {
   plugins: [] as unknown[],
   routeMiddleware: [] as Record<string, unknown>[],
   importsDirs: [] as string[],
+  components: [] as Record<string, unknown>[],
   pageExtenders: [] as ((pages: Pages) => void)[],
 }
 
@@ -23,6 +24,7 @@ export function resetKitCalls(): void {
   kitCalls.plugins.length = 0
   kitCalls.routeMiddleware.length = 0
   kitCalls.importsDirs.length = 0
+  kitCalls.components.length = 0
   kitCalls.pageExtenders.length = 0
 }
 
@@ -38,6 +40,7 @@ export function kitMock<T extends object>(actual: T): T {
     addServerPlugin: vi.fn((path: string) => kitCalls.serverPlugins.push(path)),
     addPlugin: vi.fn((plugin: unknown) => kitCalls.plugins.push(plugin)),
     addRouteMiddleware: vi.fn((middleware: Record<string, unknown>) => kitCalls.routeMiddleware.push(middleware)),
+    addComponent: vi.fn((component: Record<string, unknown>) => kitCalls.components.push(component)),
     addImportsDir: vi.fn((dir: string) => kitCalls.importsDirs.push(dir)),
     extendPages: vi.fn((extender: (pages: Pages) => void) => kitCalls.pageExtenders.push(extender)),
   }

@@ -1,5 +1,5 @@
 import type { PlutoCmsSessionResponse } from '../composables/pluto-cms-session'
-import { watch } from 'vue'
+import { defineAsyncComponent, watch } from 'vue'
 import { defineNuxtPlugin } from '#imports'
 import PlutoCmsNavbarProvider from '../../../../../app/components/Pluto/Cms/PlutoCmsNavbarProvider.vue'
 import PlutoCmsPublicRepoWarning from '../../../../../app/components/Pluto/Cms/PlutoCmsPublicRepoWarning.vue'
@@ -30,6 +30,14 @@ export default defineNuxtPlugin(() => {
     navbar: { id: 'admin-navbar', component: PlutoCmsNavbarProvider },
     // The content type gives the Posts nav item, the list and the form.
     contentTypes: [{ id: 'post', type: plutoCmsPostType }],
+    // The Markdown editor. The import is lazy, so Tiptap loads on the edit page only.
+    contentFieldWidgets: [
+      {
+        id: 'markdown',
+        fieldType: 'richtext',
+        component: defineAsyncComponent(() => import('../../../../../app/components/Pluto/Cms/PlutoFieldMarkdown.vue')),
+      },
+    ],
     capabilities,
     dashboardWidgets: [
       {

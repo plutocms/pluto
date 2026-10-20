@@ -150,19 +150,47 @@ const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1'])
 const LOCAL_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
 
 /**
- * True when the request comes from this machine. The check reads the socket
- * address. A header can grant nothing. A header can only deny: a request that
- * a proxy or a tunnel forwarded (it has `x-forwarded-for`), or that names
- * another host (it blocks DNS rebinding), is not local.
+ * The client address of a request that the `nuxt dev` server proxied to its
+ * Nitro worker. The worker socket has no remote address, and the dev proxy
+ * appends the real client address as the LAST `x-forwarded-for` entry. A
+ * client can send its own `x-forwarded-for`, but the proxy still appends the
+ * real address after it, so only the last entry counts.
+ */
+function devProxyClientAddress(header: string | string[] | undefined): string | undefined {
+  const value = Array.isArray(header) ? header.join(',') : header
+  const last = value?.split(',').map((part) => part.trim()).filter(Boolean).at(-1)
+  return last || undefined
+}
+
+/**
+ * True when the request comes from this machine. It is used only in a dev
+ * build with the `fs` store (see `loadSession`).
+ *
+ * - A direct connection: the socket address must be a loopback address, and
+ *   the request must have no `x-forwarded-for` or `forwarded` header (a proxy
+ *   or a tunnel forwarded it).
+ * - The `nuxt dev` worker: the socket has no address. The last
+ *   `x-forwarded-for` entry, which the dev proxy appends, must be a loopback
+ *   address.
+ *
+ * In both cases the `Host` header must name this machine. This blocks DNS
+ * rebinding and tunnels.
  */
 export function isLocalRequest(event: H3Event): boolean {
   const req = event.node?.req
-  const address = req?.socket?.remoteAddress
-  if (!address || !LOCAL_ADDRESSES.has(address)) {
+  if (!req) {
     return false
   }
-  if (req.headers['x-forwarded-for'] || req.headers.forwarded) {
-    return false
+  const address = req.socket?.remoteAddress
+  if (address) {
+    if (!LOCAL_ADDRESSES.has(address) || req.headers['x-forwarded-for'] || req.headers.forwarded) {
+      return false
+    }
+  } else {
+    const client = devProxyClientAddress(req.headers['x-forwarded-for'])
+    if (!client || !LOCAL_ADDRESSES.has(client) || req.headers.forwarded) {
+      return false
+    }
   }
   const host = String(req.headers.host ?? '').toLowerCase()
   const name = host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : host.split(':')[0]!

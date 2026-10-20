@@ -46,4 +46,5 @@ policies shared by every project here.
 - GitHub CMS (in progress): an optional standalone CMS with Markdown posts in a GitHub repo. It is off
   by default and refuses to run with the supabase layer. When on, it has GitHub App sign-in, a sealed
   session, a CSRF origin check, the login page, the navbar, and the stores, adapter and post type.
-  The editor and the public read routes come later. @.claude/skills/github-cms/SKILL.md
+  It also has a Markdown editor, public read routes and composables, and `PlutoMarkdown`.
+  @.claude/skills/github-cms/SKILL.md

@@ -7,15 +7,26 @@ import { PlutoCmsConflictError, PlutoCmsStoreError } from './errors'
 export interface FsStoreOptions {
   /** The absolute root dir. All paths are relative to it. */
   root: string
+  /**
+   * The dir, relative to `root`, whose files make the head id. Set it to the
+   * content dir. Default: the whole root. Never leave the default when the
+   * root is a project dir: the head would read every file, `node_modules`
+   * too, on each request.
+   */
+  headDir?: string
 }
+
+/** Dirs the head never reads: dependencies, build output and dot dirs. */
+const SKIPPED_DIRS = new Set(['node_modules', '.nuxt', '.output', '.data', '.nitro', '.cache', 'dist'])
 
 /**
  * A store over the local file system, for dev. The head id is a hash of the
- * file listing (path and blob id), so it changes after a write. A file
- * change made by hand changes it too.
+ * file listing (path and blob id) under `headDir`, so it changes after a
+ * write. A file change made by hand changes it too.
  */
 export function createFsStore(options: FsStoreOptions): PlutoCmsStore {
   const root = resolve(options.root)
+  const headRoot = options.headDir ? resolve(root, options.headDir) : root
 
   function safePath(path: string): string {
     const full = resolve(root, path)
@@ -39,6 +50,9 @@ oid: string
     for (const entry of entries) {
       const full = resolve(dir, entry.name)
       if (entry.isDirectory()) {
+        if (entry.name.startsWith('.') || SKIPPED_DIRS.has(entry.name)) {
+          continue
+        }
         await walk(full, out)
       } else if (entry.isFile()) {
         const text = await readFile(full, 'utf8')
@@ -52,7 +66,7 @@ oid: string
  path: string
 oid: string
 }[] = []
-    await walk(root, entries)
+    await walk(headRoot, entries)
     return listingOid(entries)
   }
 

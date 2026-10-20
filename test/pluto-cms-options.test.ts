@@ -36,7 +36,7 @@ describe('resolvePlutoCmsOptions', () => {
       github: { repo: 'acme/site', branch: 'main', appSlug: '', apiUrl: 'https://api.github.com' },
       dir: 'content',
       commit: { skipDeploy: true },
-      cache: { headTtl: 60, storage: 'cache' },
+      cache: { headTtl: 60, storage: 'cache', publicMaxAge: 60 },
       postType: true,
     })
   })
@@ -47,7 +47,7 @@ describe('resolvePlutoCmsOptions', () => {
       github: { repo: 'acme/site', branch: 'dev', appSlug: 'my-app', apiUrl: 'https://ghe.example.com/api/v3/' },
       dir: 'posts\\blog/',
       commit: { skipDeploy: false },
-      cache: { headTtl: 0, storage: 'redis' },
+      cache: { headTtl: 0, storage: 'redis', publicMaxAge: 0 },
       postType: false,
     }, ctx)
 
@@ -55,7 +55,7 @@ describe('resolvePlutoCmsOptions', () => {
     expect(result.resolved.github.apiUrl).toBe('https://ghe.example.com/api/v3')
     expect(result.resolved.dir).toBe('posts/blog')
     expect(result.resolved.commit.skipDeploy).toBe(false)
-    expect(result.resolved.cache).toEqual({ headTtl: 0, storage: 'redis' })
+    expect(result.resolved.cache).toEqual({ headTtl: 0, storage: 'redis', publicMaxAge: 0 })
     expect(result.resolved.postType).toBe(false)
   })
 
@@ -101,6 +101,15 @@ describe('resolvePlutoCmsOptions', () => {
   it('rejects a negative or invalid headTtl', () => {
     for (const bad of [-1, Number.NaN]) {
       const result = resolvePlutoCmsOptions({ enabled: true, github: repo, cache: { headTtl: bad } }, ctx)
+
+      expect(result.enabled).toBe(false)
+      expect(result.errors).toHaveLength(1)
+    }
+  })
+
+  it('rejects a negative or invalid publicMaxAge', () => {
+    for (const bad of [-1, Number.NaN]) {
+      const result = resolvePlutoCmsOptions({ enabled: true, github: repo, cache: { publicMaxAge: bad } }, ctx)
 
       expect(result.enabled).toBe(false)
       expect(result.errors).toHaveLength(1)
