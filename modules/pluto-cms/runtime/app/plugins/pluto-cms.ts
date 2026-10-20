@@ -1,22 +1,21 @@
 import type { PlutoCmsSessionResponse } from '../composables/pluto-cms-session'
-import { defineAsyncComponent, watch } from 'vue'
+import { defineAsyncComponent } from 'vue'
 import { defineNuxtPlugin } from '#imports'
-import PlutoCmsNavbarProvider from '../../../../../app/components/Pluto/Cms/PlutoCmsNavbarProvider.vue'
 import PlutoCmsPublicRepoWarning from '../../../../../app/components/Pluto/Cms/PlutoCmsPublicRepoWarning.vue'
+import PlutoCmsSignIn from '../../../../../app/components/Pluto/Cms/PlutoCmsSignIn.vue'
 import { definePlutoExtension } from '../../../../../app/composables/pluto-extension'
-import { usePlutoPermissions } from '../../../../../app/composables/pluto-permissions'
 import { plutoCmsPostType } from '../../shared/post-type'
 import { CMS_SESSION_URL, usePlutoCmsSession } from '../composables/pluto-cms-session'
 
 /**
- * Plugs the standalone CMS into the admin: the navbar, the permissions of the
+ * Plugs the standalone CMS into the admin: the auth driver (core renders the
+ * navbar, the login page and the route guard from it), the permissions of the
  * signed-in user, the post type, and the post capabilities. The module adds
  * this plugin only when the CMS is on.
  */
 export default defineNuxtPlugin(() => {
   // Read at setup, while the Nuxt context exists. Later callbacks have none.
   const session = usePlutoCmsSession()
-  const { load, clear } = usePlutoPermissions()
 
   const { read, write, delete: remove } = plutoCmsPostType.capabilities ?? {}
   const capabilities = [
@@ -27,7 +26,30 @@ export default defineNuxtPlugin(() => {
 
   definePlutoExtension({
     id: 'pluto-cms',
-    navbar: { id: 'admin-navbar', component: PlutoCmsNavbarProvider },
+    // The reference auth driver. The session loads in the browser only
+    // (`server: false`), so `loggedIn()` is false on the server and in the first
+    // client render. The navbar then appears after hydration, and a public
+    // page that a CDN caches never holds a user.
+    authDriver: {
+      id: 'pluto-cms-auth',
+      user: () => {
+        const user = session.user.value
+        return user ? { id: String(user.id), name: user.name ?? undefined, username: user.login, avatarUrl: user.avatarUrl } : null
+      },
+      loggedIn: () => session.loggedIn.value,
+      ready: async () => {
+        try {
+          await session.ready()
+        } catch {
+          // A failed session read counts as signed out.
+        }
+      },
+      refresh: () => session.refresh(),
+      signOut: () => session.logout(),
+      signIn: PlutoCmsSignIn,
+      signInTitle: 'pluto.cms.login.title',
+      signInDescription: 'pluto.cms.login.description',
+    },
     // The content type gives the Posts nav item, the list and the form.
     contentTypes: [{ id: 'post', type: plutoCmsPostType }],
     // The Markdown editor. The import is lazy, so Tiptap loads on the edit page only.
@@ -48,6 +70,8 @@ export default defineNuxtPlugin(() => {
         enabled: () => session.repo.value?.private === false,
       },
     ],
+    // Core loads the capabilities after sign-in and clears them after sign-out.
+    // See app/plugins/pluto-auth-sync.client.ts.
     permissionsDriver: {
       id: 'pluto-cms',
       load: async () => {
@@ -56,14 +80,4 @@ export default defineNuxtPlugin(() => {
       },
     },
   })
-
-  // Load the capabilities when the user signs in. Clear them when the user
-  // signs out. This runs app-wide, so a public page knows them too.
-  watch(session.loggedIn, (loggedIn) => {
-    if (loggedIn) {
-      load()
-    } else {
-      clear()
-    }
-  }, { immediate: true })
 })

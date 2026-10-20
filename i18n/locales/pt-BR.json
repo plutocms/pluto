@@ -155,7 +155,6 @@
         "description": "Entre com a conta do GitHub que pode editar este site.",
         "signIn": "Entrar com o GitHub",
         "installApp": "Instalar o GitHub App",
-        "backToSite": "Voltar ao site",
         "errors": {
           "forbidden": {
             "title": "Sem acesso",
@@ -174,15 +173,6 @@
             "description": "O GitHub não concluiu o login. Tente novamente."
           }
         }
-      },
-      "navbar": {
-        "openNavigation": "Abrir navegação",
-        "goHome": "Ir para o painel",
-        "viewSite": "Ver site",
-        "viewSiteTitle": "Abrir o site público em uma nova aba",
-        "openUserMenu": "Abrir o menu do usuário",
-        "defaultUserName": "Editor",
-        "signOut": "Sair"
       },
       "publicRepo": {
         "title": "Este repositório é público",
@@ -230,6 +220,16 @@
       "boolean": "Use apenas verdadeiro ou falso em \"{label}\".",
       "option": "Escolha uma das opções permitidas em \"{label}\".",
       "maxLength": "Use no máximo {max} caracteres em \"{label}\"."
+    },
+    "auth": {
+      "signIn": "Entrar",
+      "backToSite": "Voltar ao site",
+      "noMethod": {
+        "title": "Nenhum método de login",
+        "description": "Este painel não tem método de login. Adicione um backend que registre um driver de autenticação."
+      },
+      "signUp": "Criar conta",
+      "forgotPassword": "Esqueceu a senha?"
     }
   }
 }

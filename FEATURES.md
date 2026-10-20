@@ -45,7 +45,7 @@ policies shared by every project here.
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md
 - GitHub CMS: an optional standalone CMS with Markdown posts in a GitHub repo. It is off
   by default and refuses to run with the supabase layer. When on, it has GitHub App sign-in, a sealed
-  session, a CSRF origin check, the login page, the navbar, and the stores, adapter and post type.
+  session, a CSRF origin check, the auth driver for the core admin shell, and the stores, adapter and post type.
   It also has a Markdown editor, public read routes and composables, and `PlutoMarkdown`.
   @.claude/skills/github-cms/SKILL.md
-- Admin shell: core owns the admin navbar and user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The bar shows on `/admin/**` for any signed-in user, and on public pages for staff only. @.claude/skills/admin-shell/SKILL.md
+- Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The bar shows on `/admin/**` for any signed-in user, and on public pages for staff only. @.claude/skills/admin-shell/SKILL.md

@@ -1,12 +1,12 @@
 # Admin shell
 
-Core owns the admin shell: the top navbar with the user menu. A backend layer does not write its
-own navbar. It registers an auth driver, and core renders the navbar from it.
+Core owns the admin shell: the `/admin` parent route, the login page, the route guard, the admin
+banners, and the top navbar with the user menu. A backend layer does not write these. It registers
+an auth driver, and core renders the shell from it.
 
-This file covers steps P1 (the contract) and P2 (the core navbar) of the "core-owned admin shell"
-refactor. Step P3 (the core login page, the route guard and the `/admin` parent route) and step P4
-(the CMS and supabase migration) come later. `publicPaths`, `signIn`, `signInTitle`,
-`signInDescription` and `links` are in the contract now, but nothing renders them yet.
+This file covers steps P1 (the contract), P2 (the core navbar), P3 (the routes and the guard) and
+P4 (the standalone CMS as the reference driver) of the "core-owned admin shell" refactor. The
+supabase layer migrates later. See "Migrating a backend to the auth driver".
 
 It extends the [extension registry](../extension-registry/SKILL.md).
 
@@ -45,8 +45,83 @@ Core adds no `ClientOnly` around the whole bar and uses no top-level await in it
 | Field | Type | Purpose |
 |---|---|---|
 | `accountMenu` | `PlutoAccountMenuItem[]` | Items in the user menu. `label` is key-or-literal. Sorted by `order`. |
-| `adminBanners` | `PlutoAdminBanner[]` | Banner components for the admin. Registered now. Nothing renders them yet. |
+| `adminBanners` | `PlutoAdminBanner[]` | Banner components for the admin. The admin layout renders them. See "Admin banners". |
 | `site` | `PlutoSiteInfo` | `name()` and `url()` of the public site. For each field, the last value wins. |
+
+## Routes
+
+| File | Route | Purpose |
+|---|---|---|
+| `app/pages/admin.vue` | `/admin` (parent) | `definePageMeta({ layout: 'admin' })` and `<NuxtPage />`. Every `/admin/**` page is a child. |
+| `app/pages/admin/(auth)/login.vue` | `/admin/login` | The login page. It sets the `auth` layout and renders `PlutoAdminAuthCard`. |
+
+A child that must not use the admin layout (the auth pages) sets its own layout in
+`definePageMeta`. The `(auth)` folder is a route group: it adds no path segment.
+
+The file paths are the contract. The supabase layer 0.10 ships the same paths, so in a supabase app
+its files override core's files. This is intended until supabase migrates. A different path for
+the login page would give two `/admin/login` routes in a supabase app.
+
+`/admin` redirects to `/admin/home` with the core `routeRules` entry in `nuxt.config.ts`, and
+`/admin/**` has `ssr: false`. The admin is client-only, so the guard below runs in the browser for
+these paths.
+
+## The route guard
+
+`app/middleware/pluto-admin-auth.global.ts` is a global route middleware.
+
+1. With no auth driver, it does nothing. A backend with its own guard (supabase 0.10, with its own
+   `auth` middleware) is not affected.
+2. It awaits `driver.ready()`. A rejection counts as signed out.
+3. It calls `guardDecision` with `normalizePublicPaths(driver.publicPaths)`. On a redirect, it calls
+   `navigateTo(to, { replace: true })`.
+4. It never touches a path outside `/admin`.
+
+A signed-out user on a private admin path goes to `/admin/login?redirect=<fullPath>`. A signed-in
+user on a public auth path goes to the checked `redirect` target, or to `/admin/home`. The server
+still checks every request. The guard only decides what the browser shows.
+
+## The login frame
+
+`PlutoAdminAuthCard` (`app/components/Pluto/Admin/PlutoAdminAuthCard.vue`) is the frame of the login
+page. The name follows the folder rule of Nuxt: a file `PlutoAuthCard.vue` in `Admin/` would be
+`PlutoAdminPlutoAuthCard`. The card has:
+
+- The logo and the site name (`site.name()`, else `websiteName`, hidden when `Untitled`).
+- The heading: `signInTitle` (key-or-literal), default "Sign in". The description is
+  `signInDescription`.
+- The `signIn` component of the driver, with the prop `redirect`. The login page gives it
+  `safeRedirect(route.query.redirect)`: a local path or an empty string.
+- The footer links `links.signUp` and `links.forgotPassword`, when the driver gives them.
+- A "Back to the site" link.
+
+With no driver, the card shows an alert: no sign-in method is set up. The texts are in
+`pluto.auth.*`, in English and Brazilian Portuguese.
+
+## Admin banners
+
+The admin layout renders the `adminBanners` bucket, sorted by `order`, at the top of the page
+content. They are below the fixed navbar and above the page. A banner is a component with no props.
+It decides for itself if it shows.
+
+## The CMS as the reference driver
+
+The standalone CMS (`modules/pluto-cms`) is the first backend on the driver. Its client plugin
+registers `authDriver` and nothing else for the shell. See the [github-cms](../github-cms/SKILL.md)
+skill.
+
+- `user()` maps the session: GitHub login to `username`, plus `name` and `avatarUrl`.
+- `loggedIn()` reads the session, which loads in the browser only. It is `false` on the server and
+  in the first client render. The hydration is stable, and the bar appears after hydration.
+- `ready()` waits for the first session read. `refresh()` reads it again. `signOut()` posts to the
+  logout route.
+- `signIn` is `PlutoCmsSignIn` (in `app/components/Pluto/Cms/`, so Tailwind scans it). It builds the
+  login URL from `redirect` and shows the sign-in error alert.
+- The module adds no page, no route middleware and no navbar.
+
+A public layout that offsets its own header for the bar should use `usePlutoAdminBar().visible`.
+The core blog template still uses `usePlutoCmsSession().loggedIn` with `useMounted()`. That works,
+but `usePlutoAdminBar().visible` is the recommended API: it also hides the bar for a customer.
 
 ## Who sees the navbar
 
@@ -112,13 +187,53 @@ If a layer registers its own navbar (the registry `navbar` field, or `useNavbarA
 `@plutocms/utils`), `PlutoRoot` renders that navbar and not the core one. It logs one deprecation
 warning in development. This keeps supabase 0.10 and the standalone CMS working until they move to
 the auth driver. Remove the fallback, the `navbar` field and the `@plutocms/utils` bridge after
-every layer migrates (step P4).
+every layer migrates. The standalone CMS has migrated. Supabase has not.
 
 `PlutoRoot` shows the public-page admin menu (`PlutoNavbarAdminMenu`) whenever a bar shows on a
 public page, core or legacy.
+
+## Migrating a backend to the auth driver
+
+Written for the supabase layer. It also fits any other backend. The supabase layer keeps its own
+files until it migrates. After it migrates, core owns the shell.
+
+Register:
+
+1. One `authDriver` in `definePlutoExtension`. Map the supabase user to `PlutoAuthUser`. Make
+   `loggedIn()` readable on the server (the cookie session), so the bar renders in the server HTML.
+   `ready()` resolves after the first session check and never rejects.
+2. `signIn`: the email and password form, as a component. It gets the `redirect` prop. It logs in
+   and goes to `redirect`, else `/admin/home`. Keep it in `app/` so Tailwind scans it.
+3. `signInTitle`, `signInDescription` and `links` (`signUp: '/admin/signup'`,
+   `forgotPassword: '/admin/forgot-password'`).
+4. `publicPaths` for the other auth pages: `/admin/signup`, `/admin/forgot-password`,
+   `/admin/update-password`, `/admin/confirm`. Use `{ path, signedIn: 'allow' }` for a page that a
+   signed-in user must still open (`update-password`, `confirm`).
+5. `accountMenu` items for what the layer adds to the user menu, and `site` for the site name and
+   URL.
+6. A permissions driver and a locale driver, as before. Core syncs both after sign-in.
+
+Delete:
+
+- `pages/admin.vue`. Core's parent route replaces it. Move its extra work to a banner
+  (`adminBanners`, for example the migrations banner) or to a plugin.
+- The `(auth)/login.vue` frame. Keep the other `(auth)` pages with the `auth` layout. They can use
+  `PlutoAdminAuthCard` or a plain card. Do not keep a file at the core login path.
+- The `auth` route middleware. Core's guard replaces it.
+- `NavbarAdmin*` and the `navbar` registration (`useNavbarAdmin`).
+- The permissions and locale sync plugins. `app/plugins/pluto-auth-sync.client.ts` does both.
+
+Rename `setup-check`. It is not an auth concern: it sends a new install to `/admin/setup`. Keep
+it as its own setup guard (a route middleware), and add `/admin/setup` to `publicPaths`. Do not run
+it inside the auth middleware.
+
+After the supabase layer migrates, remove the legacy shell fallback (see above).
 
 ## Tests
 
 - `test/admin-shell.test.ts` — paths, `safeRedirect`, `guardDecision`, `navbarVisible`, names.
 - `test/auth-driver.test.ts` — `validatePlutoAuthDriver`, last driver wins, account menu order,
   site info.
+- `test/cms-module.test.ts` — the CMS module adds no page and no route middleware.
+- The routes, the login page and the guard have no unit test beyond `guardDecision`. Check them in
+  a built app: one `/admin/login` route, with the CMS on and with no driver.
