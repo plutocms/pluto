@@ -67,7 +67,8 @@
       "removeTitle": "Remover item",
       "showing": "Mostrando {loaded} {labelPlural}",
       "showingOf": "Mostrando {loaded} de {total} {labelPlural}",
-      "loadingMore": "Carregando mais…"
+      "loadingMore": "Carregando mais…",
+      "status": "Status"
     },
     "fields": {
       "noWidget": "Nenhum widget registrado para o tipo de campo \"{type}\".",
