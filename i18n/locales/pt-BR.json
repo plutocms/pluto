@@ -133,7 +133,53 @@
         "githubAuth": "O GitHub não aceitou o seu login. Entre novamente.",
         "githubForbidden": "O GitHub diz que você não pode fazer isso no repositório.",
         "rateLimited": "O GitHub está limitando as requisições. Tente novamente em instantes.",
-        "githubUnavailable": "O GitHub não respondeu como esperado. Tente novamente."
+        "githubUnavailable": "O GitHub não respondeu como esperado. Tente novamente.",
+        "authNotConfigured": "O login do CMS não está configurado. Peça ao responsável pelo site para verificar as configurações do servidor.",
+        "crossOrigin": "Esta requisição não veio deste site.",
+        "tooManyRequests": "Muitas tentativas de login. Tente novamente em instantes."
+      },
+      "login": {
+        "title": "Entrar",
+        "description": "Entre com a conta do GitHub que pode editar este site.",
+        "signIn": "Entrar com o GitHub",
+        "installApp": "Instalar o GitHub App",
+        "backToSite": "Voltar ao site",
+        "errors": {
+          "forbidden": {
+            "title": "Sem acesso",
+            "description": "Esta conta do GitHub não pode fazer push no repositório de conteúdo. Peça ao dono para dar acesso de escrita."
+          },
+          "notInstalled": {
+            "title": "O GitHub App não está instalado",
+            "description": "O GitHub não encontrou o repositório de conteúdo para este app. Instale o app no repositório e tente novamente."
+          },
+          "state": {
+            "title": "O login expirou",
+            "description": "O login não terminou a tempo, ou não começou aqui. Tente novamente."
+          },
+          "generic": {
+            "title": "Falha no login",
+            "description": "O GitHub não concluiu o login. Tente novamente."
+          }
+        }
+      },
+      "navbar": {
+        "openNavigation": "Abrir navegação",
+        "goHome": "Ir para o painel",
+        "viewSite": "Ver site",
+        "viewSiteTitle": "Abrir o site público em uma nova aba",
+        "openUserMenu": "Abrir o menu do usuário",
+        "defaultUserName": "Editor",
+        "signOut": "Sair"
+      },
+      "publicRepo": {
+        "title": "Este repositório é público",
+        "description": "Este repositório é público. Os rascunhos ficam visíveis no GitHub."
+      },
+      "capabilities": {
+        "readDrafts": "Ler rascunhos de posts",
+        "publish": "Criar, editar e publicar posts",
+        "delete": "Excluir posts"
       }
     },
     "validation": {

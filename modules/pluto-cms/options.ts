@@ -61,7 +61,7 @@ export interface PlutoCmsResolveResult {
 }
 
 /**
- * The env var names the later CMS code reads at run time. Nuxt maps
+ * The env var names the CMS server code reads at run time. Nuxt maps
  * `NUXT_<name>` onto `runtimeConfig.plutoCms`. The module never checks them
  * at build time.
  */
@@ -73,7 +73,7 @@ export const PLUTO_CMS_SECRET_ENV = {
     'GITHUB_CLIENT_SECRET',
     'GITHUB_PRIVATE_KEY',
   ],
-  optional: ['GITHUB_READ_TOKEN'],
+  optional: ['GITHUB_READ_TOKEN', 'ALLOWED_USERS'],
 } as const
 
 const REPO_PATTERN = /^[\w.-]+\/[\w.-]+$/

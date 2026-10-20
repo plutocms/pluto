@@ -17,6 +17,15 @@ declare module '@nuxt/schema' {
       githubClientSecret: string
       githubPrivateKey: string
       githubReadToken: string
+      /** Comma-separated GitHub logins. Empty means every user with push access. */
+      allowedUsers: string
+      apiUrl: string
+      skipDeploy: boolean
+      headTtl: number
+      cacheStorage: string
+      postType: boolean
+      /** The project root, for the dev fs store. Empty otherwise. */
+      fsRoot: string
     }
   }
   interface PublicRuntimeConfig {

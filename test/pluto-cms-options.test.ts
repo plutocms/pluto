@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import cmsModule from '../modules/pluto-cms'
 import {
   PLUTO_CMS_SECRET_ENV,
   resolvePlutoCmsOptions,
   SUPABASE_CONFLICT_ERROR,
 } from '../modules/pluto-cms/options'
+
+vi.mock('@nuxt/kit', async (importOriginal) => (await import('./fixtures/kit-mock')).kitMock(await importOriginal<object>()))
 
 const ctx = { dev: false, hasSupabaseLayer: false }
 const repo = { repo: 'acme/site' }
@@ -107,7 +109,7 @@ describe('resolvePlutoCmsOptions', () => {
 
   it('lists the run-time secret names', () => {
     expect(PLUTO_CMS_SECRET_ENV.required).toContain('SESSION_PASSWORD')
-    expect(PLUTO_CMS_SECRET_ENV.optional).toEqual(['GITHUB_READ_TOKEN'])
+    expect(PLUTO_CMS_SECRET_ENV.optional).toEqual(['GITHUB_READ_TOKEN', 'ALLOWED_USERS'])
   })
 })
 
