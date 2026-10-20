@@ -59,13 +59,36 @@ Required: `SESSION_PASSWORD`, `GITHUB_APP_ID`, `GITHUB_CLIENT_ID`, `GITHUB_CLIEN
 When on, the module writes `runtimeConfig.plutoCms` (the secrets) and
 `runtimeConfig.public.plutoCms` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`).
 
+## Storage
+
+The storage layer is in `modules/pluto-cms/runtime/server/`. The module does not wire it in yet.
+PR 4 does that. Every runtime file uses explicit imports. The pure helpers run in plain Vitest.
+
+- `store/types.ts` — the `PlutoCmsStore` contract: `head`, `listDir`, `readFile`, `commit`. A
+  commit takes `expectedHeadOid`. A stale value throws `PlutoCmsConflictError`. PR 4 maps it to 409.
+- `store/errors.ts` — `PlutoCmsStoreError` with a `code`: `conflict`, `auth`, `forbidden`,
+  `rate-limit`, `not-found`, `github`. The code has no HTTP link. PR 4 maps it.
+- `store/memory.ts` — an in-memory store for tests.
+- `store/fs.ts` — a dev store over a local dir. The head is a hash of the file listing. It refuses
+  any path outside the root.
+- `store/github.ts` — `createGithubStore`. `head` uses the REST sha call with an ETag and a TTL.
+  `listDir` is one GraphQL call. `commit` uses `createCommitOnBranch` and sets the cached head at once.
+- `github/client.ts` — `githubRest` and `githubGraphql`. They take an injectable `fetch`
+  transport. The default uses `ofetch`. They throw typed errors.
+- `utils/cms-cache.ts` — the head with a TTL, the dir index by `<dir>@<headOid>`, parsed blobs by
+  blob id, and single-flight. The backend is a Map by default.
+  `utils/cms-cache-nitro.ts` gives a backend over Nitro `useStorage`.
+- `utils/markdown-file.ts` — parse and write Markdown with YAML frontmatter. It uses the `yaml`
+  core schema, so a tag never runs code.
+- `utils/blob-sha.ts` — `gitBlobSha` and `listingOid`.
+- `utils/cms-paths.ts` — `assertSafeSlug` and `contentFilePath`.
+- `test/fixtures/fake-github.ts` — an in-memory GitHub that counts calls by kind.
+
 ## Status
 
-PR 2 (the module skeleton) is built. It only resolves options and writes the runtime config.
-These parts are not built yet:
+PR 2 (the module skeleton) and PR 3 (the storage layer) are built. These parts are not built yet:
 
-- PR 3: storage drivers (memory, fs, github) and the cache.
-- PR 4: the Markdown content adapter.
+- PR 4: the Markdown content adapter, and the wiring of the stores into the module.
 - PR 5: auth (GitHub App sign-in, sealed session, origin check).
 - PR 6: the editor, the public read routes and `PlutoMarkdown`.
 - PR 7: user docs.

@@ -1,0 +1,222 @@
+import type { GithubFetch } from '../github/client'
+import type { CmsCache } from '../utils/cms-cache'
+import type { PlutoCmsAuth, PlutoCmsFile, PlutoCmsStore } from './types'
+import { Buffer } from 'node:buffer'
+import { githubGraphql, githubRest } from '../github/client'
+import { PlutoCmsStoreError } from './errors'
+
+export interface GithubStoreOptions {
+  /** `owner/name`. */
+  repo: string
+  branch: string
+  apiUrl: string
+  cache: CmsCache
+  /** A server token for public reads, when the caller sends no auth. */
+  readToken?: string
+  /** A transport stub. Tests use it. */
+  fetch?: GithubFetch
+}
+
+interface BlobNode {
+  text?: string | null
+  byteSize?: number
+  isBinary?: boolean
+  isTruncated?: boolean
+  oid?: string
+}
+
+interface TreeQueryData {
+  repository: {
+    object: {
+      entries?: {
+ name: string
+type: string
+oid: string
+object?: BlobNode | null
+}[]
+    } | null
+  } | null
+}
+
+interface BlobQueryData {
+  repository: {
+ object: BlobNode | null
+} | null
+}
+
+const TREE_QUERY = `query PlutoCmsTree($owner: String!, $name: String!, $expression: String!) {
+  repository(owner: $owner, name: $name) {
+    object(expression: $expression) {
+      ... on Tree {
+        entries {
+          name
+          type
+          oid
+          object {
+            ... on Blob { text byteSize isBinary isTruncated }
+          }
+        }
+      }
+    }
+  }
+}`
+
+const BLOB_QUERY = `query PlutoCmsBlob($owner: String!, $name: String!, $expression: String!) {
+  repository(owner: $owner, name: $name) {
+    object(expression: $expression) {
+      ... on Blob { oid text byteSize isBinary isTruncated }
+    }
+  }
+}`
+
+const COMMIT_MUTATION = `mutation PlutoCmsCommit($input: CreateCommitOnBranchInput!) {
+  createCommitOnBranch(input: $input) {
+    commit { oid }
+  }
+}`
+
+function nameOf(path: string): string {
+  return path.slice(path.lastIndexOf('/') + 1)
+}
+
+function dirOf(path: string): string {
+  const index = path.lastIndexOf('/')
+  return index === -1 ? '' : path.slice(0, index)
+}
+
+/** Reads and writes a GitHub repo through the REST and GraphQL APIs. */
+export function createGithubStore(options: GithubStoreOptions): PlutoCmsStore {
+  const [owner = '', name = ''] = options.repo.split('/')
+  const { cache } = options
+
+  function tokenOf(auth?: PlutoCmsAuth): string | undefined {
+    return auth?.token || options.readToken || undefined
+  }
+
+  function usable(blob: BlobNode | null | undefined, path: string): blob is BlobNode & {
+ text: string
+} {
+    if (!blob) {
+      return false
+    }
+    if (blob.isBinary || blob.isTruncated) {
+      console.warn(`[pluto-cms] Skipped "${path}": the file is binary or too large.`)
+      return false
+    }
+    return typeof blob.text === 'string'
+  }
+
+  async function fetchHead(auth?: PlutoCmsAuth): Promise<string> {
+    const cached = await cache.getHead()
+    const result = await githubRest<string>(
+      `/repos/${options.repo}/commits/${encodeURIComponent(options.branch)}`,
+      {
+        token: tokenOf(auth),
+        apiUrl: options.apiUrl,
+        fetch: options.fetch,
+        accept: 'application/vnd.github.sha',
+        etag: cached?.etag,
+      }
+    )
+    if (result.status === 304 && cached) {
+      await cache.setHead(cached.oid, cached.etag)
+      return cached.oid
+    }
+    const oid = String(result.data).trim()
+    await cache.setHead(oid, result.etag)
+    return oid
+  }
+
+  return {
+    async head(opts = {}) {
+      const cached = await cache.getHead()
+      if (cached && !opts.revalidate && cache.isHeadFresh(cached)) {
+        return cached.oid
+      }
+      return cache.singleFlight('head', () => fetchHead(opts.auth))
+    },
+
+    async listDir(dir, headOid, auth) {
+      const base = dir.replace(/\/+$/, '')
+      const cached = await cache.getIndex<PlutoCmsFile[]>(base, headOid)
+      if (cached) {
+        return cached
+      }
+      return cache.singleFlight(`index:${base}@${headOid}`, async () => {
+        const data = await githubGraphql<TreeQueryData>(
+          TREE_QUERY,
+          { owner, name, expression: `${headOid}:${base}` },
+          { token: tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
+        )
+        const entries = data.repository?.object?.entries ?? []
+        const files: PlutoCmsFile[] = []
+        for (const entry of entries) {
+          if (entry.type !== 'blob' || !entry.name.endsWith('.md')) {
+            continue
+          }
+          const path = base === '' ? entry.name : `${base}/${entry.name}`
+          if (usable(entry.object, path)) {
+            files.push({ path, name: entry.name, oid: entry.oid, text: entry.object.text })
+          }
+        }
+        files.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+        await cache.setIndex(base, headOid, files)
+        return files
+      })
+    },
+
+    async readFile(path, headOid, auth) {
+      const index = await cache.getIndex<PlutoCmsFile[]>(dirOf(path), headOid)
+      if (index) {
+        return index.find((file) => file.path === path) ?? null
+      }
+      return cache.singleFlight(`file:${path}@${headOid}`, async () => {
+        const data = await githubGraphql<BlobQueryData>(
+          BLOB_QUERY,
+          { owner, name, expression: `${headOid}:${path}` },
+          { token: tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
+        )
+        const blob = data.repository?.object
+        if (!usable(blob, path) || !blob.oid) {
+          return null
+        }
+        return { path, name: nameOf(path), oid: blob.oid, text: blob.text }
+      })
+    },
+
+    async commit(input, auth) {
+      if (!auth?.token) {
+        throw new PlutoCmsStoreError('auth', 'A commit needs a GitHub token.', { status: 401 })
+      }
+      const [headline = '', ...rest] = input.message.split('\n')
+      const body = rest.join('\n').trim()
+      const data = await githubGraphql<{
+ createCommitOnBranch: {
+ commit: {
+ oid: string
+}
+}
+}>(
+        COMMIT_MUTATION,
+        {
+          input: {
+            branch: { repositoryNameWithOwner: options.repo, branchName: options.branch },
+            message: body ? { headline, body } : { headline },
+            expectedHeadOid: input.expectedHeadOid,
+            fileChanges: {
+              additions: input.additions.map((item) => ({
+                path: item.path,
+                contents: Buffer.from(item.contents, 'utf8').toString('base64'),
+              })),
+              deletions: input.deletions.map((item) => ({ path: item.path })),
+            },
+          },
+        },
+        { token: auth.token, apiUrl: options.apiUrl, fetch: options.fetch }
+      )
+      const oid = data.createCommitOnBranch.commit.oid
+      await cache.setHead(oid)
+      return { oid }
+    },
+  }
+}
