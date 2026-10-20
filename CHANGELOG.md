@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.16.2](https://github.com/plutocms/pluto/compare/v0.16.1...v0.16.2) (2026-10-20)
+
+
+### Bug Fixes
+
+* **admin:** site name in tab titles, smaller admin radius and full-height navbar targets ([#187](https://github.com/plutocms/pluto/issues/187)) ([8c59170](https://github.com/plutocms/pluto/commit/8c59170a2633cc4b2d5c8bb5be7dc421d0664e8b))
+
 ## [0.16.1](https://github.com/plutocms/pluto/compare/v0.16.0...v0.16.1) (2026-10-20)
 
 
