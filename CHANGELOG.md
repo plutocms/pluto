@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [0.16.0](https://github.com/plutocms/pluto/compare/v0.15.0...v0.16.0) (2026-10-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* **admin:** move the admin routes, the sign-in frame and the route guard into core ([#183](https://github.com/plutocms/pluto/issues/183))
+
+### Features
+
+* **admin:** add an auth card slot and a driver guard hook ([#184](https://github.com/plutocms/pluto/issues/184)) ([270ef32](https://github.com/plutocms/pluto/commit/270ef32be48c4740adae0e9333b6a0adad6d6af6))
+* **admin:** add the auth driver contract and the core admin navbar ([#181](https://github.com/plutocms/pluto/issues/181)) ([241f385](https://github.com/plutocms/pluto/commit/241f3857ac7018a26c34dca01e65466c962bf1e5))
+* **admin:** move the admin routes, the sign-in frame and the route guard into core ([#183](https://github.com/plutocms/pluto/issues/183)) ([f787693](https://github.com/plutocms/pluto/commit/f7876930600c1c5b80c8260596e2e34d56179cdc))
+
 ## [0.15.0](https://github.com/plutocms/pluto/compare/v0.14.3...v0.15.0) (2026-10-20)
 
 
