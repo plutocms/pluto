@@ -81,14 +81,68 @@ PR 4 does that. Every runtime file uses explicit imports. The pure helpers run i
 - `utils/markdown-file.ts` — parse and write Markdown with YAML frontmatter. It uses the `yaml`
   core schema, so a tag never runs code.
 - `utils/blob-sha.ts` — `gitBlobSha` and `listingOid`.
-- `utils/cms-paths.ts` — `assertSafeSlug` and `contentFilePath`.
+- `utils/cms-paths.ts` — `assertSafeSlug`, `contentFilePath`, `contentDirPath` and `slugifyTitle`.
 - `test/fixtures/fake-github.ts` — an in-memory GitHub that counts calls by kind.
+
+## Adapter
+
+`runtime/server/adapter.ts` has `createMarkdownContentAdapter`. It is a `PlutoContentAdapter` over a
+`PlutoCmsStore`. The module does not register it yet. PR 5 adds the wiring with auth. Options:
+`store`, `dir`, `getAccess`, `commit.skipDeploy`, `cache`, `retries` (default 2).
+`runtime/shared/post-type.ts` has `plutoCmsPostType`, the built-in `post` content type.
+
+File layout:
+
+- A file is `<dir>/<type.source>/<slug>.md`. The post type uses `source: 'posts'`.
+- The item `id` is the slug. It is the file name. It is not a frontmatter key.
+- A slug uses lowercase letters, numbers and single dashes. The create call makes it from the title
+  when the payload has none.
+
+Frontmatter mapping:
+
+- The first `richtext` field is the Markdown body.
+- Every other field, except the slug field, is a frontmatter key. The key is the field column
+  (`fieldColumn`), the same rule as the other adapters.
+- The status key and the timestamp keys come from `type.status` and `type.timestamps`. The adapter
+  sets the timestamps. A payload cannot set them. The adapter sets `publishedAt` on the first
+  publish only. Without a `timestamps` setting, the keys are `createdAt` and `updatedAt`.
+- An update keeps frontmatter keys that the type does not know.
+- A file with no status key counts as the default status (`draft` for posts).
+- Every returned item has `_version`. It is the blob id of the file. A list item has no body.
+  The excerpt field stays in the list item.
+
+Access rules:
+
+- `getAccess(event)` returns `{ capabilities, auth }`, or `null` for an anonymous caller.
+- An anonymous caller sees published items only. This holds for `list`, `get` and `countCreated`,
+  even when the query asks for drafts.
+- A signed-in caller sees drafts only with the type read capability (`posts:read_drafts`).
+- Every write needs access (401). It needs the write or delete capability (403). A change of the
+  published state needs the publish capability. `authorize` fails closed in the same way.
+
+Conflict handling:
+
+- An update with a stale `_version` gives 409 (`pluto.errors.conflict`). A missing `_version`
+  skips this check.
+- A create or rename to a taken slug gives 409 (`pluto.cms.errors.slugTaken`).
+- A rename is one commit: it adds the new path and deletes the old one.
+- A commit uses a fresh head as `expectedHeadOid`. When the head is stale, the adapter retries up
+  to 2 times, but only if the target file did not change. Otherwise it gives 409.
+- Commit messages: `content(post): create "slug"`, `update`, `publish`, `unpublish`,
+  `rename "a" -> "b"`, `delete`. `[skip ci]` is added when `skipDeploy` is on.
+
+Store errors map to HTTP errors with `pluto.cms.errors.*` keys: conflict 409, auth 401, forbidden
+403, rate limit 503 with a `Retry-After` header, not found 404, GitHub failure 502.
+
+The contract test suite is `test/contracts/content-adapter.contract.ts`
+(`runContentAdapterContract`). Run it against any new adapter over the post type.
 
 ## Status
 
-PR 2 (the module skeleton) and PR 3 (the storage layer) are built. These parts are not built yet:
+PR 2 (module skeleton), PR 3 (storage layer) and PR 4 (Markdown content adapter) are built. These
+parts are not built yet:
 
-- PR 4: the Markdown content adapter, and the wiring of the stores into the module.
-- PR 5: auth (GitHub App sign-in, sealed session, origin check).
+- PR 5: auth (GitHub App sign-in, sealed session, origin check), and the wiring of the stores
+  and the adapter into the module.
 - PR 6: the editor, the public read routes and `PlutoMarkdown`.
 - PR 7: user docs.

@@ -31,3 +31,20 @@ export function contentFilePath(dir: string, source: string, slug: string): stri
   }
   return path
 }
+
+/** The folder `<dir>/<source>` that holds the files of one content type. */
+export function contentDirPath(dir: string, source: string): string {
+  return contentFilePath(dir, source, 'x').slice(0, -'/x.md'.length)
+}
+
+/** Makes a slug from a title. It drops accents. It can return an empty string. */
+export function slugifyTitle(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, MAX_SLUG_LENGTH)
+    .replace(/-+$/, '')
+}

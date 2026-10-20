@@ -124,6 +124,18 @@
       "validationFailed": "Validation failed.",
       "conflict": "This item changed since you opened it. Reload to get the latest version."
     },
+    "cms": {
+      "errors": {
+        "signInRequired": "Sign in to continue.",
+        "forbidden": "You do not have permission to do this.",
+        "slugTaken": "The slug \"{slug}\" is already in use.",
+        "invalidSlug": "The slug is not valid. Use lowercase letters, numbers and dashes.",
+        "githubAuth": "GitHub did not accept your sign-in. Sign in again.",
+        "githubForbidden": "GitHub says you cannot do this in the repo.",
+        "rateLimited": "GitHub is limiting requests. Try again soon.",
+        "githubUnavailable": "GitHub did not answer as expected. Try again."
+      }
+    },
     "validation": {
       "required": "\"{label}\" is required.",
       "number": "\"{label}\" must be a number.",

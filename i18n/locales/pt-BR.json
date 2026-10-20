@@ -124,6 +124,18 @@
       "validationFailed": "Falha na validação.",
       "conflict": "Este item mudou desde que você o abriu. Recarregue para ver a versão mais recente."
     },
+    "cms": {
+      "errors": {
+        "signInRequired": "Entre para continuar.",
+        "forbidden": "Você não tem permissão para fazer isso.",
+        "slugTaken": "O slug \"{slug}\" já está em uso.",
+        "invalidSlug": "O slug não é válido. Use letras minúsculas, números e hífens.",
+        "githubAuth": "O GitHub não aceitou o seu login. Entre novamente.",
+        "githubForbidden": "O GitHub diz que você não pode fazer isso no repositório.",
+        "rateLimited": "O GitHub está limitando as requisições. Tente novamente em instantes.",
+        "githubUnavailable": "O GitHub não respondeu como esperado. Tente novamente."
+      }
+    },
     "validation": {
       "required": "Preencha \"{label}\".",
       "number": "Informe um número em \"{label}\".",
