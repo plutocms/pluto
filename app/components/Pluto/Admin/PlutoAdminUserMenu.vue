@@ -71,13 +71,27 @@ defineShortcuts(computed(() => extractShortcuts(items.value)))
 
 <template>
   <div class="h-full">
-    <UDropdownMenu :items="items" :ui="{ content: 'w-64' }" :modal="false">
+    <!--
+      The menu would render at the end of <body>, outside the admin scope. The
+      portal target below carries `data-pluto-admin-scope`, so the menu gets
+      the admin theme and the admin radius on a public page too.
+    -->
+    <UDropdownMenu
+      :items="items"
+      :ui="{ content: 'w-64' }"
+      :modal="false"
+      portal="#pluto-admin-user-menu-portal"
+    >
+      <!--
+        The button fills the height of the bar. The pill inside it keeps the
+        hover and focus look. See PlutoNavbarHit.
+      -->
       <button
         :aria-label="t('pluto.navbar.openUserMenu')"
-        class="group h-full py-1"
+        class="group flex h-full items-center outline-none"
         type="button"
       >
-        <div class="flex h-full items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 group-hover:bg-elevated">
+        <div class="flex h-8 items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 outline-inverted/25 group-hover:bg-elevated group-focus-visible:bg-elevated group-focus-visible:outline-3">
           <UAvatar
             :src="avatar"
             :alt="name"
@@ -93,5 +107,7 @@ defineShortcuts(computed(() => extractShortcuts(items.value)))
         </div>
       </button>
     </UDropdownMenu>
+
+    <div id="pluto-admin-user-menu-portal" class="contents" data-pluto-admin-scope />
   </div>
 </template>

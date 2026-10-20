@@ -6,6 +6,7 @@ import {
   isAdminPath,
   navbarVisible,
   normalizePublicPaths,
+  resolveSiteName,
   safeRedirect,
   shortName,
 } from '../app/composables/internal/admin-shell'
@@ -161,5 +162,21 @@ describe('displayName and shortName', () => {
     expect(shortName({ id: '1', name: 'Ada Lovelace' }, 'Account')).toBe('Ada')
     expect(shortName({ id: '1', username: 'ada' }, 'Account')).toBe('ada')
     expect(shortName(undefined, 'Account')).toBe('Account')
+  })
+})
+
+describe('resolveSiteName', () => {
+  it('prefers the site info name', () => {
+    expect(resolveSiteName('Emi', 'My Blog', 'Pluto Admin')).toBe('Emi')
+  })
+
+  it('uses the website name when there is no site info name', () => {
+    expect(resolveSiteName(undefined, 'My Blog', 'Pluto Admin')).toBe('My Blog')
+    expect(resolveSiteName('', 'My Blog', 'Pluto Admin')).toBe('My Blog')
+  })
+
+  it('skips the default Untitled website name', () => {
+    expect(resolveSiteName(undefined, 'Untitled', 'Pluto Admin')).toBe('Pluto Admin')
+    expect(resolveSiteName(undefined, undefined, 'Pluto Admin')).toBe('Pluto Admin')
   })
 })
