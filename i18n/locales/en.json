@@ -133,7 +133,53 @@
         "githubAuth": "GitHub did not accept your sign-in. Sign in again.",
         "githubForbidden": "GitHub says you cannot do this in the repo.",
         "rateLimited": "GitHub is limiting requests. Try again soon.",
-        "githubUnavailable": "GitHub did not answer as expected. Try again."
+        "githubUnavailable": "GitHub did not answer as expected. Try again.",
+        "authNotConfigured": "Sign-in for the CMS is not set up. Ask the site owner to check the server settings.",
+        "crossOrigin": "This request did not come from this site.",
+        "tooManyRequests": "Too many sign-in requests. Try again soon."
+      },
+      "login": {
+        "title": "Sign in",
+        "description": "Sign in with the GitHub account that can edit this site.",
+        "signIn": "Sign in with GitHub",
+        "installApp": "Install the GitHub App",
+        "backToSite": "Back to the site",
+        "errors": {
+          "forbidden": {
+            "title": "No access",
+            "description": "This GitHub account cannot push to the content repo. Ask the owner to give you write access."
+          },
+          "notInstalled": {
+            "title": "The GitHub App is not installed",
+            "description": "GitHub could not find the content repo for this app. Install the app on the repo, then try again."
+          },
+          "state": {
+            "title": "The sign-in expired",
+            "description": "The sign-in did not finish in time, or it did not start here. Try again."
+          },
+          "generic": {
+            "title": "Sign-in failed",
+            "description": "GitHub did not complete the sign-in. Try again."
+          }
+        }
+      },
+      "navbar": {
+        "openNavigation": "Open navigation",
+        "goHome": "Go to the dashboard",
+        "viewSite": "View site",
+        "viewSiteTitle": "Open the public site in a new tab",
+        "openUserMenu": "Open the user menu",
+        "defaultUserName": "Editor",
+        "signOut": "Sign out"
+      },
+      "publicRepo": {
+        "title": "This repository is public",
+        "description": "This repository is public. Drafts are visible on GitHub."
+      },
+      "capabilities": {
+        "readDrafts": "Read draft posts",
+        "publish": "Create, edit and publish posts",
+        "delete": "Delete posts"
       }
     },
     "validation": {

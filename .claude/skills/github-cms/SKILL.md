@@ -26,6 +26,12 @@ A supabase app that does not set `plutoCms.enabled` sees no change and no log li
   `PLUTO_CMS_SECRET_ENV`. No Nuxt imports, so plain Vitest can test them.
 - `shared/types/cms.d.ts` — the `@nuxt/schema` types for `plutoCms`.
 - `test/pluto-cms-options.test.ts` — the unit tests.
+- `runtime/server/utils/{session,github-oauth,auth-flow,origin,rate-limit,cms-config,cms-setup}.ts`,
+  `runtime/server/github/app-token.ts`, `runtime/server/api/auth/**`,
+  `runtime/server/middleware/pluto-cms-origin.ts`, `runtime/server/plugins/pluto-cms.ts` — the
+  authentication and the wiring (see "Authentication" and "Wiring").
+- `runtime/app/{composables,plugins,middleware}/` — the client side.
+- `app/components/Pluto/Cms/` — the login page, the navbar and the dashboard warning.
 
 ## Options
 
@@ -52,7 +58,7 @@ The secrets are run-time env vars. The module does not check them at build time.
 string in `runtimeConfig.plutoCms` for each one, so Nuxt can override it.
 
 Required: `SESSION_PASSWORD`, `GITHUB_APP_ID`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`,
-`GITHUB_PRIVATE_KEY`. Optional: `GITHUB_READ_TOKEN`.
+`GITHUB_PRIVATE_KEY`. Optional: `GITHUB_READ_TOKEN`, `ALLOWED_USERS`.
 
 ## Runtime config
 
@@ -61,8 +67,8 @@ When on, the module writes `runtimeConfig.plutoCms` (the secrets) and
 
 ## Storage
 
-The storage layer is in `modules/pluto-cms/runtime/server/`. The module does not wire it in yet.
-PR 4 does that. Every runtime file uses explicit imports. The pure helpers run in plain Vitest.
+The storage layer is in `modules/pluto-cms/runtime/server/`. The Nitro plugin wires it in (see
+"Wiring"). Every runtime file uses explicit imports. The pure helpers run in plain Vitest.
 
 - `store/types.ts` — the `PlutoCmsStore` contract: `head`, `listDir`, `readFile`, `commit`. A
   commit takes `expectedHeadOid`. A stale value throws `PlutoCmsConflictError`. PR 4 maps it to 409.
@@ -87,7 +93,7 @@ PR 4 does that. Every runtime file uses explicit imports. The pure helpers run i
 ## Adapter
 
 `runtime/server/adapter.ts` has `createMarkdownContentAdapter`. It is a `PlutoContentAdapter` over a
-`PlutoCmsStore`. The module does not register it yet. PR 5 adds the wiring with auth. Options:
+`PlutoCmsStore`. The Nitro plugin registers it (see "Wiring"). Options:
 `store`, `dir`, `getAccess`, `commit.skipDeploy`, `cache`, `retries` (default 2).
 `runtime/shared/post-type.ts` has `plutoCmsPostType`, the built-in `post` content type.
 
@@ -116,7 +122,8 @@ Access rules:
 - `getAccess(event)` returns `{ capabilities, auth }`, or `null` for an anonymous caller.
 - An anonymous caller sees published items only. This holds for `list`, `get` and `countCreated`,
   even when the query asks for drafts.
-- A signed-in caller sees drafts only with the type read capability (`posts:read_drafts`).
+- A signed-in caller sees drafts only with the type read capability (`posts:read_drafts`). The
+  capability `*` counts as every capability.
 - Every write needs access (401). It needs the write or delete capability (403). A change of the
   published state needs the publish capability. `authorize` fails closed in the same way.
 
@@ -137,12 +144,188 @@ Store errors map to HTTP errors with `pluto.cms.errors.*` keys: conflict 409, au
 The contract test suite is `test/contracts/content-adapter.contract.ts`
 (`runContentAdapterContract`). Run it against any new adapter over the post type.
 
+## Wiring
+
+When `plutoCms.enabled` is true, and only then, the module adds:
+
+- Four server routes under `/api/_pluto/auth/` (see "Authentication").
+- A server middleware, `middleware/pluto-cms-origin.ts`, for the CSRF check.
+- A Nitro plugin, `plugins/pluto-cms.ts`. It picks the store (`github` with the Nitro cache, or `fs`
+  rooted at the project dir in dev), registers the `post` type when `postType` is on, and registers
+  the Markdown adapter. `getAccess(event)` gives the signed-in user (their GitHub token and
+  capabilities) or `null`.
+- A client plugin, `runtime/app/plugins/pluto-cms.ts`. It calls `definePlutoExtension` with the
+  navbar, the post content type, the post capabilities, the permissions driver and the public-repo
+  dashboard widget. It also loads the capabilities when the session appears.
+- A global route middleware, `runtime/app/middleware/pluto-cms-auth.ts`.
+- The auto-import dir `runtime/app/composables` (`usePlutoCmsSession`).
+- The page `/admin/login` with `extendPages`. If the app already has that page, the module keeps
+  it, adds nothing and logs a warning.
+
+The module puts the non-secret server settings in the private `runtimeConfig.plutoCms`: `apiUrl`,
+`skipDeploy`, `headTtl`, `cacheStorage`, `postType`, `fsRoot`. `utils/cms-config.ts` reads all
+config in one place (`getCmsConfig`). A test mocks that file.
+
+The `fs` store root is the project dir (the same layout as the repo), so a post is at
+`<project>/content/posts/<slug>.md`.
+
+The Vue files are in `app/components/Pluto/Cms/`, because Tailwind scans the `app/` dir of a layer
+only: `PlutoCmsLoginPage`, `PlutoCmsNavbar`, `PlutoCmsNavbarProvider` and
+`PlutoCmsPublicRepoWarning`. They use explicit imports for the session composable, so the type
+check works when the CMS is off.
+
+## Authentication
+
+A user signs in with a GitHub App (the user-to-server OAuth web flow). Only users with push access
+to the content repo can sign in.
+
+### Flow
+
+1. `GET /api/_pluto/auth/github/login?redirect=/path`. The `redirect` must be a path on this site:
+   one `/` at the start, not `//`, no `\`, no control character, no other origin. Any other value
+   becomes `/admin/home`. The route makes `state` (32 random bytes, base64url) and a PKCE verifier.
+   It saves `{ state, verifier, redirect }` in a separate sealed session, `pluto-cms-oauth`, which
+   lives 10 minutes. Then it answers 302 to `github.com/login/oauth/authorize` with `client_id`,
+   `redirect_uri`, `state`, `code_challenge` and `code_challenge_method=S256`.
+2. `GET /api/_pluto/auth/github/callback`. The route reads and clears the oauth session first, so
+   `state` works once. It compares `state` in constant time. A mismatch gives 302
+   `/admin/login?error=state`. Then it trades the code for tokens (with the client secret and the
+   PKCE verifier), reads `/user`, and reads `/repos/{owner}/{repo}` with the USER token:
+   - 404 (the user or the App cannot see the repo): `?error=not_installed`.
+   - Permission is not admin, maintain or push: `?error=forbidden`.
+   - The login is not in `allowedUsers` (when it is set): `?error=forbidden`.
+   - Any other failure: `?error=github`. The user cancels at GitHub: `?error=denied`.
+   - Else it starts the session and answers 302 to the saved `redirect` (checked again).
+3. `GET /api/_pluto/auth/session` answers `{ user, capabilities, repo: { name, private } }` or
+   `{ user: null }`. It never has a token. A session that is over also answers `{ user: null }`.
+4. `POST /api/_pluto/auth/logout` deletes the cookie and answers 204. It works even when the
+   session password is missing.
+
+Every auth response has `Cache-Control: no-store`. The login and callback routes allow 20 requests
+a minute for each IP, then answer 429 (`utils/rate-limit.ts`). The counter is in memory, one per
+server instance. It is a brake, not a gate. The IP is the socket address, or `x-forwarded-for`.
+
+### Session
+
+`utils/session.ts` uses h3 `useSession`. The cookie is `pluto-cms-session`: sealed, httpOnly,
+SameSite=Lax, Secure when not in dev, `maxAge` 7 days from the sign-in. A session header is off.
+The password is `runtimeConfig.plutoCms.sessionPassword` and needs 32 characters or more. In
+production a missing or short password makes the sign-in routes answer 500
+(`pluto.cms.errors.authNotConfigured`) and logs one error. In dev it uses a random password for the
+process, so a restart signs everyone out.
+
+The cookie holds `{ user: { id, login, name, avatarUrl }, token, refreshToken, expiresAt,
+refreshExpiresAt, permission, capabilities, checkedAt, repoPrivate }`. It is sealed, not stored on
+the server, so a logout does not revoke a copy of the cookie. The token expiry and the permission
+check below limit that.
+
+Exports: `getCmsSession(event)`, `requireCmsSession(event)` (401
+`pluto.cms.errors.signInRequired`), `requireCmsCapability(event, cap)` (403), `setCmsSession`,
+`clearCmsSession`. A request with no cookie reads as signed out and sets no cookie. Each request
+reads the session once.
+
+- Refresh: when `expiresAt` is less than 5 minutes away, the session refreshes the user token with
+  the refresh token. GitHub rotates the refresh token. The first refresh wins. Requests that run at
+  the same time share it. A request that arrives within 60 seconds with the old cookie reuses the
+  result (memory of this process only). If GitHub refuses the refresh token, the session clears and
+  the answer is 401. If GitHub does not answer, the answer is 503 and the session stays.
+- Permission check: when `checkedAt` is older than 10 minutes, the session reads the repo again
+  with the user token and updates the capabilities. If push access is gone, or GitHub rejects the
+  token, the session clears and the answer is 401. If GitHub does not answer, the answer is 503.
+- Capabilities: admin and maintain give `['*']`. Push gives the post type keys
+  (`plutoCmsPostType.capabilities`: `posts:read_drafts`, `posts:publish`, `posts:delete`). The
+  adapter and `requireCmsCapability` treat `*` as every capability. GitHub still enforces the real
+  permission on each commit, because the commit uses the user token.
+- Dev `fs` store: in dev with `storage: 'fs'`, a request from this machine gets a fixed user
+  `local` with `['*']`. The check reads the socket address. A request is not local if it has
+  `x-forwarded-for` or `forwarded`, or if its `Host` is not `localhost`, `127.0.0.1` or `[::1]`. So a
+  tunnel or a DNS-rebinding page gets no access. Every other request is signed out.
+
+### Anonymous reads
+
+An anonymous caller sees published posts only. The store reads with a server token
+(`github/app-token.ts`):
+
+1. `runtimeConfig.plutoCms.githubReadToken` (a read-only token), when set.
+2. Else an installation token of the App. The code signs an App JWT (RS256, `iat` now minus 60
+   seconds, `exp` now plus 540 seconds, `iss` the app id). The private key may use literal `\n`
+   escapes. It reads `GET /repos/{o}/{r}/installation`, then `POST
+   /app/installations/{id}/access_tokens` for this repo with `contents: read`. It caches the token
+   in memory until 5 minutes before it ends.
+3. With neither set, an anonymous read answers 503 (`pluto.cms.errors.githubUnavailable`) and logs
+   the cause once. The server does not fail at boot.
+
+A signed-in user reads and writes with their own token.
+
+### CSRF
+
+SameSite=Lax is the first guard. `middleware/pluto-cms-origin.ts` is the second. For a request that
+is not GET, HEAD or OPTIONS to `/api/_pluto/**`, the `Origin` header (or `Referer` when `Origin` is
+absent) must have the same `host:port` as the `Host` header. A mismatch, a bad value such as
+`Origin: null`, or no header at all gives 403 (`pluto.cms.errors.crossOrigin`). The check uses the
+`Host` header and ignores `x-forwarded-host`: Nitro has no setting that trusts a proxy, and a client
+can fake that header. A proxy in front of the app must pass the public `Host` header. GET routes
+never change state.
+
+### Client
+
+- `usePlutoCmsSession()` gives `{ user, capabilities, repo, loggedIn, status, ready, refresh,
+  logout }`. It uses `useFetch` with the key `pluto-cms-session` and `server: false`, so the
+  server HTML of a public page never holds a user (a CDN may cache it). The admin is client-only.
+- The route middleware sends a signed-out user on `/admin/**` (not `/admin/login`) to
+  `/admin/login?redirect=<fullPath>`. A signed-in user on `/admin/login` goes to `/admin/home`.
+  This is a UI guard only. The server checks every request.
+- The login page has one "Sign in with GitHub" button. It is a full page load to the login route.
+  It shows an error for `forbidden`, `not_installed` (with a link to
+  `https://github.com/apps/<appSlug>/installations/new` when `github.appSlug` is set), `state` and
+  any other value.
+- The navbar shows on `/admin/**` (not the login page), and on public pages when a user is signed
+  in. The user menu has Settings and Sign out.
+- When the repo is public, the dashboard shows a warning: drafts are visible on GitHub.
+- All text uses the keys `pluto.cms.*` in `i18n/locales/en.json` and `pt-BR.json`.
+
+### What the tests cover
+
+`test/cms-auth.test.ts` (flow, redirect check, session, refresh, re-check, logout, dev user),
+`test/cms-origin.test.ts`, `test/cms-app-token.test.ts`, `test/cms-wiring.test.ts` (the adapter
+registered as the Nitro plugin does it, anonymous 401, drafts hidden, a push user creates) and
+`test/cms-module.test.ts`. The fixtures are `test/fixtures/fake-github.ts` (it also fakes `/user`,
+`/repos/{o}/{r}`, the OAuth token endpoint and the App endpoints), `cms-auth-harness.ts` (an h3
+app with a cookie jar), `cms-test-config.ts` and `kit-mock.ts`.
+
+## GitHub App setup
+
+1. Create a GitHub App (Settings, Developer settings, GitHub Apps).
+2. Repository permissions: Contents read and write, Metadata read.
+3. Callback URL: `<site>/api/_pluto/auth/github/callback`. Add one for local tests if needed.
+4. Turn "Expire user authorization tokens" ON. The session refreshes tokens that expire.
+5. Turn "Request user authorization (OAuth) during installation" OFF. Turn webhooks off.
+6. Generate a client secret and a private key (PEM).
+7. Install the App on the content repo only.
+8. Set the env vars of the app:
+   - `NUXT_PLUTO_CMS_SESSION_PASSWORD`: 32 characters or more, random.
+   - `NUXT_PLUTO_CMS_GITHUB_APP_ID`
+   - `NUXT_PLUTO_CMS_GITHUB_CLIENT_ID`
+   - `NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET`
+   - `NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY`: the PEM. Literal `\n` escapes are fine.
+   - Optional `NUXT_PLUTO_CMS_GITHUB_READ_TOKEN`: a read-only token. It replaces the installation
+     token for anonymous reads.
+   - Optional `NUXT_PLUTO_CMS_ALLOWED_USERS`: GitHub logins, comma-separated, without case. When
+     set, only these users can sign in, even with push access.
+9. Set `plutoCms.github.repo` and, for the "not installed" link, `plutoCms.github.appSlug`.
+
+A public repo shows its drafts on GitHub. Use a private repo for drafts.
+
+For GitHub Enterprise Server, set `plutoCms.github.apiUrl` to `https://<host>/api/v3`. The OAuth
+pages use `https://<host>`. Any other API URL uses `https://github.com`.
+
 ## Status
 
-PR 2 (module skeleton), PR 3 (storage layer) and PR 4 (Markdown content adapter) are built. These
+PR 2 (module skeleton), PR 3 (storage layer), PR 4 (Markdown content adapter) and PR 5
+(authentication, the wiring of the stores, the adapter and the post type, the login page and the
+navbar) are built. PKCE for GitHub App user tokens is sent but not proven against live GitHub:
+no test could reach it. If GitHub ignores the PKCE fields, `state` still guards the flow. These
 parts are not built yet:
 
-- PR 5: auth (GitHub App sign-in, sealed session, origin check), and the wiring of the stores
-  and the adapter into the module.
 - PR 6: the editor, the public read routes and `PlutoMarkdown`.
 - PR 7: user docs.

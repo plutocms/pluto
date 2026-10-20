@@ -44,5 +44,6 @@ policies shared by every project here.
   `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md
 - GitHub CMS (in progress): an optional standalone CMS with Markdown posts in a GitHub repo. It is off
-  by default and refuses to run with the supabase layer. Only the `pluto-cms` module skeleton and
-  its option resolver exist so far. @.claude/skills/github-cms/SKILL.md
+  by default and refuses to run with the supabase layer. When on, it has GitHub App sign-in, a sealed
+  session, a CSRF origin check, the login page, the navbar, and the stores, adapter and post type.
+  The editor and the public read routes come later. @.claude/skills/github-cms/SKILL.md

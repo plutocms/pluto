@@ -1,5 +1,15 @@
 import type { PlutoCmsOptions } from './options'
-import { defineNuxtModule, useLogger } from '@nuxt/kit'
+import {
+  addImportsDir,
+  addPlugin,
+  addRouteMiddleware,
+  addServerHandler,
+  addServerPlugin,
+  createResolver,
+  defineNuxtModule,
+  extendPages,
+  useLogger,
+} from '@nuxt/kit'
 import { PLUTO_CMS_SECRET_ENV, resolvePlutoCmsOptions } from './options'
 
 export type { PlutoCmsOptions } from './options'
@@ -55,10 +65,21 @@ export default defineNuxtModule<PlutoCmsOptions>({
 
     // Empty placeholders, so a `NUXT_PLUTO_CMS_<NAME>` env var overrides them
     // at run time. The module does not check them at build time.
-    const secrets: Record<string, string> = {}
+    const secrets: Record<string, string | number | boolean> = {}
     for (const name of [...PLUTO_CMS_SECRET_ENV.required, ...PLUTO_CMS_SECRET_ENV.optional]) {
       secrets[toCamelCase(name)] = ''
     }
+
+    // Non-secret settings for the server code. They stay out of the public
+    // config. `fsRoot` is set for the dev `fs` store only.
+    Object.assign(secrets, {
+      apiUrl: resolved.github.apiUrl,
+      skipDeploy: resolved.commit.skipDeploy,
+      headTtl: resolved.cache.headTtl,
+      cacheStorage: resolved.cache.storage,
+      postType: resolved.postType,
+      fsRoot: resolved.storage === 'fs' ? nuxt.options.rootDir : '',
+    })
 
     nuxt.options.runtimeConfig.plutoCms = secrets as typeof nuxt.options.runtimeConfig.plutoCms
     nuxt.options.runtimeConfig.public.plutoCms = {
@@ -70,17 +91,59 @@ export default defineNuxtModule<PlutoCmsOptions>({
       dir: resolved.dir,
     }
 
-    // TODO(PR 3): add the storage drivers (memory, fs, github) and the cache.
-    // TODO(PR 4): register the Markdown content adapter and the post type.
-    // TODO(PR 5): add the server handlers for GitHub App sign-in and the
-    //   sealed session, plus the Nitro plugin and the origin check.
-    // TODO(PR 5): add the client plugin and the route middleware.
-    // TODO(PR 6): add the `/admin/login` page with `extendPages`, the editor
-    //   and the public read routes.
+    const resolver = createResolver(import.meta.url)
+    const server = (file: string) => resolver.resolve('./runtime/server', file)
+
+    // Server: the sign-in routes, the origin check and the Nitro plugin that
+    // registers the store, the adapter and the post type.
+    addServerHandler({ route: '/api/_pluto/auth/github/login', method: 'get', handler: server('api/auth/github/login.get') })
+    addServerHandler({ route: '/api/_pluto/auth/github/callback', method: 'get', handler: server('api/auth/github/callback.get') })
+    addServerHandler({ route: '/api/_pluto/auth/logout', method: 'post', handler: server('api/auth/logout.post') })
+    addServerHandler({ route: '/api/_pluto/auth/session', method: 'get', handler: server('api/auth/session.get') })
+    addServerHandler({ middleware: true, handler: server('middleware/pluto-cms-origin') })
+    addServerPlugin(server('plugins/pluto-cms'))
+
+    // Client: the extension plugin, the route guard and the session composable.
+    addPlugin({ src: resolver.resolve('./runtime/app/plugins/pluto-cms') })
+    addRouteMiddleware({
+      name: 'pluto-cms-auth',
+      path: resolver.resolve('./runtime/app/middleware/pluto-cms-auth'),
+      global: true,
+    })
+    addImportsDir(resolver.resolve('./runtime/app/composables'))
+
+    // The login page. The component lives under `app/`, so Tailwind scans it.
+    // An app that has its own /admin/login page keeps it.
+    extendPages((pages) => {
+      if (hasPage(pages, '/admin/login')) {
+        logger.warn('The app already has a /admin/login page. The standalone CMS keeps it and adds no login page.')
+        return
+      }
+      pages.push({
+        name: 'pluto-cms-login',
+        path: '/admin/login',
+        file: resolver.resolve('../../app/components/Pluto/Cms/PlutoCmsLoginPage.vue'),
+      })
+    })
+
+    // TODO(PR 6): add the editor and the public read routes.
 
     logger.info(`Standalone CMS on. Storage: ${resolved.storage}. Dir: ${resolved.dir}.`)
   },
 })
+
+interface PageLike {
+  path: string
+  children?: PageLike[]
+}
+
+/** True when a page, at any depth, has this full path. */
+function hasPage(pages: PageLike[], path: string, parent = ''): boolean {
+  return pages.some((page) => {
+    const full = page.path.startsWith('/') ? page.path : `${parent.replace(/\/+$/, '')}/${page.path}`
+    return full === path || hasPage(page.children ?? [], path, full)
+  })
+}
 
 /** `GITHUB_APP_ID` becomes `githubAppId`. */
 function toCamelCase(name: string): string {

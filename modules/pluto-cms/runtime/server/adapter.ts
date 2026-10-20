@@ -108,6 +108,11 @@ function layoutOf(type: PlutoContentType): Layout {
   }
 }
 
+/** The `*` capability means every capability, the same rule as the admin UI. */
+function hasCapability(access: PlutoCmsAccess, capability: string): boolean {
+  return access.capabilities.includes('*') || access.capabilities.includes(capability)
+}
+
 function isEmptyValue(value: unknown): boolean {
   return value === undefined || value === null || value === ''
 }
@@ -255,7 +260,7 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
     if (!access) {
       throw signInError()
     }
-    if (capability && !access.capabilities.includes(capability)) {
+    if (capability && !hasCapability(access, capability)) {
       throw forbiddenError(capability)
     }
     return access
@@ -267,7 +272,7 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
       return false
     }
     const capability = type.capabilities?.read
-    return !capability || access.capabilities.includes(capability)
+    return !capability || hasCapability(access, capability)
   }
 
   // --- Files ----------------------------------------------------------------

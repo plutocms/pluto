@@ -11,8 +11,11 @@ export interface GithubStoreOptions {
   branch: string
   apiUrl: string
   cache: CmsCache
-  /** A server token for public reads, when the caller sends no auth. */
-  readToken?: string
+  /**
+   * A server token for public reads, when the caller sends no auth. It can
+   * be a function, so the token can change over time (an installation token).
+   */
+  readToken?: string | (() => Promise<string | undefined>)
   /** A transport stub. Tests use it. */
   fetch?: GithubFetch
 }
@@ -89,8 +92,12 @@ export function createGithubStore(options: GithubStoreOptions): PlutoCmsStore {
   const [owner = '', name = ''] = options.repo.split('/')
   const { cache } = options
 
-  function tokenOf(auth?: PlutoCmsAuth): string | undefined {
-    return auth?.token || options.readToken || undefined
+  async function tokenOf(auth?: PlutoCmsAuth): Promise<string | undefined> {
+    if (auth?.token) {
+      return auth.token
+    }
+    const { readToken } = options
+    return (typeof readToken === 'function' ? await readToken() : readToken) || undefined
   }
 
   function usable(blob: BlobNode | null | undefined, path: string): blob is BlobNode & {
@@ -111,7 +118,7 @@ export function createGithubStore(options: GithubStoreOptions): PlutoCmsStore {
     const result = await githubRest<string>(
       `/repos/${options.repo}/commits/${encodeURIComponent(options.branch)}`,
       {
-        token: tokenOf(auth),
+        token: await tokenOf(auth),
         apiUrl: options.apiUrl,
         fetch: options.fetch,
         accept: 'application/vnd.github.sha',
@@ -146,7 +153,7 @@ export function createGithubStore(options: GithubStoreOptions): PlutoCmsStore {
         const data = await githubGraphql<TreeQueryData>(
           TREE_QUERY,
           { owner, name, expression: `${headOid}:${base}` },
-          { token: tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
+          { token: await tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
         )
         const entries = data.repository?.object?.entries ?? []
         const files: PlutoCmsFile[] = []
@@ -174,7 +181,7 @@ export function createGithubStore(options: GithubStoreOptions): PlutoCmsStore {
         const data = await githubGraphql<BlobQueryData>(
           BLOB_QUERY,
           { owner, name, expression: `${headOid}:${path}` },
-          { token: tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
+          { token: await tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
         )
         const blob = data.repository?.object
         if (!usable(blob, path) || !blob.oid) {
