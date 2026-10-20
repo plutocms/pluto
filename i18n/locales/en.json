@@ -19,6 +19,17 @@
       "switchToLightMode": "Switch to light mode",
       "switchToDarkMode": "Switch to dark mode"
     },
+    "navbar": {
+      "openNavigation": "Open navigation",
+      "goHome": "Go to the dashboard",
+      "viewSite": "View site",
+      "visitSite": "Visit {domain}",
+      "openUserMenu": "Open the user menu",
+      "defaultUserName": "Account",
+      "github": "Pluto on GitHub",
+      "signOut": "Sign out",
+      "signedOut": "Signed out"
+    },
     "nav": {
       "home": "Home",
       "settings": "Settings"

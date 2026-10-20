@@ -29,9 +29,24 @@ export interface PlutoNavbarShell extends PlutoEntry {
   component: Component
 }
 
-export interface PlutoNavbarAction extends PlutoEntry {
+/** A navbar action that renders its own component. */
+export interface PlutoNavbarComponentAction extends PlutoEntry {
   component: Component
 }
+
+/**
+ * A navbar action that is a plain link. Core renders it with one look
+ * (`PlutoNavbarButton`). `label` is key-or-literal. `to` can be a function,
+ * for a target that depends on reactive state (for example the current page).
+ */
+export interface PlutoNavbarLinkAction extends PlutoEntry {
+  label: string
+  icon?: string
+  to: string | (() => string)
+  target?: string
+}
+
+export type PlutoNavbarAction = PlutoNavbarComponentAction | PlutoNavbarLinkAction
 
 export interface PlutoAdminPage extends PlutoEntry {
   /** The route Nuxt already created from a file. This registry only adds metadata. */
@@ -152,6 +167,87 @@ export interface PlutoContentAction extends PlutoEntry {
   onSelect: (ctx: PlutoContentActionContext) => void | Promise<void>
 }
 
+/** The signed-in user, as the admin shell needs it. Every field but `id` is optional. */
+export interface PlutoAuthUser {
+  id: string
+  name?: string
+  username?: string
+  email?: string
+  avatarUrl?: string
+}
+
+/**
+ * A path that needs no sign-in. `signedIn` says what happens when a signed-in
+ * user opens it: 'redirect' (default) sends the user to the admin home,
+ * 'allow' shows the page.
+ */
+export interface PlutoAuthPublicPath {
+  path: string
+  signedIn?: 'redirect' | 'allow'
+}
+
+/** Props core passes to the driver's `signIn` component. */
+export interface PlutoAuthSignInProps {
+  /** A safe local path to open after sign-in. Core checks it with `safeRedirect`. */
+  redirect: string
+}
+
+/**
+ * The sign-in backend of the admin. One backend layer registers it, and the
+ * last registered driver wins, like the other drivers.
+ *
+ * Hydration rule: `user()` and `loggedIn()` are getters that read reactive
+ * state. `loggedIn()` must give the same answer on the server and in the
+ * first client render. A backend with a cookie session that the server can read
+ * (supabase) can answer on the server, so the admin bar renders in the server
+ * HTML. A backend that learns the session in the browser (the standalone CMS)
+ * must answer false on the server. Then the bar appears after hydration.
+ * When `loggedIn` is missing, core uses `user() !== null`.
+ */
+export interface PlutoAuthDriver extends PlutoEntry {
+  user: () => PlutoAuthUser | null
+  loggedIn?: () => boolean
+  /** Resolves when the first session check is done. Must never reject. */
+  ready: () => Promise<void>
+  /** Reads the session again. Optional. */
+  refresh?: () => Promise<void>
+  signOut: () => Promise<void>
+  /** The sign-in form. Core renders it inside the login frame. Props: PlutoAuthSignInProps. */
+  signIn: Component
+  /** Key-or-literal. */
+  signInTitle?: string
+  /** Key-or-literal. */
+  signInDescription?: string
+  links?: {
+ signUp?: string
+forgotPassword?: string
+}
+  /** Paths that need no sign-in. '/admin/login' is always one. */
+  publicPaths?: Array<string | PlutoAuthPublicPath>
+}
+
+/** An item a layer adds to the user menu of the admin navbar. */
+export interface PlutoAccountMenuItem extends PlutoEntry {
+  /** Key-or-literal. */
+  label: string
+  icon?: string
+  to?: string
+  target?: string
+  kbds?: string[]
+  onSelect?: () => void | Promise<void>
+}
+
+/** A banner shown below the admin navbar. */
+export interface PlutoAdminBanner extends PlutoEntry {
+  component: Component
+}
+
+/** Facts about the public site. A backend can give its own values. */
+export interface PlutoSiteInfo extends PlutoEntry {
+  name?: () => string | null | undefined
+  url?: () => string | null | undefined
+}
+
 export interface PlutoExtension {
   /** Layer name. Use the package's $meta.name, e.g. 'supabase-blog'. */
   id: string
@@ -165,6 +261,10 @@ export interface PlutoExtension {
   localeDriver?: PlutoLocaleDriver
   capabilities?: PlutoCapability[]
   permissionsDriver?: PlutoPermissionsDriver
+  authDriver?: PlutoAuthDriver
+  accountMenu?: PlutoAccountMenuItem[]
+  adminBanners?: PlutoAdminBanner[]
+  site?: PlutoSiteInfo
   contentTypes?: PlutoContentTypeEntry[]
   contentFieldWidgets?: PlutoContentFieldWidget[]
   contentActions?: PlutoContentAction[]
@@ -194,6 +294,10 @@ export interface PlutoRegistry {
   dashboardWidgets: PlutoRegistryBucket<PlutoDashboardWidget>
   capabilities: PlutoRegistryBucket<PlutoCapability>
   permissionsDrivers: PlutoRegistryBucket<PlutoPermissionsDriver>
+  authDrivers: PlutoRegistryBucket<PlutoAuthDriver>
+  accountMenu: PlutoRegistryBucket<PlutoAccountMenuItem>
+  adminBanners: PlutoRegistryBucket<PlutoAdminBanner>
+  siteInfo: PlutoRegistryBucket<PlutoSiteInfo>
   contentTypes: PlutoRegistryBucket<PlutoContentTypeEntry>
   contentFieldWidgets: PlutoRegistryBucket<PlutoContentFieldWidget>
   contentActions: PlutoRegistryBucket<PlutoContentAction>
