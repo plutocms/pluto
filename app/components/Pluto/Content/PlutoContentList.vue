@@ -111,11 +111,32 @@ const listFields = computed(() =>
     .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
 )
 
+// The status of each item, for a type with a publish workflow. A draft shows
+// a neutral badge, a published item a green one, as in the form toolbar.
+const statusConfig = computed(() => contentType.value?.status || null)
+
+function itemStatus(item: PlutoContentItem): {
+ label: string
+published: boolean
+} | null {
+  const config = statusConfig.value
+  if (!config) {
+    return null
+  }
+  const value = (item.status as string | undefined) ?? config.default
+  if (value === undefined) {
+    return null
+  }
+  const literal = config.values.find((entry) => entry.value === value)?.label
+  return { label: text.statusLabel(value, literal), published: value === (config.publishedValue ?? 'published') }
+}
+
 const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
   ...listFields.value.map((field) => ({
     accessorKey: field.name,
     header: text.fieldLabel(field),
   })),
+  ...(statusConfig.value ? [{ id: 'status', header: t('pluto.list.status') }] : []),
   { id: 'actions', header: '' },
 ])
 
@@ -216,13 +237,22 @@ const footer = computed(() => {
     >
       <UCard v-for="item in items" :key="item.id" class="shrink-0">
         <div class="flex flex-col gap-4">
-          <div class="min-w-0">
+          <div class="flex min-w-0 items-center justify-between gap-3">
             <NuxtLink
               :to="editPath(item.id)"
               class="block truncate text-lg font-semibold hover:underline"
             >
               {{ item[contentType.titleField] }}
             </NuxtLink>
+
+            <UBadge
+              v-if="itemStatus(item)"
+              :color="itemStatus(item)!.published ? 'success' : 'neutral'"
+              variant="subtle"
+              class="shrink-0"
+            >
+              {{ itemStatus(item)!.label }}
+            </UBadge>
           </div>
 
           <dl class="grid grid-cols-2 gap-3 text-sm">
@@ -270,6 +300,16 @@ const footer = computed(() => {
       sticky
       virtualize
     >
+      <template #status-cell="{ row }">
+        <UBadge
+          v-if="itemStatus(row.original)"
+          :color="itemStatus(row.original)!.published ? 'success' : 'neutral'"
+          variant="subtle"
+        >
+          {{ itemStatus(row.original)!.label }}
+        </UBadge>
+      </template>
+
       <template #actions-cell="{ row }">
             <div class="flex justify-end gap-3">
               <NuxtLink
