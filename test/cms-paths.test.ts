@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assertSafeSlug, contentFilePath } from '../modules/pluto-cms/runtime/server/utils/cms-paths'
+import { assertSafeSlug, contentDirPath, contentFilePath, slugifyTitle } from '../modules/pluto-cms/runtime/server/utils/cms-paths'
 
 describe('assertSafeSlug', () => {
   it('accepts a normal slug', () => {
@@ -49,5 +49,21 @@ describe('contentFilePath', () => {
     expect(() => contentFilePath('content', '../posts', 'a')).toThrow()
     expect(() => contentFilePath('content', 'posts', '../a')).toThrow()
     expect(() => contentFilePath('content', '', 'a')).toThrow()
+  })
+})
+
+describe('contentDirPath', () => {
+  it('builds the folder of a content type', () => {
+    expect(contentDirPath('content/', 'posts')).toBe('content/posts')
+    expect(() => contentDirPath('content', '../x')).toThrow()
+  })
+})
+
+describe('slugifyTitle', () => {
+  it('makes a safe slug from a title', () => {
+    expect(slugifyTitle('  Hello, World!  ')).toBe('hello-world')
+    expect(slugifyTitle('Café à la carte')).toBe('cafe-a-la-carte')
+    expect(slugifyTitle('???')).toBe('')
+    expect(() => assertSafeSlug(slugifyTitle('A'.repeat(300)))).not.toThrow()
   })
 })
