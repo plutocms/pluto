@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [0.15.0](https://github.com/plutocms/pluto/compare/v0.14.3...v0.15.0) (2026-10-20)
+
+
+### Features
+
+* **cms:** add GitHub App sign-in, the session and the CSRF check ([#177](https://github.com/plutocms/pluto/issues/177)) ([fd61304](https://github.com/plutocms/pluto/commit/fd613048bcb2ea12e29b901227494d85ff2034f2))
+* **cms:** add the markdown content adapter and the post type ([#176](https://github.com/plutocms/pluto/issues/176)) ([41742b8](https://github.com/plutocms/pluto/commit/41742b87fa884c624cd1ef15141a349b4a0c7068))
+* **cms:** add the markdown editor, the public read routes and PlutoMarkdown ([#178](https://github.com/plutocms/pluto/issues/178)) ([bf35198](https://github.com/plutocms/pluto/commit/bf35198097e8e53f32185a331d0bef82b3b7fedc))
+* **cms:** add the memory, fs and GitHub content stores ([#175](https://github.com/plutocms/pluto/issues/175)) ([554318a](https://github.com/plutocms/pluto/commit/554318a1dc84eda2e5f93d85dabca4a8df238b04))
+* **cms:** add the pluto-cms module skeleton, off by default ([#174](https://github.com/plutocms/pluto/issues/174)) ([4afa28f](https://github.com/plutocms/pluto/commit/4afa28f1a3ab4950410d3f0cf4c1ebc49cea719f))
+* **content:** add a version token and follow an id change after save ([#172](https://github.com/plutocms/pluto/issues/172)) ([43232be](https://github.com/plutocms/pluto/commit/43232be5db03f56a3ab95ffae39a41c944a2cb95))
+* **content:** show the status of each item in the content list ([#180](https://github.com/plutocms/pluto/issues/180)) ([94aee0c](https://github.com/plutocms/pluto/commit/94aee0c156b4764ba5057fb93ad2824faa44db65))
+
 ## [0.14.3](https://github.com/plutocms/pluto/compare/v0.14.2...v0.14.3) (2026-10-19)
 
 
