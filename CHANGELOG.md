@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.16.1](https://github.com/plutocms/pluto/compare/v0.16.0...v0.16.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* **admin:** wait for hydration before the public-page admin bar shows ([#185](https://github.com/plutocms/pluto/issues/185)) ([ba14ebc](https://github.com/plutocms/pluto/commit/ba14ebc8f196f70cd78ccb05bcd8d72f190fe831))
+
 ## [0.16.0](https://github.com/plutocms/pluto/compare/v0.15.0...v0.16.0) (2026-10-20)
 
 
