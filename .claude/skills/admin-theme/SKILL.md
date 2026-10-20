@@ -71,6 +71,19 @@ dataviz palette checks pass for both: lightness band, chroma floor, colorblind s
 normal-vision separation, and 3:1 contrast (on white and on the dark card surface). Run the checks again
 before you change a slot.
 
+## Corner radius
+
+The admin radius is one step smaller than before: `--ui-radius: 0.25rem` (it was 0.375rem). So
+`rounded-md` is 6px in the admin (it was 9px). It lives in `app/assets/css/pluto-layer.css`, not in
+the generated `admin-theme.css`, under the same two selectors as the theme:
+`:root[data-pluto-admin]` and `[data-pluto-admin-scope]`. Overlays follow the same way as colors.
+An admin overlay on a public page needs a `data-pluto-admin-scope` ancestor (the admin menu
+slideover has a wrapper. The user menu uses a portal target).
+
+A custom property that uses `var()` resolves where it is declared. So the rule declares
+`--radius-xs` to `--radius-3xl` again, next to `--ui-radius`, with the multipliers of Nuxt UI. Never
+put the radius in `@theme`: it would reach the public site of the app.
+
 ## Rules for admin code
 
 - Use Nuxt UI semantic classes (`bg-default`, `text-muted`, `border-default`, `bg-primary`)

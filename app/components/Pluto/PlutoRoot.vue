@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { resolveSiteName } from '../../composables/internal/admin-shell'
+
 // A legacy shell is a navbar a backend layer registers itself (the registry
 // `navbar` field, or `useNavbarAdmin()` from utils). It wins over the core bar
 // until that layer migrates to the auth driver. Remove it with the legacy bridge.
@@ -40,6 +42,22 @@ const uiLocale = computed(() => active.value.uiLocale.value)
 // siteLocales). Otherwise the app keeps its own app.head.htmlAttrs.
 const { siteManaged } = useRuntimeConfig().public.plutoI18n
 const managesLang = computed(() => isAdmin.value || Boolean(siteManaged))
+
+// The tab title of an admin route is "Page - Site name". The site name is the
+// site info name, then the `websiteName` runtime config, then the admin name.
+// Public routes keep the title template of the app. Every value is the same on
+// the server and on the client, so the title is hydration-safe.
+const siteInfo = usePlutoSiteInfo()
+const websiteName = useRuntimeConfig().public.websiteName as string | undefined
+const siteName = computed(() => resolveSiteName(siteInfo.name.value, websiteName, admin.t('pluto.app.name')))
+
+// The input is reactive, so a public route adds no entry and the title
+// template of the app stays in force there.
+useHead(
+  computed(() => (isAdmin.value
+    ? { titleTemplate: (title?: string) => (title ? `${title} - ${siteName.value}` : siteName.value) }
+    : {}))
+)
 
 useHead({
   htmlAttrs: {

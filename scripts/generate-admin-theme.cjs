@@ -73,7 +73,6 @@ ${chart(chartLight)}
   --pluto-admin-sidebar: ${v('zinc-50')};
   --pluto-admin-navbar: ${v('zinc-950')};
 
-  --ui-radius: 0.375rem;
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
 }
 

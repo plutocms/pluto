@@ -168,3 +168,22 @@ export function shortName(user: PlutoAuthUser | null | undefined, fallback: stri
   const name = displayName(user, fallback)
   return name.split(/\s+/)[0] || name
 }
+
+/**
+ * The site name for the tab title. Take the first value that is set: the name
+ * of the site info, the `websiteName` runtime config (unless it is the
+ * default 'Untitled'), then the fallback.
+ */
+export function resolveSiteName(
+  infoName: string | undefined,
+  websiteName: string | undefined,
+  fallback: string
+): string {
+  if (infoName) {
+    return infoName
+  }
+  if (websiteName && websiteName !== 'Untitled') {
+    return websiteName
+  }
+  return fallback
+}

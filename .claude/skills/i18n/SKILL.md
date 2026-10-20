@@ -152,7 +152,8 @@ this device and an error toast shows the reason.
 5. Format numbers and dates with `n()` and `d()`. Do not call `Intl` or `toLocale*String()` with
    the browser default. They follow the admin language.
 6. Use a getter for `useHead`, so a language switch updates the title:
-   `useHead({ title: () => t('pluto.pages.settings') })`.
+   `useHead({ title: () => t('pluto.pages.settings') })`. Every page needs a title. Core adds the
+   site name (see the admin-shell skill).
 7. Read `t()` inside a template or a `computed`. A value that you read once in setup does not
    change when the language changes.
 

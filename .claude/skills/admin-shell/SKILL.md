@@ -185,6 +185,26 @@ Settings (`meta+,`), the `accountMenu` items, "Pluto on GitHub" (`plutocms/pluto
 (`meta+shift+q`). Shortcuts use `defineShortcuts(extractShortcuts(items))`.
 `PlutoAdminNavbarProvider` shows the bar when `usePlutoAdminBar().visible` is true.
 
+### Full-height click area
+
+Each control in the bar fills the full height of the bar (39px, plus the 1px bottom border).
+`PlutoNavbarHit` does this. It is a link (with `to`) or a button (without) that is `h-full`.
+The visible pill is a ghost `UButton` rendered as a `<span>` inside it. The span takes no
+pointer events. It gets the hover, active and focus-visible look from the `group` classes of the
+link, so the pill looks the same as before. Use `PlutoNavbarHit` for a new control. Do not put a
+plain `UButton` in the bar. `PlutoAdminUserMenu` uses the same pattern with its own pill.
+
+The user menu dropdown renders in a portal target (`#pluto-admin-user-menu-portal`) that has
+`data-pluto-admin-scope`. So the menu has the admin theme and the admin radius on a public page.
+
+## Tab title
+
+`PlutoRoot` sets the `titleTemplate` on admin routes only: "Page - Site name". The site name is
+`site.name()`, then `runtimeConfig.public.websiteName` (not `Untitled`), then `pluto.app.name`
+(`resolveSiteName`). Public routes keep the title template of the app. Every page under
+`app/pages/**` sets `useHead({ title: () => t('...') })`. Content pages use the labels of
+`usePlutoContentText`.
+
 Texts are in `pluto.navbar.*`, in English and Brazilian Portuguese. The words are "Sign in",
 "Sign out" and the default name "Account".
 

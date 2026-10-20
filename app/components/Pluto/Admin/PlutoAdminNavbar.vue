@@ -26,17 +26,15 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
   <PlutoNavbarAdmin>
     <div class="flex h-full min-w-0 items-stretch justify-between gap-1 px-2 lg:px-4">
       <div class="flex min-w-0 items-center gap-x-1 lg:gap-x-3">
-        <UButton
-          :aria-label="t('pluto.navbar.openNavigation')"
+        <PlutoNavbarHit
+          :label="t('pluto.navbar.openNavigation')"
           class="lg:hidden"
           icon="lucide:menu"
-          color="neutral"
-          variant="ghost"
           square
           @click="isSidebarOpen = true"
         />
 
-        <div class="h-full shrink-0 py-1">
+        <div class="h-full shrink-0">
           <NuxtLink
             :title="t('pluto.navbar.goHome')"
             to="/admin/home"
@@ -45,7 +43,7 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             <img
               src="/img/pluto.png"
               alt=""
-              class="block h-full grayscale-100 group-hover:grayscale-0"
+              class="block h-[31px] grayscale-100 group-hover:grayscale-0"
             />
             <span
               v-if="siteName"

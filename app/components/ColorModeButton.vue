@@ -14,18 +14,15 @@ const isDark = computed({
 
 <template>
   <ClientOnly v-if="!colorMode?.forced">
-    <UButton
+    <PlutoNavbarHit
       :icon="isDark ? 'i-lucide-moon' : 'i-lucide-sun'"
-      :aria-label="isDark ? t('pluto.common.switchToLightMode') : t('pluto.common.switchToDarkMode')"
-      color="neutral"
-      variant="ghost"
-      size="md"
+      :label="isDark ? t('pluto.common.switchToLightMode') : t('pluto.common.switchToDarkMode')"
       square
       @click="isDark = !isDark"
     />
 
     <template #fallback>
-      <div class="size-8" />
+      <div class="h-full w-8" />
     </template>
   </ClientOnly>
 </template>

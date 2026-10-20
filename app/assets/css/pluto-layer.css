@@ -33,3 +33,28 @@
 :root {
   --ui-header-height: 2.5rem;
 }
+
+/*
+ * The admin corner radius. It is one step smaller than the default of the
+ * app (0.375rem before, 0.25rem now), and only the admin gets it.
+ *
+ * Two selectors carry it, the same two as admin-theme.css: the `data-pluto-admin`
+ * attribute on <html> (admin layouts, and the overlays that teleport to
+ * <body>) and `data-pluto-admin-scope` (admin chrome on a public page).
+ *
+ * A custom property that uses var() resolves where it is declared. So the
+ * `--radius-*` tokens that Nuxt UI derives from `--ui-radius` are declared
+ * again here, next to the new `--ui-radius`. The multipliers are the ones of
+ * Nuxt UI. Do not move this rule into @theme: that would reach the public site.
+ */
+:root[data-pluto-admin],
+[data-pluto-admin-scope] {
+  --ui-radius: 0.25rem;
+  --radius-xs: calc(var(--ui-radius) * 0.5);
+  --radius-sm: var(--ui-radius);
+  --radius-md: calc(var(--ui-radius) * 1.5);
+  --radius-lg: calc(var(--ui-radius) * 2);
+  --radius-xl: calc(var(--ui-radius) * 3);
+  --radius-2xl: calc(var(--ui-radius) * 4);
+  --radius-3xl: calc(var(--ui-radius) * 6);
+}
