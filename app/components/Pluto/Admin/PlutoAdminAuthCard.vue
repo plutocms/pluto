@@ -1,10 +1,20 @@
 <script setup lang="ts">
-// The frame of the login page: the logo, the site name, the heading, the
-// sign-in form of the auth driver and the links. With no driver, it shows an
-// alert. See the admin-shell skill.
+// The frame of the admin auth pages: the logo, the site name, the heading,
+// the body and "Back to the site". With no default slot, the body is the
+// sign-in form of the auth driver and its links. With no driver, it shows an
+// alert. A backend uses the slot for its other auth pages (sign up, password
+// reset), so every auth page has the same frame. See the admin-shell skill.
 const props = defineProps<{
   /** A safe local path to open after sign-in. */
-  redirect: string
+  redirect?: string
+  /** Key-or-literal. Replaces the driver's sign-in title. */
+  title?: string
+  /** Key-or-literal. Replaces the driver's sign-in description. */
+  description?: string
+}>()
+
+const slots = defineSlots<{
+ default?: () => unknown
 }>()
 
 const { t, tx } = usePlutoI18n()
@@ -16,8 +26,14 @@ const siteName = computed(() => {
   const name = site.name.value || websiteName || ''
   return name === 'Untitled' ? '' : name
 })
-const title = computed(() => (driver.value?.signInTitle ? tx(driver.value.signInTitle) : t('pluto.auth.signIn')))
-const description = computed(() => (driver.value?.signInDescription ? tx(driver.value.signInDescription) : ''))
+const heading = computed(() => {
+  const value = props.title ?? (slots.default ? undefined : driver.value?.signInTitle)
+  return value ? tx(value) : t('pluto.auth.signIn')
+})
+const subheading = computed(() => {
+  const value = props.description ?? (slots.default ? undefined : driver.value?.signInDescription)
+  return value ? tx(value) : ''
+})
 const links = computed(() => driver.value?.links ?? {})
 </script>
 
@@ -30,18 +46,22 @@ const links = computed(() => driver.value?.links ?? {})
           <span v-if="siteName" class="text-highlighted truncate text-sm font-semibold">{{ siteName }}</span>
         </div>
 
-        <template v-if="driver">
+        <template v-if="driver || slots.default">
           <div class="flex flex-col gap-y-1">
-            <h1 class="text-3xl font-bold">{{ title }}</h1>
-            <p v-if="description" class="text-muted text-sm">{{ description }}</p>
+            <h1 class="text-3xl font-bold">{{ heading }}</h1>
+            <p v-if="subheading" class="text-muted text-sm">{{ subheading }}</p>
           </div>
 
-          <component :is="driver.signIn" :redirect="props.redirect" />
+          <slot v-if="slots.default" />
 
-          <div v-if="links.signUp || links.forgotPassword" class="flex flex-wrap items-center justify-between gap-2">
-            <UButton v-if="links.signUp" :to="links.signUp" :label="t('pluto.auth.signUp')" variant="link" class="px-0" />
-            <UButton v-if="links.forgotPassword" :to="links.forgotPassword" :label="t('pluto.auth.forgotPassword')" variant="link" class="px-0" />
-          </div>
+          <template v-else-if="driver">
+            <component :is="driver.signIn" :redirect="props.redirect ?? ''" />
+
+            <div v-if="links.signUp || links.forgotPassword" class="flex flex-wrap items-center justify-between gap-2">
+              <UButton v-if="links.signUp" :to="links.signUp" :label="t('pluto.auth.signUp')" variant="link" class="px-0" />
+              <UButton v-if="links.forgotPassword" :to="links.forgotPassword" :label="t('pluto.auth.forgotPassword')" variant="link" class="px-0" />
+            </div>
+          </template>
         </template>
 
         <UAlert

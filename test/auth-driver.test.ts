@@ -26,6 +26,7 @@ describe('validatePlutoAuthDriver', () => {
     const full = driver({
       loggedIn: () => true,
       refresh: async () => {},
+      guard: () => undefined,
       signInTitle: 'Sign in',
       signInDescription: 'Use your account.',
       links: { signUp: '/sign-up', forgotPassword: '/forgot' },
@@ -51,6 +52,11 @@ describe('validatePlutoAuthDriver', () => {
       links: { signUp: 1 as unknown as string },
     })
     expect(problems).toHaveLength(3)
+  })
+
+  it('reports a guard that is not a function', () => {
+    const problems = validatePlutoAuthDriver(driver({ guard: '/admin/setup' as unknown as () => undefined }))
+    expect(problems).toEqual(['"guard" must be a function when set.'])
   })
 
   it('reports a bad public path', () => {
