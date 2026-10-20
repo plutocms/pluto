@@ -30,6 +30,10 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.id,
     definition.permissionsDriver ? [definition.permissionsDriver] : []
   )
+  registry.authDrivers.set(definition.id, definition.authDriver ? [definition.authDriver] : [])
+  registry.accountMenu.set(definition.id, definition.accountMenu ?? [])
+  registry.adminBanners.set(definition.id, definition.adminBanners ?? [])
+  registry.siteInfo.set(definition.id, definition.site ? [definition.site] : [])
   registry.contentTypes.set(definition.id, definition.contentTypes ?? [])
   registry.contentFieldWidgets.set(definition.id, definition.contentFieldWidgets ?? [])
   registry.contentActions.set(definition.id, definition.contentActions ?? [])

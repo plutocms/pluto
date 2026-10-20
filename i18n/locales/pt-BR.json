@@ -19,6 +19,17 @@
       "switchToLightMode": "Mudar para o tema claro",
       "switchToDarkMode": "Mudar para o tema escuro"
     },
+    "navbar": {
+      "openNavigation": "Abrir a navegação",
+      "goHome": "Ir para o painel",
+      "viewSite": "Ver o site",
+      "visitSite": "Visitar {domain}",
+      "openUserMenu": "Abrir o menu do usuário",
+      "defaultUserName": "Conta",
+      "github": "Pluto no GitHub",
+      "signOut": "Sair",
+      "signedOut": "Você saiu"
+    },
     "nav": {
       "home": "Início",
       "settings": "Configurações"

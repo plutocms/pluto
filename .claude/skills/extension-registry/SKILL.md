@@ -8,7 +8,9 @@ It adds:
 
 - `shared/types/registry.ts` — the `PlutoExtension` shape and the type of each registrable
   thing (`PlutoNavItem`, `PlutoNavbarShell`, `PlutoNavbarAction`, `PlutoAdminPage`,
-  `PlutoDashboardWidget`, `PlutoSettingsPanel`, `PlutoSettingsDriver`, `PlutoLocaleDriver`),
+  `PlutoDashboardWidget`, `PlutoSettingsPanel`, `PlutoSettingsDriver`, `PlutoLocaleDriver`,
+  `PlutoAuthDriver`, `PlutoAccountMenuItem`, `PlutoAdminBanner`, `PlutoSiteInfo`;
+  `PlutoNavbarAction` is a union of `PlutoNavbarComponentAction` and `PlutoNavbarLinkAction`),
   plus `PlutoRegistry`.
 - `shared/types/registry.d.ts` — augments `#app`'s `NuxtApp` with an optional `_plutoRegistry`
   field.
@@ -19,7 +21,8 @@ It adds:
   container.
 - `app/composables/pluto-extension.ts` — `definePlutoExtension(definition)`, the one function a
   layer author calls.
-- `app/composables/pluto-navbar.ts` — `usePlutoNavbarShell()` and `usePlutoNavbarActions()`.
+- `app/composables/pluto-navbar.ts` — `usePlutoNavbarShell()`, `usePlutoNavbarActions()`,
+  `usePlutoAdminBar()`, `usePlutoAccountMenu()` and `usePlutoSiteInfo()`.
 - `app/composables/pluto-admin-nav.ts` — `usePlutoAdminNav()`, the sidebar nav.
 - `app/composables/pluto-admin-pages.ts` — `usePlutoAdminPages()`, page metadata.
 - `app/composables/pluto-dashboard.ts` — `usePlutoDashboardWidgets()`.
@@ -40,13 +43,20 @@ sets only what it has.
 | Field | Type | Purpose |
 |---|---|---|
 | `navbar` | `PlutoNavbarShell` | The whole admin top bar. One extension normally provides it. |
-| `navbarActions` | `PlutoNavbarAction[]` | Small buttons rendered inside the navbar. |
+| `navbarActions` | `PlutoNavbarAction[]` | Small buttons in the navbar. Each is a component action (`{ component }`) or a link action (`{ label, icon?, to, target? }`). A union type. |
 | `nav` | `PlutoNavItem[]` | Sidebar entries, with optional `children`. |
 | `pages` | `PlutoAdminPage[]` | Metadata (title, icon, parent) for a route Nuxt already made from a file. |
 | `dashboardWidgets` | `PlutoDashboardWidget[]` | Cards shown on `/admin/home`. |
 | `settingsPanels` | `PlutoSettingsPanel[]` | Forms shown on `/admin/settings`. |
 | `settingsDriver` | `PlutoSettingsDriver` | Load/save functions for settings storage. One layer normally provides it. |
 | `localeDriver` | `PlutoLocaleDriver` | Load/save functions for the current user's admin language. One layer normally provides it. |
+| `authDriver` | `PlutoAuthDriver` | The sign-in backend of the admin. The last one wins. See the admin-shell skill. |
+| `accountMenu` | `PlutoAccountMenuItem[]` | Extra items in the navbar user menu. |
+| `adminBanners` | `PlutoAdminBanner[]` | Banner components for the admin. Registered now, rendered later. |
+| `site` | `PlutoSiteInfo` | `name()` and `url()` of the public site. |
+
+The registry buckets for the last four are `authDrivers`, `accountMenu`, `adminBanners` and
+`siteInfo`. Core renders the navbar from them. See the [admin shell](../admin-shell/SKILL.md).
 
 ### The admin menu on small screens
 

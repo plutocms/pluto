@@ -48,3 +48,4 @@ policies shared by every project here.
   session, a CSRF origin check, the login page, the navbar, and the stores, adapter and post type.
   It also has a Markdown editor, public read routes and composables, and `PlutoMarkdown`.
   @.claude/skills/github-cms/SKILL.md
+- Admin shell: core owns the admin navbar and user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The bar shows on `/admin/**` for any signed-in user, and on public pages for staff only. @.claude/skills/admin-shell/SKILL.md
