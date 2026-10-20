@@ -15,10 +15,9 @@
  * hand-rolled `.then()`.
  *
  * `id` is read once, with `toValue`, at composable-creation time. It is not
- * watched for later changes — each of the three generated pages
- * (`app/pages/admin/content/[type]/{index,new,[id]}.vue`) mounts fresh on
- * every route change, so there is no case in this wave where `id` changes
- * under a still-mounted `PlutoContentForm`.
+ * watched for later changes. A page must mount the form again when the id
+ * changes. The generated page `[id].vue` does this with `:key` on the route
+ * id.
  */
 export function usePlutoContentItem(
   typeName: string,

@@ -244,9 +244,16 @@ export interface PlutoContentType {
  * `PlutoEntryRecord`, to avoid visual confusion with `PlutoEntry` (a
  * registry bucket item, see `shared/types/registry.ts`) — this type has
  * nothing to do with the registry.
+ *
+ * `_version` is a reserved optional key, an optimistic-concurrency token. An
+ * adapter MAY return it on `get` and `list` items. The client sends it back
+ * unchanged on update. An adapter that uses it answers 409 when the token no
+ * longer matches the stored item. An adapter that does not use it ignores the
+ * key. A content type must not declare a field named `_version`.
  */
 export type PlutoContentItem = Record<string, unknown> & {
   id: string | number
+  _version?: string
 }
 
 /** Options for a generic list read. See `server/utils/pluto-content-handlers.ts`. */
