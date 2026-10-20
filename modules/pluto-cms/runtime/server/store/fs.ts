@@ -1,0 +1,113 @@
+import type { PlutoCmsFile, PlutoCmsStore } from './types'
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
+import { gitBlobSha, listingOid } from '../utils/blob-sha'
+import { PlutoCmsConflictError, PlutoCmsStoreError } from './errors'
+
+export interface FsStoreOptions {
+  /** The absolute root dir. All paths are relative to it. */
+  root: string
+}
+
+/**
+ * A store over the local file system, for dev. The head id is a hash of the
+ * file listing (path and blob id), so it changes after a write. A file
+ * change made by hand changes it too.
+ */
+export function createFsStore(options: FsStoreOptions): PlutoCmsStore {
+  const root = resolve(options.root)
+
+  function safePath(path: string): string {
+    const full = resolve(root, path)
+    const rel = relative(root, full)
+    if (!path || isAbsolute(path) || rel === '' || rel.startsWith('..') || isAbsolute(rel)) {
+      throw new PlutoCmsStoreError('forbidden', `The path "${path}" is outside the content root.`)
+    }
+    return full
+  }
+
+  async function walk(dir: string, out: {
+ path: string
+oid: string
+}[]): Promise<void> {
+    let entries
+    try {
+      entries = await readdir(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      const full = resolve(dir, entry.name)
+      if (entry.isDirectory()) {
+        await walk(full, out)
+      } else if (entry.isFile()) {
+        const text = await readFile(full, 'utf8')
+        out.push({ path: relative(root, full).split(sep).join('/'), oid: gitBlobSha(text) })
+      }
+    }
+  }
+
+  async function currentHead(): Promise<string> {
+    const entries: {
+ path: string
+oid: string
+}[] = []
+    await walk(root, entries)
+    return listingOid(entries)
+  }
+
+  async function read(path: string): Promise<PlutoCmsFile | null> {
+    try {
+      const text = await readFile(safePath(path), 'utf8')
+      return { path, name: path.slice(path.lastIndexOf('/') + 1), oid: gitBlobSha(text), text }
+    } catch (error) {
+      if (error instanceof PlutoCmsStoreError) {
+        throw error
+      }
+      return null
+    }
+  }
+
+  return {
+    head: async () => currentHead(),
+    listDir: async (dir) => {
+      const base = dir.replace(/\/+$/, '')
+      let names: string[]
+      try {
+        names = (await readdir(base === '' ? root : safePath(base), { withFileTypes: true }))
+          .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+          .map((entry) => entry.name)
+      } catch (error) {
+        if (error instanceof PlutoCmsStoreError) {
+          throw error
+        }
+        return []
+      }
+      const files: PlutoCmsFile[] = []
+      for (const name of names.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))) {
+        const file = await read(base === '' ? name : `${base}/${name}`)
+        if (file) {
+          files.push(file)
+        }
+      }
+      return files
+    },
+    readFile: async (path) => read(path),
+    commit: async (input) => {
+      // Check every path first, so a bad path changes nothing.
+      const additions = input.additions.map((item) => ({ full: safePath(item.path), contents: item.contents }))
+      const deletions = input.deletions.map((item) => safePath(item.path))
+      if (input.expectedHeadOid !== await currentHead()) {
+        throw new PlutoCmsConflictError()
+      }
+      for (const full of deletions) {
+        await rm(full, { force: true })
+      }
+      for (const item of additions) {
+        await mkdir(dirname(item.full), { recursive: true })
+        await writeFile(item.full, item.contents, 'utf8')
+      }
+      return { oid: await currentHead() }
+    },
+  }
+}
