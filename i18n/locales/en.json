@@ -121,7 +121,8 @@
       "noContentAdapter": "No content adapter is registered.",
       "notFound": "Not found.",
       "bodyNotObject": "Request body must be a JSON object.",
-      "validationFailed": "Validation failed."
+      "validationFailed": "Validation failed.",
+      "conflict": "This item changed since you opened it. Reload to get the latest version."
     },
     "validation": {
       "required": "\"{label}\" is required.",

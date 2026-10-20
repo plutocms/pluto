@@ -377,8 +377,8 @@ can cap it: the Supabase adapter returns at most 1000 rows). `PlutoContentList` 
 `pageSize: 50`.
 
 `id` is read once, with `toValue`, at composable-creation time — not watched for later changes.
-Each generated page mounts fresh on every route change, so there is no case in this wave where
-`id` changes under a still-mounted `PlutoContentForm`.
+A page must mount the form again when the id changes. The generated page `[id].vue` keys the
+form on the route id.
 
 ## `PlutoContentField` and the eight built-in widgets
 
@@ -415,6 +415,32 @@ fetches it expecting `{ data: Array<Record<string, unknown>> }`, maps each row t
 renders a disabled `UInputMenu` with a placeholder noting no options source is configured,
 rather than throwing — resolving `field.target` against another content type's own list endpoint
 is later work.
+
+## The `_version` token and id changes: for adapter authors
+
+`PlutoContentItem` has one reserved optional key, `_version` (a string). It is an
+optimistic-concurrency token.
+
+- An adapter MAY return `_version` on `get` and `list` items.
+- The form keeps the item it loaded. On save, `buildContentPayload` copies `_version` into the
+  request body, unchanged. The Supabase adapter never returns it, so nothing changes there.
+- An adapter that uses the token compares it with the stored one on update. When they differ,
+  it throws `createPlutoError({ statusCode: 409, key: 'pluto.errors.conflict', ... })`. The
+  form then shows the translated text "This item changed since you opened it."
+- An adapter that does not use the token ignores the key.
+- Do not declare a field named `_version`.
+
+An adapter can also change the `id` of an item on update, for example a file-based adapter that
+renames a file when the slug changes. In that case, return the item with its new `id`. In edit
+mode, when the saved `id` differs from the current one, `PlutoContentForm` navigates to the new
+edit path (from `editPath`) with `replace: true`. The generated page `[id].vue` sets
+`:key="route.params.id"` on the form, so the form mounts again and `usePlutoContentItem` loads
+the new id. A layer with its own edit page must do the same, because `usePlutoContentItem`
+reads `id` only once.
+
+`buildContentPayload(type, item, statusOverride?)` is in
+`app/composables/internal/content-payload.ts`. It is a pure function, so Vitest tests it
+directly.
 
 ## `PlutoContentList` and `PlutoContentForm`
 

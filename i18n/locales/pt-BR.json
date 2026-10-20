@@ -121,7 +121,8 @@
       "noContentAdapter": "Nenhum adaptador de conteúdo está registrado.",
       "notFound": "Não encontrado.",
       "bodyNotObject": "O corpo da requisição deve ser um objeto JSON.",
-      "validationFailed": "Falha na validação."
+      "validationFailed": "Falha na validação.",
+      "conflict": "Este item mudou desde que você o abriu. Recarregue para ver a versão mais recente."
     },
     "validation": {
       "required": "Preencha \"{label}\".",

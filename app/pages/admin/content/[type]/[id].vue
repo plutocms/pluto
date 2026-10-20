@@ -17,5 +17,5 @@ useHead({
 </script>
 
 <template>
-  <PlutoContentForm :id="route.params.id as string" :type="type.name" />
+  <PlutoContentForm :id="route.params.id as string" :key="String(route.params.id)" :type="type.name" />
 </template>

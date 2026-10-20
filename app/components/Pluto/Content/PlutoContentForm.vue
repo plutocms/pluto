@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ButtonProps } from '@nuxt/ui'
+import { buildContentPayload } from '../../../composables/internal/content-payload'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -172,33 +173,13 @@ function validationText(error: ContentValidationError): string {
   })
 }
 
-function buildPayload(statusOverride?: string): Record<string, unknown> {
-  const type = contentType.value
-  if (!type) {
-    return {}
-  }
-
-  const payload: Record<string, unknown> = {}
-  for (const field of type.fields) {
-    if (Object.hasOwn(item.value, field.name)) {
-      payload[field.name] = item.value[field.name]
-    }
-  }
-
-  if (statusOverride !== undefined) {
-    payload.status = statusOverride
-  }
-
-  return payload
-}
-
 async function onSave(statusOverride?: string) {
   const type = contentType.value
   if (!type) {
     return
   }
 
-  const payload = buildPayload(statusOverride)
+  const payload = buildContentPayload(type, item.value, statusOverride)
   const errors = validateContentPayload(type, payload, {
     partial: editing.value,
   })
@@ -231,6 +212,13 @@ async function onSave(statusOverride?: string) {
       description: t('pluto.form.updated', { label: text.label }),
       color: 'success',
     })
+
+    // An adapter can change the id on save, for example a file-based adapter
+    // that renames the file when the slug changes. Follow the new id. The
+    // page mounts again for the new route, so the item loads under the new id.
+    if (String(saved.id) !== String(props.id)) {
+      await navigateTo(editPath(saved.id), { replace: true })
+    }
   } catch (error) {
     // A raced permissions check, or any other server-side rejection
     // (a 403 included), surfaces here rather than as an unhandled
