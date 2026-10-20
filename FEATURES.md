@@ -43,7 +43,7 @@ policies shared by every project here.
 - Single Tailwind build: the app owns the only Tailwind build. The pluto-css module generates
   `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md
-- GitHub CMS (in progress): an optional standalone CMS with Markdown posts in a GitHub repo. It is off
+- GitHub CMS: an optional standalone CMS with Markdown posts in a GitHub repo. It is off
   by default and refuses to run with the supabase layer. When on, it has GitHub App sign-in, a sealed
   session, a CSRF origin check, the login page, the navbar, and the stores, adapter and post type.
   It also has a Markdown editor, public read routes and composables, and `PlutoMarkdown`.

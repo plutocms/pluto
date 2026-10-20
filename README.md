@@ -19,6 +19,7 @@ Pluto CMS is designed to be modular, extensible, and developer-friendly. Instead
 * Opt-in features instead of global plugin mutations
 * Deployment-friendly (Edge and Serverless ready)
 * Works as a full CMS or as a headless backend
+* Standalone mode: a Markdown blog stored in GitHub, with no database
 
 ## Requirements
 
@@ -164,6 +165,46 @@ fallback entry. If the setup is wrong, the build prints a `pluto-css` warning wi
 
 The admin keeps its own palette and font. Your site's `app.config` colors and `@theme`
 tokens do not change the admin.
+
+## Standalone mode: a Markdown blog in GitHub
+
+`@plutocms/pluto` can run on its own, with no database and no other layer. Posts are Markdown
+files in a GitHub repository. Editors write them in the Pluto admin, and each save is a commit.
+The public site reads the posts from GitHub at runtime, with a cache, so a save publishes in
+seconds without a new build.
+
+The quickest start is the template:
+
+```bash
+bunx create-pluto@latest my-blog -t core-blog
+```
+
+Or turn it on in an existing app. It is off by default, and it refuses to run next to the
+supabase layer:
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  extends: ['@plutocms/pluto'],
+  plutoCms: {
+    enabled: true,
+    github: { repo: 'owner/name', branch: 'main', appSlug: 'my-blog-cms' },
+    dir: 'content', // posts live in content/posts/<slug>.md
+  },
+})
+```
+
+- **Sign-in:** with a GitHub App. Users with push access to the repository are editors.
+  Commits carry the name of the editor.
+- **Drafts:** `status: draft` in the frontmatter. The public routes never show them. In a
+  public repository, drafts are still readable on GitHub, and the admin warns about this.
+- **Public pages:** `usePlutoCmsList('post')` and `usePlutoCmsItem('post', slug)` read the
+  published posts. `<PlutoMarkdown :html="post.html" />` shows a post as sanitized HTML.
+- **Development:** set `storage: 'fs'` to read and write the local `content/` folder. A dev
+  server then never writes to the real repository.
+
+The GitHub App setup, the environment variables and every option are in the template README
+and in `.claude/skills/github-cms/SKILL.md`.
 
 ## Dashboard & headless usage
 

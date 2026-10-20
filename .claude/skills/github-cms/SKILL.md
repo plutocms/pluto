@@ -462,14 +462,16 @@ header, no cookie, anonymous with a session) and the new cases in `test/cms-modu
 
 ## Status
 
-PR 2 (module skeleton), PR 3 (storage layer), PR 4 (Markdown content adapter), PR 5
-(authentication, the wiring of the stores, the adapter and the post type, the login page and the
-navbar) and PR 6 (the editor, the public read routes, the composables and `PlutoMarkdown`) are
-built. PKCE for GitHub App user tokens is sent but not proven against live GitHub:
-no test could reach it. If GitHub ignores the PKCE fields, `state` still guards the flow. These
-parts are not built yet:
+All parts of v1 are built: the module, the stores, the Markdown content adapter, GitHub App
+sign-in and the session, the editor, the public read routes, `PlutoMarkdown`, and the user docs
+(the "Standalone mode" section of README.md). The starter is the `pluto-core-blog-template`
+repository (`create-pluto -t core-blog`).
 
-- PR 7: user docs.
+PKCE for GitHub App user tokens is sent but not proven against live GitHub yet. If GitHub
+ignores the PKCE fields, `state` still guards the flow.
+
+Planned for v2: media uploads, revision history, settings stored in the repository, a password
+provider, GitHub App Manifest setup, scheduled posts, and configurable collections.
 
 ## Rules found in live testing
 
