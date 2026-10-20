@@ -11,6 +11,7 @@ import { createMarkdownContentAdapter } from '../adapter'
 import { createAppTokenProvider } from '../github/app-token'
 import { createFsStore } from '../store/fs'
 import { createGithubStore } from '../store/github'
+import { createCmsCache } from './cms-cache'
 import { getCmsSession } from './session'
 
 /**
@@ -20,7 +21,8 @@ import { getCmsSession } from './session'
  */
 export function createCmsStore(config: CmsConfig, cache: CmsCache): PlutoCmsStore {
   if (config.storage === 'fs') {
-    return createFsStore({ root: resolve(config.fsRoot || process.cwd()) })
+    // Only the content dir makes the head id. The root is the project dir.
+    return createFsStore({ root: resolve(config.fsRoot || process.cwd()), headDir: config.dir })
   }
   const tokens = createAppTokenProvider({
     repo: config.repo,
@@ -40,11 +42,27 @@ export function createCmsStore(config: CmsConfig, cache: CmsCache): PlutoCmsStor
   })
 }
 
+/** The key on `event.context` that makes a request anonymous. See `markCmsAnonymous`. */
+const ANONYMOUS_KEY = 'plutoCmsAnonymous'
+
+/**
+ * Makes the rest of this request anonymous. `getCmsAccess` then returns
+ * `null` and never reads the session cookie. The public read routes call
+ * this first, so a response never depends on who asks, and never sets a cookie.
+ */
+export function markCmsAnonymous(event: H3Event): void {
+  event.context[ANONYMOUS_KEY] = true
+}
+
 /**
  * The caller of a request. A signed-in user gives its own GitHub token and
- * capabilities. Everyone else is anonymous (`null`).
+ * capabilities. Everyone else is anonymous (`null`), and so is a request that
+ * `markCmsAnonymous` marked.
  */
 export async function getCmsAccess(event: H3Event): Promise<PlutoCmsAccess | null> {
+  if (event.context[ANONYMOUS_KEY] === true) {
+    return null
+  }
   const session = await getCmsSession(event)
   if (!session) {
     return null
@@ -52,8 +70,17 @@ export async function getCmsAccess(event: H3Event): Promise<PlutoCmsAccess | nul
   return { capabilities: session.capabilities, auth: { token: session.token } }
 }
 
+let registeredCache: CmsCache | undefined
+
+/** The cache that `registerCmsContent` got. A memory cache when none is set. */
+export function getRegisteredCmsCache(): CmsCache {
+  registeredCache ??= createCmsCache({ headTtl: 0 })
+  return registeredCache
+}
+
 /** Registers the post type and the Markdown adapter with the core content registry. */
 export function registerCmsContent(config: CmsConfig, cache: CmsCache): void {
+  registeredCache = cache
   if (config.postType) {
     registerContentType(plutoCmsPostType)
   }

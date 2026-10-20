@@ -31,7 +31,11 @@ A supabase app that does not set `plutoCms.enabled` sees no change and no log li
   `runtime/server/middleware/pluto-cms-origin.ts`, `runtime/server/plugins/pluto-cms.ts` — the
   authentication and the wiring (see "Authentication" and "Wiring").
 - `runtime/app/{composables,plugins,middleware}/` — the client side.
-- `app/components/Pluto/Cms/` — the login page, the navbar and the dashboard warning.
+- `app/components/Pluto/Cms/` — the login page, the navbar, the dashboard warning, the editor
+  widget and `PlutoMarkdown`.
+- `runtime/server/utils/{markdown,sanitize-html,public-content}.ts`,
+  `runtime/server/api/public/[type]/`, `runtime/shared/public-types.ts` and
+  `runtime/app/composables/pluto-cms-content.ts` — the public read side (see "Public read").
 
 ## Options
 
@@ -47,6 +51,7 @@ A supabase app that does not set `plutoCms.enabled` sees no change and no log li
 | `commit.skipDeploy` | `true` | Add a skip-deploy marker to commit messages. |
 | `cache.headTtl` | `60` | Seconds. Zero or more. |
 | `cache.storage` | `'cache'` | The Nitro storage mount for the cache. |
+| `cache.publicMaxAge` | `60` | Seconds. Zero or more. The `s-maxage` of the public read routes. |
 | `postType` | `true` | Register the fixed post content type. |
 
 A bad option turns the CMS off and logs an error. The module does not throw.
@@ -319,13 +324,164 @@ A public repo shows its drafts on GitHub. Use a private repo for drafts.
 For GitHub Enterprise Server, set `plutoCms.github.apiUrl` to `https://<host>/api/v3`. The OAuth
 pages use `https://<host>`. Any other API URL uses `https://github.com`.
 
+## Editor
+
+The admin edits the body of a post with a Markdown editor. The widget is
+`app/components/Pluto/Cms/PlutoFieldMarkdown.vue`. It is a `richtext` field widget. It follows
+the widget contract of the content-model skill: the props `field`, `modelValue` and `disabled`,
+and the event `update:modelValue`. `PlutoContentField` gives it the translated field text.
+
+- It uses `UEditor` (Nuxt UI, Tiptap) with `content-type="markdown"`. The model value is a
+  Markdown string. The editor sends `editor.getMarkdown()` on each change. The adapter stores that
+  string as the file body.
+- `UEditorToolbar` has the built-in items: undo, redo, headings 1 to 4, bulleted and numbered
+  lists, quote, code block, bold, italic, strikethrough and inline code. The link button is a slot
+  (`PlutoCmsEditorLink.vue`, a popover with the URL). The image and mention extensions are off.
+- The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
+  a click anywhere in the box puts the cursor in the text. The post type uses the focus layout
+  with the full width.
+- The text comes from `pluto.cms.editor.*` in `en.json` and `pt-BR.json`.
+- The client plugin registers the widget as a `contentFieldWidgets` entry for
+  `fieldType: 'richtext'`, in CMS mode only. It uses `defineAsyncComponent`, so Tiptap loads on the
+  edit page only. Core has no `richtext` widget, so nothing else competes for the type.
+
+Limits of the editor:
+
+- The editor knows CommonMark and strikethrough. It has no node for a GFM table, a task list or raw
+  HTML. A post that has them keeps the text, but the editor can lose the markup when it saves.
+  The public page still renders tables and task lists from the stored Markdown.
+- The editor can write the Markdown with other marks than the author used (for example `-`
+  for a bullet). The text means the same.
+- No test mounts the widget. The repo has no Vue component test setup.
+
+## Public read
+
+The public site reads published items with two routes, two composables and one component. A
+public read is anonymous by design. The route marks the request anonymous (`markCmsAnonymous`)
+before it reads. `getCmsAccess` then returns `null` and the session cookie is never opened. So
+the answer is the same for every visitor, drafts never show (not even to a signed-in editor), and
+the response never sets a cookie. The routes ignore every query key except `limit` and `offset`.
+The module adds the routes only when the CMS is on. The origin check only blocks writes, so it
+does nothing for these GET routes.
+
+### Routes
+
+- `GET /api/_pluto/cms/<type>`: the published items. `limit` is 1 to 100 (default 20). `offset`
+  is 0 or more. A bad value uses the default. The answer is `{ data, total, limit, offset }`.
+  An item has no body. It has `excerpt`: the `excerpt` field of the type when it has text, else
+  `markdownToPlainText(body, 200)`. Items follow the `defaultSort` of the type.
+- `GET /api/_pluto/cms/<type>/<slug>`: one published item and its body as `html` (rendered and
+  sanitized).
+- The type must be registered (404 if not). The slug goes through `assertSafeSlug` (400
+  `pluto.cms.errors.invalidSlug`). A draft or a missing file gives 404.
+- A success answer has `Cache-Control: public, s-maxage=<cache.publicMaxAge>,
+  stale-while-revalidate=300`. An error answer has no public cache header.
+- The logic is in `utils/public-content.ts` (`listPublicItems`, `getPublicItem`, `parsePaging`).
+  The route files are thin.
+
+### Rendering
+
+`utils/markdown.ts` has `renderMarkdown(md)` and `markdownToPlainText(md, maxLength)`.
+`renderMarkdown` uses `marked` with GFM. The `html` renderer returns an empty string, so raw HTML
+in Markdown never reaches the output. Then `sanitizeHtml` runs on the result. The rendered HTML is
+cached by blob id (`html:<oid>`, the `_version` of the item), and the fallback excerpt too
+(`excerpt:<oid>`), through the cache of "Storage". A blob id never changes, so an entry never goes
+stale.
+
+`utils/sanitize-html.ts` is an allowlist sanitizer on `ultrahtml`. It is a port of
+`richtext-sanitize.ts` of `@plutocms/supabase-blog`, with the same tests
+(`test/cms-sanitize-html.test.ts`).
+
+- Kept elements: `p h1-h6 strong b em i s del u code pre blockquote ul ol li hr br a img table thead
+  tbody tr th td input`.
+- Dropped with their children: `script style iframe object embed template noscript svg math link
+  meta base form button select textarea audio video source track canvas applet frame frameset
+  portal`. Any other element is unwrapped: the tag goes and the text stays.
+- Kept attributes: `a`: `href`, `title`. `img`: `src`, `alt`, `title`, `width`, `height`. `code`: a
+  `class` of the form `language-*`. `input`: only a checkbox, with `checked` and `disabled` as
+  flags. `th` and `td`: `align` (left, center, right). Every other attribute goes, so `on*` and
+  `style` go.
+- URLs: no scheme (relative, `#`, `?`), `http:`, `https:` and `mailto:` pass. `data:` passes only
+  for `image/png`, `jpeg`, `gif`, `webp` and `avif`. Other schemes go. The check decodes entities
+  and strips control characters first, so `java&#115;cript:` fails. A bad `href` or `src` is
+  removed and the element stays.
+- Attribute values are escaped, so a quote cannot start a new attribute.
+- The original sanitizer adds no `rel` or `target` to a link, and this port does the same.
+
+### Composables
+
+`runtime/app/composables/pluto-cms-content.ts` is in the auto-import dir. Both composables are
+`useFetch` wrappers. They run on the server, so the page HTML holds the data.
+
+- `usePlutoCmsList(type, { limit, offset } = {})`. The key is
+  `pluto-cms-list:<type>:<limit>:<offset>`. It gives a `PlutoCmsListResult` of `PlutoCmsListItem`.
+- `usePlutoCmsItem(type, slug)`. The key is `pluto-cms-item:<type>:<slug>`. It gives a
+  `PlutoCmsItem` (the item plus `html`). A draft or a missing slug puts a 404 in `error`.
+- The types are in `runtime/shared/public-types.ts`.
+
+### `PlutoMarkdown`
+
+`app/components/Pluto/Cms/PlutoMarkdown.vue`. Props: `html: string` and `tag = 'article'`. It sets
+the server-sanitized HTML as `innerHTML`, with the same pattern as `PlutoProse` (a plain camelCase
+`innerHTML` prop, not `v-html`, so SSR keeps it). It never parses Markdown on the client. The
+typography is the base of the Nuxt UI editor theme (semantic tokens such as `text-highlighted` and
+`border-default`), plus table styles. The module registers it with `addComponent`, because the
+folder name would make the auto name `PlutoCmsPlutoMarkdown`. Pass only the `html` of a CMS item
+to it.
+
+Use on a site page:
+
+```vue
+<script setup lang="ts">
+const route = useRoute()
+const { data: post } = await usePlutoCmsItem('post', String(route.params.slug))
+</script>
+<template><PlutoMarkdown v-if="post" :html="post.html" /></template>
+```
+
+For a list page:
+
+```vue
+<script setup lang="ts">
+const { data } = await usePlutoCmsList('post', { limit: 10 })
+</script>
+<template>
+  <article v-for="post in data?.data" :key="post.id">
+    <h2>{{ post.title }}</h2>
+    <p>{{ post.excerpt }}</p>
+  </article>
+</template>
+```
+
+### What the tests cover
+
+`test/cms-markdown.test.ts` (GFM, XSS vectors, plain text), `test/cms-sanitize-html.test.ts`
+(the allowlist), `test/cms-public.test.ts` (drafts, excerpt, paging, 400 and 404, the cache
+header, no cookie, anonymous with a session) and the new cases in `test/cms-module.test.ts` and
+`test/pluto-cms-options.test.ts`.
+
 ## Status
 
-PR 2 (module skeleton), PR 3 (storage layer), PR 4 (Markdown content adapter) and PR 5
+PR 2 (module skeleton), PR 3 (storage layer), PR 4 (Markdown content adapter), PR 5
 (authentication, the wiring of the stores, the adapter and the post type, the login page and the
-navbar) are built. PKCE for GitHub App user tokens is sent but not proven against live GitHub:
+navbar) and PR 6 (the editor, the public read routes, the composables and `PlutoMarkdown`) are
+built. PKCE for GitHub App user tokens is sent but not proven against live GitHub:
 no test could reach it. If GitHub ignores the PKCE fields, `state` still guards the flow. These
 parts are not built yet:
 
-- PR 6: the editor, the public read routes and `PlutoMarkdown`.
 - PR 7: user docs.
+
+## Rules found in live testing
+
+- **Admin layout.** In a supabase app, the supabase layer's `pages/admin.vue` parent route sets
+  `layout: 'admin'`. The standalone CMS has no such route, so the module sets the `admin` layout
+  on every `/admin/**` page (`applyAdminLayout` in `modules/pluto-cms/pages.ts`). A page that sets
+  its own layout keeps it. `/admin/login` uses the `auth` layout.
+- **The dev local user and `nuxt dev`.** `nuxt dev` proxies each request to its Nitro worker. The
+  worker socket has no remote address, and the dev proxy appends the real client address as the
+  LAST `x-forwarded-for` entry. `isLocalRequest` accepts that case only when the last entry is a
+  loopback address and `Host` names this machine. A spoofed `x-forwarded-for` does not help a
+  remote client: the proxy still appends its real address last.
+- **The `fs` store head.** The store root is the project dir, so the head reads only the content
+  dir (`headDir`). It never reads `node_modules`, build output or dot dirs. Reading the whole
+  project on each request made the dev server stall.

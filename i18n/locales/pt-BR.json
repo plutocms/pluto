@@ -176,6 +176,33 @@
         "title": "Este repositório é público",
         "description": "Este repositório é público. Os rascunhos ficam visíveis no GitHub."
       },
+      "editor": {
+        "placeholder": "Escreva o post em Markdown ou use a barra de ferramentas.",
+        "toolbar": "Formatação",
+        "undo": "Desfazer",
+        "redo": "Refazer",
+        "headings": "Títulos",
+        "heading1": "Título 1",
+        "heading2": "Título 2",
+        "heading3": "Título 3",
+        "heading4": "Título 4",
+        "bold": "Negrito",
+        "italic": "Itálico",
+        "strike": "Tachado",
+        "code": "Código em linha",
+        "link": "Link",
+        "linkPopover": {
+          "placeholder": "Cole um link",
+          "apply": "Aplicar o link",
+          "open": "Abrir o link",
+          "remove": "Remover o link"
+        },
+        "lists": "Listas",
+        "bulletList": "Lista com marcadores",
+        "orderedList": "Lista numerada",
+        "blockquote": "Citação",
+        "codeBlock": "Bloco de código"
+      },
       "capabilities": {
         "readDrafts": "Ler rascunhos de posts",
         "publish": "Criar, editar e publicar posts",

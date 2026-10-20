@@ -19,6 +19,8 @@ export interface CmsConfig {
   fsRoot: string
   skipDeploy: boolean
   headTtl: number
+  /** Seconds a CDN may cache a public read response. */
+  publicMaxAge: number
   cacheStorage: string
   postType: boolean
   sessionPassword: string
@@ -59,6 +61,7 @@ export function getCmsConfig(): CmsConfig {
     fsRoot: text(secret.fsRoot),
     skipDeploy: secret.skipDeploy !== false && String(secret.skipDeploy) !== 'false',
     headTtl: Number.isFinite(Number(secret.headTtl)) ? Number(secret.headTtl) : 60,
+    publicMaxAge: Number.isFinite(Number(secret.publicMaxAge)) && Number(secret.publicMaxAge) >= 0 ? Number(secret.publicMaxAge) : 60,
     cacheStorage: text(secret.cacheStorage, 'cache'),
     postType: secret.postType !== false && String(secret.postType) !== 'false',
     sessionPassword: text(secret.sessionPassword),

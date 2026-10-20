@@ -22,6 +22,7 @@ declare module '@nuxt/schema' {
       apiUrl: string
       skipDeploy: boolean
       headTtl: number
+      publicMaxAge: number
       cacheStorage: string
       postType: boolean
       /** The project root, for the dev fs store. Empty otherwise. */

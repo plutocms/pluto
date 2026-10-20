@@ -138,6 +138,21 @@ describe('isLocalRequest', () => {
     expect(isLocalRequest(fakeEvent({ address: '127.0.0.1', headers: { host: 'abc.ngrok.io' } }))).toBe(false)
     expect(isLocalRequest(fakeEvent({ address: '127.0.0.1', headers: { host: 'evil.test' } }))).toBe(false)
   })
+
+  // `nuxt dev` proxies each request to its Nitro worker. The worker socket has
+  // no address, and the dev proxy appends the real client as the last entry.
+  it('accepts the nuxt dev worker when the proxy saw a loopback client', () => {
+    expect(isLocalRequest(fakeEvent({ headers: { 'host': '127.0.0.1:3010', 'x-forwarded-for': '127.0.0.1' } }))).toBe(true)
+    expect(isLocalRequest(fakeEvent({ headers: { 'host': 'localhost:3000', 'x-forwarded-for': '::1' } }))).toBe(true)
+  })
+
+  it('refuses the nuxt dev worker for a remote client, even with a spoofed header', () => {
+    expect(isLocalRequest(fakeEvent({ headers: { 'host': 'localhost', 'x-forwarded-for': '192.168.0.20' } }))).toBe(false)
+    // The client sent "127.0.0.1"; the dev proxy appended its real address.
+    expect(isLocalRequest(fakeEvent({ headers: { 'host': 'localhost', 'x-forwarded-for': '127.0.0.1, 192.168.0.20' } }))).toBe(false)
+    expect(isLocalRequest(fakeEvent({ headers: { 'host': 'abc.ngrok.io', 'x-forwarded-for': '127.0.0.1' } }))).toBe(false)
+    expect(isLocalRequest(fakeEvent({ headers: { 'host': 'localhost', 'x-forwarded-for': '127.0.0.1', 'forwarded': 'for=1.2.3.4' } }))).toBe(false)
+  })
 })
 
 describe('gET /api/_pluto/auth/github/login', () => {

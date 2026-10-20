@@ -70,6 +70,18 @@ describe('pluto-cms module wiring', () => {
     expect(handler('/api/_pluto/auth/session', 'get')?.handler).toMatch(/api[\\/]auth[\\/]session\.get$/)
   })
 
+  it('adds the public read routes and the PlutoMarkdown component', async () => {
+    await run({ enabled: true, github: repo })
+
+    const posix = (value: unknown) => String(value).replaceAll('\\', '/')
+
+    expect(posix(handler('/api/_pluto/cms/:type', 'get')?.handler)).toMatch(/\/api\/public\/\[type\]\/index\.get$/)
+    expect(posix(handler('/api/_pluto/cms/:type/:slug', 'get')?.handler)).toMatch(/\/api\/public\/\[type\]\/\[slug\]\.get$/)
+    expect(kitCalls.components).toHaveLength(1)
+    expect(kitCalls.components[0]).toMatchObject({ name: 'PlutoMarkdown' })
+    expect(posix(kitCalls.components[0]!.filePath)).toMatch(/\/app\/components\/Pluto\/Cms\/PlutoMarkdown\.vue$/)
+  })
+
   it('adds the origin check as server middleware', async () => {
     await run({ enabled: true, github: repo })
 
@@ -125,7 +137,8 @@ file?: string
 
     kitCalls.pageExtenders[0]!(pages as never)
 
-    expect(pages).toEqual([{ path: '/admin', children: [{ path: 'login' }] }])
+    // The /admin parent gets the admin layout; its login child is kept and no page is added.
+    expect(pages).toEqual([{ path: '/admin', meta: { layout: 'admin' }, children: [{ path: 'login' }] }])
   })
 
   it('puts the server settings in the private runtime config, and no secret in the public one', async () => {
@@ -136,6 +149,7 @@ file?: string
       apiUrl: 'https://ghe.example.com/api/v3',
       skipDeploy: true,
       headTtl: 30,
+      publicMaxAge: 60,
       cacheStorage: 'cache',
       postType: true,
       fsRoot: '',

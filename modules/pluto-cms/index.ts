@@ -1,5 +1,6 @@
 import type { PlutoCmsOptions } from './options'
 import {
+  addComponent,
   addImportsDir,
   addPlugin,
   addRouteMiddleware,
@@ -11,6 +12,7 @@ import {
   useLogger,
 } from '@nuxt/kit'
 import { PLUTO_CMS_SECRET_ENV, resolvePlutoCmsOptions } from './options'
+import { applyAdminLayout } from './pages'
 
 export type { PlutoCmsOptions } from './options'
 
@@ -76,6 +78,7 @@ export default defineNuxtModule<PlutoCmsOptions>({
       apiUrl: resolved.github.apiUrl,
       skipDeploy: resolved.commit.skipDeploy,
       headTtl: resolved.cache.headTtl,
+      publicMaxAge: resolved.cache.publicMaxAge,
       cacheStorage: resolved.cache.storage,
       postType: resolved.postType,
       fsRoot: resolved.storage === 'fs' ? nuxt.options.rootDir : '',
@@ -112,9 +115,21 @@ export default defineNuxtModule<PlutoCmsOptions>({
     })
     addImportsDir(resolver.resolve('./runtime/app/composables'))
 
+    // `PlutoMarkdown` shows the sanitized HTML of a public item. The file lives
+    // under `app/`, so Tailwind scans it. Nuxt would name it from its folder, so
+    // the module gives it the short name.
+    addComponent({
+      name: 'PlutoMarkdown',
+      filePath: resolver.resolve('../../app/components/Pluto/Cms/PlutoMarkdown.vue'),
+    })
+
     // The login page. The component lives under `app/`, so Tailwind scans it.
     // An app that has its own /admin/login page keeps it.
     extendPages((pages) => {
+      // Admin pages need the admin layout. The supabase layer's parent route
+      // sets it there; the standalone CMS sets it per page.
+      applyAdminLayout(pages)
+
       if (hasPage(pages, '/admin/login')) {
         logger.warn('The app already has a /admin/login page. The standalone CMS keeps it and adds no login page.')
         return
@@ -126,7 +141,9 @@ export default defineNuxtModule<PlutoCmsOptions>({
       })
     })
 
-    // TODO(PR 6): add the editor and the public read routes.
+    // Public read routes. They are anonymous and cacheable. See the github-cms skill.
+    addServerHandler({ route: '/api/_pluto/cms/:type', method: 'get', handler: server('api/public/[type]/index.get') })
+    addServerHandler({ route: '/api/_pluto/cms/:type/:slug', method: 'get', handler: server('api/public/[type]/[slug].get') })
 
     logger.info(`Standalone CMS on. Storage: ${resolved.storage}. Dir: ${resolved.dir}.`)
   },

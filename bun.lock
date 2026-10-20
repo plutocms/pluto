@@ -13,8 +13,10 @@
         "@plutocms/utils": "^0.2.1",
         "@tanstack/charts": "^1.1.0",
         "@vueuse/nuxt": "^14.4.0",
+        "marked": "^17.0.3",
         "reka-ui": "^2.11.0",
         "tailwind-merge": "^3.7.0",
+        "ultrahtml": "^1.7.0",
         "yaml": "^2.9.1",
       },
       "devDependencies": {
