@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.17.0](https://github.com/plutocms/pluto/compare/v0.16.4...v0.17.0) (2026-10-21)
+
+
+### Features
+
+* **content:** improve the generated content form and list ([#194](https://github.com/plutocms/pluto/issues/194)) ([100847a](https://github.com/plutocms/pluto/commit/100847a66294d83017dfe8c80de9955c1a3110cc))
+
 ## [0.16.4](https://github.com/plutocms/pluto/compare/v0.16.3...v0.16.4) (2026-10-21)
 
 
