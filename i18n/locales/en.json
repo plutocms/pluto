@@ -9,6 +9,7 @@
       "delete": "Delete",
       "tryAgain": "Try again",
       "close": "Close",
+      "back": "Back",
       "loading": "Loading...",
       "remove": "Remove",
       "edit": "Edit",
@@ -56,6 +57,8 @@
       "unpublished": "Unpublished",
       "saved": "Saved",
       "updated": "{label} updated successfully.",
+      "created": "Created",
+      "createdDescription": "{label} created successfully.",
       "saveError": "An error occurred while saving.",
       "removeError": "An error occurred while removing.",
       "saveDraft": "Save draft",
@@ -63,7 +66,14 @@
       "publish": "Publish",
       "unpublish": "Unpublish",
       "fixErrors": "Please fix the following before saving",
-      "removeTitle": "Remove {label}"
+      "removeTitle": "Remove {label}",
+      "moreActions": "More actions",
+      "showSettings": "Show settings",
+      "hideSettings": "Hide settings",
+      "loadFailed": "Could not load this item",
+      "loadFailedHint": "Check your connection and try again.",
+      "notFound": "Item not found",
+      "notFoundHint": "It may have been removed."
     },
     "list": {
       "loading": "Loading {labelPlural}…",

@@ -58,7 +58,33 @@ function editPath(id: string | number) {
   return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
 }
 
-const { item, pending: itemPending, save, remove } = usePlutoContentItem(props.type, () => props.id)
+const { item, pending: itemPending, loadError, refresh, save, remove } = usePlutoContentItem(props.type, () => props.id)
+
+// The item did not load (a 404, or a network error). The form shows an error
+// state with a retry button. It shows no fields and no Save button.
+const loadFailed = computed(() => editing.value && !itemPending.value && loadError.value !== null)
+const loadNotFound = computed(() => {
+  const error = loadError.value as {
+ statusCode?: number
+status?: number
+} | null
+  return (error?.statusCode ?? error?.status) === 404
+})
+
+// Save and publish stay off while the item is missing.
+const canSave = computed(() => canWrite.value && !loadFailed.value)
+const canPublishNow = computed(() => canPublish.value && !loadFailed.value)
+
+function retryLoad() {
+  refresh().catch(() => {})
+}
+
+// A missing item will not come back with a retry, so a 404 has no button.
+const loadFailedActions = computed<ButtonProps[]>(() =>
+  loadNotFound.value
+    ? []
+    : [{ label: t('pluto.common.tryAgain'), icon: 'lucide:refresh-ccw', color: 'neutral', variant: 'outline', onClick: retryLoad }]
+)
 
 function sortedFields(region: 'main' | 'side') {
   return computed(() =>
@@ -93,14 +119,6 @@ const slugField = computed(() =>
   )
 )
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-}
-
 watch(
   () => {
     const from = slugField.value?.from
@@ -111,7 +129,7 @@ watch(
       return
     }
 
-    item.value[slugField.value.name] = slugify(String(value ?? ''))
+    item.value[slugField.value.name] = slugifyTitle(String(value ?? ''))
   }
 )
 
@@ -196,6 +214,11 @@ async function onSave(statusOverride?: string) {
     const saved = await save(payload)
 
     if (!editing.value) {
+      toast.add({
+        title: t('pluto.form.created'),
+        description: t('pluto.form.createdDescription', { label: text.label }),
+        color: 'success',
+      })
       await navigateTo(editPath(saved.id))
       return
     }
@@ -266,11 +289,19 @@ async function confirmDelete() {
 
 // --- Layout / aside -----------------------------------------------------------
 
+// In edit mode, the heading and the tab title show the title of the item.
+// While the item loads, or when it has no title, they show "Edit <type>".
+const itemTitle = computed(() => {
+  const value = editing.value ? item.value[contentType.value?.titleField ?? ''] : undefined
+  return typeof value === 'string' ? value.trim() : ''
+})
 const heading = computed(() =>
   editing.value
-    ? t('pluto.content.edit', { label: text.label })
+    ? itemTitle.value || t('pluto.content.edit', { label: text.label })
     : text.newLabel
 )
+
+useHead({ title: () => heading.value })
 
 const layout = computed(() => contentType.value?.form?.layout ?? 'default')
 const showAside = computed(() => {
@@ -287,6 +318,15 @@ const asideCollapsedByDefault = computed(
 const asideOpen = useCookie<boolean>(`pluto-content-aside-${props.type}`, {
   default: () => !asideCollapsedByDefault.value,
 })
+
+// Below the `lg` breakpoint (64rem), the default layout shows the aside
+// fields inline, in a titled section under the main fields. It renders no
+// slideover there: a required field, such as a price, must not hide behind
+// a button. The focus layout keeps the slideover.
+const isDesktop = useMediaQuery('(min-width: 64rem)')
+const inlineAside = computed(() => showAside.value && layout.value === 'default' && !isDesktop.value)
+// The aside toggle has no use when the aside is inline, or when the item did not load.
+const showAsideToggle = computed(() => showAside.value && !inlineAside.value && !loadFailed.value)
 
 function toggleAside() {
   asideOpen.value = !asideOpen.value
@@ -341,7 +381,7 @@ const unpublishDeleteItems = computed(() => [
 <template>
   <PlutoViewAdminPanel
     v-if="contentType"
-    :aside-open="showAside && asideOpen"
+    :aside-open="showAside && asideOpen && !inlineAside"
     :width="layout === 'focus' ? 'full' : 'container'"
   >
     <template #toolbar>
@@ -372,7 +412,7 @@ const unpublishDeleteItems = computed(() => [
           </template>
 
           <UButton
-            v-if="canWrite && (!statusConfig || !isPublished)"
+            v-if="canSave && (!statusConfig || !isPublished)"
             :loading="saving"
             icon="lucide:save"
             variant="subtle"
@@ -382,7 +422,7 @@ const unpublishDeleteItems = computed(() => [
           </UButton>
 
           <UButton
-            v-if="canWrite && statusConfig && isPublished"
+            v-if="canSave && statusConfig && isPublished"
             :loading="saving"
             icon="lucide:save"
             @click="onSave()"
@@ -391,7 +431,7 @@ const unpublishDeleteItems = computed(() => [
           </UButton>
 
           <UButton
-            v-if="canPublish && statusConfig && !isPublished"
+            v-if="canPublishNow && statusConfig && !isPublished"
             :loading="saving"
             icon="lucide:upload"
             @click="onSave(publishedValue)"
@@ -401,29 +441,38 @@ const unpublishDeleteItems = computed(() => [
 
           <UDropdownMenu
             v-if="
-              (editing && canDelete) ||
-              (statusConfig && isPublished && canPublish)
+              !loadFailed &&
+              ((editing && canDelete) ||
+                (statusConfig && isPublished && canPublish))
             "
             :items="unpublishDeleteItems"
           >
+            <UTooltip :text="t('pluto.form.moreActions')">
+              <UButton
+                :aria-label="t('pluto.form.moreActions')"
+                icon="lucide:ellipsis-vertical"
+                color="neutral"
+                variant="ghost"
+                square
+              />
+            </UTooltip>
+          </UDropdownMenu>
+
+          <UTooltip
+            v-if="showAsideToggle"
+            :text="asideOpen ? t('pluto.form.hideSettings') : t('pluto.form.showSettings')"
+          >
             <UButton
-              icon="lucide:ellipsis-vertical"
+              :aria-label="asideOpen ? t('pluto.form.hideSettings') : t('pluto.form.showSettings')"
+              :icon="
+                asideOpen ? 'lucide:panel-right-close' : 'lucide:panel-right-open'
+              "
               color="neutral"
               variant="ghost"
               square
+              @click="toggleAside"
             />
-          </UDropdownMenu>
-
-          <UButton
-            v-if="showAside"
-            :icon="
-              asideOpen ? 'lucide:panel-right-close' : 'lucide:panel-right-open'
-            "
-            color="neutral"
-            variant="ghost"
-            square
-            @click="toggleAside"
-          />
+          </UTooltip>
         </template>
       </PlutoViewToolbar>
     </template>
@@ -446,8 +495,18 @@ const unpublishDeleteItems = computed(() => [
       {{ heading }}
     </h1>
 
+    <!-- The item did not load. Show the error and a retry button, and no fields. -->
+    <UEmpty
+      v-if="loadFailed"
+      :title="loadNotFound ? t('pluto.form.notFound') : t('pluto.form.loadFailed')"
+      :description="loadNotFound ? t('pluto.form.notFoundHint') : t('pluto.form.loadFailedHint')"
+      :actions="loadFailedActions"
+      icon="lucide:circle-alert"
+      variant="naked"
+    />
+
     <!-- The page and the fields show at once. A skeleton stands in while the item loads. -->
-    <template v-if="itemPending">
+    <template v-else-if="itemPending">
       <PlutoSkeletonField v-for="field in mainFields" :key="field.name" :field-type="field.type" />
     </template>
 
@@ -463,7 +522,33 @@ const unpublishDeleteItems = computed(() => [
       />
     </template>
 
-    <template v-if="showAside" #aside>
+    <!-- On a narrow screen, the aside fields show here, under the main fields. -->
+    <section
+      v-if="inlineAside && !loadFailed"
+      class="border-default flex flex-col gap-6 border-t pt-6"
+    >
+      <h2 class="text-highlighted text-xl font-semibold">
+        {{ t('pluto.common.settings') }}
+      </h2>
+
+      <template v-if="itemPending">
+        <PlutoSkeletonField v-for="field in sideFields" :key="field.name" :field-type="field.type" />
+      </template>
+
+      <template v-else>
+        <PlutoContentField
+          v-for="field in sideFields"
+          :key="field.name"
+          :type="type"
+          :field="field"
+          :model-value="item[field.name]"
+          :disabled="!canWrite || saving"
+          @update:model-value="updateField(field, $event)"
+        />
+      </template>
+    </section>
+
+    <template v-if="showAside && !inlineAside && !loadFailed" #aside>
       <PlutoViewAside v-model:open="asideOpen" :title="t('pluto.common.settings')">
         <div class="flex flex-col gap-6">
           <template v-if="itemPending">

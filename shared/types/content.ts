@@ -30,6 +30,10 @@ export interface PlutoFieldBase {
   required?: boolean
   /** Show this field as a column in the generic list view. Default false. */
   inList?: boolean
+  /**
+   * Formats this field's value for the generic list, in the desktop table and the mobile cards. Return the text to show. For example, a price in cents can show as "R$ 49,90". Only the list uses it. The form and the API keep the raw value. It must be a pure function with no browser dependency, because content type definitions are shared with the server. If it throws, the list shows the raw value.
+   */
+  listFormat?: (value: unknown, item: PlutoContentItem) => string
   /** Show this field in the generic form view. Default true. */
   inForm?: boolean
   /** Lower comes first, in both the list and the form. Default 100. */
@@ -45,6 +49,10 @@ export interface PlutoTextField extends PlutoFieldBase {
   type: 'text' | 'textarea' | 'richtext'
   maxLength?: number
   placeholder?: string
+  /** Only for `textarea`. The minimum height in rows. Default 4. */
+  rows?: number
+  /** Only for `textarea`. The box grows with the text up to this many rows, then it scrolls. Default 14. */
+  maxRows?: number
 }
 
 export interface PlutoSlugField extends PlutoFieldBase {

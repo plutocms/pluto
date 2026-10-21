@@ -63,7 +63,7 @@ Nuxt UI's `UDashboardNavbar` with one fix — `:toggle="false"` — because the 
 toggle button controls the app-level LEFT sidebar through a global hook. A second, page-local
 toolbar must never render that button, or it would open and close the wrong sidebar.
 
-Props: `title?: string`, `icon?: string`, `backTo?: string` (renders a back arrow button before
+Props: `title?: string`, `icon?: string`, `backTo?: string` (renders a back arrow button, with an `aria-label` and a tooltip "Back", before
 the title).
 
 Slots: `#left` (replaces the whole leading area — icon, title, and trailing content — so only use
@@ -76,7 +76,7 @@ a small button that belongs next to the title, like a refresh button).
 A right-hand panel bound to an `open` model (`v-model:open`). On a wide screen (`lg`, 64rem and
 up) it renders as a plain `<aside>` beside the main content. On a narrow screen it renders as a
 `USlideover` instead. Props: `title?: string`, `width?: number` (desktop width in px, default
-320; ignored inside a resizable panel).
+320; ignored inside a resizable panel). The close button has an `aria-label` and a tooltip.
 
 A `useMediaQuery` check renders the plain `<aside>` on wide screens only, and the `USlideover`
 on narrow screens only, so the slot mounts once. Do not replace that check with `hidden lg:flex`
@@ -166,6 +166,16 @@ form?: {
 type's label into the toolbar title instead, and defaults the aside to collapsed — the shape a
 long-form writing surface wants. Leave `form` unset for the default two-column form every other
 content type already gets.
+
+Every icon-only button in the form toolbar has an `aria-label` and a `UTooltip`: the aside toggle
+("Show settings" / "Hide settings") and the overflow menu ("More actions").
+
+**Narrow screens (below `lg`, 64rem).** With `layout: 'default'`, the form renders the aside
+fields inline, in a titled "Settings" section under the main fields, and renders no slideover and
+no aside toggle. A required field, such as a price, never hides behind a button. With
+`layout: 'focus'` (the blog post type), the aside stays a slideover and the toggle stays. On a
+wide screen nothing changes. The form reads the breakpoint with `useMediaQuery`, as
+`PlutoViewAside` does.
 
 The aside's open/closed state persists per content type, in a cookie keyed
 `pluto-content-aside-<typeName>`, so a user's choice survives a page reload.
