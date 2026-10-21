@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.16.4](https://github.com/plutocms/pluto/compare/v0.16.3...v0.16.4) (2026-10-21)
+
+
+### Performance Improvements
+
+* **registry:** load the core widgets on demand ([#192](https://github.com/plutocms/pluto/issues/192)) ([154eef1](https://github.com/plutocms/pluto/commit/154eef1c4a40dd84a523b4e9896d964f535b2bd4))
+
 ## [0.16.3](https://github.com/plutocms/pluto/compare/v0.16.2...v0.16.3) (2026-10-21)
 
 
