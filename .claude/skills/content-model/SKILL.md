@@ -387,6 +387,11 @@ form on the route id.
 `update:modelValue` unchanged. It never needs to know which concrete widget it dispatched to —
 every widget shares that same three-prop contract.
 
+The widgets register with `defineAsyncComponent`. `PlutoContentField` wraps the widget in its own
+`<Suspense>` and shows `PlutoSkeletonField` (a label line and an input bar) while the chunk loads.
+So a layer needs only plain `defineAsyncComponent` for a widget. `PlutoContentForm` also shows one
+skeleton per field while an item loads (`pending` of `usePlutoContentItem`).
+
 When no widget resolves, `PlutoContentField` renders a `UFormField` showing the field's `label`
 and the message `No widget registered for field type "<type>".`, instead of silently rendering
 nothing. A missing widget should fail visibly and legibly, not disappear.

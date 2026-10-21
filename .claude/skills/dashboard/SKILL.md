@@ -17,7 +17,13 @@ Core registers three widgets. A layer adds more with `definePlutoExtension`
 - `app/composables/pluto-content-activity.ts` — `usePlutoContentActivity(weeks)`.
 - `server/api/_pluto/content-activity/[type].get.ts` and `contentActivity()` in
   `server/utils/pluto-content-handlers.ts` — the weekly counts.
-- `app/plugins/pluto-core-registrations.ts` — registers the three widgets.
+- `app/components/Pluto/Skeleton/PlutoSkeletonWidget.vue` — the card skeleton of fixed height.
+- `app/plugins/pluto-core-registrations.ts` — registers the three widgets with
+  `defineAsyncComponent`. The chart library loads only with the activity widget.
+
+Each widget has its own `<Suspense>` in `PlutoDashboardWidgets.vue`. The grid paints at once.
+A card skeleton (9rem for `colSpan` 3, 24rem for 2, 12rem for 1) shows until the widget chunk
+loads. The widget then shows its own skeleton while its data loads.
 - Tests: `test/content-stats.test.ts`, `test/content-handlers.test.ts` (`contentActivity`).
 
 ## Translation

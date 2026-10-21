@@ -37,7 +37,13 @@ onMounted(() => {
             <p v-if="panel.description" class="text-muted text-sm">{{ panel.description }}</p>
           </template>
 
-          <component :is="panel.component" />
+          <Suspense>
+            <component :is="panel.component" />
+
+            <template #fallback>
+              <PlutoSkeletonWidget variant="panel" height="8rem" />
+            </template>
+          </Suspense>
         </UCard>
 
         <div class="flex">

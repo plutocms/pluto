@@ -1,13 +1,15 @@
-import PlutoFieldBoolean from '../components/Pluto/Content/fields/PlutoFieldBoolean.vue'
-import PlutoFieldDate from '../components/Pluto/Content/fields/PlutoFieldDate.vue'
-import PlutoFieldNumber from '../components/Pluto/Content/fields/PlutoFieldNumber.vue'
-import PlutoFieldReference from '../components/Pluto/Content/fields/PlutoFieldReference.vue'
-import PlutoFieldSelect from '../components/Pluto/Content/fields/PlutoFieldSelect.vue'
-import PlutoFieldSlug from '../components/Pluto/Content/fields/PlutoFieldSlug.vue'
-import PlutoFieldText from '../components/Pluto/Content/fields/PlutoFieldText.vue'
-import PlutoDashboardContentActivity from '../components/Pluto/Dashboard/PlutoDashboardContentActivity.vue'
-import PlutoDashboardContentOverview from '../components/Pluto/Dashboard/PlutoDashboardContentOverview.vue'
-import PlutoDashboardQuickActions from '../components/Pluto/Dashboard/PlutoDashboardQuickActions.vue'
+// Every component loads on demand. Core's renderers show a skeleton for each
+// one while its chunk loads (see PlutoSkeletonField and PlutoSkeletonWidget).
+const PlutoFieldBoolean = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldBoolean.vue'))
+const PlutoFieldDate = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldDate.vue'))
+const PlutoFieldNumber = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldNumber.vue'))
+const PlutoFieldReference = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldReference.vue'))
+const PlutoFieldSelect = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldSelect.vue'))
+const PlutoFieldSlug = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldSlug.vue'))
+const PlutoFieldText = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldText.vue'))
+const PlutoDashboardContentActivity = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardContentActivity.vue'))
+const PlutoDashboardContentOverview = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardContentOverview.vue'))
+const PlutoDashboardQuickActions = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardQuickActions.vue'))
 
 // Registers core's own Home and Settings anchors, plus the eight built-in
 // content field widgets. `order: 0` and `order: 1000` are reserved for the

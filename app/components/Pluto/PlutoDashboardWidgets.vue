@@ -1,6 +1,14 @@
 <script setup lang="ts">
 const { items } = usePlutoDashboardWidgets()
 const { t } = usePlutoI18n()
+
+// A fixed height per column span limits the layout shift when the widget loads.
+function skeletonHeight(colSpan?: number): string {
+  if (colSpan === 3) {
+    return '9rem'
+  }
+  return colSpan === 2 ? '24rem' : '12rem'
+}
 </script>
 
 <template>
@@ -10,7 +18,14 @@ const { t } = usePlutoI18n()
       :key="widget.id"
       :class="{ 'lg:col-span-2': widget.colSpan === 2, 'lg:col-span-3': widget.colSpan === 3 }"
     >
-      <component :is="widget.component" />
+      <!-- Own Suspense boundary: a slow widget chunk does not block the grid. -->
+      <Suspense>
+        <component :is="widget.component" />
+
+        <template #fallback>
+          <PlutoSkeletonWidget :height="skeletonHeight(widget.colSpan)" />
+        </template>
+      </Suspense>
     </div>
   </div>
 

@@ -48,4 +48,8 @@ policies shared by every project here.
   session, a CSRF origin check, the auth driver for the core admin shell, and the stores, adapter and post type.
   It also has a Markdown editor, public read routes and composables, and `PlutoMarkdown`.
   @.claude/skills/github-cms/SKILL.md
+- Lazy admin components: core registers its field widgets and dashboard widgets with
+  `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
+  loads, and warns in dev about a registered component that is not async.
+  @.claude/skills/extension-registry/SKILL.md
 - Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The bar shows on `/admin/**` for any signed-in user, and on public pages for staff only. @.claude/skills/admin-shell/SKILL.md

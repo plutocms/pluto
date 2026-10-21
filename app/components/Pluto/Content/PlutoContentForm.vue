@@ -58,7 +58,7 @@ function editPath(id: string | number) {
   return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
 }
 
-const { item, save, remove } = usePlutoContentItem(props.type, () => props.id)
+const { item, pending: itemPending, save, remove } = usePlutoContentItem(props.type, () => props.id)
 
 function sortedFields(region: 'main' | 'side') {
   return computed(() =>
@@ -446,28 +446,41 @@ const unpublishDeleteItems = computed(() => [
       {{ heading }}
     </h1>
 
-    <PlutoContentField
-      v-for="field in mainFields"
-      :key="field.name"
-      :type="type"
-      :field="field"
-      :model-value="item[field.name]"
-      :disabled="!canWrite || saving"
-      @update:model-value="updateField(field, $event)"
-    />
+    <!-- The page and the fields show at once. A skeleton stands in while the item loads. -->
+    <template v-if="itemPending">
+      <PlutoSkeletonField v-for="field in mainFields" :key="field.name" :field-type="field.type" />
+    </template>
+
+    <template v-else>
+      <PlutoContentField
+        v-for="field in mainFields"
+        :key="field.name"
+        :type="type"
+        :field="field"
+        :model-value="item[field.name]"
+        :disabled="!canWrite || saving"
+        @update:model-value="updateField(field, $event)"
+      />
+    </template>
 
     <template v-if="showAside" #aside>
       <PlutoViewAside v-model:open="asideOpen" :title="t('pluto.common.settings')">
         <div class="flex flex-col gap-6">
-          <PlutoContentField
-            v-for="field in sideFields"
-            :key="field.name"
-            :type="type"
-            :field="field"
-            :model-value="item[field.name]"
-            :disabled="!canWrite || saving"
-            @update:model-value="updateField(field, $event)"
-          />
+          <template v-if="itemPending">
+            <PlutoSkeletonField v-for="field in sideFields" :key="field.name" :field-type="field.type" />
+          </template>
+
+          <template v-else>
+            <PlutoContentField
+              v-for="field in sideFields"
+              :key="field.name"
+              :type="type"
+              :field="field"
+              :model-value="item[field.name]"
+              :disabled="!canWrite || saving"
+              @update:model-value="updateField(field, $event)"
+            />
+          </template>
         </div>
       </PlutoViewAside>
     </template>

@@ -31,14 +31,23 @@ const translated = computed(() => (props.type ? text.field(props.field) : props.
 </script>
 
 <template>
-  <component
-    :is="widget"
-    v-if="widget"
-    :field="translated"
-    :model-value="modelValue"
-    :disabled="disabled"
-    @update:model-value="emit('update:modelValue', $event)"
-  />
+  <!--
+    Own Suspense boundary. A widget that loads on demand shows a skeleton for
+    this field only. The form and the page do not wait for its chunk.
+  -->
+  <Suspense v-if="widget">
+    <component
+      :is="widget"
+      :field="translated"
+      :model-value="modelValue"
+      :disabled="disabled"
+      @update:model-value="emit('update:modelValue', $event)"
+    />
+
+    <template #fallback>
+      <PlutoSkeletonField :field-type="field.type" />
+    </template>
+  </Suspense>
 
   <UFormField v-else :label="translated.label">
     <p class="text-muted text-sm">
