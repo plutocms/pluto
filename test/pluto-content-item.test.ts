@@ -123,6 +123,25 @@ describe('usePlutoContentItem', () => {
     expect(entry.error.value).toBe(failure)
   })
 
+  it('sets loadError for a failed fetch, not for a failed save', async () => {
+    const missing = Object.assign(new Error('not found'), { statusCode: 404 })
+    fetchMock.mockRejectedValueOnce(missing)
+    const { usePlutoContentItem } = await loadComposable()
+
+    const entry = usePlutoContentItem('post', 3)
+    await vi.waitFor(() => expect(entry.pending.value).toBe(false))
+    expect(entry.loadError.value).toBe(missing)
+
+    fetchMock.mockResolvedValueOnce({ id: 3, title: 'Back' })
+    await entry.refresh()
+    expect(entry.loadError.value).toBeNull()
+
+    fetchMock.mockRejectedValueOnce(new Error('save failed'))
+    await expect(entry.save({ title: 'x' })).rejects.toThrow('save failed')
+    expect(entry.loadError.value).toBeNull()
+    expect(entry.error.value).toBeInstanceOf(Error)
+  })
+
   it('supports a getter for id, read once via toValue', async () => {
     fetchMock.mockResolvedValue({ id: 9, title: 'Nine' })
     const { usePlutoContentItem } = await loadComposable()

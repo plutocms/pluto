@@ -13,6 +13,8 @@ defineSlots<{
   right?: () => unknown
   trailing?: () => unknown
 }>()
+
+const { t } = usePlutoI18n()
 </script>
 
 <template>
@@ -34,14 +36,16 @@ defineSlots<{
     </template>
 
     <template v-if="backTo || icon" #leading>
-      <UButton
-        v-if="backTo"
-        :to="backTo"
-        icon="i-lucide-arrow-left"
-        color="neutral"
-        variant="ghost"
-        square
-      />
+      <UTooltip v-if="backTo" :text="t('pluto.common.back')">
+        <UButton
+          :to="backTo"
+          :aria-label="t('pluto.common.back')"
+          icon="i-lucide-arrow-left"
+          color="neutral"
+          variant="ghost"
+          square
+        />
+      </UTooltip>
       <UIcon v-if="icon" :name="icon" class="me-1.5 size-5 shrink-0 self-center" />
     </template>
 

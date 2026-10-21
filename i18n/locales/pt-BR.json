@@ -9,6 +9,7 @@
       "delete": "Excluir",
       "tryAgain": "Tentar novamente",
       "close": "Fechar",
+      "back": "Voltar",
       "loading": "Carregando...",
       "remove": "Remover",
       "edit": "Editar",
@@ -56,6 +57,8 @@
       "unpublished": "Não publicado",
       "saved": "Salvo",
       "updated": "{label}: alterações salvas.",
+      "created": "Criado",
+      "createdDescription": "{label}: criado com sucesso.",
       "saveError": "Ocorreu um erro ao salvar.",
       "removeError": "Ocorreu um erro ao remover.",
       "saveDraft": "Salvar rascunho",
@@ -63,7 +66,14 @@
       "publish": "Publicar",
       "unpublish": "Despublicar",
       "fixErrors": "Corrija os itens abaixo antes de salvar",
-      "removeTitle": "Remover {label}"
+      "removeTitle": "Remover {label}",
+      "moreActions": "Mais ações",
+      "showSettings": "Mostrar configurações",
+      "hideSettings": "Ocultar configurações",
+      "loadFailed": "Não foi possível carregar este item",
+      "loadFailedHint": "Verifique sua conexão e tente novamente.",
+      "notFound": "Item não encontrado",
+      "notFoundHint": "Ele pode ter sido removido."
     },
     "list": {
       "loading": "Carregando {labelPlural}…",

@@ -140,6 +140,8 @@ and so on.
 `name` is the field's key on a `PlutoContentItem` and its default storage column. Set `column`
 only when the storage column name differs from `name` — see "Field-to-column mapping" below.
 
+Set `listFormat` on a field to control the text of its cell in the generic list. See "Formatting a list cell" below.
+
 Set `virtual: true` on a field that has no storage column at all. A virtual field still passes
 through validation and the generic form payload, but `mapFieldsToColumns` and
 `mapColumnsToFields` both skip it — its value never reaches a database write. Use it when a
@@ -363,9 +365,13 @@ file already warns about for the old `usePost`/`useProduct` pattern (see `supaba
 const { items, total, pending, error, refresh, remove } = usePlutoContentList('post')
 await remove(id) // DELETEs, then refreshes
 
-const { item, pending, error, refresh, save, remove } = usePlutoContentItem('post', () => route.params.id)
+const { item, pending, error, loadError, refresh, save, remove } = usePlutoContentItem('post', () => route.params.id)
 await save(payload) // POSTs when id is undefined, PATCHes when id is defined
 ```
+
+`error` holds the last failure of any call. `loadError` holds only the failure of the item fetch
+(`refresh()` and the first load), and it clears when a fetch starts. A form reads `loadError` to
+show the load error state, because a failed save must not hide the fields.
 
 `usePlutoContentList(typeName, { pageSize })` loads the list page by page. It requests
 `?limit=<pageSize>&offset=<n>`, appends each page, and also returns `loadingMore`, `hasMore`,
@@ -400,7 +406,7 @@ Core ships eight widgets, under `app/components/Pluto/Content/fields/`:
 
 | `PlutoField.type` | Widget | Notes |
 |---|---|---|
-| `text`, `textarea` | `PlutoFieldText` | `UInput` for `text`, `UTextarea` for `textarea` |
+| `text`, `textarea` | `PlutoFieldText` | `UInput` for `text`. `UTextarea` for `textarea`: it grows with the text from `rows` (default 4) up to `maxRows` (default 14), then it scrolls. Both are optional on the field. |
 | `slug` | `PlutoFieldSlug` | A plain `UInput` plus a `field.preview + modelValue` preview line. Does **not** own auto-derivation from another field — see below. |
 | `number` | `PlutoFieldNumber` | `UInputNumber` |
 | `boolean` | `PlutoFieldBoolean` | `USwitch` |
@@ -458,8 +464,38 @@ directly.
 `region: 'side'` in the sidebar, both sorted by `order`), a Save button, and client-side
 validation through `validateContentPayload` before it ever calls `save()` — the server validates
 again regardless (wave 2), so this is a UX nicety, not the enforcement point. On a successful
-create, it navigates to the new item's edit URL; on a successful update, it shows a success toast
-and stays put.
+create, it shows a success toast and navigates to the new item's edit URL; on a successful update,
+it shows a success toast and stays put.
+
+In edit mode, the page heading and the browser tab title show the value of the type's
+`titleField`. While the item loads, or when the title is empty, they show "Edit <type>". If the
+item fetch fails (a 404 or a network error), the form shows an empty state (`UEmpty`) with a
+"Try again" button (no button on a 404), renders no fields, and hides Save, Publish and the
+overflow menu. Typing in a field never reaches this state: only `loadError` triggers it.
+
+### Formatting a list cell
+
+A field can set `listFormat?: (value, item) => string`. The generic list calls it for the desktop
+table cell and for the mobile card of every field with `inList`. It changes only the list. The
+form and the API keep the raw value. Use it for a value that needs a unit or a locale, such as a
+price in cents:
+
+```ts
+{ name: 'price', type: 'number', label: 'Price', inList: true,
+  listFormat: (value) => formatProductPrice(value as number) }
+```
+
+The function must be pure and must not read browser globals, because content type definitions
+are shared with the server. If it throws, the list shows the raw value. `formatListValue(field,
+item)` in `shared/utils/content-list.ts` is the helper that runs it. A field with no `listFormat`
+shows the raw value as text.
+
+### Slugs
+
+`slugifyTitle(value)` (`shared/utils/content-slug.ts`, auto-imported) makes a slug from a title:
+it strips accents ("Pão de Mel" becomes `pao-de-mel`), lowercases, joins words with single
+dashes, and cuts at 100 characters. The form and the GitHub CMS both use it. Do not name a helper
+`slugify`: `@plutocms/utils` already auto-imports that name.
 
 Both components gate write/delete visibility with the same rule:
 

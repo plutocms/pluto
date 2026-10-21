@@ -135,6 +135,13 @@ const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
   ...listFields.value.map((field) => ({
     accessorKey: field.name,
     header: text.fieldLabel(field),
+    ...(field.listFormat
+? { cell: ({ row }: {
+ row: {
+ original: PlutoContentItem
+}
+}) => formatListValue(field, row.original) }
+: {}),
   })),
   ...(statusConfig.value ? [{ id: 'status', header: t('pluto.list.status') }] : []),
   { id: 'actions', header: '' },
@@ -258,7 +265,7 @@ const footer = computed(() => {
           <dl class="grid grid-cols-2 gap-3 text-sm">
             <div v-for="field in listFields" :key="field.name">
               <dt class="text-muted">{{ text.fieldLabel(field) }}</dt>
-              <dd class="font-medium">{{ item[field.name] }}</dd>
+              <dd class="font-medium">{{ formatListValue(field, item) }}</dd>
             </div>
           </dl>
 

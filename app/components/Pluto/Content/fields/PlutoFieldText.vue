@@ -22,8 +22,11 @@ const value = computed(() => (props.modelValue as string | undefined) ?? undefin
       :model-value="value"
       :placeholder="field.placeholder"
       :maxlength="field.maxLength"
+      :rows="field.rows ?? 4"
+      :maxrows="field.maxRows ?? 14"
       :disabled="disabled"
       class="w-full"
+      autoresize
       @update:model-value="$emit('update:modelValue', $event)"
     />
 

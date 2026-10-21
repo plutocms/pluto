@@ -20,6 +20,8 @@ withDefaults(
   }
 )
 
+const { t } = usePlutoI18n()
+
 const open = defineModel<boolean>('open', { default: false })
 
 function close() {
@@ -54,13 +56,16 @@ const slideoverOpen = computed({
   >
     <div class="border-default flex h-12 shrink-0 items-center justify-between gap-1.5 border-b px-4">
       <h2 class="text-highlighted truncate text-sm font-semibold">{{ title }}</h2>
-      <UButton
-        icon="i-lucide-x"
-        color="neutral"
-        variant="ghost"
-        square
-        @click="close"
-      />
+      <UTooltip :text="t('pluto.common.close')">
+        <UButton
+          :aria-label="t('pluto.common.close')"
+          icon="i-lucide-x"
+          color="neutral"
+          variant="ghost"
+          square
+          @click="close"
+        />
+      </UTooltip>
     </div>
     <div class="min-h-0 flex-1 overflow-y-auto p-4">
       <slot />

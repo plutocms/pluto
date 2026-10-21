@@ -29,6 +29,9 @@ export function usePlutoContentItem(
   const item = ref<Record<string, unknown>>({})
   const pending = ref(false)
   const error = ref<unknown>(null)
+  // Only the item fetch sets this. A failed save sets `error`, not this, so a
+  // form can tell "the item did not load" from "the save failed".
+  const loadError = ref<unknown>(null)
 
   async function refresh(): Promise<void> {
     // A new, unsaved entry has nothing to fetch — `item` stays the empty
@@ -39,11 +42,13 @@ export function usePlutoContentItem(
 
     pending.value = true
     error.value = null
+    loadError.value = null
 
     try {
       item.value = await $fetch<PlutoContentItem>(`/api/_pluto/content/${typeName}/${resolvedId}`)
     } catch (caught) {
       error.value = caught
+      loadError.value = caught
       throw caught
     } finally {
       pending.value = false
@@ -93,5 +98,5 @@ export function usePlutoContentItem(
     }
   }
 
-  return { item, pending, error, refresh, save, remove }
+  return { item, pending, error, loadError, refresh, save, remove }
 }

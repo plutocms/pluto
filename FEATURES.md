@@ -21,7 +21,9 @@ policies shared by every project here.
   @.claude/skills/content-model/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
-  registry bucket that lets a layer add its own buttons to that form.
+  registry bucket that lets a layer add its own buttons to that form. The form shows the item title
+  in the heading, a load error state with retry, a create toast, labeled icon buttons with tooltips,
+  and the aside fields inline on a narrow screen. A field can set `listFormat` for the generic list.
   @.claude/skills/admin-view-chrome/SKILL.md
 - Command palette: Cmd/Ctrl+K and a sidebar search button open a `UDashboardSearch` with
   "New <type>" commands for writable content types, every admin nav destination, and theme
