@@ -142,6 +142,34 @@ export default defineNuxtPlugin(() => {
 Use the package's `$meta.name` (for example `'supabase-blog'`) as the extension `id`. This
 keeps ids stable across a monorepo and matches how core discovers layer names elsewhere.
 
+## Register components with `defineAsyncComponent`
+
+Register every component of `contentFieldWidgets`, `dashboardWidgets`, `settingsPanels` and
+`adminBanners` with plain `defineAsyncComponent`. The code then loads on demand and stays out of
+the entry chunk. The registry contract does not change: `component: Component` accepts an async
+component. Do not register a bare `() => import()` loader. Core cannot tell it from a functional
+component.
+
+```ts
+const RecentPostsWidget = defineAsyncComponent(() => import('../components/RecentPostsWidget.vue'))
+```
+
+Keep the default `suspensible: true`. Core shows a skeleton for each registered component. Each
+core renderer wraps the component in its own `<Suspense>`, so the page, the form and the grid do
+not wait for a chunk:
+
+- `PlutoContentField`: `PlutoSkeletonField` (a label line and an input bar, taller for
+  `richtext` and `media`).
+- `PlutoDashboardWidgets`: `PlutoSkeletonWidget`, a card of fixed height per `colSpan`.
+- `pages/admin/settings.vue`: `PlutoSkeletonWidget` with `variant="panel"`.
+- `layouts/admin.vue`: an empty fallback. A banner never blocks the layout.
+
+The navbar buckets (`navbar`, `navbarActions`) stay eager on purpose.
+
+In dev, `definePlutoExtension` logs a `console.warn` once per component that is not async (it
+checks `__asyncLoader`; see `app/composables/internal/async-component.ts`). The check is
+`import.meta.dev` only, so production has no cost. Test: `test/async-component.test.ts`.
+
 ## Compatibility bridge with `@plutocms/utils`
 
 Three composables in `@plutocms/utils` predate this registry: `useNavbarAdmin()`,

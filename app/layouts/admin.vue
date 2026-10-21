@@ -65,7 +65,12 @@ const groupStyle = { top: 'var(--ui-header-height)' }
       }"
     >
       <template #body>
-        <component :is="banner.component" v-for="banner in banners" :key="banner.id" />
+        <!-- An empty fallback: a banner never blocks the layout. -->
+        <Suspense v-for="banner in banners" :key="banner.id">
+          <component :is="banner.component" />
+
+          <template #fallback />
+        </Suspense>
         <slot />
       </template>
     </UDashboardPanel>

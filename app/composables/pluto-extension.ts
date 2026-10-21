@@ -1,3 +1,5 @@
+import { findSyncComponents } from './internal/async-component'
+
 /**
  * The one function a layer author calls to plug into the admin UI. Every
  * bucket gets set for this extension's id on every call, so a layer's whole
@@ -10,6 +12,10 @@
  */
 export function definePlutoExtension(definition: PlutoExtension): void {
   const registry = usePlutoRegistry()
+
+  if (import.meta.dev) {
+    warnSyncComponents(definition)
+  }
 
   registry.navbarShell.set(definition.id, definition.navbar ? [definition.navbar] : [])
   registry.navbarActions.set(definition.id, definition.navbarActions ?? [])
@@ -38,4 +44,20 @@ export function definePlutoExtension(definition: PlutoExtension): void {
   registry.contentFieldWidgets.set(definition.id, definition.contentFieldWidgets ?? [])
   registry.contentActions.set(definition.id, definition.contentActions ?? [])
   registry.mediaAdapters.set(definition.id, definition.mediaAdapters ?? [])
+}
+
+// Dev only. The names already warned about, so each component warns once
+// (the plugin runs again on HMR).
+const warnedComponents = new Set<string>()
+
+function warnSyncComponents(definition: PlutoExtension): void {
+  for (const name of findSyncComponents(definition)) {
+    if (warnedComponents.has(name)) {
+      continue
+    }
+    warnedComponents.add(name)
+    console.warn(
+      `[pluto] ${name} is not an async component. Register it with defineAsyncComponent(() => import('...')) so it loads on demand and core shows a skeleton.`
+    )
+  }
 }
