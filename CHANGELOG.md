@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.16.3](https://github.com/plutocms/pluto/compare/v0.16.2...v0.16.3) (2026-10-21)
+
+
+### Bug Fixes
+
+* **admin:** show the user menu above the site navbar ([#190](https://github.com/plutocms/pluto/issues/190)) ([36351c2](https://github.com/plutocms/pluto/commit/36351c2bc6a591d746f04c9b94b9090a8b2fe7ad))
+
 ## [0.16.2](https://github.com/plutocms/pluto/compare/v0.16.1...v0.16.2) (2026-10-20)
 
 
