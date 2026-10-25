@@ -101,14 +101,21 @@ useHead({
 </template>
 
 <style>
-html,
-body {
-  height: 100%;
-}
-
+/*
+ * The page is at least one viewport tall and grows with its content. A fixed
+ * `height: 100%` would cap every wrapper at one viewport, and a sticky header
+ * (a Nuxt UI `UHeader`) would leave after one viewport of scroll, because a
+ * sticky element stays inside its parent. The admin keeps the fixed height.
+ */
 #__nuxt {
-  height: 100%;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+:root[data-pluto-admin],
+:root[data-pluto-admin] body,
+:root[data-pluto-admin] #__nuxt {
+  height: 100%;
 }
 </style>
