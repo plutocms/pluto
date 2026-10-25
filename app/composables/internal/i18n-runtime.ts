@@ -85,3 +85,12 @@ export function resolveSiteLocale(): string {
   }
   return config.siteLocale || config.defaultLocale || defaultLocale
 }
+
+/**
+ * The first locale of a scope. Every `useState` of a scope uses it, so the
+ * value is right whichever code reads the scope first (a plugin that runs
+ * before the `pluto-i18n` plugin, for example).
+ */
+export function resolveScopeLocale(scope: 'admin' | 'site'): string {
+  return scope === 'admin' ? resolveAdminLocale() : resolveSiteLocale()
+}

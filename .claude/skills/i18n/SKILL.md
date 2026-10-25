@@ -115,6 +115,12 @@ server value.
   the admin locale must resolve there too.
 - Site: cookie `pluto-site-locale`, then the `siteLocale` option, then `defaultLocale`.
 
+Every `useState` of a scope starts with `resolveScopeLocale(scope)`, not with `defaultLocale`.
+A plugin or a composable can read `usePlutoI18n()` before the `pluto-i18n` plugin runs (the admin
+is client-only, and plugins run in name order). The state then still starts with the stored
+choice. `pluto-auth-sync` also has `dependsOn: ['pluto-i18n']`. Test:
+`test/i18n-locale-init.test.ts`.
+
 ## Nuxt UI and the html tag
 
 Nuxt UI has one locale for each page. `PlutoRoot.vue` passes `:locale` to `UApp`: the admin
