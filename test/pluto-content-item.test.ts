@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref, toValue } from 'vue'
+import { contentIdPath } from '../shared/utils/content-id'
 
 // pluto-content-item.ts leans on Nuxt's auto-imported `ref`/`toValue` and
 // the Nitro/ofetch global `$fetch`. Outside a Nuxt build nothing injects
@@ -12,6 +13,7 @@ beforeEach(() => {
   vi.stubGlobal('$fetch', fetchMock)
   vi.stubGlobal('ref', ref)
   vi.stubGlobal('toValue', toValue)
+  vi.stubGlobal('contentIdPath', contentIdPath)
 })
 
 afterEach(() => {
@@ -25,6 +27,17 @@ async function loadComposable() {
 }
 
 describe('usePlutoContentItem', () => {
+  it('keeps the slashes of a nested id and encodes each segment', async () => {
+    fetchMock.mockResolvedValue({ id: '1.start/a b', title: 'Nested' })
+    const { usePlutoContentItem } = await loadComposable()
+
+    const entry = usePlutoContentItem('doc', '1.start/a b')
+
+    await vi.waitFor(() => expect(entry.pending.value).toBe(false))
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/_pluto/content/doc/1.start/a%20b')
+  })
+
   it('fetches the item once when an id is given', async () => {
     fetchMock.mockResolvedValue({ id: 1, title: 'Hello' })
     const { usePlutoContentItem } = await loadComposable()

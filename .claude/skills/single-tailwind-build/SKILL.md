@@ -32,7 +32,7 @@ The admin theme no longer needs a separate build to stay isolated: see the `admi
   `modules/` dir.
 - `modules/pluto-css/css-entries.ts` — pure helpers, tested in `test/pluto-css.test.ts`.
 - `app/assets/css/pluto-layer.css` — this layer's own CSS (the admin theme, `--font-outfit`,
-  `--color-admin-*`, `--ui-header-height`).
+  `--color-admin-*`, `--pluto-admin-bar-height`, `--ui-header-height`).
 
 ## The layer CSS convention
 

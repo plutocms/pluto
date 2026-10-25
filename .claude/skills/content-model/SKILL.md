@@ -229,6 +229,7 @@ state:
 ```ts
 registerContentType(type) // adds or overwrites one content type, by type.name
 getContentType(name) // PlutoContentType | undefined
+listContentTypes() // PlutoContentType[], in registration order
 registerContentAdapter(adapter) // replaces whatever was registered before — last wins
 getContentAdapter() // PlutoContentAdapter | undefined
 ```
@@ -414,6 +415,10 @@ Core ships eight widgets, under `app/components/Pluto/Content/fields/`:
 | `select` | `PlutoFieldSelect` | `USelect`, mapping `field.options` to `{ label, value }` |
 | `reference` | `PlutoFieldReference` | `UInputMenu`, populated from `field.optionsUrl` when set |
 
+The GitHub CMS Markdown widget reads `PlutoTextField.editor` (`'auto' | 'visual' | 'source'`,
+default `auto`) for a `richtext` field. It picks the first mode of the Visual/Source switch (see
+the github-cms skill). Other widgets ignore it.
+
 **`richtext` and `media` have no core widget, on purpose.** Core has no real rich-text editor and
 no real file picker to offer for either — a layer registers those (`supabase-blog` registers
 `richtext`, `supabase-storage` registers `media`), through its own `contentFieldWidgets` entries,
@@ -581,6 +586,15 @@ newPath: '/admin/post/new',
 editPath: (id) => `/admin/post/edit/${id}`,
 ```
 
+The default edit link is `${basePath}/${contentIdPath(id)}`. `contentIdPath`
+(`shared/utils/content-id.ts`, auto-imported on the server and the client) encodes each segment of
+the id and keeps the `/` between them, so a nested id (`1.start/2.install`) stays readable and is
+not `%2F`. The list links and `usePlutoContentItem` use it too. The item page and the item API
+routes are catch-alls (`pages/admin/content/[type]/[...id].vue`, `[...id].get|patch|delete.ts`).
+The page joins the array param with `/`. The routes read
+`getRouterParam(event, 'id', { decode: true })`. Use `contentIdPath` in your own `editPath` when
+ids can hold slashes.
+
 `basePath` itself still matters even when both overrides are set — it is still what
 `autoRoutes !== false` derives nav/pages from, and still the fallback either override defers to
 when unset.
@@ -625,6 +639,13 @@ activity chart, the quick actions, the command palette, and the nav and page ent
 types create. `PlutoContentField` passes a translated copy of the field to the widget, so a
 third-party widget gets the translated label with no change. Server code and anything that reads
 `type.label` keeps English. See the i18n skill.
+
+## Nested ids and `compareContentIds`
+
+`PlutoContentType.files` (`nested`, `exclude`, `frontmatter.read|write`) is read by the file
+adapters only (see the github-cms skill). A nested type has ids with slashes.
+`compareContentIds(a, b)` (shared util) is an `Array.sort` comparator for such ids. In each
+segment, `index` comes first, then a numeric prefix (`2.name`) as a number, then the name.
 
 ## Known limits, out of scope for this pass
 

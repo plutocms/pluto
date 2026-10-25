@@ -48,11 +48,11 @@ A supabase app that does not set `plutoCms.enabled` sees no change and no log li
 | `github.appSlug` | `''` | The slug of the GitHub App. |
 | `github.apiUrl` | `'https://api.github.com'` | The API base URL. |
 | `dir` | `'content'` | Relative path. No `..`, no leading `/`, no drive letter. The module changes `\` to `/` and removes a trailing `/`. |
-| `commit.skipDeploy` | `true` | Add a skip-deploy marker to commit messages. |
+| `commit.skipDeploy` | `true` | Add `[skip ci]` to commit messages. A site that must redeploy on each edit (for example a docs site) sets it to `false`. See "Skip a deploy on Vercel". |
 | `cache.headTtl` | `60` | Seconds. Zero or more. |
 | `cache.storage` | `'cache'` | The Nitro storage mount for the cache. |
 | `cache.publicMaxAge` | `60` | Seconds. Zero or more. The `s-maxage` of the public read routes. |
-| `postType` | `true` | Register the fixed post content type. |
+| `postType` | `true` | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`. |
 
 A bad option turns the CMS off and logs an error. The module does not throw.
 
@@ -75,7 +75,7 @@ When on, the module writes `runtimeConfig.plutoCms` (the secrets) and
 The storage layer is in `modules/pluto-cms/runtime/server/`. The Nitro plugin wires it in (see
 "Wiring"). Every runtime file uses explicit imports. The pure helpers run in plain Vitest.
 
-- `store/types.ts` — the `PlutoCmsStore` contract: `head`, `listDir`, `readFile`, `commit`. A
+- `store/types.ts` — the `PlutoCmsStore` contract: `head`, `listDir`, `listTree`, `readFile`, `commit`. A
   commit takes `expectedHeadOid`. A stale value throws `PlutoCmsConflictError`. PR 4 maps it to 409.
 - `store/errors.ts` — `PlutoCmsStoreError` with a `code`: `conflict`, `auth`, `forbidden`,
   `rate-limit`, `not-found`, `github`. The code has no HTTP link. PR 4 maps it.
@@ -83,7 +83,10 @@ The storage layer is in `modules/pluto-cms/runtime/server/`. The Nitro plugin wi
 - `store/fs.ts` — a dev store over a local dir. The head is a hash of the file listing. It refuses
   any path outside the root.
 - `store/github.ts` — `createGithubStore`. `head` uses the REST sha call with an ETag and a TTL.
-  `listDir` is one GraphQL call. `commit` uses `createCommitOnBranch` and sets the cached head at once.
+  `listDir` is one GraphQL call. `listTree(dir, head, auth)` reads every `.md` file under a dir with
+  one GraphQL call that nests `... on Tree { entries }` six levels deep. The cache key is
+  `tree:<dir>@<head>`. The fs store reads the dir recursively. The memory store filters by path
+  prefix. All three skip dot dirs and dot files. `commit` uses `createCommitOnBranch` and sets the cached head at once.
 - `github/client.ts` — `githubRest` and `githubGraphql`. They take an injectable `fetch`
   transport. The default uses `ofetch`. They throw typed errors.
 - `utils/cms-cache.ts` — the head with a TTL, the dir index by `<dir>@<headOid>`, parsed blobs by
@@ -92,7 +95,8 @@ The storage layer is in `modules/pluto-cms/runtime/server/`. The Nitro plugin wi
 - `utils/markdown-file.ts` — parse and write Markdown with YAML frontmatter. It uses the `yaml`
   core schema, so a tag never runs code.
 - `utils/blob-sha.ts` — `gitBlobSha` and `listingOid`.
-- `utils/cms-paths.ts` — `assertSafeSlug`, `contentFilePath`, `contentDirPath` and `slugifyTitle`.
+- `utils/cms-paths.ts` — `assertSafeSlug`, `assertSafeContentId`, `contentFilePath`,
+  `contentDirPath` and `slugifyTitle`. The path helpers take `{ nested }` as the last argument.
 - `test/fixtures/fake-github.ts` — an in-memory GitHub that counts calls by kind.
 
 ## Adapter
@@ -146,8 +150,53 @@ Conflict handling:
 Store errors map to HTTP errors with `pluto.cms.errors.*` keys: conflict 409, auth 401, forbidden
 403, rate limit 503 with a `Retry-After` header, not found 404, GitHub failure 502.
 
+### Nested content types
+
+A type with `files: { nested: true }` stores its items in nested folders. A docs site needs this.
+`files` is plain data and pure functions, so the type is safe on the server and on the client.
+Only the file adapters read it.
+
+```ts
+files: {
+  nested: true, // ids are paths: '1.start/2.install'
+  exclude: ['index', 'drafts/'], // an id, or a folder with a trailing slash
+  frontmatter: { read, write }, // pure (frontmatter) => frontmatter
+}
+```
+
+- The id is the path under the type folder, without `.md`. Each segment is a slug with an optional
+  numeric prefix (`^(?:\d+\.)?[a-z0-9]+(?:-[a-z0-9]+)*$`). An id has at most 6 segments and 255
+  characters. `..`, an empty segment and a dot segment are refused. A flat type keeps the old rule
+  (one slug) exactly.
+- `source: ''` means the content dir itself. Only a nested type can use it.
+- The adapter lists, gets, creates, updates and removes through `store.listTree`. The slug field
+  holds the whole id, so a new path in the slug field creates the item in a folder. An update with
+  a new path moves the file in one commit (add and delete). A move onto a taken path gives 409.
+- The default sort of a nested type is `compareContentIds` (shared util, auto-imported): in each
+  segment `index` comes first, then the numeric prefix as a number, then the name. Set
+  `defaultSort: { field: 'id', direction: 'asc' }` for a nested type that also has timestamps.
+- `frontmatter.read` runs on a copy after a file is parsed. Add the flat keys that the fields
+  read, for example `navTitle` from `navigation.title`. A field that a hook maps is a normal field
+  with that flat key as its `column`. `frontmatter.write` runs before a file is written. Fold the
+  flat keys back and drop them. Keys that the type does not know must stay.
+- The public read routes (`/api/_pluto/cms/:type/:slug`) take one segment. They do not read a
+  nested item.
+
+### No commit for an unchanged file
+
+For every type, an update whose new file text equals the stored text makes no commit. The
+`updated` timestamp alone does not count as a change. The call returns the stored item with the
+same `_version`. A hand-written file with a different YAML layout is not equal, so the first real
+save rewrites it.
+
+### Push users
+
+A user with push access gets the read, write, publish and delete capabilities of every registered
+content type (`listContentTypes()`). The post type is the fallback when no type is registered.
+
 The contract test suite is `test/contracts/content-adapter.contract.ts`
 (`runContentAdapterContract`). Run it against any new adapter over the post type.
+`test/cms-nested-adapter.test.ts` runs it on a nested type too.
 
 ## Wiring
 
@@ -161,7 +210,10 @@ When `plutoCms.enabled` is true, and only then, the module adds:
   capabilities) or `null`.
 - A client plugin, `runtime/app/plugins/pluto-cms.ts`. It calls `definePlutoExtension` with the
   auth driver, the post content type, the post capabilities, the permissions driver and the
-  public-repo dashboard widget. Core loads the capabilities when the session appears.
+  public-repo dashboard widget. The post type and the post capabilities are registered only when
+  `postType` is on (the module copies the option to `runtimeConfig.public.plutoCms.postType`; a
+  missing value counts as on). The warning shows only when the repo is public and a registered type
+  has a `status` (`showPublicRepoWarning`). Core loads the capabilities when the session appears.
 - The auto-import dir `runtime/app/composables` (`usePlutoCmsSession`).
 
 The module adds no page, no route middleware and no navbar. Core owns the `/admin` parent route,
@@ -329,10 +381,19 @@ app with a cookie jar), `cms-test-config.ts` and `kit-mock.ts`.
      set, only these users can sign in, even with push access.
 9. Set `plutoCms.github.repo` and, for the "not installed" link, `plutoCms.github.appSlug`.
 
-A public repo shows its drafts on GitHub. Use a private repo for drafts.
+A public repo shows its drafts on GitHub. Use a private repo for drafts. The dashboard warns about
+this only when a registered content type has a status (a type with no status has no drafts).
 
 For GitHub Enterprise Server, set `plutoCms.github.apiUrl` to `https://<host>/api/v3`. The OAuth
 pages use `https://<host>`. Any other API URL uses `https://github.com`.
+
+### Skip a deploy on Vercel
+
+`commit.skipDeploy` adds `[skip ci]` to the commit message. GitHub Actions and many CI tools read
+that marker. Vercel does not read `[skip ci]` in a commit message. This is not confirmed by Vercel
+docs: treat it as a rule of thumb and test it on your project. To skip a Vercel build, use an
+Ignored Build Step script. It is a command that decides, from the project settings, whether
+to build. A site that must deploy on each edit sets `commit.skipDeploy: false` and needs no script.
 
 ## Editor
 
@@ -355,11 +416,36 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   `fieldType: 'richtext'`, in CMS mode only. It uses `defineAsyncComponent`, so Tiptap loads on the
   edit page only. Core has no `richtext` widget, so nothing else competes for the type.
 
+### Source mode
+
+The widget has a Visual/Source switch. Source is `PlutoMarkdownSource`: a monospace textarea that
+grows with the text, with `spellcheck="false"`. It never parses or rewrites the text.
+
+- `PlutoTextField.editor?: 'auto' | 'visual' | 'source'` (a `richtext` field, default `auto`)
+  picks the first mode. `visual` and `source` are fixed. `auto` opens Source when the text has
+  syntax that the visual editor cannot keep. `pickMarkdownEditorMode(editor, text)` is the pure
+  rule.
+- `findUnsafeMarkdown(text)` (`shared/utils/markdown-syntax.ts`, auto-imported) lists that syntax,
+  one issue `{ kind, line }` per kind: `mdc-block` (`::note`), `mdc-inline` (`:icon{}`,
+  `:kbd[x]`), `attributes` (`](..){..}`, `]{..}`, and inline code followed by `{..}`), `html`,
+  `table`, `task-list`, `footnote` and `fence-meta` (a code fence with more than a language). Text
+  in a code fence or in inline code is ignored.
+- The Visual button is off while the text has such syntax, with a tooltip
+  (`pluto.cms.editor.unsafe`). It turns on again when the author removes the syntax in Source. An
+  explicit `editor: 'visual'` still opens Visual: the author of the type owns that choice.
+- `PlutoMarkdownSource` props: `modelValue`, `disabled`, `placeholder`, `rows` (18), `maxRows`,
+  `ariaLabel`. Slot `toolbar` (slot props `insert`, `focus`). Exposed: `insert(text, { block })`
+  (it replaces the selection and puts the caret after the text; `block` adds a blank line before
+  and after) and `focus()`. `insertMarkdownText` is the pure helper. The CMS module registers the
+  short name `PlutoMarkdownSource` (only when the CMS is on), the same way as `PlutoMarkdown`. A
+  layer uses it to build its own field widget.
+- i18n keys: `pluto.cms.editor.visual`, `source`, `unsafe`, `mode`.
+
 Limits of the editor:
 
-- The editor knows CommonMark and strikethrough. It has no node for a GFM table, a task list or raw
-  HTML. A post that has them keeps the text, but the editor can lose the markup when it saves.
-  The public page still renders tables and task lists from the stored Markdown.
+- The visual editor knows CommonMark and strikethrough. It has no node for MDC, a GFM table, a
+  task list or raw HTML. Source mode is the way to edit a post that has them. The public page
+  still renders tables and task lists from the stored Markdown.
 - The editor can write the Markdown with other marks than the author used (for example `-`
   for a bullet). The text means the same.
 - No test mounts the widget. The repo has no Vue component test setup.

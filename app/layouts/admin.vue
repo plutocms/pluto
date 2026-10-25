@@ -18,7 +18,7 @@ usePlutoAdminTheme()
 // order the classes merge in. Do not use a class replacer function here:
 // in @nuxt/ui 4.12 a replacer only runs for themes with slots, and the
 // group theme has only `base`, so the replacer was silently ignored.
-const groupStyle = { top: 'var(--ui-header-height)' }
+const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
 </script>
 
 <template>

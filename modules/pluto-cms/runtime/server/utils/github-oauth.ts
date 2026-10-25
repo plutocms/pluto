@@ -1,5 +1,6 @@
 import type { GithubFetch } from '../github/client'
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
+import { listContentTypes } from '../../../../../server/utils/pluto-content'
 import { plutoCmsPostType } from '../../shared/post-type'
 import { defaultGithubFetch, GITHUB_API_URL, githubRest } from '../github/client'
 import { PlutoCmsStoreError } from '../store/errors'
@@ -261,8 +262,8 @@ export async function fetchRepoPermission(
 
 /**
  * Maps a repo permission to capabilities. Admin and maintain get every
- * capability. Push gets the read-drafts, publish and delete keys of the post
- * type. A lower permission gets `null`: it cannot sign in.
+ * capability. Push gets the read, write, publish and delete keys of every
+ * registered content type (the post type when none is registered). A lower permission gets `null`: it cannot sign in.
  */
 export function mapRepoPermission(
   permissions: RepoPermissions | undefined
@@ -280,10 +281,16 @@ capabilities: string[]
     return { permission: 'maintain', capabilities: ['*'] }
   }
   if (permissions.push) {
-    const { read, write, delete: remove } = plutoCmsPostType.capabilities ?? {}
+    // Every registered type counts. The post type is the fallback when none is registered.
+    const registered = listContentTypes()
+    const types = registered.length > 0 ? registered : [plutoCmsPostType]
+    const keys = types.flatMap((type) => {
+      const { read, write, publish, delete: remove } = type.capabilities ?? {}
+      return [read, write, publish, remove]
+    })
     return {
       permission: 'push',
-      capabilities: [read, write, remove].filter((key): key is string => typeof key === 'string'),
+      capabilities: [...new Set(keys.filter((key): key is string => typeof key === 'string'))],
     }
   }
   return null

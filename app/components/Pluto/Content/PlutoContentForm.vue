@@ -55,7 +55,7 @@ const basePath = computed(
 // PlutoContentType.editPath for why a single basePath cannot always
 // express it.
 function editPath(id: string | number) {
-  return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
+  return contentType.value?.editPath?.(id) ?? `${basePath.value}/${contentIdPath(id)}`
 }
 
 const { item, pending: itemPending, loadError, refresh, save, remove } = usePlutoContentItem(props.type, () => props.id)

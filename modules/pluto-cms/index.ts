@@ -89,6 +89,7 @@ export default defineNuxtModule<PlutoCmsOptions>({
       appSlug: resolved.github.appSlug,
       storage: resolved.storage,
       dir: resolved.dir,
+      postType: resolved.postType,
     }
 
     const resolver = createResolver(import.meta.url)
@@ -114,6 +115,13 @@ export default defineNuxtModule<PlutoCmsOptions>({
     addComponent({
       name: 'PlutoMarkdown',
       filePath: resolver.resolve('../../app/components/Pluto/Cms/PlutoMarkdown.vue'),
+    })
+
+    // `PlutoMarkdownSource` is the raw Markdown editor. A layer uses it to build its own
+    // field widget (the docs layer wraps it). The module gives it the short name.
+    addComponent({
+      name: 'PlutoMarkdownSource',
+      filePath: resolver.resolve('../../app/components/Pluto/Cms/PlutoMarkdownSource.vue'),
     })
 
     // Public read routes. They are anonymous and cacheable. See the github-cms skill.

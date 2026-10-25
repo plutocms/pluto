@@ -40,6 +40,36 @@ function contract(label: string, make: () => Promise<PlutoCmsStore>) {
       expect(files[0]).toMatchObject({ path: 'content/posts/a.md', text: 'A' })
     })
 
+    it('lists the .md files of a tree at any depth, sorted by path, and skips dot dirs and dot files', async () => {
+      const store = await make()
+      await store.commit({
+        expectedHeadOid: await store.head(),
+        message: 'seed',
+        additions: [
+          { path: 'content/index.md', contents: 'I' },
+          { path: 'content/2.b/1.x.md', contents: 'BX' },
+          { path: 'content/1.a/index.md', contents: 'AI' },
+          { path: 'content/1.a/deep/er/z.md', contents: 'Z' },
+          { path: 'content/1.a/note.txt', contents: 'T' },
+          { path: 'content/.hidden/h.md', contents: 'H' },
+          { path: 'content/1.a/.dot.md', contents: 'D' },
+          { path: 'other/o.md', contents: 'O' },
+        ],
+        deletions: [],
+      }, auth)
+
+      const files = await store.listTree('content/', await store.head())
+
+      expect(files.map((file) => file.path)).toEqual([
+        'content/1.a/deep/er/z.md',
+        'content/1.a/index.md',
+        'content/2.b/1.x.md',
+        'content/index.md',
+      ])
+      expect(files[1]).toMatchObject({ name: 'index.md', text: 'AI' })
+      expect(await store.listTree('content/none', await store.head())).toEqual([])
+    })
+
     it('gives an empty list for a missing dir and null for a missing file', async () => {
       const store = await make()
       const head = await store.head()

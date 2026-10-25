@@ -100,7 +100,24 @@ export function createFakeGithub(options: FakeGithubOptions = {}) {
     }
   }
 
-  function resolveObject(expression: string) {
+  type Resolved
+    = | {
+ kind: 'blob'
+path: string
+text: string
+}
+      | {
+ kind: 'tree'
+entries: {
+ name: string
+type: 'blob' | 'tree'
+oid: string
+object: unknown
+}[]
+}
+      | null
+
+  function resolveObject(expression: string): Resolved {
     const separator = expression.indexOf(':')
     const oid = expression.slice(0, separator)
     const path = expression.slice(separator + 1).replace(/\/+$/, '')
@@ -129,7 +146,15 @@ object: unknown
         entries.push({ name: rest, type: 'blob', oid: gitBlobSha(text), object: blobNode(filePath, text) })
       } else if (!seen.has(rest.slice(0, slash))) {
         seen.add(rest.slice(0, slash))
-        entries.push({ name: rest.slice(0, slash), type: 'tree', oid: 'tree', object: {} })
+        // A nested query (`... on Tree { entries }`) reads the folder too, so every tree entry
+        // carries its own entries. The flat query does not ask for them.
+        const child = resolveObject(`${oid}:${prefix}${rest.slice(0, slash)}`)
+        entries.push({
+          name: rest.slice(0, slash),
+          type: 'tree',
+          oid: 'tree',
+          object: child?.kind === 'tree' ? { entries: child.entries } : {},
+        })
       }
     }
     return entries.length > 0 ? { kind: 'tree' as const, entries } : null

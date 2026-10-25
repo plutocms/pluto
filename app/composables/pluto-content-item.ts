@@ -45,7 +45,7 @@ export function usePlutoContentItem(
     loadError.value = null
 
     try {
-      item.value = await $fetch<PlutoContentItem>(`/api/_pluto/content/${typeName}/${resolvedId}`)
+      item.value = await $fetch<PlutoContentItem>(`/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`)
     } catch (caught) {
       error.value = caught
       loadError.value = caught
@@ -72,7 +72,7 @@ export function usePlutoContentItem(
             method: 'POST',
             body: values,
           })
-        : await $fetch<PlutoContentItem>(`/api/_pluto/content/${typeName}/${resolvedId}`, {
+        : await $fetch<PlutoContentItem>(`/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`, {
             method: 'PATCH',
             body: values,
           })
@@ -91,7 +91,7 @@ export function usePlutoContentItem(
     }
 
     try {
-      await $fetch(`/api/_pluto/content/${typeName}/${resolvedId}`, { method: 'DELETE' })
+      await $fetch<unknown>(`/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`, { method: 'DELETE' })
     } catch (caught) {
       error.value = caught
       throw caught

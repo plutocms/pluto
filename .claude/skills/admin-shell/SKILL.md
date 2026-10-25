@@ -207,6 +207,19 @@ The trade-off: on a public page, the bar appears after the capabilities load. It
 first paint, even for a backend that can render it on the server. An app that offsets its own
 header with `usePlutoAdminBar()` sees the same delay. If the load fails, the bar stays hidden.
 
+### The height token and the `<html>` marker
+
+- `--pluto-admin-bar-height: 2.5rem` is on `:root` in `pluto-layer.css`. `PlutoNavbarAdmin` (`h-(--pluto-admin-bar-height)`)
+  and the admin layout (the dashboard group `top`) read it. A site that offsets its own header
+  under the bar reads it too.
+- `--ui-header-height: 2.5rem` stays on `:root`, so an existing app does not change. A site with a
+  taller header can set its own `--ui-header-height` (for example for the public pages only) and
+  the admin bar keeps its height.
+- `PlutoRoot` sets `data-pluto-admin-bar="true"` on `<html>` (`useHead` `htmlAttrs`) while
+  `usePlutoAdminBar().visible` is `true`. It is client only: the attribute is never in the server
+  HTML, the same as the bar. A site can write
+  `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
+
 ## What the navbar has
 
 `PlutoAdminNavbar` (in `app/components/Pluto/Admin/`) wraps the `PlutoNavbarAdmin` 40px bar. In

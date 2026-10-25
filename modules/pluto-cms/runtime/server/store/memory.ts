@@ -7,6 +7,10 @@ export interface MemoryStore extends PlutoCmsStore {
   seed: (path: string, text: string) => void
 }
 
+function byPath(a: PlutoCmsFile, b: PlutoCmsFile): number {
+  return a.path < b.path ? -1 : a.path > b.path ? 1 : 0
+}
+
 function parentOf(path: string): string {
   const index = path.lastIndexOf('/')
   return index === -1 ? '' : path.slice(0, index)
@@ -39,6 +43,14 @@ export function createMemoryStore(initial: Record<string, string> = {}): MemoryS
         .filter(([path]) => parentOf(path) === base && path.endsWith('.md'))
         .map(([path, text]) => toFile(path, text))
         .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+    },
+    listTree: async (dir) => {
+      const base = dir.replace(/\/+$/, '')
+      const prefix = base === '' ? '' : `${base}/`
+      return [...files]
+        .filter(([path]) => path.startsWith(prefix) && path.endsWith('.md') && !path.slice(prefix.length).split('/').some((part) => part.startsWith('.')))
+        .map(([path, text]) => toFile(path, text))
+        .sort(byPath)
     },
     readFile: async (path) => {
       const text = files.get(path)

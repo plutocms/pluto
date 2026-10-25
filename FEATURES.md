@@ -17,7 +17,8 @@ policies shared by every project here.
   consumer composables, a server-side content registry and generic list/get/create/update/
   delete routes backed by a `PlutoContentAdapter` a backend layer implements, and a generated
   admin UI (list/form components, eight built-in field widgets, generated
-  `/admin/content/**` pages, and nav/pages derivation). No real adapter yet.
+  `/admin/content/**` pages with catch-all id routes, `contentIdPath`, `listContentTypes`, and nav/pages
+  derivation). No real adapter yet.
   @.claude/skills/content-model/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
@@ -50,10 +51,13 @@ policies shared by every project here.
 - GitHub CMS: an optional standalone CMS with Markdown posts in a GitHub repo. It is off
   by default and refuses to run with the supabase layer. When on, it has GitHub App sign-in, a sealed
   session, a CSRF origin check, the auth driver for the core admin shell, and the stores, adapter and post type.
-  It also has a Markdown editor, public read routes and composables, and `PlutoMarkdown`.
-  @.claude/skills/github-cms/SKILL.md
+  It also has a Markdown editor with a Visual/Source switch (`PlutoMarkdownSource`, `findUnsafeMarkdown`,
+  the `editor` field option), nested content types (`files: { nested, exclude, frontmatter }`, ids that
+  are paths, one-commit moves, `listTree` in all stores, `compareContentIds`), no commit for an
+  unchanged file, push capabilities for every registered type, public read routes and composables,
+  and `PlutoMarkdown`. @.claude/skills/github-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.
   @.claude/skills/extension-registry/SKILL.md
-- Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The admin is for staff only: a signed-in user with no capability goes to `/admin/no-access`. The bar shows on `/admin/**` for staff, and on public pages for staff only. @.claude/skills/admin-shell/SKILL.md
+- Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The admin is for staff only: a signed-in user with no capability goes to `/admin/no-access`. The bar shows on `/admin/**` for staff, and on public pages for staff only. The bar height is the token `--pluto-admin-bar-height`, and `<html>` gets `data-pluto-admin-bar` while the bar shows. @.claude/skills/admin-shell/SKILL.md

@@ -70,16 +70,18 @@ describe('pluto-cms module wiring', () => {
     expect(handler('/api/_pluto/auth/session', 'get')?.handler).toMatch(/api[\\/]auth[\\/]session\.get$/)
   })
 
-  it('adds the public read routes and the PlutoMarkdown component', async () => {
+  it('adds the public read routes and the PlutoMarkdown and PlutoMarkdownSource components', async () => {
     await run({ enabled: true, github: repo })
 
     const posix = (value: unknown) => String(value).replaceAll('\\', '/')
 
     expect(posix(handler('/api/_pluto/cms/:type', 'get')?.handler)).toMatch(/\/api\/public\/\[type\]\/index\.get$/)
     expect(posix(handler('/api/_pluto/cms/:type/:slug', 'get')?.handler)).toMatch(/\/api\/public\/\[type\]\/\[slug\]\.get$/)
-    expect(kitCalls.components).toHaveLength(1)
+    expect(kitCalls.components).toHaveLength(2)
     expect(kitCalls.components[0]).toMatchObject({ name: 'PlutoMarkdown' })
     expect(posix(kitCalls.components[0]!.filePath)).toMatch(/\/app\/components\/Pluto\/Cms\/PlutoMarkdown\.vue$/)
+    expect(kitCalls.components[1]).toMatchObject({ name: 'PlutoMarkdownSource' })
+    expect(posix(kitCalls.components[1]!.filePath)).toMatch(/\/app\/components\/Pluto\/Cms\/PlutoMarkdownSource\.vue$/)
   })
 
   it('adds the origin check as server middleware', async () => {
@@ -122,7 +124,7 @@ describe('pluto-cms module wiring', () => {
       allowedUsers: '',
       githubReadToken: '',
     })
-    expect(Object.keys(nuxt.options.runtimeConfig.public.plutoCms).sort()).toEqual(['appSlug', 'branch', 'dir', 'enabled', 'repo', 'storage'])
+    expect(Object.keys(nuxt.options.runtimeConfig.public.plutoCms).sort()).toEqual(['appSlug', 'branch', 'dir', 'enabled', 'postType', 'repo', 'storage'])
   })
 
   it('gives the project root to the dev fs store only', async () => {

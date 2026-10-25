@@ -34,6 +34,11 @@ export function getContentType(name: string): PlutoContentType | undefined {
   return contentTypes.get(name)
 }
 
+/** Every registered content type, in registration order. */
+export function listContentTypes(): PlutoContentType[] {
+  return [...contentTypes.values()]
+}
+
 /** Replaces whatever adapter was registered before. Last-registered wins, the same rule `mediaAdapters`/`settingsDrivers` use client-side. */
 export function registerContentAdapter(adapter: PlutoContentAdapter): void {
   contentAdapter = adapter

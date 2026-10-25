@@ -32,6 +32,11 @@ auth?: PlutoCmsAuth
 }) => Promise<string>
   /** The `.md` files directly in `dir`, sorted by name. A missing dir gives `[]`. */
   listDir: (dir: string, headOid: string, auth?: PlutoCmsAuth) => Promise<PlutoCmsFile[]>
+  /**
+   * Every `.md` file under `dir`, at any depth (the adapter sets the depth limit), sorted by
+   * path. A missing dir gives `[]`. Dot dirs and dot files are not listed.
+   */
+  listTree: (dir: string, headOid: string, auth?: PlutoCmsAuth) => Promise<PlutoCmsFile[]>
   readFile: (path: string, headOid: string, auth?: PlutoCmsAuth) => Promise<PlutoCmsFile | null>
   /** Throws a `PlutoCmsConflictError` when `expectedHeadOid` is stale. */
   commit: (input: PlutoCmsCommitInput, auth: PlutoCmsAuth) => Promise<{

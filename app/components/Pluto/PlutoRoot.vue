@@ -59,6 +59,15 @@ useHead(
     : {}))
 )
 
+// `data-pluto-admin-bar` marks <html> while the admin bar shows, so a site can
+// offset its own header only then. It is client only: the bar is never in the
+// server HTML (see `usePlutoAdminBar`).
+useHead({
+  htmlAttrs: {
+    'data-pluto-admin-bar': computed(() => (import.meta.client && adminBar.visible.value ? 'true' : undefined)),
+  },
+})
+
 useHead({
   htmlAttrs: {
     lang: computed(() => (managesLang.value ? active.value.locale.value : undefined)),

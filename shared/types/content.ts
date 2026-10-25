@@ -53,6 +53,13 @@ export interface PlutoTextField extends PlutoFieldBase {
   rows?: number
   /** Only for `textarea`. The box grows with the text up to this many rows, then it scrolls. Default 14. */
   maxRows?: number
+  /**
+   * Only for `richtext` in the GitHub CMS (the Markdown widget). `'visual'` opens the rich editor. `'source'` opens the
+   * raw Markdown text. `'auto'` (default) opens the source when the text has syntax that the rich editor
+   * cannot keep (MDC, HTML, tables, task lists, footnotes). The widget has a Visual/Source switch, and it
+   * disables Visual while the text has such syntax.
+   */
+  editor?: 'auto' | 'visual' | 'source'
 }
 
 export interface PlutoSlugField extends PlutoFieldBase {
@@ -231,6 +238,11 @@ export interface PlutoContentType {
     width?: 'container' | 'full'
   }
   /**
+   * Options for the file adapters (the GitHub CMS). Other adapters ignore them. Every member is
+   * plain data or a pure function, so the definition is safe on the server and on the client.
+   */
+  files?: PlutoContentFiles
+  /**
    * Server-only lifecycle hooks, run by the generic write handlers
    * (`server/utils/pluto-content-handlers.ts`) after the adapter call
    * succeeds and before the response goes out. Lets a layer with extra
@@ -242,6 +254,32 @@ export interface PlutoContentType {
   hooks?: {
     afterCreate?: (ctx: PlutoContentContext, item: PlutoContentItem, rawBody: Record<string, unknown>) => Promise<void> | void
     afterUpdate?: (ctx: PlutoContentContext, item: PlutoContentItem, rawBody: Record<string, unknown>) => Promise<void> | void
+  }
+}
+
+/** How a file adapter stores one content type. See `PlutoContentType.files`. */
+export interface PlutoContentFiles {
+  /**
+   * Store the items in nested folders. The id is the path under the type dir, without `.md`
+   * (for example `1.start/2.install`). Each segment is a lowercase slug with an optional numeric
+   * prefix (`2.install`). A path has at most 6 segments. With `nested`, `source` can be `''`: the
+   * type then uses the content dir itself. Default false (flat: `<source>/<slug>.md`).
+   */
+  nested?: boolean
+  /**
+   * Items that the type must not list or edit. Only for nested types. Each entry is an id
+   * (`index`), or a folder with a trailing slash (`drafts/`) that covers every id under it.
+   */
+  exclude?: string[]
+  /**
+   * Maps the frontmatter between the file and the fields. Both functions must be pure. They get a
+   * copy: return the object to use. A field that a hook maps uses a flat key as its `column`.
+   */
+  frontmatter?: {
+    /** Runs after a file is parsed. Add the flat keys that the fields read, for example `navigationTitle` from `navigation.title`. */
+    read?: (frontmatter: Record<string, unknown>) => Record<string, unknown>
+    /** Runs before a file is written. Fold the flat keys back, and drop them. Unknown keys must stay. */
+    write?: (frontmatter: Record<string, unknown>) => Record<string, unknown>
   }
 }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EditorToolbarItem } from '@nuxt/ui'
+import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 
 // The `richtext` widget of the standalone CMS. It edits a Markdown string with
 // the Nuxt UI editor (Tiptap). The model value is the Markdown text, so the
@@ -7,9 +8,12 @@ import type { EditorToolbarItem } from '@nuxt/ui'
 // widget in CMS mode only, and loads it with `defineAsyncComponent`, so
 // Tiptap loads on the edit page only.
 //
-// The editor knows the CommonMark parts and strikethrough. It has no node for
-// a table, a task list or raw HTML. A post that uses them keeps the text, but
-// the editor can lose the markup when it saves. See the github-cms skill.
+// The visual editor knows the CommonMark parts and strikethrough. It has no
+// node for MDC, a table, a task list or raw HTML, and it can lose that markup
+// when it saves. So the widget has a Source mode (`PlutoMarkdownSource`). The
+// `editor` option of the field picks the first mode: `auto` (default) opens
+// Source when the text has such syntax. Visual is off while the text has it.
+// See the github-cms skill.
 const props = defineProps<{
   field: PlutoTextField
   modelValue: unknown
@@ -23,6 +27,20 @@ const emit = defineEmits<{
 const { t } = usePlutoI18n()
 
 const value = computed(() => (typeof props.modelValue === 'string' ? props.modelValue : ''))
+
+// The Markdown that the visual editor cannot keep. It follows the text, so
+// Visual turns on again when the author removes that syntax in Source.
+const unsafe = computed(() => findUnsafeMarkdown(value.value))
+const visualBlocked = computed(() => unsafe.value.length > 0)
+
+const mode = ref<'visual' | 'source'>(pickMarkdownEditorMode(props.field.editor, value.value))
+
+function setMode(next: 'visual' | 'source') {
+  if (next === 'visual' && visualBlocked.value) {
+    return
+  }
+  mode.value = next
+}
 
 const placeholder = computed(() => props.field.placeholder ?? t('pluto.cms.editor.placeholder'))
 
@@ -69,9 +87,49 @@ const items = computed<EditorToolbarItem[][]>(() => [
 
 <template>
   <UFormField :label="field.label" :description="field.description" :required="field.required">
+    <div class="mb-2 flex justify-end">
+      <div :aria-label="t('pluto.cms.editor.mode')" class="flex gap-1" role="group">
+        <UTooltip :text="t('pluto.cms.editor.unsafe')" :disabled="!visualBlocked" :content="{ side: 'top' }">
+          <!-- A disabled button gets no pointer events, so the span carries the tooltip. -->
+          <span class="inline-flex">
+            <UButton
+              :variant="mode === 'visual' ? 'solid' : 'outline'"
+              :aria-pressed="mode === 'visual'"
+              :disabled="visualBlocked || disabled"
+              :label="t('pluto.cms.editor.visual')"
+              size="xs"
+              color="neutral"
+              icon="i-lucide-pen-line"
+              @click="setMode('visual')"
+            />
+          </span>
+        </UTooltip>
+        <UButton
+          :variant="mode === 'source' ? 'solid' : 'outline'"
+          :aria-pressed="mode === 'source'"
+          :disabled="disabled"
+          :label="t('pluto.cms.editor.source')"
+          size="xs"
+          color="neutral"
+          icon="i-lucide-file-code"
+          @click="setMode('source')"
+        />
+      </div>
+    </div>
+
+    <PlutoMarkdownSource
+      v-if="mode === 'source'"
+      :model-value="value"
+      :disabled="disabled"
+      :placeholder="placeholder"
+      :aria-label="field.label"
+      @update:model-value="emit('update:modelValue', $event)"
+    />
+
     <!-- The editor root is a bordered box. The editable area has a minimum
          height, so a click anywhere in the box puts the cursor in the text. -->
     <UEditor
+      v-else
       v-slot="{ editor }"
       :model-value="value"
       :editable="!disabled"

@@ -41,6 +41,23 @@ object?: BlobNode | null
   } | null
 }
 
+interface TreeNode {
+  name: string
+  type: string
+  oid: string
+  object?: (BlobNode & {
+ entries?: TreeNode[]
+}) | null
+}
+
+interface NestedTreeQueryData {
+  repository: {
+    object: {
+      entries?: TreeNode[]
+    } | null
+  } | null
+}
+
 interface BlobQueryData {
   repository: {
  object: BlobNode | null
@@ -63,6 +80,27 @@ const TREE_QUERY = `query PlutoCmsTree($owner: String!, $name: String!, $express
     }
   }
 }`
+
+/** The deepest folder level that the nested tree query reads. It matches the 6 segments of a nested id. */
+const TREE_DEPTH = 6
+
+/** One GraphQL query for the whole tree: a nested `... on Tree { entries }`, `TREE_DEPTH` levels deep. */
+function buildNestedTreeQuery(depth: number): string {
+  let level = ''
+  for (let index = 0; index < depth; index++) {
+    const inner = level === '' ? '' : ` ... on Tree { ${level} }`
+    level = `entries { name type oid object { ... on Blob { text byteSize isBinary isTruncated }${inner} } }`
+  }
+  return `query PlutoCmsNestedTree($owner: String!, $name: String!, $expression: String!) {
+  repository(owner: $owner, name: $name) {
+    object(expression: $expression) {
+      ... on Tree { ${level} }
+    }
+  }
+}`
+}
+
+const NESTED_TREE_QUERY = buildNestedTreeQuery(TREE_DEPTH)
 
 const BLOB_QUERY = `query PlutoCmsBlob($owner: String!, $name: String!, $expression: String!) {
   repository(owner: $owner, name: $name) {
@@ -168,6 +206,40 @@ export function createGithubStore(options: GithubStoreOptions): PlutoCmsStore {
         }
         files.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
         await cache.setIndex(base, headOid, files)
+        return files
+      })
+    },
+
+    async listTree(dir, headOid, auth) {
+      const base = dir.replace(/\/+$/, '')
+      const cacheDir = `tree:${base}`
+      const cached = await cache.getIndex<PlutoCmsFile[]>(cacheDir, headOid)
+      if (cached) {
+        return cached
+      }
+      return cache.singleFlight(`${cacheDir}@${headOid}`, async () => {
+        const data = await githubGraphql<NestedTreeQueryData>(
+          NESTED_TREE_QUERY,
+          { owner, name, expression: `${headOid}:${base}` },
+          { token: await tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
+        )
+        const files: PlutoCmsFile[] = []
+        const visit = (entries: TreeNode[] | undefined, parent: string) => {
+          for (const entry of entries ?? []) {
+            const path = parent === '' ? entry.name : `${parent}/${entry.name}`
+            if (entry.name.startsWith('.')) {
+              continue
+            }
+            if (entry.type === 'tree') {
+              visit(entry.object?.entries, path)
+            } else if (entry.type === 'blob' && entry.name.endsWith('.md') && usable(entry.object, path)) {
+              files.push({ path, name: entry.name, oid: entry.oid, text: entry.object.text })
+            }
+          }
+        }
+        visit(data.repository?.object?.entries, base)
+        files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
+        await cache.setIndex(cacheDir, headOid, files)
         return files
       })
     },

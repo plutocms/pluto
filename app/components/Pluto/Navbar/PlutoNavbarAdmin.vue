@@ -8,7 +8,7 @@
     See admin-theme.css.
   -->
   <nav
-    class="text-default fixed inset-0 z-50 h-(--ui-header-height) shrink-0 border-b border-default bg-(--pluto-admin-navbar)"
+    class="text-default fixed inset-0 z-50 h-(--pluto-admin-bar-height) shrink-0 border-b border-default bg-(--pluto-admin-navbar)"
     data-pluto-admin-scope
     data-pluto-admin-dark
   >
