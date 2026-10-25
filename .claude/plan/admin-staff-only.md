@@ -1,9 +1,9 @@
 # Admin access for staff only
 
-Status: in progress (planned together with `plutocms/.claude/plan/settings-users-roles.md`)
+Status: done
 Started: 2026-10-22
 Projects: pluto (admin shell), supabase (auth driver), maybe the GitHub CMS driver
-Branch / PR: fix/admin-staff-only (no PR yet)
+Branch / PR: fix/admin-staff-only, #196 (released as 0.17.1)
 
 ## Context
 
@@ -33,7 +33,7 @@ Branch / PR: fix/admin-staff-only (no PR yet)
 - [x] Read the admin-shell guard and the staff check for the public navbar.
 - [x] Plan the change (UI guard only; the server already checks every request).
 - [x] Implement (unit tests pass; the manual test with a staff user and a no-role user is for the user).
-- [ ] Release (pluto 0.17.1).
+- [x] Release (pluto 0.17.1, #196).
 
 ## Log
 
@@ -42,3 +42,5 @@ Branch / PR: fix/admin-staff-only (no PR yet)
   guard step, `/admin/no-access`, i18n, tests, docs. Lint, typecheck and tests pass. Not committed.
   A non-staff user goes to the core no-access page (decision of the user). Next: manual test by the
   user, then commit and release.
+- 2026-10-25: released in pluto 0.17.1 (#196). The user checked it in a consumer app: a user with no
+  role lands on `/admin/no-access`.
