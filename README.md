@@ -106,8 +106,7 @@ Feature layers add domain-specific functionality on top of backend layers.
   `@plutocms/supabase-storage` and `@plutocms/ui`.
 - `@plutocms/nuxt-content`
   Edits the Markdown files of a [Nuxt Content](https://content.nuxt.com/) site through the
-  standalone GitHub CMS. It brings `@plutocms/pluto`. Version 0.1.0 is tagged. The npm publish
-  is pending.
+  standalone GitHub CMS. It brings `@plutocms/pluto`.
 
 ### Shared packages
 
