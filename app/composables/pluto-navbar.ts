@@ -77,7 +77,7 @@ export function usePlutoAdminBar() {
       // render matches the server HTML. The admin rule does not read it.
       capabilitiesKnown: capabilitiesKnown.value && mounted.value,
       publicPaths: publicPaths.value,
-      hiddenByRoute: route.meta.plutoAdminBar === false,
+      hiddenByRoute: route.meta.plutoAdminBar === false || isPlutoPreviewPath(route.path),
     })
   )
 

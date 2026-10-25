@@ -158,16 +158,12 @@ describe('navbarVisible', () => {
     expect(navbarVisible({ ...base, path: '/', isStaff: false, capabilitiesKnown: false })).toBe(false)
   })
 
-  it('hides when the route has the page meta plutoAdminBar false', () => {
+  it('hides when the route hides the bar (hiddenByRoute)', () => {
     expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: true })).toBe(false)
     expect(navbarVisible({ ...base, path: '/admin/home', hiddenByRoute: true })).toBe(false)
     expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: false })).toBe(true)
   })
 
-  it('hides on the preview path for staff', () => {
-    expect(navbarVisible({ ...base, path: '/_pluto/preview' })).toBe(false)
-    expect(navbarVisible({ ...base, path: '/_pluto/preview/page' })).toBe(false)
-  })
 })
 
 describe('isPlutoPreviewPath', () => {

@@ -2,7 +2,6 @@
 // navbar visibility. This file lives under `internal/` so it stays out of
 // auto-import and runs under plain Vitest. It imports no Nuxt API.
 import type { PlutoAuthPublicPath, PlutoAuthUser } from '../../../shared/types/registry'
-import { isPlutoPreviewPath } from '../../../shared/utils/preview-path'
 
 export const ADMIN_LOGIN_PATH = '/admin/login'
 export const ADMIN_HOME_PATH = '/admin/home'
@@ -207,7 +206,7 @@ export interface NavbarVisibleInput {
   /** The capabilities finished loading in the browser. */
   capabilitiesKnown: boolean
   publicPaths: PlutoAuthPublicPath[]
-  /** The route has the page meta `plutoAdminBar: false`. */
+  /** The route hides the bar: the page meta `plutoAdminBar: false`, or the preview path. */
   hiddenByRoute?: boolean
 }
 
@@ -218,12 +217,13 @@ export interface NavbarVisibleInput {
  * and only after the capabilities are known. This keeps a shop customer from
  * seeing the bar, even for a moment, and keeps the server HTML free of it.
  *
- * A route can opt out with the page meta `plutoAdminBar: false`. The preview
- * path (`isPlutoPreviewPath`) always opts out.
+ * A route can opt out with the page meta `plutoAdminBar: false`, and the preview
+ * path (`isPlutoPreviewPath`) always opts out. `usePlutoAdminBar` reads both and
+ * passes `hiddenByRoute`. This file stays free of Nuxt imports.
  */
 export function navbarVisible(input: NavbarVisibleInput): boolean {
   const { path, loggedIn, isStaff: isStaffUser, capabilitiesKnown, publicPaths, hiddenByRoute } = input
-  if (!loggedIn || hiddenByRoute || isPlutoPreviewPath(path)) {
+  if (!loggedIn || hiddenByRoute) {
     return false
   }
   if (isAdminPath(path)) {
