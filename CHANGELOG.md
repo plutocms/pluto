@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.20.2](https://github.com/plutocms/pluto/compare/v0.20.1...v0.20.2) (2026-10-25)
+
+
+### Bug Fixes
+
+* **i18n:** keep the admin language on a reload of the admin ([#211](https://github.com/plutocms/pluto/issues/211)) ([3ecaa13](https://github.com/plutocms/pluto/commit/3ecaa13c5c39c1fe3601e8a9f68d6cd3a9e3a0a4))
+
 ## [0.20.1](https://github.com/plutocms/pluto/compare/v0.20.0...v0.20.1) (2026-10-25)
 
 
