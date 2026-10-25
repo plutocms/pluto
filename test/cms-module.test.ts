@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe('pluto-cms module wiring', () => {
   it('adds nothing when disabled', async () => {
-    const nuxt = await run({})
+    const nuxt = await run({ enabled: false })
 
     expect(countKitCalls()).toBe(0)
     expect(nuxt.options.runtimeConfig).toEqual({ public: {} })
@@ -45,6 +45,34 @@ describe('pluto-cms module wiring', () => {
 
   it('adds nothing when explicitly disabled', async () => {
     await run({ enabled: false, github: repo })
+
+    expect(countKitCalls()).toBe(0)
+  })
+
+  it('adds nothing in auto mode with a layer marked as a backend', async () => {
+    await run({ github: repo }, { _layers: [{ config: { $meta: { name: 'my-backend', plutoBackend: true } } }] })
+
+    expect(countKitCalls()).toBe(0)
+  })
+
+  it('adds nothing in auto mode with the supabase module', async () => {
+    await run({ github: repo }, { modules: [['@nuxtjs/supabase', {}]] })
+
+    expect(countKitCalls()).toBe(0)
+  })
+
+  it('turns on by default when there is no backend layer', async () => {
+    const nuxt = await run({ github: repo })
+
+    expect(nuxt.options.runtimeConfig.public.plutoCms.enabled).toBe(true)
+  })
+
+  it('stays off in production with no repo', async () => {
+    vi.stubEnv('PLUTO_CMS_REPO', '')
+    vi.stubEnv('NUXT_PLUTO_CMS_GITHUB_REPO', '')
+    vi.stubEnv('VERCEL_GIT_REPO_OWNER', '')
+    await run({})
+    vi.unstubAllEnvs()
 
     expect(countKitCalls()).toBe(0)
   })

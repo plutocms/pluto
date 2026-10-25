@@ -8,19 +8,49 @@ import {
 
 vi.mock('@nuxt/kit', async (importOriginal) => (await import('./fixtures/kit-mock')).kitMock(await importOriginal<object>()))
 
-const ctx = { dev: false, hasSupabaseLayer: false }
+const ctx = { dev: false, hasBackendLayer: false }
+const dev = { ...ctx, dev: true }
 const repo = { repo: 'acme/site' }
 
 describe('resolvePlutoCmsOptions', () => {
-  it('is disabled by default, with no errors', () => {
-    const result = resolvePlutoCmsOptions({}, ctx)
+  it('is disabled by false, with no errors', () => {
+    const result = resolvePlutoCmsOptions({ enabled: false }, ctx)
 
     expect(result.enabled).toBe(false)
     expect(result.errors).toEqual([])
   })
 
+  it('is on by default when there is no backend layer', () => {
+    const result = resolvePlutoCmsOptions({ github: repo }, ctx)
+
+    expect(result.errors).toEqual([])
+    expect(result.enabled).toBe(true)
+  })
+
+  it('accepts "auto" and is on with no backend layer', () => {
+    const result = resolvePlutoCmsOptions({ enabled: 'auto', github: repo }, ctx)
+
+    expect(result.enabled).toBe(true)
+  })
+
+  it('is off with no log in auto mode when a backend layer is present', () => {
+    for (const enabled of [undefined, 'auto'] as const) {
+      const result = resolvePlutoCmsOptions({ enabled, github: repo }, { ...ctx, hasBackendLayer: true })
+
+      expect(result.enabled).toBe(false)
+      expect(result.errors).toEqual([])
+    }
+  })
+
+  it('rejects a value that is not true, false or "auto"', () => {
+    const result = resolvePlutoCmsOptions({ enabled: 'yes' as never }, ctx)
+
+    expect(result.enabled).toBe(false)
+    expect(result.errors).toHaveLength(1)
+  })
+
   it('stays silent when disabled, even with a supabase layer', () => {
-    const result = resolvePlutoCmsOptions({ enabled: false }, { ...ctx, hasSupabaseLayer: true })
+    const result = resolvePlutoCmsOptions({ enabled: false }, { ...ctx, hasBackendLayer: true })
 
     expect(result.enabled).toBe(false)
     expect(result.errors).toEqual([])
@@ -60,7 +90,7 @@ describe('resolvePlutoCmsOptions', () => {
   })
 
   it('refuses to run with the supabase layer', () => {
-    const result = resolvePlutoCmsOptions({ enabled: true, github: repo }, { ...ctx, hasSupabaseLayer: true })
+    const result = resolvePlutoCmsOptions({ enabled: true, github: repo }, { ...ctx, hasBackendLayer: true })
 
     expect(result.enabled).toBe(false)
     expect(result.errors).toEqual([SUPABASE_CONFLICT_ERROR])
@@ -160,5 +190,85 @@ describe('pluto-cms module', () => {
 
     expect(nuxt.options.runtimeConfig.public.plutoCms).toMatchObject({ enabled: true, repo: 'acme/site', dir: 'content' })
     expect(nuxt.options.runtimeConfig.plutoCms.githubPrivateKey).toBe('')
+  })
+})
+
+describe('resolvePlutoCmsOptions defaults', () => {
+  it('uses fs in dev and github in production', () => {
+    expect(resolvePlutoCmsOptions({}, dev).resolved.storage).toBe('fs')
+    expect(resolvePlutoCmsOptions({ github: repo }, ctx).resolved.storage).toBe('github')
+  })
+
+  it('keeps an explicit storage', () => {
+    expect(resolvePlutoCmsOptions({ storage: 'github', github: repo }, dev).resolved.storage).toBe('github')
+  })
+
+  it('reads the storage from PLUTO_CMS_STORAGE, below an explicit option', () => {
+    const env = { PLUTO_CMS_STORAGE: 'github' }
+
+    expect(resolvePlutoCmsOptions({ github: repo }, { ...dev, env }).resolved.storage).toBe('github')
+    expect(resolvePlutoCmsOptions({ storage: 'fs' }, { ...dev, env }).resolved.storage).toBe('fs')
+  })
+
+  it('is on in dev with no repo, because fs needs none', () => {
+    const result = resolvePlutoCmsOptions({}, dev)
+
+    expect(result.errors).toEqual([])
+    expect(result.enabled).toBe(true)
+  })
+
+  it('reads the repo from NUXT_PLUTO_CMS_GITHUB_REPO, then PLUTO_CMS_REPO', () => {
+    const both = { NUXT_PLUTO_CMS_GITHUB_REPO: 'a/one', PLUTO_CMS_REPO: 'b/two' }
+
+    expect(resolvePlutoCmsOptions({}, { ...ctx, env: both }).resolved.github.repo).toBe('a/one')
+    expect(resolvePlutoCmsOptions({}, { ...ctx, env: { PLUTO_CMS_REPO: 'b/two' } }).resolved.github.repo).toBe('b/two')
+  })
+
+  it('reads the repo from the Vercel env vars after the explicit env vars', () => {
+    const vercel = { VERCEL_GIT_REPO_OWNER: 'acme', VERCEL_GIT_REPO_SLUG: 'site' }
+
+    expect(resolvePlutoCmsOptions({}, { ...ctx, env: vercel }).resolved.github.repo).toBe('acme/site')
+    expect(resolvePlutoCmsOptions({}, { ...ctx, env: { ...vercel, PLUTO_CMS_REPO: 'b/two' } }).resolved.github.repo).toBe('b/two')
+    expect(resolvePlutoCmsOptions({}, { ...ctx, env: { VERCEL_GIT_REPO_OWNER: 'acme' } }).resolved.github.repo).toBe('')
+  })
+
+  it('reads the repo from the git remote in dev only', () => {
+    const gitOrigin = 'git@github.com:acme/site.git'
+
+    expect(resolvePlutoCmsOptions({}, { ...dev, gitOrigin }).resolved.github.repo).toBe('acme/site')
+    expect(resolvePlutoCmsOptions({}, { ...ctx, gitOrigin }).resolved.github.repo).toBe('')
+  })
+
+  it('ignores a git remote that is not on GitHub', () => {
+    const result = resolvePlutoCmsOptions({}, { ...dev, gitOrigin: 'https://gitlab.com/acme/site.git' })
+
+    expect(result.resolved.github.repo).toBe('')
+  })
+
+  it('lets the explicit repo win over every default', () => {
+    const env = { PLUTO_CMS_REPO: 'b/two' }
+    const result = resolvePlutoCmsOptions({ github: repo }, { ...dev, env, gitOrigin: 'git@github.com:c/three.git' })
+
+    expect(result.resolved.github.repo).toBe('acme/site')
+  })
+
+  it('stays off with one clear error in production with no repo', () => {
+    const result = resolvePlutoCmsOptions({}, ctx)
+
+    expect(result.enabled).toBe(false)
+    expect(result.errors).toHaveLength(1)
+    expect(result.errors[0]).toContain('needs a GitHub repo')
+  })
+
+  it('reads the app slug from the env, below an explicit option', () => {
+    const env = { PLUTO_CMS_APP_SLUG: 'from-env' }
+
+    expect(resolvePlutoCmsOptions({ github: repo }, { ...ctx, env }).resolved.github.appSlug).toBe('from-env')
+    expect(resolvePlutoCmsOptions({ github: { ...repo, appSlug: 'mine' } }, { ...ctx, env }).resolved.github.appSlug).toBe('mine')
+    expect(resolvePlutoCmsOptions({ github: repo }, { ...ctx, env: { NUXT_PLUTO_CMS_GITHUB_APP_SLUG: 'nuxt-env' } }).resolved.github.appSlug).toBe('nuxt-env')
+  })
+
+  it('defaults the branch to main', () => {
+    expect(resolvePlutoCmsOptions({ github: repo }, ctx).resolved.github.branch).toBe('main')
   })
 })

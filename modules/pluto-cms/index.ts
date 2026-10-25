@@ -9,12 +9,15 @@ import {
   defineNuxtModule,
   useLogger,
 } from '@nuxt/kit'
+import { readGitOrigin } from './git-remote'
 import { PLUTO_CMS_SECRET_ENV, resolvePlutoCmsOptions } from './options'
 
 export type { PlutoCmsOptions } from './options'
 
 interface LayerMeta {
   name?: string
+  /** A backend layer sets this to `true`, so the standalone CMS stays off. */
+  plutoBackend?: boolean
 }
 
 interface LayerConfigMeta {
@@ -23,31 +26,39 @@ interface LayerConfigMeta {
 
 /**
  * The optional standalone CMS: Markdown posts in a GitHub repo, edited in the
- * Pluto admin. It is OFF unless the app sets `plutoCms.enabled: true`. It
- * refuses to run with the supabase layer. When it is off, the module adds
- * nothing to the app. See the github-cms skill.
+ * Pluto admin. `plutoCms.enabled` is `'auto'` by default: the CMS is on unless
+ * a backend layer is present or the app sets `false`. An explicit `true` with a
+ * backend layer logs an error. When the CMS is off, the module adds nothing to
+ * the app. See the github-cms skill.
  */
 export default defineNuxtModule<PlutoCmsOptions>({
   meta: { name: 'pluto-cms', configKey: 'plutoCms' },
-  defaults: { enabled: false },
+  defaults: { enabled: 'auto' },
   setup(options, nuxt) {
-    // Off by default. Return before any other work.
-    if (!options.enabled) {
+    // Off when the app says so. Return before any other work.
+    if (options.enabled === false) {
       return
     }
 
     const logger = useLogger('pluto-cms')
 
-    // A supabase app uses the `supabase` layer or the `@nuxtjs/supabase` module.
+    // A backend app uses the `supabase` layer, the `@nuxtjs/supabase` module, or
+    // a layer with `$meta.plutoBackend: true`.
     const layers = nuxt.options._layers ?? []
     const modules = (nuxt.options.modules ?? []).map((entry) => Array.isArray(entry) ? entry[0] : entry)
-    const hasSupabaseLayer
-      = layers.some((layer) => (layer.config as LayerConfigMeta | undefined)?.$meta?.name === 'supabase')
-        || modules.includes('@nuxtjs/supabase')
+    const hasBackendLayer
+      = layers.some((layer) => {
+        const meta = (layer.config as LayerConfigMeta | undefined)?.$meta
+        return meta?.name === 'supabase' || meta?.plutoBackend === true
+      })
+      || modules.includes('@nuxtjs/supabase')
 
     const { enabled, resolved, warnings, errors } = resolvePlutoCmsOptions(options, {
       dev: nuxt.options.dev,
-      hasSupabaseLayer,
+      hasBackendLayer,
+      env: process.env,
+      // The git remote is a dev-only default for the repo. No shell call.
+      gitOrigin: nuxt.options.dev ? readGitOrigin(nuxt.options.rootDir) : undefined,
     })
 
     if (!nuxt.options._prepare) {
@@ -55,8 +66,11 @@ export default defineNuxtModule<PlutoCmsOptions>({
         logger.warn(warning)
       }
     }
-    for (const error of errors) {
-      logger.error(error)
+    // `nuxt prepare` runs in every install. An auto-enabled CMS stays quiet there.
+    if (!(options.enabled === 'auto' && nuxt.options._prepare)) {
+      for (const error of errors) {
+        logger.error(error)
+      }
     }
     if (!enabled) {
       return

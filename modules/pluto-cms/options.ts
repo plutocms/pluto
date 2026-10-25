@@ -1,14 +1,24 @@
+import { parseGithubRepoUrl } from './git-remote'
+
 export interface PlutoCmsOptions {
-  /** Turns the standalone CMS on. Default `false`. */
-  enabled?: boolean
-  /** Where the posts live. `fs` is valid in dev only. Default `github`. */
+  /**
+   * `'auto'` (the default) turns the CMS on unless a backend layer is present.
+   * `true` turns it on and logs an error when a backend layer is present.
+   * `false` turns it off.
+   */
+  enabled?: boolean | 'auto'
+  /** Where the posts live. `fs` is valid in dev only. Default `fs` in dev, `github` in production. */
   storage?: 'github' | 'fs'
   github?: {
-    /** The repo as `owner/name`. Required when storage is `github`. */
+    /**
+     * The repo as `owner/name`. Required when storage is `github`. Default: the env var
+     * `NUXT_PLUTO_CMS_GITHUB_REPO` or `PLUTO_CMS_REPO`, then Vercel's repo, then (dev only)
+     * the `origin` remote of the local git repo.
+     */
     repo?: string
     /** Default `main`. */
     branch?: string
-    /** The slug of the GitHub App editors sign in with. */
+    /** The slug of the GitHub App editors sign in with. Default: `NUXT_PLUTO_CMS_GITHUB_APP_SLUG` or `PLUTO_CMS_APP_SLUG`. */
     appSlug?: string
     /** Default `https://api.github.com`. */
     apiUrl?: string
@@ -53,7 +63,12 @@ export interface ResolvedPlutoCmsOptions {
 
 export interface PlutoCmsResolveContext {
   dev: boolean
-  hasSupabaseLayer: boolean
+  /** A backend layer is present: the supabase layer, `@nuxtjs/supabase`, or a layer with `$meta.plutoBackend`. */
+  hasBackendLayer: boolean
+  /** The env vars to read the defaults from. The module passes `process.env`. */
+  env?: Record<string, string | undefined>
+  /** The URL of the `origin` git remote. The module reads it in dev only. */
+  gitOrigin?: string
 }
 
 export interface PlutoCmsResolveResult {
@@ -107,13 +122,17 @@ export function resolvePlutoCmsOptions(
 ): PlutoCmsResolveResult {
   const warnings: string[] = []
   const errors: string[] = []
+  const env = ctx.env ?? {}
+  const fromEnv = (...names: string[]) => names.map((name) => env[name]?.trim()).find(Boolean)
 
   const resolved: ResolvedPlutoCmsOptions = {
-    storage: options.storage ?? 'github',
+    storage: options.storage
+      ?? (fromEnv('PLUTO_CMS_STORAGE') as ResolvedPlutoCmsOptions['storage'] | undefined)
+      ?? (ctx.dev ? 'fs' : 'github'),
     github: {
-      repo: options.github?.repo ?? '',
+      repo: options.github?.repo || detectRepo(ctx, fromEnv),
       branch: options.github?.branch ?? 'main',
-      appSlug: options.github?.appSlug ?? '',
+      appSlug: options.github?.appSlug ?? fromEnv('NUXT_PLUTO_CMS_GITHUB_APP_SLUG', 'PLUTO_CMS_APP_SLUG') ?? '',
       apiUrl: (options.github?.apiUrl ?? 'https://api.github.com').replace(/\/+$/, ''),
     },
     dir: 'content',
@@ -126,12 +145,20 @@ export function resolvePlutoCmsOptions(
     postType: options.postType ?? true,
   }
 
-  if (!options.enabled) {
+  const mode = options.enabled ?? 'auto'
+  if (mode === false) {
+    return { enabled: false, resolved, warnings, errors }
+  }
+  if (mode !== true && mode !== 'auto') {
+    errors.push(`plutoCms.enabled must be true, false or "auto". Got "${String(mode)}".`)
     return { enabled: false, resolved, warnings, errors }
   }
 
-  if (ctx.hasSupabaseLayer) {
-    errors.push(SUPABASE_CONFLICT_ERROR)
+  if (ctx.hasBackendLayer) {
+    // `auto` steps aside without a log. An explicit `true` is a mistake.
+    if (mode === true) {
+      errors.push(SUPABASE_CONFLICT_ERROR)
+    }
     return { enabled: false, resolved, warnings, errors }
   }
 
@@ -139,6 +166,11 @@ export function resolvePlutoCmsOptions(
     errors.push(`plutoCms.storage must be "github" or "fs". Got "${String(resolved.storage)}".`)
   } else if (resolved.storage === 'fs' && !ctx.dev) {
     errors.push('plutoCms.storage "fs" works in dev only. Use "github" for a build.')
+  } else if (resolved.storage === 'github' && !resolved.github.repo) {
+    errors.push(
+      'The standalone CMS needs a GitHub repo. Set plutoCms.github.repo, or the PLUTO_CMS_REPO env var. '
+      + 'Set plutoCms.enabled to false to turn the CMS off.'
+    )
   } else if (resolved.storage === 'github' && !REPO_PATTERN.test(resolved.github.repo)) {
     errors.push(`plutoCms.github.repo must look like "owner/name". Got "${resolved.github.repo}".`)
   }
@@ -163,4 +195,21 @@ export function resolvePlutoCmsOptions(
   }
 
   return { enabled: errors.length === 0, resolved, warnings, errors }
+}
+
+/** The default repo: env vars, then Vercel, then (dev only) the git remote. */
+function detectRepo(
+  ctx: PlutoCmsResolveContext,
+  fromEnv: (...names: string[]) => string | undefined
+): string {
+  const explicit = fromEnv('NUXT_PLUTO_CMS_GITHUB_REPO', 'PLUTO_CMS_REPO')
+  if (explicit) {
+    return explicit
+  }
+  const owner = fromEnv('VERCEL_GIT_REPO_OWNER')
+  const slug = fromEnv('VERCEL_GIT_REPO_SLUG')
+  if (owner && slug) {
+    return `${owner}/${slug}`
+  }
+  return ctx.dev && ctx.gitOrigin ? (parseGithubRepoUrl(ctx.gitOrigin) ?? '') : ''
 }
