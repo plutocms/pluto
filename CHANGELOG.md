@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.20.1](https://github.com/plutocms/pluto/compare/v0.20.0...v0.20.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **admin:** draw the Pluto logo inline so the wordmark shows in light mode ([#209](https://github.com/plutocms/pluto/issues/209)) ([84a4cf7](https://github.com/plutocms/pluto/commit/84a4cf7c1567d33f4fa924e6388c11e3461e044d))
+
 ## [0.20.0](https://github.com/plutocms/pluto/compare/v0.19.0...v0.20.0) (2026-10-25)
 
 
