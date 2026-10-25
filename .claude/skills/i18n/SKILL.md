@@ -244,6 +244,17 @@ On the client, `usePlutoErrorText()` returns `(error, fallbackKey?) => string`. 
 Use it where the UI shows a server error, as `PlutoContentForm` does for a failed save or delete.
 Core keys for the content routes are `pluto.errors.*`.
 
+## The server translator
+
+Server code that writes text for a person (an email, for example) uses
+`usePlutoServerTranslator(locale)` from `server/utils/pluto-i18n.ts`. It is async. It returns
+`{ t, te, tx, locale }`, built on the same `createTranslator` as the admin. The `pluto-i18n`
+module adds the Nitro virtual module `#pluto-i18n-server` (`renderServerI18nModule` in
+`locale-files.ts`) with the locale codes and one lazy loader per locale. The files merge in the same
+order as for the admin. A locale matches by code or by base language. An unknown locale, and a
+missing key, fall back to the default locale. The server loads each locale once and keeps it in
+memory. Test: `test/pluto-server-i18n.test.ts`. The mail templates use it. See the mail skill.
+
 ## Testing
 
 Pure engine code runs under plain Vitest. To stub `usePlutoI18n` in a test, use

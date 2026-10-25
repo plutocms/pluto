@@ -8,7 +8,7 @@ It adds:
 
 - `shared/types/registry.ts` — the `PlutoExtension` shape and the type of each registrable
   thing (`PlutoNavItem`, `PlutoNavbarShell`, `PlutoNavbarAction`, `PlutoAdminPage`,
-  `PlutoDashboardWidget`, `PlutoSettingsPanel`, `PlutoSettingsDriver`, `PlutoLocaleDriver`,
+  `PlutoDashboardWidget`, `PlutoSettingsPanel`, `PlutoSettingsPage`, `PlutoSettingsDriver`, `PlutoLocaleDriver`,
   `PlutoAuthDriver`, `PlutoAccountMenuItem`, `PlutoAdminBanner`, `PlutoSiteInfo`;
   `PlutoNavbarAction` is a union of `PlutoNavbarComponentAction` and `PlutoNavbarLinkAction`),
   plus `PlutoRegistry`.
@@ -26,13 +26,16 @@ It adds:
 - `app/composables/pluto-admin-nav.ts` — `usePlutoAdminNav()`, the sidebar nav.
 - `app/composables/pluto-admin-pages.ts` — `usePlutoAdminPages()`, page metadata.
 - `app/composables/pluto-dashboard.ts` — `usePlutoDashboardWidgets()`.
-- `app/composables/pluto-settings.ts` — `usePlutoSettingsPanels()` and `usePlutoSettings()`.
+- `app/composables/pluto-settings.ts` — `usePlutoSettingsPanels()`, `usePlutoSettingsPages()` and
+  `usePlutoSettings()`.
 - `app/plugins/pluto-core-registrations.ts` — core's own Home and Settings nav entries and
   page metadata.
 - `app/components/Pluto/PlutoDashboardWidgets.vue` — renders every registered dashboard
   widget on `/admin/home`.
-- `app/pages/admin/settings.vue` — renders every registered settings panel, backed by whichever
-  settings driver is registered.
+- `app/pages/admin/settings.vue` — the parent of the Settings section: the title, the tabs
+  (`settingsPages`), a no-permission alert, and `<NuxtPage />`.
+- `app/pages/admin/settings/index.vue` — the General tab. It renders every registered settings
+  panel, backed by whichever settings driver is registered.
 - `test/registry.test.ts` — unit tests for `createOwnedRegistry`, run under plain Vitest.
 
 ## The registrable things
@@ -48,6 +51,8 @@ sets only what it has.
 | `pages` | `PlutoAdminPage[]` | Metadata (title, icon, parent) for a route Nuxt already made from a file. |
 | `dashboardWidgets` | `PlutoDashboardWidget[]` | Cards shown on `/admin/home`. |
 | `settingsPanels` | `PlutoSettingsPanel[]` | Forms shown on `/admin/settings`. |
+| `settingsPages` | `PlutoSettingsPage[]` | Tabs of the Settings section. See "Settings pages" below. |
+| `mailPanels` | `PlutoMailPanel[]` | Sections that a layer adds to the Email settings page. See the [mail skill](../mail/SKILL.md). |
 | `settingsDriver` | `PlutoSettingsDriver` | Load/save functions for settings storage. One layer normally provides it. |
 | `localeDriver` | `PlutoLocaleDriver` | Load/save functions for the current user's admin language. One layer normally provides it. |
 | `authDriver` | `PlutoAuthDriver` | The sign-in backend of the admin. The last one wins. See the admin-shell skill. |
@@ -142,9 +147,32 @@ export default defineNuxtPlugin(() => {
 Use the package's `$meta.name` (for example `'supabase-blog'`) as the extension `id`. This
 keeps ids stable across a monorepo and matches how core discovers layer names elsewhere.
 
+## Settings pages
+
+`/admin/settings` is a section with tabs. `app/pages/admin/settings.vue` is the parent route.
+General (`pages/admin/settings/index.vue`) is the first tab. It shows the language card and
+the `settingsPanels`. A layer adds a tab in two steps:
+
+1. Ship a page file at `app/pages/admin/settings/<x>.vue` (the route contract).
+2. Register a `settingsPages` entry: `{ id, order, label, icon?, to: '/admin/settings/<x>', capability? }`.
+   `label` is key-or-literal. `capability` is a capability key. `'*'` means admin only. With no
+   capability, every user in the admin sees the tab. Core registers `general` with order 0.
+
+`usePlutoSettingsPages()` returns `all` (every enabled page), `items` (the pages the user may
+see, sorted by `order`), `current` (the page of the route, by the longest `to` prefix) and
+`allowed` (false when the current page needs a capability the user lacks). The parent page shows
+the tabs with 2 or more visible pages. When `allowed` is false, it shows a no-permission alert
+instead of the child. The tab check is a UI convenience. The routes of a page must do their own
+server-side check.
+
+The sidebar Settings item gets one child per visible page when there are 2 or more pages. It
+opens by default on `/admin/settings/**`. The command palette lists the pages through its "Go to"
+logic. General shows once, as "Settings". The lazy-component rule does not apply to pages: they
+are files, and Nuxt splits them.
+
 ## Register components with `defineAsyncComponent`
 
-Register every component of `contentFieldWidgets`, `dashboardWidgets`, `settingsPanels` and
+Register every component of `contentFieldWidgets`, `dashboardWidgets`, `settingsPanels`, `mailPanels` and
 `adminBanners` with plain `defineAsyncComponent`. The code then loads on demand and stays out of
 the entry chunk. The registry contract does not change: `component: Component` accepts an async
 component. Do not register a bare `() => import()` loader. Core cannot tell it from a functional

@@ -1,8 +1,8 @@
 import type { Ref } from 'vue'
 import type { PlutoContentType } from '../shared/types/content'
-import type { PlutoRegistry } from '../shared/types/registry'
+import type { PlutoExtension, PlutoRegistry } from '../shared/types/registry'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { createI18nStub } from './fixtures/i18n-stub'
 
 // A minimal stand-in for `@plutocms/utils`' own `NavigationMenuItem`, just
@@ -32,11 +32,13 @@ let fakeNuxtApp: {
 }
 let stateStore: Map<string, ReturnType<typeof ref>>
 let legacyActions: Ref<LegacyAction[]>
+let routePath: Ref<string>
 
 beforeEach(() => {
   fakeNuxtApp = {}
   stateStore = new Map()
   legacyActions = ref<LegacyAction[]>([])
+  routePath = ref('/admin/home')
 
   vi.stubGlobal('useNuxtApp', () => fakeNuxtApp)
   vi.stubGlobal('computed', computed)
@@ -48,6 +50,7 @@ beforeEach(() => {
     }
     return stateStore.get(key)
   })
+  vi.stubGlobal('useRoute', () => reactive({ path: routePath }))
   vi.stubGlobal('useSidebarAdminActions', () => ({
     actions: legacyActions,
     addAction: (action: LegacyAction[]) => {
@@ -83,6 +86,9 @@ async function loadComposables() {
 
   const { usePlutoPermissions } = await import('../app/composables/pluto-permissions')
   vi.stubGlobal('usePlutoPermissions', usePlutoPermissions)
+
+  const { usePlutoSettingsPages } = await import('../app/composables/pluto-settings')
+  vi.stubGlobal('usePlutoSettingsPages', usePlutoSettingsPages)
 
   const { usePlutoAdminNav } = await import('../app/composables/pluto-admin-nav')
 
@@ -295,5 +301,68 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
     const { items } = usePlutoAdminNav()
 
     expect(items.value.find((item) => item.id === 'content:post')).toBeDefined()
+  })
+})
+
+describe('usePlutoAdminNav — Settings children', () => {
+  function core(definePlutoExtension: (definition: PlutoExtension) => void) {
+    definePlutoExtension({
+      id: 'pluto',
+      nav: [{ id: 'settings', order: 1000, label: 'pluto.nav.settings', to: '/admin/settings' }],
+      settingsPages: [{ id: 'general', order: 0, label: 'pluto.settings.tabs.general', to: '/admin/settings' }],
+    })
+  }
+
+  it('keeps Settings a plain link with one settings page', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    core(definePlutoExtension)
+
+    const settings = usePlutoAdminNav().items.value[0]
+
+    expect(settings?.label).toBe('Settings')
+    expect(settings?.children).toBeUndefined()
+  })
+
+  it('adds one child per visible settings page with two or more', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    core(definePlutoExtension)
+    definePlutoExtension({
+      id: 'test-layer',
+      settingsPages: [{ id: 'users', order: 10, label: 'Users', to: '/admin/settings/users' }],
+    })
+
+    const settings = usePlutoAdminNav().items.value[0]
+
+    expect(settings?.children).toEqual([
+      { label: 'General', to: '/admin/settings' },
+      { label: 'Users', to: '/admin/settings/users' },
+    ])
+    expect(settings?.defaultOpen).toBe(false)
+  })
+
+  it('opens the Settings item by default on a settings route', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    core(definePlutoExtension)
+    definePlutoExtension({
+      id: 'test-layer',
+      settingsPages: [{ id: 'users', label: 'Users', to: '/admin/settings/users' }],
+    })
+    routePath.value = '/admin/settings/users'
+
+    expect(usePlutoAdminNav().items.value[0]?.defaultOpen).toBe(true)
+  })
+
+  it('leaves out a page the user may not see, and drops the children below two', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    core(definePlutoExtension)
+    definePlutoExtension({
+      id: 'test-layer',
+      permissionsDriver: { id: 'driver', load: async () => ['posts:read'] },
+      settingsPages: [{ id: 'email', label: 'Email', to: '/admin/settings/email', capability: '*' }],
+    })
+    const { usePlutoPermissions } = await import('../app/composables/pluto-permissions')
+    await usePlutoPermissions().load()
+
+    expect(usePlutoAdminNav().items.value[0]?.children).toBeUndefined()
   })
 })

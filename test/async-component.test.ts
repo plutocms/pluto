@@ -28,12 +28,14 @@ describe('findSyncComponents', () => {
       ],
       dashboardWidgets: [{ id: 'c', component: syncComponent }],
       settingsPanels: [{ id: 'd', component: asyncComponent }],
+      mailPanels: [{ id: 'm', component: syncComponent }],
       adminBanners: [{ id: 'e', component: syncComponent }],
     })
 
     expect(found).toEqual([
       'layer:contentFieldWidgets:b',
       'layer:dashboardWidgets:c',
+      'layer:mailPanels:m',
       'layer:adminBanners:e',
     ])
   })

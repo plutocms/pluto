@@ -135,6 +135,15 @@
         "saved": "Language updated",
         "saveFailed": "Could not save your language",
         "saveFailedDescription": "The language changed on this device only. {reason}"
+      },
+      "tabs": {
+        "label": "Settings sections",
+        "general": "General",
+        "email": "Email"
+      },
+      "noPermission": {
+        "title": "You cannot open this page",
+        "description": "The page \"{page}\" is for administrators. Ask an administrator for access."
       }
     },
     "errors": {
@@ -144,7 +153,9 @@
       "notFound": "Not found.",
       "bodyNotObject": "Request body must be a JSON object.",
       "validationFailed": "Validation failed.",
-      "conflict": "This item changed since you opened it. Reload to get the latest version."
+      "conflict": "This item changed since you opened it. Reload to get the latest version.",
+      "forbidden": "Only an administrator can do this.",
+      "unauthorized": "Sign in to continue."
     },
     "cms": {
       "errors": {
@@ -240,6 +251,201 @@
       },
       "signUp": "Sign up",
       "forgotPassword": "Forgot your password?"
+    },
+    "capabilities": {
+      "otherGroup": "Other"
+    },
+    "mail": {
+      "footer": "This email was sent by {siteName}.",
+      "linkHint": "If the button does not work, copy this link into your browser:",
+      "test": {
+        "subject": "Test email from {siteName}",
+        "heading": "Email works",
+        "body": "This is a test email from {siteName}. You can read it, so your email setup works.",
+        "hint": "You can close this email. Nothing else is needed.",
+        "selfTitle": "Send a test email to yourself",
+        "selfDescription": "This shows that the key works.",
+        "selfRule": "Until you verify a domain, Resend delivers only to the email address of your Resend account. Use that address here.",
+        "anyoneTitle": "Send a test email to anyone",
+        "anyoneDescription": "This shows that the verified domain and the From address work.",
+        "anyoneHelp": "Use an address that is not yours, if you can.",
+        "to": "Send to",
+        "toPlaceholder": "name@example.com",
+        "send": "Send test email",
+        "sentTitle": "Test email sent",
+        "sentHint": "Check the inbox. It can take a minute. Look in the spam folder too.",
+        "sentDev": "Development mode: nothing was sent. Read the email in the server console.",
+        "senderRuleTitle": "Resend sends test emails to your own address only",
+        "senderRuleBody": "Resend sends from its test address only to the email of your Resend account. Send the test to that address. To send to other people, add and verify a domain in step 4, and set the From address in step 5.",
+        "failed": "Could not send the test email",
+        "lockedKey": "Add an API key first (step 2).",
+        "lockedFrom": "Set the From address first (step 5), and restart the server."
+      },
+      "invite": {
+        "subject": "You are invited to {siteName}",
+        "heading": "You are invited to {siteName}",
+        "intro": "You were invited to help manage {siteName}.",
+        "introBy": "{inviter} invited you to help manage {siteName}.",
+        "roles": "Your role: {roles}.",
+        "button": "Accept the invitation",
+        "ignore": "If you did not expect this email, you can ignore it."
+      },
+      "errors": {
+        "not_configured": "Email is not set up yet. Add a Resend API key to the server environment.",
+        "invalid_key": "Resend rejected the API key. Check that you copied the whole key.",
+        "restricted_key": "This key can only send emails. Use a full-access key for this step.",
+        "test_sender_only": "Resend sends from its test address only to the email of your Resend account. Send the test to that address, or add and verify a domain first.",
+        "domain_not_verified": "The domain of the From address is not verified yet. Verify the domain in the domain step.",
+        "invalid_message": "Resend rejected the request. Check the values and try again.",
+        "rate_limited": "Resend limits how fast you can call it. Try again in a few seconds.",
+        "quota_exceeded": "The sending limit of your Resend plan is used. Wait for the next period or upgrade the plan.",
+        "timeout": "Resend did not answer in time. Try again.",
+        "network": "Could not reach Resend. Check the connection of the server and try again.",
+        "provider_error": "Resend had a problem. Try again in a moment.",
+        "invalidEmail": "Enter a valid email address.",
+        "invalidDomain": "Enter a domain name such as example.com.",
+        "invalidRegion": "Choose one of the listed regions.",
+        "invalidDomainId": "The domain id is not valid.",
+        "testRateLimited": "You sent too many test emails. Try again in {minutes} min."
+      },
+      "page": {
+        "title": "Email",
+        "intro": "Set up the email that this site sends, such as invitations. Follow the steps in order. Each step tells you what to do."
+      },
+      "copy": {
+        "copy": "Copy",
+        "copied": "Copied"
+      },
+      "step": {
+        "todo": "To do",
+        "done": "Done",
+        "locked": "Waiting",
+        "optional": "Optional"
+      },
+      "env": {
+        "copyLine": "Copy this line"
+      },
+      "status": {
+        "title": "Email status",
+        "refresh": "Refresh the status",
+        "loadFailed": "Could not read the email status",
+        "ready": "Ready to send",
+        "notReady": "Not set up",
+        "driver": "Sends with: {driver}",
+        "driverNames": {
+          "resend": "Resend",
+          "dev": "Development mode",
+          "none": "Nothing"
+        },
+        "key": "Resend API key",
+        "keySet": "Set in the server",
+        "keyNotSet": "Not set",
+        "from": "From address",
+        "fromEmpty": "Not set (uses the Resend test address)",
+        "replyTo": "Reply-To address",
+        "replyToEmpty": "Not set",
+        "noteMailpit": "Development mode: emails go to your Mailpit inbox. Nothing leaves your computer.",
+        "noteLogOnly": "Development mode: emails print in the server console. Nothing is sent. Add a Resend API key to send real emails.",
+        "noteNotConfigured": "This site cannot send email yet. Follow the steps below."
+      },
+      "account": {
+        "title": "Create a Resend account",
+        "description": "Resend sends the emails. The free plan is enough to start.",
+        "body": "Sign up with the email address you want to use for tests. Resend lets a new account send test emails to that address only, until you verify a domain.",
+        "link": "Open resend.com"
+      },
+      "key": {
+        "title": "Add your API key",
+        "description": "The key lets this site send through your Resend account. It stays in the server, never in the browser.",
+        "stepCreate": "In Resend, create an API key with full access at",
+        "stepAdd": "Add this line to the environment of the server. On your computer, use the .env file. On a host, use its environment settings.",
+        "stepRestart": "Restart the server.",
+        "envHint": "Replace re_your_key_here with your key. Pluto never stores the key and never shows it again.",
+        "check": "Check the key",
+        "full": "The key works and has full access",
+        "fullHint": "You can add a domain in step 4.",
+        "sending": "The key works and can only send emails",
+        "sendingHint": "You can send test emails. To add a domain here, use a key with full access. Or add the domain in the Resend dashboard.",
+        "invalid": "Resend rejected the key",
+        "invalidHint": "Check that you copied the whole key, and that it is not deleted in Resend.",
+        "missing": "The server has no key yet",
+        "missingHint": "Add the line above to the server environment, restart the server, and check again.",
+        "failed": "Could not check the key",
+        "failedHint": "Resend did not answer as expected. Try again in a moment."
+      },
+      "domain": {
+        "title": "Add your domain",
+        "description": "Resend sends from your own domain after you verify it.",
+        "lockedKey": "Add and check a key with full access first (step 2).",
+        "lockedSending": "This key can only send emails. Use a key with full access to add a domain here.",
+        "existing": "Use a domain from your Resend account",
+        "existingPlaceholder": "Choose a domain",
+        "name": "Domain",
+        "nameHelp": "For example example.com, or mail.example.com.",
+        "region": "Region",
+        "regions": {
+          "us-east-1": "North Virginia (us-east-1)",
+          "eu-west-1": "Ireland (eu-west-1)",
+          "sa-east-1": "São Paulo (sa-east-1)",
+          "ap-northeast-1": "Tokyo (ap-northeast-1)"
+        },
+        "add": "Add domain",
+        "polling": "Checking",
+        "recordsHint": "Add these DNS records at the company that manages your domain. Then press Verify. It can take a few minutes, and up to a few hours.",
+        "statusVerified": "Verified",
+        "statusFailed": "Failed",
+        "statusPending": "Waiting for DNS",
+        "recordVerified": "Found",
+        "recordPending": "Not found yet",
+        "recordFailed": "Wrong",
+        "columns": {
+          "type": "Type",
+          "name": "Name",
+          "value": "Value",
+          "priority": "Priority",
+          "status": "Status"
+        },
+        "copyName": "Copy the name",
+        "copyValue": "Copy the value",
+        "verifiedTitle": "The domain is verified",
+        "verifiedHint": "Set the From address in step 5.",
+        "failedTitle": "Resend could not verify the domain",
+        "failedHint": "A DNS record is wrong or missing. Compare each record with the table, fix it, and press Check again.",
+        "timedOutTitle": "Pluto stopped checking",
+        "timedOutHint": "DNS can be slow. Press Check again when you are ready.",
+        "verify": "Verify",
+        "checkAgain": "Check again",
+        "createFailed": "Could not add the domain",
+        "verifyFailed": "Could not check the domain"
+      },
+      "from": {
+        "title": "Set the From address",
+        "description": "This is the sender name and address that people see.",
+        "lockedDomain": "Add your domain first (step 4).",
+        "notVerified": "The domain is not verified yet. Resend refuses to send from it until it is.",
+        "current": "Now set in the server:",
+        "name": "Sender name",
+        "nameHelp": "For example the name of your shop.",
+        "address": "Address",
+        "addressInvalid": "Use letters, numbers, dots, dashes or plus signs.",
+        "replyTo": "Reply-To address (optional)",
+        "replyToHelp": "Replies go here. Leave it empty to reply to the From address.",
+        "replyToInvalid": "Enter a valid email address.",
+        "envHint": "Add these lines to the environment of the server, then restart it."
+      },
+      "sendingKey": {
+        "title": "Use a sending-only key",
+        "description": "A key that can only send emails is safer to keep in the server.",
+        "alreadySending": "The key in the server can already only send emails.",
+        "lockedKey": "This step needs a key with full access (step 2).",
+        "forDomain": "The new key can send only from {domain}.",
+        "forAccount": "The new key can only send emails.",
+        "create": "Create a sending-only key",
+        "failed": "Could not create the key",
+        "onceTitle": "Copy this key now",
+        "onceBody": "Pluto shows the key once and does not keep it. If you close this page, create another key.",
+        "next": "Replace the key line in the server environment, restart the server, then delete the old full-access key in Resend."
+      }
     },
     "noAccess": {
       "title": "Your account has no access to the admin",

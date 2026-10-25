@@ -75,6 +75,18 @@ registered here. A capability works even if no layer ever declares it through
 capabilities. Nothing in core enforces that a capability checked by `can()` has a matching
 registry entry.
 
+### Capability groups
+
+`usePlutoCapabilities()` also returns `groups`, for a picker such as a Roles editor. It groups the
+capabilities by owner: the `<owner>:` prefix of the registry id (the extension id). The group
+label is the key `<owner>.capabilities.group` when it exists in the locale files, else the owner
+id. `groupsFor(keys)` does the same and adds an "Other" group (`pluto.capabilities.otherGroup`)
+with the strings in `keys` that no layer declares. A layer names its group by adding
+`<owner>.capabilities.group` to its locale files.
+
+A settings page that is admin only uses the capability `'*'` in `settingsPages`. See the
+[extension registry](../extension-registry/SKILL.md).
+
 ## `usePlutoPermissions()`
 
 Returns the current user's loaded capability list, and a `can()` check, backed by whichever

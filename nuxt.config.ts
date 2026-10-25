@@ -45,6 +45,16 @@ export default defineNuxtConfig({
   // #build/pluto.css. See the single-tailwind-build skill.
 
   runtimeConfig: {
+    // Private mail settings. Empty defaults on purpose: Nuxt reads
+    // `NUXT_PLUTO_MAIL_*` only for a key that exists here. Set them at run
+    // time, never in the build environment. See the mail skill.
+    plutoMail: {
+      driver: '',
+      from: '',
+      replyTo: '',
+      resend: { apiKey: '' },
+      mailpit: { url: '' },
+    },
     public: {
       websiteName,
     },

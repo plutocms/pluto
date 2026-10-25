@@ -7,6 +7,7 @@ import {
   LOCALE_DIR,
   renderI18nTemplate,
   renderI18nTypes,
+  renderServerI18nModule,
   resolveI18nOptions,
 } from './locale-files'
 
@@ -18,6 +19,9 @@ export type { PlutoI18nOptions } from './locale-files'
  * The files of all layers merge, base layer first and the app last, so the
  * app overrides a layer's text. Adding a language is adding the JSON files.
  * No code change.
+ *
+ * The same files feed a Nitro virtual module, `#pluto-i18n-server`, for the
+ * server translator (`usePlutoServerTranslator`).
  *
  * The module also puts the resolved options in
  * `runtimeConfig.public.plutoI18n`. See the i18n skill.
@@ -67,6 +71,15 @@ export default defineNuxtModule<PlutoI18nOptions>({
         uiLocaleDir,
         uiLocaleFiles,
       }),
+    })
+
+    // The server translator (`server/utils/pluto-i18n.ts`) reads the same
+    // files through a Nitro virtual module. `files` is read when Nitro asks
+    // for the module, so a new locale file shows up on the next build.
+    nuxt.hook('nitro:config', (nitroConfig) => {
+      nitroConfig.virtual ||= {}
+      nitroConfig.virtual['#pluto-i18n-server'] = () =>
+        renderServerI18nModule({ files, defaultLocale: resolved.defaultLocale })
     })
 
     addTemplate({

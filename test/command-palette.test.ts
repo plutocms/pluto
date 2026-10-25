@@ -101,6 +101,25 @@ describe('usePlutoCommandPalette', () => {
     expect((await groups())[0]!.items!.map((item) => item.label)).toEqual(['New Post', 'New FAQ'])
   })
 
+  it('lists the settings pages once, with General as "Settings"', async () => {
+    navItems.value = [
+      {
+        id: 's',
+        label: 'Settings',
+        to: '/admin/settings',
+        children: [
+          { label: 'General', to: '/admin/settings' },
+          { label: 'Users', to: '/admin/settings/users' },
+        ],
+      },
+    ]
+
+    const [goTo] = await groups()
+
+    expect(goTo!.items!.map((item) => item.label)).toEqual(['Settings', 'Users'])
+    expect(goTo!.items![1]).toMatchObject({ suffix: 'Settings' })
+  })
+
   it('translates its own group labels', async () => {
     contentTypes.value = [{ type: post }]
     navItems.value = [{ id: 'b', label: 'Settings', to: '/admin/settings' }]

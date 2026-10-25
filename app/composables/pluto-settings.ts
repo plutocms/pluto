@@ -19,6 +19,53 @@ export function usePlutoSettingsPanels() {
 }
 
 /**
+ * The tabs of the Settings section, registered by every layer through
+ * `settingsPages`.
+ *
+ * - `all`: every enabled page, sorted, with the label resolved.
+ * - `items`: the pages the user may see (`can(capability)`; `'*'` is
+ *   admin only). The tabs and the sidebar children use this list.
+ * - `current`: the page that matches the route, by the longest `to` prefix.
+ *   It comes from `all`, so a page the user may not see still resolves.
+ * - `allowed`: false when `current` needs a capability the user lacks. The
+ *   parent page shows a no-permission alert then. This only decides what the
+ *   UI shows. The routes of a page do their own server-side check.
+ */
+export function usePlutoSettingsPages() {
+  const registry = usePlutoRegistry()
+  const { tx } = usePlutoI18n()
+  const { can } = usePlutoPermissions()
+  const route = useRoute()
+
+  const all = computed<PlutoSettingsPage[]>(() =>
+    registry.settingsPages.list.value.map((page) => ({ ...page, label: tx(page.label) }))
+  )
+
+  const items = computed<PlutoSettingsPage[]>(() =>
+    all.value.filter((page) => !page.capability || can(page.capability))
+  )
+
+  const current = computed<PlutoSettingsPage | undefined>(() => {
+    const path = route.path.length > 1 ? route.path.replace(/\/+$/, '') : route.path
+    let best: PlutoSettingsPage | undefined
+    for (const page of all.value) {
+      const matches = path === page.to || path.startsWith(`${page.to}/`)
+      if (matches && (!best || page.to.length > best.to.length)) {
+        best = page
+      }
+    }
+    return best
+  })
+
+  const allowed = computed(() => {
+    const capability = current.value?.capability
+    return !capability || can(capability)
+  })
+
+  return { all, items, current, allowed }
+}
+
+/**
  * The settings value store, backed by whichever settings driver is
  * registered. `useState` is correct here: these are plain strings, not
  * components, and `/admin/**` is client-only per `nuxt.config.ts`, so there

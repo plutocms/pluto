@@ -71,6 +71,33 @@ export interface PlutoSettingsPanel extends PlutoEntry {
   component: Component
 }
 
+/**
+ * A tab of the Settings section. The route is a file the layer ships at
+ * `pages/admin/settings/<x>.vue`. This entry only adds the tab and the nav
+ * link. Core registers General (`/admin/settings`, order 0).
+ */
+export interface PlutoSettingsPage extends PlutoEntry {
+  /** Key-or-literal. */
+  label: string
+  icon?: string
+  /** Admin route path, for example '/admin/settings/users'. */
+  to: string
+  /** Capability the user needs to see the tab. '*' means admin only. No capability: anyone in the admin. */
+  capability?: string
+}
+
+/**
+ * A section a layer adds to the Email settings page (`/admin/settings/email`),
+ * below the core setup steps. For example, a backend layer adds a section
+ * that explains how to send its own sign-in emails through the mail driver.
+ */
+export interface PlutoMailPanel extends PlutoEntry {
+  title: string
+  description?: string
+  icon?: string
+  component: Component
+}
+
 export interface PlutoSettingsDriver extends PlutoEntry {
   load: () => Promise<Record<string, string>>
   save: (patch: Record<string, string>) => Promise<void>
@@ -272,6 +299,8 @@ export interface PlutoExtension {
   pages?: PlutoAdminPage[]
   dashboardWidgets?: PlutoDashboardWidget[]
   settingsPanels?: PlutoSettingsPanel[]
+  settingsPages?: PlutoSettingsPage[]
+  mailPanels?: PlutoMailPanel[]
   settingsDriver?: PlutoSettingsDriver
   localeDriver?: PlutoLocaleDriver
   capabilities?: PlutoCapability[]
@@ -304,6 +333,8 @@ export interface PlutoRegistry {
   nav: PlutoRegistryBucket<PlutoNavItem>
   pages: PlutoRegistryBucket<PlutoAdminPage>
   settingsPanels: PlutoRegistryBucket<PlutoSettingsPanel>
+  settingsPages: PlutoRegistryBucket<PlutoSettingsPage>
+  mailPanels: PlutoRegistryBucket<PlutoMailPanel>
   settingsDrivers: PlutoRegistryBucket<PlutoSettingsDriver>
   localeDrivers: PlutoRegistryBucket<PlutoLocaleDriver>
   dashboardWidgets: PlutoRegistryBucket<PlutoDashboardWidget>
