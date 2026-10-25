@@ -24,7 +24,9 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
 
 <template>
   <PlutoNavbarAdmin>
-    <div class="flex h-full min-w-0 items-stretch justify-between gap-1 px-2 lg:px-4">
+    <div
+      class="flex h-full min-w-0 items-stretch justify-between gap-1 px-2 lg:px-4"
+    >
       <div class="flex min-w-0 items-center gap-x-1 lg:gap-x-3">
         <PlutoNavbarHit
           :label="t('pluto.navbar.openNavigation')"
@@ -40,10 +42,9 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             to="/admin/home"
             class="group flex h-full items-center gap-x-2"
           >
-            <img
-              src="/img/pluto.png"
-              alt=""
-              class="block h-[31px] grayscale-100 group-hover:grayscale-0"
+            <PlutoLogo
+              aria-hidden="true"
+              class="text-highlighted block h-[31px] w-auto grayscale-100 group-hover:grayscale-0"
             />
             <span
               v-if="siteName"
@@ -68,7 +69,9 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             <ClientOnly>
               <template #fallback>
                 <li class="h-full">
-                  <div class="text-dimmed flex h-full items-center gap-x-2 rounded-sm px-2">
+                  <div
+                    class="text-dimmed flex h-full items-center gap-x-2 rounded-sm px-2"
+                  >
                     <Icon name="svg-spinners:ring-resize" />
                   </div>
                 </li>
