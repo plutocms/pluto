@@ -10,48 +10,53 @@
  * the server never knows the capabilities, so the state stays false there.
  * With no permissions driver, there is nothing to load, and the state is true.
  */
-export default defineNuxtPlugin((nuxtApp) => {
-  const { loggedIn, user } = usePlutoAuth()
-  const permissions = usePlutoPermissions()
-  const { syncUserLocale } = usePlutoI18n()
-  const known = usePlutoCapabilitiesKnown()
+export default defineNuxtPlugin({
+  name: 'pluto-auth-sync',
+  // It reads the admin language, so the locale state must be resolved first.
+  dependsOn: ['pluto-i18n'],
+  setup(nuxtApp) {
+    const { loggedIn, user } = usePlutoAuth()
+    const permissions = usePlutoPermissions()
+    const { syncUserLocale } = usePlutoI18n()
+    const known = usePlutoCapabilitiesKnown()
 
-  // The public-page bar waits for the mount too. The session and the
-  // capabilities can be ready before hydration (no permissions driver, or a
-  // fast session read). A bar, or an app offset, that shows in the first
-  // client render but not in the server HTML is a hydration mismatch.
-  const mounted = usePlutoAppMounted()
-  if (nuxtApp.isHydrating) {
-    // 'app:mounted' fires before async pages and layouts hydrate. Wait for
-    // the first Suspense resolve, where Nuxt ends the hydration.
-    nuxtApp.hooks.hookOnce('app:suspense:resolve', () => {
+    // The public-page bar waits for the mount too. The session and the
+    // capabilities can be ready before hydration (no permissions driver, or a
+    // fast session read). A bar, or an app offset, that shows in the first
+    // client render but not in the server HTML is a hydration mismatch.
+    const mounted = usePlutoAppMounted()
+    if (nuxtApp.isHydrating) {
+      // 'app:mounted' fires before async pages and layouts hydrate. Wait for
+      // the first Suspense resolve, where Nuxt ends the hydration.
+      nuxtApp.hooks.hookOnce('app:suspense:resolve', () => {
+        mounted.value = true
+      })
+    } else {
       mounted.value = true
-    })
-  } else {
-    mounted.value = true
-  }
+    }
 
-  // The permissions driver can register after this plugin runs, so watch it too.
-  watch(
-    [loggedIn, permissions.hasDriver],
-    async ([current]) => {
-      if (!current) {
-        permissions.clear()
-        known.value = false
-        return
-      }
+    // The permissions driver can register after this plugin runs, so watch it too.
+    watch(
+      [loggedIn, permissions.hasDriver],
+      async ([current]) => {
+        if (!current) {
+          permissions.clear()
+          known.value = false
+          return
+        }
 
-      known.value = false
-      void syncUserLocale()
-      try {
-        // The route guard shares this request through `ensureLoaded`.
-        await permissions.ensureLoaded(user.value?.id ?? '')
-        // Ignore a result that arrives after a sign-out.
-        known.value = loggedIn.value && (!permissions.hasDriver.value || permissions.loaded.value)
-      } catch {
         known.value = false
-      }
-    },
-    { immediate: true }
-  )
+        void syncUserLocale()
+        try {
+          // The route guard shares this request through `ensureLoaded`.
+          await permissions.ensureLoaded(user.value?.id ?? '')
+          // Ignore a result that arrives after a sign-out.
+          known.value = loggedIn.value && (!permissions.hasDriver.value || permissions.loaded.value)
+        } catch {
+          known.value = false
+        }
+      },
+      { immediate: true }
+    )
+  },
 })

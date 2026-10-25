@@ -11,6 +11,7 @@ import {
   loadPlutoLocale,
   messageCache,
   readAdminPreference,
+  resolveScopeLocale,
   SITE_LOCALE_COOKIE,
   uiLocaleCache,
   useLocaleCookie,
@@ -33,7 +34,9 @@ function warnOnce(message: string) {
  */
 function useLocaleScope(scope: 'admin' | 'site') {
   const config = getConfig()
-  const state = useState<string>(`pluto-${scope}-locale`, () => config.defaultLocale)
+  // The same resolver as the pluto-i18n plugin: the stored choice, not the
+  // default locale, even when this runs before the plugin.
+  const state = useState<string>(`pluto-${scope}-locale`, () => resolveScopeLocale(scope))
   const locales = scope === 'admin' ? config.adminLocales : config.siteLocales
 
   const { t, te, tx } = createTranslator({
