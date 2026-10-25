@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.21.0](https://github.com/plutocms/pluto/compare/v0.20.2...v0.21.0) (2026-10-25)
+
+
+### Features
+
+* **admin:** add a shared edit shell and a canvas form layout ([#214](https://github.com/plutocms/pluto/issues/214)) ([e1e6260](https://github.com/plutocms/pluto/commit/e1e6260e5706fe546b53ae06e92e2befe7666fd0))
+
 ## [0.20.2](https://github.com/plutocms/pluto/compare/v0.20.1...v0.20.2) (2026-10-25)
 
 
