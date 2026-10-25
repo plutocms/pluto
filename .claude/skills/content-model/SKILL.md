@@ -472,8 +472,8 @@ again regardless (wave 2), so this is a UX nicety, not the enforcement point. On
 create, it shows a success toast and navigates to the new item's edit URL; on a successful update,
 it shows a success toast and stays put.
 
-In edit mode, the page heading and the browser tab title show the value of the type's
-`titleField`. While the item loads, or when the title is empty, they show "Edit <type>". If the
+In edit mode, the toolbar title (every layout has the same toolbar and no body H1, see the
+admin-view-chrome skill) and the browser tab title show the value of the type's `titleField`. While the item loads, or when the title is empty, they show "Edit <type>". If the
 item fetch fails (a 404 or a network error), the form shows an empty state (`UEmpty`) with a
 "Try again" button (no button on a 404), renders no fields, and hides Save, Publish and the
 overflow menu. Typing in a field never reaches this state: only `loadError` triggers it.
@@ -604,8 +604,11 @@ when unset.
 A later wave (see the [admin view chrome](../admin-view-chrome/SKILL.md) skill) added two more
 optional fields to `PlutoContentType`, and one more field to `PlutoContentTypeCapabilities`:
 
-- `form?: { layout?, aside?, asideCollapsed?, width? }` — layout knobs for the generic form
-  (`PlutoContentForm`), for example a minimal-chrome `layout: 'focus'` for a writing surface.
+- `form?: { layout?, canvasField?, aside?, asideCollapsed?, width? }` — layout knobs for the generic
+  form (`PlutoContentForm`), for example a minimal-chrome `layout: 'focus'` for a writing surface,
+  or `layout: 'canvas'` for a full-height field with side panels.
+- `previewUrl?: (item) => string | undefined` — the public URL of an item. The form toolbar shows a
+  "View" link when it returns a value.
 - `capabilities.publish?: string` — the capability required to publish. Falls back to
   `capabilities.write` when unset, the same "no capability declared means open" rule every other
   capability check here already follows.
@@ -639,6 +642,13 @@ activity chart, the quick actions, the command palette, and the nav and page ent
 types create. `PlutoContentField` passes a translated copy of the field to the widget, so a
 third-party widget gets the translated label with no change. Server code and anything that reads
 `type.label` keeps English. See the i18n skill.
+
+## The form context for widgets
+
+A field widget can read the state of its form with `usePlutoContentForm()`: the item, `dirty`,
+`saving`, `errorsByField`, and `onSaved(callback)`. A canvas widget adds panels with
+`PlutoContentCanvasPanel`. The widget contract above does not change. See the admin-view-chrome
+skill, "The form context" and "The canvas layout".
 
 ## Nested ids and `compareContentIds`
 

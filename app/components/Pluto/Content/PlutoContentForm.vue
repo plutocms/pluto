@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import type { ButtonProps } from '@nuxt/ui'
+import type { RouteLocationNormalized } from 'vue-router'
+import type { DirtyState } from '../../../composables/internal/content-dirty'
+import {
+  createDirtyTracker,
+  isEditingEvent,
+  isSaveShortcut,
+  savedAgo,
+  stableStringify,
+} from '../../../composables/internal/content-dirty'
 import { buildContentPayload } from '../../../composables/internal/content-payload'
 
 const props = defineProps<{
@@ -11,7 +20,7 @@ const props = defineProps<{
 
 const { byName } = usePlutoContentTypes()
 const contentType = computed(() => byName(props.type))
-const { t } = usePlutoI18n()
+const { t, locale } = usePlutoI18n()
 const text = usePlutoContentText(contentType)
 const errorText = usePlutoErrorText()
 
@@ -178,6 +187,12 @@ const toast = useToast()
 const saving = ref(false)
 const validationErrors = ref<ContentValidationError[]>([])
 
+// The save state next to the title. `failed` stays until the next save starts.
+const saveStatus = ref<'idle' | 'saved' | 'failed'>('idle')
+const savedAt = ref<Date | null>(null)
+// The status of the last save, so a retry repeats the same save (for example Publish).
+let lastStatusOverride: string | undefined
+
 // A validation error with a `code` shows the translated message. The
 // `message` of the error stays English, and shows when there is no code.
 function validationText(error: ContentValidationError): string {
@@ -191,9 +206,128 @@ function validationText(error: ContentValidationError): string {
   })
 }
 
+// --- Unsaved changes ---------------------------------------------------------
+//
+// The item is dirty when the payload differs from the baseline. The baseline
+// follows the item until the user first edits, so a widget that normalizes its
+// value after it mounts (an editor, for example) does not make the form dirty.
+// A save sets a new baseline. See `createDirtyTracker`.
+const dirtyState = reactive<DirtyState>({ baseline: null })
+const tracker = createDirtyTracker(dirtyState)
+const snapshot = computed(() => stableStringify(buildContentPayload(contentType.value, item.value)))
+watch(snapshot, (value) => tracker.follow(value), { immediate: true })
+
+const dirty = computed(() => !itemPending.value && !loadFailed.value && tracker.isDirty(snapshot.value))
+
+// A key press, a paste, a drop, or a press on a control counts as an edit. The
+// load must end first: an input during the load does not freeze the baseline.
+useEventListener(
+  import.meta.client ? document : undefined,
+  ['keydown', 'input', 'change', 'paste', 'drop', 'pointerdown'],
+  (event: Event) => {
+    if (!itemPending.value && isEditingEvent(event.type, event.target as Element | null)) {
+      tracker.interact()
+    }
+  },
+  { capture: true }
+)
+
+const saveState = computed<PlutoSaveState>(() => {
+  if (saving.value) {
+    return 'saving'
+  }
+  if (saveStatus.value === 'failed' && dirty.value) {
+    return 'failed'
+  }
+  if (dirty.value) {
+    return 'dirty'
+  }
+  return saveStatus.value === 'saved' ? 'saved' : 'idle'
+})
+
+// "Saved 2 minutes ago". The clock ticks every 30 seconds.
+const now = useNow({ interval: 30_000 })
+const savedText = computed(() => {
+  if (!savedAt.value) {
+    return undefined
+  }
+  const ago = savedAgo(now.value.getTime() - savedAt.value.getTime())
+  if (ago.unit === 'now') {
+    return t('pluto.form.savedJustNow')
+  }
+  const time = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' }).format(-ago.value, ago.unit)
+  return t('pluto.form.savedAt', { time })
+})
+
+// Callbacks that a widget registers with `usePlutoContentForm().onSaved`.
+const savedCallbacks = new Set<(saved: PlutoContentItem) => void>()
+function onSaved(callback: (saved: PlutoContentItem) => void) {
+  savedCallbacks.add(callback)
+  const stop = () => {
+    savedCallbacks.delete(callback)
+  }
+  tryOnScopeDispose(stop)
+  return stop
+}
+
+// --- Leave guard ---------------------------------------------------------------
+//
+// A navigation away from a dirty form opens an in-app dialog and waits. The
+// browser tab close and a reload use `beforeunload`. `bypass` lets our own
+// navigation pass: after a create, an id change, a delete, or "Leave".
+const leaveOpen = ref(false)
+const isDeleteModalOpen = ref(false)
+let leaveTarget: RouteLocationNormalized | null = null
+let bypass = false
+
+function guardNavigation(to: RouteLocationNormalized) {
+  if (bypass || !dirty.value) {
+    return true
+  }
+  leaveTarget = to
+  leaveOpen.value = true
+  return false
+}
+
+onBeforeRouteLeave(guardNavigation)
+onBeforeRouteUpdate(guardNavigation)
+
+function stayOnPage() {
+  leaveOpen.value = false
+  leaveTarget = null
+}
+
+async function leavePage() {
+  const target = leaveTarget
+  leaveOpen.value = false
+  leaveTarget = null
+  bypass = true
+  if (target) {
+    await navigateTo(target.fullPath)
+  }
+}
+
+useEventListener('beforeunload', (event: BeforeUnloadEvent) => {
+  if (dirty.value && !bypass) {
+    event.preventDefault()
+    // Some browsers need a value on the event to show the dialog.
+    event.returnValue = ''
+  }
+})
+
+// Ctrl+S on Windows and Linux, Cmd+S on macOS. It saves like the Save button
+// (not Publish) and stops the browser from saving the page.
+useEventListener('keydown', (event: KeyboardEvent) => {
+  if (!isSaveShortcut(event) || !canSave.value || saving.value || leaveOpen.value || isDeleteModalOpen.value) {
+    return
+  }
+  event.preventDefault()
+  onSave()
+})
+
 async function onSave(statusOverride?: string) {
   const type = contentType.value
-  if (!type) {
+  if (!type || saving.value) {
     return
   }
 
@@ -209,9 +343,22 @@ async function onSave(statusOverride?: string) {
 
   validationErrors.value = []
   saving.value = true
+  saveStatus.value = 'idle'
+  lastStatusOverride = statusOverride
 
   try {
     const saved = await save(payload)
+
+    // The saved item is the new baseline. A widget can write its own normal
+    // form of the new value on the next tick, so read the baseline again then.
+    tracker.reset(snapshot.value)
+    await nextTick()
+    tracker.reset(snapshot.value)
+    saveStatus.value = 'saved'
+    savedAt.value = new Date()
+    for (const callback of savedCallbacks) {
+      callback(saved)
+    }
 
     if (!editing.value) {
       toast.add({
@@ -219,14 +366,18 @@ async function onSave(statusOverride?: string) {
         description: t('pluto.form.createdDescription', { label: text.label }),
         color: 'success',
       })
+      bypass = true
       await navigateTo(editPath(saved.id))
       return
     }
 
+    // A save with no override (no status workflow) is a plain save.
     const title =
-      statusOverride === publishedValue.value
-        ? t('pluto.form.published')
-        : statusOverride === draftValue.value
+      statusOverride === undefined
+        ? t('pluto.form.saved')
+        : statusOverride === publishedValue.value
+          ? t('pluto.form.published')
+          : statusOverride === draftValue.value
           ? t('pluto.form.unpublished')
           : t('pluto.form.saved')
 
@@ -240,12 +391,14 @@ async function onSave(statusOverride?: string) {
     // that renames the file when the slug changes. Follow the new id. The
     // page mounts again for the new route, so the item loads under the new id.
     if (String(saved.id) !== String(props.id)) {
+      bypass = true
       await navigateTo(editPath(saved.id), { replace: true })
     }
   } catch (error) {
     // A raced permissions check, or any other server-side rejection
     // (a 403 included), surfaces here rather than as an unhandled
     // rejection.
+    saveStatus.value = 'failed'
     toast.add({
       title: t('pluto.common.error'),
       description: errorText(error, 'pluto.form.saveError'),
@@ -258,7 +411,6 @@ async function onSave(statusOverride?: string) {
 
 // --- Delete -------------------------------------------------------------------
 
-const isDeleteModalOpen = ref(false)
 const deleting = ref(false)
 
 function openDeleteModal() {
@@ -275,6 +427,7 @@ async function confirmDelete() {
   try {
     await remove()
     closeDeleteModal()
+    bypass = true
     await navigateTo(basePath.value)
   } catch (error) {
     toast.add({
@@ -289,8 +442,8 @@ async function confirmDelete() {
 
 // --- Layout / aside -----------------------------------------------------------
 
-// In edit mode, the heading and the tab title show the title of the item.
-// While the item loads, or when it has no title, they show "Edit <type>".
+// In edit mode, the toolbar title and the tab title show the title of the
+// item. While the item loads, or when it has no title, they show "Edit <type>".
 const itemTitle = computed(() => {
   const value = editing.value ? item.value[contentType.value?.titleField ?? ''] : undefined
   return typeof value === 'string' ? value.trim() : ''
@@ -303,7 +456,8 @@ const heading = computed(() =>
 
 useHead({ title: () => heading.value })
 
-const layout = computed(() => contentType.value?.form?.layout ?? 'default')
+const layout = computed<PlutoContentFormLayout>(() => contentType.value?.form?.layout ?? 'default')
+const isCanvas = computed(() => layout.value === 'canvas')
 const showAside = computed(() => {
   const configured = contentType.value?.form?.aside
   if (configured === true || configured === false) {
@@ -325,19 +479,128 @@ const asideOpen = useCookie<boolean>(`pluto-content-aside-${props.type}`, {
 // a button. The focus layout keeps the slideover.
 const isDesktop = useMediaQuery('(min-width: 64rem)')
 const inlineAside = computed(() => showAside.value && layout.value === 'default' && !isDesktop.value)
+
+// --- Canvas layout --------------------------------------------------------------
+//
+// The canvas field fills the main region. Its widget adds panels with
+// PlutoContentCanvasPanel: `left` ones stack in the left panel, `right` ones
+// are tabs of the right panel. The "Page" tab holds every other field.
+const canvasFieldDef = computed(() =>
+  isCanvas.value
+    ? contentType.value?.fields.find((field) => field.name === contentType.value?.form?.canvasField)
+    : undefined
+)
+const pageFields = computed(() =>
+  (contentType.value?.fields ?? [])
+    .filter((field) => field.inForm !== false && field.name !== canvasFieldDef.value?.name)
+    .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
+)
+
+const panelGetters = shallowRef<Array<() => PlutoCanvasPanelDef>>([])
+const panels = computed(() => panelGetters.value.map((getter) => getter()))
+const leftPanels = computed(() => panels.value.filter((panel) => panel.side === 'left'))
+const rightPanels = computed(() => panels.value.filter((panel) => panel.side === 'right'))
+
+const leftTarget = shallowRef<HTMLElement | null>(null)
+const rightTargets = shallowReactive<Record<string, HTMLElement | null>>({})
+function setLeftTarget(el: unknown) {
+  leftTarget.value = (el as HTMLElement | null) ?? null
+}
+function setRightTarget(id: string, el: unknown) {
+  rightTargets[id] = (el as HTMLElement | null) ?? null
+}
+
+if (isCanvas.value) {
+  provide(plutoCanvasHostKey, {
+    registerPanel(getter) {
+      panelGetters.value = [...panelGetters.value, getter]
+      return () => {
+        panelGetters.value = panelGetters.value.filter((entry) => entry !== getter)
+      }
+    },
+    leftTarget,
+    rightTarget: (id) => rightTargets[id] ?? null,
+  })
+}
+
+const rightTabs = computed(() => [
+  ...rightPanels.value.map((panel) => ({ value: panel.id, label: panel.label ?? panel.id, icon: panel.icon })),
+  ...(pageFields.value.length > 0 ? [{ value: 'page', label: t('pluto.canvas.page'), icon: 'i-lucide-file-text' }] : []),
+])
+const chosenTab = ref<string>()
+const activeTab = computed({
+  get: () => (rightTabs.value.some((tab) => tab.value === chosenTab.value) ? chosenTab.value : rightTabs.value[0]?.value),
+  set: (value) => {
+    chosenTab.value = value
+  },
+})
+
+// On a narrow screen both panels are slideovers. They start closed and keep
+// no cookie, so a saved "open" never covers the page on the first visit.
+const leftCookie = useCookie<boolean>(`pluto-content-left-${props.type}`, { default: () => true })
+const leftNarrow = ref(false)
+const rightNarrow = ref(false)
+const leftOpen = computed({
+  get: () => (isDesktop.value ? leftCookie.value : leftNarrow.value),
+  set: (value) => {
+    if (isDesktop.value) {
+      leftCookie.value = value
+    } else {
+      leftNarrow.value = value
+    }
+  },
+})
+const asideModel = computed({
+  get: () => (isCanvas.value && !isDesktop.value ? rightNarrow.value : asideOpen.value),
+  set: (value) => {
+    if (isCanvas.value && !isDesktop.value) {
+      rightNarrow.value = value
+    } else {
+      asideOpen.value = value
+    }
+  },
+})
+
+const hasLeft = computed(() => isCanvas.value && leftPanels.value.length > 0 && !loadFailed.value)
+const hasRight = computed(() => isCanvas.value && rightTabs.value.length > 0 && !loadFailed.value)
+
+function openPanel(id: string) {
+  chosenTab.value = id
+  asideModel.value = true
+}
+
 // The aside toggle has no use when the aside is inline, or when the item did not load.
-const showAsideToggle = computed(() => showAside.value && !inlineAside.value && !loadFailed.value)
+const showAsideToggle = computed(() =>
+  isCanvas.value ? hasRight.value : showAside.value && !inlineAside.value && !loadFailed.value
+)
 
 function toggleAside() {
-  asideOpen.value = !asideOpen.value
+  asideModel.value = !asideModel.value
 }
+
+// --- Context for the widgets ------------------------------------------------------
+
+provide(plutoContentFormKey, {
+  type: contentType,
+  item,
+  editing,
+  saving,
+  dirty,
+  errorsByField: computed(() =>
+    Object.fromEntries(validationErrors.value.map((error) => [error.field, validationText(error)]))
+  ),
+  layout,
+  canvas: isCanvas,
+  onSaved,
+  openPanel,
+})
 
 // --- Registry content actions --------------------------------------------------
 
 const toolbarActions = usePlutoContentActions(props.type, 'toolbar')
 
-// Only rendered from the template inside the `v-if="contentType"` branch, so
-// `contentType.value` is always set by the time this is read.
+// Only used while a content type exists, so `contentType.value` is set by
+// the time this is read.
 function buildActionContext(): PlutoContentActionContext {
   return {
     type: contentType.value as PlutoContentType,
@@ -349,137 +612,140 @@ function buildActionContext(): PlutoContentActionContext {
   }
 }
 
-// No explicit `DropdownMenuItem` annotation. A consumer that links this
-// layer from source can resolve a second copy of `@nuxt/ui`. A named type
-// from one copy then fails to match the component from the other copy. An
-// inferred, structural type matches both.
-const unpublishDeleteItems = computed(() => [
-  [
-    ...(statusConfig.value && isPublished.value && canPublish.value
-      ? [
-          {
-            label: t('pluto.form.unpublish'),
-            icon: 'lucide:eye-off',
-            onSelect: () => onSave(draftValue.value),
-          },
-        ]
-      : []),
-    ...(editing.value && canDelete.value
-      ? [
-          {
-            label: t('pluto.common.delete'),
-            icon: 'lucide:trash',
-            color: 'error' as const,
-            onSelect: () => openDeleteModal(),
-          },
-        ]
-      : []),
-  ],
-])
+// --- Toolbar data ----------------------------------------------------------------
+//
+// The header holds no form logic. It gets plain data and sends events back.
+
+// The public page of the item, from `previewUrl` of the type.
+const viewUrl = computed(() => {
+  if (!editing.value || loadFailed.value || itemPending.value) {
+    return undefined
+  }
+  try {
+    return contentType.value?.previewUrl?.(item.value as PlutoContentItem) || undefined
+  } catch {
+    // A broken previewUrl must not break the form.
+    return undefined
+  }
+})
+
+const headerStatus = computed(() =>
+  statusConfig.value ? { label: statusLabel.value ?? '', published: isPublished.value } : undefined
+)
+
+const headerActions = computed<PlutoFormHeaderButton[]>(() => {
+  if (!contentType.value) {
+    return []
+  }
+  const context = buildActionContext()
+  return toolbarActions.value
+    .filter((action) => action.show?.(context) !== false)
+    .map((action) => ({
+      id: `action:${action.id}`,
+      label: action.label,
+      icon: action.icon ?? '',
+      color: action.color as PlutoFormHeaderButton['color'],
+      variant: action.variant as PlutoFormHeaderButton['variant'],
+      secondary: true,
+    }))
+})
+
+const headerButtons = computed<PlutoFormHeaderButton[]>(() => {
+  const buttons: PlutoFormHeaderButton[] = []
+  if (canSave.value && !statusConfig.value) {
+    buttons.push({ id: 'save', label: t('pluto.common.save'), icon: 'lucide:save', variant: 'solid' })
+  }
+  if (canSave.value && statusConfig.value && !isPublished.value) {
+    buttons.push({ id: 'save', label: t('pluto.form.saveDraft'), icon: 'lucide:save', variant: 'subtle', secondary: true })
+  }
+  if (canSave.value && statusConfig.value && isPublished.value) {
+    buttons.push({ id: 'save', label: t('pluto.form.update'), icon: 'lucide:save', variant: 'solid' })
+  }
+  if (canPublishNow.value && statusConfig.value && !isPublished.value) {
+    buttons.push({ id: 'publish', label: t('pluto.form.publish'), icon: 'lucide:upload', variant: 'solid' })
+  }
+  return buttons
+})
+
+function onHeaderPress(id: string) {
+  if (id === 'save') {
+    onSave()
+  } else if (id === 'publish') {
+    onSave(publishedValue.value)
+  } else {
+    toolbarActions.value.find((entry) => `action:${entry.id}` === id)?.onSelect(buildActionContext())
+  }
+}
+
+const asideToggle = computed(() => {
+  if (!showAsideToggle.value) {
+    return undefined
+  }
+  const open = asideModel.value
+  return {
+    label: open ? t('pluto.form.hideSettings') : t('pluto.form.showSettings'),
+    icon: open ? 'lucide:panel-right-close' : 'lucide:panel-right-open',
+  }
+})
+const leftToggle = computed(() => {
+  if (!hasLeft.value) {
+    return undefined
+  }
+  const open = leftOpen.value
+  return {
+    label: open ? t('pluto.canvas.hideSidebar') : t('pluto.canvas.showSidebar'),
+    icon: open ? 'lucide:panel-left-close' : 'lucide:panel-left-open',
+  }
+})
+const canUnpublish = computed(() => Boolean(statusConfig.value) && isPublished.value && canPublish.value && !loadFailed.value)
+const canShowDelete = computed(() => editing.value && canDelete.value && !loadFailed.value)
+
+// The aside of the default and focus layouts shows when it has fields. The
+// canvas layout shows it when a panel or the "Page" tab exists.
+const asideSlot = computed(() => (isCanvas.value ? hasRight.value : showAside.value && !inlineAside.value && !loadFailed.value))
+const asideTitle = computed(() =>
+  isCanvas.value && rightTabs.value.length === 1 ? rightTabs.value[0]!.label : t('pluto.common.settings')
+)
 </script>
 
 <template>
   <PlutoViewAdminPanel
     v-if="contentType"
-    :aside-open="showAside && asideOpen && !inlineAside"
-    :width="layout === 'focus' ? 'full' : 'container'"
+    v-model:left-open="leftOpen"
+    :aside-open="asideSlot && asideModel"
+    :left-title="leftPanels[0]?.label"
+    :width="layout === 'default' ? 'container' : 'full'"
+    :fill="isCanvas"
   >
     <template #toolbar>
-      <PlutoViewToolbar
+      <PlutoContentFormHeader
         :back-to="basePath"
-        :title="layout === 'focus' ? heading : undefined"
-      >
-        <template #right>
-          <UBadge
-            v-if="statusConfig"
-            :color="isPublished ? 'success' : 'neutral'"
-            variant="subtle"
-          >
-            {{ statusLabel }}
-          </UBadge>
-
-          <template v-for="action in toolbarActions" :key="action.id">
-            <!-- prettier-ignore -->
-            <UButton
-              v-if="action.show?.(buildActionContext()) !== false"
-              :icon="action.icon"
-              :color="(action.color as ButtonProps['color'])"
-              :variant="(action.variant as ButtonProps['variant'])"
-              @click="action.onSelect(buildActionContext())"
-            >
-              {{ action.label }}
-            </UButton>
-          </template>
-
-          <UButton
-            v-if="canSave && (!statusConfig || !isPublished)"
-            :loading="saving"
-            icon="lucide:save"
-            variant="subtle"
-            @click="onSave()"
-          >
-            {{ statusConfig ? t('pluto.form.saveDraft') : t('pluto.common.save') }}
-          </UButton>
-
-          <UButton
-            v-if="canSave && statusConfig && isPublished"
-            :loading="saving"
-            icon="lucide:save"
-            @click="onSave()"
-          >
-            {{ t('pluto.form.update') }}
-          </UButton>
-
-          <UButton
-            v-if="canPublishNow && statusConfig && !isPublished"
-            :loading="saving"
-            icon="lucide:upload"
-            @click="onSave(publishedValue)"
-          >
-            {{ t('pluto.form.publish') }}
-          </UButton>
-
-          <UDropdownMenu
-            v-if="
-              !loadFailed &&
-              ((editing && canDelete) ||
-                (statusConfig && isPublished && canPublish))
-            "
-            :items="unpublishDeleteItems"
-          >
-            <UTooltip :text="t('pluto.form.moreActions')">
-              <UButton
-                :aria-label="t('pluto.form.moreActions')"
-                icon="lucide:ellipsis-vertical"
-                color="neutral"
-                variant="ghost"
-                square
-              />
-            </UTooltip>
-          </UDropdownMenu>
-
-          <UTooltip
-            v-if="showAsideToggle"
-            :text="asideOpen ? t('pluto.form.hideSettings') : t('pluto.form.showSettings')"
-          >
-            <UButton
-              :aria-label="asideOpen ? t('pluto.form.hideSettings') : t('pluto.form.showSettings')"
-              :icon="
-                asideOpen ? 'lucide:panel-right-close' : 'lucide:panel-right-open'
-              "
-              color="neutral"
-              variant="ghost"
-              square
-              @click="toggleAside"
-            />
-          </UTooltip>
-        </template>
-      </PlutoViewToolbar>
+        :type-label="text.labelPlural"
+        :title="heading"
+        :status="headerStatus"
+        :save-state="saveState"
+        :saved-text="savedText"
+        :view-url="viewUrl"
+        :actions="headerActions"
+        :buttons="headerButtons"
+        :saving="saving"
+        :can-unpublish="canUnpublish"
+        :can-delete="canShowDelete"
+        :aside-toggle="asideToggle"
+        :left-toggle="leftToggle"
+        @press="onHeaderPress"
+        @retry="onSave(lastStatusOverride)"
+        @unpublish="onSave(draftValue)"
+        @delete="openDeleteModal"
+        @toggle-aside="toggleAside"
+        @toggle-left="leftOpen = !leftOpen"
+      />
     </template>
 
     <UAlert
       v-if="validationErrors.length > 0"
       :title="t('pluto.form.fixErrors')"
+      :class="isCanvas ? 'm-4 shrink-0' : undefined"
       color="error"
     >
       <template #description>
@@ -490,10 +756,6 @@ const unpublishDeleteItems = computed(() => [
         </ul>
       </template>
     </UAlert>
-
-    <h1 v-if="layout !== 'focus'" class="text-3xl font-bold lg:text-4xl">
-      {{ heading }}
-    </h1>
 
     <!-- The item did not load. Show the error and a retry button, and no fields. -->
     <UEmpty
@@ -506,9 +768,28 @@ const unpublishDeleteItems = computed(() => [
     />
 
     <!-- The page and the fields show at once. A skeleton stands in while the item loads. -->
+    <div v-else-if="itemPending && isCanvas" class="p-4">
+      <PlutoSkeletonField v-if="canvasFieldDef" :field-type="canvasFieldDef.type" />
+    </div>
+
     <template v-else-if="itemPending">
       <PlutoSkeletonField v-for="field in mainFields" :key="field.name" :field-type="field.type" />
     </template>
+
+    <!--
+      The canvas field fills the main region. Its widget root must fill its
+      parent (\`h-full\`), and scrolls its own content.
+    -->
+    <div v-else-if="isCanvas" class="flex min-h-0 flex-1 flex-col">
+      <PlutoContentField
+        v-if="canvasFieldDef"
+        :type="type"
+        :field="canvasFieldDef"
+        :model-value="item[canvasFieldDef.name]"
+        :disabled="!canWrite || saving"
+        @update:model-value="updateField(canvasFieldDef, $event)"
+      />
+    </div>
 
     <template v-else>
       <PlutoContentField
@@ -548,9 +829,56 @@ const unpublishDeleteItems = computed(() => [
       </template>
     </section>
 
-    <template v-if="showAside && !inlineAside && !loadFailed" #aside>
-      <PlutoViewAside v-model:open="asideOpen" :title="t('pluto.common.settings')">
-        <div class="flex flex-col gap-6">
+    <!-- The left panel of the canvas layout. Widget panels teleport into it. -->
+    <template v-if="hasLeft" #left>
+      <div :ref="setLeftTarget" class="flex min-h-0 flex-1 flex-col" />
+    </template>
+
+    <template v-if="asideSlot" #aside>
+      <PlutoViewAside v-model:open="asideModel" :title="asideTitle">
+        <template v-if="isCanvas && rightTabs.length > 1" #header>
+          <UTabs
+            v-model="activeTab"
+            :items="rightTabs"
+            :content="false"
+            :aria-label="t('pluto.canvas.panels')"
+            :ui="{ list: 'border-b-0 p-0', trigger: 'px-2' }"
+            size="sm"
+            variant="link"
+            color="neutral"
+          />
+        </template>
+
+        <!-- Canvas: one box for each widget panel, and the "Page" fields. Boxes stay mounted. -->
+        <div v-if="isCanvas" class="flex flex-col gap-6">
+          <div
+            v-for="panel in rightPanels"
+            v-show="activeTab === panel.id"
+            :key="panel.id"
+            :ref="(el) => setRightTarget(panel.id, el)"
+            class="flex min-h-0 flex-col"
+          />
+
+          <div v-show="activeTab === 'page'" class="flex flex-col gap-6">
+            <template v-if="itemPending">
+              <PlutoSkeletonField v-for="field in pageFields" :key="field.name" :field-type="field.type" />
+            </template>
+
+            <template v-else>
+              <PlutoContentField
+                v-for="field in pageFields"
+                :key="field.name"
+                :type="type"
+                :field="field"
+                :model-value="item[field.name]"
+                :disabled="!canWrite || saving"
+                @update:model-value="updateField(field, $event)"
+              />
+            </template>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col gap-6">
           <template v-if="itemPending">
             <PlutoSkeletonField v-for="field in sideFields" :key="field.name" :field-type="field.type" />
           </template>
@@ -606,6 +934,38 @@ const unpublishDeleteItems = computed(() => [
           @click="confirmDelete"
         >
           {{ t('pluto.common.remove') }}
+        </UButton>
+      </div>
+    </ModalFooter>
+  </Modal>
+
+  <!-- The leave dialog. Closing it with Escape or a click outside means "Stay". -->
+  <Modal :model-value="leaveOpen" :custom-size="480" @update:model-value="!$event && stayOnPage()">
+    <ModalHeader @close="stayOnPage">
+      {{ t('pluto.form.leaveTitle') }}
+    </ModalHeader>
+
+    <ModalContent>
+      <p>{{ t('pluto.form.leaveDescription') }}</p>
+    </ModalContent>
+
+    <ModalFooter>
+      <div class="flex items-center gap-4">
+        <UButton
+          icon="lucide:arrow-left"
+          variant="ghost"
+          color="neutral"
+          @click="stayOnPage"
+        >
+          {{ t('pluto.form.stay') }}
+        </UButton>
+
+        <UButton
+          icon="lucide:log-out"
+          color="error"
+          @click="leavePage"
+        >
+          {{ t('pluto.form.leave') }}
         </UButton>
       </div>
     </ModalFooter>

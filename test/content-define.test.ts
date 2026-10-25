@@ -29,6 +29,11 @@ describe('defineContentType', () => {
     expect(console.warn).not.toHaveBeenCalled()
   })
 
+  it('accepts a canvas layout whose canvasField names a field', () => {
+    defineContentType(baseType({ form: { layout: 'canvas', canvasField: 'title' } }))
+    expect(console.warn).not.toHaveBeenCalled()
+  })
+
   it.each([
     {
       case: 'duplicate field name',
@@ -62,6 +67,10 @@ describe('defineContentType', () => {
     {
       case: 'status with empty values',
       type: baseType({ status: { values: [] } }),
+    },
+    {
+      case: 'canvas layout with a canvasField that names no field',
+      type: baseType({ form: { layout: 'canvas', canvasField: 'body' } }),
     },
   ])('warns on $case', ({ type }) => {
     const result = defineContentType(type)

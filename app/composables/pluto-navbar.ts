@@ -55,6 +55,9 @@ export function usePlutoNavbarActions() {
  *
  * With no permissions driver, every signed-in user counts as staff, like
  * `can()` that fails open.
+ *
+ * A route hides the bar with the page meta `plutoAdminBar: false`. The preview
+ * path (`isPlutoPreviewPath`) hides it too.
  */
 export function usePlutoAdminBar() {
   const route = useRoute()
@@ -74,6 +77,7 @@ export function usePlutoAdminBar() {
       // render matches the server HTML. The admin rule does not read it.
       capabilitiesKnown: capabilitiesKnown.value && mounted.value,
       publicPaths: publicPaths.value,
+      hiddenByRoute: route.meta.plutoAdminBar === false || isPlutoPreviewPath(route.path),
     })
   )
 

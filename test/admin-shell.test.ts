@@ -13,6 +13,7 @@ import {
   shortName,
   staffDecision,
 } from '../app/composables/internal/admin-shell'
+import { isPlutoPreviewPath } from '../shared/utils/preview-path'
 
 const publicPaths = normalizePublicPaths(['/admin/reset', { path: '/admin/invite', signedIn: 'allow' }])
 
@@ -155,6 +156,23 @@ describe('navbarVisible', () => {
   it('hides on a public page while the capabilities are unknown', () => {
     expect(navbarVisible({ ...base, path: '/', capabilitiesKnown: false })).toBe(false)
     expect(navbarVisible({ ...base, path: '/', isStaff: false, capabilitiesKnown: false })).toBe(false)
+  })
+
+  it('hides when the route hides the bar (hiddenByRoute)', () => {
+    expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: true })).toBe(false)
+    expect(navbarVisible({ ...base, path: '/admin/home', hiddenByRoute: true })).toBe(false)
+    expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: false })).toBe(true)
+  })
+})
+
+describe('isPlutoPreviewPath', () => {
+  it('matches the preview path and its children only', () => {
+    expect(isPlutoPreviewPath('/_pluto/preview')).toBe(true)
+    expect(isPlutoPreviewPath('/_pluto/preview/')).toBe(true)
+    expect(isPlutoPreviewPath('/_pluto/preview/x')).toBe(true)
+    expect(isPlutoPreviewPath('/_pluto/previews')).toBe(false)
+    expect(isPlutoPreviewPath('/_pluto')).toBe(false)
+    expect(isPlutoPreviewPath('/admin/home')).toBe(false)
   })
 })
 

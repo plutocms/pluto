@@ -17,61 +17,106 @@ const props = withDefaults(
      * list, such as a virtualized table. Default false.
      */
     fill?: boolean
+    /** The title of the left panel, when it shows as a slideover on a narrow screen. */
+    leftTitle?: string
   }>(),
   {
     width: 'container',
     asideOpen: false,
     fill: false,
+    leftTitle: undefined,
   }
 )
 
+/**
+ * Whether the left panel is open. It is a panel beside the main content on
+ * desktop, and a slideover on a narrow screen. It shows only when the view
+ * fills the `#left` slot.
+ */
+const leftOpen = defineModel<boolean>('leftOpen', { default: false })
+
 const slots = useSlots()
+
+// `useSlots()` is not reactive. A view can fill a slot later, for example when
+// a widget loads on demand and adds the left panel. So keep the slot flags in
+// refs, and read the slots again before each update of this component.
+const hasAsideSlot = ref(Boolean(slots.aside))
+const hasLeftSlot = ref(Boolean(slots.left))
+onBeforeUpdate(() => {
+  hasAsideSlot.value = Boolean(slots.aside)
+  hasLeftSlot.value = Boolean(slots.left)
+})
+const { t } = usePlutoI18n()
 const isDesktop = useMediaQuery('(min-width: 64rem)')
 
-// The splitter works in percentages of the row width. The aside limits
-// are in px, so convert them against the measured row width. Do not use
-// the splitter's `sizeUnit: 'px'`: when the panel joins with the aside
-// already open (a reload), reka-ui skips the px conversion and reads the
-// px value as a raw size.
+// The splitter works in percentages of the row width. The side limits are in
+// px, so convert them against the measured row width. Do not use the
+// splitter's `sizeUnit: 'px'`: when a panel joins with its side already open
+// (a reload), reka-ui skips the px conversion and reads the px value as a raw
+// size.
 const rowEl = ref<HTMLElement>()
 const { width: rowWidth } = useElementSize(rowEl)
 const toPercent = (px: number) => Math.min(100, (px / rowWidth.value) * 100)
 
 // On mobile the aside is a slideover, so it needs no panel. Wait for the
 // row to have a width, so the px-to-percent conversion is correct.
-const resizable = computed(() => rowWidth.value > 0 && Boolean(slots.aside) && props.asideOpen && isDesktop.value)
+const resizable = computed(() => rowWidth.value > 0 && hasAsideSlot.value && props.asideOpen && isDesktop.value)
 provide(plutoViewAsideResizableKey, resizable)
+
+// The left panel sits in the splitter on desktop, with the same rule. On a
+// narrow screen it is a slideover, outside the splitter.
+const leftResizable = computed(() => rowWidth.value > 0 && hasLeftSlot.value && leftOpen.value && isDesktop.value)
+const leftSlideover = computed(() => hasLeftSlot.value && !isDesktop.value)
 
 const ASIDE_MIN = 240
 const ASIDE_MAX = 560
+const LEFT_MIN = 200
+const LEFT_MAX = 400
 
-// Keep the aside width in px ourselves, so it stays the same when the
+// Keep the side widths in px ourselves, so they stay the same when the
 // window size changes between visits.
 const asideWidth = useCookie<number>('pluto-view-aside-width', { default: () => 320 })
+const leftWidth = useCookie<number>('pluto-view-left-width', { default: () => 260 })
 const asideEl = ref<HTMLElement>()
+const leftEl = ref<HTMLElement>()
 
-// Snapshot the width when the panel opens. A reactive `defaultSize` would
+// Snapshot the width when a panel opens. A reactive `defaultSize` would
 // rebuild the panel on every save.
-const clampAside = (px: number) => Math.min(ASIDE_MAX, Math.max(ASIDE_MIN, px))
+const clamp = (px: number, min: number, max: number) => Math.min(max, Math.max(min, px))
 const asideDefault = ref(0)
+const leftDefault = ref(0)
 watch(resizable, (value) => {
   if (value) {
-    asideDefault.value = toPercent(clampAside(asideWidth.value))
+    asideDefault.value = toPercent(clamp(asideWidth.value, ASIDE_MIN, ASIDE_MAX))
+  }
+}, { immediate: true })
+watch(leftResizable, (value) => {
+  if (value) {
+    leftDefault.value = toPercent(clamp(leftWidth.value, LEFT_MIN, LEFT_MAX))
   }
 }, { immediate: true })
 
 function onDragging(_index: number, dragging: boolean) {
-  if (!dragging && asideEl.value) {
+  if (dragging) {
+    return
+  }
+  if (asideEl.value) {
     asideWidth.value = Math.round(asideEl.value.getBoundingClientRect().width)
+  }
+  if (leftEl.value) {
+    leftWidth.value = Math.round(leftEl.value.getBoundingClientRect().width)
   }
 }
 
-// `id` and `order` let the splitter add and remove the aside panel as the
-// aside opens and closes.
+// `id` and `order` let the splitter add and remove a side panel as it
+// opens and closes. The order is left, main, aside.
 const items = computed<SplitterItem[]>(() => [
-  { id: 'pluto-view-main', slot: 'main', order: 1 },
+  ...(leftResizable.value
+    ? [{ id: 'pluto-view-left', slot: 'left', order: 1, defaultSize: leftDefault.value, minSize: toPercent(LEFT_MIN), maxSize: toPercent(LEFT_MAX) }]
+    : []),
+  { id: 'pluto-view-main', slot: 'main', order: 2 },
   ...(resizable.value
-    ? [{ id: 'pluto-view-aside', slot: 'aside', order: 2, defaultSize: asideDefault.value, minSize: toPercent(ASIDE_MIN), maxSize: toPercent(ASIDE_MAX) }]
+    ? [{ id: 'pluto-view-aside', slot: 'aside', order: 3, defaultSize: asideDefault.value, minSize: toPercent(ASIDE_MIN), maxSize: toPercent(ASIDE_MAX) }]
     : []),
 ])
 </script>
@@ -92,6 +137,12 @@ const items = computed<SplitterItem[]>(() => [
         }"
         @dragging="onDragging"
       >
+        <template #left>
+          <div ref="leftEl" class="flex h-full w-full flex-col overflow-y-auto">
+            <slot name="left" />
+          </div>
+        </template>
+
         <template #main>
           <main :class="fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'" class="min-h-0 w-full">
             <!--
@@ -123,5 +174,26 @@ const items = computed<SplitterItem[]>(() => [
         <slot name="aside" />
       </div>
     </div>
+
+    <!--
+      The left panel on a narrow screen. Like PlutoViewAside, it renders the
+      slot once: here on a narrow screen, in the splitter on desktop.
+      `unmount-on-hide="false"` keeps the slot mounted after the first open.
+    -->
+    <USlideover
+      v-if="leftSlideover"
+      v-model:open="leftOpen"
+      :title="leftTitle ?? t('pluto.canvas.sidebar')"
+      :description="leftTitle ?? t('pluto.canvas.sidebar')"
+      :unmount-on-hide="false"
+      :ui="{ description: 'sr-only' }"
+      side="left"
+    >
+      <template #body>
+        <div class="flex flex-col">
+          <slot name="left" />
+        </div>
+      </template>
+    </USlideover>
   </div>
 </template>

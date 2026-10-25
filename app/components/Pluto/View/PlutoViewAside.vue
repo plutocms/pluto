@@ -7,6 +7,7 @@
 // on mobile, both bound to the same `open` model.
 withDefaults(
   defineProps<{
+    /** The heading. The `header` slot replaces it. */
     title?: string
     /**
      * Desktop width, in px. Default 320. Ignored inside a
@@ -19,6 +20,12 @@ withDefaults(
     width: 320,
   }
 )
+
+defineSlots<{
+  /** Replaces the heading, for example with tabs. */
+  header?: () => unknown
+  default?: () => unknown
+}>()
 
 const { t } = usePlutoI18n()
 
@@ -55,7 +62,10 @@ const slideoverOpen = computed({
     class="flex h-full flex-col"
   >
     <div class="border-default flex h-12 shrink-0 items-center justify-between gap-1.5 border-b px-4">
-      <h2 class="text-highlighted truncate text-sm font-semibold">{{ title }}</h2>
+      <div v-if="$slots.header" class="min-w-0 flex-1">
+        <slot name="header" />
+      </div>
+      <h2 v-else class="text-highlighted truncate text-sm font-semibold">{{ title }}</h2>
       <UTooltip :text="t('pluto.common.close')">
         <UButton
           :aria-label="t('pluto.common.close')"
@@ -84,6 +94,10 @@ const slideoverOpen = computed({
     :unmount-on-hide="false"
     side="right"
   >
+    <template v-if="$slots.header" #title>
+      <slot name="header" />
+    </template>
+
     <template #body>
       <slot />
     </template>
