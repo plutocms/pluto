@@ -48,8 +48,10 @@ policies shared by every project here.
 - Single Tailwind build: the app owns the only Tailwind build. The pluto-css module generates
   `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md
-- GitHub CMS: an optional standalone CMS with Markdown posts in a GitHub repo. It is off
-  by default and refuses to run with the supabase layer. When on, it has GitHub App sign-in, a sealed
+- GitHub CMS: a standalone CMS with Markdown posts in a GitHub repo. `plutoCms.enabled` is
+  `'auto'`: on, unless a backend layer is present (the supabase layer, `@nuxtjs/supabase`, or
+  `$meta.plutoBackend`). It has defaults for the storage (`fs` in dev), and for the repo (env vars,
+  Vercel, the git remote). When on, it has GitHub App sign-in, a sealed
   session, a CSRF origin check, the auth driver for the core admin shell, and the stores, adapter and post type.
   It also has a Markdown editor with a Visual/Source switch (`PlutoMarkdownSource`, `findUnsafeMarkdown`,
   the `editor` field option), nested content types (`files: { nested, exclude, frontmatter }`, ids that
@@ -61,3 +63,5 @@ policies shared by every project here.
   loads, and warns in dev about a registered component that is not async.
   @.claude/skills/extension-registry/SKILL.md
 - Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The admin is for staff only: a signed-in user with no capability goes to `/admin/no-access`. The bar shows on `/admin/**` for staff, and on public pages for staff only. The bar height is the token `--pluto-admin-bar-height`, and `<html>` gets `data-pluto-admin-bar` while the bar shows. @.claude/skills/admin-shell/SKILL.md
+- Local layers helper: `plutoLayer(name)` from `@plutocms/pluto/layers` gives a Nuxt `extends` entry.
+  With `PLUTO_LOCAL_ROOT`, it uses the local checkouts of the Pluto layers. @.claude/skills/local-layers/SKILL.md

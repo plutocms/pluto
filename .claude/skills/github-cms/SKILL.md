@@ -5,23 +5,56 @@ a GitHub repo. Editors change them in the Pluto admin. The public site reads the
 GitHub API, with a cache. Users with push access to the repo are editors. They sign in with a
 GitHub App. A draft is a post with `status: draft` in its frontmatter.
 
-## Off by default
+## On unless a backend layer is present
 
-The CMS is off unless the app sets `plutoCms.enabled: true`. When it is off, the `pluto-cms`
-module adds nothing: no runtime config key, handler, plugin, page, middleware or import.
+`plutoCms.enabled` is `'auto'` by default. It also accepts `true` and `false`. When the CMS is
+off, the `pluto-cms` module adds nothing: no runtime config key, handler, plugin, page, middleware
+or import.
 
-The CMS refuses to run with the supabase layer. A layer with `$meta.name === 'supabase'`, or the
-`@nuxtjs/supabase` module, counts as the supabase layer. If an app enables the CMS with it, the
-module logs this error and stays off:
+- `'auto'`: on, unless a backend layer is present. With a backend layer it is off, with no log.
+- `true`: on. With a backend layer, the module logs this error and stays off:
 
 > The standalone CMS cannot run with the supabase layer. Remove plutoCms.enabled or the supabase
 > layer.
 
-A supabase app that does not set `plutoCms.enabled` sees no change and no log line.
+- `false`: off. The module returns before any other work.
+- Any other value: the module logs an error and stays off.
+
+A backend layer is any of these (`index.ts` checks them, then passes `hasBackendLayer` to
+`resolvePlutoCmsOptions`):
+
+- A layer with `$meta.name === 'supabase'`.
+- The `@nuxtjs/supabase` module.
+- A layer with `$meta.plutoBackend: true`. This is the generic marker. Nuxt keeps custom `$meta`
+  keys in `layer.config`. A new backend layer sets it in its `nuxt.config.ts`.
+
+A supabase app sees no change and no log line.
+
+During `nuxt prepare`, an auto-enabled CMS logs no error. A build or a dev server logs it.
+
+## Defaults
+
+An explicit option always wins. `resolvePlutoCmsOptions(options, ctx)` is pure. The module passes
+`ctx = { dev, hasBackendLayer, env: process.env, gitOrigin }`.
+
+- `storage`: the env var `PLUTO_CMS_STORAGE`, else `fs` in dev and `github` in production.
+- `github.repo`: the env var `NUXT_PLUTO_CMS_GITHUB_REPO`, then `PLUTO_CMS_REPO`, then Vercel's
+  `VERCEL_GIT_REPO_OWNER` + `VERCEL_GIT_REPO_SLUG`, then (dev only) the `origin` remote of the
+  git repo that holds `rootDir`.
+- `github.appSlug`: `NUXT_PLUTO_CMS_GITHUB_APP_SLUG`, then `PLUTO_CMS_APP_SLUG`.
+- `github.branch`: `main`.
+- With the `github` storage and no repo, the module logs one error ("The standalone CMS needs a
+  GitHub repo...") and stays off. It never throws.
+
+`modules/pluto-cms/git-remote.ts` has `parseGithubRepoUrl` (https, `git@`, `ssh://`, `git://` URLs
+of github.com), `parseGitConfigOrigin` and `readGitOrigin`. `readGitOrigin` walks up from
+`rootDir` to the `.git` dir, follows a worktree `gitdir:` pointer, and reads `config`. It runs
+no shell command. Tests: `test/cms-git-remote.test.ts`, `test/pluto-cms-options.test.ts`.
 
 ## Files
 
 - `modules/pluto-cms/index.ts` — the Nuxt module (config key `plutoCms`).
+- `modules/pluto-cms/git-remote.ts` — the git `origin` reader (Node `fs` only).
 - `modules/pluto-cms/options.ts` — pure helpers: `resolvePlutoCmsOptions`, `normalizeCmsDir`,
   `PLUTO_CMS_SECRET_ENV`. No Nuxt imports, so plain Vitest can test them.
 - `shared/types/cms.d.ts` — the `@nuxt/schema` types for `plutoCms`.
@@ -41,11 +74,11 @@ A supabase app that does not set `plutoCms.enabled` sees no change and no log li
 
 | Option | Default | Rule |
 |---|---|---|
-| `enabled` | `false` | Turns the CMS on. |
-| `storage` | `'github'` | `'github'` or `'fs'`. `'fs'` is valid in dev only. |
-| `github.repo` | none | `owner/name`. Required when storage is `github`. |
+| `enabled` | `'auto'` | `'auto'`, `true` or `false`. See "On unless a backend layer is present". |
+| `storage` | `'fs'` in dev, `'github'` in production | `'github'` or `'fs'`. `'fs'` is valid in dev only. |
+| `github.repo` | found (see "Defaults") | `owner/name`. Required when storage is `github`. |
 | `github.branch` | `'main'` | The branch to read and commit to. |
-| `github.appSlug` | `''` | The slug of the GitHub App. |
+| `github.appSlug` | the env var, else `''` | The slug of the GitHub App. |
 | `github.apiUrl` | `'https://api.github.com'` | The API base URL. |
 | `dir` | `'content'` | Relative path. No `..`, no leading `/`, no drive letter. The module changes `\` to `/` and removes a trailing `/`. |
 | `commit.skipDeploy` | `true` | Add `[skip ci]` to commit messages. A site that must redeploy on each edit (for example a docs site) sets it to `false`. See "Skip a deploy on Vercel". |
@@ -200,7 +233,7 @@ The contract test suite is `test/contracts/content-adapter.contract.ts`
 
 ## Wiring
 
-When `plutoCms.enabled` is true, and only then, the module adds:
+When the CMS is on (see "On unless a backend layer is present"), and only then, the module adds:
 
 - Four server routes under `/api/_pluto/auth/` (see "Authentication").
 - A server middleware, `middleware/pluto-cms-origin.ts`, for the CSRF check.
@@ -379,7 +412,7 @@ app with a cookie jar), `cms-test-config.ts` and `kit-mock.ts`.
      token for anonymous reads.
    - Optional `NUXT_PLUTO_CMS_ALLOWED_USERS`: GitHub logins, comma-separated, without case. When
      set, only these users can sign in, even with push access.
-9. Set `plutoCms.github.repo` and, for the "not installed" link, `plutoCms.github.appSlug`.
+9. Set `PLUTO_CMS_REPO` (or `plutoCms.github.repo`) when the default does not find the repo. For the "not installed" link, set `PLUTO_CMS_APP_SLUG` (or `plutoCms.github.appSlug`).
 
 A public repo shows its drafts on GitHub. Use a private repo for drafts. The dashboard warns about
 this only when a registered content type has a status (a type with no status has no drafts).

@@ -177,20 +177,20 @@ The quickest start is the template:
 bunx create-pluto@latest my-blog -t core-blog
 ```
 
-Or turn it on in an existing app. It is off by default, and it refuses to run next to the
-supabase layer:
+Or use it in an existing app. It is on by default (`plutoCms.enabled: 'auto'`), and it stays
+off next to a backend layer such as the supabase layer. It needs no option:
 
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
   extends: [['@plutocms/pluto', { install: true }]],
-  plutoCms: {
-    enabled: true,
-    github: { repo: 'owner/name', branch: 'main', appSlug: 'my-blog-cms' },
-    dir: 'content', // posts live in content/posts/<slug>.md
-  },
 })
 ```
+
+Posts live in `content/posts/<slug>.md`. In development, the CMS reads and writes the local
+`content/` folder. In production, it uses GitHub. Pluto finds the repository from
+`PLUTO_CMS_REPO`, from Vercel, or (in development) from the `origin` git remote. Set
+`plutoCms.github.repo` only when none of these works.
 
 - **Sign-in:** with a GitHub App. Users with push access to the repository are editors.
   Commits carry the name of the editor.
@@ -207,8 +207,8 @@ export default defineNuxtConfig({
   and you do not want the built-in `post` type.
 - **Admin bar:** the admin bar shows on public pages for signed-in staff. A site can offset its
   own header with the `--pluto-admin-bar-height` CSS variable or with `usePlutoAdminBar()`.
-- **Development:** set `storage: 'fs'` to read and write the local `content/` folder. A dev
-  server then never writes to the real repository.
+- **Development:** the default storage in dev is `fs`. It reads and writes the local
+  `content/` folder, so a dev server never writes to the real repository.
 
 The GitHub App setup, the environment variables and every option are in the template README
 and in `.claude/skills/github-cms/SKILL.md`.
@@ -240,3 +240,21 @@ If you're a Vue developer, you'll feel right at home.
 
 MIT, as set in `package.json`. This repository does not have a `LICENSE` file yet.
 
+
+## Local layers (Pluto development)
+
+An app imports the `plutoLayer` helper to extend a Pluto layer. By default, it returns the npm
+package. With `PLUTO_LOCAL_ROOT` set (for example `PLUTO_LOCAL_ROOT=..` in `.env`), it uses the
+local checkouts under that folder.
+
+```ts
+// nuxt.config.ts
+import { plutoLayer } from '@plutocms/pluto/layers'
+
+export default defineNuxtConfig({
+  extends: [plutoLayer('@plutocms/supabase-shop')],
+})
+```
+
+With pnpm, add `@plutocms/pluto` to the dependencies of the app, so the import works. See
+`.claude/skills/local-layers/SKILL.md`.
