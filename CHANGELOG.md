@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.20.0](https://github.com/plutocms/pluto/compare/v0.19.0...v0.20.0) (2026-10-25)
+
+
+### Features
+
+* **cms:** turn the GitHub CMS on by default, with sensible defaults, and add the plutoLayer helper ([#207](https://github.com/plutocms/pluto/issues/207)) ([60ad22e](https://github.com/plutocms/pluto/commit/60ad22eefd28cb703df021506793cb6826841068))
+
+
+### Bug Fixes
+
+* **root:** keep a sticky site header sticky after one screen of scroll ([#205](https://github.com/plutocms/pluto/issues/205)) ([5065c35](https://github.com/plutocms/pluto/commit/5065c353c13f45d834089106f68860135e64fb49))
+
 ## [0.19.0](https://github.com/plutocms/pluto/compare/v0.18.0...v0.19.0) (2026-10-25)
 
 
