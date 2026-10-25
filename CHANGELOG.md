@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.18.0](https://github.com/plutocms/pluto/compare/v0.17.1...v0.18.0) (2026-10-25)
+
+
+### Features
+
+* **admin:** add settings pages and Pluto mail ([#198](https://github.com/plutocms/pluto/issues/198)) ([6b34abc](https://github.com/plutocms/pluto/commit/6b34abc8408649c107f36482c72712c0c6b57f5f))
+
 ## [0.17.1](https://github.com/plutocms/pluto/compare/v0.17.0...v0.17.1) (2026-10-25)
 
 
