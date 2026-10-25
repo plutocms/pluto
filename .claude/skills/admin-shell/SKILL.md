@@ -331,3 +331,14 @@ After the supabase layer migrates, remove the legacy shell fallback (see above).
 - `test/cms-module.test.ts` — the CMS module adds no page and no route middleware.
 - The routes, the login page and the guard have no unit test beyond `guardDecision`. Check them in
   a built app: one `/admin/login` route, with the CMS on and with no driver.
+
+## Page height and sticky headers
+
+`PlutoRoot` styles `#__nuxt` with `min-height: 100dvh` and a flex column. It sets no fixed height
+on `html`, `body` or `#__nuxt` for public pages. A fixed `height: 100%` would cap each wrapper at
+one viewport. A sticky element (for example a Nuxt UI `UHeader`) sticks only inside its parent, so
+a capped parent made the header leave after one viewport of scroll.
+
+The admin keeps the fixed height: `:root[data-pluto-admin]` (set by `usePlutoAdminTheme`) gives
+`html`, `body` and `#__nuxt` `height: 100%`. The dashboard group is `fixed inset-0`, so it does
+not depend on it.
