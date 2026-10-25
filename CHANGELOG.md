@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.19.0](https://github.com/plutocms/pluto/compare/v0.18.0...v0.19.0) (2026-10-25)
+
+
+### Features
+
+* **cms:** support docs sites: nested paths and a Markdown source mode ([#201](https://github.com/plutocms/pluto/issues/201)) ([3dbcb12](https://github.com/plutocms/pluto/commit/3dbcb123bc35014590b19d07c514dce47416afa0))
+
 ## [0.18.0](https://github.com/plutocms/pluto/compare/v0.17.1...v0.18.0) (2026-10-25)
 
 
