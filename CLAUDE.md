@@ -1,6 +1,6 @@
 # pluto
 
-This is `@plutocms/pluto`, the core layer of Pluto CMS. The workspace `CLAUDE.md` (one directory
+This is `@plutocms/pluto`, the core layer of Pluto. The workspace `CLAUDE.md` (one directory
 up) has the shared policy. `FEATURES.md` lists every feature, and each feature has its detail in
 `.claude/skills/<feature-slug>/SKILL.md`. Read the skill of a feature before you change it.
 
