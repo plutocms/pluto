@@ -1,13 +1,13 @@
 <img width="335" height="105" alt="image" src="https://github.com/user-attachments/assets/1cf11470-ea54-416e-a940-7221fffef1e2" />
 
-# Pluto CMS
+# Pluto
 
 A layer-based CMS powered by [Nuxt](https://nuxt.com/).
 
 > [!WARNING]
-> Pluto CMS is currently in **alpha** and at a very early stage. Expect breaking changes, incomplete features, and rough edges.
+> Pluto is currently in **alpha** and at a very early stage. Expect breaking changes, incomplete features, and rough edges.
 
-Pluto CMS is designed to be modular, extensible, and developer-friendly. Instead of a monolithic system, it lets you compose your CMS using layers. You only install what you need.
+Pluto is designed to be modular, extensible, and developer-friendly. Instead of a monolithic system, it lets you compose your CMS using layers. You only install what you need.
 
 ## Features
 
@@ -53,7 +53,7 @@ npm run dev # or pnpm dev, or bun run dev
 
 ## Architecture overview
 
-Pluto CMS is built around **layers**, each responsible for a specific concern.
+Pluto is built around **layers**, each responsible for a specific concern.
 
 ### Core layer (`@plutocms/pluto`)
 
