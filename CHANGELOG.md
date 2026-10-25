@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.17.1](https://github.com/plutocms/pluto/compare/v0.17.0...v0.17.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **admin:** keep users with no role out of the admin ([#196](https://github.com/plutocms/pluto/issues/196)) ([6d0afab](https://github.com/plutocms/pluto/commit/6d0afab6b523b61b718e59ff9b9d64ccdcece889))
+
 ## [0.17.0](https://github.com/plutocms/pluto/compare/v0.16.4...v0.17.0) (2026-10-21)
 
 
