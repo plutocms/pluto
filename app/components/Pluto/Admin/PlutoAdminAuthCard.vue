@@ -14,7 +14,7 @@ const props = defineProps<{
 }>()
 
 const slots = defineSlots<{
- default?: () => unknown
+  default?: () => unknown
 }>()
 
 const { t, tx } = usePlutoI18n()
@@ -27,11 +27,14 @@ const siteName = computed(() => {
   return name === 'Untitled' ? '' : name
 })
 const heading = computed(() => {
-  const value = props.title ?? (slots.default ? undefined : driver.value?.signInTitle)
+  const value =
+    props.title ?? (slots.default ? undefined : driver.value?.signInTitle)
   return value ? tx(value) : t('pluto.auth.signIn')
 })
 const subheading = computed(() => {
-  const value = props.description ?? (slots.default ? undefined : driver.value?.signInDescription)
+  const value =
+    props.description ??
+    (slots.default ? undefined : driver.value?.signInDescription)
   return value ? tx(value) : ''
 })
 const links = computed(() => driver.value?.links ?? {})
@@ -42,8 +45,15 @@ const links = computed(() => driver.value?.links ?? {})
     <UCard class="w-full max-w-100">
       <div class="flex flex-col gap-y-6">
         <div class="flex items-center gap-x-2">
-          <img src="/img/pluto.png" alt="" class="block h-8" />
-          <span v-if="siteName" class="text-highlighted truncate text-sm font-semibold">{{ siteName }}</span>
+          <PlutoLogo
+            aria-hidden="true"
+            class="text-highlighted block h-8 w-auto"
+          />
+          <span
+            v-if="siteName"
+            class="text-highlighted truncate text-sm font-semibold"
+            >{{ siteName }}</span
+          >
         </div>
 
         <template v-if="driver || slots.default">
@@ -57,9 +67,24 @@ const links = computed(() => driver.value?.links ?? {})
           <template v-else-if="driver">
             <component :is="driver.signIn" :redirect="props.redirect ?? ''" />
 
-            <div v-if="links.signUp || links.forgotPassword" class="flex flex-wrap items-center justify-between gap-2">
-              <UButton v-if="links.signUp" :to="links.signUp" :label="t('pluto.auth.signUp')" variant="link" class="px-0" />
-              <UButton v-if="links.forgotPassword" :to="links.forgotPassword" :label="t('pluto.auth.forgotPassword')" variant="link" class="px-0" />
+            <div
+              v-if="links.signUp || links.forgotPassword"
+              class="flex flex-wrap items-center justify-between gap-2"
+            >
+              <UButton
+                v-if="links.signUp"
+                :to="links.signUp"
+                :label="t('pluto.auth.signUp')"
+                variant="link"
+                class="px-0"
+              />
+              <UButton
+                v-if="links.forgotPassword"
+                :to="links.forgotPassword"
+                :label="t('pluto.auth.forgotPassword')"
+                variant="link"
+                class="px-0"
+              />
             </div>
           </template>
         </template>

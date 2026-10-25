@@ -342,3 +342,15 @@ a capped parent made the header leave after one viewport of scroll.
 The admin keeps the fixed height: `:root[data-pluto-admin]` (set by `usePlutoAdminTheme`) gives
 `html`, `body` and `#__nuxt` `height: 100%`. The dashboard group is `fixed inset-0`, so it does
 not depend on it.
+
+## The Pluto logo
+
+`PlutoLogo` (`app/components/Pluto/PlutoLogo.vue`) is `public/img/pluto.svg` inline. The planet
+keeps its colors in both color modes. The wordmark uses `currentColor`, so set a text color class
+(`text-highlighted`). Set the height and `w-auto`. `mark` shows the planet only. The mouth uses a
+mask with an id from `useId()`, so many logos can be on one page. The navbar and the sign-in card
+use it with `aria-hidden="true"`, because the site name is next to it.
+
+Static files for a site: `/img/pluto.svg` (the logo, black wordmark), `/img/pluto.png` (white
+wordmark, for dark backgrounds), `/img/pluto-icon.svg` and `/img/pluto-icon.png` (the planet,
+96 px, for a favicon). A site that extends Pluto serves them from the layer's `public/` folder.

@@ -65,3 +65,7 @@ policies shared by every project here.
 - Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The admin is for staff only: a signed-in user with no capability goes to `/admin/no-access`. The bar shows on `/admin/**` for staff, and on public pages for staff only. The bar height is the token `--pluto-admin-bar-height`, and `<html>` gets `data-pluto-admin-bar` while the bar shows. @.claude/skills/admin-shell/SKILL.md
 - Local layers helper: `plutoLayer(name)` from `@plutocms/pluto/layers` gives a Nuxt `extends` entry.
   With `PLUTO_LOCAL_ROOT`, it uses the local checkouts of the Pluto layers. @.claude/skills/local-layers/SKILL.md
+- Pluto logo: `PlutoLogo` draws the logo inline. The wordmark takes the text color, so the logo works
+  in light and dark mode. `mark` shows the planet only. The files are `public/img/pluto.svg`,
+  `pluto-icon.svg` and `pluto-icon.png` (96 px). The admin navbar and sign-in card use it.
+  @.claude/skills/admin-shell/SKILL.md
