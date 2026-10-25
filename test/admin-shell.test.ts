@@ -163,7 +163,6 @@ describe('navbarVisible', () => {
     expect(navbarVisible({ ...base, path: '/admin/home', hiddenByRoute: true })).toBe(false)
     expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: false })).toBe(true)
   })
-
 })
 
 describe('isPlutoPreviewPath', () => {
