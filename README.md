@@ -6,8 +6,6 @@ A layer-based CMS powered by [Nuxt](https://nuxt.com/).
 
 > [!WARNING]
 > Pluto CMS is currently in **alpha** and at a very early stage. Expect breaking changes, incomplete features, and rough edges.
->
-> Also note: **npm is still not supported** due to layer dependencies not being installed correctly. It is strongly recommended to use modern package managers like **pnpm** or **bun**.
 
 Pluto CMS is designed to be modular, extensible, and developer-friendly. Instead of a monolithic system, it lets you compose your CMS using layers. You only install what you need.
 
@@ -17,16 +15,13 @@ Pluto CMS is designed to be modular, extensible, and developer-friendly. Instead
 * Modern SSR + SPA hydration with Nuxt
 * TypeScript-first developer experience
 * Opt-in features instead of global plugin mutations
-* Deployment-friendly (Edge and Serverless ready)
-* Works as a full CMS or as a headless backend
+* Works as a full CMS with a Supabase backend, or as a standalone CMS on GitHub
 * Standalone mode: a Markdown blog stored in GitHub, with no database
 
 ## Requirements
 
-* Node.js (22+) or Bun
-* pnpm or Bun
-
-> npm is not supported at this stage and may cause unexpected issues.
+* Node.js 22 or newer, or Bun
+* npm, pnpm or Bun
 
 ## Getting started
 
@@ -52,8 +47,8 @@ Then:
 
 ```bash
 cd your-project
-bun install # or pnpm install
-bun run dev # or pnpm dev
+npm install # or pnpm install, or bun install
+npm run dev # or pnpm dev, or bun run dev
 ```
 
 ## Architecture overview
@@ -93,48 +88,52 @@ bridge, but `definePlutoExtension` is the current recommended way to plug in.
 
 Backend layers handle data, authentication, and APIs.
 
-Examples:
-
 - `@plutocms/supabase`
-  Provides Supabase integration (database, auth, users, etc.)
-- Future possibilities:
-  - Custom database providers (MySQL, MongoDB, etc.)
-  - Other backend-as-a-service providers (Convex, Neon, Firebase, etc.)
+  Provides Supabase integration (database, auth, users, roles, migrations).
+- `@plutocms/supabase-storage`
+  Adds media upload and the media library on Supabase Storage. It brings `@plutocms/supabase`.
+- Future possibilities: other database providers and backend-as-a-service providers.
 
 ### Feature layers
 
 Feature layers add domain-specific functionality on top of backend layers.
 
-Examples:
-
 - `@plutocms/supabase-shop`
-  Adds e-commerce features like:
-  - Products
-  - Media
-  - Cart
-- Other possible layers:
-  - Blog
-  - Portfolio
-  - Analytics
-  - Payments
+  Adds e-commerce features: products and a product media gallery. It brings `@plutocms/supabase`
+  and `@plutocms/ui`.
+- `@plutocms/supabase-blog`
+  Adds blog posts with a rich text editor and image upload. It brings `@plutocms/supabase`,
+  `@plutocms/supabase-storage` and `@plutocms/ui`.
+- `@plutocms/nuxt-content`
+  Edits the Markdown files of a [Nuxt Content](https://content.nuxt.com/) site through the
+  standalone GitHub CMS. It brings `@plutocms/pluto`. Version 0.1.0 is tagged. The npm publish
+  is pending.
 
-> Feature layers depend on backend layers. For example, `@plutocms/supabase-shop` requires `@plutocms/supabase`.
+### Shared packages
+
+- `@plutocms/utils`: shared helpers. `@plutocms/pluto` brings it.
+- `@plutocms/ui`: shared UI components. The shop and blog layers bring it.
+
+> A feature layer brings its upstream layers. An app extends only the top layer it uses. For
+> example, an app that extends `@plutocms/supabase-shop` gets `@plutocms/supabase` and
+> `@plutocms/pluto` with it.
 
 ## Using Pluto in existing Nuxt projects
 
 Pluto is not limited to new projects.
 
-You can extend an existing Nuxt app using layers:
+You can extend an existing Nuxt app with the top layer you need. Install it, then extend it with
+`install: true`:
 
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
-  extends: [
-    '@plutocms/pluto'
-    // Then add any backend or feature layers you need.
-  ]
+  extends: [['@plutocms/supabase-shop', { install: true }]],
 })
 ```
+
+The `package.json` of the app lists only that layer, besides `nuxt`, `vue` and `vue-router`. For
+the core layer alone, use `[['@plutocms/pluto', { install: true }]]`.
 
 ### Styles: one Tailwind build
 
@@ -185,7 +184,7 @@ supabase layer:
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
-  extends: ['@plutocms/pluto'],
+  extends: [['@plutocms/pluto', { install: true }]],
   plutoCms: {
     enabled: true,
     github: { repo: 'owner/name', branch: 'main', appSlug: 'my-blog-cms' },
@@ -200,33 +199,34 @@ export default defineNuxtConfig({
   public repository, drafts are still readable on GitHub, and the admin warns about this.
 - **Public pages:** `usePlutoCmsList('post')` and `usePlutoCmsItem('post', slug)` read the
   published posts. `<PlutoMarkdown :html="post.html" />` shows a post as sanitized HTML.
+- **Editor:** a Markdown editor with a Visual/Source switch. Source mode is a plain text area
+  that never rewrites the text, so a post with a table or raw HTML stays safe.
+- **Nested content types:** a type with `files: { nested: true }` stores its items in folders.
+  Ids are paths, such as `1.start/2.install`. A docs site needs this.
+- **No empty commits:** a save that does not change the file text makes no commit.
+- **Your own types:** set `plutoCms.postType: false` when a layer brings its own content types
+  and you do not want the built-in `post` type.
+- **Admin bar:** the admin bar shows on public pages for signed-in staff. A site can offset its
+  own header with the `--pluto-admin-bar-height` CSS variable or with `usePlutoAdminBar()`.
 - **Development:** set `storage: 'fs'` to read and write the local `content/` folder. A dev
   server then never writes to the real repository.
 
 The GitHub App setup, the environment variables and every option are in the template README
 and in `.claude/skills/github-cms/SKILL.md`.
 
-## Dashboard & headless usage
+## Reading your data
 
-Although Pluto is built on Nuxt, it is not limited to Nuxt-only consumption.
-
-- The admin dashboard can run as a standalone app on providers like Vercel or Netlify
-- Data can be consumed via:
-  - Composables (within Nuxt apps)
-  - REST APIs exposed by layers
-
-This allows you to:
-
-- Use Pluto as a headless CMS
-- Power web apps (any stack)
-- Power mobile apps
+- Inside a Nuxt app, use the composables of each layer, such as `usePlutoCmsList` and
+  `usePlutoCmsItem` in standalone mode.
+- The layers expose REST routes under `/api/_pluto/`. The admin uses these routes. Each layer's
+  skill lists its routes and access rules.
 
 ## Why not just WordPress?
 
 - Modern SSR and SPA hydration via Nuxt
 - TypeScript-first experience
-- Better control through Vue composables or REST APIs
-- Deployment flexibility (Vercel, Cloudflare, Netlify, etc.)
+- Better control through Vue composables
+- Deployment flexibility: any host that runs a Nuxt app
 
 If you're a Vue developer, you'll feel right at home.
 
@@ -239,5 +239,5 @@ If you're a Vue developer, you'll feel right at home.
 
 ## License
 
-MIT (planned)
+MIT, as set in `package.json`. This repository does not have a `LICENSE` file yet.
 

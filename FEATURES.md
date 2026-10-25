@@ -18,7 +18,7 @@ policies shared by every project here.
   delete routes backed by a `PlutoContentAdapter` a backend layer implements, and a generated
   admin UI (list/form components, eight built-in field widgets, generated
   `/admin/content/**` pages with catch-all id routes, `contentIdPath`, `listContentTypes`, and nav/pages
-  derivation). No real adapter yet.
+  derivation). Real adapters exist: the supabase layer (PostgREST) and the GitHub CMS (Markdown files) each provide a `PlutoContentAdapter`.
   @.claude/skills/content-model/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
