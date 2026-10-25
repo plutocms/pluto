@@ -1,9 +1,9 @@
 # The admin language resets to English on reload
 
-Status: in progress
+Status: done
 Started: 2026-10-25
 Projects: pluto (fix, 0.20.2), nuxt-content (fix, 0.3.1)
-Branch / PR: fix/admin-locale-reload
+Branch / PR: pluto #211 (release 0.20.2); nuxt-content #12 (release 0.3.1)
 
 ## Context
 
@@ -24,11 +24,15 @@ Branch / PR: fix/admin-locale-reload
 
 ## Checklist
 
-- [ ] Core: `resolveScopeLocale`, `dependsOn`, test, skill note.
-- [ ] Core release 0.20.2; check the reload in Chrome.
-- [ ] nuxt-content: `content.doc.*` keys, core edit key; release 0.3.1.
-- [ ] Docs site lock.
+- [x] Core: `resolveScopeLocale`, `dependsOn`, test, skill note.
+- [x] Core release 0.20.2; check the reload in Chrome.
+- [x] nuxt-content: `content.doc.*` keys, core edit key; release 0.3.1.
+- [x] Docs site lock.
 
 ## Log
 
 - 2026-10-25: reproduced and found the cause.
+- 2026-10-25: done. pluto 0.20.2 and nuxt-content 0.3.1 on npm. Checked in Chrome (CDP) with the
+  admin in pt-BR: the reload keeps pt-BR; the bar shows "Criar Página" and "Editar Página", the
+  sidebar "Páginas", the form "Título", "Caminho", "Descrição", "Conteúdo". Docs site and the
+  consumer app updated (the consumer commit is not pushed).
