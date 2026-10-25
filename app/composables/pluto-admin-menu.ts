@@ -17,6 +17,9 @@ function toMenuItem(item: PlutoNavItem): PlutoAdminMenuItem {
     children: item.children?.map((child) => ({
       label: child.label,
       href: child.to,
+      // A child that points at its parent's own path (Settings > General)
+      // must not stay active on the sibling pages below that path.
+      exact: child.to === item.to ? true : undefined,
     })),
   }
 }

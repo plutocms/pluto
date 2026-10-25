@@ -39,6 +39,13 @@ export default defineNuxtPlugin(() => {
       { id: 'home', path: '/admin/home', title: 'pluto.pages.dashboard', icon: 'lucide:house' },
       { id: 'settings', path: '/admin/settings', title: 'pluto.pages.settings', icon: 'lucide:settings' },
     ],
+    // The General tab holds the settings panels and the language card. A layer
+    // adds a tab with a file at `pages/admin/settings/<x>.vue` and an entry here.
+    settingsPages: [
+      { id: 'general', order: 0, label: 'pluto.settings.tabs.general', icon: 'lucide:sliders-horizontal', to: '/admin/settings' },
+      // Admin only ('*'). The page and its routes (`/api/_pluto/mail/**`) check it.
+      { id: 'email', order: 200, label: 'pluto.settings.tabs.email', icon: 'lucide:mail', to: '/admin/settings/email', capability: '*' },
+    ],
     contentFieldWidgets: [
       { id: 'text', fieldType: 'text', component: PlutoFieldText },
       { id: 'textarea', fieldType: 'textarea', component: PlutoFieldText },

@@ -19,6 +19,8 @@ export function usePlutoRegistry(): PlutoRegistry {
       nav: createOwnedRegistry<PlutoNavItem>(),
       pages: createOwnedRegistry<PlutoAdminPage>(),
       settingsPanels: createOwnedRegistry<PlutoSettingsPanel>(),
+      settingsPages: createOwnedRegistry<PlutoSettingsPage>(),
+      mailPanels: createOwnedRegistry<PlutoMailPanel>(),
       settingsDrivers: createOwnedRegistry<PlutoSettingsDriver>(),
       localeDrivers: createOwnedRegistry<PlutoLocaleDriver>(),
       dashboardWidgets: createOwnedRegistry<PlutoDashboardWidget>(),

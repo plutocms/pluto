@@ -22,6 +22,8 @@ export function definePlutoExtension(definition: PlutoExtension): void {
   registry.nav.set(definition.id, definition.nav ?? [])
   registry.pages.set(definition.id, definition.pages ?? [])
   registry.settingsPanels.set(definition.id, definition.settingsPanels ?? [])
+  registry.settingsPages.set(definition.id, definition.settingsPages ?? [])
+  registry.mailPanels.set(definition.id, definition.mailPanels ?? [])
   registry.settingsDrivers.set(
     definition.id,
     definition.settingsDriver ? [definition.settingsDriver] : []

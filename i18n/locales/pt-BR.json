@@ -135,6 +135,15 @@
         "saved": "Idioma atualizado",
         "saveFailed": "Não foi possível salvar o idioma",
         "saveFailedDescription": "O idioma mudou apenas neste dispositivo. {reason}"
+      },
+      "tabs": {
+        "label": "Seções das configurações",
+        "general": "Geral",
+        "email": "E-mail"
+      },
+      "noPermission": {
+        "title": "Você não pode abrir esta página",
+        "description": "A página \"{page}\" é para administradores. Peça acesso a um administrador."
       }
     },
     "errors": {
@@ -144,7 +153,9 @@
       "notFound": "Não encontrado.",
       "bodyNotObject": "O corpo da requisição deve ser um objeto JSON.",
       "validationFailed": "Falha na validação.",
-      "conflict": "Este item mudou desde que você o abriu. Recarregue para ver a versão mais recente."
+      "conflict": "Este item mudou desde que você o abriu. Recarregue para ver a versão mais recente.",
+      "forbidden": "Somente um administrador pode fazer isso.",
+      "unauthorized": "Entre para continuar."
     },
     "cms": {
       "errors": {
@@ -240,6 +251,201 @@
       },
       "signUp": "Criar conta",
       "forgotPassword": "Esqueceu a senha?"
+    },
+    "capabilities": {
+      "otherGroup": "Outras"
+    },
+    "mail": {
+      "footer": "Este e-mail foi enviado por {siteName}.",
+      "linkHint": "Se o botão não funcionar, copie este link para o navegador:",
+      "test": {
+        "subject": "E-mail de teste de {siteName}",
+        "heading": "O e-mail funciona",
+        "body": "Este é um e-mail de teste de {siteName}. Você consegue ler, então a configuração de e-mail funciona.",
+        "hint": "Pode fechar este e-mail. Não é preciso fazer mais nada.",
+        "selfTitle": "Envie um e-mail de teste para você",
+        "selfDescription": "Isso mostra que a chave funciona.",
+        "selfRule": "Até você verificar um domínio, o Resend entrega só para o e-mail da sua conta do Resend. Use esse endereço aqui.",
+        "anyoneTitle": "Envie um e-mail de teste para qualquer pessoa",
+        "anyoneDescription": "Isso mostra que o domínio verificado e o endereço do remetente funcionam.",
+        "anyoneHelp": "Use um endereço que não seja o seu, se puder.",
+        "to": "Enviar para",
+        "toPlaceholder": "nome@exemplo.com",
+        "send": "Enviar e-mail de teste",
+        "sentTitle": "E-mail de teste enviado",
+        "sentHint": "Veja a caixa de entrada. Pode levar um minuto. Olhe também a pasta de spam.",
+        "sentDev": "Modo de desenvolvimento: nada foi enviado. Leia o e-mail no console do servidor.",
+        "senderRuleTitle": "O Resend envia e-mails de teste só para o seu endereço",
+        "senderRuleBody": "O Resend envia do endereço de teste dele só para o e-mail da sua conta do Resend. Envie o teste para esse endereço. Para enviar para outras pessoas, adicione e verifique um domínio na etapa 4 e defina o remetente na etapa 5.",
+        "failed": "Não foi possível enviar o e-mail de teste",
+        "lockedKey": "Adicione uma chave de API primeiro (etapa 2).",
+        "lockedFrom": "Defina o endereço do remetente primeiro (etapa 5) e reinicie o servidor."
+      },
+      "invite": {
+        "subject": "Você foi convidado para {siteName}",
+        "heading": "Você foi convidado para {siteName}",
+        "intro": "Você foi convidado para ajudar a gerenciar {siteName}.",
+        "introBy": "{inviter} convidou você para ajudar a gerenciar {siteName}.",
+        "roles": "Seu papel: {roles}.",
+        "button": "Aceitar o convite",
+        "ignore": "Se você não esperava este e-mail, pode ignorá-lo."
+      },
+      "errors": {
+        "not_configured": "O e-mail ainda não está configurado. Adicione uma chave de API do Resend ao ambiente do servidor.",
+        "invalid_key": "O Resend recusou a chave de API. Confira se você copiou a chave inteira.",
+        "restricted_key": "Esta chave só envia e-mails. Use uma chave com acesso total nesta etapa.",
+        "test_sender_only": "O Resend envia do endereço de teste só para o e-mail da sua conta Resend. Envie o teste para esse endereço, ou adicione e verifique um domínio antes.",
+        "domain_not_verified": "O domínio do endereço de remetente ainda não foi verificado. Verifique o domínio na etapa do domínio.",
+        "invalid_message": "O Resend recusou o pedido. Confira os valores e tente de novo.",
+        "rate_limited": "O Resend limita a velocidade das chamadas. Tente de novo em alguns segundos.",
+        "quota_exceeded": "O limite de envio do seu plano Resend foi usado. Espere o próximo período ou mude de plano.",
+        "timeout": "O Resend não respondeu a tempo. Tente de novo.",
+        "network": "Não foi possível falar com o Resend. Confira a conexão do servidor e tente de novo.",
+        "provider_error": "O Resend teve um problema. Tente de novo em instantes.",
+        "invalidEmail": "Digite um endereço de e-mail válido.",
+        "invalidDomain": "Digite um nome de domínio como exemplo.com.",
+        "invalidRegion": "Escolha uma das regiões da lista.",
+        "invalidDomainId": "O id do domínio não é válido.",
+        "testRateLimited": "Você enviou e-mails de teste demais. Tente de novo em {minutes} min."
+      },
+      "page": {
+        "title": "E-mail",
+        "intro": "Configure o e-mail que este site envia, como os convites. Siga as etapas na ordem. Cada etapa diz o que fazer."
+      },
+      "copy": {
+        "copy": "Copiar",
+        "copied": "Copiado"
+      },
+      "step": {
+        "todo": "A fazer",
+        "done": "Pronto",
+        "locked": "Aguardando",
+        "optional": "Opcional"
+      },
+      "env": {
+        "copyLine": "Copiar esta linha"
+      },
+      "status": {
+        "title": "Status do e-mail",
+        "refresh": "Atualizar o status",
+        "loadFailed": "Não foi possível ler o status do e-mail",
+        "ready": "Pronto para enviar",
+        "notReady": "Não configurado",
+        "driver": "Envia com: {driver}",
+        "driverNames": {
+          "resend": "Resend",
+          "dev": "Modo de desenvolvimento",
+          "none": "Nada"
+        },
+        "key": "Chave de API do Resend",
+        "keySet": "Definida no servidor",
+        "keyNotSet": "Não definida",
+        "from": "Endereço do remetente",
+        "fromEmpty": "Não definido (usa o endereço de teste do Resend)",
+        "replyTo": "Endereço para resposta",
+        "replyToEmpty": "Não definido",
+        "noteMailpit": "Modo de desenvolvimento: os e-mails vão para a sua caixa do Mailpit. Nada sai do seu computador.",
+        "noteLogOnly": "Modo de desenvolvimento: os e-mails aparecem no console do servidor. Nada é enviado. Adicione uma chave de API do Resend para enviar e-mails de verdade.",
+        "noteNotConfigured": "Este site ainda não consegue enviar e-mail. Siga as etapas abaixo."
+      },
+      "account": {
+        "title": "Crie uma conta no Resend",
+        "description": "O Resend envia os e-mails. O plano gratuito basta para começar.",
+        "body": "Cadastre-se com o e-mail que você quer usar nos testes. Uma conta nova do Resend só envia e-mails de teste para esse endereço, até você verificar um domínio.",
+        "link": "Abrir resend.com"
+      },
+      "key": {
+        "title": "Adicione a chave de API",
+        "description": "A chave deixa este site enviar pela sua conta do Resend. Ela fica no servidor, nunca no navegador.",
+        "stepCreate": "No Resend, crie uma chave de API com acesso total em",
+        "stepAdd": "Adicione esta linha ao ambiente do servidor. No seu computador, use o arquivo .env. Em uma hospedagem, use as configurações de ambiente dela.",
+        "stepRestart": "Reinicie o servidor.",
+        "envHint": "Troque re_your_key_here pela sua chave. O Pluto nunca guarda a chave e nunca a mostra de novo.",
+        "check": "Verificar a chave",
+        "full": "A chave funciona e tem acesso total",
+        "fullHint": "Você pode adicionar um domínio na etapa 4.",
+        "sending": "A chave funciona e só envia e-mails",
+        "sendingHint": "Você pode enviar e-mails de teste. Para adicionar um domínio aqui, use uma chave com acesso total. Ou adicione o domínio no painel do Resend.",
+        "invalid": "O Resend recusou a chave",
+        "invalidHint": "Confira se você copiou a chave inteira e se ela não foi apagada no Resend.",
+        "missing": "O servidor ainda não tem chave",
+        "missingHint": "Adicione a linha acima ao ambiente do servidor, reinicie o servidor e verifique de novo.",
+        "failed": "Não foi possível verificar a chave",
+        "failedHint": "O Resend não respondeu como esperado. Tente de novo em instantes."
+      },
+      "domain": {
+        "title": "Adicione o seu domínio",
+        "description": "O Resend envia do seu próprio domínio depois que você o verifica.",
+        "lockedKey": "Adicione e verifique uma chave com acesso total primeiro (etapa 2).",
+        "lockedSending": "Esta chave só envia e-mails. Use uma chave com acesso total para adicionar um domínio aqui.",
+        "existing": "Use um domínio da sua conta do Resend",
+        "existingPlaceholder": "Escolha um domínio",
+        "name": "Domínio",
+        "nameHelp": "Por exemplo exemplo.com, ou mail.exemplo.com.",
+        "region": "Região",
+        "regions": {
+          "us-east-1": "Norte da Virgínia (us-east-1)",
+          "eu-west-1": "Irlanda (eu-west-1)",
+          "sa-east-1": "São Paulo (sa-east-1)",
+          "ap-northeast-1": "Tóquio (ap-northeast-1)"
+        },
+        "add": "Adicionar domínio",
+        "polling": "Verificando",
+        "recordsHint": "Adicione estes registros DNS na empresa que gerencia o seu domínio. Depois aperte Verificar. Pode levar alguns minutos, e até algumas horas.",
+        "statusVerified": "Verificado",
+        "statusFailed": "Falhou",
+        "statusPending": "Aguardando o DNS",
+        "recordVerified": "Encontrado",
+        "recordPending": "Ainda não encontrado",
+        "recordFailed": "Errado",
+        "columns": {
+          "type": "Tipo",
+          "name": "Nome",
+          "value": "Valor",
+          "priority": "Prioridade",
+          "status": "Status"
+        },
+        "copyName": "Copiar o nome",
+        "copyValue": "Copiar o valor",
+        "verifiedTitle": "O domínio está verificado",
+        "verifiedHint": "Defina o endereço do remetente na etapa 5.",
+        "failedTitle": "O Resend não conseguiu verificar o domínio",
+        "failedHint": "Um registro DNS está errado ou faltando. Compare cada registro com a tabela, corrija e aperte Verificar de novo.",
+        "timedOutTitle": "O Pluto parou de verificar",
+        "timedOutHint": "O DNS pode demorar. Aperte Verificar de novo quando estiver pronto.",
+        "verify": "Verificar",
+        "checkAgain": "Verificar de novo",
+        "createFailed": "Não foi possível adicionar o domínio",
+        "verifyFailed": "Não foi possível verificar o domínio"
+      },
+      "from": {
+        "title": "Defina o endereço do remetente",
+        "description": "Este é o nome e o endereço do remetente que as pessoas veem.",
+        "lockedDomain": "Adicione o seu domínio primeiro (etapa 4).",
+        "notVerified": "O domínio ainda não está verificado. O Resend recusa enviar dele até ser verificado.",
+        "current": "Definido agora no servidor:",
+        "name": "Nome do remetente",
+        "nameHelp": "Por exemplo o nome da sua loja.",
+        "address": "Endereço",
+        "addressInvalid": "Use letras, números, pontos, traços ou sinais de mais.",
+        "replyTo": "Endereço para resposta (opcional)",
+        "replyToHelp": "As respostas vão para cá. Deixe vazio para responder ao endereço do remetente.",
+        "replyToInvalid": "Digite um endereço de e-mail válido.",
+        "envHint": "Adicione estas linhas ao ambiente do servidor e reinicie o servidor."
+      },
+      "sendingKey": {
+        "title": "Use uma chave só de envio",
+        "description": "Uma chave que só envia e-mails é mais segura para guardar no servidor.",
+        "alreadySending": "A chave do servidor já só envia e-mails.",
+        "lockedKey": "Esta etapa precisa de uma chave com acesso total (etapa 2).",
+        "forDomain": "A nova chave só envia de {domain}.",
+        "forAccount": "A nova chave só envia e-mails.",
+        "create": "Criar uma chave só de envio",
+        "failed": "Não foi possível criar a chave",
+        "onceTitle": "Copie esta chave agora",
+        "onceBody": "O Pluto mostra a chave uma vez e não a guarda. Se você fechar esta página, crie outra chave.",
+        "next": "Troque a linha da chave no ambiente do servidor, reinicie o servidor e apague a chave antiga de acesso total no Resend."
+      }
     },
     "noAccess": {
       "title": "Sua conta não tem acesso ao painel",

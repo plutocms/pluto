@@ -120,6 +120,66 @@ describe('usePlutoCapabilities', () => {
   })
 })
 
+describe('usePlutoCapabilities groups', () => {
+  it('groups by the owner prefix, in registry order', async () => {
+    const { definePlutoExtension, usePlutoCapabilities } = await loadComposables()
+
+    definePlutoExtension({
+      id: 'blog',
+      capabilities: [
+        { id: 'publish', key: 'posts:publish', label: 'Publish' },
+        { id: 'delete', key: 'posts:delete', label: 'Delete' },
+      ],
+    })
+    definePlutoExtension({
+      id: 'shop',
+      capabilities: [{ id: 'stock', key: 'products:stock', label: 'Stock' }],
+    })
+
+    const { groups } = usePlutoCapabilities()
+
+    expect(groups.value.map((group) => group.id)).toEqual(['blog', 'shop'])
+    expect(groups.value[0]?.items.map((item) => item.key)).toEqual(['posts:publish', 'posts:delete'])
+  })
+
+  it('uses <owner>.capabilities.group when the key exists, else the owner id', async () => {
+    const { definePlutoExtension, usePlutoCapabilities } = await loadComposables()
+    vi.stubGlobal('usePlutoI18n', () => ({
+      ...createI18nStub(),
+      te: (key: string) => key === 'blog.capabilities.group',
+      t: (key: string) => (key === 'blog.capabilities.group' ? 'Blog' : key),
+    }))
+
+    definePlutoExtension({ id: 'blog', capabilities: [{ id: 'a', key: 'posts:a', label: 'A' }] })
+    definePlutoExtension({ id: 'shop', capabilities: [{ id: 'b', key: 'products:b', label: 'B' }] })
+
+    const { groups } = usePlutoCapabilities()
+
+    expect(groups.value.map((group) => group.label)).toEqual(['Blog', 'shop'])
+  })
+
+  it('adds an Other group for strings no layer declares', async () => {
+    const { definePlutoExtension, usePlutoCapabilities } = await loadComposables()
+
+    definePlutoExtension({ id: 'blog', capabilities: [{ id: 'a', key: 'posts:a', label: 'A' }] })
+
+    const { groupsFor } = usePlutoCapabilities()
+    const groups = groupsFor(['posts:a', 'legacy:thing', 'legacy:thing'])
+
+    expect(groups.map((group) => group.id)).toEqual(['blog', 'other'])
+    expect(groups[1]).toMatchObject({ label: 'Other' })
+    expect(groups[1]?.items.map((item) => item.key)).toEqual(['legacy:thing'])
+  })
+
+  it('has no Other group when every string is declared', async () => {
+    const { definePlutoExtension, usePlutoCapabilities } = await loadComposables()
+
+    definePlutoExtension({ id: 'blog', capabilities: [{ id: 'a', key: 'posts:a', label: 'A' }] })
+
+    expect(usePlutoCapabilities().groupsFor(['posts:a']).map((group) => group.id)).toEqual(['blog'])
+  })
+})
+
 describe('usePlutoPermissions ensureLoaded', () => {
   function deferred() {
     let resolve!: (value: string[]) => void

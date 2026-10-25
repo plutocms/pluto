@@ -1,11 +1,25 @@
+/** The capabilities of one owner (a layer), for a picker such as the Roles editor. */
+export interface PlutoCapabilityGroup {
+  /** The owner id (for example `supabase-blog`), or `other` for unknown strings. */
+  id: string
+  label: string
+  items: PlutoCapability[]
+}
+
 /**
  * Capabilities declared by every layer, in registry order. The label and the
  * description are key-or-literal. They resolve with `tx()` inside the
  * `computed`, so a locale switch updates them.
+ *
+ * `groups` splits them by owner: the `<owner>:` prefix of the registry id.
+ * A group label is `<owner>.capabilities.group` when that key exists, else the
+ * owner id. `groupsFor(keys)` adds an "Other" group
+ * (`pluto.capabilities.otherGroup`) with the strings in `keys` that no layer
+ * declares, so a role can show a capability it holds but no layer registers.
  */
 export function usePlutoCapabilities() {
   const registry = usePlutoRegistry()
-  const { tx } = usePlutoI18n()
+  const { t, te, tx } = usePlutoI18n()
 
   const items = computed<PlutoCapability[]>(() =>
     registry.capabilities.list.value.map((capability) => ({
@@ -15,7 +29,39 @@ export function usePlutoCapabilities() {
     }))
   )
 
-  return { items }
+  function ownerOf(capability: PlutoCapability): string {
+    const index = capability.id.indexOf(':')
+    return index === -1 ? capability.id : capability.id.slice(0, index)
+  }
+
+  function groupLabel(owner: string): string {
+    const key = `${owner}.capabilities.group`
+    return te(key) ? t(key) : owner
+  }
+
+  function groupsFor(unknownKeys: string[] = []): PlutoCapabilityGroup[] {
+    const byOwner = new Map<string, PlutoCapability[]>()
+    for (const capability of items.value) {
+      const owner = ownerOf(capability)
+      byOwner.set(owner, [...(byOwner.get(owner) ?? []), capability])
+    }
+
+    const groups = [...byOwner].map(([id, list]) => ({ id, label: groupLabel(id), items: list }))
+
+    const known = new Set(items.value.map((capability) => capability.key))
+    const other = [...new Set(unknownKeys)]
+      .filter((key) => !known.has(key))
+      .map((key): PlutoCapability => ({ id: key, key, label: key }))
+    if (other.length > 0) {
+      groups.push({ id: 'other', label: t('pluto.capabilities.otherGroup'), items: other })
+    }
+
+    return groups
+  }
+
+  const groups = computed<PlutoCapabilityGroup[]>(() => groupsFor())
+
+  return { items, groups, groupsFor }
 }
 
 /**

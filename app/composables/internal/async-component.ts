@@ -28,6 +28,10 @@ component: Component
  id: string
 component: Component
 }[]
+  mailPanels?: {
+ id: string
+component: Component
+}[]
   adminBanners?: {
  id: string
 component: Component
@@ -40,7 +44,7 @@ component: Component
  * the navbar must be ready at the first paint.
  */
 export function findSyncComponents(definition: ExtensionComponents): string[] {
-  const buckets = ['contentFieldWidgets', 'dashboardWidgets', 'settingsPanels', 'adminBanners'] as const
+  const buckets = ['contentFieldWidgets', 'dashboardWidgets', 'settingsPanels', 'mailPanels', 'adminBanners'] as const
   const found: string[] = []
 
   for (const bucket of buckets) {

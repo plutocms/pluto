@@ -42,6 +42,8 @@ policies shared by every project here.
   content-type convention keys (`usePlutoContentText`), the validation codes, and the server errors
   (`createPlutoError`, `usePlutoErrorText`) are translated, in English and Brazilian Portuguese.
   @.claude/skills/i18n/SKILL.md
+- Settings pages: `/admin/settings` is a section with tabs. A layer adds a tab with a `settingsPages` entry and a page file at `pages/admin/settings/<x>.vue`. The tabs show with 2 or more pages, the sidebar and the command palette list them, and a tab can need a capability (`'*'` is admin only). The capability picker groups by layer. @.claude/skills/extension-registry/SKILL.md
+- Mail: a mail driver contract (`sendPlutoMail`, `registerMailDriver`) with Resend, dev (console and Mailpit) and none drivers, plain-TypeScript email templates (test, invite) translated by a server translator, and a guided `Settings > Email` page (admin only) that checks the key, adds and verifies a domain, and tests the setup. Secrets stay in the environment. @.claude/skills/mail/SKILL.md
 - Single Tailwind build: the app owns the only Tailwind build. The pluto-css module generates
   `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md

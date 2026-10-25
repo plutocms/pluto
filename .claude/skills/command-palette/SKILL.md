@@ -31,7 +31,9 @@ A language switch updates the palette. See the i18n skill.
 
 Each destination shows once. The Create group is built first, so a nav link to a create path
 (for example "Create new post") does not show again in Go to. A nav child with the same path as
-its parent shows once, as the parent.
+its parent shows once, as the parent. The Settings item has one child per visible settings page
+(2 or more pages), so each tab is a "Go to" command with the suffix "Settings". The General tab
+points at the Settings path, so it shows once, as "Settings".
 
 A layer adds to the palette through the normal extension points. A new content type adds a
 Create command. A new nav item adds a Go to command.

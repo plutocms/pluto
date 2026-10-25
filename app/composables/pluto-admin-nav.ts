@@ -1,5 +1,8 @@
 import { contentTextFor } from './internal/content-text'
 
+// The id of core's Settings nav item (extension `pluto`, entry `settings`).
+const SETTINGS_NAV_ID = 'pluto:settings'
+
 // The old `NavigationMenuItem`/`NavigationMenuChildItem` shape (from
 // `@plutocms/utils`) always carries a plain `href`, never Nuxt's typed `to`.
 // This narrows just the field the bridge below reads.
@@ -29,6 +32,10 @@ interface LegacyHrefLink {
  * `usePlutoContentText`, so the convention keys apply. The `computed` reads
  * the active locale, so a locale switch updates the labels.
  *
+ * The Settings item (`pluto:settings`) gets one child per visible settings page
+ * (`usePlutoSettingsPages`) when there are two or more. It opens by default
+ * on `/admin/settings/**`.
+ *
  * `entry.enabled` is read and enforced uniformly across all three sources
  * here. Source 1 already filters on it a second time, inside
  * `createOwnedRegistry` itself (see
@@ -42,6 +49,7 @@ export function usePlutoAdminNav() {
   const legacy = useSidebarAdminActions()
   const { items: contentTypes } = usePlutoContentTypes()
   const { can } = usePlutoPermissions()
+  const { items: settingsPages, current: currentSettingsPage } = usePlutoSettingsPages()
   const i18n = usePlutoI18n()
   const { t, tx } = i18n
 
@@ -92,7 +100,18 @@ export function usePlutoAdminNav() {
         }
       })
 
-    return [...registered.map(resolveLabels), ...bridged.map(resolveLabels), ...contentNav]
+    // The Settings item lists one child per visible settings page, when there
+    // are two or more. With one page (General), the item stays a plain link.
+    const withSettingsChildren = (item: PlutoNavItem): PlutoNavItem =>
+      item.id === SETTINGS_NAV_ID && settingsPages.value.length >= 2
+        ? {
+            ...item,
+            defaultOpen: currentSettingsPage.value !== undefined,
+            children: settingsPages.value.map((page) => ({ label: page.label, to: page.to })),
+          }
+        : item
+
+    return [...registered.map(resolveLabels).map(withSettingsChildren), ...bridged.map(resolveLabels), ...contentNav]
       .filter((item) => item.enabled?.() ?? true)
       .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
   })
