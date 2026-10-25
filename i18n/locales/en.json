@@ -73,7 +73,25 @@
       "loadFailed": "Could not load this item",
       "loadFailedHint": "Check your connection and try again.",
       "notFound": "Item not found",
-      "notFoundHint": "It may have been removed."
+      "notFoundHint": "It may have been removed.",
+      "view": "View",
+      "unsaved": "Unsaved changes",
+      "saving": "Saving…",
+      "savedJustNow": "Saved just now",
+      "savedAt": "Saved {time}",
+      "saveFailed": "Save failed.",
+      "retry": "Retry",
+      "leaveTitle": "Leave without saving?",
+      "leaveDescription": "You have unsaved changes. If you leave this page, you lose them.",
+      "stay": "Stay on this page",
+      "leave": "Leave without saving"
+    },
+    "canvas": {
+      "page": "Page",
+      "panels": "Panels",
+      "sidebar": "Sidebar",
+      "showSidebar": "Show the sidebar",
+      "hideSidebar": "Hide the sidebar"
     },
     "list": {
       "loading": "Loading {labelPlural}…",

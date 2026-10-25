@@ -439,7 +439,9 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   Markdown string. The editor sends `editor.getMarkdown()` on each change. The adapter stores that
   string as the file body.
 - `UEditorToolbar` has the built-in items: undo, redo, headings 1 to 4, bulleted and numbered
-  lists, quote, code block, bold, italic, strikethrough and inline code. The link button is a slot
+  lists, quote, code block, bold, italic, strikethrough and inline code. The items come from
+  `usePlutoMarkdownToolbar({ link })` (`app/composables/pluto-markdown-toolbar.ts`), so another
+  editor can share them. The link button is a slot
   (`PlutoCmsEditorLink.vue`, a popover with the URL). The image and mention extensions are off.
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
   a click anywhere in the box puts the cursor in the text. The post type uses the focus layout

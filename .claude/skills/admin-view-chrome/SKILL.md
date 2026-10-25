@@ -18,7 +18,11 @@ feature adds:
 - `shared/utils/content-map.ts` (extended) — `mapColumnsToFields` now also returns `item.status`.
 - `PlutoContentList.vue` and `PlutoContentForm.vue` (rewired) — both now render inside
   `PlutoViewAdminPanel`, and `PlutoContentForm` adds the publish workflow UI.
-- `test/content-actions.test.ts` — unit tests for `usePlutoContentActions`.
+- `PlutoContentFormHeader.vue` — the toolbar of every form layout (see "The form toolbar").
+- `PlutoContentCanvasPanel.vue`, `usePlutoContentForm()` and the `canvas` layout (see "The canvas
+  layout" and "The form context").
+- `app/composables/internal/content-dirty.ts` — the pure part of the unsaved-changes guard.
+- `test/content-actions.test.ts`, `test/content-dirty.test.ts` — unit tests.
 
 ## Three chrome primitives, not the global layout
 
@@ -41,6 +45,9 @@ The outer shell for one view. Props:
 - `asideOpen?: boolean` — default `false`. Pass the same value as the aside's `v-model:open`.
   While it is `true` on desktop, the aside sits in a resizable panel (see "Resizable aside"
   below). Without it, the aside keeps its fixed `width`.
+- `leftOpen?: boolean` (`v-model:left-open`) — default `false`. Whether the left panel is open.
+  See "The left panel".
+- `leftTitle?: string` — the title of the left panel when it shows as a slideover.
 - `fill?: boolean` — default `false`. The main region fills the panel's height and does not
   scroll. The content scrolls inside its own region instead, for a view with one long list
   (such as a virtualized table). The content must be a flex column child that takes
@@ -51,6 +58,7 @@ Slots:
 - `#toolbar` — a shrink-to-fit row pinned above the scrollable area. Put a `PlutoViewToolbar`
   here.
 - default — the scrollable main content.
+- `#left` — a column left of the main content. Put the panel content here. See "The left panel".
 - `#aside` — a column beside the main content, resizable when `asideOpen` is set. Put a
   `PlutoViewAside` here. Leave
   this slot empty on a view with nothing to show beside the main content — an empty aside slot
@@ -77,6 +85,8 @@ A right-hand panel bound to an `open` model (`v-model:open`). On a wide screen (
 up) it renders as a plain `<aside>` beside the main content. On a narrow screen it renders as a
 `USlideover` instead. Props: `title?: string`, `width?: number` (desktop width in px, default
 320; ignored inside a resizable panel). The close button has an `aria-label` and a tooltip.
+Slot `#header` replaces the title, for example with tabs. On a narrow screen it goes into the
+slideover title.
 
 A `useMediaQuery` check renders the plain `<aside>` on wide screens only, and the `USlideover`
 on narrow screens only, so the slot mounts once. Do not replace that check with `hidden lg:flex`
@@ -108,6 +118,19 @@ against the measured row width.
 Like `PlutoViewToolbar`, this is a hand-built stand-in rather than Nuxt UI's own
 `UDashboardSidebar`, for the same reason: `UDashboardSidebar` listens to a global toggle hook,
 and a second instance of it here would fight the app-level sidebar for that hook.
+
+### The left panel
+
+`PlutoViewAdminPanel` has a `#left` slot and a `leftOpen` model. It works like the aside:
+
+- Desktop: the left panel sits in the same `USplitter` as the main content and the aside, in the
+  order left, main, aside. The user drags the handle, between 200px and 400px. The panel stores
+  the width in px in the `pluto-view-left-width` cookie (default 260) and converts it to
+  percentages itself, for the same reason as the aside.
+- Below `lg`: the panel renders a left `USlideover` (`unmount-on-hide="false"`) with the slot
+  inside, and the splitter has no left panel. The slot mounts once.
+- A view can fill `#left` after the first render (a widget that loads on demand adds it). The
+  panel reads `useSlots()` again before each update, because `useSlots()` is not reactive.
 
 ## List states in `PlutoContentList`
 
@@ -151,8 +174,13 @@ label in lowercase (`usePlutoContentText(...).labelPluralLower`). The counts in 
 
 ```ts
 form?: {
-  /** 'default' = heading + container. 'focus' = minimal chrome for a writing surface. */
-  layout?: 'default' | 'focus'
+  /**
+   * 'default' = fields in a container, aside on the right. 'focus' = minimal chrome for a writing
+   * surface. 'canvas' = a full-height field between a left panel and a right panel.
+   */
+  layout?: 'default' | 'focus' | 'canvas'
+  /** The field that fills the main region in the 'canvas' layout. */
+  canvasField?: string
   /** true = always show. false = never. 'auto' (default) = show when any field has region 'side'. */
   aside?: boolean | 'auto'
   /** Aside starts closed. Default false, or true when layout is 'focus'. */
@@ -162,10 +190,107 @@ form?: {
 }
 ```
 
-`PlutoContentForm` reads all four. `layout: 'focus'` drops the page heading and moves the
-type's label into the toolbar title instead, and defaults the aside to collapsed — the shape a
-long-form writing surface wants. Leave `form` unset for the default two-column form every other
-content type already gets.
+`PlutoContentForm` reads all of them. `layout: 'focus'` uses the full width and defaults the aside
+to collapsed — the shape a long-form writing surface wants. `layout: 'canvas'` is described below.
+Leave `form` unset for the default two-column form every other content type already gets.
+
+`PlutoContentType.previewUrl?: (item) => string | undefined` gives the public URL of an item. The
+toolbar shows a "View" link (new tab) in edit mode when it returns a value. The function must be
+pure, because the type is shared with the server. A function that throws shows no link.
+
+## The form toolbar
+
+Every layout (`default`, `focus`, `canvas`) has the same toolbar, `PlutoContentFormHeader`. The body
+has no H1: the toolbar title is the heading. The toolbar shows, from left to right:
+
+- Back, then "<Type plural> › <item title>". In edit mode the title is the `titleField` value, or
+  "Edit <type>" while it loads or when it is empty. A new item shows "New <type>". The type label
+  hides below `sm` (40rem) and the title truncates.
+- The save state, in a live region (`role="status"`):
+  - "Unsaved changes" (a dot, the text from `md`).
+  - "Saving…".
+  - "Saved just now", then "Saved 2 minutes ago" (`Intl.RelativeTimeFormat`, the admin locale, a
+    30 second tick). It shows after a save while the form has no new change.
+  - "Save failed." with a "Retry" button, which repeats the same save (Publish stays Publish).
+- The status badge (when the type has a `status` workflow), the "View" link, the `contentActions`
+  of the layer, the save and publish buttons (see "The publish workflow"), the overflow menu, and
+  the panel toggles.
+- Below `sm`: the "View" link moves into the overflow menu, and a secondary button (a content
+  action, "Save draft") shows its icon only.
+
+`PlutoContentFormHeader` holds no form logic. It gets plain props (`title`, `saveState`,
+`viewUrl`, `buttons`, `actions`, and so on) and sends `press`, `retry`, `unpublish`, `delete`,
+`toggleAside` and `toggleLeft`. `PlutoContentForm` builds the data and handles the events.
+
+### Unsaved changes
+
+The form is dirty when the payload (`buildContentPayload`, compared as sorted JSON) differs from
+the baseline. The baseline follows the item **until the user first edits**, so a widget that
+writes its own normal form of the value after it mounts (an editor) does not make the form
+dirty. A key press, `input`, `change`, `paste`, `drop`, or a press on a control (button, link,
+input, `role="option"` and similar) counts as an edit. An event during the load does not count.
+A save sets a new baseline (twice: at once, and on the next tick). The logic is
+`createDirtyTracker` in `app/composables/internal/content-dirty.ts`.
+
+While the form is dirty:
+
+- A navigation away (`onBeforeRouteLeave`, and `onBeforeRouteUpdate` for a new id) is cancelled
+  and opens an in-app dialog, "Leave without saving?", with "Stay on this page" and "Leave
+  without saving". Escape and a click outside mean "Stay". "Leave" navigates to the wanted route.
+- `beforeunload` asks the browser to confirm a reload or a tab close.
+
+The form skips the guard for its own navigation (after a create, an id change, and a delete).
+
+**Ctrl+S** (Cmd+S on macOS) saves like the Save button (not Publish) and stops the browser's save
+dialog. It does nothing while a save runs, while a dialog is open, or when the user cannot write.
+
+## The form context
+
+`usePlutoContentForm()` (`app/composables/pluto-content-form.ts`, types in
+`shared/types/content-form.ts`) gives a field widget the state of its form. It returns `null`
+outside a `PlutoContentForm`, so check for it. The widget contract (`field`, `modelValue`,
+`disabled`, `update:modelValue`) does not change.
+
+```ts
+const form = usePlutoContentForm()
+form?.onSaved((saved) => refetchMedia(saved.id)) // after each save that worked
+```
+
+| Key | Meaning |
+|---|---|
+| `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode |
+| `saving`, `dirty` | a save runs, the item has unsaved changes |
+| `errorsByField` | the validation message of each field that failed the last save |
+| `layout`, `canvas` | the layout, and true for 'canvas' |
+| `onSaved(callback)` | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope. |
+| `openPanel(id)` | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only) |
+
+## The canvas layout
+
+`form: { layout: 'canvas', canvasField: 'body' }` gives a full-height field between a left panel and
+a right panel. `defineContentType` warns in dev when `canvasField` names no field.
+
+- The `canvasField` widget fills the main region (`PlutoViewAdminPanel` with `fill` and `width: 'full'`).
+  Its root must fill its parent (`h-full`) and scroll its own content.
+- Every other field goes in the "Page" tab of the right panel, sorted by `order`. `region` does not
+  matter in this layout.
+- A widget adds panels with `PlutoContentCanvasPanel` (props `side: 'left' | 'right'`, `id`,
+  `label?`, `icon?`; slot: the panel content):
+  - `left`: the content stacks in the left panel. The toolbar gets a left panel toggle when a
+    panel exists.
+  - `right`: the content is one tab of the right panel (`UTabs`, widget panels first, then "Page").
+    With one tab, the aside title shows its label and there are no tabs.
+- The panel content stays in the widget's component tree. Vue `Teleport`s the DOM into an element
+  of the form. The element is a ref, so the content mounts when the element exists (the panel is
+  open, the tab mounted) and the state of the widget does not reset. Outside a canvas form,
+  `PlutoContentCanvasPanel` renders its slot inline.
+- Below `lg`: the left panel is a slideover (a toggle), the right panel is a slideover (a toggle).
+  Both start closed and keep no cookie (a saved "open" would cover the page on the first visit).
+  On desktop the left state is the cookie `pluto-content-left-<typeName>` and the right state is
+  `pluto-content-aside-<typeName>`.
+
+Use `openPanel('block')` from the widget to bring a tab forward, for example when the user selects
+a block.
 
 Every icon-only button in the form toolbar has an `aria-label` and a `UTooltip`: the aside toggle
 ("Show settings" / "Hide settings") and the overflow menu ("More actions").
@@ -189,7 +314,8 @@ skill for the full `PlutoContentStatus` shape: `values`, `default`, `publishedVa
 - No `status` declared (`status` unset or `false`) — one plain "Save" button. Byte-identical to
   a content type with no publish workflow at all; `onSave()` is called with no argument.
 - `status` declared, current value is not `publishedValue` — a "Save draft" button plus a
-  "Publish" button. Publish calls `onSave(publishedValue)`.
+  "Publish" button. Publish calls `onSave(publishedValue)`. A save with no override is a plain
+  "Saved" (the toast does not say "Unpublished").
 - `status` declared, current value is `publishedValue` — an "Update" button, plus an "Unpublish"
   entry in the overflow menu that calls `onSave(draftValue)`.
 

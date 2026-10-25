@@ -226,10 +226,24 @@ export interface PlutoContentType {
   editPath?: (id: string | number) => string
   navOrder?: number
   i18n?: PlutoContentI18n
-  /** Layout options for the generic content form (a later wave). */
+  /**
+   * The public URL of an item, for the "View" link in the form toolbar. Return
+   * `undefined` when the item has no public page (a draft, or a new item). The
+   * link shows in edit mode only. The function must be pure and must not read
+   * browser globals, because content type definitions are shared with the server.
+   */
+  previewUrl?: (item: PlutoContentItem) => string | undefined
+  /** Layout options for the generic content form. */
   form?: {
-    /** 'default' = heading + container. 'focus' = minimal chrome for a writing surface. */
-    layout?: 'default' | 'focus'
+    /**
+     * 'default' = fields in a container, aside on the right. 'focus' = minimal chrome
+     * for a writing surface. 'canvas' = a full-height field (see `canvasField`) between a
+     * left panel and a right panel. Every layout has the same toolbar: the item title,
+     * the save state and the save buttons.
+     */
+    layout?: 'default' | 'focus' | 'canvas'
+    /** The field that fills the main region in the 'canvas' layout. Required for 'canvas'. */
+    canvasField?: string
     /** true = always show. false = never. 'auto' (default) = show when any field has region 'side'. */
     aside?: boolean | 'auto'
     /** Aside starts closed. Default false, or true when layout is 'focus'. */

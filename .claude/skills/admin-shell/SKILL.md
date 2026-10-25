@@ -187,6 +187,11 @@ returns `{ visible }` with the same rule. An app that offsets its own header can
   customer (signed in, no capability) never sees the bar.
 - With no permissions driver, every signed-in user counts as staff. This matches `can()`, which
   fails open.
+- A route can hide the bar with the page meta `definePageMeta({ plutoAdminBar: false })`
+  (`navbarVisible` input `hiddenByRoute`). The preview path `/_pluto/preview` and its children hide
+  it too (`isPlutoPreviewPath(path)`, auto-imported, `shared/utils/preview-path.ts`). The block
+  editor shows that path in an iframe, so the iframe must not show the bar. An app can use
+  `isPlutoPreviewPath` to skip its own header and footer there.
 
 ### How the bar avoids a flash and a hydration mismatch
 

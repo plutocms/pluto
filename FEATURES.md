@@ -23,8 +23,11 @@ policies shared by every project here.
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
   registry bucket that lets a layer add its own buttons to that form. The form shows the item title
-  in the heading, a load error state with retry, a create toast, labeled icon buttons with tooltips,
+  in the toolbar, a load error state with retry, a create toast, labeled icon buttons with tooltips,
   and the aside fields inline on a narrow screen. A field can set `listFormat` for the generic list.
+  Every form layout has one toolbar (title, save state, unsaved-changes dialog, Ctrl/Cmd+S, a View link
+  from `previewUrl`), a form context for widgets (`usePlutoContentForm`), and a `canvas` layout with a left
+  panel, a right panel with tabs, and `PlutoContentCanvasPanel`.
   @.claude/skills/admin-view-chrome/SKILL.md
 - Command palette: Cmd/Ctrl+K and a sidebar search button open a `UDashboardSearch` with
   "New <type>" commands for writable content types, every admin nav destination, and theme
@@ -62,7 +65,7 @@ policies shared by every project here.
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.
   @.claude/skills/extension-registry/SKILL.md
-- Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The admin is for staff only: a signed-in user with no capability goes to `/admin/no-access`. The bar shows on `/admin/**` for staff, and on public pages for staff only. The bar height is the token `--pluto-admin-bar-height`, and `<html>` gets `data-pluto-admin-bar` while the bar shows. @.claude/skills/admin-shell/SKILL.md
+- Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The admin is for staff only: a signed-in user with no capability goes to `/admin/no-access`. The bar shows on `/admin/**` for staff, and on public pages for staff only. A route hides the bar with the page meta `plutoAdminBar: false`, and `isPlutoPreviewPath` marks the preview path. The bar height is the token `--pluto-admin-bar-height`, and `<html>` gets `data-pluto-admin-bar` while the bar shows. @.claude/skills/admin-shell/SKILL.md
 - Local layers helper: `plutoLayer(name)` from `@plutocms/pluto/layers` gives a Nuxt `extends` entry.
   With `PLUTO_LOCAL_ROOT`, it uses the local checkouts of the Pluto layers. @.claude/skills/local-layers/SKILL.md
 - Pluto logo: `PlutoLogo` draws the logo inline. The wordmark takes the text color, so the logo works

@@ -46,6 +46,10 @@ export function defineContentType(type: PlutoContentType): PlutoContentType {
       console.warn(`${prefix} an empty source needs files.nested.`)
     }
 
+    if (type.form?.layout === 'canvas' && !type.fields.some((field) => field.name === type.form?.canvasField)) {
+      console.warn(`${prefix} form.canvasField "${type.form.canvasField ?? ''}" does not match any field.`)
+    }
+
     if (type.status && type.status.values.length === 0) {
       console.warn(`${prefix} status has no values.`)
     }
