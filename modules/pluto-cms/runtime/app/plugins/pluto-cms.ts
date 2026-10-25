@@ -1,9 +1,11 @@
 import type { PlutoCmsSessionResponse } from '../composables/pluto-cms-session'
 import { defineAsyncComponent } from 'vue'
-import { defineNuxtPlugin } from '#imports'
+import { defineNuxtPlugin, useRuntimeConfig } from '#imports'
 import PlutoCmsPublicRepoWarning from '../../../../../app/components/Pluto/Cms/PlutoCmsPublicRepoWarning.vue'
 import PlutoCmsSignIn from '../../../../../app/components/Pluto/Cms/PlutoCmsSignIn.vue'
 import { definePlutoExtension } from '../../../../../app/composables/pluto-extension'
+import { usePlutoRegistry } from '../../../../../app/composables/pluto-registry'
+import { isPostTypeOn, showPublicRepoWarning } from '../../shared/client-rules'
 import { plutoCmsPostType } from '../../shared/post-type'
 import { CMS_SESSION_URL, usePlutoCmsSession } from '../composables/pluto-cms-session'
 
@@ -16,13 +18,21 @@ import { CMS_SESSION_URL, usePlutoCmsSession } from '../composables/pluto-cms-se
 export default defineNuxtPlugin(() => {
   // Read at setup, while the Nuxt context exists. Later callbacks have none.
   const session = usePlutoCmsSession()
+  const registry = usePlutoRegistry()
+
+  // The server registers the post type only when `postType` is on. The client follows it.
+  const postType = isPostTypeOn(useRuntimeConfig().public.plutoCms as {
+ postType?: boolean
+} | undefined)
 
   const { read, write, delete: remove } = plutoCmsPostType.capabilities ?? {}
-  const capabilities = [
+  const capabilities = (postType
+? [
     { key: read, label: 'pluto.cms.capabilities.readDrafts' },
     { key: write, label: 'pluto.cms.capabilities.publish' },
     { key: remove, label: 'pluto.cms.capabilities.delete' },
-  ].flatMap((entry) => (entry.key ? [{ id: entry.key.replace(':', '-'), key: entry.key, label: entry.label }] : []))
+  ]
+: []).flatMap((entry) => (entry.key ? [{ id: entry.key.replace(':', '-'), key: entry.key, label: entry.label }] : []))
 
   definePlutoExtension({
     id: 'pluto-cms',
@@ -51,7 +61,7 @@ export default defineNuxtPlugin(() => {
       signInDescription: 'pluto.cms.login.description',
     },
     // The content type gives the Posts nav item, the list and the form.
-    contentTypes: [{ id: 'post', type: plutoCmsPostType }],
+    contentTypes: postType ? [{ id: 'post', type: plutoCmsPostType }] : [],
     // The Markdown editor. The import is lazy, so Tiptap loads on the edit page only.
     contentFieldWidgets: [
       {
@@ -67,7 +77,7 @@ export default defineNuxtPlugin(() => {
         order: -10,
         colSpan: 3,
         component: PlutoCmsPublicRepoWarning,
-        enabled: () => session.repo.value?.private === false,
+        enabled: () => showPublicRepoWarning(session.repo.value?.private, registry.contentTypes.list.value.map((entry) => entry.type)),
       },
     ],
     // Core loads the capabilities after sign-in and clears them after sign-out.

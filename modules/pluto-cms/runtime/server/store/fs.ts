@@ -61,6 +61,29 @@ oid: string
     }
   }
 
+  /** Collects the `.md` files under `dir`. It skips dot dirs, dot files and the skipped dirs. */
+  async function walkMarkdown(dir: string, out: string[]): Promise<void> {
+    let entries
+    try {
+      entries = await readdir(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      if (entry.name.startsWith('.')) {
+        continue
+      }
+      const full = resolve(dir, entry.name)
+      if (entry.isDirectory()) {
+        if (!SKIPPED_DIRS.has(entry.name)) {
+          await walkMarkdown(full, out)
+        }
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        out.push(full)
+      }
+    }
+  }
+
   async function currentHead(): Promise<string> {
     const entries: {
  path: string
@@ -100,6 +123,20 @@ oid: string
       const files: PlutoCmsFile[] = []
       for (const name of names.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))) {
         const file = await read(base === '' ? name : `${base}/${name}`)
+        if (file) {
+          files.push(file)
+        }
+      }
+      return files
+    },
+    listTree: async (dir) => {
+      const base = dir.replace(/\/+$/, '')
+      const start = base === '' ? root : safePath(base)
+      const found: string[] = []
+      await walkMarkdown(start, found)
+      const files: PlutoCmsFile[] = []
+      for (const full of found.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))) {
+        const file = await read(relative(root, full).split(sep).join('/'))
         if (file) {
           files.push(file)
         }

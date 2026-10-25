@@ -37,6 +37,8 @@ declare module '@nuxt/schema' {
       appSlug: string
       storage: 'github' | 'fs'
       dir: string
+      /** The client registers the built-in post type only when this is true. */
+      postType: boolean
     }
   }
 }

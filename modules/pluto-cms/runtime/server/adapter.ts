@@ -12,12 +12,13 @@ import type { PlutoCmsAuth, PlutoCmsFile, PlutoCmsStore } from './store/types'
 import type { CmsCache } from './utils/cms-cache'
 import { isError, setResponseHeader } from 'h3'
 import { createPlutoError } from '../../../../server/utils/pluto-error'
+import { compareContentIds } from '../../../../shared/utils/content-id'
 import { fieldColumn, mapColumnsToFields } from '../../../../shared/utils/content-map'
 import { PlutoCmsConflictError, PlutoCmsStoreError } from './store/errors'
 import { gitBlobSha } from './utils/blob-sha'
 import { createCmsCache } from './utils/cms-cache'
 import {
-  assertSafeSlug,
+  assertSafeContentId,
   contentDirPath,
   contentFilePath,
   PlutoCmsPathError,
@@ -49,8 +50,11 @@ export interface MarkdownContentAdapterOptions {
 }
 
 interface Entry {
+  /** The id: the file name without `.md`, or the nested path. */
   slug: string
   oid: string
+  /** The text of the file as stored. */
+  text: string
   frontmatter: Record<string, unknown>
   body: string
 }
@@ -75,9 +79,15 @@ contents: string
 oid: string | null
 }[]
   item?: PlutoContentItem
+  /** The new text equals the stored text. Do not commit. */
+  unchanged?: boolean
 }
 
 interface Layout {
+  nested: boolean
+  exclude: string[]
+  readFrontmatter?: (frontmatter: Record<string, unknown>) => Record<string, unknown>
+  writeFrontmatter?: (frontmatter: Record<string, unknown>) => Record<string, unknown>
   bodyField?: PlutoField
   slugField?: string
   /** Fields stored as frontmatter keys. */
@@ -97,6 +107,10 @@ function layoutOf(type: PlutoContentType): Layout {
   const created = timestamps === false ? false : (timestamps?.created ?? 'createdAt')
   const updated = timestamps === false ? false : (timestamps?.updated ?? 'updatedAt')
   return {
+    nested: type.files?.nested === true,
+    exclude: type.files?.nested ? (type.files.exclude ?? []) : [],
+    readFrontmatter: type.files?.frontmatter?.read,
+    writeFrontmatter: type.files?.frontmatter?.write,
     bodyField,
     slugField,
     metaFields: type.fields.filter((field) => !field.virtual && field !== bodyField && field.name !== slugField),
@@ -292,33 +306,80 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
     }
   }
 
-  async function toEntry(file: PlutoCmsFile): Promise<Entry | null> {
-    const slug = file.name.slice(0, -'.md'.length)
+  /** The options that the path helpers need for one type. */
+  function pathOptions(layout: Layout): {
+ nested: boolean
+} {
+    return { nested: layout.nested }
+  }
+
+  /** Whether the id is listed in `files.exclude` (an id, or a folder with a trailing slash). */
+  function isExcluded(layout: Layout, id: string): boolean {
+    return layout.exclude.some((entry) => entry.endsWith('/') ? id.startsWith(entry) : id === entry)
+  }
+
+  /** True when the id is a safe id for this type and is not excluded. */
+  function isUsableId(layout: Layout, id: string): boolean {
     try {
-      assertSafeSlug(slug)
+      assertSafeContentId(id, pathOptions(layout))
     } catch {
+      return false
+    }
+    return !isExcluded(layout, id)
+  }
+
+  async function toEntry(layout: Layout, file: PlutoCmsFile, id: string): Promise<Entry | null> {
+    if (!isUsableId(layout, id)) {
       return null
     }
     const parsed = await parseFile(file)
-    return parsed ? { slug, oid: file.oid, frontmatter: parsed.frontmatter, body: parsed.body } : null
+    if (!parsed) {
+      return null
+    }
+    // The parsed file is shared through the cache. A hook gets a copy.
+    const frontmatter = layout.readFrontmatter
+      ? layout.readFrontmatter(structuredClone(parsed.frontmatter))
+      : parsed.frontmatter
+    return { slug: id, oid: file.oid, text: file.text, frontmatter, body: parsed.body }
+  }
+
+  /** The files of one type. A nested type reads the whole tree under its folder. */
+  async function listFiles(type: PlutoContentType, layout: Layout, head: string, auth?: PlutoCmsAuth): Promise<PlutoCmsFile[]> {
+    const folder = contentDirPath(dir, type.source, pathOptions(layout))
+    return layout.nested ? store.listTree(folder, head, auth) : store.listDir(folder, head, auth)
+  }
+
+  /** Reads one file. A nested type reads it from the tree, a flat type from the file. */
+  async function readTarget(type: PlutoContentType, layout: Layout, head: string, id: string, auth?: PlutoCmsAuth): Promise<PlutoCmsFile | null> {
+    const path = contentFilePath(dir, type.source, id, pathOptions(layout))
+    if (!layout.nested) {
+      return store.readFile(path, head, auth)
+    }
+    const files = await listFiles(type, layout, head, auth)
+    return files.find((file) => file.path === path) ?? null
   }
 
   async function loadEntries(type: PlutoContentType, access: PlutoCmsAccess | null): Promise<Entry[]> {
+    const layout = layoutOf(type)
     const head = await store.head({ auth: access?.auth })
-    const files = await store.listDir(contentDirPath(dir, type.source), head, access?.auth)
-    const entries = await Promise.all(files.map(toEntry))
+    const files = await listFiles(type, layout, head, access?.auth)
+    const prefixLength = contentDirPath(dir, type.source, pathOptions(layout)).length + 1
+    const entries = await Promise.all(files.map((file) => toEntry(
+      layout,
+      file,
+      layout.nested ? file.path.slice(prefixLength, -'.md'.length) : file.name.slice(0, -'.md'.length)
+    )))
     return entries.filter((entry): entry is Entry => entry !== null)
   }
 
   async function loadEntry(type: PlutoContentType, access: PlutoCmsAccess | null, slug: string): Promise<Entry | null> {
-    try {
-      assertSafeSlug(slug)
-    } catch {
+    const layout = layoutOf(type)
+    if (!isUsableId(layout, slug)) {
       return null
     }
     const head = await store.head({ auth: access?.auth })
-    const file = await store.readFile(contentFilePath(dir, type.source, slug), head, access?.auth)
-    return file ? toEntry(file) : null
+    const file = await readTarget(type, layout, head, slug, access?.auth)
+    return file ? toEntry(layout, file, slug) : null
   }
 
   function isPublished(type: PlutoContentType, layout: Layout, entry: Entry): boolean {
@@ -383,6 +444,9 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
       } else if (current.targets.some((target, index) => target.oid !== first![index]?.oid)) {
         throw conflictError()
       }
+      if (current.unchanged) {
+        return current
+      }
       try {
         await store.commit({
           expectedHeadOid: head,
@@ -401,8 +465,12 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
   }
 
   async function readExisting(type: PlutoContentType, access: PlutoCmsAccess, head: string, slug: string): Promise<Entry | null> {
-    const file = await store.readFile(contentFilePath(dir, type.source, slug), head, access.auth)
-    return file ? toEntry(file) : null
+    const layout = layoutOf(type)
+    if (!isUsableId(layout, slug)) {
+      return null
+    }
+    const file = await readTarget(type, layout, head, slug, access.auth)
+    return file ? toEntry(layout, file, slug) : null
   }
 
   /** Applies the payload to a frontmatter object. Unknown keys stay. */
@@ -464,6 +532,12 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
     return fallback
   }
 
+  /** The text of a file. The `files.frontmatter.write` hook maps the frontmatter first. */
+  function fileText(layout: Layout, frontmatter: Record<string, unknown>, body: string): string {
+    const mapped = layout.writeFrontmatter ? layout.writeFrontmatter(structuredClone(frontmatter)) : frontmatter
+    return serializeMarkdownFile(mapped, body)
+  }
+
   function publishCapability(type: PlutoContentType): string | undefined {
     return type.capabilities?.publish ?? type.capabilities?.write
   }
@@ -486,7 +560,9 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
         entries = entries.filter((entry) => String(entry.frontmatter[titleColumn] ?? '').toLowerCase().includes(needle))
       }
 
-      const sort = query.sort ?? type.defaultSort ?? { field: layout.createdColumn ?? 'id', direction: 'desc' as const }
+      const sort = query.sort ?? type.defaultSort ?? (layout.nested
+        ? { field: 'id', direction: 'asc' as const }
+        : { field: layout.createdColumn ?? 'id', direction: 'desc' as const })
       const sortField = type.fields.find((field) => field.name === sort.field)
       const sortKey = sortField ? fieldColumn(sortField) : sort.field
       const direction = sort.direction === 'asc' ? 1 : -1
@@ -497,7 +573,10 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
         if (isEmptyValue(left) !== isEmptyValue(right)) {
           return isEmptyValue(left) ? 1 : -1
         }
-        return compareValues(left, right) * direction || compareValues(a.slug, b.slug)
+        if (sortKey === 'id' && layout.nested) {
+          return compareContentIds(a.slug, b.slug) * direction
+        }
+        return compareValues(left, right) * direction || (layout.nested ? compareContentIds(a.slug, b.slug) : compareValues(a.slug, b.slug))
       })
 
       const total = entries.length
@@ -533,12 +612,10 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
       const slug = typeof given === 'string' && given !== ''
         ? given
         : slugifyTitle(String(values[type.titleField] ?? ''))
-      try {
-        assertSafeSlug(slug)
-      } catch {
+      if (!isUsableId(layout, slug)) {
         throw invalidSlugError()
       }
-      const path = contentFilePath(dir, type.source, slug)
+      const path = contentFilePath(dir, type.source, slug, pathOptions(layout))
 
       const frontmatter: Record<string, unknown> = {}
       applyValues(type, layout, frontmatter, values, 'create')
@@ -546,10 +623,10 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
         await requireAccess(ctx.event, publishCapability(type))
       }
       const body = bodyOf(layout, values, '')
-      const text = serializeMarkdownFile(frontmatter, body)
+      const text = fileText(layout, frontmatter, body)
 
       await commitPlan(ctx.event, access, async (head) => {
-        const existing = await store.readFile(path, head, access.auth)
+        const existing = await readTarget(type, layout, head, slug, access.auth)
         if (existing) {
           throw slugTakenError(slug)
         }
@@ -561,7 +638,7 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
         }
       })
 
-      return toItem(type, layout, { slug, oid: gitBlobSha(text), frontmatter, body }, true)
+      return toItem(type, layout, { slug, oid: gitBlobSha(text), text, frontmatter, body }, true)
     })
   }
 
@@ -575,23 +652,17 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
       const layout = layoutOf(type)
       const access = await requireAccess(ctx.event, type.capabilities?.write)
       const oldSlug = String(id)
-      try {
-        assertSafeSlug(oldSlug)
-      } catch {
+      if (!isUsableId(layout, oldSlug)) {
         throw notFoundError()
       }
 
       const given = layout.slugField ? values[layout.slugField] : undefined
       const newSlug = typeof given === 'string' && given !== '' ? given : oldSlug
-      if (newSlug !== oldSlug) {
-        try {
-          assertSafeSlug(newSlug)
-        } catch {
-          throw invalidSlugError()
-        }
+      if (newSlug !== oldSlug && !isUsableId(layout, newSlug)) {
+        throw invalidSlugError()
       }
-      const oldPath = contentFilePath(dir, type.source, oldSlug)
-      const newPath = contentFilePath(dir, type.source, newSlug)
+      const oldPath = contentFilePath(dir, type.source, oldSlug, pathOptions(layout))
+      const newPath = contentFilePath(dir, type.source, newSlug, pathOptions(layout))
       const version = typeof values._version === 'string' ? values._version : undefined
 
       const done = await commitPlan(ctx.event, access, async (head) => {
@@ -604,7 +675,7 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
         }
         const targets: Plan['targets'] = [{ path: oldPath, oid: current.oid }]
         if (newPath !== oldPath) {
-          if (await store.readFile(newPath, head, access.auth)) {
+          if (await readTarget(type, layout, head, newSlug, access.auth)) {
             throw slugTakenError(newSlug)
           }
         }
@@ -617,7 +688,29 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
           await requireAccess(ctx.event, publishCapability(type))
         }
         const body = bodyOf(layout, values, current.body)
-        const text = serializeMarkdownFile(frontmatter, body)
+        const text = fileText(layout, frontmatter, body)
+
+        // A save that changes nothing makes no commit. The `updated` stamp alone is not a change.
+        if (newPath === oldPath) {
+          const probe = { ...frontmatter }
+          if (layout.updatedColumn) {
+            if (Object.hasOwn(current.frontmatter, layout.updatedColumn)) {
+              probe[layout.updatedColumn] = current.frontmatter[layout.updatedColumn]
+            } else {
+              delete probe[layout.updatedColumn]
+            }
+          }
+          if (fileText(layout, probe, body) === current.text) {
+            return {
+              message: '',
+              additions: [],
+              deletions: [],
+              targets,
+              unchanged: true,
+              item: toItem(type, layout, current, true),
+            }
+          }
+        }
 
         let verb = `update "${oldSlug}"`
         if (newPath !== oldPath) {
@@ -630,7 +723,7 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
           additions: [{ path: newPath, contents: text }],
           deletions: newPath === oldPath ? [] : [{ path: oldPath }],
           targets,
-          item: toItem(type, layout, { slug: newSlug, oid: gitBlobSha(text), frontmatter, body }, true),
+          item: toItem(type, layout, { slug: newSlug, oid: gitBlobSha(text), text, frontmatter, body }, true),
         }
       })
       return done.item as PlutoContentItem
@@ -641,13 +734,12 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
     return guard(ctx.event, async () => {
       const { type } = ctx
       const access = await requireAccess(ctx.event, type.capabilities?.delete)
+      const layout = layoutOf(type)
       const slug = String(id)
-      try {
-        assertSafeSlug(slug)
-      } catch {
+      if (!isUsableId(layout, slug)) {
         throw notFoundError()
       }
-      const path = contentFilePath(dir, type.source, slug)
+      const path = contentFilePath(dir, type.source, slug, pathOptions(layout))
 
       await commitPlan(ctx.event, access, async (head) => {
         const current = await readExisting(type, access, head, slug)

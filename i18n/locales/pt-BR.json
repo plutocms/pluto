@@ -224,7 +224,11 @@
         "bulletList": "Lista com marcadores",
         "orderedList": "Lista numerada",
         "blockquote": "Citação",
-        "codeBlock": "Bloco de código"
+        "codeBlock": "Bloco de código",
+        "visual": "Visual",
+        "source": "Código",
+        "unsafe": "Este texto tem uma sintaxe que o editor visual não consegue manter (MDC, HTML, tabelas, listas de tarefas ou notas de rodapé). Edite no modo Código.",
+        "mode": "Modo do editor"
       },
       "capabilities": {
         "readDrafts": "Ler rascunhos de posts",

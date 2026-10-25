@@ -224,7 +224,11 @@
         "bulletList": "Bulleted list",
         "orderedList": "Numbered list",
         "blockquote": "Quote",
-        "codeBlock": "Code block"
+        "codeBlock": "Code block",
+        "visual": "Visual",
+        "source": "Source",
+        "unsafe": "This text has syntax that the visual editor cannot keep (MDC, HTML, tables, task lists or footnotes). Edit it in Source.",
+        "mode": "Editor mode"
       },
       "capabilities": {
         "readDrafts": "Read draft posts",

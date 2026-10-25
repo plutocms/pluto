@@ -42,6 +42,10 @@ export function defineContentType(type: PlutoContentType): PlutoContentType {
       }
     }
 
+    if (type.source === '' && !type.files?.nested) {
+      console.warn(`${prefix} an empty source needs files.nested.`)
+    }
+
     if (type.status && type.status.values.length === 0) {
       console.warn(`${prefix} status has no values.`)
     }

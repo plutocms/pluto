@@ -1,6 +1,11 @@
 <script setup lang="ts">
 const route = useRoute()
 const typeName = route.params.type as string
+// The route is a catch-all, so a nested id (`guide/intro`) arrives as an array of segments.
+const id = computed(() => {
+  const param = route.params.id
+  return Array.isArray(param) ? param.join('/') : String(param ?? '')
+})
 
 const { byName } = usePlutoContentTypes()
 const { t } = usePlutoI18n()
@@ -17,5 +22,5 @@ useHead({
 </script>
 
 <template>
-  <PlutoContentForm :id="route.params.id as string" :key="String(route.params.id)" :type="type.name" />
+  <PlutoContentForm :id="id" :key="id" :type="type.name" />
 </template>

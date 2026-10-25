@@ -31,6 +31,67 @@ truncated?: string[]
   return { github, clock, store }
 }
 
+describe('github store listTree', () => {
+  const files = {
+    'content/index.md': 'I',
+    'content/1.a/index.md': 'AI',
+    'content/1.a/2.b/c.md': 'C',
+    'content/1.a/note.txt': 'T',
+    'content/.hidden/h.md': 'H',
+    'other/o.md': 'O',
+  }
+
+  it('reads the whole tree with one nested GraphQL query', async () => {
+    const queries: string[] = []
+    const github = createFakeGithub({ files })
+    const store = createGithubStore({
+      repo: github.repo,
+      branch: github.branch,
+      apiUrl: 'https://api.github.com',
+      cache: createCmsCache({ headTtl: 60 }),
+      readToken: 'read',
+      fetch: async (url, init) => {
+        const body = JSON.parse(init.body ?? '{}') as {
+ query?: string
+}
+        if (body.query) {
+          queries.push(body.query)
+        }
+        return github.fetch(url, init)
+      },
+    })
+
+    const tree = await store.listTree('content', await store.head(), auth)
+
+    expect(tree.map((file) => file.path)).toEqual(['content/1.a/2.b/c.md', 'content/1.a/index.md', 'content/index.md'])
+    expect(tree[0]).toMatchObject({ name: 'c.md', text: 'C' })
+    expect(github.calls.tree).toBe(1)
+    // The query nests `entries` six levels deep.
+    expect(queries[0]!.match(/entries \{/g)).toHaveLength(6)
+  })
+
+  it('caches the tree by dir and head, and reads again after a new head', async () => {
+    const { github, store } = setup({ files })
+    const head = await store.head()
+
+    await store.listTree('content', head, auth)
+    await store.listTree('content/', head, auth)
+    expect(github.calls.tree).toBe(1)
+
+    github.push('content/new.md', 'N')
+    const next = await store.head({ revalidate: true })
+    const tree = await store.listTree('content', next, auth)
+    expect(tree.map((file) => file.name)).toContain('new.md')
+    expect(github.calls.tree).toBe(2)
+  })
+
+  it('gives an empty list for a missing dir', async () => {
+    const { store } = setup({ files })
+
+    expect(await store.listTree('content/none', await store.head(), auth)).toEqual([])
+  })
+})
+
 describe('github store head', () => {
   it('caches the head for the TTL', async () => {
     const { github, store } = setup()

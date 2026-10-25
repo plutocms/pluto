@@ -47,7 +47,7 @@ const newPath = computed(
   () => contentType.value?.newPath ?? `${basePath.value}/new`
 )
 function editPath(id: string | number) {
-  return contentType.value?.editPath?.(id) ?? `${basePath.value}/${id}`
+  return contentType.value?.editPath?.(id) ?? `${basePath.value}/${contentIdPath(id)}`
 }
 
 // Load the list 50 rows at a time. The table is virtualized, so only the

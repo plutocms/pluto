@@ -25,12 +25,20 @@
 }
 
 /*
- * Set the header height outside a layer. This overrides Nuxt UI's own
- * `@layer theme` value for the same variable. The admin navbar is 2.5rem
- * (40px) high at every width. A public site that shows the admin navbar
- * to a logged-in admin offsets its own header by the same 40px (`top-10`).
+ * `--pluto-admin-bar-height` is the height of the admin navbar: 2.5rem (40px)
+ * at every width. The admin navbar and the admin layout read it. A public site
+ * that shows the admin navbar to a logged-in admin offsets its own header by
+ * the same value. Core sets `data-pluto-admin-bar` on <html> while the bar
+ * shows, so a site can offset its header only then:
+ * `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
+ *
+ * `--ui-header-height` stays 2.5rem for existing apps. Set it outside a layer.
+ * This overrides Nuxt UI's own `@layer theme` value for the same variable. A
+ * site with a taller header (for example a docs site) sets its own value for
+ * `--ui-header-height`, and the admin keeps `--pluto-admin-bar-height`.
  */
 :root {
+  --pluto-admin-bar-height: 2.5rem;
   --ui-header-height: 2.5rem;
 }
 
