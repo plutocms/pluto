@@ -240,6 +240,15 @@
       },
       "signUp": "Sign up",
       "forgotPassword": "Forgot your password?"
+    },
+    "noAccess": {
+      "title": "Your account has no access to the admin",
+      "description": "You are signed in, but your account has no role. Ask an administrator to give you access.",
+      "errorTitle": "The access check failed",
+      "errorDescription": "We could not load your permissions. Try again, or sign out and sign in again.",
+      "tryAgain": "Try again",
+      "goToSite": "Go to the site",
+      "signOut": "Sign out"
     }
   }
 }

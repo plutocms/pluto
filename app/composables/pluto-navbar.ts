@@ -1,4 +1,4 @@
-import { navbarVisible } from './internal/admin-shell'
+import { isStaff, navbarVisible } from './internal/admin-shell'
 
 /**
  * The admin navbar shell (the whole top bar, provided by a backend layer).
@@ -63,13 +63,13 @@ export function usePlutoAdminBar() {
   const capabilitiesKnown = usePlutoCapabilitiesKnown()
   const mounted = usePlutoAppMounted()
 
-  const isStaff = computed(() => !permissions.hasDriver.value || permissions.granted.value.length > 0)
+  const staff = computed(() => isStaff(permissions.hasDriver.value, permissions.granted.value))
 
   const visible = computed(() =>
     navbarVisible({
       path: route.path,
       loggedIn: loggedIn.value,
-      isStaff: isStaff.value,
+      isStaff: staff.value,
       // The public-page rule also waits for the mount, so the first client
       // render matches the server HTML. The admin rule does not read it.
       capabilitiesKnown: capabilitiesKnown.value && mounted.value,

@@ -2,8 +2,7 @@
 
 This feature lets a layer declare capabilities, and lets one backend layer register the driver
 that loads the current user's capability list. Core reads that list to decide what the admin UI
-shows. This is Wave 1: types, registry wiring, and the two composables. No layer registers a
-driver yet, so nothing changes for a real site.
+shows, and to decide who can enter the admin (see "Staff-only admin").
 
 It extends the [extension registry](../extension-registry/SKILL.md). Read that skill file
 first. This feature adds:
@@ -82,9 +81,9 @@ Returns the current user's loaded capability list, and a `can()` check, backed b
 `PlutoPermissionsDriver` is registered:
 
 ```ts
-const { granted, loaded, status, hasDriver, isAdmin, load, clear, can } = usePlutoPermissions()
+const { granted, loaded, status, hasDriver, isAdmin, load, ensureLoaded, clear, can } = usePlutoPermissions()
 
-await load() // populates `granted` from the registered driver
+await ensureLoaded(user.id) // populates `granted` for this user, once
 can('posts:publish') // true if the user holds this capability, or holds '*'
 ```
 
@@ -93,9 +92,16 @@ can('posts:publish') // true if the user holds this capability, or holds '*'
 - `status` — `'idle'` or `'loading'`.
 - `hasDriver` — true when a layer has registered a `PlutoPermissionsDriver`.
 - `isAdmin` — true when `granted` includes the wildcard `'*'`.
-- `load()` — calls the registered driver's `load()` and stores the result. Does nothing if no
-  driver is registered.
-- `clear()` — resets `granted` and `loaded`. Call this on sign-out.
+- `load(userId?)` — calls the registered driver's `load()` and stores the result. One request runs
+  at a time: a call while a request is in flight returns the same promise. The request is kept on
+  `nuxtApp`. A call for another user id starts a new request, and the older result is dropped.
+  Does nothing if no driver is registered.
+- `ensureLoaded(userId)` — returns at once when the list is already loaded for this user id. It
+  joins a request in flight for the same id. It loads again when the user id changed. It rejects
+  when the driver rejects, so the caller can show an error.
+- The loaded list remembers the user id it belongs to. `clear()` resets it and drops a request in
+  flight.
+- `clear()` — resets `granted`, `loaded` and the user id. Call this on sign-out.
 - `can(capability)` — true if the user holds `capability`, or holds `'*'`.
 
 **`can()` fails OPEN when no permissions driver is registered.** A site with no permissions
@@ -110,10 +116,18 @@ or a page shows. The real enforcement is a backend layer's own server-side guard
 button with `can('posts:publish')` does nothing to stop a user who calls the API directly. Do
 not treat `can()` returning `false` as proof an action is blocked.
 
-This wave does not wire `load()` or `clear()` into any page, layout, or plugin. No layer
-registers a driver yet, so there is nothing to load. That wiring, and the driver itself, is a
-later wave's work in `@plutocms/supabase` — see that package's own skill file once it ships. It
-is the reference implementation of a permissions driver, and the actual enforcement side.
+## Staff-only admin
+
+Core wires the list into two places:
+
+- `app/plugins/pluto-auth-sync.client.ts` calls `ensureLoaded(userId)` on sign-in and `clear()` on
+  sign-out.
+- `app/middleware/pluto-admin-auth.global.ts` awaits `ensureLoaded(userId)` for a signed-in user
+  on a private admin path. A user with no capability goes to `/admin/no-access`. See the
+  [admin-shell](../admin-shell/SKILL.md) skill.
+
+Both callers share one request. `@plutocms/supabase` is the reference implementation of a
+permissions driver, and the enforcement side.
 
 ## Known limits, out of scope for this pass
 
@@ -122,4 +136,5 @@ is the reference implementation of a permissions driver, and the actual enforcem
   global `'*'`.
 - No server-side guard ships in this repo. `pluto` (core) gains no `server/` directory in this
   wave.
-- `load()`/`clear()` are not wired into any page, layout, or plugin yet.
+- A driver whose `load()` returns `[]` for an admin (for example a failed role query) locks that
+  admin out of the admin pages. The driver must return `['*']` for an admin.

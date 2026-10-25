@@ -54,4 +54,4 @@ policies shared by every project here.
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.
   @.claude/skills/extension-registry/SKILL.md
-- Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The bar shows on `/admin/**` for any signed-in user, and on public pages for staff only. @.claude/skills/admin-shell/SKILL.md
+- Admin shell: core owns the `/admin` parent route, the `/admin/login` page, the route guard, the admin banners, the navbar and the user menu. A backend layer registers an auth driver, account menu items, site info and link actions. The admin is for staff only: a signed-in user with no capability goes to `/admin/no-access`. The bar shows on `/admin/**` for staff, and on public pages for staff only. @.claude/skills/admin-shell/SKILL.md
