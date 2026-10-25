@@ -11,7 +11,7 @@
  * With no permissions driver, there is nothing to load, and the state is true.
  */
 export default defineNuxtPlugin((nuxtApp) => {
-  const { loggedIn } = usePlutoAuth()
+  const { loggedIn, user } = usePlutoAuth()
   const permissions = usePlutoPermissions()
   const { syncUserLocale } = usePlutoI18n()
   const known = usePlutoCapabilitiesKnown()
@@ -44,7 +44,8 @@ export default defineNuxtPlugin((nuxtApp) => {
       known.value = false
       void syncUserLocale()
       try {
-        await permissions.load()
+        // The route guard shares this request through `ensureLoaded`.
+        await permissions.ensureLoaded(user.value?.id ?? '')
         // Ignore a result that arrives after a sign-out.
         known.value = loggedIn.value && (!permissions.hasDriver.value || permissions.loaded.value)
       } catch {

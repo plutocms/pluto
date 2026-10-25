@@ -5,6 +5,7 @@ import type { PlutoAuthPublicPath, PlutoAuthUser } from '../../../shared/types/r
 
 export const ADMIN_LOGIN_PATH = '/admin/login'
 export const ADMIN_HOME_PATH = '/admin/home'
+export const ADMIN_NO_ACCESS_PATH = '/admin/no-access'
 
 const FAKE_ORIGIN = 'http://pluto.invalid'
 
@@ -131,6 +132,72 @@ export function guardDecision(input: GuardInput): GuardDecision {
   }
 }
 
+/**
+ * True for a staff user: a user who holds at least one capability. With no
+ * permissions driver every signed-in user counts as staff, like `can()` that
+ * fails open. The server RLS uses the same meaning.
+ */
+export function isStaff(hasDriver: boolean, granted: readonly string[]): boolean {
+  return !hasDriver || granted.length > 0
+}
+
+export interface StaffInput {
+  path: string
+  fullPath: string
+  query: Record<string, unknown>
+  publicPaths: PlutoAuthPublicPath[]
+  /** A permissions driver is registered. */
+  hasDriver: boolean
+  /** The capabilities of the user. Ignored when `loadFailed` is true. */
+  granted: readonly string[]
+  /** The capabilities failed to load. */
+  loadFailed: boolean
+}
+
+/**
+ * Decides the staff step of the route guard. Run it after `guardDecision`
+ * allowed a signed-in user. It never touches a path outside `/admin`, and
+ * never checks a public auth path of the driver.
+ *
+ * - Staff on a private path: allow. Staff on the no-access page: go to the
+ *   checked `redirect` target, or to the admin home.
+ * - Not staff, or the load failed, on a private path: go to the no-access page.
+ *   The wanted path stays in `redirect`, and a failed load adds `reason=error`.
+ * - On the no-access page, a user who is not staff stays. This keeps the guard
+ *   free of a redirect loop.
+ */
+export function staffDecision(input: StaffInput): GuardDecision {
+  const { path, fullPath, query, publicPaths, hasDriver, granted, loadFailed } = input
+  if (!isAdminPath(path) || matchPublicPath(path, publicPaths)) {
+    return { action: 'allow' }
+  }
+
+  const onNoAccess = trimSlash(path) === ADMIN_NO_ACCESS_PATH
+  const staff = !loadFailed && isStaff(hasDriver, granted)
+
+  if (staff) {
+    if (!onNoAccess) {
+      return { action: 'allow' }
+    }
+    const target = safeRedirect(firstString(query.redirect))
+    const targetPath = target ? trimSlash(new URL(target, FAKE_ORIGIN).pathname) : ''
+    return { action: 'redirect', to: target && targetPath !== ADMIN_NO_ACCESS_PATH ? target : ADMIN_HOME_PATH }
+  }
+
+  if (onNoAccess) {
+    return { action: 'allow' }
+  }
+  const params: string[] = []
+  if (loadFailed) {
+    params.push('reason=error')
+  }
+  const wanted = safeRedirect(fullPath)
+  if (wanted) {
+    params.push(`redirect=${encodeURIComponent(wanted)}`)
+  }
+  return { action: 'redirect', to: params.length ? `${ADMIN_NO_ACCESS_PATH}?${params.join('&')}` : ADMIN_NO_ACCESS_PATH }
+}
+
 export interface NavbarVisibleInput {
   path: string
   loggedIn: boolean
@@ -143,19 +210,24 @@ export interface NavbarVisibleInput {
 
 /**
  * Whether the admin bar shows. On `/admin/**` it shows for a signed-in user,
- * except on the public auth paths. On a public page it shows for staff only,
+ * except on the public auth paths, and except for a user who is known to be
+ * no staff (the no-access page). On a public page it shows for staff only,
  * and only after the capabilities are known. This keeps a shop customer from
  * seeing the bar, even for a moment, and keeps the server HTML free of it.
  */
 export function navbarVisible(input: NavbarVisibleInput): boolean {
-  const { path, loggedIn, isStaff, capabilitiesKnown, publicPaths } = input
+  const { path, loggedIn, isStaff: isStaffUser, capabilitiesKnown, publicPaths } = input
   if (!loggedIn) {
     return false
   }
   if (isAdminPath(path)) {
+    // A user who is known to be no staff gets the no-access page, with no bar.
+    if (capabilitiesKnown && !isStaffUser) {
+      return false
+    }
     return !matchPublicPath(path, publicPaths)
   }
-  return capabilitiesKnown && isStaff
+  return capabilitiesKnown && isStaffUser
 }
 
 /** The name shown for a user: name, else username, else the fallback. */

@@ -240,6 +240,15 @@
       },
       "signUp": "Criar conta",
       "forgotPassword": "Esqueceu a senha?"
+    },
+    "noAccess": {
+      "title": "Sua conta não tem acesso ao painel",
+      "description": "Você está conectado, mas sua conta não tem nenhum papel. Peça a um administrador para liberar o acesso.",
+      "errorTitle": "Falha ao verificar o acesso",
+      "errorDescription": "Não foi possível carregar suas permissões. Tente novamente, ou saia e entre de novo.",
+      "tryAgain": "Tentar novamente",
+      "goToSite": "Ir para o site",
+      "signOut": "Sair"
     }
   }
 }

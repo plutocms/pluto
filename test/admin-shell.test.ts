@@ -1,14 +1,17 @@
 import type { PlutoAuthPublicPath } from '../shared/types/registry'
 import { describe, expect, it } from 'vitest'
 import {
+  ADMIN_NO_ACCESS_PATH,
   displayName,
   guardDecision,
   isAdminPath,
+  isStaff,
   navbarVisible,
   normalizePublicPaths,
   resolveSiteName,
   safeRedirect,
   shortName,
+  staffDecision,
 } from '../app/composables/internal/admin-shell'
 
 const publicPaths = normalizePublicPaths(['/admin/reset', { path: '/admin/invite', signedIn: 'allow' }])
@@ -131,6 +134,11 @@ describe('navbarVisible', () => {
     expect(navbarVisible({ ...base, path: '/admin/home', isStaff: false, capabilitiesKnown: false })).toBe(true)
   })
 
+  it('hides on /admin/** for a user known to be no staff', () => {
+    expect(navbarVisible({ ...base, path: '/admin/home', isStaff: false })).toBe(false)
+    expect(navbarVisible({ ...base, path: '/admin/no-access', isStaff: false })).toBe(false)
+  })
+
   it('hides on the public auth paths', () => {
     expect(navbarVisible({ ...base, path: '/admin/login' })).toBe(false)
     expect(navbarVisible({ ...base, path: '/admin/invite' })).toBe(false)
@@ -147,6 +155,91 @@ describe('navbarVisible', () => {
   it('hides on a public page while the capabilities are unknown', () => {
     expect(navbarVisible({ ...base, path: '/', capabilitiesKnown: false })).toBe(false)
     expect(navbarVisible({ ...base, path: '/', isStaff: false, capabilitiesKnown: false })).toBe(false)
+  })
+})
+
+describe('isStaff', () => {
+  it('counts every user as staff when there is no permissions driver', () => {
+    expect(isStaff(false, [])).toBe(true)
+  })
+
+  it('needs at least one capability when a driver exists', () => {
+    expect(isStaff(true, [])).toBe(false)
+    expect(isStaff(true, ['posts:read'])).toBe(true)
+    expect(isStaff(true, ['*'])).toBe(true)
+  })
+})
+
+describe('staffDecision', () => {
+  const input = {
+    path: '/admin/home',
+    fullPath: '/admin/home',
+    query: {},
+    publicPaths,
+    hasDriver: true,
+    granted: ['posts:read'],
+    loadFailed: false,
+  }
+
+  it('allows a path outside the admin', () => {
+    expect(staffDecision({ ...input, path: '/shop', fullPath: '/shop', granted: [] })).toEqual({ action: 'allow' })
+  })
+
+  it('never checks a public auth path', () => {
+    expect(staffDecision({ ...input, path: '/admin/reset', granted: [], loadFailed: true })).toEqual({ action: 'allow' })
+    expect(staffDecision({ ...input, path: '/admin/invite', granted: [] })).toEqual({ action: 'allow' })
+  })
+
+  it('allows everyone when there is no permissions driver', () => {
+    expect(staffDecision({ ...input, hasDriver: false, granted: [] })).toEqual({ action: 'allow' })
+  })
+
+  it('allows staff on a private path', () => {
+    expect(staffDecision(input)).toEqual({ action: 'allow' })
+    expect(staffDecision({ ...input, granted: ['*'] })).toEqual({ action: 'allow' })
+  })
+
+  it('sends a user with no capability to the no-access page and keeps the wanted path', () => {
+    expect(staffDecision({ ...input, granted: [], fullPath: '/admin/content/posts?page=2' })).toEqual({
+      action: 'redirect',
+      to: `${ADMIN_NO_ACCESS_PATH}?redirect=${encodeURIComponent('/admin/content/posts?page=2')}`,
+    })
+  })
+
+  it('sends a load error to the no-access page with reason=error', () => {
+    expect(staffDecision({ ...input, granted: [], loadFailed: true })).toEqual({
+      action: 'redirect',
+      to: `${ADMIN_NO_ACCESS_PATH}?reason=error&redirect=${encodeURIComponent('/admin/home')}`,
+    })
+    // A stale list never counts as staff when the load failed.
+    expect(staffDecision({ ...input, loadFailed: true }).action).toBe('redirect')
+  })
+
+  it('keeps a non-staff user on the no-access page (no loop)', () => {
+    const base = { ...input, path: ADMIN_NO_ACCESS_PATH, fullPath: ADMIN_NO_ACCESS_PATH, granted: [] }
+    expect(staffDecision(base)).toEqual({ action: 'allow' })
+    expect(staffDecision({ ...base, loadFailed: true })).toEqual({ action: 'allow' })
+  })
+
+  it('sends staff away from the no-access page to the redirect target or the home', () => {
+    const base = { ...input, path: ADMIN_NO_ACCESS_PATH, fullPath: ADMIN_NO_ACCESS_PATH }
+    expect(staffDecision(base)).toEqual({ action: 'redirect', to: '/admin/home' })
+    expect(staffDecision({ ...base, query: { redirect: '/admin/content/posts' } })).toEqual({
+      action: 'redirect',
+      to: '/admin/content/posts',
+    })
+  })
+
+  it('ignores an unsafe or looping redirect target', () => {
+    const base = { ...input, path: ADMIN_NO_ACCESS_PATH, fullPath: ADMIN_NO_ACCESS_PATH }
+    expect(staffDecision({ ...base, query: { redirect: 'https://evil.example' } })).toEqual({
+      action: 'redirect',
+      to: '/admin/home',
+    })
+    expect(staffDecision({ ...base, query: { redirect: ADMIN_NO_ACCESS_PATH } })).toEqual({
+      action: 'redirect',
+      to: '/admin/home',
+    })
   })
 })
 

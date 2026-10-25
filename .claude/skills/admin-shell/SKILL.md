@@ -54,6 +54,7 @@ Core adds no `ClientOnly` around the whole bar and uses no top-level await in it
 |---|---|---|
 | `app/pages/admin.vue` | `/admin` (parent) | `definePageMeta({ layout: 'admin' })` and `<NuxtPage />`. Every `/admin/**` page is a child. |
 | `app/pages/admin/(auth)/login.vue` | `/admin/login` | The login page. It sets the `auth` layout and renders `PlutoAdminAuthCard`. |
+| `app/pages/admin/no-access.vue` | `/admin/no-access` | The page for a signed-in user with no capability. It uses the `auth` layout. See "The staff step". |
 
 A child that must not use the admin layout (the auth pages) sets its own layout in
 `definePageMeta`. The `(auth)` folder is a route group: it adds no path segment.
@@ -80,9 +81,48 @@ these paths.
 5. It calls `guardDecision` with `normalizePublicPaths(driver.publicPaths)`. On a redirect, it calls
    `navigateTo(to, { replace: true })`.
 
+6. The staff step (see below). It runs only for a signed-in user on a private admin path.
+
 A signed-out user on a private admin path goes to `/admin/login?redirect=<fullPath>`. A signed-in
 user on a public auth path goes to the checked `redirect` target, or to `/admin/home`. The server
 still checks every request. The guard only decides what the browser shows.
+
+## The staff step
+
+Only staff can enter the private admin pages. Staff is a user with at least one capability (an
+admin holds `*`). With no permissions driver, every signed-in user counts as staff, like `can()`
+that fails open. The rule is `isStaff(hasDriver, granted)` in `internal/admin-shell.ts`. The navbar
+uses the same function. The server RLS uses the same meaning (`my_capabilities()` is not empty).
+
+After `guardDecision` allows a signed-in user, the middleware awaits
+`usePlutoPermissions().ensureLoaded(userId)` and calls the pure `staffDecision`:
+
+- A path outside `/admin`, and a public auth path of the driver: allow. They are never checked.
+- Staff on a private path: allow.
+- No capability: go to `/admin/no-access?redirect=<fullPath>`.
+- The capabilities failed to load: go to `/admin/no-access?reason=error&redirect=<fullPath>`.
+- On `/admin/no-access`: staff go to the checked `redirect` target, or to `/admin/home`. A user who
+  is not staff stays. This keeps the guard free of a redirect loop.
+
+The auth sync plugin and the middleware both ask for the same list. `ensureLoaded` shares one
+request between them, so there is no race. A GitHub CMS app is not affected: every CMS user has
+capabilities.
+
+`navbarVisible` hides the bar on `/admin/**` when the capabilities are known and the user is not
+staff. So the no-access page has no admin bar.
+
+### The no-access page
+
+`/admin/no-access` uses the `auth` layout and `PlutoAdminAuthCard`. It shows "Your account has
+no access to the admin", or an error text for `reason=error`. It has three actions:
+
+- Try again: clears the capabilities, loads them again, then goes to `redirect` or `/admin/home`
+  for staff. A user who is still not staff stays.
+- Go to the site: `/`.
+- Sign out: `usePlutoAuth().signOut()`.
+
+The texts are in `pluto.noAccess.*`, in English and Brazilian Portuguese. The tab title is the
+heading.
 
 ## The login frame
 
@@ -141,7 +181,8 @@ but `usePlutoAdminBar().visible` is the recommended API: it also hides the bar f
 The rule is `navbarVisible` in `app/composables/internal/admin-shell.ts`. `usePlutoAdminBar()`
 returns `{ visible }` with the same rule. An app that offsets its own header can use it.
 
-- On `/admin/**`: any signed-in user, except on the public auth paths of the driver.
+- On `/admin/**`: any signed-in user, except on the public auth paths of the driver, and except a
+  user who is known to be no staff (the no-access page).
 - On a public page: staff only. Staff is a user with at least one capability, or `*`. A shop
   customer (signed in, no capability) never sees the bar.
 - With no permissions driver, every signed-in user counts as staff. This matches `can()`, which
@@ -269,7 +310,9 @@ After the supabase layer migrates, remove the legacy shell fallback (see above).
 
 ## Tests
 
-- `test/admin-shell.test.ts` — paths, `safeRedirect`, `guardDecision`, `navbarVisible`, names.
+- `test/admin-shell.test.ts` — paths, `safeRedirect`, `guardDecision`, `staffDecision`, `isStaff`,
+  `navbarVisible`, names.
+- `test/permissions.test.ts` — also covers `ensureLoaded` (one request in flight, reload on a new user).
 - `test/auth-driver.test.ts` — `validatePlutoAuthDriver`, last driver wins, account menu order,
   site info.
 - `test/cms-module.test.ts` — the CMS module adds no page and no route middleware.
