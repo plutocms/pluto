@@ -66,10 +66,10 @@ const slideoverOpen = computed({
         <slot name="header" />
       </div>
       <h2 v-else class="text-highlighted truncate text-sm font-semibold">{{ title }}</h2>
-      <UTooltip :text="t('pluto.common.close')">
+      <UTooltip :text="t('pluto.common.hidePanel')">
         <UButton
-          :aria-label="t('pluto.common.close')"
-          icon="i-lucide-x"
+          :aria-label="t('pluto.common.hidePanel')"
+          icon="lucide:panel-right-close"
           color="neutral"
           variant="ghost"
           square

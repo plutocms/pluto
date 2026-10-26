@@ -68,6 +68,20 @@ provide(plutoViewAsideResizableKey, resizable)
 const leftResizable = computed(() => rowWidth.value > 0 && hasLeftSlot.value && leftOpen.value && isDesktop.value)
 const leftSlideover = computed(() => hasLeftSlot.value && !isDesktop.value)
 
+// The collapse button in the header of the left panel (PlutoViewLeftCollapse).
+const leftCollapseButtons = ref(0)
+provide(plutoViewLeftPanelKey, {
+  close: () => {
+    leftOpen.value = false
+  },
+  collapseButtons: leftCollapseButtons,
+})
+
+defineExpose({
+  /** True while a PlutoViewLeftCollapse button is in the left panel. */
+  leftCollapsible: computed(() => leftCollapseButtons.value > 0),
+})
+
 const ASIDE_MIN = 240
 const ASIDE_MAX = 560
 const LEFT_MIN = 200

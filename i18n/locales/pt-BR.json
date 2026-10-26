@@ -5,6 +5,7 @@
     },
     "common": {
       "save": "Salvar",
+      "hidePanel": "Ocultar o painel",
       "cancel": "Cancelar",
       "delete": "Excluir",
       "tryAgain": "Tentar novamente",
