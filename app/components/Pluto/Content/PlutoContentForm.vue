@@ -681,7 +681,9 @@ function onHeaderPress(id: string) {
 // PlutoViewLeftCollapse in the left panel content), and a closed panel opens from a small
 // floating button of PlutoViewAdminPanel (`panel-toggles`). So the toolbar shows the toggles on a
 // narrow screen only, plus the left one while the left panel content has no collapse button.
-const viewPanel = ref<{ leftCollapsible: boolean }>()
+const viewPanel = ref<{
+  leftCollapsible: boolean
+}>()
 
 const asideToggle = computed(() => {
   if (!showAsideToggle.value || isDesktop.value) {
@@ -720,11 +722,11 @@ const asideTitle = computed(() =>
     ref="viewPanel"
     v-model:left-open="leftOpen"
     :aside-open="asideSlot && asideModel"
-    panel-toggles
-    @update:aside-open="asideModel = $event"
     :left-title="leftPanels[0]?.label"
     :width="layout === 'default' ? 'container' : 'full'"
     :fill="isCanvas"
+    panel-toggles
+    @update:aside-open="asideModel = $event"
   >
     <template #toolbar>
       <PlutoContentFormHeader

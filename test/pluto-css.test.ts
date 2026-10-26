@@ -62,7 +62,12 @@ describe('analyzeCssEntry', () => {
 })
 
 describe('checkCssSetup', () => {
-  const app = (overrides: Partial<{ file: string, tailwind: boolean, nuxtUi: boolean, plutoCss: boolean }> = {}) =>
+  const app = (overrides: Partial<{
+    file: string
+    tailwind: boolean
+    nuxtUi: boolean
+    plutoCss: boolean
+  }> = {}) =>
     ({ file: '/site/app/assets/css/main.css', tailwind: true, nuxtUi: true, plutoCss: true, ...overrides })
 
   it('injects the fallback when no entry imports Tailwind', () => {
