@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.22.0](https://github.com/plutocms/pluto/compare/v0.21.1...v0.22.0) (2026-10-26)
+
+
+### Features
+
+* **admin:** put the panel collapse buttons in the panel headers ([#218](https://github.com/plutocms/pluto/issues/218)) ([6aa3e20](https://github.com/plutocms/pluto/commit/6aa3e20174707d9c9f5097e67567e0a490cc267f))
+
 ## [0.21.1](https://github.com/plutocms/pluto/compare/v0.21.0...v0.21.1) (2026-10-26)
 
 
