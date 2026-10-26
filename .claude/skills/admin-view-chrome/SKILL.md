@@ -84,7 +84,9 @@ a small button that belongs next to the title, like a refresh button).
 A right-hand panel bound to an `open` model (`v-model:open`). On a wide screen (`lg`, 64rem and
 up) it renders as a plain `<aside>` beside the main content. On a narrow screen it renders as a
 `USlideover` instead. Props: `title?: string`, `width?: number` (desktop width in px, default
-320; ignored inside a resizable panel). The close button has an `aria-label` and a tooltip.
+320; ignored inside a resizable panel). On desktop the header has a collapse button
+(`lucide:panel-right-close`, "Hide the panel", `pluto.common.hidePanel`) with an `aria-label` and a
+tooltip.
 Slot `#header` replaces the title, for example with tabs. On a narrow screen it goes into the
 slideover title.
 
@@ -131,6 +133,10 @@ and a second instance of it here would fight the app-level sidebar for that hook
   inside, and the splitter has no left panel. The slot mounts once.
 - A view can fill `#left` after the first render (a widget that loads on demand adds it). The
   panel reads `useSlots()` again before each update, because `useSlots()` is not reactive.
+- The collapse button of the left panel goes in the header of the panel content: put
+  `<PlutoViewLeftCollapse />` there (it shows on desktop only; the slideover has its own close).
+  It reads `plutoViewLeftPanelKey` (`close()`, `collapseButtons`). The panel exposes
+  `leftCollapsible` (true while one is mounted) through a template ref.
 
 ## List states in `PlutoContentList`
 
@@ -276,14 +282,16 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   matter in this layout.
 - A widget adds panels with `PlutoContentCanvasPanel` (props `side: 'left' | 'right'`, `id`,
   `label?`, `icon?`; slot: the panel content):
-  - `left`: the content stacks in the left panel. The toolbar gets a left panel toggle when a
-    panel exists.
+  - `left`: the content stacks in the left panel. Put `PlutoViewLeftCollapse` in its header.
   - `right`: the content is one tab of the right panel (`UTabs`, widget panels first, then "Page").
     With one tab, the aside title shows its label and there are no tabs.
 - The panel content stays in the widget's component tree. Vue `Teleport`s the DOM into an element
   of the form. The element is a ref, so the content mounts when the element exists (the panel is
   open, the tab mounted) and the state of the widget does not reset. Outside a canvas form,
   `PlutoContentCanvasPanel` renders its slot inline.
+- The toolbar toggles open a closed panel. On desktop, an open panel closes from the button in its
+  own header, so the toolbar hides its toggle then. The left toggle stays while the left panel has
+  no `PlutoViewLeftCollapse` (the panel needs one way to close).
 - Below `lg`: the left panel is a slideover (a toggle), the right panel is a slideover (a toggle).
   Both start closed and keep no cookie (a saved "open" would cover the page on the first visit).
   On desktop the left state is the cookie `pluto-content-left-<typeName>` and the right state is

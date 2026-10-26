@@ -677,8 +677,13 @@ function onHeaderPress(id: string) {
   }
 }
 
+// The panels have a collapse button in their own header on desktop (PlutoViewAside, and
+// PlutoViewLeftCollapse in the left panel content). So the toolbar shows a toggle only to open a
+// closed panel, or on a narrow screen, or when the left panel content has no collapse button.
+const viewPanel = ref<{ leftCollapsible: boolean }>()
+
 const asideToggle = computed(() => {
-  if (!showAsideToggle.value) {
+  if (!showAsideToggle.value || (asideModel.value && isDesktop.value)) {
     return undefined
   }
   const open = asideModel.value
@@ -688,7 +693,7 @@ const asideToggle = computed(() => {
   }
 })
 const leftToggle = computed(() => {
-  if (!hasLeft.value) {
+  if (!hasLeft.value || (leftOpen.value && isDesktop.value && viewPanel.value?.leftCollapsible)) {
     return undefined
   }
   const open = leftOpen.value
@@ -711,6 +716,7 @@ const asideTitle = computed(() =>
 <template>
   <PlutoViewAdminPanel
     v-if="contentType"
+    ref="viewPanel"
     v-model:left-open="leftOpen"
     :aside-open="asideSlot && asideModel"
     :left-title="leftPanels[0]?.label"
