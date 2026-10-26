@@ -60,6 +60,11 @@ export default defineNuxtPlugin(() => {
       signInTitle: 'pluto.cms.login.title',
       signInDescription: 'pluto.cms.login.description',
     },
+    // The GitHub tab of Settings: the setup check and the Create button. The module
+    // adds its route (`/admin/settings/github`) with `extendPages`.
+    settingsPages: [
+      { id: 'github', order: 150, label: 'pluto.settings.tabs.github', icon: 'simple-icons:github', to: '/admin/settings/github' },
+    ],
     // The content type gives the Posts nav item, the list and the form.
     contentTypes: postType ? [{ id: 'post', type: plutoCmsPostType }] : [],
     // The Markdown editor. The import is lazy, so Tiptap loads on the edit page only.

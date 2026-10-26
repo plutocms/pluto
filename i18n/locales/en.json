@@ -159,7 +159,8 @@
       "tabs": {
         "label": "Settings sections",
         "general": "General",
-        "email": "Email"
+        "email": "Email",
+        "github": "GitHub"
       },
       "noPermission": {
         "title": "You cannot open this page",
@@ -254,6 +255,92 @@
         "readDrafts": "Read draft posts",
         "publish": "Create, edit and publish posts",
         "delete": "Delete posts"
+      },
+      "setup": {
+        "title": "Set up the GitHub sign-in",
+        "intro": "The CMS needs a GitHub App to sign editors in. Check the list below, then create the App.",
+        "checklist": "Setup checklist",
+        "done": "Done",
+        "missing": "Missing",
+        "callbackUrl": "Callback URL",
+        "callbackHint": "The GitHub App uses this URL to send the editor back after sign-in. The Create button sets it for you.",
+        "copy": "Copy",
+        "devNote": "In development, the Create button saves the keys in your .env file. Restart the dev server after it.",
+        "create": "Create the GitHub App",
+        "install": "Install the App",
+        "docs": "Open the quickstart",
+        "ready": {
+          "title": "The GitHub sign-in is ready",
+          "description": "The GitHub App is set up. Editors can sign in."
+        },
+        "checks": {
+          "repo": {
+            "title": "The content repository is set",
+            "fix": "Set PLUTO_CMS_REPO to owner/name, for example acme/site."
+          },
+          "sessionPassword": {
+            "title": "The session password is set",
+            "fix": "Set NUXT_PLUTO_CMS_SESSION_PASSWORD to a random text of 32 characters or more. The Create button makes one."
+          },
+          "appId": {
+            "title": "The GitHub App ID is set",
+            "fix": "Set NUXT_PLUTO_CMS_GITHUB_APP_ID. The Create button sets it."
+          },
+          "clientId": {
+            "title": "The client ID is set",
+            "fix": "Set NUXT_PLUTO_CMS_GITHUB_CLIENT_ID. The Create button sets it."
+          },
+          "clientSecret": {
+            "title": "The client secret is set",
+            "fix": "Set NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET. The Create button sets it."
+          },
+          "privateKey": {
+            "title": "The private key is valid",
+            "fix": "Set NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY to the PEM key, or to its base64. The Create button sets it."
+          },
+          "installation": {
+            "title": "The App is installed on the repository",
+            "fix": "Install the GitHub App on the content repository, then check again."
+          }
+        },
+        "page": {
+          "settings": {
+            "title": "GitHub",
+            "intro": "The GitHub App that signs editors in and saves their changes to the repository."
+          },
+          "start": {
+            "title": "Create the GitHub App",
+            "body": "You go to GitHub to confirm a new App named \"{name}\". Nothing is created until you confirm. You can change the name there.",
+            "button": "Continue to GitHub"
+          },
+          "result": {
+            "title": "The GitHub App is created",
+            "intro": "The App \"{name}\" is ready. Do these three steps.",
+            "secretNote": "This page shows secrets. The site does not store them. Close this page when you are done.",
+            "step1": "Save the settings",
+            "step1Prod": "Copy this block. Paste it in the environment variables of your host.",
+            "step1Dev": "The block below has the same values that the site wrote into your .env file.",
+            "blockLabel": "Environment variables",
+            "copy": "Copy",
+            "copied": "Copied",
+            "envSaved": "The values are saved in the .env file.",
+            "envFailed": "The site could not write the .env file. Copy the block below and paste it in .env.",
+            "envNotIgnored": "Warning: .gitignore does not ignore .env. Do not commit this file.",
+            "step2": "Install the App on the repository",
+            "step2Body": "Choose the content repository only. The App cannot save posts until you install it.",
+            "install": "Install the App",
+            "step3": "Restart and sign in",
+            "step3Prod": "Paste the block in your host (on Vercel: Settings, Environment Variables, then paste the block). Redeploy the site. Then sign in.",
+            "step3Dev": "Restart the dev server so it reads the .env file. Then sign in.",
+            "signIn": "Go to the sign-in page"
+          },
+          "error": {
+            "title": "The setup did not finish",
+            "state": "The setup expired, or it did not start in this browser. Start again.",
+            "github": "GitHub did not accept the setup. Start again.",
+            "retry": "Start again"
+          }
+        }
       }
     },
     "validation": {

@@ -395,6 +395,8 @@ app with a cookie jar), `cms-test-config.ts` and `kit-mock.ts`.
 
 ## GitHub App setup
 
+This is the manual path. The site can create the App for you: see "Setup from the site".
+
 1. Create a GitHub App (Settings, Developer settings, GitHub Apps).
 2. Repository permissions: Contents read and write, Metadata read.
 3. Callback URL: `<site>/api/_pluto/auth/github/callback`. Add one for local tests if needed.
@@ -407,7 +409,7 @@ app with a cookie jar), `cms-test-config.ts` and `kit-mock.ts`.
    - `NUXT_PLUTO_CMS_GITHUB_APP_ID`
    - `NUXT_PLUTO_CMS_GITHUB_CLIENT_ID`
    - `NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET`
-   - `NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY`: the PEM. Literal `\n` escapes are fine.
+   - `NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY`: the PEM, a PEM with literal `\n` escapes, or the base64 of the PEM.
    - Optional `NUXT_PLUTO_CMS_GITHUB_READ_TOKEN`: a read-only token. It replaces the installation
      token for anonymous reads.
    - Optional `NUXT_PLUTO_CMS_ALLOWED_USERS`: GitHub logins, comma-separated, without case. When
@@ -427,6 +429,109 @@ that marker. Vercel does not read `[skip ci]` in a commit message. This is not c
 docs: treat it as a rule of thumb and test it on your project. To skip a Vercel build, use an
 Ignored Build Step script. It is a command that decides, from the project settings, whether
 to build. A site that must deploy on each edit sets `commit.skipDeploy: false` and needs no script.
+
+## Setup from the site
+
+The author creates the GitHub App from the site, with the GitHub App Manifest flow. No manual form
+and no copy of five secrets. The manual steps of "GitHub App setup" stay as the fallback.
+
+### Routes
+
+All routes are GET, under `/api/_pluto/cms/setup/`. The module adds them when the CMS is on. They
+are static, so they win over the public route `/api/_pluto/cms/:type/:slug`. They use the same
+rate limit as the sign-in routes (20 a minute for each IP) and send `Cache-Control: no-store`.
+
+- `status`: `{ ready: true }` for an anonymous caller of a site that is set up. `ready` needs the
+  app id, the client id, the client secret, a private key that parses and a session password of 32
+  characters or more. A caller that may see more gets
+  `{ ready, repo, storage, callbackUrl, canCreateApp, checks: [{ id, ok }] }`: the dev local
+  request, a signed-in user, and anyone while `ready` is false (the login page needs it). The check
+  ids are `repo`, `sessionPassword`, `appId`, `clientId`, `clientSecret`, `privateKey` and
+  `installation`. `installation` runs only when the repo, the app id and the key are fine: it signs
+  an App JWT and reads `GET /repos/{repo}/installation`. `repo` is not part of `ready`. The answer
+  holds booleans and public names only, never a secret.
+- `github/start`: answers an HTML page with a form that posts the manifest to GitHub. The form
+  submits itself, and has a button for a browser without JavaScript. The form action is
+  `https://github.com/settings/apps/new?state=<state>` for a user owner and
+  `https://github.com/organizations/<org>/settings/apps/new?state=<state>` for an organization
+  (`GET /users/<owner>` gives the `type`; a failed lookup counts as a user). GitHub Enterprise Server
+  uses the host of `github.apiUrl` (`oauthBaseUrl`). `state` is random. It goes in the plain cookie
+  `pluto-cms-setup` (httpOnly, SameSite=Lax, 10 minutes, path `/api/_pluto/cms/setup`, Secure on
+  https). It is not the sealed session: in production the session password may not exist yet.
+- `github/callback?code&state`: compares `state` with the cookie in constant time, and clears the
+  cookie first (the state works once). Then it sends `POST <apiUrl>/app-manifests/{code}/conversions`
+  with no auth and answers a server-rendered HTML page. A bad `state` or `code` gives 400 and a
+  failed conversion gives 502, both with a page that links to `start`. Nothing is stored. The
+  secrets go only to the browser that ran the flow, and no log holds a value.
+
+The origin of the site is `getRequestURL(event, { xForwardedHost: true, xForwardedProto: true }).origin`.
+
+### Who can run it
+
+`start` and `callback` run for the dev local request (`import.meta.dev` and `isLocalRequest`, the rule
+of the dev local user), or for any request while `ready` is false. When the site is set up, in
+production, both answer 404. The secrets only go to the browser that runs the flow.
+
+### The manifest
+
+`buildAppManifest` (in `utils/cms-github-setup.ts`) builds it:
+
+- `name`: "<site name> CMS", 34 characters or less. The site name is `public.websiteName`, else the
+  repo name. The author can change it on GitHub.
+- `url`: the origin. `hook_attributes`: `{ url: origin, active: false }`.
+- `redirect_url`: `<origin>/api/_pluto/cms/setup/github/callback`.
+- `callback_urls`: `<origin>/api/_pluto/auth/github/callback`, plus
+  `http://localhost:3000/api/_pluto/auth/github/callback` when the origin is not local.
+- `public: false`, `default_permissions: { contents: 'write', metadata: 'read' }`,
+  `default_events: []`, `request_oauth_on_install: false`.
+
+### The result page
+
+The page has the env block in a textarea with a Copy button, the install link
+(`https://github.com/apps/<slug>/installations/new`) and the next steps. The block has
+`NUXT_PLUTO_CMS_GITHUB_APP_ID`, `NUXT_PLUTO_CMS_GITHUB_CLIENT_ID`,
+`NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET`, `NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY` (the base64 of the PEM, on
+one line), `PLUTO_CMS_APP_SLUG`, and `NUXT_PLUTO_CMS_SESSION_PASSWORD` (new random) when the site has
+no valid one. The pages are plain HTML with inline CSS, light and dark with `prefers-color-scheme`.
+They use the server translator (`usePlutoServerTranslator`) with the first tag of `Accept-Language`
+(`pluto.cms.setup.page.*`).
+
+In development (the dev local request), the route also writes the values into `<rootDir>/.env`:
+`updateEnvText` replaces a key that exists, appends the others, keeps the other lines and their
+order, and handles a multi-line quoted value. The page says so, and warns when `.gitignore` does not
+ignore `.env`. If the write fails, the page tells the author to copy the block. The module gives
+`runtimeConfig.plutoCms.rootDir` in development only. `PLUTO_CMS_APP_SLUG` is read when Nuxt starts,
+so a dev server needs a restart.
+
+### Private key formats
+
+`normalizePem` (`github/app-token.ts`) accepts a PEM with real line breaks, a PEM with literal `\n`
+and the base64 of the PEM (no `-----BEGIN` in the value: it decodes, and uses the result when it has
+`-----BEGIN`).
+
+### In the admin
+
+- The login card (`PlutoCmsSignIn`): when the status says `ready: false`, it shows
+  `PlutoCmsSetupPanel` (a warning, the checklist with a short fix for each missing item, the
+  **Create the GitHub App** button when `canCreateApp`, an **Install the App** link when the
+  installation check fails and the slug is known, and a link to the quickstart). The Sign in button
+  is disabled while `ready` is false. A failed status read keeps it on.
+- The **GitHub** tab of Settings: `/admin/settings/github`. The `settingsPages` entry (id `github`,
+  order 150, no capability) is in the CMS client plugin. The module adds the route with
+  `extendPages`, as a child of `settings`, from `app/components/Pluto/Cms/PlutoCmsSettingsPage.vue`.
+  It shows the same checklist, the callback URL to use (with a Copy button) and the Create button.
+- `usePlutoCmsSetup()` (`runtime/app/composables/pluto-cms-setup.ts`) reads the status after
+  hydration (`server: false`, key `pluto-cms-setup`).
+
+### Files and tests
+
+- `utils/cms-github-setup.ts`: the pure helpers (manifest, form action, conversion parser, env
+  entries and block, `.env` updater, `.gitignore` check, key check, setup checks).
+- `utils/cms-setup-pages.ts`: the pure HTML pages (`escapeHtml`, start, result, error).
+- `utils/cms-setup-flow.ts`: the handlers (access rule, status, start, callback, `.env` write).
+- `api/setup/status.get.ts`, `api/setup/github/start.get.ts`, `api/setup/github/callback.get.ts`.
+- Tests: `test/cms-github-setup.test.ts` (pure helpers), `test/cms-setup.test.ts` (the routes with
+  the real locale files), and the key formats in `test/cms-app-token.test.ts`.
 
 ## Editor
 
@@ -601,8 +706,10 @@ repository (`create-pluto -t core-blog`).
 PKCE for GitHub App user tokens is sent but not proven against live GitHub yet. If GitHub
 ignores the PKCE fields, `state` still guards the flow.
 
+The GitHub App can be created from the site (see "Setup from the site").
+
 Planned for v2: media uploads, revision history, settings stored in the repository, a password
-provider, GitHub App Manifest setup, scheduled posts, and configurable collections.
+provider, scheduled posts, and configurable collections.
 
 ## Rules found in live testing
 

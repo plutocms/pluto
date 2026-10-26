@@ -159,7 +159,8 @@
       "tabs": {
         "label": "Seções das configurações",
         "general": "Geral",
-        "email": "E-mail"
+        "email": "E-mail",
+        "github": "GitHub"
       },
       "noPermission": {
         "title": "Você não pode abrir esta página",
@@ -254,6 +255,92 @@
         "readDrafts": "Ler rascunhos de posts",
         "publish": "Criar, editar e publicar posts",
         "delete": "Excluir posts"
+      },
+      "setup": {
+        "title": "Configure o login com GitHub",
+        "intro": "O CMS precisa de um GitHub App para entrar com os editores. Veja a lista abaixo e crie o App.",
+        "checklist": "Lista de configuração",
+        "done": "Pronto",
+        "missing": "Faltando",
+        "callbackUrl": "URL de callback",
+        "callbackHint": "O GitHub App usa esta URL para devolver o editor depois do login. O botão Criar já configura isso.",
+        "copy": "Copiar",
+        "devNote": "Em desenvolvimento, o botão Criar salva as chaves no seu arquivo .env. Reinicie o servidor de desenvolvimento depois.",
+        "create": "Criar o GitHub App",
+        "install": "Instalar o App",
+        "docs": "Abrir o guia rápido",
+        "ready": {
+          "title": "O login com GitHub está pronto",
+          "description": "O GitHub App está configurado. Os editores podem entrar."
+        },
+        "checks": {
+          "repo": {
+            "title": "O repositório de conteúdo está definido",
+            "fix": "Defina PLUTO_CMS_REPO como dono/nome, por exemplo acme/site."
+          },
+          "sessionPassword": {
+            "title": "A senha de sessão está definida",
+            "fix": "Defina NUXT_PLUTO_CMS_SESSION_PASSWORD com um texto aleatório de 32 caracteres ou mais. O botão Criar gera uma."
+          },
+          "appId": {
+            "title": "O ID do GitHub App está definido",
+            "fix": "Defina NUXT_PLUTO_CMS_GITHUB_APP_ID. O botão Criar define."
+          },
+          "clientId": {
+            "title": "O client ID está definido",
+            "fix": "Defina NUXT_PLUTO_CMS_GITHUB_CLIENT_ID. O botão Criar define."
+          },
+          "clientSecret": {
+            "title": "O client secret está definido",
+            "fix": "Defina NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET. O botão Criar define."
+          },
+          "privateKey": {
+            "title": "A chave privada é válida",
+            "fix": "Defina NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY com a chave PEM, ou com o base64 dela. O botão Criar define."
+          },
+          "installation": {
+            "title": "O App está instalado no repositório",
+            "fix": "Instale o GitHub App no repositório de conteúdo e verifique de novo."
+          }
+        },
+        "page": {
+          "settings": {
+            "title": "GitHub",
+            "intro": "O GitHub App que faz o login dos editores e salva as alterações deles no repositório."
+          },
+          "start": {
+            "title": "Criar o GitHub App",
+            "body": "Você vai ao GitHub para confirmar um novo App chamado \"{name}\". Nada é criado até você confirmar. Lá você pode mudar o nome.",
+            "button": "Continuar no GitHub"
+          },
+          "result": {
+            "title": "O GitHub App foi criado",
+            "intro": "O App \"{name}\" está pronto. Faça estes três passos.",
+            "secretNote": "Esta página mostra segredos. O site não os guarda. Feche esta página quando terminar.",
+            "step1": "Salve as configurações",
+            "step1Prod": "Copie este bloco. Cole nas variáveis de ambiente da sua hospedagem.",
+            "step1Dev": "O bloco abaixo tem os mesmos valores que o site escreveu no seu arquivo .env.",
+            "blockLabel": "Variáveis de ambiente",
+            "copy": "Copiar",
+            "copied": "Copiado",
+            "envSaved": "Os valores foram salvos no arquivo .env.",
+            "envFailed": "O site não conseguiu escrever o arquivo .env. Copie o bloco abaixo e cole no .env.",
+            "envNotIgnored": "Atenção: o .gitignore não ignora o .env. Não faça commit deste arquivo.",
+            "step2": "Instale o App no repositório",
+            "step2Body": "Escolha somente o repositório de conteúdo. O App não consegue salvar posts até você instalar.",
+            "install": "Instalar o App",
+            "step3": "Reinicie e entre",
+            "step3Prod": "Cole o bloco na sua hospedagem (na Vercel: Settings, Environment Variables, e cole o bloco). Faça um novo deploy do site. Depois entre.",
+            "step3Dev": "Reinicie o servidor de desenvolvimento para ler o arquivo .env. Depois entre.",
+            "signIn": "Ir para a página de login"
+          },
+          "error": {
+            "title": "A configuração não terminou",
+            "state": "A configuração expirou, ou não começou neste navegador. Comece de novo.",
+            "github": "O GitHub não aceitou a configuração. Comece de novo.",
+            "retry": "Começar de novo"
+          }
+        }
       }
     },
     "validation": {

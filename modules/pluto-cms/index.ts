@@ -7,6 +7,7 @@ import {
   addServerPlugin,
   createResolver,
   defineNuxtModule,
+  extendPages,
   useLogger,
 } from '@nuxt/kit'
 import { readGitOrigin } from './git-remote'
@@ -93,6 +94,8 @@ export default defineNuxtModule<PlutoCmsOptions>({
       cacheStorage: resolved.cache.storage,
       postType: resolved.postType,
       fsRoot: resolved.storage === 'fs' ? nuxt.options.rootDir : '',
+      // Development only: the setup writes the `.env` file there.
+      rootDir: nuxt.options.dev ? nuxt.options.rootDir : '',
     })
 
     nuxt.options.runtimeConfig.plutoCms = secrets as typeof nuxt.options.runtimeConfig.plutoCms
@@ -137,6 +140,25 @@ export default defineNuxtModule<PlutoCmsOptions>({
       name: 'PlutoMarkdownSource',
       filePath: resolver.resolve('../../app/components/Pluto/Cms/PlutoMarkdownSource.vue'),
     })
+
+    // The GitHub tab of Settings. The page file lives under `app/`, so Tailwind scans it.
+    // It is a child of the Settings page (`/admin/settings`), so it shows in its tabs.
+    const settingsFile = resolver.resolve('../../app/components/Pluto/Cms/PlutoCmsSettingsPage.vue')
+    extendPages((pages) => {
+      const settings = pages.find((page) => page.path === '/admin')?.children?.find((page) => page.path === 'settings')
+      if (settings) {
+        settings.children ||= []
+        settings.children.push({ name: 'admin-settings-github', path: 'github', file: settingsFile })
+      } else {
+        logger.warn('Could not find the Settings page. The GitHub tab is off.')
+      }
+    })
+
+    // Setup routes: the checks and the App Manifest flow. See the github-cms skill.
+    // They are static, so they win over the `:type/:slug` route below.
+    addServerHandler({ route: '/api/_pluto/cms/setup/status', method: 'get', handler: server('api/setup/status.get') })
+    addServerHandler({ route: '/api/_pluto/cms/setup/github/start', method: 'get', handler: server('api/setup/github/start.get') })
+    addServerHandler({ route: '/api/_pluto/cms/setup/github/callback', method: 'get', handler: server('api/setup/github/callback.get') })
 
     // Public read routes. They are anonymous and cacheable. See the github-cms skill.
     addServerHandler({ route: '/api/_pluto/cms/:type', method: 'get', handler: server('api/public/[type]/index.get') })

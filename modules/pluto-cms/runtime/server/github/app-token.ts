@@ -25,9 +25,30 @@ export interface AppTokenProvider {
   getReadToken: () => Promise<string>
 }
 
-/** Turns the `\n` escapes of an env var into real new lines. */
+/**
+ * Turns the value of the private key env var into a PEM. It accepts three
+ * formats:
+ *
+ * - A PEM with real line breaks.
+ * - A PEM on one line, with a literal `\n` (two characters) for each line break.
+ * - The base64 of the PEM, on one line. The value has no `-----BEGIN`. The
+ *   function decodes it, and uses the result when it has `-----BEGIN`.
+ *
+ * Any other value comes back trimmed, so the key parser gives the error.
+ */
 export function normalizePem(value: string): string {
-  return value.trim().replace(/\\n/g, '\n')
+  const text = value.trim().replace(/\\n/g, '\n').replace(/\r\n/g, '\n')
+  if (text.includes('-----BEGIN')) {
+    return text
+  }
+  const compact = text.replace(/\s+/g, '')
+  if (compact !== '' && /^[\w+/=-]+$/.test(compact)) {
+    const decoded = Buffer.from(compact, 'base64').toString('utf8').replace(/\\n/g, '\n').replace(/\r\n/g, '\n').trim()
+    if (decoded.includes('-----BEGIN')) {
+      return decoded
+    }
+  }
+  return text
 }
 
 function base64Url(value: string | Buffer): string {
