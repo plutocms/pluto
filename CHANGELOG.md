@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.23.0](https://github.com/plutocms/pluto/compare/v0.22.0...v0.23.0) (2026-10-26)
+
+
+### Features
+
+* **admin:** open a closed side panel from a floating button ([#220](https://github.com/plutocms/pluto/issues/220)) ([74c74a8](https://github.com/plutocms/pluto/commit/74c74a8c1ba869df3c2b873af10885b6b18e1fd5))
+
 ## [0.22.0](https://github.com/plutocms/pluto/compare/v0.21.1...v0.22.0) (2026-10-26)
 
 
