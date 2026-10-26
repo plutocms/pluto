@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.21.1](https://github.com/plutocms/pluto/compare/v0.21.0...v0.21.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **admin:** remove the padding and the gaps of the admin panel body ([#216](https://github.com/plutocms/pluto/issues/216)) ([5fe3b77](https://github.com/plutocms/pluto/commit/5fe3b77b8ecd74afddf0f84471046b0a42973c59))
+
 ## [0.21.0](https://github.com/plutocms/pluto/compare/v0.20.2...v0.21.0) (2026-10-25)
 
 
