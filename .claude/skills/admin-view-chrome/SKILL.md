@@ -42,11 +42,14 @@ The outer shell for one view. Props:
 - `width?: 'container' | 'full'` — default `'container'`. `'container'` wraps the main slot in a
   max-width `UContainer`. `'full'` drops that wrap, for a view that wants to use the whole width
   (a writing surface, a media grid).
-- `asideOpen?: boolean` — default `false`. Pass the same value as the aside's `v-model:open`.
+- `asideOpen?: boolean` (`v-model:aside-open`) — default `false`. Pass the same value as the
+  aside's `v-model:open`.
   While it is `true` on desktop, the aside sits in a resizable panel (see "Resizable aside"
   below). Without it, the aside keeps its fixed `width`.
 - `leftOpen?: boolean` (`v-model:left-open`) — default `false`. Whether the left panel is open.
   See "The left panel".
+- `panelToggles?: boolean` — default `false`. On desktop, draws a small floating button that opens
+  a closed side panel (see "The canvas layout"). Use it with `v-model:aside-open`.
 - `leftTitle?: string` — the title of the left panel when it shows as a slideover.
 - `fill?: boolean` — default `false`. The main region fills the panel's height and does not
   scroll. The content scrolls inside its own region instead, for a view with one long list
@@ -289,9 +292,13 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   of the form. The element is a ref, so the content mounts when the element exists (the panel is
   open, the tab mounted) and the state of the widget does not reset. Outside a canvas form,
   `PlutoContentCanvasPanel` renders its slot inline.
-- The toolbar toggles open a closed panel. On desktop, an open panel closes from the button in its
-  own header, so the toolbar hides its toggle then. The left toggle stays while the left panel has
-  no `PlutoViewLeftCollapse` (the panel needs one way to close).
+- Desktop: an open panel closes from the button in its own header. A closed panel opens from a
+  small square button (`variant="outline"`, `size="sm"`) that floats at the place of that header
+  button: top left of the row for the left panel, top right for the aside.
+  `PlutoViewAdminPanel` draws them with `panel-toggles` (the form sets it, with
+  `v-model:aside-open`; `asideOpen` is a model now). The form toolbar shows no panel toggle on
+  desktop, except the left one while the left panel is open and has no `PlutoViewLeftCollapse`.
+- Narrow screen: the toolbar toggles open the slideovers.
 - Below `lg`: the left panel is a slideover (a toggle), the right panel is a slideover (a toggle).
   Both start closed and keep no cookie (a saved "open" would cover the page on the first visit).
   On desktop the left state is the cookie `pluto-content-left-<typeName>` and the right state is

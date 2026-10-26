@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import type { SplitterItem } from '@nuxt/ui'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     /** Drop the max-width container in the main region. Default 'container'. */
     width?: 'container' | 'full'
-    /**
-     * Whether the aside is open. Pass the same value as the aside's
-     * `v-model:open`. While it is open on desktop, the aside sits in a
-     * resizable panel. The panel width persists across visits.
-     */
-    asideOpen?: boolean
     /**
      * Fill the main region's height, and let the content scroll inside its
      * own region, not the whole page. For a view with one long scrolling
@@ -19,12 +13,18 @@ const props = withDefaults(
     fill?: boolean
     /** The title of the left panel, when it shows as a slideover on a narrow screen. */
     leftTitle?: string
+    /**
+     * On desktop, show a small floating button that opens a closed side panel, at the place of
+     * the collapse button in the panel header. Needs `v-model:aside-open` for the aside.
+     * Default false.
+     */
+    panelToggles?: boolean
   }>(),
   {
     width: 'container',
-    asideOpen: false,
     fill: false,
     leftTitle: undefined,
+    panelToggles: false,
   }
 )
 
@@ -34,6 +34,12 @@ const props = withDefaults(
  * fills the `#left` slot.
  */
 const leftOpen = defineModel<boolean>('leftOpen', { default: false })
+
+/**
+ * Whether the aside is open. Pass the same value as the aside's `v-model:open`. While it is
+ * open on desktop, the aside sits in a resizable panel. The panel width persists across visits.
+ */
+const asideOpen = defineModel<boolean>('asideOpen', { default: false })
 
 const slots = useSlots()
 
@@ -60,7 +66,7 @@ const toPercent = (px: number) => Math.min(100, (px / rowWidth.value) * 100)
 
 // On mobile the aside is a slideover, so it needs no panel. Wait for the
 // row to have a width, so the px-to-percent conversion is correct.
-const resizable = computed(() => rowWidth.value > 0 && hasAsideSlot.value && props.asideOpen && isDesktop.value)
+const resizable = computed(() => rowWidth.value > 0 && hasAsideSlot.value && asideOpen.value && isDesktop.value)
 provide(plutoViewAsideResizableKey, resizable)
 
 // The left panel sits in the splitter on desktop, with the same rule. On a
@@ -141,7 +147,7 @@ const items = computed<SplitterItem[]>(() => [
       <slot name="toolbar" />
     </div>
 
-    <div ref="rowEl" class="flex min-h-0 flex-1 overflow-hidden">
+    <div ref="rowEl" class="relative flex min-h-0 flex-1 overflow-hidden">
       <USplitter
         id="pluto-view"
         :items="items"
@@ -187,6 +193,37 @@ const items = computed<SplitterItem[]>(() => [
       <div v-if="!resizable" class="shrink-0">
         <slot name="aside" />
       </div>
+
+      <!--
+        A closed side panel opens again from a small square button at the place of the collapse
+        button in its header. Desktop only: on a narrow screen the toolbar opens the slideovers.
+      -->
+      <template v-if="panelToggles && isDesktop">
+        <UTooltip v-if="hasLeftSlot && !leftOpen" :text="t('pluto.canvas.showSidebar')">
+          <UButton
+            :aria-label="t('pluto.canvas.showSidebar')"
+            icon="lucide:panel-left-open"
+            color="neutral"
+            variant="outline"
+            size="sm"
+            class="absolute top-2.5 left-3 z-10 shadow-sm"
+            square
+            @click="leftOpen = true"
+          />
+        </UTooltip>
+        <UTooltip v-if="hasAsideSlot && !asideOpen" :text="t('pluto.common.showPanel')">
+          <UButton
+            :aria-label="t('pluto.common.showPanel')"
+            icon="lucide:panel-right-open"
+            color="neutral"
+            variant="outline"
+            size="sm"
+            class="absolute top-2.5 right-4 z-10 shadow-sm"
+            square
+            @click="asideOpen = true"
+          />
+        </UTooltip>
+      </template>
     </div>
 
     <!--
