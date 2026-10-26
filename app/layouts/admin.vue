@@ -61,7 +61,9 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
     <UDashboardPanel
       :ui="{
         root: 'min-h-0 bg-(--pluto-admin-canvas)',
-        body: 'p-0 gap-0 overflow-x-hidden',
+        // The pages set their own padding. Nuxt UI also adds `sm:p-6` and
+        // `sm:gap-6`, and the merge keeps a responsive class, so reset them too.
+        body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-x-hidden',
       }"
     >
       <template #body>
