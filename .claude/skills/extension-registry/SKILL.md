@@ -58,6 +58,7 @@ sets only what it has.
 | `authDriver` | `PlutoAuthDriver` | The sign-in backend of the admin. The last one wins. See the admin-shell skill. |
 | `accountMenu` | `PlutoAccountMenuItem[]` | Extra items in the navbar user menu. |
 | `adminBanners` | `PlutoAdminBanner[]` | Banner components for the admin. Registered now, rendered later. |
+| `contentToolbarItems` | `PlutoContentToolbarItem[]` | Components in the toolbar of the generic content form, before the buttons. See the [admin view chrome](../admin-view-chrome/SKILL.md) skill. |
 | `site` | `PlutoSiteInfo` | `name()` and `url()` of the public site. |
 
 The registry buckets for the last four are `authDrivers`, `accountMenu`, `adminBanners` and

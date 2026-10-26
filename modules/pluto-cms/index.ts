@@ -107,6 +107,7 @@ export default defineNuxtModule<PlutoCmsOptions>({
       storage: resolved.storage,
       dir: resolved.dir,
       postType: resolved.postType,
+      skipDeploy: resolved.commit.skipDeploy,
     }
 
     const resolver = createResolver(import.meta.url)
@@ -159,6 +160,10 @@ export default defineNuxtModule<PlutoCmsOptions>({
     addServerHandler({ route: '/api/_pluto/cms/setup/status', method: 'get', handler: server('api/setup/status.get') })
     addServerHandler({ route: '/api/_pluto/cms/setup/github/start', method: 'get', handler: server('api/setup/github/start.get') })
     addServerHandler({ route: '/api/_pluto/cms/setup/github/callback', method: 'get', handler: server('api/setup/github/callback.get') })
+
+    // The build status of the head commit. It needs a signed-in user. It is static, so it wins
+    // over the `:type` route below.
+    addServerHandler({ route: '/api/_pluto/cms/build-status', method: 'get', handler: server('api/build-status.get') })
 
     // Public read routes. They are anonymous and cacheable. See the github-cms skill.
     addServerHandler({ route: '/api/_pluto/cms/:type', method: 'get', handler: server('api/public/[type]/index.get') })

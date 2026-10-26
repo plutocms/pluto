@@ -179,6 +179,26 @@
       "unauthorized": "Sign in to continue."
     },
     "cms": {
+      "build": {
+        "publishing": "Publishing…",
+        "live": "Live",
+        "staticBuilding": "Static build in progress",
+        "staticFailed": "The static build failed. The site serves the change at run time until a build passes.",
+        "failed": "Build failed",
+        "details": "Build details",
+        "title": "Build status",
+        "started": "Started {time}",
+        "finished": "Finished {time}",
+        "justNow": "just now",
+        "viewAction": "View the Action",
+        "viewBuild": "View the build",
+        "item": {
+          "pending": "Running",
+          "success": "Done",
+          "failure": "Failed"
+        },
+        "unavailable": "GitHub did not share every build source. Give the GitHub App read access to Checks, Commit statuses and Deployments."
+      },
       "errors": {
         "signInRequired": "Sign in to continue.",
         "forbidden": "You do not have permission to do this.",

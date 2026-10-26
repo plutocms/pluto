@@ -39,6 +39,8 @@ declare module '@nuxt/schema' {
       dir: string
       /** The client registers the built-in post type only when this is true. */
       postType: boolean
+      /** True when a save adds `[skip ci]`. The build status item shows only when this is false. */
+      skipDeploy: boolean
     }
   }
 }

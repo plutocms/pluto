@@ -221,8 +221,8 @@ has no H1: the toolbar title is the heading. The toolbar shows, from left to rig
   - "Saved just now", then "Saved 2 minutes ago" (`Intl.RelativeTimeFormat`, the admin locale, a
     30 second tick). It shows after a save while the form has no new change.
   - "Save failed." with a "Retry" button, which repeats the same save (Publish stays Publish).
-- The status badge (when the type has a `status` workflow), the "View" link, the `contentActions`
-  of the layer, the save and publish buttons (see "The publish workflow"), the overflow menu, and
+- The status badge (when the type has a `status` workflow), the "View" link, the
+  `contentToolbarItems` of the layers (a status or an indicator), the `contentActions` of the layer, the save and publish buttons (see "The publish workflow"), the overflow menu, and
   the panel toggles.
 - Below `sm`: the "View" link moves into the overflow menu, and a secondary button (a content
   action, "Save draft") shows its icon only.
@@ -412,6 +412,35 @@ so a registered action never re-implements either. There is no dedicated
 `PlutoContentActions.vue` wrapper component — `PlutoContentForm` calls
 `usePlutoContentActions` directly and renders the result as plain `UButton`s. A wrapper is not
 worth adding while `PlutoContentForm` is the only consumer; revisit if a second one appears.
+
+## The `contentToolbarItems` registry bucket
+
+A layer adds a component (a status, an indicator) to the toolbar of the generic content form. The
+toolbar renders it before the buttons, after the "View" link. The component gets no props. It
+renders inside the form, so it calls `usePlutoContentForm()` to read the item and to run code
+after a save (`onSaved`). The entry follows the rules of the other component buckets: register it
+with `defineAsyncComponent` (dev warns about a sync component).
+
+```ts
+definePlutoExtension({
+  id: 'pluto-cms',
+  contentToolbarItems: [
+    {
+      id: 'build-status',
+      contentType: '*', // a content type `name`, or '*' for every type
+      order: 50,
+      enabled: () => true,
+      component: defineAsyncComponent(() => import('./BuildStatus.vue')),
+    },
+  ],
+})
+```
+
+`usePlutoContentToolbarItems(typeName)` returns the matching entries as a computed (the same match
+rule as `usePlutoContentActions`; the registry sorts by `order`). `PlutoContentForm` passes the list
+to `PlutoContentFormHeader` in the `toolbarItems` prop. The component must show nothing when it has
+nothing to say, because the item has no `show` test. The GitHub CMS uses this for its build status
+(see the github-cms skill). Tests: `test/content-toolbar-items.test.ts`.
 
 ## Known limits, out of scope for this pass
 

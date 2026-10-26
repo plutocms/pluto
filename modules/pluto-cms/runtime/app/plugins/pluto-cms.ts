@@ -4,7 +4,7 @@ import { defineNuxtPlugin, useRuntimeConfig } from '#imports'
 import PlutoCmsSignIn from '../../../../../app/components/Pluto/Cms/PlutoCmsSignIn.vue'
 import { definePlutoExtension } from '../../../../../app/composables/pluto-extension'
 import { usePlutoRegistry } from '../../../../../app/composables/pluto-registry'
-import { isPostTypeOn, showPublicRepoWarning } from '../../shared/client-rules'
+import { isPostTypeOn, showBuildStatus, showPublicRepoWarning } from '../../shared/client-rules'
 import { plutoCmsPostType } from '../../shared/post-type'
 import { CMS_SESSION_URL, usePlutoCmsSession } from '../composables/pluto-cms-session'
 
@@ -25,6 +25,12 @@ export default defineNuxtPlugin(() => {
   // The server registers the post type only when `postType` is on. The client follows it.
   const postType = isPostTypeOn(useRuntimeConfig().public.plutoCms as {
  postType?: boolean
+} | undefined)
+
+  // The build status shows when a save starts a deploy, and the content is in GitHub.
+  const buildStatus = showBuildStatus(useRuntimeConfig().public.plutoCms as {
+ storage?: string
+skipDeploy?: boolean
 } | undefined)
 
   const { read, write, delete: remove } = plutoCmsPostType.capabilities ?? {}
@@ -77,6 +83,17 @@ export default defineNuxtPlugin(() => {
         component: defineAsyncComponent(() => import('../../../../../app/components/Pluto/Cms/PlutoFieldMarkdown.vue')),
       },
     ],
+    // The build of the head commit, next to Save. Lazy, like the editor.
+    contentToolbarItems: buildStatus
+      ? [
+          {
+            id: 'build-status',
+            contentType: '*',
+            order: 50,
+            component: defineAsyncComponent(() => import('../../../../../app/components/Pluto/Cms/PlutoCmsBuildStatus.vue')),
+          },
+        ]
+      : [],
     capabilities,
     dashboardWidgets: [
       {

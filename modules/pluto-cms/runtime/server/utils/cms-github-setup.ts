@@ -84,7 +84,7 @@ origin: string
     redirect_url: `${origin}${SETUP_CALLBACK_PATH}`,
     callback_urls: callbacks,
     public: false,
-    default_permissions: { contents: 'write', metadata: 'read' },
+    default_permissions: { contents: 'write', metadata: 'read', checks: 'read', statuses: 'read', deployments: 'read' },
     default_events: [],
     request_oauth_on_install: false,
   }

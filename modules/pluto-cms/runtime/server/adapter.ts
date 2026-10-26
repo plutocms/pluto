@@ -23,6 +23,7 @@ import {
   contentFilePath,
   PlutoCmsPathError,
   slugifyTitle,
+  typeRelativePath,
 } from './utils/cms-paths'
 import { parseMarkdownFile, serializeMarkdownFile } from './utils/markdown-file'
 
@@ -598,7 +599,48 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
       if (!entry || !isVisible(type, layout, entry, canSeeDrafts(type, access))) {
         return null
       }
-      return toItem(type, layout, entry, true)
+      const item = toItem(type, layout, entry, true)
+      // The whole frontmatter of the file, after the `read` hook. A copy: the parse cache shares the original.
+      item._frontmatter = structuredClone(entry.frontmatter)
+      return item
+    })
+  }
+
+  /**
+   * Reads one raw file of the type, by a path relative to the type folder. An unsafe path gives
+   * `null`. A `.md` file follows the rules of `get`: it must be a usable id and visible to the
+   * caller, so a draft never reaches an anonymous caller. Another file (for example
+   * `.navigation.yml`) is read as it is.
+   */
+  async function readFile(ctx: PlutoContentContext, relativePath: string): Promise<{
+ text: string
+version?: string
+} | null> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const layout = layoutOf(type)
+      let path: string
+      try {
+        path = typeRelativePath(contentDirPath(dir, type.source, pathOptions(layout)), relativePath)
+      } catch (error) {
+        if (error instanceof PlutoCmsPathError) {
+          return null
+        }
+        throw error
+      }
+      const access = await getAccess(ctx.event)
+      const head = await store.head({ auth: access?.auth })
+      const file = await store.readFile(path, head, access?.auth)
+      if (!file) {
+        return null
+      }
+      if (relativePath.endsWith('.md')) {
+        const entry = await toEntry(layout, file, relativePath.slice(0, -'.md'.length))
+        if (!entry || !isVisible(type, layout, entry, canSeeDrafts(type, access))) {
+          return null
+        }
+      }
+      return { text: file.text, version: file.oid }
     })
   }
 
@@ -788,5 +830,5 @@ to: string
     })
   }
 
-  return { id: 'markdown', list, get, create, update, remove, authorize, countCreated }
+  return { id: 'markdown', list, get, create, update, remove, authorize, countCreated, readFile }
 }

@@ -33,6 +33,7 @@ export function usePlutoRegistry(): PlutoRegistry {
       contentTypes: createOwnedRegistry<PlutoContentTypeEntry>(),
       contentFieldWidgets: createOwnedRegistry<PlutoContentFieldWidget>(),
       contentActions: createOwnedRegistry<PlutoContentAction>(),
+      contentToolbarItems: createOwnedRegistry<PlutoContentToolbarItem>(),
       mediaAdapters: createOwnedRegistry<PlutoMediaAdapterEntry>(),
     }
   }
