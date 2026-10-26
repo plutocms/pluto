@@ -2,13 +2,17 @@
 // The sign-in form of the standalone CMS: one "Sign in with GitHub" button and
 // the alert for a failed sign-in. It is the `signIn` component of the CMS auth
 // driver. Core renders it inside the login frame (PlutoAdminAuthCard). The file
-// lives under `app/` so Tailwind scans it.
+// lives under `app/` so Tailwind scans it. When the GitHub App is not set up, it also
+// shows the setup check (PlutoCmsSetupPanel) and turns the button off.
+import { usePlutoCmsSetup } from '../../../../modules/pluto-cms/runtime/app/composables/pluto-cms-setup'
+
 const props = defineProps<{
   /** A safe local path to open after sign-in. Core checks it. */
   redirect: string
 }>()
 
 const { t } = usePlutoI18n()
+const setup = usePlutoCmsSetup()
 const route = useRoute()
 const appSlug = (useRuntimeConfig().public as {
   plutoCms?: {
@@ -39,6 +43,9 @@ const errorKey = computed(() => {
   }
 })
 
+// The sign-in needs the setup. The button stays off until the status says it is ready. A failed read keeps it on.
+const notReady = computed(() => setup.status.value?.ready === false)
+
 const installUrl = computed(() => (appSlug ? `https://github.com/apps/${encodeURIComponent(appSlug)}/installations/new` : ''))
 </script>
 
@@ -64,8 +71,11 @@ const installUrl = computed(() => (appSlug ? `https://github.com/apps/${encodeUR
       class="w-full justify-center"
     />
 
+    <PlutoCmsSetupPanel v-if="notReady" :status="setup.status.value" variant="login" />
+
     <UButton
-      :to="loginUrl"
+      :to="notReady ? undefined : loginUrl"
+      :disabled="notReady"
       :label="t('pluto.cms.login.signIn')"
       icon="simple-icons:github"
       size="lg"

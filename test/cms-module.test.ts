@@ -98,6 +98,36 @@ describe('pluto-cms module wiring', () => {
     expect(handler('/api/_pluto/auth/session', 'get')?.handler).toMatch(/api[\\/]auth[\\/]session\.get$/)
   })
 
+  it('adds the setup routes', async () => {
+    await run({ enabled: true, github: repo })
+
+    const posix = (value: unknown) => String(value).replaceAll('\\', '/')
+
+    expect(posix(handler('/api/_pluto/cms/setup/status', 'get')?.handler)).toMatch(/\/api\/setup\/status\.get$/)
+    expect(posix(handler('/api/_pluto/cms/setup/github/start', 'get')?.handler)).toMatch(/\/api\/setup\/github\/start\.get$/)
+    expect(posix(handler('/api/_pluto/cms/setup/github/callback', 'get')?.handler)).toMatch(/\/api\/setup\/github\/callback\.get$/)
+  })
+
+  it('adds the GitHub tab as a child of the Settings page', async () => {
+    await run({ enabled: true, github: repo })
+
+    const pages = [{ path: '/admin', children: [{ path: 'settings', children: [{ path: '' }, { path: 'email' }] }] }] as Array<{
+ path: string
+children?: Array<{
+ path: string
+children?: Array<{
+ path: string
+file?: string
+}>
+}>
+}>
+    kitCalls.pageExtenders[0]!(pages as never)
+
+    const children = pages[0]!.children![0]!.children!
+    expect(children.map((page) => page.path)).toEqual(['', 'email', 'github'])
+    expect(String(children[2]!.file).replaceAll('\\', '/')).toMatch(/\/app\/components\/Pluto\/Cms\/PlutoCmsSettingsPage\.vue$/)
+  })
+
   it('adds the public read routes and the PlutoMarkdown and PlutoMarkdownSource components', async () => {
     await run({ enabled: true, github: repo })
 
@@ -132,7 +162,8 @@ describe('pluto-cms module wiring', () => {
 }).src).toMatch(/app[\\/]plugins[\\/]pluto-cms$/)
     // Core owns the route guard and the login page, so the module adds none.
     expect(kitCalls.routeMiddleware).toHaveLength(0)
-    expect(kitCalls.pageExtenders).toHaveLength(0)
+    // One page: the GitHub tab of Settings.
+    expect(kitCalls.pageExtenders).toHaveLength(1)
     expect(kitCalls.importsDirs).toHaveLength(1)
     expect(kitCalls.importsDirs[0]).toMatch(/app[\\/]composables$/)
   })
@@ -149,6 +180,8 @@ describe('pluto-cms module wiring', () => {
       cacheStorage: 'cache',
       postType: true,
       fsRoot: '',
+      // The setup writes `.env` in development only.
+      rootDir: '',
       allowedUsers: '',
       githubReadToken: '',
     })
@@ -159,6 +192,7 @@ describe('pluto-cms module wiring', () => {
     const nuxt = await run({ enabled: true, storage: 'fs' }, { dev: true })
 
     expect(nuxt.options.runtimeConfig.plutoCms.fsRoot).toBe('/work/site')
+    expect(nuxt.options.runtimeConfig.plutoCms.rootDir).toBe('/work/site')
     expect(countKitCalls()).toBeGreaterThan(0)
   })
 })

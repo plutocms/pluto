@@ -17,6 +17,10 @@ export interface CmsConfig {
   dir: string
   /** The project root. Set for the `fs` store only. */
   fsRoot: string
+  /** The project root. Set in development only. The setup writes `.env` there. */
+  rootDir: string
+  /** The site name (`websiteName`), or an empty string. */
+  siteName: string
   skipDeploy: boolean
   headTtl: number
   /** Seconds a CDN may cache a public read response. */
@@ -59,6 +63,8 @@ export function getCmsConfig(): CmsConfig {
     apiUrl: text(secret.apiUrl, 'https://api.github.com'),
     dir: text(open.dir, 'content'),
     fsRoot: text(secret.fsRoot),
+    rootDir: text(secret.rootDir),
+    siteName: text((config.public as Record<string, unknown>).websiteName),
     skipDeploy: secret.skipDeploy !== false && String(secret.skipDeploy) !== 'false',
     headTtl: Number.isFinite(Number(secret.headTtl)) ? Number(secret.headTtl) : 60,
     publicMaxAge: Number.isFinite(Number(secret.publicMaxAge)) && Number(secret.publicMaxAge) >= 0 ? Number(secret.publicMaxAge) : 60,

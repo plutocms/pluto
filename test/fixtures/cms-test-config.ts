@@ -13,6 +13,8 @@ function baseConfig(): CmsConfig {
     apiUrl: 'https://api.github.com',
     dir: 'content',
     fsRoot: '',
+    rootDir: '',
+    siteName: 'Acme',
     skipDeploy: false,
     headTtl: 0,
     publicMaxAge: 60,

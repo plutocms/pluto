@@ -60,7 +60,10 @@ policies shared by every project here.
   the `editor` field option), nested content types (`files: { nested, exclude, frontmatter }`, ids that
   are paths, one-commit moves, `listTree` in all stores, `compareContentIds`), no commit for an
   unchanged file, push capabilities for every registered type, public read routes and composables,
-  and `PlutoMarkdown`. @.claude/skills/github-cms/SKILL.md
+  and `PlutoMarkdown`. The GitHub App is created from the site (App Manifest flow): the setup routes
+  under `/api/_pluto/cms/setup/` (`status`, `github/start`, `github/callback`), a result page with the
+  env block, a `.env` write in development, a setup check on `/admin/login`, a **GitHub** tab in Settings,
+  and a private key in PEM, `\n` or base64 form. @.claude/skills/github-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

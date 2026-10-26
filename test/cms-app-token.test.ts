@@ -63,6 +63,33 @@ describe('createAppJwt', () => {
     expect(() => createAppJwt({ appId: '1', privateKey: escaped, now: () => NOW })).not.toThrow()
   })
 
+  it('accepts a PEM with real line breaks, with spaces around it', () => {
+    expect(normalizePem(`\n  ${privateKey}  \n`)).toBe(privateKey.trim())
+    expect(normalizePem(privateKey.replaceAll('\n', '\r\n'))).toBe(privateKey.trim())
+  })
+
+  it('accepts the base64 of the PEM', () => {
+    const encoded = Buffer.from(privateKey).toString('base64')
+
+    expect(encoded).not.toContain('-----BEGIN')
+    expect(normalizePem(encoded)).toBe(privateKey.trim())
+    expect(normalizePem(` ${encoded}\n`)).toBe(privateKey.trim())
+    expect(createAppJwt({ appId: '1', privateKey: encoded, now: () => NOW }).split('.')).toHaveLength(3)
+  })
+
+  it('accepts the base64 of a PEM that has literal \\n escapes', () => {
+    const encoded = Buffer.from(privateKey.trim().replaceAll('\n', '\\n')).toString('base64')
+
+    expect(normalizePem(encoded)).toBe(privateKey.trim())
+  })
+
+  it('leaves a value that is not a key as it is', () => {
+    expect(normalizePem(' nope ')).toBe('nope')
+    // Base64 text that holds no PEM.
+    expect(normalizePem(Buffer.from('hello world').toString('base64'))).toBe(Buffer.from('hello world').toString('base64'))
+    expect(normalizePem('')).toBe('')
+  })
+
   it('throws for a key that is not a PEM', () => {
     expect(() => createAppJwt({ appId: '1', privateKey: 'nope' })).toThrow()
   })
