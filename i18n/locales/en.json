@@ -6,6 +6,7 @@
     "common": {
       "save": "Save",
       "hidePanel": "Hide the panel",
+      "showPanel": "Show the panel",
       "cancel": "Cancel",
       "delete": "Delete",
       "tryAgain": "Try again",

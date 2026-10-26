@@ -72,6 +72,7 @@ const slideoverOpen = computed({
           icon="lucide:panel-right-close"
           color="neutral"
           variant="ghost"
+          size="sm"
           square
           @click="close"
         />

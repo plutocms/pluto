@@ -6,6 +6,7 @@
     "common": {
       "save": "Salvar",
       "hidePanel": "Ocultar o painel",
+      "showPanel": "Mostrar o painel",
       "cancel": "Cancelar",
       "delete": "Excluir",
       "tryAgain": "Tentar novamente",
