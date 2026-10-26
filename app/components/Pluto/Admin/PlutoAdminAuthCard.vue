@@ -52,8 +52,7 @@ const links = computed(() => driver.value?.links ?? {})
           <span
             v-if="siteName"
             class="text-highlighted truncate text-sm font-semibold"
-            >{{ siteName }}</span
-          >
+            >{{ siteName }}</span>
         </div>
 
         <template v-if="driver || slots.default">
