@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.24.0](https://github.com/plutocms/pluto/compare/v0.23.0...v0.24.0) (2026-10-26)
+
+
+### Features
+
+* **cms:** create the GitHub App from the site, and show the setup checks ([#223](https://github.com/plutocms/pluto/issues/223)) ([7aaa432](https://github.com/plutocms/pluto/commit/7aaa43272e59597fa22264b764eb6a9960efa195))
+
 ## [0.23.0](https://github.com/plutocms/pluto/compare/v0.22.0...v0.23.0) (2026-10-26)
 
 
