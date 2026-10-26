@@ -29,7 +29,7 @@ const { t } = usePlutoI18n()
     :title="title"
     :icon="icon"
     :toggle="false"
-    :ui="{ root: 'h-12 border-muted' }"
+    :ui="{ root: 'h-12 border-muted sm:px-3' }"
   >
     <template v-if="$slots.left" #left>
       <slot name="left" />
@@ -46,7 +46,11 @@ const { t } = usePlutoI18n()
           square
         />
       </UTooltip>
-      <UIcon v-if="icon" :name="icon" class="me-1.5 size-5 shrink-0 self-center" />
+      <UIcon
+        v-if="icon"
+        :name="icon"
+        class="me-1.5 size-5 shrink-0 self-center"
+      />
     </template>
 
     <template v-if="$slots.title" #title>
