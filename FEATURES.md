@@ -20,6 +20,14 @@ policies shared by every project here.
   `/admin/content/**` pages with catch-all id routes, `contentIdPath`, `listContentTypes`, and nav/pages
   derivation). Real adapters exist: the supabase layer (PostgREST) and the GitHub CMS (Markdown files) each provide a `PlutoContentAdapter`.
   @.claude/skills/content-model/SKILL.md
+- Public API (headless): a versioned, read-only API for any framework or stack.
+  `GET /api/pluto/v1/content/<type>` and `/<type>/<id>` serve the published items of a type that sets
+  `api: { public: true }`, with `{ data, meta }` answers, `limit`/`offset`/`search`/`sort`/`filter[field]`,
+  an allow-list of fields (`api.fields`), timestamps (`adapter.timestampKeys`), `adapter.toPublic` and
+  `hooks.toPublic` (with the batch of the answer), a CDN cache header (`plutoApi.maxAge`), CORS for GET
+  (`plutoApi.cors`: any origin, a list, or off) and the composables `usePlutoPublicList` and
+  `usePlutoPublicItem`. Internal routes are `/api/_pluto/<area>/...`, and core blocks a cross-site
+  write to them for every layer. @.claude/skills/content-model/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
   registry bucket that lets a layer add its own buttons to that form, and the `contentToolbarItems`
@@ -56,12 +64,12 @@ policies shared by every project here.
   `'auto'`: on, unless a backend layer is present (the supabase layer, `@nuxtjs/supabase`, or
   `$meta.plutoBackend`). It has defaults for the storage (`fs` in dev), and for the repo (env vars,
   Vercel, the git remote). When on, it has GitHub App sign-in, a sealed
-  session, a CSRF origin check, the auth driver for the core admin shell, and the stores, adapter and post type.
+  session, the auth driver for the core admin shell, and the stores, adapter and post type (public on the public API).
   It also has a Markdown editor with a Visual/Source switch (`PlutoMarkdownSource`, `findUnsafeMarkdown`,
   the `editor` field option), nested content types (`files: { nested, exclude, frontmatter }`, ids that
   are paths, one-commit moves, `listTree` in all stores, `compareContentIds`), no commit for an
-  unchanged file, push capabilities for every registered type, public read routes and composables,
-  and `PlutoMarkdown`. The GitHub App is created from the site (App Manifest flow): the setup routes
+  unchanged file, push capabilities for every registered type, the public answer of a Markdown item
+  (`excerpt` in a list, `html` for one item, through `adapter.toPublic`), and `PlutoMarkdown`. The GitHub App is created from the site (App Manifest flow): the setup routes
   under `/api/_pluto/cms/setup/` (`status`, `github/start`, `github/callback`), a result page with the
   env block, a `.env` write in development, a setup check on `/admin/login`, a **GitHub** tab in Settings,
   and a private key in PEM, `\n` or base64 form. The edit form shows the build status of the head

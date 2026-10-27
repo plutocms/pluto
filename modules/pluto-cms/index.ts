@@ -90,7 +90,6 @@ export default defineNuxtModule<PlutoCmsOptions>({
       apiUrl: resolved.github.apiUrl,
       skipDeploy: resolved.commit.skipDeploy,
       headTtl: resolved.cache.headTtl,
-      publicMaxAge: resolved.cache.publicMaxAge,
       cacheStorage: resolved.cache.storage,
       postType: resolved.postType,
       fsRoot: resolved.storage === 'fs' ? nuxt.options.rootDir : '',
@@ -113,13 +112,12 @@ export default defineNuxtModule<PlutoCmsOptions>({
     const resolver = createResolver(import.meta.url)
     const server = (file: string) => resolver.resolve('./runtime/server', file)
 
-    // Server: the sign-in routes, the origin check and the Nitro plugin that
+    // Server: the sign-in routes, and the Nitro plugin that
     // registers the store, the adapter and the post type.
     addServerHandler({ route: '/api/_pluto/auth/github/login', method: 'get', handler: server('api/auth/github/login.get') })
     addServerHandler({ route: '/api/_pluto/auth/github/callback', method: 'get', handler: server('api/auth/github/callback.get') })
     addServerHandler({ route: '/api/_pluto/auth/logout', method: 'post', handler: server('api/auth/logout.post') })
     addServerHandler({ route: '/api/_pluto/auth/session', method: 'get', handler: server('api/auth/session.get') })
-    addServerHandler({ middleware: true, handler: server('middleware/pluto-cms-origin') })
     addServerPlugin(server('plugins/pluto-cms'))
 
     // Client: the extension plugin and the session composable. Core owns the
@@ -161,13 +159,10 @@ export default defineNuxtModule<PlutoCmsOptions>({
     addServerHandler({ route: '/api/_pluto/cms/setup/github/start', method: 'get', handler: server('api/setup/github/start.get') })
     addServerHandler({ route: '/api/_pluto/cms/setup/github/callback', method: 'get', handler: server('api/setup/github/callback.get') })
 
-    // The build status of the head commit. It needs a signed-in user. It is static, so it wins
-    // over the `:type` route below.
+    // The build status of the head commit. It needs a signed-in user.
     addServerHandler({ route: '/api/_pluto/cms/build-status', method: 'get', handler: server('api/build-status.get') })
 
-    // Public read routes. They are anonymous and cacheable. See the github-cms skill.
-    addServerHandler({ route: '/api/_pluto/cms/:type', method: 'get', handler: server('api/public/[type]/index.get') })
-    addServerHandler({ route: '/api/_pluto/cms/:type/:slug', method: 'get', handler: server('api/public/[type]/[slug].get') })
+    // The public reads of the posts go through the public API of core (`/api/pluto/v1/content/post`).
 
     logger.info(`Standalone CMS on. Storage: ${resolved.storage}. Dir: ${resolved.dir}.`)
   },

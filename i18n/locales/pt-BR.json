@@ -176,7 +176,9 @@
       "validationFailed": "Falha na validação.",
       "conflict": "Este item mudou desde que você o abriu. Recarregue para ver a versão mais recente.",
       "forbidden": "Somente um administrador pode fazer isso.",
-      "unauthorized": "Entre para continuar."
+      "unauthorized": "Entre para continuar.",
+      "crossOrigin": "Esta requisição não veio deste site.",
+      "invalidQuery": "O parâmetro \"{name}\" da consulta não é válido."
     },
     "cms": {
       "build": {
@@ -209,7 +211,6 @@
         "rateLimited": "O GitHub está limitando as requisições. Tente novamente em instantes.",
         "githubUnavailable": "O GitHub não respondeu como esperado. Tente novamente.",
         "authNotConfigured": "O login do CMS não está configurado. Peça ao responsável pelo site para verificar as configurações do servidor.",
-        "crossOrigin": "Esta requisição não veio deste site.",
         "tooManyRequests": "Muitas tentativas de login. Tente novamente em instantes."
       },
       "login": {

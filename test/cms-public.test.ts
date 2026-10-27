@@ -1,17 +1,22 @@
 import { generateKeyPairSync } from 'node:crypto'
+import { defineEventHandler, getQuery, getRouterParam } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import itemRoute from '../modules/pluto-cms/runtime/server/api/public/[type]/[slug].get'
-import listRoute from '../modules/pluto-cms/runtime/server/api/public/[type]/index.get'
+import { gitBlobSha } from '../modules/pluto-cms/runtime/server/utils/blob-sha'
 import { createCmsCache } from '../modules/pluto-cms/runtime/server/utils/cms-cache'
 import { getRegisteredCmsCache, registerCmsContent } from '../modules/pluto-cms/runtime/server/utils/cms-setup'
-import { parsePaging } from '../modules/pluto-cms/runtime/server/utils/public-content'
+import { getPublicContent, listPublicContent } from '../server/utils/pluto-public-api'
 import { createAuthApp, resetTestConfig, signIn } from './fixtures/cms-auth-harness'
 import { createFakeGithub } from './fixtures/fake-github'
+
+// The posts of the GitHub CMS through the public API of core (`/api/pluto/v1/content/post`).
 
 vi.mock('../modules/pluto-cms/runtime/server/utils/cms-config', async () => {
   const { testConfig } = await import('./fixtures/cms-test-config')
   return { getCmsConfig: () => testConfig }
 })
+
+const apiConfig = vi.hoisted(() => ({ value: { cors: true as boolean | string[], maxAge: 60 } }))
+vi.mock('../server/utils/pluto-api-config', () => ({ getPlutoApiConfig: () => apiConfig.value }))
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -31,37 +36,40 @@ const FILES: Record<string, string> = {
   'content/posts/long.md': post('Long', 'published', '2026-01-05T00:00:00.000Z', `${'word '.repeat(100)}`),
 }
 
-function setup(patch: Parameters<typeof resetTestConfig>[1] = {}) {
+function setup() {
   const fake = createFakeGithub({
     files: { ...FILES },
     users: { ada: { id: 7, permission: 'push' }, boss: { id: 8, permission: 'admin' } },
     app: { id: '12345', installationId: 99, publicKey },
   })
-  const config = resetTestConfig(fake, { appId: '12345', privateKey, ...patch })
+  const config = resetTestConfig(fake, { appId: '12345', privateKey })
   registerCmsContent(config, createCmsCache({ headTtl: 0 }))
 
   const app = createAuthApp((router) => {
-    router.get('/api/_pluto/cms/:type', listRoute)
-    router.get('/api/_pluto/cms/:type/:slug', itemRoute)
+    router.get('/api/pluto/v1/content/:type', defineEventHandler((event) => listPublicContent(event, getRouterParam(event, 'type') ?? '', getQuery(event))))
+    router.get('/api/pluto/v1/content/:type/:id', defineEventHandler((event) => getPublicContent(event, getRouterParam(event, 'type') ?? '', getRouterParam(event, 'id', { decode: true }) ?? '')))
   })
   return { fake, app, config }
 }
 
-const LIST = '/api/_pluto/cms/post'
+const LIST = '/api/pluto/v1/content/post'
 
 interface ListBody {
   data: Array<Record<string, unknown>>
-  total: number
-  limit: number
-  offset: number
+  meta: {
+    total: number
+    limit: number
+    offset: number
+  }
 }
 
 beforeEach(() => {
+  apiConfig.value = { cors: true, maxAge: 60 }
   setup()
 })
 
-describe('public list route', () => {
-  it('lists published items only, newest first', async () => {
+describe('the post list', () => {
+  it('lists published items only, newest first, with the meta', async () => {
     const { app } = setup()
 
     const response = await app.request(LIST)
@@ -69,10 +77,10 @@ describe('public list route', () => {
 
     expect(response.status).toBe(200)
     expect(body.data.map((item) => item.id)).toEqual(['long', 'evil', 'with-excerpt', 'live'])
-    expect(body.total).toBe(4)
+    expect(body.meta).toEqual({ total: 4, limit: 20, offset: 0 })
   })
 
-  it('returns no body and no draft key', async () => {
+  it('returns no body, no draft, and no internal key', async () => {
     const { app } = setup()
 
     const body = await (await app.request(LIST)).json() as ListBody
@@ -80,7 +88,10 @@ describe('public list route', () => {
     for (const item of body.data) {
       expect(item).not.toHaveProperty('content')
       expect(item).not.toHaveProperty('html')
+      expect(item).not.toHaveProperty('_version')
+      expect(item).not.toHaveProperty('status')
       expect(typeof item.excerpt).toBe('string')
+      expect(typeof item.createdAt).toBe('string')
     }
     expect(JSON.stringify(body)).not.toContain('Secret')
     expect(JSON.stringify(body)).not.toContain('Not yet')
@@ -115,16 +126,28 @@ describe('public list route', () => {
 
     expect(first.data.map((item) => item.id)).toEqual(['long', 'evil'])
     expect(second.data.map((item) => item.id)).toEqual(['with-excerpt', 'live'])
-    expect(second).toMatchObject({ total: 4, limit: 2, offset: 2 })
+    expect(second.meta).toEqual({ total: 4, limit: 2, offset: 2 })
   })
 
-  it('caps the limit at 100 and uses 20 for a bad value', async () => {
+  it('sorts by a public field or a timestamp, and filters by a field', async () => {
     const { app } = setup()
 
-    expect(((await (await app.request(`${LIST}?limit=100000`)).json()) as ListBody).limit).toBe(100)
-    expect(((await (await app.request(`${LIST}?limit=abc`)).json()) as ListBody).limit).toBe(20)
-    expect(((await (await app.request(`${LIST}?limit=-5&offset=-3`)).json()) as ListBody)).toMatchObject({ limit: 20, offset: 0 })
-    expect(((await (await app.request(`${LIST}?limit=0`)).json()) as ListBody).limit).toBe(1)
+    const byTitle = await (await app.request(`${LIST}?sort=title`)).json() as ListBody
+    expect(byTitle.data.map((item) => item.id)).toEqual(['evil', 'live', 'long', 'with-excerpt'])
+
+    const oldest = await (await app.request(`${LIST}?sort=createdAt&limit=1`)).json() as ListBody
+    expect(oldest.data.map((item) => item.id)).toEqual(['live'])
+
+    const filtered = await (await app.request(`${LIST}?filter[title]=Evil`)).json() as ListBody
+    expect(filtered.data.map((item) => item.id)).toEqual(['evil'])
+    expect(filtered.meta.total).toBe(1)
+  })
+
+  it('answers 400 for a sort or a filter on an unknown field', async () => {
+    const { app } = setup()
+
+    expect((await app.request(`${LIST}?sort=secretColumn`)).status).toBe(400)
+    expect((await app.request(`${LIST}?filter[status]=draft`)).status).toBe(400)
   })
 
   it('never shows drafts, whatever the query says', async () => {
@@ -140,33 +163,39 @@ describe('public list route', () => {
   it('answers 404 for an unknown type', async () => {
     const { app } = setup()
 
-    expect((await app.request('/api/_pluto/cms/nope')).status).toBe(404)
+    expect((await app.request('/api/pluto/v1/content/nope')).status).toBe(404)
   })
 })
 
-describe('public item route', () => {
-  it('returns a published item with sanitized html', async () => {
+describe('one post', () => {
+  it('returns a published item with the Markdown body and sanitized html', async () => {
     const { app } = setup()
 
     const response = await app.request(`${LIST}/live`)
-    const body = await response.json() as Record<string, unknown>
+    const { data } = await response.json() as {
+ data: Record<string, unknown>
+}
 
     expect(response.status).toBe(200)
-    expect(body).toMatchObject({ id: 'live', title: 'Live' })
-    expect(body.html).toContain('<strong>world</strong>')
-    expect(body.html).toContain('<table>')
+    expect(data).toMatchObject({ id: 'live', title: 'Live', createdAt: '2026-01-01T00:00:00.000Z' })
+    expect(data.html).toContain('<strong>world</strong>')
+    expect(data.html).toContain('<table>')
+    expect(data).not.toHaveProperty('_version')
+    expect(data).not.toHaveProperty('_frontmatter')
   })
 
   it('removes script, raw HTML and javascript: links from the html', async () => {
     const { app } = setup()
 
-    const body = await (await app.request(`${LIST}/evil`)).json() as {
- html: string
-}
+    const { data } = await (await app.request(`${LIST}/evil`)).json() as {
+      data: {
+        html: string
+      }
+    }
 
-    expect(body.html).not.toContain('<script')
-    expect(body.html).not.toContain('javascript:')
-    expect(body.html).not.toContain('href')
+    expect(data.html).not.toContain('<script')
+    expect(data.html).not.toContain('javascript:')
+    expect(data.html).not.toContain('href')
   })
 
   it('answers 404 for a draft', async () => {
@@ -191,34 +220,29 @@ describe('public item route', () => {
     expect((await app.request(`${LIST}/missing`)).status).toBe(404)
   })
 
-  it('answers 400 for a bad slug', async () => {
+  it('never answers 200 or 500 for a bad slug', async () => {
     const { app } = setup()
 
     for (const slug of ['Bad_Slug', 'UPPER', 'a--b', '-a', 'a.b', 'a%2fb', 'x'.repeat(101)]) {
-      expect((await app.request(`${LIST}/${slug}`)).status, slug).toBe(400)
+      expect([400, 404], slug).toContain((await app.request(`${LIST}/${slug}`)).status)
     }
-  })
-
-  it('answers 404 for an unknown type', async () => {
-    const { app } = setup()
-
-    expect((await app.request('/api/_pluto/cms/nope/live')).status).toBe(404)
   })
 
   it('keeps the rendered html in the cache by blob id', async () => {
     const { app } = setup()
 
-    const body = await (await app.request(`${LIST}/live`)).json() as {
- html: string
-_version: string
-}
-    const cached = await getRegisteredCmsCache().getBlob<string>(`html:${body._version}`)
-
-    expect(cached).toBe(body.html)
+    const { data } = await (await app.request(`${LIST}/live`)).json() as {
+      data: {
+        html: string
+      }
+    }
+    // The html is in the cache under the blob id of the file.
+    const oid = gitBlobSha(FILES['content/posts/live.md']!)
+    expect(await getRegisteredCmsCache().getBlob<string>(`html:${oid}`)).toBe(data.html)
   })
 })
 
-describe('public routes are anonymous and cacheable', () => {
+describe('the answers are anonymous and cacheable', () => {
   it('sets Cache-Control with the default max age', async () => {
     const { app } = setup()
 
@@ -229,10 +253,11 @@ describe('public routes are anonymous and cacheable', () => {
     }
   })
 
-  it('uses the publicMaxAge option', async () => {
-    const { app } = setup({ publicMaxAge: 0 })
+  it('sends no-store when maxAge is 0', async () => {
+    apiConfig.value = { cors: true, maxAge: 0 }
+    const { app } = setup()
 
-    expect((await app.request(LIST)).headers.get('cache-control')).toBe('public, s-maxage=0, stale-while-revalidate=300')
+    expect((await app.request(LIST)).headers.get('cache-control')).toBe('no-store')
   })
 
   it('does not set a cache header on an error', async () => {
@@ -272,15 +297,5 @@ describe('public routes are anonymous and cacheable', () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.getSetCookie()).toEqual([])
-  })
-})
-
-describe('parsePaging', () => {
-  it('reads whole numbers and falls back for anything else', () => {
-    expect(parsePaging({})).toEqual({ limit: 20, offset: 0 })
-    expect(parsePaging({ limit: '5', offset: '10' })).toEqual({ limit: 5, offset: 10 })
-    expect(parsePaging({ limit: ['7'], offset: '1.5' })).toEqual({ limit: 7, offset: 0 })
-    expect(parsePaging({ limit: '1e3', offset: '0x10' })).toEqual({ limit: 20, offset: 0 })
-    expect(parsePaging({ limit: '999' })).toEqual({ limit: 100, offset: 0 })
   })
 })

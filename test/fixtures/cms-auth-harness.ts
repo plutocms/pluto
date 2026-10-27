@@ -5,7 +5,7 @@ import callback from '../../modules/pluto-cms/runtime/server/api/auth/github/cal
 import login from '../../modules/pluto-cms/runtime/server/api/auth/github/login.get'
 import logout from '../../modules/pluto-cms/runtime/server/api/auth/logout.post'
 import sessionRoute from '../../modules/pluto-cms/runtime/server/api/auth/session.get'
-import origin from '../../modules/pluto-cms/runtime/server/middleware/pluto-cms-origin'
+import origin from '../../server/middleware/pluto-origin'
 
 export { resetTestConfig, SESSION_PASSWORD, testConfig } from './cms-test-config'
 

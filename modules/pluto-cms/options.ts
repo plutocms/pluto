@@ -34,8 +34,6 @@ export interface PlutoCmsOptions {
     headTtl?: number
     /** The Nitro storage mount used for the cache. Default `cache`. */
     storage?: string
-    /** Seconds a CDN may cache a public read response. Default `60`. */
-    publicMaxAge?: number
   }
   /** Register the fixed post content type. Default `true`. */
   postType?: boolean
@@ -56,7 +54,6 @@ export interface ResolvedPlutoCmsOptions {
   cache: {
     headTtl: number
     storage: string
-    publicMaxAge: number
   }
   postType: boolean
 }
@@ -140,7 +137,6 @@ export function resolvePlutoCmsOptions(
     cache: {
       headTtl: options.cache?.headTtl ?? 60,
       storage: options.cache?.storage ?? 'cache',
-      publicMaxAge: options.cache?.publicMaxAge ?? 60,
     },
     postType: options.postType ?? true,
   }
@@ -187,11 +183,6 @@ export function resolvePlutoCmsOptions(
   const ttl = resolved.cache.headTtl
   if (typeof ttl !== 'number' || !Number.isFinite(ttl) || ttl < 0) {
     errors.push(`plutoCms.cache.headTtl must be a number of seconds, zero or more. Got "${String(ttl)}".`)
-  }
-
-  const maxAge = resolved.cache.publicMaxAge
-  if (typeof maxAge !== 'number' || !Number.isFinite(maxAge) || maxAge < 0) {
-    errors.push(`plutoCms.cache.publicMaxAge must be a number of seconds, zero or more. Got "${String(maxAge)}".`)
   }
 
   return { enabled: errors.length === 0, resolved, warnings, errors }

@@ -35,5 +35,7 @@ export const plutoCmsPostType: PlutoContentType = {
   defaultSort: { field: 'createdAt', direction: 'desc' },
   // "New Post" in the admin bar, and "Edit Post" on a page that calls `usePlutoEditLink('post', slug)`.
   adminBar: true,
+  // Served by the public API: /api/pluto/v1/content/post.
+  api: { public: true },
   form: { layout: 'focus', aside: true, asideCollapsed: true, width: 'full' },
 }

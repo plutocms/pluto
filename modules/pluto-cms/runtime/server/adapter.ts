@@ -25,7 +25,11 @@ import {
   slugifyTitle,
   typeRelativePath,
 } from './utils/cms-paths'
+import { markdownToPlainText, renderMarkdown } from './utils/markdown'
 import { parseMarkdownFile, serializeMarkdownFile } from './utils/markdown-file'
+
+/** The length of an excerpt made from the body, in the public API. */
+const EXCERPT_LENGTH = 200
 
 export interface PlutoCmsAccess {
   /** The capability keys the caller holds. */
@@ -561,6 +565,15 @@ export function createMarkdownContentAdapter(options: MarkdownContentAdapterOpti
         entries = entries.filter((entry) => String(entry.frontmatter[titleColumn] ?? '').toLowerCase().includes(needle))
       }
 
+      // Equality filters compare the text of the value, because the public API sends text.
+      const filters = Object.entries(query.filters ?? {})
+      if (filters.length > 0) {
+        entries = entries.filter((entry) => {
+          const item = toItem(type, layout, entry, false)
+          return filters.every(([name, value]) => String(item[name] ?? '') === value)
+        })
+      }
+
       const sort = query.sort ?? type.defaultSort ?? (layout.nested
         ? { field: 'id', direction: 'asc' as const }
         : { field: layout.createdColumn ?? 'id', direction: 'desc' as const })
@@ -830,5 +843,73 @@ to: string
     })
   }
 
-  return { id: 'markdown', list, get, create, update, remove, authorize, countCreated, readFile }
+  /** The item keys of the timestamps: the frontmatter keys that `toItem` copies. */
+  function timestampKeys(type: PlutoContentType): {
+    created?: string
+    updated?: string
+    published?: string
+  } {
+    const layout = layoutOf(type)
+    return { created: layout.createdColumn, updated: layout.updatedColumn, published: layout.publishedAtColumn }
+  }
+
+  /**
+   * Keeps a text made from a file in the cache, by the blob id of the file. A blob id never
+   * changes, so the entry never goes stale. Without a blob id, nothing is cached.
+   */
+  async function cachedByBlob(prefix: string, oid: string | undefined, make: () => string): Promise<string> {
+    if (!oid) {
+      return make()
+    }
+    const key = `${prefix}:${oid}`
+    const cached = await cache.getBlob<string>(key)
+    if (typeof cached === 'string') {
+      return cached
+    }
+    const value = make()
+    await cache.setBlob(key, value)
+    return value
+  }
+
+  /**
+   * The public answer of a Markdown item. A list item has no body, and it has `excerpt`: the
+   * `excerpt` value of the item when it has text, else the start of the body as plain text. One
+   * item keeps the Markdown body, and adds `html`: the body rendered and sanitized.
+   */
+  async function toPublic(
+    ctx: PlutoContentContext,
+    data: Record<string, unknown>,
+    info: {
+      view: 'list' | 'item'
+      item: PlutoContentItem
+      batch: PlutoContentItem[]
+    }
+  ): Promise<Record<string, unknown>> {
+    const bodyField = layoutOf(ctx.type).bodyField
+    if (!bodyField) {
+      return data
+    }
+    const result = { ...data }
+    if (info.view === 'item') {
+      const body = info.item[bodyField.name]
+      result.html = typeof body === 'string' && body !== '' ? await cachedByBlob('html', info.item._version, () => renderMarkdown(body)) : ''
+      return result
+    }
+
+    delete result[bodyField.name]
+    const own = info.item.excerpt
+    if (typeof own === 'string' && own.trim() !== '') {
+      result.excerpt = own.trim()
+      return result
+    }
+    // A list item has no body. Read the file: the cache has it.
+    const full = await get(ctx, info.item.id)
+    const body = full?.[bodyField.name]
+    result.excerpt = typeof body === 'string' && body !== ''
+      ? await cachedByBlob('excerpt', full?._version, () => markdownToPlainText(body, EXCERPT_LENGTH))
+      : ''
+    return result
+  }
+
+  return { id: 'markdown', list, get, create, update, remove, authorize, countCreated, readFile, timestampKeys, toPublic }
 }

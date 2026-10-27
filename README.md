@@ -2,7 +2,8 @@
 
 # Pluto
 
-A layer-based CMS for [Nuxt](https://nuxt.com/). You add only the layers you need.
+A layer-based CMS built on [Nuxt](https://nuxt.com/). Use it in your Nuxt app, or headless from any
+framework or stack through its public API. You add only the layers you need.
 
 > [!WARNING]
 > Pluto is in **alpha**. Expect breaking changes, incomplete features, and rough edges.
@@ -33,6 +34,16 @@ export default defineNuxtConfig({
 
 With no other layer, Pluto is a Markdown CMS on GitHub: posts are files in your repository, and
 each save is a commit. See [GitHub CMS](https://pluto.vulmix.dev/github-cms/quickstart).
+
+## Use it headless
+
+A site in any framework reads the published content from the public API:
+
+```bash
+curl https://your-site.dev/api/pluto/v1/content/post?limit=10
+```
+
+See [Public API](https://pluto.vulmix.dev/core/public-api).
 
 ## Layers
 
