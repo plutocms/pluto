@@ -59,19 +59,18 @@ no shell command. Tests: `test/cms-git-remote.test.ts`, `test/pluto-cms-options.
   `PLUTO_CMS_SECRET_ENV`. No Nuxt imports, so plain Vitest can test them.
 - `shared/types/cms.d.ts` — the `@nuxt/schema` types for `plutoCms`.
 - `test/pluto-cms-options.test.ts` — the unit tests.
-- `runtime/server/utils/{session,github-oauth,auth-flow,origin,rate-limit,cms-config,cms-setup}.ts`,
+- `runtime/server/utils/{session,github-oauth,auth-flow,rate-limit,cms-config,cms-setup}.ts`,
   `runtime/server/github/app-token.ts`, `runtime/server/api/auth/**`,
-  `runtime/server/middleware/pluto-cms-origin.ts`, `runtime/server/plugins/pluto-cms.ts` — the
-  authentication and the wiring (see "Authentication" and "Wiring").
+  `runtime/server/plugins/pluto-cms.ts` — the authentication and the wiring (see "Authentication"
+  and "Wiring"). The CSRF check is in core (`server/utils/pluto-origin.ts`).
 - `runtime/app/{composables,plugins}/` — the client side.
 - `runtime/server/{api/build-status.get,utils/build-status}.ts`, `runtime/shared/{build-status,build-poller}.ts`,
   `runtime/app/composables/pluto-cms-build-status.ts` and `app/components/Pluto/Cms/PlutoCmsBuildStatus.vue` —
   the build status (see "Build status").
 - `app/components/Pluto/Cms/` — the sign-in form (`PlutoCmsSignIn`), the dashboard warning, the
   editor widget and `PlutoMarkdown`.
-- `runtime/server/utils/{markdown,sanitize-html,public-content}.ts`,
-  `runtime/server/api/public/[type]/`, `runtime/shared/public-types.ts` and
-  `runtime/app/composables/pluto-cms-content.ts` — the public read side (see "Public read").
+- `runtime/server/utils/{markdown,sanitize-html}.ts` and the adapter's `toPublic` — the public
+  read side (see "Public read"). The routes are core's public API.
 
 ## Options
 
@@ -87,7 +86,6 @@ no shell command. Tests: `test/cms-git-remote.test.ts`, `test/pluto-cms-options.
 | `commit.skipDeploy` | `true` | Add `[skip ci]` to commit messages. A site that must redeploy on each edit (for example a docs site) sets it to `false`. See "Skip a deploy on Vercel". |
 | `cache.headTtl` | `60` | Seconds. Zero or more. |
 | `cache.storage` | `'cache'` | The Nitro storage mount for the cache. |
-| `cache.publicMaxAge` | `60` | Seconds. Zero or more. The `s-maxage` of the public read routes. |
 | `postType` | `true` | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`. |
 
 A bad option turns the CMS off and logs an error. The module does not throw.
@@ -222,8 +220,8 @@ files: {
   read, for example `navTitle` from `navigation.title`. A field that a hook maps is a normal field
   with that flat key as its `column`. `frontmatter.write` runs before a file is written. Fold the
   flat keys back and drop them. Keys that the type does not know must stay.
-- The public read routes (`/api/_pluto/cms/:type/:slug`) take one segment. They do not read a
-  nested item.
+- The public API (`/api/pluto/v1/content/<type>/<id>`) takes the rest of the path as the id, so it
+  reads a nested item too (each segment encoded on its own).
 
 ### No commit for an unchanged file
 
@@ -246,7 +244,6 @@ The contract test suite is `test/contracts/content-adapter.contract.ts`
 When the CMS is on (see "On unless a backend layer is present"), and only then, the module adds:
 
 - Four server routes under `/api/_pluto/auth/` (see "Authentication").
-- A server middleware, `middleware/pluto-cms-origin.ts`, for the CSRF check.
 - A Nitro plugin, `plugins/pluto-cms.ts`. It picks the store (`github` with the Nitro cache, or `fs`
   rooted at the project dir in dev), registers the `post` type when `postType` is on, and registers
   the Markdown adapter. `getAccess(event)` gives the signed-in user (their GitHub token and
@@ -359,10 +356,11 @@ A signed-in user reads and writes with their own token.
 
 ### CSRF
 
-SameSite=Lax is the first guard. `middleware/pluto-cms-origin.ts` is the second. For a request that
+SameSite=Lax is the first guard. Core's server middleware `server/middleware/pluto-origin.ts` is the
+second; it runs for every layer, with or without the CMS. For a request that
 is not GET, HEAD or OPTIONS to `/api/_pluto/**`, the `Origin` header (or `Referer` when `Origin` is
 absent) must have the same `host:port` as the `Host` header. A mismatch, a bad value such as
-`Origin: null`, or no header at all gives 403 (`pluto.cms.errors.crossOrigin`). The check uses the
+`Origin: null`, or no header at all gives 403 (`pluto.errors.crossOrigin`). The check uses the
 `Host` header and ignores `x-forwarded-host`: Nitro has no setting that trusts a proxy, and a client
 can fake that header. A proxy in front of the app must pass the public `Host` header. GET routes
 never change state.
@@ -447,8 +445,7 @@ and no copy of five secrets. The manual steps of "GitHub App setup" stay as the 
 
 ### Routes
 
-All routes are GET, under `/api/_pluto/cms/setup/`. The module adds them when the CMS is on. They
-are static, so they win over the public route `/api/_pluto/cms/:type/:slug`. They use the same
+All routes are GET, under `/api/_pluto/cms/setup/`. The module adds them when the CMS is on. They use the same
 rate limit as the sign-in routes (20 a minute for each IP) and send `Cache-Control: no-store`.
 
 - `status`: `{ ready: true }` for an anonymous caller of a site that is set up. `ready` needs the
@@ -602,28 +599,25 @@ Limits of the editor:
 
 ## Public read
 
-The public site reads published items with two routes, two composables and one component. A
-public read is anonymous by design. The route marks the request anonymous (`markCmsAnonymous`)
-before it reads. `getCmsAccess` then returns `null` and the session cookie is never opened. So
-the answer is the same for every visitor, drafts never show (not even to a signed-in editor), and
-the response never sets a cookie. The routes ignore every query key except `limit` and `offset`.
-The module adds the routes only when the CMS is on. The origin check only blocks writes, so it
-does nothing for these GET routes.
+The public site reads published posts through core's public API: `GET /api/pluto/v1/content/post`
+and `GET /api/pluto/v1/content/post/<slug>`, with `usePlutoPublicList` and `usePlutoPublicItem`.
+See "The public API" in the content-model skill for the routes, the query, the answer, the cache
+and CORS. The post type sets `api: { public: true }`. A public read is anonymous by design: core
+calls `markPublicRead` (the same mark as `markCmsAnonymous`) before it reads. `getCmsAccess` then
+returns `null` and the session cookie is never opened. So the answer is the same for every visitor,
+drafts never show (not even to a signed-in editor), and the response never sets a cookie.
 
-### Routes
+### What the Markdown adapter adds
 
-- `GET /api/_pluto/cms/<type>`: the published items. `limit` is 1 to 100 (default 20). `offset`
-  is 0 or more. A bad value uses the default. The answer is `{ data, total, limit, offset }`.
-  An item has no body. It has `excerpt`: the `excerpt` field of the type when it has text, else
-  `markdownToPlainText(body, 200)`. Items follow the `defaultSort` of the type.
-- `GET /api/_pluto/cms/<type>/<slug>`: one published item and its body as `html` (rendered and
-  sanitized).
-- The type must be registered (404 if not). The slug goes through `assertSafeSlug` (400
-  `pluto.cms.errors.invalidSlug`). A draft or a missing file gives 404.
-- A success answer has `Cache-Control: public, s-maxage=<cache.publicMaxAge>,
-  stale-while-revalidate=300`. An error answer has no public cache header.
-- The logic is in `utils/public-content.ts` (`listPublicItems`, `getPublicItem`, `parsePaging`).
-  The route files are thin.
+The adapter implements `timestampKeys` (the `createdAt`, `updatedAt` and `publishedAt` frontmatter
+keys of the type) and `toPublic`:
+
+- A list item has no body. It has `excerpt`: the `excerpt` value of the item when it has text, else
+  `markdownToPlainText(body, 200)`.
+- One item keeps the Markdown body and adds `html`: the body rendered and sanitized.
+- `list` applies `query.filters` by the text of each item value.
+
+Every CMS type gets this, also the docs types of the Nuxt Content layer.
 
 ### Rendering
 
@@ -654,17 +648,6 @@ stale.
 - Attribute values are escaped, so a quote cannot start a new attribute.
 - The original sanitizer adds no `rel` or `target` to a link, and this port does the same.
 
-### Composables
-
-`runtime/app/composables/pluto-cms-content.ts` is in the auto-import dir. Both composables are
-`useFetch` wrappers. They run on the server, so the page HTML holds the data.
-
-- `usePlutoCmsList(type, { limit, offset } = {})`. The key is
-  `pluto-cms-list:<type>:<limit>:<offset>`. It gives a `PlutoCmsListResult` of `PlutoCmsListItem`.
-- `usePlutoCmsItem(type, slug)`. The key is `pluto-cms-item:<type>:<slug>`. It gives a
-  `PlutoCmsItem` (the item plus `html`). A draft or a missing slug puts a 404 in `error`.
-- The types are in `runtime/shared/public-types.ts`.
-
 ### `PlutoMarkdown`
 
 `app/components/Pluto/Cms/PlutoMarkdown.vue`. Props: `html: string` and `tag = 'article'`. It sets
@@ -680,16 +663,16 @@ Use on a site page:
 ```vue
 <script setup lang="ts">
 const route = useRoute()
-const { data: post } = await usePlutoCmsItem('post', String(route.params.slug))
+const { data } = await usePlutoPublicItem<{ title: string, html: string }>('post', String(route.params.slug))
 </script>
-<template><PlutoMarkdown v-if="post" :html="post.html" /></template>
+<template><PlutoMarkdown v-if="data" :html="data.data.html" /></template>
 ```
 
 For a list page:
 
 ```vue
 <script setup lang="ts">
-const { data } = await usePlutoCmsList('post', { limit: 10 })
+const { data } = await usePlutoPublicList('post', { limit: 10 })
 </script>
 <template>
   <article v-for="post in data?.data" :key="post.id">
@@ -702,9 +685,9 @@ const { data } = await usePlutoCmsList('post', { limit: 10 })
 ### What the tests cover
 
 `test/cms-markdown.test.ts` (GFM, XSS vectors, plain text), `test/cms-sanitize-html.test.ts`
-(the allowlist), `test/cms-public.test.ts` (drafts, excerpt, paging, 400 and 404, the cache
-header, no cookie, anonymous with a session) and the new cases in `test/cms-module.test.ts` and
-`test/pluto-cms-options.test.ts`.
+(the allowlist), `test/cms-public.test.ts` (the posts through the public API: drafts, excerpt,
+paging, sort, filters, 400 and 404, the cache header, no cookie, anonymous with a session) and
+`test/cms-module.test.ts` (no public route and no middleware in the module).
 
 ## Build status
 
@@ -716,8 +699,7 @@ and `showBuildStatus` (`runtime/shared/client-rules.ts`) is the test.
 
 ### Route
 
-`GET /api/_pluto/cms/build-status`. It is static, so it wins over `/api/_pluto/cms/:type` (a type
-named `build-status` cannot use the public read route). It needs a signed-in user (401 otherwise)
+`GET /api/_pluto/cms/build-status`. It needs a signed-in user (401 otherwise)
 and reads with the token of that user. The answer has `Cache-Control: no-store`. The `fs` store
 answers `none` with no GitHub call.
 

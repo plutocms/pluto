@@ -128,13 +128,13 @@ file?: string
     expect(String(children[2]!.file).replaceAll('\\', '/')).toMatch(/\/app\/components\/Pluto\/Cms\/PlutoCmsSettingsPage\.vue$/)
   })
 
-  it('adds the public read routes and the PlutoMarkdown and PlutoMarkdownSource components', async () => {
+  it('adds no public read route (core serves the public API), and adds the PlutoMarkdown and PlutoMarkdownSource components', async () => {
     await run({ enabled: true, github: repo })
 
     const posix = (value: unknown) => String(value).replaceAll('\\', '/')
 
-    expect(posix(handler('/api/_pluto/cms/:type', 'get')?.handler)).toMatch(/\/api\/public\/\[type\]\/index\.get$/)
-    expect(posix(handler('/api/_pluto/cms/:type/:slug', 'get')?.handler)).toMatch(/\/api\/public\/\[type\]\/\[slug\]\.get$/)
+    expect(handler('/api/_pluto/cms/:type', 'get')).toBeUndefined()
+    expect(handler('/api/_pluto/cms/:type/:slug', 'get')).toBeUndefined()
     expect(kitCalls.components).toHaveLength(2)
     expect(kitCalls.components[0]).toMatchObject({ name: 'PlutoMarkdown' })
     expect(posix(kitCalls.components[0]!.filePath)).toMatch(/\/app\/components\/Pluto\/Cms\/PlutoMarkdown\.vue$/)
@@ -142,13 +142,10 @@ file?: string
     expect(posix(kitCalls.components[1]!.filePath)).toMatch(/\/app\/components\/Pluto\/Cms\/PlutoMarkdownSource\.vue$/)
   })
 
-  it('adds the origin check as server middleware', async () => {
+  it('adds no server middleware: core runs the origin check for every layer', async () => {
     await run({ enabled: true, github: repo })
 
-    const middleware = kitCalls.serverHandlers.filter((entry) => entry.middleware === true)
-
-    expect(middleware).toHaveLength(1)
-    expect(middleware[0]!.handler).toMatch(/middleware[\\/]pluto-cms-origin$/)
+    expect(kitCalls.serverHandlers.filter((entry) => entry.middleware === true)).toHaveLength(0)
   })
 
   it('adds the Nitro plugin and the client plugin', async () => {
@@ -176,7 +173,6 @@ file?: string
       apiUrl: 'https://ghe.example.com/api/v3',
       skipDeploy: true,
       headTtl: 30,
-      publicMaxAge: 60,
       cacheStorage: 'cache',
       postType: true,
       fsRoot: '',

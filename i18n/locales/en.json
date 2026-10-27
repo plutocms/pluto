@@ -176,7 +176,9 @@
       "validationFailed": "Validation failed.",
       "conflict": "This item changed since you opened it. Reload to get the latest version.",
       "forbidden": "Only an administrator can do this.",
-      "unauthorized": "Sign in to continue."
+      "unauthorized": "Sign in to continue.",
+      "crossOrigin": "This request did not come from this site.",
+      "invalidQuery": "The query parameter \"{name}\" is not valid."
     },
     "cms": {
       "build": {
@@ -209,7 +211,6 @@
         "rateLimited": "GitHub is limiting requests. Try again soon.",
         "githubUnavailable": "GitHub did not answer as expected. Try again.",
         "authNotConfigured": "Sign-in for the CMS is not set up. Ask the site owner to check the server settings.",
-        "crossOrigin": "This request did not come from this site.",
         "tooManyRequests": "Too many sign-in requests. Try again soon."
       },
       "login": {

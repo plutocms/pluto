@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { isSameOriginRequest } from '../modules/pluto-cms/runtime/server/utils/origin'
+import { isPlutoSameOriginRequest as isSameOriginRequest } from '../server/utils/pluto-origin'
 import { createAuthApp, resetTestConfig } from './fixtures/cms-auth-harness'
 
 vi.mock('../modules/pluto-cms/runtime/server/utils/cms-config', async () => {
@@ -96,7 +96,7 @@ describe('the origin middleware', () => {
     const response = await app.request('/api/_pluto/auth/logout', { method: 'POST', headers: { origin: 'https://evil.test' } })
 
     expect(response.status).toBe(403)
-    expect((await response.json()).data.i18n.key).toBe('pluto.cms.errors.crossOrigin')
+    expect((await response.json()).data.i18n.key).toBe('pluto.errors.crossOrigin')
     expect(response.headers.getSetCookie()).toEqual([])
   })
 

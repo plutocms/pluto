@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
 import { getRequestHeader } from 'h3'
-import { createPlutoError } from '../../../../../server/utils/pluto-error'
+import { createPlutoError } from './pluto-error'
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 const API_PREFIX = '/api/_pluto'
@@ -27,7 +27,7 @@ function normalizeHost(host: string, protocol: string): string {
   return lower
 }
 
-export interface OriginCheckInput {
+export interface PlutoOriginCheckInput {
   method: string
   path: string
   /** The request `Host` header. */
@@ -37,7 +37,8 @@ export interface OriginCheckInput {
 }
 
 /**
- * Decides if a request passes the CSRF check. A request that can change
+ * Decides if a request passes the CSRF check. Core runs it for every layer, with or without
+ * the CMS (server/middleware/pluto-origin.ts). A request that can change
  * state (`POST`, `PATCH`, `PUT`, `DELETE`) to `/api/_pluto/**` must say it
  * comes from this host. `Origin` is checked first. When it is absent,
  * `Referer` is checked. With neither header, the request fails. The compared
@@ -47,7 +48,7 @@ export interface OriginCheckInput {
  * Nitro has no setting to trust a proxy, and a client can fake that header.
  * A proxy in front of the app must pass the public `Host` header on.
  */
-export function isSameOriginRequest(input: OriginCheckInput): boolean {
+export function isPlutoSameOriginRequest(input: PlutoOriginCheckInput): boolean {
   if (SAFE_METHODS.has(input.method.toUpperCase())) {
     return true
   }
@@ -73,8 +74,8 @@ export function isSameOriginRequest(input: OriginCheckInput): boolean {
 }
 
 /** Throws a 403 when the request fails the origin check. */
-export function assertSameOrigin(event: H3Event): void {
-  const ok = isSameOriginRequest({
+export function assertPlutoSameOrigin(event: H3Event): void {
+  const ok = isPlutoSameOriginRequest({
     method: event.method,
     path: event.path,
     host: getRequestHeader(event, 'host'),
@@ -85,7 +86,7 @@ export function assertSameOrigin(event: H3Event): void {
     throw createPlutoError({
       statusCode: 403,
       message: 'This request did not come from this site.',
-      key: 'pluto.cms.errors.crossOrigin',
+      key: 'pluto.errors.crossOrigin',
     })
   }
 }

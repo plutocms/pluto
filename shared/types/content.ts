@@ -250,6 +250,8 @@ export interface PlutoContentType {
    * indicator waits for the build and shows "Publishing…".
    */
   liveOnSave?: boolean
+  /** The public API of this type (`/api/pluto/v1/content/<name>`). See `PlutoContentApi`. */
+  api?: PlutoContentApi
   /** Layout options for the generic content form. */
   form?: {
     /**
@@ -285,8 +287,50 @@ export interface PlutoContentType {
   hooks?: {
     afterCreate?: (ctx: PlutoContentContext, item: PlutoContentItem, rawBody: Record<string, unknown>) => Promise<void> | void
     afterUpdate?: (ctx: PlutoContentContext, item: PlutoContentItem, rawBody: Record<string, unknown>) => Promise<void> | void
+    /**
+     * Changes the answer of the public API for one item, after the allow-list and after
+     * `adapter.toPublic`. Return the object to send, for example with a relation or an image URL
+     * added. Runs on the server only, so set it where the layer registers the type on the server.
+     */
+    toPublic?: PlutoContentToPublic
   }
 }
+
+/**
+ * The public API of a content type. The routes are `GET /api/pluto/v1/content/<name>` (the list)
+ * and `GET /api/pluto/v1/content/<name>/<id or slug>` (one item). They are anonymous and return
+ * published items only. See the content-model skill.
+ */
+export interface PlutoContentApi {
+  /** Serve this type on the public API. Default false: a type is private until it opts in. */
+  public?: boolean
+  /**
+   * The fields that the public API returns, by field name. Default: every field that is not
+   * `virtual`. `id` and the timestamps (`createdAt`, `updatedAt`, `publishedAt`) are always in.
+   * Only these fields can be used in `sort` and `filter`.
+   */
+  fields?: string[]
+}
+
+/** The view of the public API that an answer is for. */
+export type PlutoPublicView = 'list' | 'item'
+
+/** `adapter.toPublic` and `hooks.toPublic`: change the public answer of one item. */
+export type PlutoContentToPublic = (
+  ctx: PlutoContentContext,
+  data: Record<string, unknown>,
+  info: {
+    view: PlutoPublicView
+    /** The whole item from the adapter, also the fields that the allow-list dropped. */
+    item: PlutoContentItem
+    /**
+     * Every item of this answer (one item for the `item` view). A hook that adds related rows
+     * loads them for the whole batch once, and keeps them on `ctx.event.context` for the other
+     * items, so a list of 20 items does not make 20 queries.
+     */
+    batch: PlutoContentItem[]
+  }
+) => Promise<Record<string, unknown>> | Record<string, unknown>
 
 /** How a file adapter stores one content type. See `PlutoContentType.files`. */
 export interface PlutoContentFiles {
@@ -348,6 +392,12 @@ export interface PlutoContentQuery {
     direction: 'asc' | 'desc'
   }
   includeUnpublished?: boolean
+  /**
+   * Equality filters, by field name. An item matches when every field equals its value. The
+   * public API sends the values as text, so an adapter compares a stored number or boolean by its
+   * text too (`3` matches `'3'`, `true` matches `'true'`).
+   */
+  filters?: Record<string, string>
 }
 
 export interface PlutoContentListResult {
@@ -399,6 +449,21 @@ to: string
  text: string
 version?: string
 } | null>
+  /**
+   * The keys of the timestamps on an item of `type`, when the item has them. Optional. The public
+   * API reads them and answers `createdAt`, `updatedAt` and `publishedAt`. Without it, the public
+   * answer has no timestamps.
+   */
+  timestampKeys?: (type: PlutoContentType) => {
+    created?: string
+    updated?: string
+    published?: string
+  }
+  /**
+   * Changes the public answer of one item, before `type.hooks.toPublic`. Optional. For example,
+   * the file adapter of the CMS renders the Markdown body as HTML.
+   */
+  toPublic?: PlutoContentToPublic
 }
 
 /** One week of the content activity series. */

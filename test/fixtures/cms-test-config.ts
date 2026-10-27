@@ -17,7 +17,6 @@ function baseConfig(): CmsConfig {
     siteName: 'Acme',
     skipDeploy: false,
     headTtl: 0,
-    publicMaxAge: 60,
     cacheStorage: 'cache',
     postType: true,
     sessionPassword: SESSION_PASSWORD,

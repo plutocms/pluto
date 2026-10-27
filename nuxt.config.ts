@@ -55,6 +55,13 @@ export default defineNuxtConfig({
       resend: { apiKey: '' },
       mailpit: { url: '' },
     },
+    // The public API (`/api/pluto/v1/**`). `cors`: `true` (any origin), a list of origins, or
+    // `false`. `maxAge`: the `s-maxage` of an answer in seconds (`0` = `no-store`). Env:
+    // `NUXT_PLUTO_API_CORS` (`false` or a JSON list) and `NUXT_PLUTO_API_MAX_AGE`.
+    plutoApi: {
+      cors: true,
+      maxAge: 60,
+    },
     public: {
       websiteName,
     },

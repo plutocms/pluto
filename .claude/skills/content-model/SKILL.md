@@ -253,9 +253,14 @@ too. It does not, for the reasons above.
 
 ## The generic content routes
 
-Five routes, all under the `/api/_pluto/content/` prefix — the leading underscore marks these as
-core-internal/generic, distinct from a layer's own hand-written routes (`/api/post/*`,
-`/api/product/*`) and avoids any collision with them:
+Five routes, all under the `/api/_pluto/content/` prefix. They are for the admin. The leading
+underscore marks an internal route: not a stable contract, and not for a public site (that is the
+public API, below). The rule for every official layer: core's internal routes are
+`/api/_pluto/<area>/...` (`content`, `content-activity`, `mail`; the CMS `auth` and `cms`), and a
+layer's internal routes are `/api/_pluto/<layer>/...` (for example `/api/_pluto/supabase/...`,
+`/api/_pluto/shop/...`), REST style: nouns in the path, the method says the action. Core's
+middleware `server/middleware/pluto-origin.ts` blocks a cross-site write to `/api/_pluto/**`
+(`isPlutoSameOriginRequest`, 403 `pluto.errors.crossOrigin`), for every layer.
 
 | Route | Method | Calls |
 |---|---|---|
@@ -298,7 +303,50 @@ draft never reaches an anonymous caller. A layer that serves public pages calls
 layer. It marks the request as a public read: the CMS adapter then treats the caller as anonymous
 (no session cookie read, published items only, the same answer for everyone). Call it first in a
 route that serves public pages. It works with or without the CMS module: when the CMS is off, no
-adapter reads the mark and the call does nothing. `isPublicRead(event)` reads the mark.
+adapter reads the mark and the call does nothing. `isPublicRead(event)` reads the mark. A backend
+adapter (for example `@plutocms/supabase`) also reads it and answers as an anonymous caller.
+
+## The public API
+
+Core serves every content type that opts in on a stable, versioned, read-only API. It is how a
+site in any framework or stack reads Pluto (headless), and how a Nuxt site does too.
+
+| Route | Answer |
+|---|---|
+| `GET /api/pluto/v1/content/<type>` | `{ data: Item[], meta: { total, limit, offset } }` |
+| `GET /api/pluto/v1/content/<type>/<id or slug>` | `{ data: Item }` (the id can hold slashes) |
+
+- Opt-in: `type.api.public` must be `true`. Any other type, and an unknown type, answers 404 (the
+  API does not tell that a private type exists).
+- Every read is a public read: `markPublicRead` runs first, the adapter gets
+  `includeUnpublished: false`, and core checks the status again (`isPublishedItem`), so a draft
+  never comes out, even when an adapter returns one (for example a signed-in editor's cookie on a
+  same-origin call).
+- Query of the list: `limit` 1 to 100 (default 20), `offset` (a bad value uses the default),
+  `search` (the title, at most 200 characters), `sort` (`field` or `-field`: a public field, or
+  `createdAt`, `updatedAt`, `publishedAt`), `filter[field]=value` (equality on a public field;
+  the adapter gets `query.filters` as text). Any other key is ignored. A sort or a filter on a
+  field that the answer does not have gives 400 (`pluto.errors.invalidQuery`).
+- The answer of an item (`toPublicData`): `id`, the public fields (`api.fields`, else every field
+  that is not `virtual`), and `createdAt`, `updatedAt`, `publishedAt` from the item keys that
+  `adapter.timestampKeys(type)` names. Then `adapter.toPublic` (the CMS Markdown adapter adds
+  `excerpt` to a list item and `html` to one item), then `type.hooks.toPublic` (server only, for
+  relations and URLs). Both get `{ view: 'list' | 'item', item, batch }`: `batch` is every item of
+  the answer, so a hook loads related rows once and keeps them on `ctx.event.context`.
+- Headers: `Cache-Control: public, s-maxage=<plutoApi.maxAge>, stale-while-revalidate=300`
+  (`no-store` when `maxAge` is 0); no cookie. CORS from `server/middleware/pluto-api-cors.ts`:
+  `runtimeConfig.plutoApi.cors` is `true` (`Access-Control-Allow-Origin: *`, the default), a list
+  of origins (the matching origin and `Vary: Origin`), or `false`. Methods `GET, HEAD, OPTIONS`,
+  never credentials. A preflight answers 204. Env: `NUXT_PLUTO_API_CORS`, `NUXT_PLUTO_API_MAX_AGE`.
+- Errors: `createPlutoError` (`{ statusCode, statusMessage, data: { i18n } }`).
+- A layer's own public routes go under `/api/pluto/v1/<layer>/...` (for example the Nuxt Content
+  layer's page, navigation and surround), with the same envelope (`{ data }`).
+- Files: `server/utils/pluto-public-api.ts` (the logic), `server/utils/pluto-api-{config,options,cors}.ts`,
+  `server/api/pluto/v1/content/[type]/*`, `shared/types/public-api.ts`, `shared/utils/public-api.ts`
+  (`PLUTO_API_PREFIX`, `plutoContentApiPath`, `plutoPublicQueryParams`), `app/composables/pluto-public.ts`.
+- Composables: `usePlutoPublicList<T>(type, query)` and `usePlutoPublicItem<T>(type, id)`, `useFetch`
+  wrappers that run on the server. `data.value` is the answer above.
+- Tests: `test/public-api.test.ts` and `test/cms-public.test.ts`.
 
 ## Capability enforcement: read is never checked here
 
