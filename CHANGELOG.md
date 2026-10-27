@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.26.0](https://github.com/plutocms/pluto/compare/v0.25.0...v0.26.0) (2026-10-27)
+
+
+### Features
+
+* **cms:** show the build status next to Save, and add read helpers for layers ([#227](https://github.com/plutocms/pluto/issues/227)) ([2f72fe3](https://github.com/plutocms/pluto/commit/2f72fe395a94c6a03172c05586da2ef850e248c5))
+
 ## [0.25.0](https://github.com/plutocms/pluto/compare/v0.24.0...v0.25.0) (2026-10-27)
 
 
