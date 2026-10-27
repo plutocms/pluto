@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.25.0](https://github.com/plutocms/pluto/compare/v0.24.0...v0.25.0) (2026-10-27)
+
+
+### Features
+
+* **admin:** render the admin bar with the page, and add New and Edit buttons for content types ([#225](https://github.com/plutocms/pluto/issues/225)) ([8636bcb](https://github.com/plutocms/pluto/commit/8636bcbb6c86cda8e0d75fc9f4284061646c51e8))
+
 ## [0.24.0](https://github.com/plutocms/pluto/compare/v0.23.0...v0.24.0) (2026-10-26)
 
 
