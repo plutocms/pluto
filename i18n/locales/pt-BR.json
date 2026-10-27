@@ -180,7 +180,7 @@
       "crossOrigin": "Esta requisição não veio deste site.",
       "invalidQuery": "O parâmetro \"{name}\" da consulta não é válido."
     },
-    "cms": {
+    "github": {
       "build": {
         "publishing": "Publicando…",
         "live": "No ar",
@@ -297,27 +297,27 @@
         "checks": {
           "repo": {
             "title": "O repositório de conteúdo está definido",
-            "fix": "Defina PLUTO_CMS_REPO como dono/nome, por exemplo acme/site."
+            "fix": "Defina PLUTO_GITHUB_REPO como dono/nome, por exemplo acme/site."
           },
           "sessionPassword": {
             "title": "A senha de sessão está definida",
-            "fix": "Defina NUXT_PLUTO_CMS_SESSION_PASSWORD com um texto aleatório de 32 caracteres ou mais. O botão Criar gera uma."
+            "fix": "Defina NUXT_PLUTO_GITHUB_SESSION_PASSWORD com um texto aleatório de 32 caracteres ou mais. O botão Criar gera uma."
           },
           "appId": {
             "title": "O ID do GitHub App está definido",
-            "fix": "Defina NUXT_PLUTO_CMS_GITHUB_APP_ID. O botão Criar define."
+            "fix": "Defina NUXT_PLUTO_GITHUB_APP_ID. O botão Criar define."
           },
           "clientId": {
             "title": "O client ID está definido",
-            "fix": "Defina NUXT_PLUTO_CMS_GITHUB_CLIENT_ID. O botão Criar define."
+            "fix": "Defina NUXT_PLUTO_GITHUB_CLIENT_ID. O botão Criar define."
           },
           "clientSecret": {
             "title": "O client secret está definido",
-            "fix": "Defina NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET. O botão Criar define."
+            "fix": "Defina NUXT_PLUTO_GITHUB_CLIENT_SECRET. O botão Criar define."
           },
           "privateKey": {
             "title": "A chave privada é válida",
-            "fix": "Defina NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY com a chave PEM, ou com o base64 dela. O botão Criar define."
+            "fix": "Defina NUXT_PLUTO_GITHUB_PRIVATE_KEY com a chave PEM, ou com o base64 dela. O botão Criar define."
           },
           "installation": {
             "title": "O App está instalado no repositório",

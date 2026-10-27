@@ -346,7 +346,7 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
   (`PLUTO_API_PREFIX`, `plutoContentApiPath`, `plutoPublicQueryParams`), `app/composables/pluto-public.ts`.
 - Composables: `usePlutoPublicList<T>(type, query)` and `usePlutoPublicItem<T>(type, id)`, `useFetch`
   wrappers that run on the server. `data.value` is the answer above.
-- Tests: `test/public-api.test.ts` and `test/cms-public.test.ts`.
+- Tests: `test/public-api.test.ts` and `test/github-public.test.ts`.
 
 ## Capability enforcement: read is never checked here
 

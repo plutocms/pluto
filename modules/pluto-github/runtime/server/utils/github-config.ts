@@ -1,0 +1,91 @@
+import type { GithubFetch } from '../github/client'
+import process from 'node:process'
+import { useRuntimeConfig } from 'nitropack/runtime'
+import { legacyEnvWarning, readLegacySecrets } from '../../../options'
+
+/**
+ * The run-time config of the CMS server code, in one flat object. Only this
+ * file reads `useRuntimeConfig`, so a test can replace it with a stub that
+ * also sets `fetch` (the GitHub transport).
+ */
+export interface GithubConfig {
+  dev: boolean
+  storage: 'github' | 'fs'
+  /** `owner/name`. */
+  repo: string
+  branch: string
+  appSlug: string
+  apiUrl: string
+  dir: string
+  /** The project root. Set for the `fs` store only. */
+  fsRoot: string
+  /** The project root. Set in development only. The setup writes `.env` there. */
+  rootDir: string
+  /** The site name (`websiteName`), or an empty string. */
+  siteName: string
+  skipDeploy: boolean
+  headTtl: number
+  cacheStorage: string
+  postType: boolean
+  sessionPassword: string
+  appId: string
+  clientId: string
+  clientSecret: string
+  privateKey: string
+  readToken: string
+  /** Lowercase GitHub logins. Empty means every user with push access. */
+  allowedUsers: string[]
+  /** A test transport. The default uses `ofetch`. */
+  fetch?: GithubFetch
+}
+
+/** Splits a comma-separated login list. It trims and lowercases each login. */
+export function parseAllowedUsers(value: unknown): string[] {
+  return String(value ?? '')
+    .split(',')
+    .map((login) => login.trim().toLowerCase())
+    .filter(Boolean)
+}
+
+let legacyWarned = false
+
+export function getGithubConfig(): GithubConfig {
+  const config = useRuntimeConfig()
+  const runtimeSecret = (config.plutoGithub ?? {}) as Record<string, unknown>
+  // A secret that the host still sets under its old name (`NUXT_PLUTO_CMS_*`, before 0.28).
+  const legacy = readLegacySecrets(runtimeSecret, process.env)
+  if (legacy.used.length > 0 && !legacyWarned) {
+    legacyWarned = true
+    for (const { oldName, newName } of legacy.used) {
+      console.warn(`[pluto-github] ${legacyEnvWarning(oldName, newName)}`)
+    }
+  }
+  const secret = { ...runtimeSecret, ...legacy.values }
+  const open = (config.public.plutoGithub ?? {}) as Record<string, unknown>
+  // Nuxt parses an env value like `12345` as a number, so accept numbers too.
+  const text = (value: unknown, fallback = '') => (typeof value === 'string' || typeof value === 'number' ? String(value) : fallback)
+
+  return {
+    dev: import.meta.dev,
+    storage: open.storage === 'fs' ? 'fs' : 'github',
+    repo: text(open.repo),
+    branch: text(open.branch, 'main'),
+    appSlug: text(open.appSlug),
+    apiUrl: text(secret.apiUrl, 'https://api.github.com'),
+    dir: text(open.dir, 'content'),
+    fsRoot: text(secret.fsRoot),
+    rootDir: text(secret.rootDir),
+    siteName: text((config.public as Record<string, unknown>).websiteName),
+    skipDeploy: secret.skipDeploy !== false && String(secret.skipDeploy) !== 'false',
+    headTtl: Number.isFinite(Number(secret.headTtl)) ? Number(secret.headTtl) : 60,
+    cacheStorage: text(secret.cacheStorage, 'cache'),
+    postType: secret.postType !== false && String(secret.postType) !== 'false',
+    sessionPassword: text(secret.sessionPassword),
+    appId: text(secret.appId),
+    clientId: text(secret.clientId),
+    clientSecret: text(secret.clientSecret),
+    privateKey: text(secret.privateKey),
+    readToken: text(secret.readToken),
+    allowedUsers: parseAllowedUsers(secret.allowedUsers),
+  }
+}

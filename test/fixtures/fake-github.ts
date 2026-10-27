@@ -1,7 +1,7 @@
-import type { GithubFetch, GithubFetchResponse } from '../../modules/pluto-cms/runtime/server/github/client'
+import type { GithubFetch, GithubFetchResponse } from '../../modules/pluto-github/runtime/server/github/client'
 import { Buffer } from 'node:buffer'
 import { createVerify, randomBytes } from 'node:crypto'
-import { gitBlobSha, listingOid } from '../../modules/pluto-cms/runtime/server/utils/blob-sha'
+import { gitBlobSha, listingOid } from '../../modules/pluto-github/runtime/server/utils/blob-sha'
 
 export interface FakeGithubCalls {
   /** REST head calls that answered 200. */

@@ -148,8 +148,14 @@ const items = computed<SplitterItem[]>(() => [
     </div>
 
     <div ref="rowEl" class="relative flex min-h-0 flex-1 overflow-hidden">
+      <!--
+        No `id` on the splitter, on purpose. With an id, Nuxt UI names each handle
+        `<id>-handle-<index>`, and reka-ui reads that name once, when the handle mounts. A panel
+        that joins later (the left panel of the canvas layout loads on demand) shifts the indexes,
+        so two handles get the same name, and a drag on the aside handle resized the left panel.
+        Without an id, reka-ui gives each handle its own unique id. The panels keep their `id`s.
+      -->
       <USplitter
-        id="pluto-view"
         :items="items"
         :ui="{
           root: 'min-h-0 flex-1',
