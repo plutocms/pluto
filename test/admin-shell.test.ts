@@ -158,6 +158,21 @@ describe('navbarVisible', () => {
     expect(navbarVisible({ ...base, path: '/', isStaff: false, capabilitiesKnown: false })).toBe(false)
   })
 
+  it('shows on a public page from the hint while the session is unknown', () => {
+    expect(navbarVisible({ ...base, path: '/', loggedIn: false, capabilitiesKnown: false, hint: true })).toBe(true)
+    expect(navbarVisible({ ...base, path: '/', loggedIn: false, capabilitiesKnown: false, hint: false })).toBe(false)
+  })
+
+  it('lets the known capabilities win over the hint', () => {
+    expect(navbarVisible({ ...base, path: '/', isStaff: false, hint: true })).toBe(false)
+    expect(navbarVisible({ ...base, path: '/', loggedIn: false, hint: true })).toBe(false)
+  })
+
+  it('ignores the hint on /admin/** and on a hidden route', () => {
+    expect(navbarVisible({ ...base, path: '/admin/home', loggedIn: false, capabilitiesKnown: false, hint: true })).toBe(false)
+    expect(navbarVisible({ ...base, path: '/docs', capabilitiesKnown: false, hint: true, hiddenByRoute: true })).toBe(false)
+  })
+
   it('hides when the route hides the bar (hiddenByRoute)', () => {
     expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: true })).toBe(false)
     expect(navbarVisible({ ...base, path: '/admin/home', hiddenByRoute: true })).toBe(false)

@@ -1,4 +1,4 @@
-import { isStaff, navbarVisible } from './internal/admin-shell'
+import { ADMIN_BAR_HINT_COOKIE, isStaff, navbarVisible } from './internal/admin-shell'
 
 /**
  * The admin navbar shell (the whole top bar, provided by a backend layer).
@@ -46,18 +46,22 @@ export function usePlutoNavbarActions() {
  * app that offsets its own header can follow it.
  *
  * - On `/admin/**`: a signed-in user, except on the public auth paths.
- * - On a public page: staff only (at least one capability, or '*'), and only
- *   after the capabilities finished loading in the browser. This keeps a shop
- *   customer from seeing the bar. It also keeps the bar out of the server HTML
- *   on public pages, so there is no hydration mismatch. The trade-off: on a
- *   public page, the bar appears after the capabilities load, never in the
- *   first paint.
+ * - On a public page: staff only (at least one capability, or '*'), after the
+ *   capabilities finished loading in the browser. This keeps a shop customer
+ *   from seeing the bar. Before that, the hint cookie decides: a browser that
+ *   showed the bar to staff before gets the bar in the server HTML, so it is
+ *   in the first paint. The hint state goes into the payload, so the first
+ *   client render matches the server HTML. A wrong hint (the session ended)
+ *   hides the bar once the session is known.
  *
  * With no permissions driver, every signed-in user counts as staff, like
  * `can()` that fails open.
  *
  * A route hides the bar with the page meta `plutoAdminBar: false`. The preview
  * path (`isPlutoPreviewPath`) hides it too.
+ *
+ * `confirmed` is true only for a staff user that the browser checked. Use it
+ * for links that must not show from the hint alone.
  */
 export function usePlutoAdminBar() {
   const route = useRoute()
@@ -65,23 +69,40 @@ export function usePlutoAdminBar() {
   const permissions = usePlutoPermissions()
   const capabilitiesKnown = usePlutoCapabilitiesKnown()
   const mounted = usePlutoAppMounted()
+  const settled = usePlutoAuthSettled()
+  const hint = usePlutoAdminBarHint()
 
   const staff = computed(() => isStaff(permissions.hasDriver.value, permissions.granted.value))
+  // The public-page rule also waits for the mount, so the first client render
+  // matches the server HTML. The admin rule does not read it.
+  const known = computed(() => capabilitiesKnown.value && mounted.value)
+  const hiddenByRoute = computed(() => route.meta.plutoAdminBar === false || isPlutoPreviewPath(route.path))
 
   const visible = computed(() =>
     navbarVisible({
       path: route.path,
       loggedIn: loggedIn.value,
       isStaff: staff.value,
-      // The public-page rule also waits for the mount, so the first client
-      // render matches the server HTML. The admin rule does not read it.
-      capabilitiesKnown: capabilitiesKnown.value && mounted.value,
+      capabilitiesKnown: known.value,
       publicPaths: publicPaths.value,
-      hiddenByRoute: route.meta.plutoAdminBar === false || isPlutoPreviewPath(route.path),
+      hiddenByRoute: hiddenByRoute.value,
+      hint: hint.value && !(mounted.value && settled.value),
     })
   )
 
-  return { visible }
+  const confirmed = computed(() => !hiddenByRoute.value && loggedIn.value && known.value && staff.value)
+
+  return { visible, confirmed }
+}
+
+/**
+ * The hint for the public-page admin bar, read from the request cookie on the
+ * server. It goes to the browser in the payload. A page rendered in the
+ * browser only (no server HTML) starts with false.
+ */
+export function usePlutoAdminBarHint() {
+  return useState<boolean>('pluto-admin-bar-hint', () =>
+    import.meta.server ? useCookie<boolean | null>(ADMIN_BAR_HINT_COOKIE, { readonly: true }).value === true : false)
 }
 
 /**

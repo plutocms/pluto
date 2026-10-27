@@ -172,14 +172,16 @@ skill.
   login URL from `redirect` and shows the sign-in error alert.
 - The module adds no page, no route middleware and no navbar.
 
-A public layout that offsets its own header for the bar should use `usePlutoAdminBar().visible`.
-The core blog template still uses `usePlutoCmsSession().loggedIn` with `useMounted()`. That works,
-but `usePlutoAdminBar().visible` is the recommended API: it also hides the bar for a customer.
+A public layout that offsets its own header for the bar should use `usePlutoAdminBar().visible`,
+or the `data-pluto-admin-bar` marker on `<html>`. Both are in the server HTML when the hint puts the
+bar there, so the offset is in the first paint too.
 
 ## Who sees the navbar
 
 The rule is `navbarVisible` in `app/composables/internal/admin-shell.ts`. `usePlutoAdminBar()`
-returns `{ visible }` with the same rule. An app that offsets its own header can use it.
+returns `{ visible, confirmed }`. `visible` follows the rule; an app that offsets its own header
+can use it. `confirmed` is true only for a staff user that the browser checked (never from the
+hint alone). Use it for links that must not show before that check.
 
 - On `/admin/**`: any signed-in user, except on the public auth paths of the driver, and except a
   user who is known to be no staff (the no-access page).
@@ -200,17 +202,37 @@ sign-in it loads the capabilities and syncs the admin language. On sign-out it c
 capabilities. It also sets `usePlutoCapabilitiesKnown()`, a state that is `true` only after the
 capabilities loaded in the browser. The server never sets it.
 
-- On a public page, the bar needs `capabilitiesKnown` and `usePlutoAppMounted()`. The second one
-  becomes `true` at the first `app:suspense:resolve`, when Nuxt ends the hydration. The
+- On a public page, the real rule needs `capabilitiesKnown` and `usePlutoAppMounted()`. The second
+  one becomes `true` at the first `app:suspense:resolve`, when Nuxt ends the hydration. The
   capabilities alone are not enough: with no permissions driver, or a fast session read, they can
-  be known before hydration. Both are `false` on the server and in the first client render, so
-  the server HTML and the first client render agree. There is no hydration mismatch.
-- A customer never sees the bar, because the bar waits for the answer before it shows.
-- On `/admin/**` the bar does not wait. It renders from `loggedIn()`.
+  be known before hydration.
+- A customer never sees the bar, because the real rule waits for the answer.
+- On `/admin/**` the bar does not wait. It renders from `loggedIn()`. The admin is client only.
 
-The trade-off: on a public page, the bar appears after the capabilities load. It is never in the
-first paint, even for a backend that can render it on the server. An app that offsets its own
-header with `usePlutoAdminBar()` sees the same delay. If the load fails, the bar stays hidden.
+### The bar in the first paint (the hint cookie)
+
+The server does not know the session of every driver, so it cannot apply the real rule. A hint
+lets it render the bar anyway:
+
+- The auth sync plugin writes the cookie `pluto-admin-bar` (`ADMIN_BAR_HINT_COOKIE`, 30 days,
+  `SameSite=Lax`, not httpOnly) once the session is settled: `true` for a confirmed staff user,
+  removed for anybody else (signed out, or no staff).
+- `usePlutoAuthSettled()` is `true` after the driver is `ready()` and, for a signed-in user, the
+  capabilities finished loading (or failed). It is `false` on the server.
+- `usePlutoAdminBarHint()` reads the cookie on the server into a `useState`, so the payload carries
+  it and the first client render matches the server HTML.
+- `navbarVisible` input `hint` is `hint && !(mounted && settled)`. On a public page, with the
+  capabilities not known, the hint shows the bar. Once the browser knows the session, the real
+  rule decides. A wrong hint (the session ended elsewhere) hides the bar and removes the cookie.
+- The bar frame is in the server HTML: the menu button, the logo and the site name. The navbar
+  actions and the user menu are `ClientOnly` with a placeholder, so they load after the mount.
+  The bar holds no user data in the server HTML.
+- A response rendered with the hint gets `Cache-Control: private, no-store` (`PlutoRoot`), so a
+  shared cache does not keep it. A prerendered page has no cookie, so it has no bar in its HTML;
+  the bar appears after the mount there, as before.
+
+The first visit of a staff user (no cookie yet) shows the bar after the capabilities load. Every
+later page load has it in the first paint. If the capabilities load fails, the bar hides.
 
 ### The height token and the `<html>` marker
 
@@ -221,8 +243,8 @@ header with `usePlutoAdminBar()` sees the same delay. If the load fails, the bar
   taller header can set its own `--ui-header-height` (for example for the public pages only) and
   the admin bar keeps its height.
 - `PlutoRoot` sets `data-pluto-admin-bar="true"` on `<html>` (`useHead` `htmlAttrs`) while
-  `usePlutoAdminBar().visible` is `true`. It is client only: the attribute is never in the server
-  HTML, the same as the bar. A site can write
+  `usePlutoAdminBar().visible` is `true`. It follows the bar, so it is in the server HTML when
+  the hint puts the bar there. A site can write
   `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
 
 ## What the navbar has
@@ -235,9 +257,11 @@ order:
    It is hidden when empty or `Untitled`.
 3. "View site", on `/admin/**` only. It opens `site.url()`, else `/`. The title is
    "Visit {domain}".
-4. The navbar actions, inside `ClientOnly` with a spinner fallback.
+4. The navbar actions, inside `ClientOnly` with a spinner fallback. Core adds one: the content
+   bar actions (see "Content buttons").
 5. The color mode button.
-6. `PlutoAdminUserMenu`, only when a driver is registered.
+6. `PlutoAdminUserMenu`, only when a driver is registered. It is `ClientOnly`, with an avatar
+   skeleton as the fallback.
 
 The user menu has the avatar and the short name. The dropdown has a header (`Name (username)`),
 Settings (`meta+,`), the `accountMenu` items, "Pluto on GitHub" (`plutocms/pluto`) and Sign out
@@ -274,6 +298,23 @@ A `navbarActions` entry is a component action (`{ id, component }`) or a link ac
 renders a link action with `PlutoNavbarButton`: a ghost, neutral, small `UButton` with the icon.
 The label shows from the lg breakpoint. Below it, the label is the aria-label. A component action
 renders as before.
+
+## Content buttons
+
+Core registers one navbar action (`id: 'content'`, order 50): `PlutoContentBarActions`. A content
+type asks for its buttons with `adminBar` (`true`, or `{ new?, edit? }`; see the content-model
+skill). The `write` capability of the type decides; with no `write` capability, the button shows.
+
+- "New <type>" on every page where the bar shows. The link is `contentTypeNewPath(type)`.
+- "Edit <type>" on a public page that called `usePlutoEditLink(type, id)`. The link is
+  `contentTypeEditPath(type, id)`. It does not show on `/admin/**`: the form has its own View link.
+
+`usePlutoEditLink(type, id)` records the item on screen in `usePlutoCurrentContent()` (browser
+only, cleared on unmount, the owner check keeps the next page's value). It returns the edit path
+for a confirmed staff user with the capability, else `null`, so a page can show its own link too.
+
+The GitHub CMS post type sets `adminBar: true`. The core blog template calls
+`usePlutoEditLink('post', slug)` on the post page.
 
 ## The legacy shell fallback
 

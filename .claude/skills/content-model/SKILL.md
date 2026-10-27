@@ -599,6 +599,22 @@ ids can hold slashes.
 `autoRoutes !== false` derives nav/pages from, and still the fallback either override defers to
 when unset.
 
+`shared/utils/content-admin-paths.ts` (auto-imported) has the same rules as pure functions:
+`contentTypeBasePath(type)`, `contentTypeNewPath(type)` and `contentTypeEditPath(type, id)`. Use
+them for a new link instead of building the path again.
+
+## `adminBar` — buttons in the admin bar
+
+`adminBar?: boolean | { new?: boolean, edit?: boolean }` asks core for buttons in the admin bar.
+`true` gives both. Unset gives none, so a layer with its own bar actions does not get doubles.
+`contentTypeAdminBar(type)` normalizes it.
+
+- `new`: "New <type>" on every page where the bar shows, to `contentTypeNewPath(type)`.
+- `edit`: "Edit <type>" on a public page that calls `usePlutoEditLink(type, id)`.
+
+The `write` capability of the type decides, like the form. See "Content buttons" in the
+admin-shell skill.
+
 ## `form`, `capabilities.publish`, and the publish workflow
 
 A later wave (see the [admin view chrome](../admin-view-chrome/SKILL.md) skill) added two more

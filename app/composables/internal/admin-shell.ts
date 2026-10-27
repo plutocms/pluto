@@ -208,22 +208,43 @@ export interface NavbarVisibleInput {
   publicPaths: PlutoAuthPublicPath[]
   /** The route hides the bar: the page meta `plutoAdminBar: false`, or the preview path. */
   hiddenByRoute?: boolean
+  /**
+   * Public pages only: the hint cookie says that this browser showed the bar to
+   * staff before, and the session is not known yet. The server renders the bar
+   * from it. See `ADMIN_BAR_HINT_COOKIE`.
+   */
+  hint?: boolean
 }
+
+/**
+ * The cookie that lets the server render the admin bar on a public page. The
+ * client sets it when the bar shows for a confirmed staff user, and removes it
+ * when the session ends or the user is no staff. It holds no user data and
+ * gives no access: it only decides if the empty bar frame is in the server HTML.
+ */
+export const ADMIN_BAR_HINT_COOKIE = 'pluto-admin-bar'
 
 /**
  * Whether the admin bar shows. On `/admin/**` it shows for a signed-in user,
  * except on the public auth paths, and except for a user who is known to be
  * no staff (the no-access page). On a public page it shows for staff only,
- * and only after the capabilities are known. This keeps a shop customer from
- * seeing the bar, even for a moment, and keeps the server HTML free of it.
+ * after the capabilities are known. Before that, the hint decides, so the
+ * server HTML has the bar for a browser that showed it before, and a shop
+ * customer never sees it.
  *
  * A route can opt out with the page meta `plutoAdminBar: false`, and the preview
  * path (`isPlutoPreviewPath`) always opts out. `usePlutoAdminBar` reads both and
  * passes `hiddenByRoute`. This file stays free of Nuxt imports.
  */
 export function navbarVisible(input: NavbarVisibleInput): boolean {
-  const { path, loggedIn, isStaff: isStaffUser, capabilitiesKnown, publicPaths, hiddenByRoute } = input
-  if (!loggedIn || hiddenByRoute) {
+  const { path, loggedIn, isStaff: isStaffUser, capabilitiesKnown, publicPaths, hiddenByRoute, hint } = input
+  if (hiddenByRoute) {
+    return false
+  }
+  if (!isAdminPath(path) && !capabilitiesKnown && hint) {
+    return true
+  }
+  if (!loggedIn) {
     return false
   }
   if (isAdminPath(path)) {
