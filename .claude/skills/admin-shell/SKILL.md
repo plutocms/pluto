@@ -159,7 +159,7 @@ It decides for itself if it shows.
 
 ## The CMS as the reference driver
 
-The standalone CMS (`modules/pluto-cms`) is the first backend on the driver. Its client plugin
+The standalone CMS (`modules/pluto-github`) is the first backend on the driver. Its client plugin
 registers `authDriver` and nothing else for the shell. See the [github-cms](../github-cms/SKILL.md)
 skill.
 
@@ -168,7 +168,7 @@ skill.
   in the first client render. The hydration is stable, and the bar appears after hydration.
 - `ready()` waits for the first session read. `refresh()` reads it again. `signOut()` posts to the
   logout route.
-- `signIn` is `PlutoCmsSignIn` (in `app/components/Pluto/Cms/`, so Tailwind scans it). It builds the
+- `signIn` is `PlutoGithubSignIn` (in `app/components/Pluto/Github/`, so Tailwind scans it). It builds the
   login URL from `redirect` and shows the sign-in error alert.
 - The module adds no page, no route middleware and no navbar.
 
@@ -374,7 +374,7 @@ After the supabase layer migrates, remove the legacy shell fallback (see above).
 - `test/permissions.test.ts` — also covers `ensureLoaded` (one request in flight, reload on a new user).
 - `test/auth-driver.test.ts` — `validatePlutoAuthDriver`, last driver wins, account menu order,
   site info.
-- `test/cms-module.test.ts` — the CMS module adds no page and no route middleware.
+- `test/github-module.test.ts` — the CMS module adds no page and no route middleware.
 - The routes, the login page and the guard have no unit test beyond `guardDecision`. Check them in
   a built app: one `/admin/login` route, with the CMS on and with no driver.
 

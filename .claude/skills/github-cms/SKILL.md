@@ -7,21 +7,21 @@ GitHub App. A draft is a post with `status: draft` in its frontmatter.
 
 ## On unless a backend layer is present
 
-`plutoCms.enabled` is `'auto'` by default. It also accepts `true` and `false`. When the CMS is
-off, the `pluto-cms` module adds nothing: no runtime config key, handler, plugin, page, middleware
+`plutoGithub.enabled` is `'auto'` by default. It also accepts `true` and `false`. When the CMS is
+off, the `pluto-github` module adds nothing: no runtime config key, handler, plugin, page, middleware
 or import.
 
 - `'auto'`: on, unless a backend layer is present. With a backend layer it is off, with no log.
 - `true`: on. With a backend layer, the module logs this error and stays off:
 
-> The standalone CMS cannot run with the supabase layer. Remove plutoCms.enabled or the supabase
+> The standalone CMS cannot run with the supabase layer. Remove plutoGithub.enabled or the supabase
 > layer.
 
 - `false`: off. The module returns before any other work.
 - Any other value: the module logs an error and stays off.
 
 A backend layer is any of these (`index.ts` checks them, then passes `hasBackendLayer` to
-`resolvePlutoCmsOptions`):
+`resolvePlutoGithubOptions`):
 
 - A layer with `$meta.name === 'supabase'`.
 - The `@nuxtjs/supabase` module.
@@ -34,40 +34,40 @@ During `nuxt prepare`, an auto-enabled CMS logs no error. A build or a dev serve
 
 ## Defaults
 
-An explicit option always wins. `resolvePlutoCmsOptions(options, ctx)` is pure. The module passes
+An explicit option always wins. `resolvePlutoGithubOptions(options, ctx)` is pure. The module passes
 `ctx = { dev, hasBackendLayer, env: process.env, gitOrigin }`.
 
-- `storage`: the env var `PLUTO_CMS_STORAGE`, else `fs` in dev and `github` in production.
-- `github.repo`: the env var `NUXT_PLUTO_CMS_GITHUB_REPO`, then `PLUTO_CMS_REPO`, then Vercel's
+- `storage`: the env var `PLUTO_GITHUB_STORAGE`, else `fs` in dev and `github` in production.
+- `github.repo`: the env var `NUXT_PLUTO_GITHUB_REPO`, then `PLUTO_GITHUB_REPO`, then Vercel's
   `VERCEL_GIT_REPO_OWNER` + `VERCEL_GIT_REPO_SLUG`, then (dev only) the `origin` remote of the
   git repo that holds `rootDir`.
-- `github.appSlug`: `NUXT_PLUTO_CMS_GITHUB_APP_SLUG`, then `PLUTO_CMS_APP_SLUG`.
+- `github.appSlug`: `NUXT_PLUTO_GITHUB_APP_SLUG`, then `PLUTO_GITHUB_APP_SLUG`.
 - `github.branch`: `main`.
 - With the `github` storage and no repo, the module logs one error ("The standalone CMS needs a
   GitHub repo...") and stays off. It never throws.
 
-`modules/pluto-cms/git-remote.ts` has `parseGithubRepoUrl` (https, `git@`, `ssh://`, `git://` URLs
+`modules/pluto-github/git-remote.ts` has `parseGithubRepoUrl` (https, `git@`, `ssh://`, `git://` URLs
 of github.com), `parseGitConfigOrigin` and `readGitOrigin`. `readGitOrigin` walks up from
 `rootDir` to the `.git` dir, follows a worktree `gitdir:` pointer, and reads `config`. It runs
-no shell command. Tests: `test/cms-git-remote.test.ts`, `test/pluto-cms-options.test.ts`.
+no shell command. Tests: `test/github-git-remote.test.ts`, `test/pluto-github-options.test.ts`.
 
 ## Files
 
-- `modules/pluto-cms/index.ts` — the Nuxt module (config key `plutoCms`).
-- `modules/pluto-cms/git-remote.ts` — the git `origin` reader (Node `fs` only).
-- `modules/pluto-cms/options.ts` — pure helpers: `resolvePlutoCmsOptions`, `normalizeCmsDir`,
-  `PLUTO_CMS_SECRET_ENV`. No Nuxt imports, so plain Vitest can test them.
-- `shared/types/cms.d.ts` — the `@nuxt/schema` types for `plutoCms`.
-- `test/pluto-cms-options.test.ts` — the unit tests.
-- `runtime/server/utils/{session,github-oauth,auth-flow,rate-limit,cms-config,cms-setup}.ts`,
+- `modules/pluto-github/index.ts` — the Nuxt module (config key `plutoGithub`).
+- `modules/pluto-github/git-remote.ts` — the git `origin` reader (Node `fs` only).
+- `modules/pluto-github/options.ts` — pure helpers: `resolvePlutoGithubOptions`, `normalizeGithubDir`,
+  `PLUTO_GITHUB_SECRET_ENV`. No Nuxt imports, so plain Vitest can test them.
+- `shared/types/github.d.ts` — the `@nuxt/schema` types for `plutoGithub`.
+- `test/pluto-github-options.test.ts` — the unit tests.
+- `runtime/server/utils/{session,github-oauth,auth-flow,rate-limit,github-config,github-setup}.ts`,
   `runtime/server/github/app-token.ts`, `runtime/server/api/auth/**`,
-  `runtime/server/plugins/pluto-cms.ts` — the authentication and the wiring (see "Authentication"
+  `runtime/server/plugins/pluto-github.ts` — the authentication and the wiring (see "Authentication"
   and "Wiring"). The CSRF check is in core (`server/utils/pluto-origin.ts`).
 - `runtime/app/{composables,plugins}/` — the client side.
 - `runtime/server/{api/build-status.get,utils/build-status}.ts`, `runtime/shared/{build-status,build-poller}.ts`,
-  `runtime/app/composables/pluto-cms-build-status.ts` and `app/components/Pluto/Cms/PlutoCmsBuildStatus.vue` —
+  `runtime/app/composables/pluto-github-build-status.ts` and `app/components/Pluto/Github/PlutoGithubBuildStatus.vue` —
   the build status (see "Build status").
-- `app/components/Pluto/Cms/` — the sign-in form (`PlutoCmsSignIn`), the dashboard warning, the
+- `app/components/Pluto/Github/` — the sign-in form (`PlutoGithubSignIn`), the dashboard warning, the
   editor widget and `PlutoMarkdown`.
 - `runtime/server/utils/{markdown,sanitize-html}.ts` and the adapter's `toPublic` — the public
   read side (see "Public read"). The routes are core's public API.
@@ -93,25 +93,36 @@ A bad option turns the CMS off and logs an error. The module does not throw.
 ## Secrets
 
 The secrets are run-time env vars. The module does not check them at build time. Set them as
-`NUXT_PLUTO_CMS_<NAME>`, for example `NUXT_PLUTO_CMS_SESSION_PASSWORD`. The module puts an empty
-string in `runtimeConfig.plutoCms` for each one, so Nuxt can override it.
+`NUXT_PLUTO_GITHUB_<NAME>`, for example `NUXT_PLUTO_GITHUB_SESSION_PASSWORD`. The module puts an empty
+string in `runtimeConfig.plutoGithub` for each one, so Nuxt can override it.
 
-Required: `SESSION_PASSWORD`, `GITHUB_APP_ID`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`,
-`GITHUB_PRIVATE_KEY`. Optional: `GITHUB_READ_TOKEN`, `ALLOWED_USERS`.
+Required: `SESSION_PASSWORD`, `APP_ID`, `CLIENT_ID`, `CLIENT_SECRET`,
+`PRIVATE_KEY`. Optional: `READ_TOKEN`, `ALLOWED_USERS`.
+
+### Old env names (before 0.28)
+
+Until 0.27 the module was `pluto-cms` (config key `plutoCms`), and the env vars were
+`NUXT_PLUTO_CMS_SESSION_PASSWORD`, `NUXT_PLUTO_CMS_ALLOWED_USERS`, `NUXT_PLUTO_CMS_GITHUB_<NAME>` for the
+GitHub secrets, and `PLUTO_CMS_REPO`, `PLUTO_CMS_APP_SLUG`, `PLUTO_CMS_STORAGE`. A deployed site has them in
+its host. So the module still reads an old name when the new one is not set, and logs a warning that
+names the new one: `legacyGithubEnvName(name)` maps a new name to its old name, `resolvePlutoGithubOptions`
+reads the build names that way (a warning in the build log), and `getGithubConfig` reads the secrets with
+`readLegacySecrets` (one `console.warn` per process). The new name always wins. Tests:
+`test/pluto-github-options.test.ts` ("old env names"). Remove the fallback in a later release.
 
 ## Runtime config
 
-When on, the module writes `runtimeConfig.plutoCms` (the secrets) and
-`runtimeConfig.public.plutoCms` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`, `postType`, `skipDeploy`).
+When on, the module writes `runtimeConfig.plutoGithub` (the secrets) and
+`runtimeConfig.public.plutoGithub` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`, `postType`, `skipDeploy`).
 
 ## Storage
 
-The storage layer is in `modules/pluto-cms/runtime/server/`. The Nitro plugin wires it in (see
+The storage layer is in `modules/pluto-github/runtime/server/`. The Nitro plugin wires it in (see
 "Wiring"). Every runtime file uses explicit imports. The pure helpers run in plain Vitest.
 
-- `store/types.ts` — the `PlutoCmsStore` contract: `head`, `listDir`, `listTree`, `readFile`, `commit`. A
-  commit takes `expectedHeadOid`. A stale value throws `PlutoCmsConflictError`. PR 4 maps it to 409.
-- `store/errors.ts` — `PlutoCmsStoreError` with a `code`: `conflict`, `auth`, `forbidden`,
+- `store/types.ts` — the `PlutoGithubStore` contract: `head`, `listDir`, `listTree`, `readFile`, `commit`. A
+  commit takes `expectedHeadOid`. A stale value throws `PlutoGithubConflictError`. PR 4 maps it to 409.
+- `store/errors.ts` — `PlutoGithubStoreError` with a `code`: `conflict`, `auth`, `forbidden`,
   `rate-limit`, `not-found`, `github`. The code has no HTTP link. PR 4 maps it.
 - `store/memory.ts` — an in-memory store for tests.
 - `store/fs.ts` — a dev store over a local dir. The head is a hash of the file listing. It refuses
@@ -123,22 +134,22 @@ The storage layer is in `modules/pluto-cms/runtime/server/`. The Nitro plugin wi
   prefix. All three skip dot dirs and dot files. `commit` uses `createCommitOnBranch` and sets the cached head at once.
 - `github/client.ts` — `githubRest` and `githubGraphql`. They take an injectable `fetch`
   transport. The default uses `ofetch`. They throw typed errors.
-- `utils/cms-cache.ts` — the head with a TTL, the dir index by `<dir>@<headOid>`, parsed blobs by
+- `utils/github-cache.ts` — the head with a TTL, the dir index by `<dir>@<headOid>`, parsed blobs by
   blob id, and single-flight. The backend is a Map by default.
-  `utils/cms-cache-nitro.ts` gives a backend over Nitro `useStorage`.
+  `utils/github-cache-nitro.ts` gives a backend over Nitro `useStorage`.
 - `utils/markdown-file.ts` — parse and write Markdown with YAML frontmatter. It uses the `yaml`
   core schema, so a tag never runs code.
 - `utils/blob-sha.ts` — `gitBlobSha` and `listingOid`.
-- `utils/cms-paths.ts` — `assertSafeSlug`, `assertSafeContentId`, `contentFilePath`,
+- `utils/github-paths.ts` — `assertSafeSlug`, `assertSafeContentId`, `contentFilePath`,
   `contentDirPath` and `slugifyTitle`. The path helpers take `{ nested }` as the last argument.
 - `test/fixtures/fake-github.ts` — an in-memory GitHub that counts calls by kind.
 
 ## Adapter
 
 `runtime/server/adapter.ts` has `createMarkdownContentAdapter`. It is a `PlutoContentAdapter` over a
-`PlutoCmsStore`. The Nitro plugin registers it (see "Wiring"). Options:
+`PlutoGithubStore`. The Nitro plugin registers it (see "Wiring"). Options:
 `store`, `dir`, `getAccess`, `commit.skipDeploy`, `cache`, `retries` (default 2).
-`runtime/shared/post-type.ts` has `plutoCmsPostType`, the built-in `post` content type.
+`runtime/shared/post-type.ts` has `plutoGithubPostType`, the built-in `post` content type.
 
 File layout:
 
@@ -164,12 +175,12 @@ Access rules:
 
 - `getAccess(event)` returns `{ capabilities, auth }`, or `null` for an anonymous caller.
 - `readFile(ctx, relativePath)` reads a raw file of the type folder (`{ text, version }`, `version` is
-  the blob id). It works over the `github` and `fs` stores. `typeRelativePath` (`utils/cms-paths.ts`)
+  the blob id). It works over the `github` and `fs` stores. `typeRelativePath` (`utils/github-paths.ts`)
   refuses `..`, absolute paths, drive letters, backslashes, `%`, control characters and empty or `.`
   segments (the adapter then returns `null`). A `.md` file follows the rules of `get` (usable id, visible).
   `get` adds `_frontmatter`: the whole frontmatter after the `read` hook.
 - A layer that serves public pages calls the core util `markPublicRead(event)` (auto-imported;
-  `markCmsAnonymous` is the same call inside the module). The test is `test/cms-adapter-read-file.test.ts`.
+  `markGithubAnonymous` is the same call inside the module). The test is `test/github-adapter-read-file.test.ts`.
 - An anonymous caller sees published items only. This holds for `list`, `get` and `countCreated`,
   even when the query asks for drafts.
 - A signed-in caller sees drafts only with the type read capability (`posts:read_drafts`). The
@@ -181,14 +192,14 @@ Conflict handling:
 
 - An update with a stale `_version` gives 409 (`pluto.errors.conflict`). A missing `_version`
   skips this check.
-- A create or rename to a taken slug gives 409 (`pluto.cms.errors.slugTaken`).
+- A create or rename to a taken slug gives 409 (`pluto.github.errors.slugTaken`).
 - A rename is one commit: it adds the new path and deletes the old one.
 - A commit uses a fresh head as `expectedHeadOid`. When the head is stale, the adapter retries up
   to 2 times, but only if the target file did not change. Otherwise it gives 409.
 - Commit messages: `content(post): create "slug"`, `update`, `publish`, `unpublish`,
   `rename "a" -> "b"`, `delete`. `[skip ci]` is added when `skipDeploy` is on.
 
-Store errors map to HTTP errors with `pluto.cms.errors.*` keys: conflict 409, auth 401, forbidden
+Store errors map to HTTP errors with `pluto.github.errors.*` keys: conflict 409, auth 401, forbidden
 403, rate limit 503 with a `Retry-After` header, not found 404, GitHub failure 502.
 
 ### Nested content types
@@ -237,38 +248,38 @@ content type (`listContentTypes()`). The post type is the fallback when no type 
 
 The contract test suite is `test/contracts/content-adapter.contract.ts`
 (`runContentAdapterContract`). Run it against any new adapter over the post type.
-`test/cms-nested-adapter.test.ts` runs it on a nested type too.
+`test/github-nested-adapter.test.ts` runs it on a nested type too.
 
 ## Wiring
 
 When the CMS is on (see "On unless a backend layer is present"), and only then, the module adds:
 
 - Four server routes under `/api/_pluto/auth/` (see "Authentication").
-- A Nitro plugin, `plugins/pluto-cms.ts`. It picks the store (`github` with the Nitro cache, or `fs`
+- A Nitro plugin, `plugins/pluto-github.ts`. It picks the store (`github` with the Nitro cache, or `fs`
   rooted at the project dir in dev), registers the `post` type when `postType` is on, and registers
   the Markdown adapter. `getAccess(event)` gives the signed-in user (their GitHub token and
   capabilities) or `null`.
-- A client plugin, `runtime/app/plugins/pluto-cms.ts`. It calls `definePlutoExtension` with the
+- A client plugin, `runtime/app/plugins/pluto-github.ts`. It calls `definePlutoExtension` with the
   auth driver, the post content type, the post capabilities, the permissions driver and the
   public-repo dashboard widget. The post type and the post capabilities are registered only when
-  `postType` is on (the module copies the option to `runtimeConfig.public.plutoCms.postType`; a
+  `postType` is on (the module copies the option to `runtimeConfig.public.plutoGithub.postType`; a
   missing value counts as on). The warning shows only when the repo is public and a registered type
   has a `status` (`showPublicRepoWarning`). Core loads the capabilities when the session appears.
-- The auto-import dir `runtime/app/composables` (`usePlutoCmsSession`).
+- The auto-import dir `runtime/app/composables` (`usePlutoGithubSession`).
 
 The module adds no page, no route middleware and no navbar. Core owns the `/admin` parent route,
 the `/admin/login` page, the route guard and the navbar. The CMS is the reference auth driver.
 See the [admin shell](../admin-shell/SKILL.md) skill.
 
-The module puts the non-secret server settings in the private `runtimeConfig.plutoCms`: `apiUrl`,
-`skipDeploy`, `headTtl`, `cacheStorage`, `postType`, `fsRoot`. `utils/cms-config.ts` reads all
-config in one place (`getCmsConfig`). A test mocks that file.
+The module puts the non-secret server settings in the private `runtimeConfig.plutoGithub`: `apiUrl`,
+`skipDeploy`, `headTtl`, `cacheStorage`, `postType`, `fsRoot`. `utils/github-config.ts` reads all
+config in one place (`getGithubConfig`). A test mocks that file.
 
 The `fs` store root is the project dir (the same layout as the repo), so a post is at
 `<project>/content/posts/<slug>.md`.
 
-The Vue files are in `app/components/Pluto/Cms/`, because Tailwind scans the `app/` dir of a layer
-only: `PlutoCmsSignIn` and `PlutoCmsPublicRepoWarning`. They use explicit imports for the session composable, so the type
+The Vue files are in `app/components/Pluto/Github/`, because Tailwind scans the `app/` dir of a layer
+only: `PlutoGithubSignIn` and `PlutoGithubPublicRepoWarning`. They use explicit imports for the session composable, so the type
 check works when the CMS is off.
 
 ## Authentication
@@ -281,7 +292,7 @@ to the content repo can sign in.
 1. `GET /api/_pluto/auth/github/login?redirect=/path`. The `redirect` must be a path on this site:
    one `/` at the start, not `//`, no `\`, no control character, no other origin. Any other value
    becomes `/admin/home`. The route makes `state` (32 random bytes, base64url) and a PKCE verifier.
-   It saves `{ state, verifier, redirect }` in a separate sealed session, `pluto-cms-oauth`, which
+   It saves `{ state, verifier, redirect }` in a separate sealed session, `pluto-github-oauth`, which
    lives 10 minutes. Then it answers 302 to `github.com/login/oauth/authorize` with `client_id`,
    `redirect_uri`, `state`, `code_challenge` and `code_challenge_method=S256`.
 2. `GET /api/_pluto/auth/github/callback`. The route reads and clears the oauth session first, so
@@ -304,11 +315,11 @@ server instance. It is a brake, not a gate. The IP is the socket address, or `x-
 
 ### Session
 
-`utils/session.ts` uses h3 `useSession`. The cookie is `pluto-cms-session`: sealed, httpOnly,
+`utils/session.ts` uses h3 `useSession`. The cookie is `pluto-github-session`: sealed, httpOnly,
 SameSite=Lax, Secure when not in dev, `maxAge` 7 days from the sign-in. A session header is off.
-The password is `runtimeConfig.plutoCms.sessionPassword` and needs 32 characters or more. In
+The password is `runtimeConfig.plutoGithub.sessionPassword` and needs 32 characters or more. In
 production a missing or short password makes the sign-in routes answer 500
-(`pluto.cms.errors.authNotConfigured`) and logs one error. In dev it uses a random password for the
+(`pluto.github.errors.authNotConfigured`) and logs one error. In dev it uses a random password for the
 process, so a restart signs everyone out.
 
 The cookie holds `{ user: { id, login, name, avatarUrl }, token, refreshToken, expiresAt,
@@ -316,9 +327,9 @@ refreshExpiresAt, permission, capabilities, checkedAt, repoPrivate }`. It is sea
 the server, so a logout does not revoke a copy of the cookie. The token expiry and the permission
 check below limit that.
 
-Exports: `getCmsSession(event)`, `requireCmsSession(event)` (401
-`pluto.cms.errors.signInRequired`), `requireCmsCapability(event, cap)` (403), `setCmsSession`,
-`clearCmsSession`. A request with no cookie reads as signed out and sets no cookie. Each request
+Exports: `getGithubSession(event)`, `requireGithubSession(event)` (401
+`pluto.github.errors.signInRequired`), `requireGithubCapability(event, cap)` (403), `setGithubSession`,
+`clearGithubSession`. A request with no cookie reads as signed out and sets no cookie. Each request
 reads the session once.
 
 - Refresh: when `expiresAt` is less than 5 minutes away, the session refreshes the user token with
@@ -330,8 +341,8 @@ reads the session once.
   with the user token and updates the capabilities. If push access is gone, or GitHub rejects the
   token, the session clears and the answer is 401. If GitHub does not answer, the answer is 503.
 - Capabilities: admin and maintain give `['*']`. Push gives the post type keys
-  (`plutoCmsPostType.capabilities`: `posts:read_drafts`, `posts:publish`, `posts:delete`). The
-  adapter and `requireCmsCapability` treat `*` as every capability. GitHub still enforces the real
+  (`plutoGithubPostType.capabilities`: `posts:read_drafts`, `posts:publish`, `posts:delete`). The
+  adapter and `requireGithubCapability` treat `*` as every capability. GitHub still enforces the real
   permission on each commit, because the commit uses the user token.
 - Dev `fs` store: in dev with `storage: 'fs'`, a request from this machine gets a fixed user
   `local` with `['*']`. The check reads the socket address. A request is not local if it has
@@ -343,13 +354,13 @@ reads the session once.
 An anonymous caller sees published posts only. The store reads with a server token
 (`github/app-token.ts`):
 
-1. `runtimeConfig.plutoCms.githubReadToken` (a read-only token), when set.
+1. `runtimeConfig.plutoGithub.readToken` (a read-only token), when set.
 2. Else an installation token of the App. The code signs an App JWT (RS256, `iat` now minus 60
    seconds, `exp` now plus 540 seconds, `iss` the app id). The private key may use literal `\n`
    escapes. It reads `GET /repos/{o}/{r}/installation`, then `POST
    /app/installations/{id}/access_tokens` for this repo with `contents: read`. It caches the token
    in memory until 5 minutes before it ends.
-3. With neither set, an anonymous read answers 503 (`pluto.cms.errors.githubUnavailable`) and logs
+3. With neither set, an anonymous read answers 503 (`pluto.github.errors.githubUnavailable`) and logs
    the cause once. The server does not fail at boot.
 
 A signed-in user reads and writes with their own token.
@@ -367,11 +378,11 @@ never change state.
 
 ### Client
 
-- `usePlutoCmsSession()` gives `{ user, capabilities, repo, loggedIn, status, ready, refresh,
-  logout }`. It uses `useFetch` with the key `pluto-cms-session` and `server: false`, so the
+- `usePlutoGithubSession()` gives `{ user, capabilities, repo, loggedIn, status, ready, refresh,
+  logout }`. It uses `useFetch` with the key `pluto-github-session` and `server: false`, so the
   server HTML of a public page never holds a user (a CDN may cache it). The admin is client-only.
-- The auth driver (`id: 'pluto-cms-auth'`) maps the session: `user()` gives `id`, `name`, `username`
-  (the GitHub login) and `avatarUrl`. `loggedIn()` reads `usePlutoCmsSession().loggedIn`. The
+- The auth driver (`id: 'pluto-github-auth'`) maps the session: `user()` gives `id`, `name`, `username`
+  (the GitHub login) and `avatarUrl`. `loggedIn()` reads `usePlutoGithubSession().loggedIn`. The
   session loads in the browser only, so `loggedIn()` is `false` on the server and in the first
   client render. This keeps the hydration stable. The navbar appears after hydration. `ready()`
   waits for the first session read, `refresh()` reads it again and `signOut()` posts to the logout
@@ -380,7 +391,7 @@ never change state.
   `/admin/login?redirect=<fullPath>`. A signed-in user on `/admin/login` goes to the redirect or to
   `/admin/home`. This is a UI guard only. The server checks every request.
 - The login page is core's `/admin/login`. The driver gives the title and the description
-  (`pluto.cms.login.*`) and the `signIn` component, `PlutoCmsSignIn`. It has one "Sign in with
+  (`pluto.github.login.*`) and the `signIn` component, `PlutoGithubSignIn`. It has one "Sign in with
   GitHub" button. It is a full page load to the login route. It shows an error for `forbidden`, `not_installed` (with a link to
   `https://github.com/apps/<appSlug>/installations/new` when `github.appSlug` is set), `state` and
   any other value.
@@ -388,18 +399,18 @@ never change state.
   staff. The user menu has Settings and Sign out. In the local dev flow (`fs` store, local request)
   the dev user is signed in with no GitHub step, so the bar shows.
 - A public layout that offsets its own header should use `usePlutoAdminBar().visible`. The core
-  blog template still uses `usePlutoCmsSession().loggedIn` with `useMounted()`. It keeps working.
+  blog template still uses `usePlutoGithubSession().loggedIn` with `useMounted()`. It keeps working.
 - When the repo is public, the dashboard shows a warning: drafts are visible on GitHub.
-- All text uses the keys `pluto.cms.*` in `i18n/locales/en.json` and `pt-BR.json`.
+- All text uses the keys `pluto.github.*` in `i18n/locales/en.json` and `pt-BR.json`.
 
 ### What the tests cover
 
-`test/cms-auth.test.ts` (flow, redirect check, session, refresh, re-check, logout, dev user),
-`test/cms-origin.test.ts`, `test/cms-app-token.test.ts`, `test/cms-wiring.test.ts` (the adapter
+`test/github-auth.test.ts` (flow, redirect check, session, refresh, re-check, logout, dev user),
+`test/github-origin.test.ts`, `test/github-app-token.test.ts`, `test/github-wiring.test.ts` (the adapter
 registered as the Nitro plugin does it, anonymous 401, drafts hidden, a push user creates) and
-`test/cms-module.test.ts`. The fixtures are `test/fixtures/fake-github.ts` (it also fakes `/user`,
-`/repos/{o}/{r}`, the OAuth token endpoint and the App endpoints), `cms-auth-harness.ts` (an h3
-app with a cookie jar), `cms-test-config.ts` and `kit-mock.ts`.
+`test/github-module.test.ts`. The fixtures are `test/fixtures/fake-github.ts` (it also fakes `/user`,
+`/repos/{o}/{r}`, the OAuth token endpoint and the App endpoints), `github-auth-harness.ts` (an h3
+app with a cookie jar), `github-test-config.ts` and `kit-mock.ts`.
 
 ## GitHub App setup
 
@@ -413,21 +424,21 @@ This is the manual path. The site can create the App for you: see "Setup from th
 6. Generate a client secret and a private key (PEM).
 7. Install the App on the content repo only.
 8. Set the env vars of the app:
-   - `NUXT_PLUTO_CMS_SESSION_PASSWORD`: 32 characters or more, random.
-   - `NUXT_PLUTO_CMS_GITHUB_APP_ID`
-   - `NUXT_PLUTO_CMS_GITHUB_CLIENT_ID`
-   - `NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET`
-   - `NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY`: the PEM, a PEM with literal `\n` escapes, or the base64 of the PEM.
-   - Optional `NUXT_PLUTO_CMS_GITHUB_READ_TOKEN`: a read-only token. It replaces the installation
+   - `NUXT_PLUTO_GITHUB_SESSION_PASSWORD`: 32 characters or more, random.
+   - `NUXT_PLUTO_GITHUB_APP_ID`
+   - `NUXT_PLUTO_GITHUB_CLIENT_ID`
+   - `NUXT_PLUTO_GITHUB_CLIENT_SECRET`
+   - `NUXT_PLUTO_GITHUB_PRIVATE_KEY`: the PEM, a PEM with literal `\n` escapes, or the base64 of the PEM.
+   - Optional `NUXT_PLUTO_GITHUB_READ_TOKEN`: a read-only token. It replaces the installation
      token for anonymous reads.
-   - Optional `NUXT_PLUTO_CMS_ALLOWED_USERS`: GitHub logins, comma-separated, without case. When
+   - Optional `NUXT_PLUTO_GITHUB_ALLOWED_USERS`: GitHub logins, comma-separated, without case. When
      set, only these users can sign in, even with push access.
-9. Set `PLUTO_CMS_REPO` (or `plutoCms.github.repo`) when the default does not find the repo. For the "not installed" link, set `PLUTO_CMS_APP_SLUG` (or `plutoCms.github.appSlug`).
+9. Set `PLUTO_GITHUB_REPO` (or `plutoGithub.github.repo`) when the default does not find the repo. For the "not installed" link, set `PLUTO_GITHUB_APP_SLUG` (or `plutoGithub.github.appSlug`).
 
 A public repo shows its drafts on GitHub. Use a private repo for drafts. The dashboard warns about
 this only when a registered content type has a status (a type with no status has no drafts).
 
-For GitHub Enterprise Server, set `plutoCms.github.apiUrl` to `https://<host>/api/v3`. The OAuth
+For GitHub Enterprise Server, set `plutoGithub.github.apiUrl` to `https://<host>/api/v3`. The OAuth
 pages use `https://<host>`. Any other API URL uses `https://github.com`.
 
 ### Skip a deploy on Vercel
@@ -445,7 +456,7 @@ and no copy of five secrets. The manual steps of "GitHub App setup" stay as the 
 
 ### Routes
 
-All routes are GET, under `/api/_pluto/cms/setup/`. The module adds them when the CMS is on. They use the same
+All routes are GET, under `/api/_pluto/github/setup/`. The module adds them when the CMS is on. They use the same
 rate limit as the sign-in routes (20 a minute for each IP) and send `Cache-Control: no-store`.
 
 - `status`: `{ ready: true }` for an anonymous caller of a site that is set up. `ready` needs the
@@ -463,7 +474,7 @@ rate limit as the sign-in routes (20 a minute for each IP) and send `Cache-Contr
   `https://github.com/organizations/<org>/settings/apps/new?state=<state>` for an organization
   (`GET /users/<owner>` gives the `type`; a failed lookup counts as a user). GitHub Enterprise Server
   uses the host of `github.apiUrl` (`oauthBaseUrl`). `state` is random. It goes in the plain cookie
-  `pluto-cms-setup` (httpOnly, SameSite=Lax, 10 minutes, path `/api/_pluto/cms/setup`, Secure on
+  `pluto-github-setup` (httpOnly, SameSite=Lax, 10 minutes, path `/api/_pluto/github/setup`, Secure on
   https). It is not the sealed session: in production the session password may not exist yet.
 - `github/callback?code&state`: compares `state` with the cookie in constant time, and clears the
   cookie first (the state works once). Then it sends `POST <apiUrl>/app-manifests/{code}/conversions`
@@ -481,12 +492,12 @@ production, both answer 404. The secrets only go to the browser that runs the fl
 
 ### The manifest
 
-`buildAppManifest` (in `utils/cms-github-setup.ts`) builds it:
+`buildAppManifest` (in `utils/github-app-setup.ts`) builds it:
 
 - `name`: "<site name> CMS", 34 characters or less. The site name is `public.websiteName`, else the
   repo name. The author can change it on GitHub.
 - `url`: the origin. `hook_attributes`: `{ url: origin, active: false }`.
-- `redirect_url`: `<origin>/api/_pluto/cms/setup/github/callback`.
+- `redirect_url`: `<origin>/api/_pluto/github/setup/callback`.
 - `callback_urls`: `<origin>/api/_pluto/auth/github/callback`, plus
   `http://localhost:3000/api/_pluto/auth/github/callback` when the origin is not local.
 - `public: false`, `default_permissions: { contents: 'write', metadata: 'read', checks: 'read', statuses: 'read', deployments: 'read' }`,
@@ -496,18 +507,18 @@ production, both answer 404. The secrets only go to the browser that runs the fl
 
 The page has the env block in a textarea with a Copy button, the install link
 (`https://github.com/apps/<slug>/installations/new`) and the next steps. The block has
-`NUXT_PLUTO_CMS_GITHUB_APP_ID`, `NUXT_PLUTO_CMS_GITHUB_CLIENT_ID`,
-`NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET`, `NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY` (the base64 of the PEM, on
-one line), `PLUTO_CMS_APP_SLUG`, and `NUXT_PLUTO_CMS_SESSION_PASSWORD` (new random) when the site has
+`NUXT_PLUTO_GITHUB_APP_ID`, `NUXT_PLUTO_GITHUB_CLIENT_ID`,
+`NUXT_PLUTO_GITHUB_CLIENT_SECRET`, `NUXT_PLUTO_GITHUB_PRIVATE_KEY` (the base64 of the PEM, on
+one line), `PLUTO_GITHUB_APP_SLUG`, and `NUXT_PLUTO_GITHUB_SESSION_PASSWORD` (new random) when the site has
 no valid one. The pages are plain HTML with inline CSS, light and dark with `prefers-color-scheme`.
 They use the server translator (`usePlutoServerTranslator`) with the first tag of `Accept-Language`
-(`pluto.cms.setup.page.*`).
+(`pluto.github.setup.page.*`).
 
 In development (the dev local request), the route also writes the values into `<rootDir>/.env`:
 `updateEnvText` replaces a key that exists, appends the others, keeps the other lines and their
 order, and handles a multi-line quoted value. The page says so, and warns when `.gitignore` does not
 ignore `.env`. If the write fails, the page tells the author to copy the block. The module gives
-`runtimeConfig.plutoCms.rootDir` in development only. `PLUTO_CMS_APP_SLUG` is read when Nuxt starts,
+`runtimeConfig.plutoGithub.rootDir` in development only. `PLUTO_GITHUB_APP_SLUG` is read when Nuxt starts,
 so a dev server needs a restart.
 
 ### Private key formats
@@ -518,32 +529,32 @@ and the base64 of the PEM (no `-----BEGIN` in the value: it decodes, and uses th
 
 ### In the admin
 
-- The login card (`PlutoCmsSignIn`): when the status says `ready: false`, it shows
-  `PlutoCmsSetupPanel` (a warning, the checklist with a short fix for each missing item, the
+- The login card (`PlutoGithubSignIn`): when the status says `ready: false`, it shows
+  `PlutoGithubSetupPanel` (a warning, the checklist with a short fix for each missing item, the
   **Create the GitHub App** button when `canCreateApp`, an **Install the App** link when the
   installation check fails and the slug is known, and a link to the quickstart). The Sign in button
   is disabled while `ready` is false. A failed status read keeps it on.
 - The **GitHub** tab of Settings: `/admin/settings/github`. The `settingsPages` entry (id `github`,
   order 150, no capability) is in the CMS client plugin. The module adds the route with
-  `extendPages`, as a child of `settings`, from `app/components/Pluto/Cms/PlutoCmsSettingsPage.vue`.
+  `extendPages`, as a child of `settings`, from `app/components/Pluto/Github/PlutoGithubSettingsPage.vue`.
   It shows the same checklist, the callback URL to use (with a Copy button) and the Create button.
-- `usePlutoCmsSetup()` (`runtime/app/composables/pluto-cms-setup.ts`) reads the status after
-  hydration (`server: false`, key `pluto-cms-setup`).
+- `usePlutoGithubSetup()` (`runtime/app/composables/pluto-github-setup.ts`) reads the status after
+  hydration (`server: false`, key `pluto-github-setup`).
 
 ### Files and tests
 
-- `utils/cms-github-setup.ts`: the pure helpers (manifest, form action, conversion parser, env
+- `utils/github-app-setup.ts`: the pure helpers (manifest, form action, conversion parser, env
   entries and block, `.env` updater, `.gitignore` check, key check, setup checks).
-- `utils/cms-setup-pages.ts`: the pure HTML pages (`escapeHtml`, start, result, error).
-- `utils/cms-setup-flow.ts`: the handlers (access rule, status, start, callback, `.env` write).
-- `api/setup/status.get.ts`, `api/setup/github/start.get.ts`, `api/setup/github/callback.get.ts`.
-- Tests: `test/cms-github-setup.test.ts` (pure helpers), `test/cms-setup.test.ts` (the routes with
-  the real locale files), and the key formats in `test/cms-app-token.test.ts`.
+- `utils/github-setup-pages.ts`: the pure HTML pages (`escapeHtml`, start, result, error).
+- `utils/github-setup-flow.ts`: the handlers (access rule, status, start, callback, `.env` write).
+- `api/setup/status.get.ts`, `api/setup/start.get.ts`, `api/setup/callback.get.ts`.
+- Tests: `test/github-app-setup.test.ts` (pure helpers), `test/github-setup.test.ts` (the routes with
+  the real locale files), and the key formats in `test/github-app-token.test.ts`.
 
 ## Editor
 
 The admin edits the body of a post with a Markdown editor. The widget is
-`app/components/Pluto/Cms/PlutoFieldMarkdown.vue`. It is a `richtext` field widget. It follows
+`app/components/Pluto/Github/PlutoFieldMarkdown.vue`. It is a `richtext` field widget. It follows
 the widget contract of the content-model skill: the props `field`, `modelValue` and `disabled`,
 and the event `update:modelValue`. `PlutoContentField` gives it the translated field text.
 
@@ -554,11 +565,11 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   lists, quote, code block, bold, italic, strikethrough and inline code. The items come from
   `usePlutoMarkdownToolbar({ link })` (`app/composables/pluto-markdown-toolbar.ts`), so another
   editor can share them. The link button is a slot
-  (`PlutoCmsEditorLink.vue`, a popover with the URL). The image and mention extensions are off.
+  (`PlutoGithubEditorLink.vue`, a popover with the URL). The image and mention extensions are off.
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
   a click anywhere in the box puts the cursor in the text. The post type uses the focus layout
   with the full width.
-- The text comes from `pluto.cms.editor.*` in `en.json` and `pt-BR.json`.
+- The text comes from `pluto.github.editor.*` in `en.json` and `pt-BR.json`.
 - The client plugin registers the widget as a `contentFieldWidgets` entry for
   `fieldType: 'richtext'`, in CMS mode only. It uses `defineAsyncComponent`, so Tiptap loads on the
   edit page only. Core has no `richtext` widget, so nothing else competes for the type.
@@ -578,7 +589,7 @@ grows with the text, with `spellcheck="false"`. It never parses or rewrites the 
   `table`, `task-list`, `footnote` and `fence-meta` (a code fence with more than a language). Text
   in a code fence or in inline code is ignored.
 - The Visual button is off while the text has such syntax, with a tooltip
-  (`pluto.cms.editor.unsafe`). It turns on again when the author removes the syntax in Source. An
+  (`pluto.github.editor.unsafe`). It turns on again when the author removes the syntax in Source. An
   explicit `editor: 'visual'` still opens Visual: the author of the type owns that choice.
 - `PlutoMarkdownSource` props: `modelValue`, `disabled`, `placeholder`, `rows` (18), `maxRows`,
   `ariaLabel`. Slot `toolbar` (slot props `insert`, `focus`). Exposed: `insert(text, { block })`
@@ -586,7 +597,7 @@ grows with the text, with `spellcheck="false"`. It never parses or rewrites the 
   and after) and `focus()`. `insertMarkdownText` is the pure helper. The CMS module registers the
   short name `PlutoMarkdownSource` (only when the CMS is on), the same way as `PlutoMarkdown`. A
   layer uses it to build its own field widget.
-- i18n keys: `pluto.cms.editor.visual`, `source`, `unsafe`, `mode`.
+- i18n keys: `pluto.github.editor.visual`, `source`, `unsafe`, `mode`.
 
 Limits of the editor:
 
@@ -603,7 +614,7 @@ The public site reads published posts through core's public API: `GET /api/pluto
 and `GET /api/pluto/v1/content/post/<slug>`, with `usePlutoPublicList` and `usePlutoPublicItem`.
 See "The public API" in the content-model skill for the routes, the query, the answer, the cache
 and CORS. The post type sets `api: { public: true }`. A public read is anonymous by design: core
-calls `markPublicRead` (the same mark as `markCmsAnonymous`) before it reads. `getCmsAccess` then
+calls `markPublicRead` (the same mark as `markGithubAnonymous`) before it reads. `getGithubAccess` then
 returns `null` and the session cookie is never opened. So the answer is the same for every visitor,
 drafts never show (not even to a signed-in editor), and the response never sets a cookie.
 
@@ -621,7 +632,12 @@ Every CMS type gets this, also the docs types of the Nuxt Content layer.
 
 ### Rendering
 
-`utils/markdown.ts` has `renderMarkdown(md)` and `markdownToPlainText(md, maxLength)`.
+`utils/markdown.ts` has `renderMarkdown(md)`, `markdownToPlainText(md, maxLength)` and `stripMdc(md)`.
+`renderMarkdown` first runs `stripMdc`: the MDC syntax of Nuxt Content goes (`::name` and `::` lines, the
+YAML props block right after an open line, `#slot` lines inside a component, inline `:component{…}`, and
+`{…}` attributes after a span or a link) and the text stays, so a docs page has clean `html` and a clean
+`excerpt` on the public API. Code in a fence does not change. A heading needs a space after `#`, so a
+`#slot` line never looks like one.
 `renderMarkdown` uses `marked` with GFM. The `html` renderer returns an empty string, so raw HTML
 in Markdown never reaches the output. Then `sanitizeHtml` runs on the result. The rendered HTML is
 cached by blob id (`html:<oid>`, the `_version` of the item), and the fallback excerpt too
@@ -630,7 +646,7 @@ stale.
 
 `utils/sanitize-html.ts` is an allowlist sanitizer on `ultrahtml`. It is a port of
 `richtext-sanitize.ts` of `@plutocms/supabase-blog`, with the same tests
-(`test/cms-sanitize-html.test.ts`).
+(`test/github-sanitize-html.test.ts`).
 
 - Kept elements: `p h1-h6 strong b em i s del u code pre blockquote ul ol li hr br a img table thead
   tbody tr th td input`.
@@ -650,12 +666,12 @@ stale.
 
 ### `PlutoMarkdown`
 
-`app/components/Pluto/Cms/PlutoMarkdown.vue`. Props: `html: string` and `tag = 'article'`. It sets
+`app/components/Pluto/Github/PlutoMarkdown.vue`. Props: `html: string` and `tag = 'article'`. It sets
 the server-sanitized HTML as `innerHTML`, with the same pattern as `PlutoProse` (a plain camelCase
 `innerHTML` prop, not `v-html`, so SSR keeps it). It never parses Markdown on the client. The
 typography is the base of the Nuxt UI editor theme (semantic tokens such as `text-highlighted` and
 `border-default`), plus table styles. The module registers it with `addComponent`, because the
-folder name would make the auto name `PlutoCmsPlutoMarkdown`. Pass only the `html` of a CMS item
+folder name would make the auto name `PlutoGithubPlutoMarkdown`. Pass only the `html` of a CMS item
 to it.
 
 Use on a site page:
@@ -684,22 +700,22 @@ const { data } = await usePlutoPublicList('post', { limit: 10 })
 
 ### What the tests cover
 
-`test/cms-markdown.test.ts` (GFM, XSS vectors, plain text), `test/cms-sanitize-html.test.ts`
-(the allowlist), `test/cms-public.test.ts` (the posts through the public API: drafts, excerpt,
+`test/github-markdown.test.ts` (GFM, XSS vectors, plain text), `test/github-sanitize-html.test.ts`
+(the allowlist), `test/github-public.test.ts` (the posts through the public API: drafts, excerpt,
 paging, sort, filters, 400 and 404, the cache header, no cookie, anonymous with a session) and
-`test/cms-module.test.ts` (no public route and no middleware in the module).
+`test/github-module.test.ts` (no public route and no middleware in the module).
 
 ## Build status
 
 After a save, the site can take some minutes to change. The edit form shows the build of the head
 commit of the content branch, next to the Save button. It shows only for GitHub storage with
 `commit.skipDeploy` false (a save then starts a deploy). With the `fs` store, or with
-`skipDeploy` on, nothing shows. The module copies `skipDeploy` to `runtimeConfig.public.plutoCms`,
+`skipDeploy` on, nothing shows. The module copies `skipDeploy` to `runtimeConfig.public.plutoGithub`,
 and `showBuildStatus` (`runtime/shared/client-rules.ts`) is the test.
 
 ### Route
 
-`GET /api/_pluto/cms/build-status`. It needs a signed-in user (401 otherwise)
+`GET /api/_pluto/github/build-status`. It needs a signed-in user (401 otherwise)
 and reads with the token of that user. The answer has `Cache-Control: no-store`. The `fs` store
 answers `none` with no GitHub call.
 
@@ -714,7 +730,7 @@ three sources at the same time:
 The sources of one user and sha stay in memory for 3 seconds, so several tabs share the calls. A
 403 or 404 on a source means that the App cannot read it. The source is skipped and its kind is in
 `unavailable`. A GitHub rate limit gives 503 with `Retry-After`, a rejected token 401, any other
-failure 502 (the same `pluto.cms.errors.*` keys as the adapter).
+failure 502 (the same `pluto.github.errors.*` keys as the adapter).
 
 The answer (`PlutoBuildStatus`, `runtime/shared/build-status.ts`):
 
@@ -740,7 +756,7 @@ The answer (`PlutoBuildStatus`, `runtime/shared/build-status.ts`):
 
 ### The item in the toolbar
 
-`app/components/Pluto/Cms/PlutoCmsBuildStatus.vue` is a `contentToolbarItems` entry with
+`app/components/Pluto/Github/PlutoGithubBuildStatus.vue` is a `contentToolbarItems` entry with
 `contentType: '*'` and `order: 50` (see the admin-view-chrome skill). The CMS client plugin
 registers it, lazy, only when `showBuildStatus` is true.
 
@@ -763,7 +779,7 @@ registers it, lazy, only when `showBuildStatus` is true.
   shows). After a save, `none` is not final for 60 seconds, because GitHub needs some seconds to
   create the checks. Errors back off (10 s, 20 s, up to 60 s). It stops on 401 or 403, and after 5
   errors in a row.
-- `usePlutoCmsBuildStatus()` (`runtime/app/composables/pluto-cms-build-status.ts`) holds the state
+- `usePlutoGithubBuildStatus()` (`runtime/app/composables/pluto-github-build-status.ts`) holds the state
   for one component: `status`, `failed`, `check()`, `afterSave()`, `stop()`.
 
 ### GitHub App permissions
@@ -775,9 +791,9 @@ item shows. Add the three permissions in the App settings, and accept them on th
 
 ### Tests
 
-`test/cms-build-status.test.ts` (reducer, URL and headline helpers, `shouldPoll`,
-`showBuildStatus`), `test/cms-build-poller.test.ts` (the loop, with fake timers) and
-`test/cms-build-status-route.test.ts` (the route with a fake GitHub).
+`test/github-build-status.test.ts` (reducer, URL and headline helpers, `shouldPoll`,
+`showBuildStatus`), `test/github-build-poller.test.ts` (the loop, with fake timers) and
+`test/github-build-status-route.test.ts` (the route with a fake GitHub).
 
 ## Status
 

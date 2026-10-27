@@ -28,6 +28,6 @@ CI runs `lint`, `typecheck`, `test` and `build`. Run all four before you open a 
 
 - Put every user-facing string in `i18n/locales/en.json` and `i18n/locales/pt-BR.json`.
 - Admin code uses Nuxt UI semantic classes, not raw Tailwind colors (see the `admin-theme` skill).
-- The GitHub CMS (`modules/pluto-cms`) is `'auto'` by default: on, unless a backend layer is present. When it is off, it
+- The GitHub CMS (`modules/pluto-github`) is `'auto'` by default: on, unless a backend layer is present. When it is off, it
   must add nothing to the app. Keep its runtime files on explicit imports.
 - A new content adapter must pass `test/contracts/content-adapter.contract.ts`.

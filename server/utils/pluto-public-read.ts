@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
 
 /** The key on `event.context` that marks a request as a public read. */
-const PUBLIC_READ_KEY = 'plutoCmsAnonymous'
+const PUBLIC_READ_KEY = 'plutoPublicRead'
 
 /**
  * Marks the request as a public read. The content adapter of the CMS then

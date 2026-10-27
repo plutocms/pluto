@@ -180,7 +180,7 @@
       "crossOrigin": "This request did not come from this site.",
       "invalidQuery": "The query parameter \"{name}\" is not valid."
     },
-    "cms": {
+    "github": {
       "build": {
         "publishing": "Publishing…",
         "live": "Live",
@@ -297,27 +297,27 @@
         "checks": {
           "repo": {
             "title": "The content repository is set",
-            "fix": "Set PLUTO_CMS_REPO to owner/name, for example acme/site."
+            "fix": "Set PLUTO_GITHUB_REPO to owner/name, for example acme/site."
           },
           "sessionPassword": {
             "title": "The session password is set",
-            "fix": "Set NUXT_PLUTO_CMS_SESSION_PASSWORD to a random text of 32 characters or more. The Create button makes one."
+            "fix": "Set NUXT_PLUTO_GITHUB_SESSION_PASSWORD to a random text of 32 characters or more. The Create button makes one."
           },
           "appId": {
             "title": "The GitHub App ID is set",
-            "fix": "Set NUXT_PLUTO_CMS_GITHUB_APP_ID. The Create button sets it."
+            "fix": "Set NUXT_PLUTO_GITHUB_APP_ID. The Create button sets it."
           },
           "clientId": {
             "title": "The client ID is set",
-            "fix": "Set NUXT_PLUTO_CMS_GITHUB_CLIENT_ID. The Create button sets it."
+            "fix": "Set NUXT_PLUTO_GITHUB_CLIENT_ID. The Create button sets it."
           },
           "clientSecret": {
             "title": "The client secret is set",
-            "fix": "Set NUXT_PLUTO_CMS_GITHUB_CLIENT_SECRET. The Create button sets it."
+            "fix": "Set NUXT_PLUTO_GITHUB_CLIENT_SECRET. The Create button sets it."
           },
           "privateKey": {
             "title": "The private key is valid",
-            "fix": "Set NUXT_PLUTO_CMS_GITHUB_PRIVATE_KEY to the PEM key, or to its base64. The Create button sets it."
+            "fix": "Set NUXT_PLUTO_GITHUB_PRIVATE_KEY to the PEM key, or to its base64. The Create button sets it."
           },
           "installation": {
             "title": "The App is installed on the repository",

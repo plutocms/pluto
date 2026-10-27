@@ -115,6 +115,12 @@ and 560px. The panel stores the width in px in the `pluto-view-aside-width` cook
 the next time the aside opens. `PlutoViewAside` reads the `plutoViewAsideResizableKey` injection
 and fills the panel instead of using its own `width`.
 
+Do not give the `USplitter` an `id`. With an id, Nuxt UI names each handle `<id>-handle-<index>`, and
+reka-ui reads that name once, when the handle mounts. The left panel of the canvas layout joins later
+(it loads on demand), so the indexes shift, two handles get the same name, and a drag on the aside
+handle resized the left panel (fixed in 0.28). Without an id, each handle gets a unique id. The panels
+keep their own `id` (`pluto-view-left`, `-main`, `-aside`).
+
 Do not use the splitter's `sizeUnit: 'px'` or `autoSaveId` here. When the aside panel joins with
 the aside already open (a page reload), reka-ui skips the px conversion and reads the px value as
 a raw size, so the aside takes most of the width. The panel converts px to percentages itself,
@@ -423,7 +429,7 @@ with `defineAsyncComponent` (dev warns about a sync component).
 
 ```ts
 definePlutoExtension({
-  id: 'pluto-cms',
+  id: 'pluto-github',
   contentToolbarItems: [
     {
       id: 'build-status',

@@ -171,7 +171,7 @@ describe('listPublicContent and getPublicContent', () => {
 
     expect(result.data.map((item) => item.id)).toEqual([1])
     expect(adapter.queries[0]).toMatchObject({ includeUnpublished: false, filters: { slug: 'one' }, sort: { field: 'created_at', direction: 'desc' } })
-    expect(ev.context.plutoCmsAnonymous).toBe(true)
+    expect(ev.context.plutoPublicRead).toBe(true)
   })
 
   it('answers 404 for a draft that the adapter returns', async () => {
