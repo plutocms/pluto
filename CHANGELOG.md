@@ -1,6 +1,17 @@
 # Changelog
 
 
+## [0.28.0](https://github.com/plutocms/pluto/compare/v0.27.0...v0.28.0) (2026-10-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* `plutoCms` is `plutoGithub`; the `PlutoCms*`, `usePlutoCms*` names, the `pluto.cms.*` keys and the `/api/_pluto/cms/*` routes are now GitHub names. Rename the env vars to `NUXT_PLUTO_GITHUB_*` and `PLUTO_GITHUB_*`; the old names work for now, with a warning.
+
+### Features
+
+* rename the GitHub CMS names to GitHub, strip MDC from the public html, fix the side panel resize ([#231](https://github.com/plutocms/pluto/issues/231)) ([5f15a6a](https://github.com/plutocms/pluto/commit/5f15a6af7df35cc2aef714a41a27fa72b2c3dd06))
+
 ## [0.27.0](https://github.com/plutocms/pluto/compare/v0.26.0...v0.27.0) (2026-10-27)
 
 
