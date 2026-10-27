@@ -1,6 +1,17 @@
 # Changelog
 
 
+## [0.27.0](https://github.com/plutocms/pluto/compare/v0.26.0...v0.27.0) (2026-10-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* the routes `/api/_pluto/cms/<type>` and `/api/_pluto/cms/<type>/<slug>`, the composables `usePlutoCmsList` and `usePlutoCmsItem`, and the option `plutoCms.cache.publicMaxAge` are gone. Use the public API, `usePlutoPublicList`, `usePlutoPublicItem` and `runtimeConfig.plutoApi.maxAge`. The error key `pluto.cms.errors.crossOrigin` is now `pluto.errors.crossOrigin`.
+
+### Features
+
+* a public, versioned API for headless use, and one CSRF check for every layer ([#229](https://github.com/plutocms/pluto/issues/229)) ([1b36772](https://github.com/plutocms/pluto/commit/1b36772b1f2346b2f49a9586365257f6457363f2))
+
 ## [0.26.0](https://github.com/plutocms/pluto/compare/v0.25.0...v0.26.0) (2026-10-27)
 
 
