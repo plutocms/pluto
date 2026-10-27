@@ -224,6 +224,16 @@ export interface PlutoContentType {
    * alone cannot express) — the same reasoning as `newPath`.
    */
   editPath?: (id: string | number) => string
+  /**
+   * Buttons of this type in the admin bar, for a user with the `write`
+   * capability. `new`: "New <type>" on every page. `edit`: "Edit <type>" on a
+   * public page that calls `usePlutoEditLink(type, id)`. `true` gives both.
+   * Unset gives none. See the admin-shell skill.
+   */
+  adminBar?: boolean | {
+    new?: boolean
+    edit?: boolean
+  }
   navOrder?: number
   i18n?: PlutoContentI18n
   /**

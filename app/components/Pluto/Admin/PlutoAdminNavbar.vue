@@ -86,7 +86,19 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
       <div class="flex shrink-0 items-center gap-1 lg:gap-3">
         <ColorModeButton />
 
-        <PlutoAdminUserMenu v-if="hasDriver" />
+        <!--
+          The user is known in the browser only. On a public page the server
+          renders the bar from the hint, so the menu loads after the mount.
+        -->
+        <ClientOnly>
+          <PlutoAdminUserMenu v-if="hasDriver" />
+
+          <template #fallback>
+            <div class="flex h-full items-center pl-0.5" aria-hidden="true">
+              <USkeleton class="size-7 rounded-xl" />
+            </div>
+          </template>
+        </ClientOnly>
       </div>
     </div>
   </PlutoNavbarAdmin>

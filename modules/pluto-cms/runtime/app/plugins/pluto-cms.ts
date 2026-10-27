@@ -1,13 +1,15 @@
 import type { PlutoCmsSessionResponse } from '../composables/pluto-cms-session'
 import { defineAsyncComponent } from 'vue'
 import { defineNuxtPlugin, useRuntimeConfig } from '#imports'
-import PlutoCmsPublicRepoWarning from '../../../../../app/components/Pluto/Cms/PlutoCmsPublicRepoWarning.vue'
 import PlutoCmsSignIn from '../../../../../app/components/Pluto/Cms/PlutoCmsSignIn.vue'
 import { definePlutoExtension } from '../../../../../app/composables/pluto-extension'
 import { usePlutoRegistry } from '../../../../../app/composables/pluto-registry'
 import { isPostTypeOn, showPublicRepoWarning } from '../../shared/client-rules'
 import { plutoCmsPostType } from '../../shared/post-type'
 import { CMS_SESSION_URL, usePlutoCmsSession } from '../composables/pluto-cms-session'
+
+// The dashboard loads each widget on demand, with a skeleton.
+const PlutoCmsPublicRepoWarning = defineAsyncComponent(() => import('../../../../../app/components/Pluto/Cms/PlutoCmsPublicRepoWarning.vue'))
 
 /**
  * Plugs the standalone CMS into the admin: the auth driver (core renders the

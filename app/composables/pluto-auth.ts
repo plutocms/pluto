@@ -13,6 +13,16 @@ export function usePlutoCapabilitiesKnown() {
 }
 
 /**
+ * True after the browser knows the session: the auth driver is ready, and for a
+ * signed-in user the capabilities finished loading (or failed). False on the
+ * server. The public-page admin bar trusts the hint cookie until then. The
+ * auth sync plugin writes it.
+ */
+export function usePlutoAuthSettled() {
+  return useState<boolean>('pluto-auth-settled', () => false)
+}
+
+/**
  * True after the app hydrated in the browser. False on the server and during
  * hydration. `pluto-auth-sync.client.ts` sets it.
  */

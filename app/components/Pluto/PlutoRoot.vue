@@ -60,13 +60,19 @@ useHead(
 )
 
 // `data-pluto-admin-bar` marks <html> while the admin bar shows, so a site can
-// offset its own header only then. It is client only: the bar is never in the
-// server HTML (see `usePlutoAdminBar`).
+// offset its own header only then. It follows the bar, so it is in the server
+// HTML when the hint puts the bar there (see `usePlutoAdminBar`).
 useHead({
   htmlAttrs: {
-    'data-pluto-admin-bar': computed(() => (import.meta.client && adminBar.visible.value ? 'true' : undefined)),
+    'data-pluto-admin-bar': computed(() => (adminBar.visible.value ? 'true' : undefined)),
   },
 })
+
+// A page that the hint changed must not go into a shared cache. The bar holds
+// no user data, but a cached copy would show its empty frame to every visitor.
+if (import.meta.server && usePlutoAdminBarHint().value) {
+  useResponseHeader('Cache-Control').value = 'private, no-store'
+}
 
 useHead({
   htmlAttrs: {

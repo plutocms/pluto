@@ -33,5 +33,7 @@ export const plutoCmsPostType: PlutoContentType = {
   timestamps: { created: 'createdAt', updated: 'updatedAt' },
   capabilities: { read: 'posts:read_drafts', write: 'posts:publish', delete: 'posts:delete' },
   defaultSort: { field: 'createdAt', direction: 'desc' },
+  // "New Post" in the admin bar, and "Edit Post" on a page that calls `usePlutoEditLink('post', slug)`.
+  adminBar: true,
   form: { layout: 'focus', aside: true, asideCollapsed: true, width: 'full' },
 }

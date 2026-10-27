@@ -10,6 +10,7 @@ const PlutoFieldText = defineAsyncComponent(() => import('../components/Pluto/Co
 const PlutoDashboardContentActivity = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardContentActivity.vue'))
 const PlutoDashboardContentOverview = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardContentOverview.vue'))
 const PlutoDashboardQuickActions = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardQuickActions.vue'))
+const PlutoContentBarActions = defineAsyncComponent(() => import('../components/Pluto/Content/PlutoContentBarActions.vue'))
 
 // Registers core's own Home and Settings anchors, plus the eight built-in
 // content field widgets. `order: 0` and `order: 1000` are reserved for the
@@ -86,6 +87,10 @@ export default defineNuxtPlugin(() => {
         colSpan: 1,
         component: PlutoDashboardQuickActions,
       },
+    ],
+    // "New <type>" and "Edit <type>" for the content types that set `adminBar`.
+    navbarActions: [
+      { id: 'content', order: 50, component: PlutoContentBarActions },
     ],
   })
 })
