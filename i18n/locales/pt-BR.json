@@ -179,6 +179,26 @@
       "unauthorized": "Entre para continuar."
     },
     "cms": {
+      "build": {
+        "publishing": "Publicando…",
+        "live": "No ar",
+        "staticBuilding": "Build estático em andamento",
+        "staticFailed": "O build estático falhou. O site mostra a alteração em tempo de execução até que um build passe.",
+        "failed": "Falha na publicação",
+        "details": "Detalhes da publicação",
+        "title": "Status da publicação",
+        "started": "Iniciou {time}",
+        "finished": "Terminou {time}",
+        "justNow": "agora mesmo",
+        "viewAction": "Ver a Action",
+        "viewBuild": "Ver a publicação",
+        "item": {
+          "pending": "Em andamento",
+          "success": "Concluído",
+          "failure": "Falhou"
+        },
+        "unavailable": "O GitHub não compartilhou todas as fontes da publicação. Dê ao GitHub App acesso de leitura a Checks, Commit statuses e Deployments."
+      },
       "errors": {
         "signInRequired": "Entre para continuar.",
         "forbidden": "Você não tem permissão para fazer isso.",

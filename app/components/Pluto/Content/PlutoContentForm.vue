@@ -598,6 +598,7 @@ provide(plutoContentFormKey, {
 // --- Registry content actions --------------------------------------------------
 
 const toolbarActions = usePlutoContentActions(props.type, 'toolbar')
+const toolbarItems = usePlutoContentToolbarItems(props.type)
 
 // Only used while a content type exists, so `contentType.value` is set by
 // the time this is read.
@@ -737,6 +738,7 @@ const asideTitle = computed(() =>
         :save-state="saveState"
         :saved-text="savedText"
         :view-url="viewUrl"
+        :toolbar-items="toolbarItems"
         :actions="headerActions"
         :buttons="headerButtons"
         :saving="saving"

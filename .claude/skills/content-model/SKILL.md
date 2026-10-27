@@ -282,6 +282,24 @@ items created from `from` (inclusive) to `to` (exclusive), both ISO timestamps, 
 it once per week for the dashboard activity chart. Without it, the chart leaves the type out.
 `@plutocms/supabase` implements it with one exact-count HEAD query per range.
 
+An adapter may also implement the optional `readFile(ctx, relativePath)`. It reads one raw file of
+the type by a path relative to the type folder (for example `1.start/.navigation.yml`) and returns
+`{ text, version? }`, or `null`. `version` equals the `_version` of an item for the same file. The
+file adapter of the CMS implements it for the `github` and `fs` stores. It refuses (`null`) an
+empty path, `..`, `.` and empty segments, an absolute path, a drive letter, a backslash, a `%`
+escape and a control character, so the result stays in the type folder. A `.md` file follows the
+rules of `get`: it must be a usable id (not in `files.exclude`) and visible to the caller, so a
+draft never reaches an anonymous caller. A layer that serves public pages calls
+`markPublicRead(event)` first (below).
+
+## `markPublicRead(event)`: public reads from a layer
+
+`markPublicRead(event)` (`server/utils/pluto-public-read.ts`) is auto-imported in Nitro for every
+layer. It marks the request as a public read: the CMS adapter then treats the caller as anonymous
+(no session cookie read, published items only, the same answer for everyone). Call it first in a
+route that serves public pages. It works with or without the CMS module: when the CMS is off, no
+adapter reads the mark and the call does nothing. `isPublicRead(event)` reads the mark.
+
 ## Capability enforcement: read is never checked here
 
 `type.capabilities.read` is **never enforced by these generic routes.** Read that twice — it is
@@ -445,6 +463,11 @@ optimistic-concurrency token.
   form then shows the translated text "This item changed since you opened it."
 - An adapter that does not use the token ignores the key.
 - Do not declare a field named `_version`.
+
+The file adapter of the CMS also returns the reserved key `_frontmatter` on `get` (not on `list`): a
+copy of the whole frontmatter of the file, after the `files.frontmatter.read` hook, with the keys that
+no field maps. The form never sends it back (`buildContentPayload` copies declared fields and `_version`
+only). Do not declare a field named `_frontmatter`.
 
 An adapter can also change the `id` of an item on update, for example a file-based adapter that
 renames a file when the slug changes. In that case, return the item with its new `id`. In edit
@@ -625,6 +648,11 @@ optional fields to `PlutoContentType`, and one more field to `PlutoContentTypeCa
   or `layout: 'canvas'` for a full-height field with side panels.
 - `previewUrl?: (item) => string | undefined` — the public URL of an item. The form toolbar shows a
   "View" link when it returns a value.
+- `liveOnSave?: boolean` — the public site shows a save at once, because it reads this type at run
+  time (a layer that serves from the content store). A deploy may still run. The build indicator of the
+  edit form (GitHub CMS) then shows "Live" right after a save, a small spinner by the Info button while
+  the static build runs, and a warning in the popover when that build fails. Default false: the indicator
+  shows "Publishing…" until the build passes.
 - `capabilities.publish?: string` — the capability required to publish. Falls back to
   `capabilities.write` when unset, the same "no capability declared means open" rule every other
   capability check here already follows.

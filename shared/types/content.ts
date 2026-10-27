@@ -243,6 +243,13 @@ export interface PlutoContentType {
    * browser globals, because content type definitions are shared with the server.
    */
   previewUrl?: (item: PlutoContentItem) => string | undefined
+  /**
+   * The public site shows a save at once, because it reads this type at run time. A deploy may
+   * still run. The build indicator of the edit form (GitHub CMS) then shows "Live" right after a
+   * save, and shows the static build by a small spinner on the Info button. Default false: the
+   * indicator waits for the build and shows "Publishing…".
+   */
+  liveOnSave?: boolean
   /** Layout options for the generic content form. */
   form?: {
     /**
@@ -320,10 +327,15 @@ export interface PlutoContentFiles {
  * unchanged on update. An adapter that uses it answers 409 when the token no
  * longer matches the stored item. An adapter that does not use it ignores the
  * key. A content type must not declare a field named `_version`.
+ *
+ * `_frontmatter` is a reserved optional key too. The file adapter returns it on `get` only: the
+ * whole frontmatter of the file, also the keys that no field maps. The client never sends it back.
+ * A content type must not declare a field named `_frontmatter`.
  */
 export type PlutoContentItem = Record<string, unknown> & {
   id: string | number
   _version?: string
+  _frontmatter?: Record<string, unknown>
 }
 
 /** Options for a generic list read. See `server/utils/pluto-content-handlers.ts`. */
@@ -376,6 +388,17 @@ export interface PlutoContentAdapter {
  from: string
 to: string
 }) => Promise<number | null>
+  /**
+   * Reads one raw file of the type, by a path relative to the type folder (for example
+   * `1.start/.navigation.yml`). Optional: only a file adapter has files. Returns `null` when the
+   * file does not exist, when it is not visible to the caller (a draft Markdown file for an
+   * anonymous caller), and when the path is not safe: `..`, an absolute path, a backslash, or a
+   * path that leaves the type folder. `version` is the same version as `_version` of an item.
+   */
+  readFile?: (ctx: PlutoContentContext, relativePath: string) => Promise<{
+ text: string
+version?: string
+} | null>
 }
 
 /** One week of the content activity series. */

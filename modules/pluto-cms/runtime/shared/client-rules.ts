@@ -20,3 +20,15 @@ export function isPostTypeOn(config: {
 export function showPublicRepoWarning(repoPrivate: boolean | undefined, types: readonly Pick<PlutoContentType, 'status'>[]): boolean {
   return repoPrivate === false && types.some((type) => Boolean(type.status))
 }
+
+/**
+ * Whether the edit form shows the build status. A save must start a deploy
+ * (`commit.skipDeploy` is false), and the content must be in GitHub: the `fs`
+ * store has no builds. The module copies both options to the public runtime config.
+ */
+export function showBuildStatus(config: {
+ storage?: string
+skipDeploy?: boolean
+} | undefined): boolean {
+  return config?.storage === 'github' && config.skipDeploy === false
+}

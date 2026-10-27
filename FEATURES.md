@@ -22,7 +22,8 @@ policies shared by every project here.
   @.claude/skills/content-model/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
-  registry bucket that lets a layer add its own buttons to that form. The form shows the item title
+  registry bucket that lets a layer add its own buttons to that form, and the `contentToolbarItems`
+  bucket that adds a component (a status) to its toolbar. The form shows the item title
   in the toolbar, a load error state with retry, a create toast, labeled icon buttons with tooltips,
   and the aside fields inline on a narrow screen. A field can set `listFormat` for the generic list.
   Every form layout has one toolbar (title, save state, unsaved-changes dialog, Ctrl/Cmd+S, a View link
@@ -63,7 +64,13 @@ policies shared by every project here.
   and `PlutoMarkdown`. The GitHub App is created from the site (App Manifest flow): the setup routes
   under `/api/_pluto/cms/setup/` (`status`, `github/start`, `github/callback`), a result page with the
   env block, a `.env` write in development, a setup check on `/admin/login`, a **GitHub** tab in Settings,
-  and a private key in PEM, `\n` or base64 form. @.claude/skills/github-cms/SKILL.md
+  and a private key in PEM, `\n` or base64 form. The edit form shows the build status of the head
+  commit (check runs, commit statuses, deployments) next to Save, for GitHub storage with
+  `commit.skipDeploy` off: the route `GET /api/_pluto/cms/build-status`, a pure reducer, a polling loop,
+  and an Info popover with links to the Action or the build. A content type with `liveOnSave` shows
+  "Live" at once after a save and the static build as a small spinner. The file adapter has
+  `readFile` (safe relative paths) and `_frontmatter` on `get`, and core has the auto-imported
+  `markPublicRead(event)` for layers. @.claude/skills/github-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

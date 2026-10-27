@@ -194,6 +194,20 @@ export interface PlutoContentAction extends PlutoEntry {
   onSelect: (ctx: PlutoContentActionContext) => void | Promise<void>
 }
 
+/**
+ * A component a layer adds to the toolbar of the generic content form, before
+ * the buttons (a status, an indicator). It renders inside the form, so it can
+ * call `usePlutoContentForm()` to read the item and to run code after a save.
+ * It gets no props. Matched against a content type like `PlutoContentAction`:
+ * by exact name, or by `'*'` for every content type. Register it with
+ * `defineAsyncComponent`, so it loads on demand.
+ */
+export interface PlutoContentToolbarItem extends PlutoEntry {
+  /** Content type `name`, or '*' for every content type. */
+  contentType: string | '*'
+  component: Component
+}
+
 /** The signed-in user, as the admin shell needs it. Every field but `id` is optional. */
 export interface PlutoAuthUser {
   id: string
@@ -312,6 +326,7 @@ export interface PlutoExtension {
   contentTypes?: PlutoContentTypeEntry[]
   contentFieldWidgets?: PlutoContentFieldWidget[]
   contentActions?: PlutoContentAction[]
+  contentToolbarItems?: PlutoContentToolbarItem[]
   mediaAdapters?: PlutoMediaAdapterEntry[]
 }
 
@@ -347,5 +362,6 @@ export interface PlutoRegistry {
   contentTypes: PlutoRegistryBucket<PlutoContentTypeEntry>
   contentFieldWidgets: PlutoRegistryBucket<PlutoContentFieldWidget>
   contentActions: PlutoRegistryBucket<PlutoContentAction>
+  contentToolbarItems: PlutoRegistryBucket<PlutoContentToolbarItem>
   mediaAdapters: PlutoRegistryBucket<PlutoMediaAdapterEntry>
 }

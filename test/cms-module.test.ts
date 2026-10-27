@@ -185,7 +185,7 @@ file?: string
       allowedUsers: '',
       githubReadToken: '',
     })
-    expect(Object.keys(nuxt.options.runtimeConfig.public.plutoCms).sort()).toEqual(['appSlug', 'branch', 'dir', 'enabled', 'postType', 'repo', 'storage'])
+    expect(Object.keys(nuxt.options.runtimeConfig.public.plutoCms).sort()).toEqual(['appSlug', 'branch', 'dir', 'enabled', 'postType', 'repo', 'skipDeploy', 'storage'])
   })
 
   it('gives the project root to the dev fs store only', async () => {

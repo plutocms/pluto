@@ -278,7 +278,7 @@ describe('the start route', () => {
         'http://localhost:3000/api/_pluto/auth/github/callback',
       ],
       public: false,
-      default_permissions: { contents: 'write', metadata: 'read' },
+      default_permissions: { contents: 'write', metadata: 'read', checks: 'read', statuses: 'read', deployments: 'read' },
       hook_attributes: { url: 'https://acme.com', active: false },
       default_events: [],
       request_oauth_on_install: false,

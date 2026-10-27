@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // The toolbar of `PlutoContentForm`. Every layout uses it, so every edit page
 // has the same top row: back, "Type > title", the save state, the status
-// badge, the View link, the buttons of the layer, Save or Publish, the
+// badge, the View link, the toolbar items of the layers, the buttons of the
+// layers, Save or Publish, the
 // overflow menu, and the panel toggles. It holds no form logic. The form passes
 // the data in and handles the events.
 
@@ -19,6 +20,8 @@ published: boolean
   savedText?: string
   /** The public URL of the item. The "View" link shows only when it is set. */
   viewUrl?: string
+  /** Components that a layer adds with `contentToolbarItems`, already filtered. They show before the buttons. */
+  toolbarItems?: PlutoContentToolbarItem[]
   /** Buttons that a layer adds with `contentActions`, already filtered. */
   actions: PlutoFormHeaderButton[]
   /** The save and publish buttons, already filtered. */
@@ -142,6 +145,12 @@ const stateText = computed(() => {
         color="neutral"
         variant="ghost"
         target="_blank"
+      />
+
+      <component
+        :is="item.component"
+        v-for="item in toolbarItems"
+        :key="item.id"
       />
 
       <UButton

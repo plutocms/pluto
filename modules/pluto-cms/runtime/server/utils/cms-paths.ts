@@ -87,4 +87,36 @@ export function contentDirPath(dir: string, source: string, options: PlutoCmsPat
   return typeFolder(baseOf(dir), source, options)
 }
 
+const MAX_RELATIVE_LENGTH = 255
+/** True when the text has a control character (code under 32, or 127). */
+function hasControlChar(text: string): boolean {
+  return [...text].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
+}
+
+/**
+ * The path of a raw file under the folder of a type: `<folder>/<relative>`.
+ * `relative` is a path inside the folder, with `/` separators. Throws when it
+ * is empty, too long, absolute (`/x`, `C:/x`, `C:x`), has a backslash, a control
+ * character or a `%` escape, or has an empty, `.` or `..` segment. The result
+ * always stays under `folder`.
+ */
+export function typeRelativePath(folder: string, relative: string): string {
+  if (
+    typeof relative !== 'string'
+    || relative === ''
+    || relative.length > MAX_RELATIVE_LENGTH
+    || relative.includes('\\')
+    || relative.includes('%')
+    || hasControlChar(relative)
+    || /^[a-z]:/i.test(relative)
+  ) {
+    throw new PlutoCmsPathError('The path is not valid.')
+  }
+  const segments = relative.split('/')
+  if (segments.some((segment) => segment === '' || segment === '.' || segment === '..')) {
+    throw new PlutoCmsPathError('The path is not valid.')
+  }
+  return `${folder}/${relative}`
+}
+
 export { slugifyTitle }

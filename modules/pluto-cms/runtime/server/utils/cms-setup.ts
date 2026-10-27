@@ -6,6 +6,7 @@ import type { CmsConfig } from './cms-config'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { registerContentAdapter, registerContentType } from '../../../../../server/utils/pluto-content'
+import { isPublicRead, markPublicRead } from '../../../../../server/utils/pluto-public-read'
 import { plutoCmsPostType } from '../../shared/post-type'
 import { createMarkdownContentAdapter } from '../adapter'
 import { createAppTokenProvider } from '../github/app-token'
@@ -42,16 +43,14 @@ export function createCmsStore(config: CmsConfig, cache: CmsCache): PlutoCmsStor
   })
 }
 
-/** The key on `event.context` that makes a request anonymous. See `markCmsAnonymous`. */
-const ANONYMOUS_KEY = 'plutoCmsAnonymous'
-
 /**
  * Makes the rest of this request anonymous. `getCmsAccess` then returns
  * `null` and never reads the session cookie. The public read routes call
  * this first, so a response never depends on who asks, and never sets a cookie.
+ * It is the same as `markPublicRead` of core, which a layer can call too.
  */
 export function markCmsAnonymous(event: H3Event): void {
-  event.context[ANONYMOUS_KEY] = true
+  markPublicRead(event)
 }
 
 /**
@@ -60,7 +59,7 @@ export function markCmsAnonymous(event: H3Event): void {
  * `markCmsAnonymous` marked.
  */
 export async function getCmsAccess(event: H3Event): Promise<PlutoCmsAccess | null> {
-  if (event.context[ANONYMOUS_KEY] === true) {
+  if (isPublicRead(event)) {
     return null
   }
   const session = await getCmsSession(event)

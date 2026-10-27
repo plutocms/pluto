@@ -64,6 +64,9 @@ no shell command. Tests: `test/cms-git-remote.test.ts`, `test/pluto-cms-options.
   `runtime/server/middleware/pluto-cms-origin.ts`, `runtime/server/plugins/pluto-cms.ts` — the
   authentication and the wiring (see "Authentication" and "Wiring").
 - `runtime/app/{composables,plugins}/` — the client side.
+- `runtime/server/{api/build-status.get,utils/build-status}.ts`, `runtime/shared/{build-status,build-poller}.ts`,
+  `runtime/app/composables/pluto-cms-build-status.ts` and `app/components/Pluto/Cms/PlutoCmsBuildStatus.vue` —
+  the build status (see "Build status").
 - `app/components/Pluto/Cms/` — the sign-in form (`PlutoCmsSignIn`), the dashboard warning, the
   editor widget and `PlutoMarkdown`.
 - `runtime/server/utils/{markdown,sanitize-html,public-content}.ts`,
@@ -101,7 +104,7 @@ Required: `SESSION_PASSWORD`, `GITHUB_APP_ID`, `GITHUB_CLIENT_ID`, `GITHUB_CLIEN
 ## Runtime config
 
 When on, the module writes `runtimeConfig.plutoCms` (the secrets) and
-`runtimeConfig.public.plutoCms` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`).
+`runtimeConfig.public.plutoCms` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`, `postType`, `skipDeploy`).
 
 ## Storage
 
@@ -162,6 +165,13 @@ Frontmatter mapping:
 Access rules:
 
 - `getAccess(event)` returns `{ capabilities, auth }`, or `null` for an anonymous caller.
+- `readFile(ctx, relativePath)` reads a raw file of the type folder (`{ text, version }`, `version` is
+  the blob id). It works over the `github` and `fs` stores. `typeRelativePath` (`utils/cms-paths.ts`)
+  refuses `..`, absolute paths, drive letters, backslashes, `%`, control characters and empty or `.`
+  segments (the adapter then returns `null`). A `.md` file follows the rules of `get` (usable id, visible).
+  `get` adds `_frontmatter`: the whole frontmatter after the `read` hook.
+- A layer that serves public pages calls the core util `markPublicRead(event)` (auto-imported;
+  `markCmsAnonymous` is the same call inside the module). The test is `test/cms-adapter-read-file.test.ts`.
 - An anonymous caller sees published items only. This holds for `list`, `get` and `countCreated`,
   even when the query asks for drafts.
 - A signed-in caller sees drafts only with the type read capability (`posts:read_drafts`). The
@@ -398,7 +408,7 @@ app with a cookie jar), `cms-test-config.ts` and `kit-mock.ts`.
 This is the manual path. The site can create the App for you: see "Setup from the site".
 
 1. Create a GitHub App (Settings, Developer settings, GitHub Apps).
-2. Repository permissions: Contents read and write, Metadata read.
+2. Repository permissions: Contents read and write, Metadata read. For the build status of the edit form also: Checks read, Commit statuses read, Deployments read.
 3. Callback URL: `<site>/api/_pluto/auth/github/callback`. Add one for local tests if needed.
 4. Turn "Expire user authorization tokens" ON. The session refreshes tokens that expire.
 5. Turn "Request user authorization (OAuth) during installation" OFF. Turn webhooks off.
@@ -482,7 +492,7 @@ production, both answer 404. The secrets only go to the browser that runs the fl
 - `redirect_url`: `<origin>/api/_pluto/cms/setup/github/callback`.
 - `callback_urls`: `<origin>/api/_pluto/auth/github/callback`, plus
   `http://localhost:3000/api/_pluto/auth/github/callback` when the origin is not local.
-- `public: false`, `default_permissions: { contents: 'write', metadata: 'read' }`,
+- `public: false`, `default_permissions: { contents: 'write', metadata: 'read', checks: 'read', statuses: 'read', deployments: 'read' }`,
   `default_events: []`, `request_oauth_on_install: false`.
 
 ### The result page
@@ -695,6 +705,97 @@ const { data } = await usePlutoCmsList('post', { limit: 10 })
 (the allowlist), `test/cms-public.test.ts` (drafts, excerpt, paging, 400 and 404, the cache
 header, no cookie, anonymous with a session) and the new cases in `test/cms-module.test.ts` and
 `test/pluto-cms-options.test.ts`.
+
+## Build status
+
+After a save, the site can take some minutes to change. The edit form shows the build of the head
+commit of the content branch, next to the Save button. It shows only for GitHub storage with
+`commit.skipDeploy` false (a save then starts a deploy). With the `fs` store, or with
+`skipDeploy` on, nothing shows. The module copies `skipDeploy` to `runtimeConfig.public.plutoCms`,
+and `showBuildStatus` (`runtime/shared/client-rules.ts`) is the test.
+
+### Route
+
+`GET /api/_pluto/cms/build-status`. It is static, so it wins over `/api/_pluto/cms/:type` (a type
+named `build-status` cannot use the public read route). It needs a signed-in user (401 otherwise)
+and reads with the token of that user. The answer has `Cache-Control: no-store`. The `fs` store
+answers `none` with no GitHub call.
+
+It reads the commit (`GET /repos/{repo}/commits/{branch}`: sha, message, date). Then, for that sha,
+three sources at the same time:
+
+- check runs (`/commits/{sha}/check-runs`): GitHub Actions and apps. `html_url` is the Action run.
+- commit statuses (`/commits/{sha}/status`): for example Vercel. `target_url` is the build page.
+- deployments (`/deployments?sha=`), the newest of each environment, and the latest status of each
+  one (`/deployments/{id}/statuses?per_page=1`). At most 5 environments.
+
+The sources of one user and sha stay in memory for 3 seconds, so several tabs share the calls. A
+403 or 404 on a source means that the App cannot read it. The source is skipped and its kind is in
+`unavailable`. A GitHub rate limit gives 503 with `Retry-After`, a rejected token 401, any other
+failure 502 (the same `pluto.cms.errors.*` keys as the adapter).
+
+The answer (`PlutoBuildStatus`, `runtime/shared/build-status.ts`):
+
+```ts
+{ sha, shortSha, message /* first line */, committedAt?, state: 'none' | 'pending' | 'success' | 'failure',
+  items: [{ kind: 'check' | 'status' | 'deployment', name, state: 'pending' | 'success' | 'failure',
+            url?, startedAt?, completedAt?, description? }],
+  unavailable?: ('check' | 'status' | 'deployment')[] }
+```
+
+### The reducer
+
+`reduceBuildStatus({ checkRuns, statuses, deployments })` is pure (`runtime/shared/build-status.ts`).
+
+- Check run: not `completed` is pending. `success`, `neutral` and `skipped` are a success. Every
+  other conclusion (`failure`, `cancelled`, `timed_out`, `action_required`, `stale`) is a failure.
+- Commit status: `success`, `pending`, and `failure` or `error` (a failure). Unknown is pending.
+- Deployment: `success` and `inactive` are a success. `failure` and `error` fail. `queued`,
+  `pending`, `in_progress` and a deployment with no status yet are pending.
+- Commit state: `none` with no item. `pending` while any item is pending (even if another failed).
+  Else `failure` when any item failed. Else `success`.
+- `url` keeps an `http` or `https` URL only.
+
+### The item in the toolbar
+
+`app/components/Pluto/Cms/PlutoCmsBuildStatus.vue` is a `contentToolbarItems` entry with
+`contentType: '*'` and `order: 50` (see the admin-view-chrome skill). The CMS client plugin
+registers it, lazy, only when `showBuildStatus` is true.
+
+- A type with `liveOnSave` (see the content-model skill) shows a save at once: after a save the item
+  shows the check and "Live" without waiting for the first answer. While the state is `pending` a
+  small spinner shows by the Info button, and the popover says "Static build in progress". When the
+  build fails, the item keeps "Live", the Info icon gets a warning tint, and the popover says "The
+  static build failed. The site serves the change at run time until a build passes." On open, the item
+  shows "Live" once the status is known. Without `liveOnSave` nothing changes.
+- Pending: a spinner and "Publishing…". Success: a check mark and "Live". Failure: an error icon
+  and "Build failed". `none`, and a failed read: nothing. The text hides below `md`.
+- The Info button opens a popover (`UPopover`): the commit (short sha, message, time) and each
+  item with its state, time, description and a link button ("View the Action" for a check run,
+  "View the build" for a status or a deployment). `unavailable` adds a hint about the App
+  permissions.
+- Polling (`createBuildPoller`, `runtime/shared/build-poller.ts`, with the rules in `shouldPoll`):
+  one read when the edit page opens and after each save (`usePlutoContentForm().onSaved`, which
+  forgets the old answer first). Then every 5 seconds while the state is `pending`. It stops when
+  the state is final, after 15 minutes, and while the page is hidden (it reads again when the page
+  shows). After a save, `none` is not final for 60 seconds, because GitHub needs some seconds to
+  create the checks. Errors back off (10 s, 20 s, up to 60 s). It stops on 401 or 403, and after 5
+  errors in a row.
+- `usePlutoCmsBuildStatus()` (`runtime/app/composables/pluto-cms-build-status.ts`) holds the state
+  for one component: `status`, `failed`, `check()`, `afterSave()`, `stop()`.
+
+### GitHub App permissions
+
+The App needs read access to **Checks**, **Commit statuses** and **Deployments**. The App manifest
+of the setup flow asks for them (`checks`, `statuses`, `deployments`: `read`). An App that was
+created before this feature lacks them: GitHub answers 403, the sources are `unavailable`, and no
+item shows. Add the three permissions in the App settings, and accept them on the installation.
+
+### Tests
+
+`test/cms-build-status.test.ts` (reducer, URL and headline helpers, `shouldPoll`,
+`showBuildStatus`), `test/cms-build-poller.test.ts` (the loop, with fake timers) and
+`test/cms-build-status-route.test.ts` (the route with a fake GitHub).
 
 ## Status
 
