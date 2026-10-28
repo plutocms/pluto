@@ -1,5 +1,7 @@
 // @ts-check
 import antfu from '@antfu/eslint-config'
+import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
+import { getDefaultSelectors } from 'eslint-plugin-better-tailwindcss/defaults'
 import withNuxt from './.nuxt/eslint.config.mjs'
 
 // See: https://eslint.vuejs.org/rules
@@ -112,5 +114,26 @@ export default withNuxt(
 
       'unicorn/number-literal-case': 'off',
     },
-  })
+  }),
+  // Canonical Tailwind classes (the same suggestion as Tailwind IntelliSense,
+  // `suggestCanonicalClasses`): `w-px`, not `w-[1px]`. The design system is
+  // tailwind.lint.css. Nuxt UI `ui` objects (`:ui="{ root: '…' }"`) count too.
+  {
+    files: ['**/*.vue', '**/*.ts'],
+    plugins: { 'better-tailwindcss': betterTailwindcss },
+    settings: {
+      'better-tailwindcss': {
+        entryPoint: 'tailwind.lint.css',
+        selectors: [
+          ...getDefaultSelectors(),
+          { kind: 'attribute', name: '^ui$', match: [{ type: 'objectValues' }] },
+        ],
+      },
+    },
+    rules: {
+      'better-tailwindcss/enforce-canonical-classes': 'error',
+      // The fix of the rule above can leave double spaces in a class list.
+      'better-tailwindcss/no-unnecessary-whitespace': 'error',
+    },
+  }
 )
