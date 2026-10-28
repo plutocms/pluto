@@ -1,6 +1,23 @@
 # Changelog
 
 
+## [0.29.0](https://github.com/plutocms/pluto/compare/v0.28.0...v0.29.0) (2026-10-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove the old GitHub env names and the utils navbar bridge ([#238](https://github.com/plutocms/pluto/issues/238))
+
+### Features
+
+* **admin:** open the active sidebar group, site chip, list title links and admin badge ([#239](https://github.com/plutocms/pluto/issues/239)) ([19f84bc](https://github.com/plutocms/pluto/commit/19f84bc32e6a623a8839acd8f8add438f9891bf5))
+* remove the old GitHub env names and the utils navbar bridge ([#238](https://github.com/plutocms/pluto/issues/238)) ([9fa29ec](https://github.com/plutocms/pluto/commit/9fa29ec569a0d1b9313d61e226feb46079e7dd97))
+
+
+### Bug Fixes
+
+* **deps:** use @plutocms/utils 0.3 ([#242](https://github.com/plutocms/pluto/issues/242)) ([c32228b](https://github.com/plutocms/pluto/commit/c32228becaf3628d71c4c93338fc74c2c637f3d4))
+
 ## [0.28.0](https://github.com/plutocms/pluto/compare/v0.27.0...v0.28.0) (2026-10-27)
 
 
