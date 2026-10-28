@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.31.0](https://github.com/plutocms/pluto/compare/v0.30.0...v0.31.0) (2026-10-28)
+
+
+### Features
+
+* **github:** commit each local save to the local Git repo ([#246](https://github.com/plutocms/pluto/issues/246)) ([07922a4](https://github.com/plutocms/pluto/commit/07922a41f34285b721ec5517cd1af524a37faa83))
+
 ## [0.30.0](https://github.com/plutocms/pluto/compare/v0.29.0...v0.30.0) (2026-10-28)
 
 
