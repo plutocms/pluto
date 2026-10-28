@@ -594,6 +594,7 @@
     },
     "post": {
       "previewTitle": "Post preview",
+      "previewBadge": "Preview",
       "outline": "Outline",
       "outlineEmpty": "No headings yet",
       "outlineEmptyHint": "Add a heading (## Title) to see it here.",

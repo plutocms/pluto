@@ -594,6 +594,7 @@
     },
     "post": {
       "previewTitle": "Prévia do post",
+      "previewBadge": "Prévia",
       "outline": "Estrutura",
       "outlineEmpty": "Nenhum título ainda",
       "outlineEmptyHint": "Adicione um título (## Título) para vê-lo aqui.",

@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="bg-muted relative size-full min-h-0">
+  <div class="bg-muted group relative size-full min-h-0">
     <iframe
       ref="frame"
       :key="frameKey"
@@ -109,6 +109,17 @@ onBeforeUnmount(() => {
       class="bg-default size-full border-0"
       loading="eager"
     />
+
+    <!-- Tells the preview apart from the editor. It fades out while the pointer is on the
+         preview, so it never hides the page. The iframe title names the frame for a screen reader. -->
+    <div
+      v-if="ready && !timedOut"
+      class="bg-elevated/90 text-muted ring-default pointer-events-none absolute inset-e-3 top-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm ring backdrop-blur transition-opacity duration-200 group-hover:opacity-0"
+      aria-hidden="true"
+    >
+      <UIcon name="i-lucide-eye" class="size-3.5" />
+      {{ t('pluto.post.previewBadge') }}
+    </div>
 
     <!-- While the preview loads: the shape of a page and a small status pill. -->
     <div
