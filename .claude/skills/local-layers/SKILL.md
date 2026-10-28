@@ -38,7 +38,7 @@ works.
 
 - Local mode is on when `PLUTO_LOCAL_ROOT` (or `options.root`) is set, unless
   `PLUTO_USE_LOCAL=false`. A relative root resolves from the current working directory.
-- A checkout exists when `<root>/<folder>/nuxt.config.ts` exists. The folders are `utils`, `ui`,
+- A checkout exists when `<root>/<folder>/nuxt.config.ts` exists. The folders are `utils`,
   `pluto`, `supabase`, `supabase-shop`, `supabase-storage`, `supabase-blog`, `nuxt-content`.
 - The helper sets `PLUTO_<NAME>_PATH` (upper case, `-` to `_`) for each checkout that exists and
   is not set yet. The `nuxt.config.ts` of each layer reads that variable, so the upstream layers go
