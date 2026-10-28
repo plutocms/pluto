@@ -62,12 +62,12 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             <template v-else>
               <PlutoLogo
                 aria-hidden="true"
-                class="block h-[27px] w-auto grayscale-100 group-hover:grayscale-0 sm:hidden"
+                class="block h-6.75 w-auto grayscale-100 group-hover:grayscale-0 sm:hidden"
                 mark
               />
               <PlutoLogo
                 aria-hidden="true"
-                class="text-highlighted hidden h-[31px] w-auto grayscale-100 group-hover:grayscale-0 sm:block"
+                class="text-highlighted hidden h-7.75 w-auto grayscale-100 group-hover:grayscale-0 sm:block"
               />
             </template>
             <!-- The site that this admin edits, as a chip. -->

@@ -124,6 +124,8 @@ export default withNuxt(
     settings: {
       'better-tailwindcss': {
         entryPoint: 'tailwind.lint.css',
+        // px arbitrary values become spacing steps (`h-[27px]` is `h-6.75`).
+        rootFontSize: 16,
         selectors: [
           ...getDefaultSelectors(),
           { kind: 'attribute', name: '^ui$', match: [{ type: 'objectValues' }] },
