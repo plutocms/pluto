@@ -103,3 +103,13 @@
 [data-pluto-admin-dark] :where([class*='before:transition'])::before {
   transition-duration: 0s !important;
 }
+
+/*
+ * While a panel resizes (the admin sidebar sets `data-dragging="true"`, a
+ * splitter handle `data-resize-handle-state="drag"`), an iframe (the page
+ * preview) must not take the pointer. Without this, the drag stops when the
+ * pointer moves over the iframe.
+ */
+:root[data-pluto-admin]:has([data-dragging='true'], [data-resize-handle-state='drag']) iframe {
+  pointer-events: none;
+}
