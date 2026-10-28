@@ -1,7 +1,20 @@
 # Admin theme
 
-The admin has its own look, independent of the consumer app's public site: an indigo
-primary, zinc neutrals, its own chart palette, surfaces, and the Outfit font.
+The admin has its own look, independent of the consumer app's public site: the Pluto UI tokens
+(a tholin primary, haze secondary, kuiper neutrals), its own chart palette, surfaces, and the
+Pluto fonts.
+
+## The Pluto UI tokens
+
+`app/assets/css/pluto-tokens.css` holds the official palette and fonts of Pluto in
+`@theme static`: the scales `tholin` (red-orange, the action color), `haze` (blue), `heart`
+(tan and cream) and `kuiper` (a cool deep neutral), 50 to 950, and `--font-pluto` (Public Sans)
+and `--font-pluto-display` (Fredoka). Every app gets the utilities (`bg-tholin-600`,
+`font-pluto`) and the variables. The tokens only add names; they never change the app's own
+colors or fonts. `pluto-layer.css` imports the file before `admin-theme.css`.
+
+The generator reads the scales from this file, so the admin and the tokens cannot drift. Change a
+token, then run the generator.
 
 ## Why
 
@@ -16,7 +29,9 @@ Both used to reach the admin:
 ## Files
 
 - `app/assets/css/admin-theme.css` — generated. Do not edit it by hand.
-- `scripts/generate-admin-theme.cjs` — generates it from the installed Tailwind palette. Run
+- `app/assets/css/pluto-tokens.css` — the Pluto UI tokens (see above).
+- `scripts/generate-admin-theme.cjs` — generates it from the Pluto tokens and, for the status
+  colors, the installed Tailwind palette. Run
   `node scripts/generate-admin-theme.cjs` from the repo root.
 - `app/composables/pluto-admin-theme.ts` — `usePlutoAdminTheme()`.
 - `app/layouts/admin.vue`, `app/layouts/auth.vue` — call `usePlutoAdminTheme()`.
@@ -42,34 +57,51 @@ scoped element, the `:root` tokens would still hold the app's colors.
 
 ## Palette
 
-| Role | Color |
-|---|---|
-| primary | indigo |
-| secondary | violet |
-| success | green |
-| info | blue |
-| warning | amber |
-| error | red |
-| neutral | zinc |
+| Role | Color | Light step | Dark step |
+|---|---|---|---|
+| primary | tholin | 600 | 400 |
+| secondary | haze | 700 | 400 |
+| success | green | 500 | 400 |
+| info | haze | 500 | 400 |
+| warning | amber | 500 | 400 |
+| error | rose | 500 | 400 |
+| neutral | kuiper | | |
+
+The light steps of tholin and haze give 4.5:1 on white, as on the docs site. Errors use rose, not
+red: tholin is a red-orange (OKLCH hue 37) and red (hue 27) looks like it next to a primary
+button. Rose is at hue 17. Every value is an OKLCH literal (the generator converts the hex tokens).
 
 Surfaces (`--pluto-admin-canvas`, `--pluto-admin-sidebar`, `--pluto-admin-navbar`): in light
-mode, a white canvas, a zinc-50 sidebar, and a zinc-950 (near black) navbar. The navbar is near
-black in both modes. `PlutoNavbarAdmin` sets `data-pluto-admin-dark`, so its text and buttons
-take the dark tokens in light mode too. In dark mode the surfaces go from darkest at the top to
-lightest in the content:
+mode, a white canvas, a kuiper-50 sidebar, and a kuiper-950 (near black navy) navbar. The navbar
+is near black in both modes. `PlutoNavbarAdmin` sets `data-pluto-admin-dark`, so its text and
+buttons take the dark tokens in light mode too. In dark mode the surfaces go from darkest at the
+top to lightest in the content, all on the kuiper hue (273):
 
 | Surface | Dark value |
 |---|---|
-| Navbar (`--pluto-admin-navbar`) | zinc-950, near black |
-| Sidebar (`--pluto-admin-sidebar`) | `oklch(17.5% 0.0055 286)`, between zinc-950 and zinc-900 |
-| Canvas (`--pluto-admin-canvas`) | zinc-900, a dim dark gray, not pitch black |
-| Cards (`--ui-bg`) | `oklch(24% 0.006 286)`, one step above the canvas |
+| Navbar (`--pluto-admin-navbar`) | kuiper-950 |
+| Sidebar (`--pluto-admin-sidebar`) | `oklch(20.5% 0.040 273)`, between kuiper-950 and kuiper-900 |
+| Canvas (`--pluto-admin-canvas`) | kuiper-900 |
+| Cards (`--ui-bg`) | `oklch(28% 0.042 273)`, one step above the canvas |
 
-Chart series (`--ui-chart-1` to `-6`): primary, then amber, teal, rose, sky, lime. Light uses
-amber-600, teal-600, rose-500, sky-600, lime-700. Dark uses the same, with lime-600. The
-dataviz palette checks pass for both: lightness band, chroma floor, colorblind separation,
-normal-vision separation, and 3:1 contrast (on white and on the dark card surface). Run the checks again
-before you change a slot.
+Chart series (`--ui-chart-1` to `-6`), in a fixed order: tholin, haze, lime, violet, teal,
+amber. Light: tholin-600, haze-600, lime-700, violet-500, teal-600, amber-600. Dark: tholin-500
+(the primary 400 is too light for the dark band), haze-500, lime-600, violet-500, teal-600,
+amber-600. The dataviz palette checks pass for both: lightness band, chroma floor, colorblind
+separation of neighbors (worst 12.6), normal-vision separation, and 3:1 contrast, on white and on
+the dark card surface. Lime must not sit next to amber: that pair fails the colorblind check.
+Amber is also the warning color; no other hue passed in the sixth slot without a status color.
+Run the checks again before you change a slot.
+
+## Fonts
+
+The admin text is Public Sans (`--font-sans` under the admin selectors). Page titles (`h1`: the
+dashboard, Settings, the sign-in card) use Fredoka, the rounded face of the wordmark, through
+`--pluto-admin-font-display`. Both are literals, like the colors. `@nuxt/fonts` finds them in
+the stylesheet and serves them.
+
+`pluto-layer.css` still declares `--font-outfit` (the font of the admin before the Pluto tokens)
+in `@theme`. Some sites use `font-outfit` for their own text, so it stays until they move.
 
 ## Corner radius
 

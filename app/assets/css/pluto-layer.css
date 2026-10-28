@@ -15,6 +15,7 @@
  * - Add no @source for app/: Nuxt UI already scans every layer's app/ dir.
  * See the single-tailwind-build skill.
  */
+@import './pluto-tokens.css';
 @import './admin-theme.css';
 
 @theme {

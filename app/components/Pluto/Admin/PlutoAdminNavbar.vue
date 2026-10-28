@@ -10,6 +10,10 @@ const isSidebarOpen = usePlutoAdminMenuOpen()
 const { t } = usePlutoI18n()
 const { hasDriver } = usePlutoAuth()
 const site = usePlutoSiteInfo()
+// The navbar is dark in both color modes, so a brand shows its dark-background logo.
+const { brand } = usePlutoBrand()
+const brandLogo = computed(() => brand.value.logoDark || brand.value.logo || '')
+const brandMark = computed(() => brand.value.mark || brandLogo.value)
 const host = useRequestURL().host
 const websiteName = useRuntimeConfig().public.websiteName as string | undefined
 
@@ -42,16 +46,30 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             to="/admin/home"
             class="group flex h-full items-center gap-x-2"
           >
-            <!-- The planet only on a small screen. The wordmark from `sm`. -->
-            <PlutoLogo
-              aria-hidden="true"
-              class="block h-[27px] w-auto grayscale-100 group-hover:grayscale-0 sm:hidden"
-              mark
-            />
-            <PlutoLogo
-              aria-hidden="true"
-              class="text-highlighted hidden h-[31px] w-auto grayscale-100 group-hover:grayscale-0 sm:block"
-            />
+            <!-- A brand logo (white label), else the Pluto logo. The mark only on a small screen. -->
+            <template v-if="brandLogo">
+              <img
+                :src="brandMark"
+                :alt="brand.name ?? ''"
+                class="block h-7 w-auto max-w-10 object-contain sm:hidden"
+              />
+              <img
+                :src="brandLogo"
+                :alt="brand.name ?? ''"
+                class="hidden h-7 w-auto max-w-40 object-contain sm:block"
+              />
+            </template>
+            <template v-else>
+              <PlutoLogo
+                aria-hidden="true"
+                class="block h-[27px] w-auto grayscale-100 group-hover:grayscale-0 sm:hidden"
+                mark
+              />
+              <PlutoLogo
+                aria-hidden="true"
+                class="text-highlighted hidden h-[31px] w-auto grayscale-100 group-hover:grayscale-0 sm:block"
+              />
+            </template>
             <!-- The site that this admin edits, as a chip. -->
             <span
               v-if="siteName"

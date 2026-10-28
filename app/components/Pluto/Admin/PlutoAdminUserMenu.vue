@@ -10,6 +10,20 @@ const { t } = usePlutoI18n()
 const { user, signOut } = usePlutoAuth()
 const account = usePlutoAccountMenu()
 const { isAdmin } = usePlutoPermissions()
+// The brand (white label) adds a help link and the agency link, and can hide
+// the link to Pluto.
+const { brand, plutoLinks } = usePlutoBrand()
+const linkItems = computed<DropdownMenuItem[]>(() => [
+  ...(brand.value.helpUrl
+    ? [{ label: t('pluto.navbar.help'), icon: 'i-lucide-life-buoy', type: 'link' as const, to: brand.value.helpUrl, target: '_blank', external: true }]
+    : []),
+  ...(brand.value.url
+    ? [{ label: brand.value.name || domainFromUrl(brand.value.url) || brand.value.url, icon: 'i-lucide-external-link', type: 'link' as const, to: brand.value.url, target: '_blank', external: true }]
+    : []),
+  ...(plutoLinks.value
+    ? [{ label: t('pluto.navbar.github'), icon: 'i-simple-icons-github', type: 'link' as const, to: 'https://github.com/plutocms/pluto', target: '_blank', external: true }]
+    : []),
+])
 
 const name = computed(() => displayName(user.value, t('pluto.navbar.defaultUserName')))
 const short = computed(() => shortName(user.value, t('pluto.navbar.defaultUserName')))
@@ -52,16 +66,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
       onSelect: item.onSelect ?? (item.to && item.kbds ? () => navigateTo(item.to) : undefined),
     })),
   ],
-  [
-    {
-      label: t('pluto.navbar.github'),
-      icon: 'i-simple-icons-github',
-      type: 'link',
-      to: 'https://github.com/plutocms/pluto',
-      target: '_blank',
-      external: true,
-    },
-  ],
+  ...(linkItems.value.length > 0 ? [linkItems.value] : []),
   [
     {
       label: t('pluto.navbar.signOut'),

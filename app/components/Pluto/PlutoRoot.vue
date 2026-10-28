@@ -32,9 +32,25 @@ const managesLang = computed(() => isAdmin.value || Boolean(siteManaged))
 // site info name, then the `websiteName` runtime config, then the admin name.
 // Public routes keep the title template of the app. Every value is the same on
 // the server and on the client, so the title is hydration-safe.
+// The brand of the admin (white label): the primary scale, the radius and the
+// fonts, after the admin theme. See usePlutoBrand and the admin-theme skill.
+const plutoBrand = usePlutoBrand()
+useHead({
+  style: computed(() => (plutoBrand.css.value ? [{ key: 'pluto-brand', textContent: plutoBrand.css.value }] : [])),
+})
+
+if (import.meta.dev) {
+  const primary = plutoBrand.brand.value.primary
+  if (primary !== undefined && !isPlutoBrandHex(primary)) {
+    console.warn(`[pluto] appConfig.pluto.brand.primary must be a hex color such as #0F766E. "${primary}" is not used.`)
+  } else if (primary && plutoBrandContrast(primary) < 4.5) {
+    console.warn(`[pluto] appConfig.pluto.brand.primary ${primary} has ${plutoBrandContrast(primary).toFixed(1)}:1 contrast with white text. Use a darker color (4.5:1 or more).`)
+  }
+}
+
 const siteInfo = usePlutoSiteInfo()
 const websiteName = useRuntimeConfig().public.websiteName as string | undefined
-const siteName = computed(() => resolveSiteName(siteInfo.name.value, websiteName, admin.t('pluto.app.name')))
+const siteName = computed(() => resolveSiteName(siteInfo.name.value, websiteName, plutoBrand.brand.value.name || admin.t('pluto.app.name')))
 
 // The input is reactive, so a public route adds no entry and the title
 // template of the app stays in force there.

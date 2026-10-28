@@ -33,7 +33,8 @@
       "signOut": "Sign out",
       "signedOut": "Signed out",
       "administrator": "Administrator",
-      "adminBadge": "Admin"
+      "adminBadge": "Admin",
+      "help": "Help"
     },
     "nav": {
       "home": "Home",

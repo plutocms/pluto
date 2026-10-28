@@ -253,7 +253,7 @@ later page load has it in the first paint. If the capabilities load fails, the b
 order:
 
 1. The menu button, for small screens (`usePlutoAdminMenuOpen`).
-2. The logo and the site name chip. Below `sm` the logo is the planet only (`PlutoLogo mark`),
+2. The logo (a brand logo with `appConfig.pluto.brand`, see the white-label skill) and the site name chip. Below `sm` the logo is the planet only (`PlutoLogo mark`),
    and the chip is hidden. From `sm` the logo has the wordmark, and the site name shows as a
    rounded chip. The name is `site.name()`, else `runtimeConfig.public.websiteName`. The chip is
    hidden when the name is empty or `Untitled`.
@@ -269,8 +269,8 @@ The user menu has the avatar and the short name. An administrator (`usePlutoPerm
 the capability `'*'`) gets an "Admin" badge (`pluto.navbar.adminBadge`) next to the name from
 `lg`, a warning chip on the avatar below `lg`, "Administrator" (`pluto.navbar.administrator`) in
 the dropdown header and in the accessible name of the button. The supabase `admin` role and a
-GitHub user with admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)`),
-Settings (`meta+,`), the `accountMenu` items, "Pluto on GitHub" (`plutocms/pluto`) and Sign out
+GitHub user with admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)`, with "Administrator" under it for an administrator),
+Settings (`meta+,`), the `accountMenu` items, the brand links ("Help" from `brand.helpUrl`, the agency from `brand.url`), "Pluto on GitHub" (`plutocms/pluto`, hidden with `brand.plutoLinks: false`) and Sign out
 (`meta+shift+q`). Shortcuts use `defineShortcuts(extractShortcuts(items))`.
 `PlutoAdminNavbarProvider` shows the bar when `usePlutoAdminBar().visible` is true.
 
