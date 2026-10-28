@@ -26,7 +26,6 @@ export type PlutoLayerEntry = [source: string, options: PlutoLayerEntryOptions]
 /** The folder names of the Pluto layer checkouts. The name is the package name without the scope. */
 export const PLUTO_LAYER_FOLDERS = [
   'utils',
-  'ui',
   'pluto',
   'supabase',
   'supabase-shop',
