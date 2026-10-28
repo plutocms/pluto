@@ -75,6 +75,16 @@ navbar's menu button sets that state.
 - `PlutoRoot` closes the menu after every navigation. The watch is in `PlutoRoot`, because the
   public-page menu unmounts when the route moves into `/admin`.
 
+### Collapse and active items
+
+The admin sidebar is `collapsible` (Nuxt UI): its footer has `UDashboardSidebarCollapse`
+(desktop only). Collapsed, it is a 4rem rail: the search button is square, and `UNavigationMenu`
+gets `collapsed`, `tooltip` (the item label) and `popover` (the children of a group). Nuxt UI
+keeps the state in the `pluto-admin` group cookie.
+
+Only a top-level item shows the active background. Each child item has
+`ui.link: 'data-active:before:bg-transparent'`, so an active child shows the primary text alone.
+
 ### Open groups
 
 `usePlutoAdminMenuGroups()` holds the ids of the open groups (the `v-model` of `UNavigationMenu`,

@@ -266,10 +266,11 @@ order:
    skeleton as the fallback.
 
 The user menu has the avatar and the short name. An administrator (`usePlutoPermissions().isAdmin`:
-the capability `'*'`) gets an "Admin" badge (`pluto.navbar.adminBadge`) next to the name from
-`lg`, a warning chip on the avatar below `lg`, "Administrator" (`pluto.navbar.administrator`) in
-the dropdown header and in the accessible name of the button. The supabase `admin` role and a
-GitHub user with admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)`, with "Administrator" under it for an administrator),
+the capability `'*'`) gets a warning chip on the avatar, an "Admin" badge (`pluto.navbar.adminBadge`,
+title `pluto.navbar.administrator`) at the end of the dropdown header (the `account` item slot,
+`#account-trailing`), and "Administrator" in the accessible name of the button. The badge is not in
+the bar: it pushed the avatar out on narrow widths. The supabase `admin` role and a GitHub user with
+admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)`),
 Settings (`meta+,`), the `accountMenu` items, the brand links ("Help" from `brand.helpUrl`, the agency from `brand.url`), "Pluto on GitHub" (`plutocms/pluto`, hidden with `brand.plutoLinks: false`) and Sign out
 (`meta+shift+q`). Shortcuts use `defineShortcuts(extractShortcuts(items))`.
 `PlutoAdminNavbarProvider` shows the bar when `usePlutoAdminBar().visible` is true.

@@ -116,6 +116,21 @@ A custom property that uses `var()` resolves where it is declared. So the rule d
 `--radius-xs` to `--radius-3xl` again, next to `--ui-radius`, with the multipliers of Nuxt UI. Never
 put the radius in `@theme`: it would reach the public site of the app.
 
+## Snappy hovers
+
+`pluto-layer.css` gives the color, opacity and `transition` utilities no duration in the admin
+(also on the `::before` layer of the menu items), so a hover shows at once. A Nuxt UI button
+(`[data-slot=base]` on a `button` or `a`) keeps 75ms. The navbar (`data-pluto-admin-dark`) has no
+transition at all. Transforms and keyframe animations are not touched. To keep a transition on
+purpose, use the important modifier (`before:duration-150!`), as the resize handles do.
+
+## The search overlay
+
+The admin search (`UDashboardSearch`) gets `ui.modal: 'pluto-admin-search'`. A rule in
+`pluto-layer.css` (`[data-slot=overlay]:has(+ .pluto-admin-search)`) makes its overlay darker
+(`oklch(13% 0.03 273 / 0.6)`) with a 6px backdrop blur. Other modals keep the Nuxt UI overlay.
+The sidebar search button is the `soft` variant (no border).
+
 ## Rules for admin code
 
 - Use Nuxt UI semantic classes (`bg-default`, `text-muted`, `border-default`, `bg-primary`)

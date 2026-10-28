@@ -178,7 +178,11 @@ does not scroll:
 
 - Desktop: `UTable` with `virtualize` (only the visible rows render) and `sticky` (the header
   row stays at the top). The table is as tall as its rows, up to the remaining height. Then it
-  scrolls. It does not fill the height, so a short list has no empty box under its rows.
+  scrolls. It does not fill the height, so a short list has no empty box under its rows. Each row
+  is a `group` (`ui.tr`), and Edit and Remove show on row hover (opacity only), and stay visible
+  on a device without hover and with the keyboard focus. The cards on mobile keep their buttons.
+- While the first page loads, `PlutoSkeletonList` shows the table with the real column headers
+  and bars, or the cards on mobile, in a `role="status"` region with the "Loading" label.
 - Mobile: the card list is a flex column that scrolls. Each card has `shrink-0`. In a grid or
   flex container with a fixed height, a card without it collapses to its border.
 - `useInfiniteScroll` on the table and on the card list calls `loadMore()` 240px before the
@@ -287,6 +291,32 @@ form?.onSaved((saved) => refetchMedia(saved.id)) // after each save that worked
 | `layout`, `canvas` | the layout, and true for 'canvas' |
 | `onSaved(callback)` | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope. |
 | `openPanel(id)` | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only) |
+
+## Skeletons and scroll
+
+The skeletons have the shape of the real content, so nothing jumps when it loads
+(`app/components/Pluto/Skeleton/`):
+
+- `PlutoSkeletonField` takes the `field`: the label, a description line when the field has one,
+  and a control by type (an input, a text area, a rich text editor with its toolbar, a switch,
+  media tiles or one image, a slug with its link line).
+- `PlutoSkeletonList`: see "Long lists".
+- `PlutoSkeletonCanvas`: a page (title, lead, paragraphs, image, cards) for the canvas field while
+  the item or the widget code loads (`PlutoContentField` with `canvas`).
+- `PlutoSkeletonPanel`: a list panel (header, rows, an indented group, footer) for the left panel
+  of a canvas form. A type turns it on with `form.leftPanel` (a label, or `{ label, class }`). It
+  shows until the widget registers the panel, while the item loads or the canvas widget has not
+  rendered (`PlutoContentField` emits `ready` on Suspense resolve). After that, a missing panel is
+  final (for example the Markdown mode of the page editor).
+- `PlutoSkeletonWidget`: a dashboard card with a header and a body.
+
+The scroll regions keep the scrollbar space (`scrollbar-gutter: stable`), so the content does not
+move sideways between a short and a long page: `<main>` of `PlutoViewAdminPanel`, and the body
+of the admin layout panel unless it holds a `PlutoViewAdminPanel` (`data-pluto-view`), which
+scrolls in its own region.
+
+The splitter handles are a 1px line. A `::before` 2.5px wider on each side is the 6px grab area
+and the 6px primary bar, which fades in after 300ms of hover and shows at once while dragging.
 
 ## The canvas layout
 
