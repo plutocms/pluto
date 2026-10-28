@@ -39,25 +39,41 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         root: 'min-h-0 bg-(--pluto-admin-sidebar)',
         content: 'lg:hidden w-[min(18rem,85vw)] bg-(--pluto-admin-sidebar)',
         header: 'h-auto py-3',
+        footer: 'max-lg:hidden',
       }"
+      :collapsed-size="4"
       resizable
+      collapsible
     >
       <!--
         The search button must sit inside UDashboardGroup. Outside it, the
         button has no dashboard context and its click does nothing.
       -->
-      <template #header>
-        <UDashboardSearchButton variant="soft" class="w-full" />
+      <template #header="{ collapsed }">
+        <UDashboardSearchButton :collapsed="collapsed" variant="soft" :class="collapsed ? undefined : 'w-full'" />
       </template>
 
-      <UNavigationMenu
-        v-model="openGroups"
-        :items="menu"
-        :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-[18px]' }"
-        orientation="vertical"
-        variant="pill"
-        class="data-[orientation=vertical]:w-full"
-      />
+      <!--
+        Collapsed (desktop only), the sidebar is a rail of icons: a tooltip names each item, and a
+        popover lists the children of a group. Nuxt UI keeps the state in the group cookie.
+      -->
+      <template #default="{ collapsed }">
+        <UNavigationMenu
+          v-model="openGroups"
+          :items="menu"
+          :collapsed="collapsed"
+          :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-[18px]' }"
+          orientation="vertical"
+          variant="pill"
+          class="data-[orientation=vertical]:w-full"
+          tooltip
+          popover
+        />
+      </template>
+
+      <template #footer>
+        <UDashboardSidebarCollapse color="neutral" variant="ghost" />
+      </template>
     </UDashboardSidebar>
 
     <UDashboardPanel
