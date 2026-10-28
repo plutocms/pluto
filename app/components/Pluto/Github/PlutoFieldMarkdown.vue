@@ -17,6 +17,11 @@ const props = defineProps<{
   field: PlutoTextField
   modelValue: unknown
   disabled?: boolean
+  /**
+   * The post editor (`post-canvas`) shows this widget as its Visual mode. It fills the canvas:
+   * no label, no mode switch (the post editor has its own), a centered writing column.
+   */
+  canvas?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -49,17 +54,31 @@ const placeholder = computed(
   () => props.field.placeholder ?? t('pluto.github.editor.placeholder')
 )
 
+// In the canvas, the post editor owns the label and the Markdown mode.
+const UFormField = resolveComponent('UFormField')
+const frame = computed(() =>
+  props.canvas
+    ? {
+        is: 'div',
+        attrs: { class: 'mx-auto w-full max-w-3xl px-4 py-6 lg:px-8 lg:py-10' },
+      }
+    : {
+        is: UFormField,
+        attrs: {
+          label: props.field.label,
+          description: props.field.description,
+          required: props.field.required,
+        },
+      }
+)
+
 // The toolbar items are shared: `usePlutoMarkdownToolbar`. The link button is a slot.
 const items = usePlutoMarkdownToolbar({ link: true })
 </script>
 
 <template>
-  <UFormField
-    :label="field.label"
-    :description="field.description"
-    :required="field.required"
-  >
-    <div class="mb-2 flex justify-end">
+  <component :is="frame.is" v-bind="frame.attrs">
+    <div v-if="!canvas" class="mb-2 flex justify-end">
       <div
         :aria-label="t('pluto.github.editor.mode')"
         class="flex gap-1"
@@ -98,7 +117,7 @@ const items = usePlutoMarkdownToolbar({ link: true })
     </div>
 
     <PlutoMarkdownSource
-      v-if="mode === 'source'"
+      v-if="mode === 'source' && !canvas"
       :model-value="value"
       :disabled="disabled"
       :placeholder="placeholder"
@@ -121,8 +140,9 @@ const items = usePlutoMarkdownToolbar({ link: true })
         content: 'min-h-96 cursor-text',
         base: 'min-h-96 px-4 py-3 sm:px-4',
       }"
+      :class="canvas ? undefined : 'border-default rounded-md border'"
       content-type="markdown"
-      class="bg-default border-default w-full rounded-md border"
+      class="bg-default w-full"
       @update:model-value="emit('update:modelValue', $event as string)"
     >
       <UEditorToolbar
@@ -136,5 +156,5 @@ const items = usePlutoMarkdownToolbar({ link: true })
         </template>
       </UEditorToolbar>
     </UEditor>
-  </UFormField>
+  </component>
 </template>

@@ -588,7 +588,8 @@ const rightTabs = computed(() => [
     ? [
         {
           value: 'page',
-          label: t('pluto.canvas.page'),
+          // The tab of the other fields takes the type label ("Post", "Page").
+          label: text.label || t('pluto.canvas.page'),
           icon: 'i-lucide-file-text',
         },
       ]
