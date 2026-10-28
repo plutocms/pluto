@@ -604,6 +604,21 @@
       "previewLoading": "Loading the preview…",
       "previewFailedTitle": "The preview did not load",
       "previewFailed": "The preview page of the site did not answer. Check that the site runs, then try again."
+    },
+    "markdown": {
+      "formatting": "Formatting",
+      "format": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "strike": "Strikethrough",
+        "code": "Code",
+        "link": "Link",
+        "heading": "Heading",
+        "bullet": "Bulleted list",
+        "number": "Numbered list",
+        "quote": "Quote",
+        "codeblock": "Code block"
+      }
     }
   }
 }

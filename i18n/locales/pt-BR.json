@@ -604,6 +604,21 @@
       "previewLoading": "Carregando a prévia…",
       "previewFailedTitle": "A prévia não carregou",
       "previewFailed": "A página de prévia do site não respondeu. Verifique se o site está no ar e tente de novo."
+    },
+    "markdown": {
+      "formatting": "Formatação",
+      "format": {
+        "bold": "Negrito",
+        "italic": "Itálico",
+        "strike": "Tachado",
+        "code": "Código",
+        "link": "Link",
+        "heading": "Título",
+        "bullet": "Lista com marcadores",
+        "number": "Lista numerada",
+        "quote": "Citação",
+        "codeblock": "Bloco de código"
+      }
     }
   }
 }
