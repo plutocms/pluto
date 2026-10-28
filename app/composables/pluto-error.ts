@@ -9,5 +9,6 @@ import { DEFAULT_ERROR_KEY, resolveErrorText } from './internal/error-text'
 export function usePlutoErrorText() {
   const { t, te } = usePlutoI18n()
 
-  return (error: unknown, fallbackKey: string = DEFAULT_ERROR_KEY): string => resolveErrorText(error, fallbackKey, { t, te })
+  return (error: unknown, fallbackKey: string = DEFAULT_ERROR_KEY): string =>
+    resolveErrorText(error, fallbackKey, { t, te })
 }

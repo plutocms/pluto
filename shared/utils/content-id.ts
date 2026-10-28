@@ -5,18 +5,24 @@
  * `encodeURIComponent`.
  */
 export function contentIdPath(id: string | number): string {
-  return String(id).split('/').map((segment) => encodeURIComponent(segment)).join('/')
+  return String(id)
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/')
 }
 
 const NUMERIC_PREFIX = /^(\d+)\./
 
 function splitSegment(segment: string): {
- order: number | null
-name: string
+  order: number | null
+  name: string
 } {
   const match = NUMERIC_PREFIX.exec(segment)
   return match
-    ? { order: Number.parseInt(match[1]!, 10), name: segment.slice(match[0].length) }
+    ? {
+        order: Number.parseInt(match[1]!, 10),
+        name: segment.slice(match[0].length),
+      }
     : { order: null, name: segment }
 }
 

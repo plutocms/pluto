@@ -10,14 +10,30 @@ const type: PlutoContentType = {
   source: 'posts',
   titleField: 'title',
   fields: [
-    { name: 'title', type: 'text', label: 'Title', required: true, maxLength: 10 },
-    { name: 'count', type: 'number', label: 'Count', integer: true, min: 1, max: 5 },
+    {
+      name: 'title',
+      type: 'text',
+      label: 'Title',
+      required: true,
+      maxLength: 10,
+    },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Count',
+      integer: true,
+      min: 1,
+      max: 5,
+    },
     { name: 'active', type: 'boolean', label: 'Active' },
     {
       name: 'kind',
       type: 'select',
       label: 'Kind',
-      options: [{ label: 'A', value: 'a' }, { label: 'B', value: 'b' }],
+      options: [
+        { label: 'A', value: 'a' },
+        { label: 'B', value: 'b' },
+      ],
     },
     { name: 'publishedAt', type: 'date', label: 'Published at' },
   ],
@@ -57,7 +73,10 @@ describe('validateContentPayload', () => {
   })
 
   it('fails when a number field holds a non-numeric value', () => {
-    const errors = validateContentPayload(type, { ...validPayload, count: 'not-a-number' })
+    const errors = validateContentPayload(type, {
+      ...validPayload,
+      count: 'not-a-number',
+    })
 
     expect(errors).toContainEqual(expect.objectContaining({ field: 'count' }))
   })
@@ -87,7 +106,10 @@ describe('validateContentPayload', () => {
   })
 
   it('fails when a boolean field holds a non-boolean value', () => {
-    const errors = validateContentPayload(type, { ...validPayload, active: 'yes' })
+    const errors = validateContentPayload(type, {
+      ...validPayload,
+      active: 'yes',
+    })
 
     expect(errors).toContainEqual(expect.objectContaining({ field: 'active' }))
   })
@@ -99,7 +121,10 @@ describe('validateContentPayload', () => {
   })
 
   it('fails when a text field exceeds maxLength', () => {
-    const errors = validateContentPayload(type, { ...validPayload, title: 'way too long a title' })
+    const errors = validateContentPayload(type, {
+      ...validPayload,
+      title: 'way too long a title',
+    })
 
     expect(errors).toContainEqual(expect.objectContaining({ field: 'title' }))
   })
@@ -109,7 +134,13 @@ describe('validateContentPayload', () => {
       ...type,
       fields: [
         ...type.fields,
-        { name: 'media', type: 'text', label: 'Media', required: true, virtual: true },
+        {
+          name: 'media',
+          type: 'text',
+          label: 'Media',
+          required: true,
+          virtual: true,
+        },
       ],
     }
 
@@ -132,11 +163,17 @@ describe('validateContentPayload — code and params', () => {
   })
 
   it('gives the code "number" for a value that is not a number', () => {
-    expect(find({ ...validPayload, count: 'abc' }, 'count')).toMatchObject({ message: '"Count" must be a number.', code: 'number' })
+    expect(find({ ...validPayload, count: 'abc' }, 'count')).toMatchObject({
+      message: '"Count" must be a number.',
+      code: 'number',
+    })
   })
 
   it('gives the code "integer"', () => {
-    expect(find({ ...validPayload, count: 2.5 }, 'count')).toMatchObject({ message: '"Count" must be an integer.', code: 'integer' })
+    expect(find({ ...validPayload, count: 2.5 }, 'count')).toMatchObject({
+      message: '"Count" must be an integer.',
+      code: 'integer',
+    })
   })
 
   it('gives the code "min" with the min param', () => {
@@ -156,7 +193,10 @@ describe('validateContentPayload — code and params', () => {
   })
 
   it('gives the code "boolean"', () => {
-    expect(find({ ...validPayload, active: 'yes' }, 'active')).toMatchObject({ message: '"Active" must be a boolean.', code: 'boolean' })
+    expect(find({ ...validPayload, active: 'yes' }, 'active')).toMatchObject({
+      message: '"Active" must be a boolean.',
+      code: 'boolean',
+    })
   })
 
   it('gives the code "option"', () => {
@@ -167,7 +207,9 @@ describe('validateContentPayload — code and params', () => {
   })
 
   it('gives the code "maxLength" with the max param', () => {
-    expect(find({ ...validPayload, title: 'way too long a title' }, 'title')).toMatchObject({
+    expect(
+      find({ ...validPayload, title: 'way too long a title' }, 'title')
+    ).toMatchObject({
       message: '"Title" must be at most 10 characters.',
       code: 'maxLength',
       params: { max: 10 },
@@ -186,12 +228,24 @@ describe('validateContentPayload — code and params', () => {
       { ...validPayload, kind: 'z' },
       { ...validPayload, title: 'way too long a title' },
     ]
-    const errors = payloads.flatMap((payload) => validateContentPayload(type, payload))
-    const labels: Record<string, string> = { title: 'Title', count: 'Count', active: 'Active', kind: 'Kind' }
+    const errors = payloads.flatMap((payload) =>
+      validateContentPayload(type, payload)
+    )
+    const labels: Record<string, string> = {
+      title: 'Title',
+      count: 'Count',
+      active: 'Active',
+      kind: 'Kind',
+    }
 
     expect(new Set(errors.map((error) => error.code)).size).toBe(8)
     for (const error of errors) {
-      expect(t(`pluto.validation.${error.code}`, { ...error.params, label: labels[error.field] })).toBe(error.message)
+      expect(
+        t(`pluto.validation.${error.code}`, {
+          ...error.params,
+          label: labels[error.field],
+        })
+      ).toBe(error.message)
     }
   })
 })

@@ -3,7 +3,12 @@
 // user here (see `staffDecision`). The `reason=error` query means the
 // capabilities failed to load. The frame is PlutoAdminAuthCard. See the
 // admin-shell skill.
-import { ADMIN_HOME_PATH, ADMIN_NO_ACCESS_PATH, isStaff, safeRedirect } from '../../composables/internal/admin-shell'
+import {
+  ADMIN_HOME_PATH,
+  ADMIN_NO_ACCESS_PATH,
+  isStaff,
+  safeRedirect,
+} from '../../composables/internal/admin-shell'
 
 definePageMeta({ layout: 'auth' })
 
@@ -22,9 +27,13 @@ function firstString(value: unknown): unknown {
 const failed = ref(route.query.reason === 'error')
 const trying = ref(false)
 const redirect = computed(() => safeRedirect(firstString(route.query.redirect)))
-const heading = computed(() => (failed.value ? t('pluto.noAccess.errorTitle') : t('pluto.noAccess.title')))
+const heading = computed(() =>
+  failed.value ? t('pluto.noAccess.errorTitle') : t('pluto.noAccess.title')
+)
 const description = computed(() =>
-  failed.value ? t('pluto.noAccess.errorDescription') : t('pluto.noAccess.description')
+  failed.value
+    ? t('pluto.noAccess.errorDescription')
+    : t('pluto.noAccess.description')
 )
 
 /** Loads the capabilities again. Staff go on. Other users stay on this page. */

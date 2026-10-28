@@ -29,7 +29,11 @@ export function usePlutoCommandPalette() {
   return computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => {
     const seen = new Set<string>()
 
-    function command(label: string, path: string, extra: Partial<CommandPaletteItem> = {}): CommandPaletteItem[] {
+    function command(
+      label: string,
+      path: string,
+      extra: Partial<CommandPaletteItem> = {}
+    ): CommandPaletteItem[] {
       if (seen.has(path)) {
         return []
       }
@@ -54,7 +58,12 @@ export function usePlutoCommandPalette() {
     const goTo = navItems.value.flatMap((item) => [
       ...(item.to ? command(tx(item.label), item.to, { icon: item.icon }) : []),
       ...(item.children ?? []).flatMap((child) =>
-        child.to ? command(tx(child.label), child.to, { icon: item.icon, suffix: tx(item.label) }) : []
+        child.to
+          ? command(tx(child.label), child.to, {
+              icon: item.icon,
+              suffix: tx(item.label),
+            })
+          : []
       ),
     ])
 

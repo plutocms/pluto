@@ -57,15 +57,15 @@ scoped element, the `:root` tokens would still hold the app's colors.
 
 ## Palette
 
-| Role | Color | Light step | Dark step |
-|---|---|---|---|
-| primary | tholin | 600 | 400 |
-| secondary | haze | 700 | 400 |
-| success | green | 500 | 400 |
-| info | haze | 500 | 400 |
-| warning | amber | 500 | 400 |
-| error | rose | 500 | 400 |
-| neutral | kuiper | | |
+| Role      | Color  | Light step | Dark step |
+| --------- | ------ | ---------- | --------- |
+| primary   | tholin | 600        | 400       |
+| secondary | haze   | 700        | 400       |
+| success   | green  | 500        | 400       |
+| info      | haze   | 500        | 400       |
+| warning   | amber  | 500        | 400       |
+| error     | rose   | 500        | 400       |
+| neutral   | kuiper |            |           |
 
 The light steps of tholin and haze give 4.5:1 on white, as on the docs site. Errors use rose, not
 red: tholin is a red-orange (OKLCH hue 37) and red (hue 27) looks like it next to a primary
@@ -77,12 +77,12 @@ is near black in both modes. `PlutoNavbarAdmin` sets `data-pluto-admin-dark`, so
 buttons take the dark tokens in light mode too. In dark mode the surfaces go from darkest at the
 top to lightest in the content, all on the kuiper hue (273):
 
-| Surface | Dark value |
-|---|---|
-| Navbar (`--pluto-admin-navbar`) | kuiper-950 |
+| Surface                           | Dark value                                                  |
+| --------------------------------- | ----------------------------------------------------------- |
+| Navbar (`--pluto-admin-navbar`)   | kuiper-950                                                  |
 | Sidebar (`--pluto-admin-sidebar`) | `oklch(20.5% 0.040 273)`, between kuiper-950 and kuiper-900 |
-| Canvas (`--pluto-admin-canvas`) | kuiper-900 |
-| Cards (`--ui-bg`) | `oklch(28% 0.042 273)`, one step above the canvas |
+| Canvas (`--pluto-admin-canvas`)   | kuiper-900                                                  |
+| Cards (`--ui-bg`)                 | `oklch(28% 0.042 273)`, one step above the canvas           |
 
 Chart series (`--ui-chart-1` to `-6`), in a fixed order: tholin, haze, lime, violet, teal,
 amber. Light: tholin-600, haze-600, lime-700, violet-500, teal-600, amber-600. Dark: tholin-500

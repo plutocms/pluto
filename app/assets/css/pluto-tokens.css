@@ -17,54 +17,55 @@
  * change the admin. To change the admin brand, use `appConfig.pluto.brand`.
  */
 @theme static {
-  --color-tholin-50: #FFF5EF;
-  --color-tholin-100: #FFE7D9;
-  --color-tholin-200: #FFCBB0;
-  --color-tholin-300: #FFA47C;
-  --color-tholin-400: #FB7E4F;
-  --color-tholin-500: #EF5F30;
-  --color-tholin-600: #D2461C;
-  --color-tholin-700: #AE3616;
-  --color-tholin-800: #8C2E18;
+  --color-tholin-50: #fff5ef;
+  --color-tholin-100: #ffe7d9;
+  --color-tholin-200: #ffcbb0;
+  --color-tholin-300: #ffa47c;
+  --color-tholin-400: #fb7e4f;
+  --color-tholin-500: #ef5f30;
+  --color-tholin-600: #d2461c;
+  --color-tholin-700: #ae3616;
+  --color-tholin-800: #8c2e18;
   --color-tholin-900: #722817;
-  --color-tholin-950: #3E110A;
+  --color-tholin-950: #3e110a;
 
-  --color-haze-50: #EFF8FF;
-  --color-haze-100: #DBEFFF;
-  --color-haze-200: #BFE3FF;
-  --color-haze-300: #8FD1FF;
-  --color-haze-400: #5BB6F9;
-  --color-haze-500: #3399EE;
-  --color-haze-600: #1E7BD3;
-  --color-haze-700: #1964AD;
-  --color-haze-800: #1A548C;
-  --color-haze-900: #1B4773;
-  --color-haze-950: #132D4C;
+  --color-haze-50: #eff8ff;
+  --color-haze-100: #dbefff;
+  --color-haze-200: #bfe3ff;
+  --color-haze-300: #8fd1ff;
+  --color-haze-400: #5bb6f9;
+  --color-haze-500: #3399ee;
+  --color-haze-600: #1e7bd3;
+  --color-haze-700: #1964ad;
+  --color-haze-800: #1a548c;
+  --color-haze-900: #1b4773;
+  --color-haze-950: #132d4c;
 
-  --color-heart-50: #FFFAF3;
-  --color-heart-100: #FFF2E1;
-  --color-heart-200: #FFE6C9;
-  --color-heart-300: #F2D4AF;
-  --color-heart-400: #E3C49F;
-  --color-heart-500: #D2A672;
-  --color-heart-600: #B9874F;
-  --color-heart-700: #996A3C;
-  --color-heart-800: #7C5634;
-  --color-heart-900: #66472D;
+  --color-heart-50: #fffaf3;
+  --color-heart-100: #fff2e1;
+  --color-heart-200: #ffe6c9;
+  --color-heart-300: #f2d4af;
+  --color-heart-400: #e3c49f;
+  --color-heart-500: #d2a672;
+  --color-heart-600: #b9874f;
+  --color-heart-700: #996a3c;
+  --color-heart-800: #7c5634;
+  --color-heart-900: #66472d;
   --color-heart-950: #372416;
 
-  --color-kuiper-50: #F7F8FB;
-  --color-kuiper-100: #EEF0F6;
-  --color-kuiper-200: #DDE1EC;
-  --color-kuiper-300: #C2C8D9;
-  --color-kuiper-400: #9199B3;
-  --color-kuiper-500: #6B7392;
-  --color-kuiper-600: #525A77;
-  --color-kuiper-700: #3E4562;
-  --color-kuiper-800: #292F49;
-  --color-kuiper-900: #191E33;
-  --color-kuiper-950: #0C0F1F;
+  --color-kuiper-50: #f7f8fb;
+  --color-kuiper-100: #eef0f6;
+  --color-kuiper-200: #dde1ec;
+  --color-kuiper-300: #c2c8d9;
+  --color-kuiper-400: #9199b3;
+  --color-kuiper-500: #6b7392;
+  --color-kuiper-600: #525a77;
+  --color-kuiper-700: #3e4562;
+  --color-kuiper-800: #292f49;
+  --color-kuiper-900: #191e33;
+  --color-kuiper-950: #0c0f1f;
 
   --font-pluto: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-pluto-display: 'Fredoka', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-pluto-display:
+    'Fredoka', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
 }

@@ -66,12 +66,21 @@ const toPercent = (px: number) => Math.min(100, (px / rowWidth.value) * 100)
 
 // On mobile the aside is a slideover, so it needs no panel. Wait for the
 // row to have a width, so the px-to-percent conversion is correct.
-const resizable = computed(() => rowWidth.value > 0 && hasAsideSlot.value && asideOpen.value && isDesktop.value)
+const resizable = computed(
+  () =>
+    rowWidth.value > 0 &&
+    hasAsideSlot.value &&
+    asideOpen.value &&
+    isDesktop.value
+)
 provide(plutoViewAsideResizableKey, resizable)
 
 // The left panel sits in the splitter on desktop, with the same rule. On a
 // narrow screen it is a slideover, outside the splitter.
-const leftResizable = computed(() => rowWidth.value > 0 && hasLeftSlot.value && leftOpen.value && isDesktop.value)
+const leftResizable = computed(
+  () =>
+    rowWidth.value > 0 && hasLeftSlot.value && leftOpen.value && isDesktop.value
+)
 const leftSlideover = computed(() => hasLeftSlot.value && !isDesktop.value)
 
 // The collapse button in the header of the left panel (PlutoViewLeftCollapse).
@@ -95,26 +104,41 @@ const LEFT_MAX = 400
 
 // Keep the side widths in px ourselves, so they stay the same when the
 // window size changes between visits.
-const asideWidth = useCookie<number>('pluto-view-aside-width', { default: () => 320 })
-const leftWidth = useCookie<number>('pluto-view-left-width', { default: () => 260 })
+const asideWidth = useCookie<number>('pluto-view-aside-width', {
+  default: () => 320,
+})
+const leftWidth = useCookie<number>('pluto-view-left-width', {
+  default: () => 260,
+})
 const asideEl = ref<HTMLElement>()
 const leftEl = ref<HTMLElement>()
 
 // Snapshot the width when a panel opens. A reactive `defaultSize` would
 // rebuild the panel on every save.
-const clamp = (px: number, min: number, max: number) => Math.min(max, Math.max(min, px))
+const clamp = (px: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, px))
 const asideDefault = ref(0)
 const leftDefault = ref(0)
-watch(resizable, (value) => {
-  if (value) {
-    asideDefault.value = toPercent(clamp(asideWidth.value, ASIDE_MIN, ASIDE_MAX))
-  }
-}, { immediate: true })
-watch(leftResizable, (value) => {
-  if (value) {
-    leftDefault.value = toPercent(clamp(leftWidth.value, LEFT_MIN, LEFT_MAX))
-  }
-}, { immediate: true })
+watch(
+  resizable,
+  (value) => {
+    if (value) {
+      asideDefault.value = toPercent(
+        clamp(asideWidth.value, ASIDE_MIN, ASIDE_MAX)
+      )
+    }
+  },
+  { immediate: true }
+)
+watch(
+  leftResizable,
+  (value) => {
+    if (value) {
+      leftDefault.value = toPercent(clamp(leftWidth.value, LEFT_MIN, LEFT_MAX))
+    }
+  },
+  { immediate: true }
+)
 
 function onDragging(_index: number, dragging: boolean) {
   if (dragging) {
@@ -132,11 +156,29 @@ function onDragging(_index: number, dragging: boolean) {
 // opens and closes. The order is left, main, aside.
 const items = computed<SplitterItem[]>(() => [
   ...(leftResizable.value
-    ? [{ id: 'pluto-view-left', slot: 'left', order: 1, defaultSize: leftDefault.value, minSize: toPercent(LEFT_MIN), maxSize: toPercent(LEFT_MAX) }]
+    ? [
+        {
+          id: 'pluto-view-left',
+          slot: 'left',
+          order: 1,
+          defaultSize: leftDefault.value,
+          minSize: toPercent(LEFT_MIN),
+          maxSize: toPercent(LEFT_MAX),
+        },
+      ]
     : []),
   { id: 'pluto-view-main', slot: 'main', order: 2 },
   ...(resizable.value
-    ? [{ id: 'pluto-view-aside', slot: 'aside', order: 3, defaultSize: asideDefault.value, minSize: toPercent(ASIDE_MIN), maxSize: toPercent(ASIDE_MAX) }]
+    ? [
+        {
+          id: 'pluto-view-aside',
+          slot: 'aside',
+          order: 3,
+          defaultSize: asideDefault.value,
+          minSize: toPercent(ASIDE_MIN),
+          maxSize: toPercent(ASIDE_MAX),
+        },
+      ]
     : []),
 ])
 </script>
@@ -163,7 +205,8 @@ const items = computed<SplitterItem[]>(() => [
           // area, and the 6px haze-400 bar: it fades in after 300ms of hover, and
           // shows at once while dragging. The `!` keeps the duration and the
           // delay against the no-transition rule of the admin (pluto-layer.css).
-          handle: 'w-px bg-(--ui-border) before:absolute before:inset-y-0 before:inset-x-[-2.5px] before:z-10 before:transition-colors before:duration-150! hover:before:bg-haze-400 hover:before:delay-300! data-[resize-handle-state=drag]:before:bg-haze-400 data-[resize-handle-state=drag]:before:delay-0!',
+          handle:
+            'w-px bg-(--ui-border) before:absolute before:inset-y-0 before:inset-x-[-2.5px] before:z-10 before:transition-colors before:duration-150! hover:before:bg-haze-400 hover:before:delay-300! data-[resize-handle-state=drag]:before:bg-haze-400 data-[resize-handle-state=drag]:before:delay-0!',
         }"
         @dragging="onDragging"
       >
@@ -178,7 +221,14 @@ const items = computed<SplitterItem[]>(() => [
             `scrollbar-gutter: stable` keeps the space of the scrollbar on a short page too, so
             the content does not move sideways between a short and a long page.
           -->
-          <main :class="fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto scrollbar-gutter-stable'" class="min-h-0 w-full">
+          <main
+            :class="
+              fill
+                ? 'flex flex-col overflow-hidden'
+                : 'scrollbar-gutter-stable overflow-y-auto'
+            "
+            class="min-h-0 w-full"
+          >
             <!--
               'container' matches AdminView's own padding/gap classes, so a view
               moving from AdminView to this panel looks the same. 'full' adds
@@ -213,7 +263,10 @@ const items = computed<SplitterItem[]>(() => [
         button in its header. Desktop only: on a narrow screen the toolbar opens the slideovers.
       -->
       <template v-if="panelToggles && isDesktop">
-        <UTooltip v-if="hasLeftSlot && !leftOpen" :text="t('pluto.canvas.showSidebar')">
+        <UTooltip
+          v-if="hasLeftSlot && !leftOpen"
+          :text="t('pluto.canvas.showSidebar')"
+        >
           <UButton
             :aria-label="t('pluto.canvas.showSidebar')"
             icon="lucide:panel-left-open"
@@ -225,7 +278,10 @@ const items = computed<SplitterItem[]>(() => [
             @click="leftOpen = true"
           />
         </UTooltip>
-        <UTooltip v-if="hasAsideSlot && !asideOpen" :text="t('pluto.common.showPanel')">
+        <UTooltip
+          v-if="hasAsideSlot && !asideOpen"
+          :text="t('pluto.common.showPanel')"
+        >
           <UButton
             :aria-label="t('pluto.common.showPanel')"
             icon="lucide:panel-right-open"

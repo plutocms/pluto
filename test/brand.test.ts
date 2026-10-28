@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { isPlutoBrandHex, PLUTO_BRAND_STEPS, plutoBrandContrast, plutoBrandCss, plutoBrandScale } from '../shared/utils/brand'
+import {
+  isPlutoBrandHex,
+  PLUTO_BRAND_STEPS,
+  plutoBrandContrast,
+  plutoBrandCss,
+  plutoBrandScale,
+} from '../shared/utils/brand'
 
 const lightness = (value: string) => Number(value.match(/oklch\(([\d.]+)%/)![1])
 
@@ -52,14 +58,24 @@ describe('plutoBrandCss', () => {
   })
 
   it('sets the primary scale, the radius and the fonts under the doubled admin selectors', () => {
-    const css = plutoBrandCss({ primary: '#0F766E', radius: 0.5, font: '"Inter"' })
-    expect(css).toContain(':root[data-pluto-admin][data-pluto-admin],\n[data-pluto-admin-scope][data-pluto-admin-scope] {')
+    const css = plutoBrandCss({
+      primary: '#0F766E',
+      radius: 0.5,
+      font: '"Inter"',
+    })
+    expect(css).toContain(
+      ':root[data-pluto-admin][data-pluto-admin],\n[data-pluto-admin-scope][data-pluto-admin-scope] {'
+    )
     expect(css).toContain('--ui-color-primary-50: oklch(')
     expect(css).toContain('--ui-color-primary-950: oklch(')
     expect(css).toContain('--ui-radius: 0.5rem;')
-    expect(css).toContain('--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;')
+    expect(css).toContain(
+      '--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;'
+    )
     // The title font follows the text font when no display font is set.
-    expect(css).toContain('--pluto-admin-font-display: "Inter", ui-sans-serif, system-ui, sans-serif;')
+    expect(css).toContain(
+      '--pluto-admin-font-display: "Inter", ui-sans-serif, system-ui, sans-serif;'
+    )
   })
 
   it('uses its own title font when it is set', () => {

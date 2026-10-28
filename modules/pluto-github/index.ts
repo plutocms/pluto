@@ -46,21 +46,27 @@ export default defineNuxtModule<PlutoGithubOptions>({
     // A backend app uses the `supabase` layer, the `@nuxtjs/supabase` module, or
     // a layer with `$meta.plutoBackend: true`.
     const layers = nuxt.options._layers ?? []
-    const modules = (nuxt.options.modules ?? []).map((entry) => Array.isArray(entry) ? entry[0] : entry)
-    const hasBackendLayer
-      = layers.some((layer) => {
+    const modules = (nuxt.options.modules ?? []).map((entry) =>
+      Array.isArray(entry) ? entry[0] : entry
+    )
+    const hasBackendLayer =
+      layers.some((layer) => {
         const meta = (layer.config as LayerConfigMeta | undefined)?.$meta
         return meta?.name === 'supabase' || meta?.plutoBackend === true
-      })
-      || modules.includes('@nuxtjs/supabase')
+      }) || modules.includes('@nuxtjs/supabase')
 
-    const { enabled, resolved, warnings, errors } = resolvePlutoGithubOptions(options, {
-      dev: nuxt.options.dev,
-      hasBackendLayer,
-      env: process.env,
-      // The git remote is a dev-only default for the repo. No shell call.
-      gitOrigin: nuxt.options.dev ? readGitOrigin(nuxt.options.rootDir) : undefined,
-    })
+    const { enabled, resolved, warnings, errors } = resolvePlutoGithubOptions(
+      options,
+      {
+        dev: nuxt.options.dev,
+        hasBackendLayer,
+        env: process.env,
+        // The git remote is a dev-only default for the repo. No shell call.
+        gitOrigin: nuxt.options.dev
+          ? readGitOrigin(nuxt.options.rootDir)
+          : undefined,
+      }
+    )
 
     if (!nuxt.options._prepare) {
       for (const warning of warnings) {
@@ -80,7 +86,10 @@ export default defineNuxtModule<PlutoGithubOptions>({
     // Empty placeholders, so a `NUXT_PLUTO_GITHUB_<NAME>` env var overrides them
     // at run time. The module does not check them at build time.
     const secrets: Record<string, string | number | boolean> = {}
-    for (const name of [...PLUTO_GITHUB_SECRET_ENV.required, ...PLUTO_GITHUB_SECRET_ENV.optional]) {
+    for (const name of [
+      ...PLUTO_GITHUB_SECRET_ENV.required,
+      ...PLUTO_GITHUB_SECRET_ENV.optional,
+    ]) {
       secrets[toCamelCase(name)] = ''
     }
 
@@ -97,7 +106,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
       rootDir: nuxt.options.dev ? nuxt.options.rootDir : '',
     })
 
-    nuxt.options.runtimeConfig.plutoGithub = secrets as typeof nuxt.options.runtimeConfig.plutoGithub
+    nuxt.options.runtimeConfig.plutoGithub =
+      secrets as typeof nuxt.options.runtimeConfig.plutoGithub
     nuxt.options.runtimeConfig.public.plutoGithub = {
       enabled: true,
       repo: resolved.github.repo,
@@ -114,10 +124,26 @@ export default defineNuxtModule<PlutoGithubOptions>({
 
     // Server: the sign-in routes, and the Nitro plugin that
     // registers the store, the adapter and the post type.
-    addServerHandler({ route: '/api/_pluto/auth/github/login', method: 'get', handler: server('api/auth/github/login.get') })
-    addServerHandler({ route: '/api/_pluto/auth/github/callback', method: 'get', handler: server('api/auth/github/callback.get') })
-    addServerHandler({ route: '/api/_pluto/auth/logout', method: 'post', handler: server('api/auth/logout.post') })
-    addServerHandler({ route: '/api/_pluto/auth/session', method: 'get', handler: server('api/auth/session.get') })
+    addServerHandler({
+      route: '/api/_pluto/auth/github/login',
+      method: 'get',
+      handler: server('api/auth/github/login.get'),
+    })
+    addServerHandler({
+      route: '/api/_pluto/auth/github/callback',
+      method: 'get',
+      handler: server('api/auth/github/callback.get'),
+    })
+    addServerHandler({
+      route: '/api/_pluto/auth/logout',
+      method: 'post',
+      handler: server('api/auth/logout.post'),
+    })
+    addServerHandler({
+      route: '/api/_pluto/auth/session',
+      method: 'get',
+      handler: server('api/auth/session.get'),
+    })
     addServerPlugin(server('plugins/pluto-github'))
 
     // Client: the extension plugin and the session composable. Core owns the
@@ -130,24 +156,36 @@ export default defineNuxtModule<PlutoGithubOptions>({
     // the module gives it the short name.
     addComponent({
       name: 'PlutoMarkdown',
-      filePath: resolver.resolve('../../app/components/Pluto/Github/PlutoMarkdown.vue'),
+      filePath: resolver.resolve(
+        '../../app/components/Pluto/Github/PlutoMarkdown.vue'
+      ),
     })
 
     // `PlutoMarkdownSource` is the raw Markdown editor. A layer uses it to build its own
     // field widget (the docs layer wraps it). The module gives it the short name.
     addComponent({
       name: 'PlutoMarkdownSource',
-      filePath: resolver.resolve('../../app/components/Pluto/Github/PlutoMarkdownSource.vue'),
+      filePath: resolver.resolve(
+        '../../app/components/Pluto/Github/PlutoMarkdownSource.vue'
+      ),
     })
 
     // The GitHub tab of Settings. The page file lives under `app/`, so Tailwind scans it.
     // It is a child of the Settings page (`/admin/settings`), so it shows in its tabs.
-    const settingsFile = resolver.resolve('../../app/components/Pluto/Github/PlutoGithubSettingsPage.vue')
+    const settingsFile = resolver.resolve(
+      '../../app/components/Pluto/Github/PlutoGithubSettingsPage.vue'
+    )
     extendPages((pages) => {
-      const settings = pages.find((page) => page.path === '/admin')?.children?.find((page) => page.path === 'settings')
+      const settings = pages
+        .find((page) => page.path === '/admin')
+        ?.children?.find((page) => page.path === 'settings')
       if (settings) {
         settings.children ||= []
-        settings.children.push({ name: 'admin-settings-github', path: 'github', file: settingsFile })
+        settings.children.push({
+          name: 'admin-settings-github',
+          path: 'github',
+          file: settingsFile,
+        })
       } else {
         logger.warn('Could not find the Settings page. The GitHub tab is off.')
       }
@@ -155,16 +193,34 @@ export default defineNuxtModule<PlutoGithubOptions>({
 
     // Setup routes: the checks and the App Manifest flow. See the github-cms skill.
     // They are static, so they win over the `:type/:slug` route below.
-    addServerHandler({ route: '/api/_pluto/github/setup/status', method: 'get', handler: server('api/setup/status.get') })
-    addServerHandler({ route: '/api/_pluto/github/setup/start', method: 'get', handler: server('api/setup/start.get') })
-    addServerHandler({ route: '/api/_pluto/github/setup/callback', method: 'get', handler: server('api/setup/callback.get') })
+    addServerHandler({
+      route: '/api/_pluto/github/setup/status',
+      method: 'get',
+      handler: server('api/setup/status.get'),
+    })
+    addServerHandler({
+      route: '/api/_pluto/github/setup/start',
+      method: 'get',
+      handler: server('api/setup/start.get'),
+    })
+    addServerHandler({
+      route: '/api/_pluto/github/setup/callback',
+      method: 'get',
+      handler: server('api/setup/callback.get'),
+    })
 
     // The build status of the head commit. It needs a signed-in user.
-    addServerHandler({ route: '/api/_pluto/github/build-status', method: 'get', handler: server('api/build-status.get') })
+    addServerHandler({
+      route: '/api/_pluto/github/build-status',
+      method: 'get',
+      handler: server('api/build-status.get'),
+    })
 
     // The public reads of the posts go through the public API of core (`/api/pluto/v1/content/post`).
 
-    logger.info(`Standalone CMS on. Storage: ${resolved.storage}. Dir: ${resolved.dir}.`)
+    logger.info(
+      `Standalone CMS on. Storage: ${resolved.storage}. Dir: ${resolved.dir}.`
+    )
   },
 })
 

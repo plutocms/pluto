@@ -12,11 +12,17 @@ function skeletonHeight(colSpan?: number): string {
 </script>
 
 <template>
-  <div v-if="items.length" class="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-x-4 lg:gap-y-6">
+  <div
+    v-if="items.length"
+    class="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-x-4 lg:gap-y-6"
+  >
     <div
       v-for="widget in items"
       :key="widget.id"
-      :class="{ 'lg:col-span-2': widget.colSpan === 2, 'lg:col-span-3': widget.colSpan === 3 }"
+      :class="{
+        'lg:col-span-2': widget.colSpan === 2,
+        'lg:col-span-3': widget.colSpan === 3,
+      }"
     >
       <!-- Own Suspense boundary: a slow widget chunk does not block the grid. -->
       <Suspense>

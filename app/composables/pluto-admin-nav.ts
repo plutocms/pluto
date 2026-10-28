@@ -37,7 +37,8 @@ export function usePlutoAdminNav() {
   const registry = usePlutoRegistry()
   const { items: contentTypes } = usePlutoContentTypes()
   const { can } = usePlutoPermissions()
-  const { items: settingsPages, current: currentSettingsPage } = usePlutoSettingsPages()
+  const { items: settingsPages, current: currentSettingsPage } =
+    usePlutoSettingsPages()
   const i18n = usePlutoI18n()
   const { t, tx } = i18n
 
@@ -46,7 +47,10 @@ export function usePlutoAdminNav() {
     const resolveLabels = (item: PlutoNavItem): PlutoNavItem => ({
       ...item,
       label: tx(item.label),
-      children: item.children?.map((child) => ({ ...child, label: tx(child.label) })),
+      children: item.children?.map((child) => ({
+        ...child,
+        label: tx(child.label),
+      })),
     })
 
     const contentNav: PlutoNavItem[] = contentTypes.value
@@ -62,10 +66,17 @@ export function usePlutoAdminNav() {
           label: text.labelPlural,
           icon: type.icon,
           to: basePath,
-          enabled: () => !type.capabilities?.read || can(type.capabilities.read),
+          enabled: () =>
+            !type.capabilities?.read || can(type.capabilities.read),
           children: [
-            { label: t('pluto.content.all', { labelPlural: text.labelPlural }), to: basePath },
-            { label: t('pluto.content.createNew', { label: text.label }), to: `${basePath}/new` },
+            {
+              label: t('pluto.content.all', { labelPlural: text.labelPlural }),
+              to: basePath,
+            },
+            {
+              label: t('pluto.content.createNew', { label: text.label }),
+              to: `${basePath}/new`,
+            },
           ],
         }
       })
@@ -77,18 +88,32 @@ export function usePlutoAdminNav() {
         ? {
             ...item,
             defaultOpen: currentSettingsPage.value !== undefined,
-            children: settingsPages.value.map((page) => ({ label: page.label, to: page.to })),
+            children: settingsPages.value.map((page) => ({
+              label: page.label,
+              to: page.to,
+            })),
           }
         : item
 
     // A registered item at the `basePath` of a content type also owns the
     // type's new and edit pages, so the sidebar opens it there.
     const withTypeMatches = (item: PlutoNavItem): PlutoNavItem => {
-      const extra = contentTypeMatches(item, contentTypes.value.map((entry) => entry.type))
-      return extra.length > 0 ? { ...item, match: [...(item.match ?? []), ...extra] } : item
+      const extra = contentTypeMatches(
+        item,
+        contentTypes.value.map((entry) => entry.type)
+      )
+      return extra.length > 0
+        ? { ...item, match: [...(item.match ?? []), ...extra] }
+        : item
     }
 
-    return [...registered.map(resolveLabels).map(withSettingsChildren).map(withTypeMatches), ...contentNav]
+    return [
+      ...registered
+        .map(resolveLabels)
+        .map(withSettingsChildren)
+        .map(withTypeMatches),
+      ...contentNav,
+    ]
       .filter((item) => item.enabled?.() ?? true)
       .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
   })

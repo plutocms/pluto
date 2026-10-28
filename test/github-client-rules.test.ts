@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { isPostTypeOn, showPublicRepoWarning } from '../modules/pluto-github/runtime/shared/client-rules'
+import {
+  isPostTypeOn,
+  showPublicRepoWarning,
+} from '../modules/pluto-github/runtime/shared/client-rules'
 import { plutoGithubPostType } from '../modules/pluto-github/runtime/shared/post-type'
 
 describe('isPostTypeOn', () => {
@@ -16,7 +19,9 @@ describe('showPublicRepoWarning', () => {
 
   it('shows for a public repo and a type with a status', () => {
     expect(showPublicRepoWarning(false, [plutoGithubPostType])).toBe(true)
-    expect(showPublicRepoWarning(false, [noStatus, plutoGithubPostType])).toBe(true)
+    expect(showPublicRepoWarning(false, [noStatus, plutoGithubPostType])).toBe(
+      true
+    )
   })
 
   it('hides when no registered type has a status', () => {

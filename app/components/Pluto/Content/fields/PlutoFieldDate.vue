@@ -35,7 +35,11 @@ const value = computed<DateValue | undefined>({
 </script>
 
 <template>
-  <UFormField :label="field.label" :description="field.description" :required="field.required">
+  <UFormField
+    :label="field.label"
+    :description="field.description"
+    :required="field.required"
+  >
     <UInputDate v-model="value" :disabled="disabled" />
   </UFormField>
 </template>

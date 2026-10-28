@@ -1,4 +1,10 @@
-import { ADMIN_LOGIN_PATH, isAdminPath, matchPublicPath, normalizePublicPaths, safeRedirect } from './internal/admin-shell'
+import {
+  ADMIN_LOGIN_PATH,
+  isAdminPath,
+  matchPublicPath,
+  normalizePublicPaths,
+  safeRedirect,
+} from './internal/admin-shell'
 
 let validated = false
 
@@ -58,14 +64,19 @@ export function usePlutoAuth() {
     }
     return current.loggedIn ? current.loggedIn() : current.user() !== null
   })
-  const publicPaths = computed(() => normalizePublicPaths(driver.value?.publicPaths))
+  const publicPaths = computed(() =>
+    normalizePublicPaths(driver.value?.publicPaths)
+  )
 
   function ready(): Promise<void> {
     return driver.value ? driver.value.ready() : Promise.resolve()
   }
 
   function isPublicPath(path: string): boolean {
-    return isAdminPath(path) && matchPublicPath(path, publicPaths.value) !== undefined
+    return (
+      isAdminPath(path) &&
+      matchPublicPath(path, publicPaths.value) !== undefined
+    )
   }
 
   async function signOut() {

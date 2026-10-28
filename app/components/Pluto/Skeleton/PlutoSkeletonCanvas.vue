@@ -6,7 +6,10 @@
 </script>
 
 <template>
-  <div class="flex min-h-0 flex-1 justify-center overflow-hidden p-6 lg:p-10" aria-hidden="true">
+  <div
+    class="flex min-h-0 flex-1 justify-center overflow-hidden p-6 lg:p-10"
+    aria-hidden="true"
+  >
     <div class="flex w-full max-w-2xl flex-col gap-4">
       <USkeleton class="h-9 w-3/5" />
       <USkeleton class="h-5 w-4/5" />

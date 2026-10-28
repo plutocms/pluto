@@ -79,15 +79,29 @@ const post = defineContentType({
   source: 'posts',
   titleField: 'title',
   fields: [
-    { name: 'title', type: 'text', label: 'Title', required: true, inList: true },
+    {
+      name: 'title',
+      type: 'text',
+      label: 'Title',
+      required: true,
+      inList: true,
+    },
     { name: 'body', type: 'richtext', label: 'Body' },
-    { name: 'status', type: 'select', label: 'Status', options: [
-      { label: 'Draft', value: 'draft' },
-      { label: 'Published', value: 'published' },
-    ] },
+    {
+      name: 'status',
+      type: 'select',
+      label: 'Status',
+      options: [
+        { label: 'Draft', value: 'draft' },
+        { label: 'Published', value: 'published' },
+      ],
+    },
   ],
   status: {
-    values: [{ label: 'Draft', value: 'draft' }, { label: 'Published', value: 'published' }],
+    values: [
+      { label: 'Draft', value: 'draft' },
+      { label: 'Published', value: 'published' },
+    ],
     default: 'draft',
     publishedValue: 'published',
   },
@@ -262,12 +276,12 @@ layer's internal routes are `/api/_pluto/<layer>/...` (for example `/api/_pluto/
 middleware `server/middleware/pluto-origin.ts` blocks a cross-site write to `/api/_pluto/**`
 (`isPlutoSameOriginRequest`, 403 `pluto.errors.crossOrigin`), for every layer.
 
-| Route | Method | Calls |
-|---|---|---|
-| `/api/_pluto/content/[type]` | GET | `listContentItems` |
-| `/api/_pluto/content/[type]` | POST | `createContentItem` |
-| `/api/_pluto/content/[type]/[id]` | GET | `getContentItem` |
-| `/api/_pluto/content/[type]/[id]` | PATCH | `updateContentItem` |
+| Route                             | Method | Calls               |
+| --------------------------------- | ------ | ------------------- |
+| `/api/_pluto/content/[type]`      | GET    | `listContentItems`  |
+| `/api/_pluto/content/[type]`      | POST   | `createContentItem` |
+| `/api/_pluto/content/[type]/[id]` | GET    | `getContentItem`    |
+| `/api/_pluto/content/[type]/[id]` | PATCH  | `updateContentItem` |
 | `/api/_pluto/content/[type]/[id]` | DELETE | `deleteContentItem` |
 
 Each route file is a thin wrapper: resolve `type` from the `[type]` route param through
@@ -311,10 +325,10 @@ adapter (for example `@plutocms/supabase`) also reads it and answers as an anony
 Core serves every content type that opts in on a stable, versioned, read-only API. It is how a
 site in any framework or stack reads Pluto (headless), and how a Nuxt site does too.
 
-| Route | Answer |
-|---|---|
-| `GET /api/pluto/v1/content/<type>` | `{ data: Item[], meta: { total, limit, offset } }` |
-| `GET /api/pluto/v1/content/<type>/<id or slug>` | `{ data: Item }` (the id can hold slashes) |
+| Route                                           | Answer                                             |
+| ----------------------------------------------- | -------------------------------------------------- |
+| `GET /api/pluto/v1/content/<type>`              | `{ data: Item[], meta: { total, limit, offset } }` |
+| `GET /api/pluto/v1/content/<type>/<id or slug>` | `{ data: Item }` (the id can hold slashes)         |
 
 - Opt-in: `type.api.public` must be `true`. Any other type, and an unknown type, answers 404 (the
   API does not tell that a private type exists).
@@ -353,11 +367,11 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
 `type.capabilities.read` is **never enforced by these generic routes.** Read that twice — it is
 the single easiest thing to get wrong here.
 
-`read` gates the admin nav/list *UI* in a later wave, nothing in this wave. The generic list and
+`read` gates the admin nav/list _UI_ in a later wave, nothing in this wave. The generic list and
 get routes never throw 401/403 for a missing `read` capability, and never call
 `adapter.authorize` for list or get, under any circumstance. The reason: for a type like `posts`,
-"read" is not all-or-nothing — an anonymous visitor can read *published* posts, and only reading
-*drafts* needs a capability. That distinction already lives in the adapter's backing store (RLS,
+"read" is not all-or-nothing — an anonymous visitor can read _published_ posts, and only reading
+_drafts_ needs a capability. That distinction already lives in the adapter's backing store (RLS,
 for the one adapter that exists so far: `status = 'published' OR has_capability('posts:read_drafts')`),
 which is the real enforcement point regardless of what this route does.
 
@@ -381,7 +395,7 @@ by this rule:
    at all, there is no boundary to enforce here, and RLS (or whatever the adapter's backing store
    does) is still the real gate.
 3. The type declares one, and the adapter has `authorize` → `await adapter.authorize(event,
-   capability)` is called, and left to throw on its own terms.
+capability)` is called, and left to throw on its own terms.
 
 Do not add stricter checks than this. A type with no declared capability, or an adapter with no
 `authorize`, is meant to pass through untouched.
@@ -429,10 +443,12 @@ file already warns about for the old `usePost`/`useProduct` pattern (see `supaba
   methods — a caller `await`s `refresh()`, `save()`, or `remove()` directly.
 
 ```ts
-const { items, total, pending, error, refresh, remove } = usePlutoContentList('post')
+const { items, total, pending, error, refresh, remove } =
+  usePlutoContentList('post')
 await remove(id) // DELETEs, then refreshes
 
-const { item, pending, error, loadError, refresh, save, remove } = usePlutoContentItem('post', () => route.params.id)
+const { item, pending, error, loadError, refresh, save, remove } =
+  usePlutoContentItem('post', () => route.params.id)
 await save(payload) // POSTs when id is undefined, PATCHes when id is defined
 ```
 
@@ -471,15 +487,15 @@ nothing. A missing widget should fail visibly and legibly, not disappear.
 
 Core ships eight widgets, under `app/components/Pluto/Content/fields/`:
 
-| `PlutoField.type` | Widget | Notes |
-|---|---|---|
-| `text`, `textarea` | `PlutoFieldText` | `UInput` for `text`. `UTextarea` for `textarea`: it grows with the text from `rows` (default 4) up to `maxRows` (default 14), then it scrolls. Both are optional on the field. |
-| `slug` | `PlutoFieldSlug` | A plain `UInput` plus a `field.preview + modelValue` preview line. Does **not** own auto-derivation from another field — see below. |
-| `number` | `PlutoFieldNumber` | `UInputNumber` |
-| `boolean` | `PlutoFieldBoolean` | `USwitch` |
-| `date` | `PlutoFieldDate` | `UInputDate`, converting to/from `@internationalized/date`'s `CalendarDate` at its own boundary — a content item stores a plain ISO date string |
-| `select` | `PlutoFieldSelect` | `USelect`, mapping `field.options` to `{ label, value }` |
-| `reference` | `PlutoFieldReference` | `UInputMenu`, populated from `field.optionsUrl` when set |
+| `PlutoField.type`  | Widget                | Notes                                                                                                                                                                          |
+| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `text`, `textarea` | `PlutoFieldText`      | `UInput` for `text`. `UTextarea` for `textarea`: it grows with the text from `rows` (default 4) up to `maxRows` (default 14), then it scrolls. Both are optional on the field. |
+| `slug`             | `PlutoFieldSlug`      | A plain `UInput` plus a `field.preview + modelValue` preview line. Does **not** own auto-derivation from another field — see below.                                            |
+| `number`           | `PlutoFieldNumber`    | `UInputNumber`                                                                                                                                                                 |
+| `boolean`          | `PlutoFieldBoolean`   | `USwitch`                                                                                                                                                                      |
+| `date`             | `PlutoFieldDate`      | `UInputDate`, converting to/from `@internationalized/date`'s `CalendarDate` at its own boundary — a content item stores a plain ISO date string                                |
+| `select`           | `PlutoFieldSelect`    | `USelect`, mapping `field.options` to `{ label, value }`                                                                                                                       |
+| `reference`        | `PlutoFieldReference` | `UInputMenu`, populated from `field.optionsUrl` when set                                                                                                                       |
 
 The GitHub CMS Markdown widget reads `PlutoTextField.editor` (`'auto' | 'visual' | 'source'`,
 default `auto`) for a `richtext` field. It picks the first mode of the Visual/Source switch (see
@@ -576,7 +592,9 @@ dashes, and cuts at 100 characters. The form and the GitHub CMS both use it. Do 
 Both components gate write/delete visibility with the same rule:
 
 ```ts
-const canWrite = computed(() => !type.capabilities?.write || can(type.capabilities.write))
+const canWrite = computed(
+  () => !type.capabilities?.write || can(type.capabilities.write)
+)
 ```
 
 **Never call `can('')` as a stand-in for "no capability declared."** When a content type
@@ -637,7 +655,7 @@ with a matching `path`, same as every other registered page.
 post-create redirect goes to that same edit link. This is not only for `autoRoutes`-derived
 nav/pages — it is used unconditionally, including with `autoRoutes: false`.
 
-A layer adopting this system for an *existing* content type does not get to choose new URLs —
+A layer adopting this system for an _existing_ content type does not get to choose new URLs —
 that would be a breaking change for an already-deployed site, the one thing this whole project
 holds itself to never doing. `supabase-blog`'s `posts` is the first case that actually hit this:
 its create URL is `/admin/post/new` (singular) but its edit URL is `/admin/post/edit/:id`
@@ -756,7 +774,7 @@ segment, `index` comes first, then a numeric prefix (`2.name`) as a number, then
   `PlutoContentForm` is a later wave's job, once a real adapter exists for them to declare
   content types against.
 - `PlutoFieldReference` does not resolve `field.target` (a same-app content-type reference with
-  no `optionsUrl`) — it needs the generic list endpoint of *another* content type, which is later
+  no `optionsUrl`) — it needs the generic list endpoint of _another_ content type, which is later
   work. It renders the documented disabled placeholder instead.
 - No query-string support for `filter` or a custom `sort` override on the generic list route.
   `PlutoContentQuery` has room for both; this wave only wires `limit`, `offset`, and `search`

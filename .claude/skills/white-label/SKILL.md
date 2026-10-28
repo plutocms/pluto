@@ -21,18 +21,18 @@ client edits").
 
 ## Fields
 
-| Field | Effect |
-|---|---|
-| `name` | Alt text of the logos; the label of the `url` item; the tab title fallback (after the site name). |
-| `logo` | The logo on a light background: the sign-in card in light mode. |
-| `logoDark` | The logo on a dark background: the navbar (dark in both modes) and the sign-in card in dark mode. |
-| `mark` | The small logo in the navbar below `sm`. Default `logoDark`, then `logo`. |
-| `url` | A user menu item that opens the agency site. |
-| `helpUrl` | A "Help" item (`pluto.navbar.help`) in the user menu. |
-| `primary` | A hex color. Core makes the 11-step primary scale from it. |
-| `radius` | The admin `--ui-radius`, in rem (default 0.25). |
+| Field                 | Effect                                                                                                                                   |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                | Alt text of the logos; the label of the `url` item; the tab title fallback (after the site name).                                        |
+| `logo`                | The logo on a light background: the sign-in card in light mode.                                                                          |
+| `logoDark`            | The logo on a dark background: the navbar (dark in both modes) and the sign-in card in dark mode.                                        |
+| `mark`                | The small logo in the navbar below `sm`. Default `logoDark`, then `logo`.                                                                |
+| `url`                 | A user menu item that opens the agency site.                                                                                             |
+| `helpUrl`             | A "Help" item (`pluto.navbar.help`) in the user menu.                                                                                    |
+| `primary`             | A hex color. Core makes the 11-step primary scale from it.                                                                               |
+| `radius`              | The admin `--ui-radius`, in rem (default 0.25).                                                                                          |
 | `font`, `fontDisplay` | The admin text font and page title font (`font-family` values). The app loads the fonts. `fontDisplay` defaults to `font`, then Fredoka. |
-| `plutoLinks` | `false` hides "Pluto on GitHub" in the user menu. |
+| `plutoLinks`          | `false` hides "Pluto on GitHub" in the user menu.                                                                                        |
 
 With a logo, the navbar and the sign-in card show `<img>` elements (`object-contain`, at most
 10rem wide in the navbar, 12rem on the card) instead of `PlutoLogo`. With no logo they keep the

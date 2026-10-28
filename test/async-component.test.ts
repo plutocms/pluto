@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { defineAsyncComponent, defineComponent } from 'vue'
-import { findSyncComponents, isAsyncComponent } from '../app/composables/internal/async-component'
+import {
+  findSyncComponents,
+  isAsyncComponent,
+} from '../app/composables/internal/async-component'
 
 const syncComponent = defineComponent({ render: () => null })
-const asyncComponent = defineAsyncComponent(() => Promise.resolve(syncComponent))
+const asyncComponent = defineAsyncComponent(() =>
+  Promise.resolve(syncComponent)
+)
 
 describe('isAsyncComponent', () => {
   it('detects a component made by defineAsyncComponent', () => {

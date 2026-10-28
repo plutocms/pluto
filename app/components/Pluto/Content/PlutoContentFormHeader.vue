@@ -12,9 +12,9 @@ const props = defineProps<{
   typeLabel: string
   title: string
   status?: {
- label: string
-published: boolean
-}
+    label: string
+    published: boolean
+  }
   saveState: PlutoSaveState
   /** The text of the `saved` state, for example "Saved 2 min ago". */
   savedText?: string
@@ -52,13 +52,33 @@ const isSm = useMediaQuery('(min-width: 40rem)')
 const menuItems = computed(() => [
   [
     ...(props.viewUrl && !isSm.value
-      ? [{ label: t('pluto.form.view'), icon: 'lucide:external-link', to: props.viewUrl, target: '_blank' }]
+      ? [
+          {
+            label: t('pluto.form.view'),
+            icon: 'lucide:external-link',
+            to: props.viewUrl,
+            target: '_blank',
+          },
+        ]
       : []),
     ...(props.canUnpublish
-      ? [{ label: t('pluto.form.unpublish'), icon: 'lucide:eye-off', onSelect: () => emit('unpublish') }]
+      ? [
+          {
+            label: t('pluto.form.unpublish'),
+            icon: 'lucide:eye-off',
+            onSelect: () => emit('unpublish'),
+          },
+        ]
       : []),
     ...(props.canDelete
-      ? [{ label: t('pluto.common.delete'), icon: 'lucide:trash', color: 'error' as const, onSelect: () => emit('delete') }]
+      ? [
+          {
+            label: t('pluto.common.delete'),
+            icon: 'lucide:trash',
+            color: 'error' as const,
+            onSelect: () => emit('delete'),
+          },
+        ]
       : []),
   ],
 ])
@@ -83,8 +103,13 @@ const stateText = computed(() => {
 <template>
   <PlutoViewToolbar :back-to="backTo">
     <template #title>
-      <span class="text-muted hidden shrink-0 font-normal sm:inline">{{ typeLabel }}</span>
-      <UIcon name="i-lucide-chevron-right" class="text-muted hidden size-4 shrink-0 sm:block" />
+      <span class="text-muted hidden shrink-0 font-normal sm:inline">{{
+        typeLabel
+      }}</span>
+      <UIcon
+        name="i-lucide-chevron-right"
+        class="text-muted hidden size-4 shrink-0 sm:block"
+      />
       <span class="truncate">{{ title }}</span>
     </template>
 
@@ -96,25 +121,40 @@ const stateText = computed(() => {
         class="flex items-center gap-1.5 text-sm"
       >
         <template v-if="saveState === 'dirty'">
-          <span class="bg-warning size-2 shrink-0 rounded-full" aria-hidden="true" />
+          <span
+            class="bg-warning size-2 shrink-0 rounded-full"
+            aria-hidden="true"
+          />
           <span class="text-muted hidden md:inline">{{ stateText }}</span>
           <span class="sr-only md:hidden">{{ stateText }}</span>
         </template>
 
         <template v-else-if="saveState === 'saving'">
-          <UIcon name="i-lucide-loader-circle" class="text-muted size-4 shrink-0 animate-spin" aria-hidden="true" />
+          <UIcon
+            name="i-lucide-loader-circle"
+            class="text-muted size-4 shrink-0 animate-spin"
+            aria-hidden="true"
+          />
           <span class="text-muted hidden md:inline">{{ stateText }}</span>
           <span class="sr-only md:hidden">{{ stateText }}</span>
         </template>
 
         <template v-else-if="saveState === 'saved'">
-          <UIcon name="i-lucide-check" class="text-success size-4 shrink-0" aria-hidden="true" />
+          <UIcon
+            name="i-lucide-check"
+            class="text-success size-4 shrink-0"
+            aria-hidden="true"
+          />
           <span class="text-muted hidden md:inline">{{ stateText }}</span>
           <span class="sr-only md:hidden">{{ stateText }}</span>
         </template>
 
         <template v-else-if="saveState === 'failed'">
-          <UIcon name="i-lucide-circle-alert" class="text-error size-4 shrink-0" aria-hidden="true" />
+          <UIcon
+            name="i-lucide-circle-alert"
+            class="text-error size-4 shrink-0"
+            aria-hidden="true"
+          />
           <span class="text-error hidden sm:inline">{{ stateText }}</span>
           <UButton
             :label="t('pluto.form.retry')"

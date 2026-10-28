@@ -36,7 +36,9 @@ const target = computed(() => {
   if (!host) {
     return null
   }
-  return props.side === 'left' ? host.leftTarget.value : host.rightTarget(props.id)
+  return props.side === 'left'
+    ? host.leftTarget.value
+    : host.rightTarget(props.id)
 })
 </script>
 

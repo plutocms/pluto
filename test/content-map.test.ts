@@ -1,6 +1,10 @@
 import type { PlutoContentType, PlutoField } from '../shared/types/content'
 import { describe, expect, it } from 'vitest'
-import { fieldColumn, mapColumnsToFields, mapFieldsToColumns } from '../shared/utils/content-map'
+import {
+  fieldColumn,
+  mapColumnsToFields,
+  mapFieldsToColumns,
+} from '../shared/utils/content-map'
 
 const type: PlutoContentType = {
   name: 'post',
@@ -22,7 +26,12 @@ describe('fieldColumn', () => {
   })
 
   it('uses field.column when set', () => {
-    const field: PlutoField = { name: 'body', type: 'richtext', label: 'Body', column: 'body_html' }
+    const field: PlutoField = {
+      name: 'body',
+      type: 'richtext',
+      label: 'Body',
+      column: 'body_html',
+    }
     expect(fieldColumn(field)).toBe('body_html')
   })
 })
@@ -75,7 +84,12 @@ describe('virtual fields', () => {
   })
 
   it('mapColumnsToFields never includes a virtual field, even when the row has a matching column', () => {
-    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', media: ['a.png'] }
+    const row = {
+      post_id: 42,
+      title: 'Hello',
+      body_html: '<p>Hi</p>',
+      media: ['a.png'],
+    }
     const item = mapColumnsToFields(typeWithVirtual, row)
 
     expect(item).toEqual({ id: 42, title: 'Hello', body: '<p>Hi</p>' })
@@ -96,7 +110,12 @@ describe('mapColumnsToFields status symmetry', () => {
   }
 
   it('maps the status column to item.status when type.status is set', () => {
-    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', status: 'published' }
+    const row = {
+      post_id: 42,
+      title: 'Hello',
+      body_html: '<p>Hi</p>',
+      status: 'published',
+    }
     const item = mapColumnsToFields(typeWithStatus, row)
 
     expect(item.status).toBe('published')
@@ -114,14 +133,24 @@ describe('mapColumnsToFields status symmetry', () => {
         publishedValue: 'published',
       },
     }
-    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', workflow_state: 'draft' }
+    const row = {
+      post_id: 42,
+      title: 'Hello',
+      body_html: '<p>Hi</p>',
+      workflow_state: 'draft',
+    }
     const item = mapColumnsToFields(typeWithCustomColumn, row)
 
     expect(item.status).toBe('draft')
   })
 
   it('leaves status out of the mapped result when type.status is unset', () => {
-    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', status: 'published' }
+    const row = {
+      post_id: 42,
+      title: 'Hello',
+      body_html: '<p>Hi</p>',
+      status: 'published',
+    }
     const item = mapColumnsToFields(type, row)
 
     expect(item).not.toHaveProperty('status')
@@ -132,10 +161,21 @@ describe('mapColumnsToFields status symmetry', () => {
       ...typeWithStatus,
       fields: [
         ...type.fields,
-        { name: 'status', type: 'text', label: 'Status', column: 'custom_status' },
+        {
+          name: 'status',
+          type: 'text',
+          label: 'Status',
+          column: 'custom_status',
+        },
       ],
     }
-    const row = { post_id: 42, title: 'Hello', body_html: '<p>Hi</p>', custom_status: 'from-field', status: 'from-workflow' }
+    const row = {
+      post_id: 42,
+      title: 'Hello',
+      body_html: '<p>Hi</p>',
+      custom_status: 'from-field',
+      status: 'from-workflow',
+    }
     const item = mapColumnsToFields(typeWithStatusField, row)
 
     expect(item.status).toBe('from-field')

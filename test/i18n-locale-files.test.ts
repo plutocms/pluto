@@ -2,7 +2,10 @@ import type { FlatMessages } from '../app/composables/internal/i18n-core'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { countPluralForms, flattenMessages } from '../app/composables/internal/i18n-core'
+import {
+  countPluralForms,
+  flattenMessages,
+} from '../app/composables/internal/i18n-core'
 
 // Checks every core locale file against the others: same keys, same
 // placeholders, same plural forms. A new language is checked by adding its file.
@@ -13,11 +16,15 @@ const codes = readdirSync(dir)
 
 const locales: Record<string, FlatMessages> = {}
 for (const code of codes) {
-  locales[code] = flattenMessages(JSON.parse(readFileSync(join(dir, `${code}.json`), 'utf8')))
+  locales[code] = flattenMessages(
+    JSON.parse(readFileSync(join(dir, `${code}.json`), 'utf8'))
+  )
 }
 
 function placeholders(message: string): string[] {
-  return [...message.matchAll(/\{(\w+)\}/g)].map((match) => match[1]!).toSorted()
+  return [...message.matchAll(/\{(\w+)\}/g)]
+    .map((match) => match[1]!)
+    .toSorted()
 }
 
 describe('core locale files', () => {
@@ -29,18 +36,24 @@ describe('core locale files', () => {
   for (const code of codes.filter((code) => code !== 'en')) {
     describe(code, () => {
       it('has every key of en, and no other key', () => {
-        expect(Object.keys(locales[code]!).toSorted()).toEqual(Object.keys(locales.en!).toSorted())
+        expect(Object.keys(locales[code]!).toSorted()).toEqual(
+          Object.keys(locales.en!).toSorted()
+        )
       })
 
       it('uses the same placeholders as en for each key', () => {
         for (const [key, message] of Object.entries(locales.en!)) {
-          expect(placeholders(locales[code]![key] ?? ''), key).toEqual(placeholders(message))
+          expect(placeholders(locales[code]![key] ?? ''), key).toEqual(
+            placeholders(message)
+          )
         }
       })
 
       it('has the same number of plural forms as en for each key', () => {
         for (const [key, message] of Object.entries(locales.en!)) {
-          expect(countPluralForms(locales[code]![key] ?? ''), key).toBe(countPluralForms(message))
+          expect(countPluralForms(locales[code]![key] ?? ''), key).toBe(
+            countPluralForms(message)
+          )
         }
       })
     })
@@ -57,9 +70,13 @@ describe('core locale files', () => {
       // `content` holds the translations of content types. A layer that
       // declares a type adds them. Core declares no type, so core's files
       // have none.
-      const namespaces = new Set(Object.keys(locales[code]!).map((key) => key.split('.')[0]!))
+      const namespaces = new Set(
+        Object.keys(locales[code]!).map((key) => key.split('.')[0]!)
+      )
 
-      expect([...namespaces].filter((name) => !['pluto', 'content'].includes(name))).toEqual([])
+      expect(
+        [...namespaces].filter((name) => !['pluto', 'content'].includes(name))
+      ).toEqual([])
       expect(namespaces.has('pluto')).toBe(true)
     })
   }
@@ -75,7 +92,12 @@ const root = join(__dirname, '..')
 function sourceFiles(dir: string): string[] {
   return readdirSync(join(root, dir), { recursive: true, encoding: 'utf8' })
     .map((name) => join(root, dir, name))
-    .filter((file) => /\.(?:ts|vue)$/.test(file) && !file.endsWith('.d.ts') && statSync(file).isFile())
+    .filter(
+      (file) =>
+        /\.(?:ts|vue)$/.test(file) &&
+        !file.endsWith('.d.ts') &&
+        statSync(file).isFile()
+    )
 }
 
 const KEY = /^pluto(?:\.[\w-]+)+$/
@@ -93,7 +115,9 @@ function usedKeys(): Map<string, string[]> {
   for (const file of ['app', 'shared', 'server'].flatMap(sourceFiles)) {
     const text = readFileSync(file, 'utf8')
     const name = relative(root, file).replaceAll('\\', '/')
-    const patterns = name.startsWith('app/plugins/') ? [CALLS, KEY_PROPS, LITERALS] : [CALLS, KEY_PROPS]
+    const patterns = name.startsWith('app/plugins/')
+      ? [CALLS, KEY_PROPS, LITERALS]
+      : [CALLS, KEY_PROPS]
 
     for (const pattern of patterns) {
       for (const match of text.matchAll(pattern)) {
@@ -126,7 +150,16 @@ describe('core locale keys in use', () => {
   })
 
   it('has the keys that are built from a validation code', () => {
-    for (const code of ['required', 'number', 'integer', 'min', 'max', 'boolean', 'option', 'maxLength']) {
+    for (const code of [
+      'required',
+      'number',
+      'integer',
+      'min',
+      'max',
+      'boolean',
+      'option',
+      'maxLength',
+    ]) {
       expect(locales.en![`pluto.validation.${code}`], code).toBeDefined()
     }
   })

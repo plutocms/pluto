@@ -1,6 +1,10 @@
 import type { GithubFetch } from '../github/client'
 import type { GithubCache } from '../utils/github-cache'
-import type { PlutoGithubAuth, PlutoGithubFile, PlutoGithubStore } from './types'
+import type {
+  PlutoGithubAuth,
+  PlutoGithubFile,
+  PlutoGithubStore,
+} from './types'
 import { Buffer } from 'node:buffer'
 import { githubGraphql, githubRest } from '../github/client'
 import { PlutoGithubStoreError } from './errors'
@@ -32,11 +36,11 @@ interface TreeQueryData {
   repository: {
     object: {
       entries?: {
- name: string
-type: string
-oid: string
-object?: BlobNode | null
-}[]
+        name: string
+        type: string
+        oid: string
+        object?: BlobNode | null
+      }[]
     } | null
   } | null
 }
@@ -45,9 +49,11 @@ interface TreeNode {
   name: string
   type: string
   oid: string
-  object?: (BlobNode & {
- entries?: TreeNode[]
-}) | null
+  object?:
+    | (BlobNode & {
+        entries?: TreeNode[]
+      })
+    | null
 }
 
 interface NestedTreeQueryData {
@@ -60,8 +66,8 @@ interface NestedTreeQueryData {
 
 interface BlobQueryData {
   repository: {
- object: BlobNode | null
-} | null
+    object: BlobNode | null
+  } | null
 }
 
 const TREE_QUERY = `query PlutoGithubTree($owner: String!, $name: String!, $expression: String!) {
@@ -126,7 +132,9 @@ function dirOf(path: string): string {
 }
 
 /** Reads and writes a GitHub repo through the REST and GraphQL APIs. */
-export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore {
+export function createGithubStore(
+  options: GithubStoreOptions
+): PlutoGithubStore {
   const [owner = '', name = ''] = options.repo.split('/')
   const { cache } = options
 
@@ -135,17 +143,25 @@ export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore
       return auth.token
     }
     const { readToken } = options
-    return (typeof readToken === 'function' ? await readToken() : readToken) || undefined
+    return (
+      (typeof readToken === 'function' ? await readToken() : readToken) ||
+      undefined
+    )
   }
 
-  function usable(blob: BlobNode | null | undefined, path: string): blob is BlobNode & {
- text: string
-} {
+  function usable(
+    blob: BlobNode | null | undefined,
+    path: string
+  ): blob is BlobNode & {
+    text: string
+  } {
     if (!blob) {
       return false
     }
     if (blob.isBinary || blob.isTruncated) {
-      console.warn(`[pluto-github] Skipped "${path}": the file is binary or too large.`)
+      console.warn(
+        `[pluto-github] Skipped "${path}": the file is binary or too large.`
+      )
       return false
     }
     return typeof blob.text === 'string'
@@ -191,7 +207,11 @@ export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore
         const data = await githubGraphql<TreeQueryData>(
           TREE_QUERY,
           { owner, name, expression: `${headOid}:${base}` },
-          { token: await tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
+          {
+            token: await tokenOf(auth),
+            apiUrl: options.apiUrl,
+            fetch: options.fetch,
+          }
         )
         const entries = data.repository?.object?.entries ?? []
         const files: PlutoGithubFile[] = []
@@ -201,7 +221,12 @@ export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore
           }
           const path = base === '' ? entry.name : `${base}/${entry.name}`
           if (usable(entry.object, path)) {
-            files.push({ path, name: entry.name, oid: entry.oid, text: entry.object.text })
+            files.push({
+              path,
+              name: entry.name,
+              oid: entry.oid,
+              text: entry.object.text,
+            })
           }
         }
         files.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
@@ -221,7 +246,11 @@ export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore
         const data = await githubGraphql<NestedTreeQueryData>(
           NESTED_TREE_QUERY,
           { owner, name, expression: `${headOid}:${base}` },
-          { token: await tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
+          {
+            token: await tokenOf(auth),
+            apiUrl: options.apiUrl,
+            fetch: options.fetch,
+          }
         )
         const files: PlutoGithubFile[] = []
         const visit = (entries: TreeNode[] | undefined, parent: string) => {
@@ -232,8 +261,17 @@ export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore
             }
             if (entry.type === 'tree') {
               visit(entry.object?.entries, path)
-            } else if (entry.type === 'blob' && entry.name.endsWith('.md') && usable(entry.object, path)) {
-              files.push({ path, name: entry.name, oid: entry.oid, text: entry.object.text })
+            } else if (
+              entry.type === 'blob' &&
+              entry.name.endsWith('.md') &&
+              usable(entry.object, path)
+            ) {
+              files.push({
+                path,
+                name: entry.name,
+                oid: entry.oid,
+                text: entry.object.text,
+              })
             }
           }
         }
@@ -245,7 +283,10 @@ export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore
     },
 
     async readFile(path, headOid, auth) {
-      const index = await cache.getIndex<PlutoGithubFile[]>(dirOf(path), headOid)
+      const index = await cache.getIndex<PlutoGithubFile[]>(
+        dirOf(path),
+        headOid
+      )
       if (index) {
         return index.find((file) => file.path === path) ?? null
       }
@@ -253,7 +294,11 @@ export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore
         const data = await githubGraphql<BlobQueryData>(
           BLOB_QUERY,
           { owner, name, expression: `${headOid}:${path}` },
-          { token: await tokenOf(auth), apiUrl: options.apiUrl, fetch: options.fetch }
+          {
+            token: await tokenOf(auth),
+            apiUrl: options.apiUrl,
+            fetch: options.fetch,
+          }
         )
         const blob = data.repository?.object
         if (!usable(blob, path) || !blob.oid) {
@@ -265,21 +310,28 @@ export function createGithubStore(options: GithubStoreOptions): PlutoGithubStore
 
     async commit(input, auth) {
       if (!auth?.token) {
-        throw new PlutoGithubStoreError('auth', 'A commit needs a GitHub token.', { status: 401 })
+        throw new PlutoGithubStoreError(
+          'auth',
+          'A commit needs a GitHub token.',
+          { status: 401 }
+        )
       }
       const [headline = '', ...rest] = input.message.split('\n')
       const body = rest.join('\n').trim()
       const data = await githubGraphql<{
- createCommitOnBranch: {
- commit: {
- oid: string
-}
-}
-}>(
+        createCommitOnBranch: {
+          commit: {
+            oid: string
+          }
+        }
+      }>(
         COMMIT_MUTATION,
         {
           input: {
-            branch: { repositoryNameWithOwner: options.repo, branchName: options.branch },
+            branch: {
+              repositoryNameWithOwner: options.repo,
+              branchName: options.branch,
+            },
             message: body ? { headline, body } : { headline },
             expectedHeadOid: input.expectedHeadOid,
             fileChanges: {

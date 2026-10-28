@@ -10,7 +10,9 @@ import { createContentText } from './internal/content-text'
  * updates them. Server code and code that reads `type.label` directly keep
  * the English text.
  */
-export function usePlutoContentText(type: MaybeRefOrGetter<PlutoContentType | undefined>) {
+export function usePlutoContentText(
+  type: MaybeRefOrGetter<PlutoContentType | undefined>
+) {
   const { t, te, locale } = usePlutoI18n()
   return createContentText(() => toValue(type), { t, te, locale })
 }
@@ -24,5 +26,6 @@ export function usePlutoContentTexts() {
   const { t, te, locale } = usePlutoI18n()
   const { byName } = usePlutoContentTypes()
 
-  return (name: string) => createContentText(() => byName(name), { t, te, locale })
+  return (name: string) =>
+    createContentText(() => byName(name), { t, te, locale })
 }

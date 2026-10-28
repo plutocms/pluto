@@ -5,7 +5,15 @@
 // and it stops after 10 minutes. "Check again" starts it again.
 const { t } = usePlutoI18n()
 const errorText = usePlutoErrorText()
-const { keyState, domains, domain, createDomain, refreshDomain, verifyDomain, selectDomain } = usePlutoMail()
+const {
+  keyState,
+  domains,
+  domain,
+  createDomain,
+  refreshDomain,
+  verifyDomain,
+  selectDomain,
+} = usePlutoMail()
 
 const name = ref('')
 const region = ref<(typeof PLUTO_MAIL_REGIONS)[number]>(PLUTO_MAIL_REGIONS[0])
@@ -16,16 +24,23 @@ const timedOut = ref(false)
 const failure = ref<string | null>(null)
 
 const regionItems = computed(() =>
-  PLUTO_MAIL_REGIONS.map((code) => ({ label: t(`pluto.mail.domain.regions.${code}`), value: code }))
+  PLUTO_MAIL_REGIONS.map((code) => ({
+    label: t(`pluto.mail.domain.regions.${code}`),
+    value: code,
+  }))
 )
 
-const domainItems = computed(() => domains.value.map((entry) => ({ label: entry.name, value: entry.id })))
+const domainItems = computed(() =>
+  domains.value.map((entry) => ({ label: entry.name, value: entry.id }))
+)
 
 const normalizedName = computed(() => name.value.trim().toLowerCase())
 const nameValid = computed(() => isPlutoMailDomain(normalizedName.value))
 
 const hasFullAccess = computed(() => keyState.value === 'full')
-const domainState = computed(() => (domain.value ? plutoMailDomainState(domain.value.status) : null))
+const domainState = computed(() =>
+  domain.value ? plutoMailDomainState(domain.value.status) : null
+)
 
 const state = computed(() => {
   if (domainState.value === 'verified') {
@@ -37,11 +52,20 @@ const state = computed(() => {
 const statusBadge = computed(() => {
   switch (domainState.value) {
     case 'verified':
-      return { label: t('pluto.mail.domain.statusVerified'), color: 'success' as const }
+      return {
+        label: t('pluto.mail.domain.statusVerified'),
+        color: 'success' as const,
+      }
     case 'failed':
-      return { label: t('pluto.mail.domain.statusFailed'), color: 'error' as const }
+      return {
+        label: t('pluto.mail.domain.statusFailed'),
+        color: 'error' as const,
+      }
     default:
-      return { label: t('pluto.mail.domain.statusPending'), color: 'warning' as const }
+      return {
+        label: t('pluto.mail.domain.statusPending'),
+        color: 'warning' as const,
+      }
   }
 })
 
@@ -140,14 +164,21 @@ function pick(id: string) {
   >
     <UAlert
       v-if="!hasFullAccess"
-      :description="keyState === 'sending' ? t('pluto.mail.domain.lockedSending') : t('pluto.mail.domain.lockedKey')"
+      :description="
+        keyState === 'sending'
+          ? t('pluto.mail.domain.lockedSending')
+          : t('pluto.mail.domain.lockedKey')
+      "
       color="neutral"
       variant="subtle"
       icon="lucide:lock"
     />
 
     <template v-else>
-      <UFormField v-if="domainItems.length > 0" :label="t('pluto.mail.domain.existing')">
+      <UFormField
+        v-if="domainItems.length > 0"
+        :label="t('pluto.mail.domain.existing')"
+      >
         <USelect
           :model-value="domain?.id"
           :items="domainItems"
@@ -158,7 +189,11 @@ function pick(id: string) {
       </UFormField>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <UFormField :label="t('pluto.mail.domain.name')" :help="t('pluto.mail.domain.nameHelp')" class="sm:w-80">
+        <UFormField
+          :label="t('pluto.mail.domain.name')"
+          :help="t('pluto.mail.domain.nameHelp')"
+          class="sm:w-80"
+        >
           <UInput
             v-model="name"
             placeholder="example.com"
@@ -172,21 +207,44 @@ function pick(id: string) {
           <USelect v-model="region" :items="regionItems" class="w-full" />
         </UFormField>
 
-        <UButton :loading="creating" :disabled="!nameValid" icon="lucide:globe" @click="add">
+        <UButton
+          :loading="creating"
+          :disabled="!nameValid"
+          icon="lucide:globe"
+          @click="add"
+        >
           {{ t('pluto.mail.domain.add') }}
         </UButton>
       </div>
 
-      <UAlert v-if="failure" :description="failure" color="error" variant="subtle" icon="lucide:circle-x" />
+      <UAlert
+        v-if="failure"
+        :description="failure"
+        color="error"
+        variant="subtle"
+        icon="lucide:circle-x"
+      />
 
       <template v-if="domain">
         <div class="flex flex-wrap items-center gap-2">
           <span class="font-medium">{{ domain.name }}</span>
-          <UBadge :label="statusBadge.label" :color="statusBadge.color" variant="subtle" />
-          <UBadge v-if="polling" :label="t('pluto.mail.domain.polling')" color="neutral" variant="outline" icon="lucide:loader-circle" />
+          <UBadge
+            :label="statusBadge.label"
+            :color="statusBadge.color"
+            variant="subtle"
+          />
+          <UBadge
+            v-if="polling"
+            :label="t('pluto.mail.domain.polling')"
+            color="neutral"
+            variant="outline"
+            icon="lucide:loader-circle"
+          />
         </div>
 
-        <p v-if="domainState !== 'verified'" class="text-muted text-sm">{{ t('pluto.mail.domain.recordsHint') }}</p>
+        <p v-if="domainState !== 'verified'" class="text-muted text-sm">
+          {{ t('pluto.mail.domain.recordsHint') }}
+        </p>
 
         <PlutoMailDomainRecords :records="domain.records" />
 
@@ -216,8 +274,16 @@ function pick(id: string) {
         />
 
         <div v-if="domainState !== 'verified'" class="flex flex-wrap gap-2">
-          <UButton :loading="checking" icon="lucide:shield-check" @click="verifyNow">
-            {{ polling || timedOut || domainState === 'failed' ? t('pluto.mail.domain.checkAgain') : t('pluto.mail.domain.verify') }}
+          <UButton
+            :loading="checking"
+            icon="lucide:shield-check"
+            @click="verifyNow"
+          >
+            {{
+              polling || timedOut || domainState === 'failed'
+                ? t('pluto.mail.domain.checkAgain')
+                : t('pluto.mail.domain.verify')
+            }}
           </UButton>
         </div>
       </template>

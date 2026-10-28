@@ -14,7 +14,9 @@ const FRONTMATTER = /^---[ \t]*\n(?:([\s\S]*?)\n)?---[ \t]*(?:\n|$)/
  * string. A file with no frontmatter gives `{}` and the whole text.
  */
 export function parseMarkdownFile(text: string): MarkdownFile {
-  const normalized = (text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text).replaceAll('\r\n', '\n').replaceAll('\r', '\n')
+  const normalized = (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text)
+    .replaceAll('\r\n', '\n')
+    .replaceAll('\r', '\n')
   const match = FRONTMATTER.exec(normalized)
   if (!match) {
     return { frontmatter: {}, body: normalized }
@@ -23,7 +25,9 @@ export function parseMarkdownFile(text: string): MarkdownFile {
   const source = match[1] ?? ''
   const doc = parseDocument(source, { schema: 'core', uniqueKeys: true })
   if (doc.errors.length > 0) {
-    throw new Error(`The frontmatter is not valid YAML: ${doc.errors[0]!.message}`)
+    throw new Error(
+      `The frontmatter is not valid YAML: ${doc.errors[0]!.message}`
+    )
   }
   const value = doc.toJS({ maxAliasCount: 10 }) as unknown
   if (value === null || value === undefined) {
@@ -39,12 +43,20 @@ export function parseMarkdownFile(text: string): MarkdownFile {
  * Writes frontmatter and body. Keys keep their insertion order. The YAML
  * writer quotes any string that needs it. Empty frontmatter writes no fence.
  */
-export function serializeMarkdownFile(frontmatter: Record<string, unknown>, body: string): string {
+export function serializeMarkdownFile(
+  frontmatter: Record<string, unknown>,
+  body: string
+): string {
   const cleanBody = body.replaceAll('\r\n', '\n').replaceAll('\r', '\n')
-  const entries = Object.entries(frontmatter).filter(([, value]) => value !== undefined)
+  const entries = Object.entries(frontmatter).filter(
+    ([, value]) => value !== undefined
+  )
   if (entries.length === 0) {
     return cleanBody
   }
-  const yaml = stringify(Object.fromEntries(entries), { schema: 'core', lineWidth: 0 })
+  const yaml = stringify(Object.fromEntries(entries), {
+    schema: 'core',
+    lineWidth: 0,
+  })
   return `---\n${yaml}---\n${cleanBody}`
 }

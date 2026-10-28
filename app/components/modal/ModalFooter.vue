@@ -52,10 +52,7 @@ const resolvedClasses = computed(() => {
       "
     />
 
-    <div
-      :class="resolvedAlign"
-      class="flex flex-wrap gap-2 p-3 sm:p-4"
-    >
+    <div :class="resolvedAlign" class="flex flex-wrap gap-2 p-3 sm:p-4">
       <slot />
     </div>
   </div>

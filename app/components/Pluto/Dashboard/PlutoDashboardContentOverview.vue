@@ -17,20 +17,33 @@ function retry() {
 }
 
 function publishedPercent(stat: PlutoContentStat): number {
-  return stat.total > 0 ? Math.round(((stat.published ?? 0) / stat.total) * 100) : 0
+  return stat.total > 0
+    ? Math.round(((stat.published ?? 0) / stat.total) * 100)
+    : 0
 }
 
 /** Items created this week, or `undefined` when activity is not available. */
 function thisWeek(stat: PlutoContentStat): number | undefined {
-  return activity.value.find((entry) => entry.name === stat.name)?.points.at(-1)?.count
+  return activity.value.find((entry) => entry.name === stat.name)?.points.at(-1)
+    ?.count
 }
 </script>
 
 <template>
-  <section v-if="contentTypes.length" :aria-label="t('pluto.dashboard.overview.label')">
+  <section
+    v-if="contentTypes.length"
+    :aria-label="t('pluto.dashboard.overview.label')"
+  >
     <UAlert
       v-if="error && !stats.length"
-      :actions="[{ label: t('pluto.common.tryAgain'), color: 'error', variant: 'outline', onClick: retry }]"
+      :actions="[
+        {
+          label: t('pluto.common.tryAgain'),
+          color: 'error',
+          variant: 'outline',
+          onClick: retry,
+        },
+      ]"
       :title="t('pluto.dashboard.overview.loadFailed')"
       color="error"
       variant="subtle"
@@ -55,25 +68,39 @@ function thisWeek(stat: PlutoContentStat): number | undefined {
         :to="stat.path"
         class="group focus-visible:outline-primary rounded-lg focus-visible:outline-2"
       >
-        <UCard class="group-hover:ring-accented h-full transition-shadow group-hover:shadow-sm">
+        <UCard
+          class="group-hover:ring-accented h-full transition-shadow group-hover:shadow-sm"
+        >
           <div class="flex flex-col gap-3">
             <div class="flex items-start justify-between gap-3">
-              <p class="text-muted text-sm font-medium">{{ texts(stat.name).labelPlural }}</p>
-              <span class="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-md">
+              <p class="text-muted text-sm font-medium">
+                {{ texts(stat.name).labelPlural }}
+              </p>
+              <span
+                class="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-md"
+              >
                 <UIcon :name="stat.icon ?? 'lucide:file'" class="size-4" />
               </span>
             </div>
 
             <div class="flex items-baseline gap-2">
-              <p class="text-highlighted text-3xl font-semibold tracking-tight tabular-nums">
+              <p
+                class="text-highlighted text-3xl font-semibold tracking-tight tabular-nums"
+              >
                 {{ n(stat.total) }}
               </p>
               <p v-if="thisWeek(stat) !== undefined" class="text-sm">
                 <template v-if="thisWeek(stat)">
-                  <span class="text-success font-medium tabular-nums">+{{ n(thisWeek(stat)!) }}</span>
-                  <span class="text-muted"> {{ t('pluto.dashboard.overview.thisWeek') }}</span>
+                  <span class="text-success font-medium tabular-nums"
+                    >+{{ n(thisWeek(stat)!) }}</span
+                  >
+                  <span class="text-muted">
+                    {{ t('pluto.dashboard.overview.thisWeek') }}</span
+                  >
                 </template>
-                <span v-else class="text-dimmed">{{ t('pluto.dashboard.overview.noneThisWeek') }}</span>
+                <span v-else class="text-dimmed">{{
+                  t('pluto.dashboard.overview.noneThisWeek')
+                }}</span>
               </p>
             </div>
 
@@ -81,16 +108,27 @@ function thisWeek(stat: PlutoContentStat): number | undefined {
               <div
                 :aria-valuenow="stat.published"
                 :aria-valuemax="stat.total"
-                :aria-label="t('pluto.dashboard.overview.meter', { published: stat.published, total: stat.total, labelPlural: texts(stat.name).labelPluralLower })"
+                :aria-label="
+                  t('pluto.dashboard.overview.meter', {
+                    published: stat.published,
+                    total: stat.total,
+                    labelPlural: texts(stat.name).labelPluralLower,
+                  })
+                "
                 role="meter"
                 aria-valuemin="0"
                 class="bg-accented flex h-1.5 overflow-hidden rounded-full"
               >
-                <div :style="{ width: `${publishedPercent(stat)}%` }" class="bg-primary rounded-full" />
+                <div
+                  :style="{ width: `${publishedPercent(stat)}%` }"
+                  class="bg-primary rounded-full"
+                />
               </div>
 
               <p class="text-muted text-sm">
-                <span class="text-highlighted font-medium tabular-nums">{{ n(stat.published) }}</span>
+                <span class="text-highlighted font-medium tabular-nums">{{
+                  n(stat.published)
+                }}</span>
                 {{ t('pluto.dashboard.overview.published', stat.published) }} ·
                 <span class="tabular-nums">{{ n(stat.drafts ?? 0) }}</span>
                 {{ t('pluto.dashboard.overview.drafts', stat.drafts ?? 0) }}

@@ -62,13 +62,18 @@ function hasCheckout(root: string, folder: string): boolean {
  * that extend other Pluto layers use the local copies too. An explicit
  * `PLUTO_<NAME>_PATH` always wins.
  */
-export function plutoLayer(name: string, options: PlutoLayerOptions = {}): PlutoLayerEntry {
+export function plutoLayer(
+  name: string,
+  options: PlutoLayerOptions = {}
+): PlutoLayerEntry {
   const install = options.install ?? true
   const envName = plutoLayerEnvName(name)
 
   const rootValue = options.root || process.env.PLUTO_LOCAL_ROOT
   if (rootValue && process.env.PLUTO_USE_LOCAL !== 'false') {
-    const root = isAbsolute(rootValue) ? rootValue : resolve(process.cwd(), rootValue)
+    const root = isAbsolute(rootValue)
+      ? rootValue
+      : resolve(process.cwd(), rootValue)
     const folders = new Set<string>([...PLUTO_LAYER_FOLDERS, folderOf(name)])
     for (const folder of folders) {
       const variable = plutoLayerEnvName(folder)

@@ -11,7 +11,8 @@ export function usePlutoSettingsPanels() {
     registry.settingsPanels.list.value.map((panel) => ({
       ...panel,
       title: tx(panel.title),
-      description: panel.description === undefined ? undefined : tx(panel.description),
+      description:
+        panel.description === undefined ? undefined : tx(panel.description),
     }))
   )
 
@@ -38,7 +39,10 @@ export function usePlutoSettingsPages() {
   const route = useRoute()
 
   const all = computed<PlutoSettingsPage[]>(() =>
-    registry.settingsPages.list.value.map((page) => ({ ...page, label: tx(page.label) }))
+    registry.settingsPages.list.value.map((page) => ({
+      ...page,
+      label: tx(page.label),
+    }))
   )
 
   const items = computed<PlutoSettingsPage[]>(() =>
@@ -46,7 +50,8 @@ export function usePlutoSettingsPages() {
   )
 
   const current = computed<PlutoSettingsPage | undefined>(() => {
-    const path = route.path.length > 1 ? route.path.replace(/\/+$/, '') : route.path
+    const path =
+      route.path.length > 1 ? route.path.replace(/\/+$/, '') : route.path
     let best: PlutoSettingsPage | undefined
     for (const page of all.value) {
       const matches = path === page.to || path.startsWith(`${page.to}/`)
@@ -73,10 +78,18 @@ export function usePlutoSettingsPages() {
  */
 export function usePlutoSettings() {
   const registry = usePlutoRegistry()
-  const driver = computed(() => registry.settingsDrivers.list.value.at(-1) ?? null)
+  const driver = computed(
+    () => registry.settingsDrivers.list.value.at(-1) ?? null
+  )
 
-  const values = useState<Record<string, string>>('pluto-settings-values', () => ({}))
-  const dirty = useState<Record<string, string>>('pluto-settings-dirty', () => ({}))
+  const values = useState<Record<string, string>>(
+    'pluto-settings-values',
+    () => ({})
+  )
+  const dirty = useState<Record<string, string>>(
+    'pluto-settings-dirty',
+    () => ({})
+  )
   const status = ref<'idle' | 'loading' | 'saving'>('idle')
 
   async function load() {

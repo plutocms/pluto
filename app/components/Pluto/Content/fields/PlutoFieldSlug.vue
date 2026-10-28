@@ -18,7 +18,11 @@ const value = computed(() => (props.modelValue as string | undefined) ?? '')
 </script>
 
 <template>
-  <UFormField :label="field.label" :description="field.description" :required="field.required">
+  <UFormField
+    :label="field.label"
+    :description="field.description"
+    :required="field.required"
+  >
     <UInput
       :model-value="value"
       :disabled="disabled"

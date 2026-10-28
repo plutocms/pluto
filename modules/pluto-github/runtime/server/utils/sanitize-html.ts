@@ -100,14 +100,20 @@ const NAMED_ENTITIES: Record<string, string> = {
 }
 
 function decodeEntitiesOnce(value: string): string {
-  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (match, body: string) => {
-    if (body[0] === '#') {
-      const isHex = body[1] === 'x' || body[1] === 'X'
-      const codePoint = Number.parseInt(isHex ? body.slice(2) : body.slice(1), isHex ? 16 : 10)
-      return Number.isNaN(codePoint) ? match : String.fromCodePoint(codePoint)
+  return value.replace(
+    /&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,
+    (match, body: string) => {
+      if (body[0] === '#') {
+        const isHex = body[1] === 'x' || body[1] === 'X'
+        const codePoint = Number.parseInt(
+          isHex ? body.slice(2) : body.slice(1),
+          isHex ? 16 : 10
+        )
+        return Number.isNaN(codePoint) ? match : String.fromCodePoint(codePoint)
+      }
+      return NAMED_ENTITIES[body] ?? match
     }
-    return NAMED_ENTITIES[body] ?? match
-  })
+  )
 }
 
 /**
@@ -140,9 +146,9 @@ export function isSafeUrl(value: string): boolean {
   }
 
   if (
-    stripped.startsWith('http:')
-    || stripped.startsWith('https:')
-    || stripped.startsWith('mailto:')
+    stripped.startsWith('http:') ||
+    stripped.startsWith('https:') ||
+    stripped.startsWith('mailto:')
   ) {
     return true
   }
@@ -156,7 +162,10 @@ export function isSafeUrl(value: string): boolean {
 // `alt='x" onerror="alert(1)'` breaks out of the quote and injects a new,
 // live attribute in the final HTML.
 function escapeAttributeValue(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
 }
 
 function dropNode(node: ElementNode): void {
@@ -204,7 +213,10 @@ function filterAttributes(element: ElementNode, name: string): void {
       break
     }
     case 'code': {
-      if (typeof attributes.class === 'string' && LANGUAGE_CLASS.test(attributes.class)) {
+      if (
+        typeof attributes.class === 'string' &&
+        LANGUAGE_CLASS.test(attributes.class)
+      ) {
         kept.class = attributes.class
       }
       break

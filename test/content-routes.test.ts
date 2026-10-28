@@ -6,9 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // router and calls them like a browser. The Nuxt auto-imports are stubs.
 
 const calls: {
- op: string
-id: unknown
-body?: unknown
+  op: string
+  id: unknown
+  body?: unknown
 }[] = []
 
 beforeEach(() => {
@@ -21,10 +21,13 @@ beforeEach(() => {
     calls.push({ op: 'get', id })
     return { id }
   })
-  vi.stubGlobal('updateContentItem', async (_ctx: unknown, id: string, body: unknown) => {
-    calls.push({ op: 'update', id, body })
-    return { id }
-  })
+  vi.stubGlobal(
+    'updateContentItem',
+    async (_ctx: unknown, id: string, body: unknown) => {
+      calls.push({ op: 'update', id, body })
+      return { id }
+    }
+  )
   vi.stubGlobal('deleteContentItem', async (_ctx: unknown, id: string) => {
     calls.push({ op: 'delete', id })
   })
@@ -46,11 +49,14 @@ async function handler() {
   router.delete('/api/_pluto/content/:type/**:id', remove)
   app.use(router)
   const web = h3.toWebHandler(app)
-  return (method: string, path: string, body?: unknown) => web(new Request(`http://localhost${path}`, {
-    method,
-    headers: { 'content-type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  }))
+  return (method: string, path: string, body?: unknown) =>
+    web(
+      new Request(`http://localhost${path}`, {
+        method,
+        headers: { 'content-type': 'application/json' },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      })
+    )
 }
 
 describe('content item routes', () => {

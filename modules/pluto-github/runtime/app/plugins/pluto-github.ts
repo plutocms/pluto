@@ -4,12 +4,22 @@ import { defineNuxtPlugin, useRuntimeConfig } from '#imports'
 import PlutoGithubSignIn from '../../../../../app/components/Pluto/Github/PlutoGithubSignIn.vue'
 import { definePlutoExtension } from '../../../../../app/composables/pluto-extension'
 import { usePlutoRegistry } from '../../../../../app/composables/pluto-registry'
-import { isPostTypeOn, showBuildStatus, showPublicRepoWarning } from '../../shared/client-rules'
+import {
+  isPostTypeOn,
+  showBuildStatus,
+  showPublicRepoWarning,
+} from '../../shared/client-rules'
 import { plutoGithubPostType } from '../../shared/post-type'
-import { CMS_SESSION_URL, usePlutoGithubSession } from '../composables/pluto-github-session'
+import {
+  CMS_SESSION_URL,
+  usePlutoGithubSession,
+} from '../composables/pluto-github-session'
 
 // The dashboard loads each widget on demand, with a skeleton.
-const PlutoGithubPublicRepoWarning = defineAsyncComponent(() => import('../../../../../app/components/Pluto/Github/PlutoGithubPublicRepoWarning.vue'))
+const PlutoGithubPublicRepoWarning = defineAsyncComponent(
+  () =>
+    import('../../../../../app/components/Pluto/Github/PlutoGithubPublicRepoWarning.vue')
+)
 
 /**
  * Plugs the standalone CMS into the admin: the auth driver (core renders the
@@ -23,24 +33,44 @@ export default defineNuxtPlugin(() => {
   const registry = usePlutoRegistry()
 
   // The server registers the post type only when `postType` is on. The client follows it.
-  const postType = isPostTypeOn(useRuntimeConfig().public.plutoGithub as {
- postType?: boolean
-} | undefined)
+  const postType = isPostTypeOn(
+    useRuntimeConfig().public.plutoGithub as
+      | {
+          postType?: boolean
+        }
+      | undefined
+  )
 
   // The build status shows when a save starts a deploy, and the content is in GitHub.
-  const buildStatus = showBuildStatus(useRuntimeConfig().public.plutoGithub as {
- storage?: string
-skipDeploy?: boolean
-} | undefined)
+  const buildStatus = showBuildStatus(
+    useRuntimeConfig().public.plutoGithub as
+      | {
+          storage?: string
+          skipDeploy?: boolean
+        }
+      | undefined
+  )
 
   const { read, write, delete: remove } = plutoGithubPostType.capabilities ?? {}
-  const capabilities = (postType
-? [
-    { key: read, label: 'pluto.github.capabilities.readDrafts' },
-    { key: write, label: 'pluto.github.capabilities.publish' },
-    { key: remove, label: 'pluto.github.capabilities.delete' },
-  ]
-: []).flatMap((entry) => (entry.key ? [{ id: entry.key.replace(':', '-'), key: entry.key, label: entry.label }] : []))
+  const capabilities = (
+    postType
+      ? [
+          { key: read, label: 'pluto.github.capabilities.readDrafts' },
+          { key: write, label: 'pluto.github.capabilities.publish' },
+          { key: remove, label: 'pluto.github.capabilities.delete' },
+        ]
+      : []
+  ).flatMap((entry) =>
+    entry.key
+      ? [
+          {
+            id: entry.key.replace(':', '-'),
+            key: entry.key,
+            label: entry.label,
+          },
+        ]
+      : []
+  )
 
   definePlutoExtension({
     id: 'pluto-github',
@@ -52,7 +82,14 @@ skipDeploy?: boolean
       id: 'pluto-github-auth',
       user: () => {
         const user = session.user.value
-        return user ? { id: String(user.id), name: user.name ?? undefined, username: user.login, avatarUrl: user.avatarUrl } : null
+        return user
+          ? {
+              id: String(user.id),
+              name: user.name ?? undefined,
+              username: user.login,
+              avatarUrl: user.avatarUrl,
+            }
+          : null
       },
       loggedIn: () => session.loggedIn.value,
       ready: async () => {
@@ -71,7 +108,13 @@ skipDeploy?: boolean
     // The GitHub tab of Settings: the setup check and the Create button. The module
     // adds its route (`/admin/settings/github`) with `extendPages`.
     settingsPages: [
-      { id: 'github', order: 150, label: 'pluto.settings.tabs.github', icon: 'simple-icons:github', to: '/admin/settings/github' },
+      {
+        id: 'github',
+        order: 150,
+        label: 'pluto.settings.tabs.github',
+        icon: 'simple-icons:github',
+        to: '/admin/settings/github',
+      },
     ],
     // The content type gives the Posts nav item, the list and the form.
     contentTypes: postType ? [{ id: 'post', type: plutoGithubPostType }] : [],
@@ -80,7 +123,10 @@ skipDeploy?: boolean
       {
         id: 'markdown',
         fieldType: 'richtext',
-        component: defineAsyncComponent(() => import('../../../../../app/components/Pluto/Github/PlutoFieldMarkdown.vue')),
+        component: defineAsyncComponent(
+          () =>
+            import('../../../../../app/components/Pluto/Github/PlutoFieldMarkdown.vue')
+        ),
       },
     ],
     // The build of the head commit, next to Save. Lazy, like the editor.
@@ -90,7 +136,10 @@ skipDeploy?: boolean
             id: 'build-status',
             contentType: '*',
             order: 50,
-            component: defineAsyncComponent(() => import('../../../../../app/components/Pluto/Github/PlutoGithubBuildStatus.vue')),
+            component: defineAsyncComponent(
+              () =>
+                import('../../../../../app/components/Pluto/Github/PlutoGithubBuildStatus.vue')
+            ),
           },
         ]
       : [],
@@ -101,7 +150,11 @@ skipDeploy?: boolean
         order: -10,
         colSpan: 3,
         component: PlutoGithubPublicRepoWarning,
-        enabled: () => showPublicRepoWarning(session.repo.value?.private, registry.contentTypes.list.value.map((entry) => entry.type)),
+        enabled: () =>
+          showPublicRepoWarning(
+            session.repo.value?.private,
+            registry.contentTypes.list.value.map((entry) => entry.type)
+          ),
       },
     ],
     // Core loads the capabilities after sign-in and clears them after sign-out.
@@ -109,7 +162,8 @@ skipDeploy?: boolean
     permissionsDriver: {
       id: 'pluto-github',
       load: async () => {
-        const response = await $fetch<PlutoGithubSessionResponse>(CMS_SESSION_URL)
+        const response =
+          await $fetch<PlutoGithubSessionResponse>(CMS_SESSION_URL)
         return response.user ? (response.capabilities ?? []) : []
       },
     },

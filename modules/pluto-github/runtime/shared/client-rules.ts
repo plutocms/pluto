@@ -5,9 +5,13 @@ import type { PlutoContentType } from '../../../../shared/types/content'
  * `postType` option to the public runtime config. A missing value counts as on,
  * like the option default.
  */
-export function isPostTypeOn(config: {
- postType?: boolean
-} | undefined): boolean {
+export function isPostTypeOn(
+  config:
+    | {
+        postType?: boolean
+      }
+    | undefined
+): boolean {
   return config?.postType !== false
 }
 
@@ -17,7 +21,10 @@ export function isPostTypeOn(config: {
  * drafts. So the warning shows only for a public repo (`private === false`)
  * and at least one registered type with a status.
  */
-export function showPublicRepoWarning(repoPrivate: boolean | undefined, types: readonly Pick<PlutoContentType, 'status'>[]): boolean {
+export function showPublicRepoWarning(
+  repoPrivate: boolean | undefined,
+  types: readonly Pick<PlutoContentType, 'status'>[]
+): boolean {
   return repoPrivate === false && types.some((type) => Boolean(type.status))
 }
 
@@ -26,9 +33,13 @@ export function showPublicRepoWarning(repoPrivate: boolean | undefined, types: r
  * (`commit.skipDeploy` is false), and the content must be in GitHub: the `fs`
  * store has no builds. The module copies both options to the public runtime config.
  */
-export function showBuildStatus(config: {
- storage?: string
-skipDeploy?: boolean
-} | undefined): boolean {
+export function showBuildStatus(
+  config:
+    | {
+        storage?: string
+        skipDeploy?: boolean
+      }
+    | undefined
+): boolean {
   return config?.storage === 'github' && config.skipDeploy === false
 }

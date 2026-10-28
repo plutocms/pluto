@@ -22,21 +22,31 @@ const widths = ['w-3/4', 'w-1/2', 'w-2/3', 'w-2/5', 'w-3/5', 'w-1/3']
 
 <template>
   <div role="status">
-    <div class="ring-default hidden overflow-hidden rounded-lg ring lg:block" aria-hidden="true">
+    <div
+      class="ring-default hidden overflow-hidden rounded-lg ring lg:block"
+      aria-hidden="true"
+    >
       <table class="w-full table-fixed text-sm">
-        <thead class="border-b border-default">
+        <thead class="border-default border-b">
           <tr>
-            <th v-for="column in columns" :key="column" class="text-highlighted px-4 py-3.5 text-left font-semibold">
+            <th
+              v-for="column in columns"
+              :key="column"
+              class="text-highlighted px-4 py-3.5 text-left font-semibold"
+            >
               {{ column }}
             </th>
             <th v-if="status" class="w-32 px-4 py-3.5" />
             <th class="w-36 px-4 py-3.5" />
           </tr>
         </thead>
-        <tbody class="divide-y divide-default">
+        <tbody class="divide-default divide-y">
           <tr v-for="row in rows" :key="row">
             <td v-for="(column, index) in columns" :key="column" class="p-4">
-              <USkeleton :class="widths[(row + index) % widths.length]" class="h-4" />
+              <USkeleton
+                :class="widths[(row + index) % widths.length]"
+                class="h-4"
+              />
             </td>
             <td v-if="status" class="p-4">
               <USkeleton class="h-5 w-20 rounded-full" />
@@ -60,7 +70,11 @@ const widths = ['w-3/4', 'w-1/2', 'w-2/3', 'w-2/5', 'w-3/5', 'w-1/3']
             <USkeleton v-if="status" class="h-5 w-16 rounded-full" />
           </div>
           <div class="grid grid-cols-2 gap-3">
-            <div v-for="column in Math.max(columns.length - 1, 1)" :key="column" class="flex flex-col gap-1.5">
+            <div
+              v-for="column in Math.max(columns.length - 1, 1)"
+              :key="column"
+              class="flex flex-col gap-1.5"
+            >
               <USkeleton class="h-3.5 w-16" />
               <USkeleton class="h-4 w-24" />
             </div>

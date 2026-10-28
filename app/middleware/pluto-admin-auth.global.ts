@@ -1,4 +1,9 @@
-import { guardDecision, isAdminPath, matchPublicPath, staffDecision } from '../composables/internal/admin-shell'
+import {
+  guardDecision,
+  isAdminPath,
+  matchPublicPath,
+  staffDecision,
+} from '../composables/internal/admin-shell'
 
 /**
  * The route guard of the admin. It does nothing when no auth driver is
@@ -28,7 +33,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (driverGuard) {
     let target: string | undefined | void
     try {
-      target = await driverGuard({ path: to.path, fullPath: to.fullPath, query: to.query })
+      target = await driverGuard({
+        path: to.path,
+        fullPath: to.fullPath,
+        query: to.query,
+      })
     } catch {
       // A driver guard must not reject. If it does, go on with the sign-in rule.
     }

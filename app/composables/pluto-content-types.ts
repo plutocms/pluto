@@ -4,7 +4,9 @@ export function usePlutoContentTypes() {
 
   /** Looks up a content type by its own `name`, not the registry entry `id`. */
   function byName(name: string): PlutoContentType | undefined {
-    return registry.contentTypes.list.value.find((entry) => entry.type.name === name)?.type
+    return registry.contentTypes.list.value.find(
+      (entry) => entry.type.name === name
+    )?.type
   }
 
   return { items: registry.contentTypes.list, byName }

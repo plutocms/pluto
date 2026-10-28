@@ -2,7 +2,11 @@ import type { GithubFetch } from '../github/client'
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { listContentTypes } from '../../../../../server/utils/pluto-content'
 import { plutoGithubPostType } from '../../shared/post-type'
-import { defaultGithubFetch, GITHUB_API_URL, githubRest } from '../github/client'
+import {
+  defaultGithubFetch,
+  GITHUB_API_URL,
+  githubRest,
+} from '../github/client'
 import { PlutoGithubStoreError } from '../store/errors'
 
 export interface GithubTransportOptions {
@@ -76,11 +80,14 @@ export function randomToken(bytes = 32): string {
 
 /** A PKCE pair. The challenge is the S256 hash of the verifier. */
 export function createPkcePair(): {
- verifier: string
-challenge: string
+  verifier: string
+  challenge: string
 } {
   const verifier = randomToken(32)
-  return { verifier, challenge: createHash('sha256').update(verifier).digest('base64url') }
+  return {
+    verifier,
+    challenge: createHash('sha256').update(verifier).digest('base64url'),
+  }
 }
 
 /** Compares two strings in constant time. A different length is safe too. */
@@ -108,7 +115,11 @@ export function safeRedirect(value: unknown, fallback = '/admin/home'): string {
   if (typeof value !== 'string' || value === '' || value.length > 2048) {
     return fallback
   }
-  if (!value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+  if (
+    !value.startsWith('/') ||
+    value.startsWith('//') ||
+    value.includes('\\')
+  ) {
     return fallback
   }
   // A tab or a new line can hide a second slash from the check above.
@@ -117,7 +128,9 @@ export function safeRedirect(value: unknown, fallback = '/admin/home'): string {
   }
   // Resolve against a fake origin. A target that leaves it is not a local path.
   try {
-    if (new URL(value, 'http://pluto.invalid').origin !== 'http://pluto.invalid') {
+    if (
+      new URL(value, 'http://pluto.invalid').origin !== 'http://pluto.invalid'
+    ) {
       return fallback
     }
   } catch {
@@ -157,34 +170,47 @@ interface TokenResponse {
 async function requestToken(
   body: Record<string, string>,
   options: GithubTransportOptions & {
- now?: () => number
-}
+    now?: () => number
+  }
 ): Promise<OAuthTokens> {
   const send = options.fetch ?? defaultGithubFetch
-  const response = await send(`${oauthBaseUrl(options.apiUrl)}/login/oauth/access_token`, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'User-Agent': 'plutocms',
-    },
-    body: JSON.stringify(body),
-  })
+  const response = await send(
+    `${oauthBaseUrl(options.apiUrl)}/login/oauth/access_token`,
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'plutocms',
+      },
+      body: JSON.stringify(body),
+    }
+  )
   const data = (response.data ?? {}) as TokenResponse
 
   if (data.error) {
     throw new PlutoGithubOAuthError(data.error, data.error_description)
   }
-  if (response.status >= 400 || typeof data.access_token !== 'string' || data.access_token === '') {
-    throw new PlutoGithubStoreError('github', `GitHub did not return a token. Status ${response.status}.`, {
-      status: response.status,
-    })
+  if (
+    response.status >= 400 ||
+    typeof data.access_token !== 'string' ||
+    data.access_token === ''
+  ) {
+    throw new PlutoGithubStoreError(
+      'github',
+      `GitHub did not return a token. Status ${response.status}.`,
+      {
+        status: response.status,
+      }
+    )
   }
 
   const now = (options.now ?? Date.now)()
   const later = (value: unknown): number | undefined => {
     const seconds = Number(value)
-    return value !== undefined && Number.isFinite(seconds) && seconds > 0 ? now + seconds * 1000 : undefined
+    return value !== undefined && Number.isFinite(seconds) && seconds > 0
+      ? now + seconds * 1000
+      : undefined
   }
   return {
     accessToken: data.access_token,
@@ -194,45 +220,63 @@ async function requestToken(
   }
 }
 
-export function exchangeCode(options: GithubTransportOptions & {
-  clientId: string
-  clientSecret: string
-  code: string
-  codeVerifier: string
-  redirectUri: string
-  now?: () => number
-}): Promise<OAuthTokens> {
-  return requestToken({
-    client_id: options.clientId,
-    client_secret: options.clientSecret,
-    code: options.code,
-    redirect_uri: options.redirectUri,
-    code_verifier: options.codeVerifier,
-  }, options)
+export function exchangeCode(
+  options: GithubTransportOptions & {
+    clientId: string
+    clientSecret: string
+    code: string
+    codeVerifier: string
+    redirectUri: string
+    now?: () => number
+  }
+): Promise<OAuthTokens> {
+  return requestToken(
+    {
+      client_id: options.clientId,
+      client_secret: options.clientSecret,
+      code: options.code,
+      redirect_uri: options.redirectUri,
+      code_verifier: options.codeVerifier,
+    },
+    options
+  )
 }
 
-export function refreshUserToken(options: GithubTransportOptions & {
-  clientId: string
-  clientSecret: string
-  refreshToken: string
-  now?: () => number
-}): Promise<OAuthTokens> {
-  return requestToken({
-    client_id: options.clientId,
-    client_secret: options.clientSecret,
-    grant_type: 'refresh_token',
-    refresh_token: options.refreshToken,
-  }, options)
+export function refreshUserToken(
+  options: GithubTransportOptions & {
+    clientId: string
+    clientSecret: string
+    refreshToken: string
+    now?: () => number
+  }
+): Promise<OAuthTokens> {
+  return requestToken(
+    {
+      client_id: options.clientId,
+      client_secret: options.clientSecret,
+      grant_type: 'refresh_token',
+      refresh_token: options.refreshToken,
+    },
+    options
+  )
 }
 
-export async function fetchUser(token: string, options: GithubTransportOptions = {}): Promise<GithubUser> {
+export async function fetchUser(
+  token: string,
+  options: GithubTransportOptions = {}
+): Promise<GithubUser> {
   const { data } = await githubRest<{
     id: number
     login: string
     name?: string | null
     avatar_url?: string
   }>('/user', { token, ...options })
-  return { id: data.id, login: data.login, name: data.name ?? null, avatarUrl: data.avatar_url ?? '' }
+  return {
+    id: data.id,
+    login: data.login,
+    name: data.name ?? null,
+    avatarUrl: data.avatar_url ?? '',
+  }
 }
 
 /**
@@ -251,7 +295,11 @@ export async function fetchRepoPermission(
       private?: boolean
       permissions?: RepoPermissions
     }>(`/repos/${repo}`, { token, ...options })
-    return { name: data.name, private: data.private !== false, permissions: data.permissions ?? {} }
+    return {
+      name: data.name,
+      private: data.private !== false,
+      permissions: data.permissions ?? {},
+    }
   } catch (error) {
     if (error instanceof PlutoGithubStoreError && error.code === 'not-found') {
       return null
@@ -265,11 +313,9 @@ export async function fetchRepoPermission(
  * capability. Push gets the read, write, publish and delete keys of every
  * registered content type (the post type when none is registered). A lower permission gets `null`: it cannot sign in.
  */
-export function mapRepoPermission(
-  permissions: RepoPermissions | undefined
-): {
- permission: GithubPermissionLevel
-capabilities: string[]
+export function mapRepoPermission(permissions: RepoPermissions | undefined): {
+  permission: GithubPermissionLevel
+  capabilities: string[]
 } | null {
   if (!permissions) {
     return null
@@ -290,7 +336,11 @@ capabilities: string[]
     })
     return {
       permission: 'push',
-      capabilities: [...new Set(keys.filter((key): key is string => typeof key === 'string'))],
+      capabilities: [
+        ...new Set(
+          keys.filter((key): key is string => typeof key === 'string')
+        ),
+      ],
     }
   }
   return null

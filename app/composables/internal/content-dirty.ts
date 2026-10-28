@@ -7,14 +7,18 @@
  * of the payload now with the text at the last save.
  */
 export function stableStringify(value: unknown): string {
-  return JSON.stringify(value, (_key, entry) => {
-    if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
-      return Object.fromEntries(
-        Object.entries(entry as Record<string, unknown>).toSorted(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-      )
-    }
-    return entry
-  }) ?? ''
+  return (
+    JSON.stringify(value, (_key, entry) => {
+      if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+        return Object.fromEntries(
+          Object.entries(entry as Record<string, unknown>).toSorted(
+            ([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)
+          )
+        )
+      }
+      return entry
+    }) ?? ''
+  )
 }
 
 export interface DirtyState {
@@ -66,18 +70,22 @@ export interface ShortcutEvent {
 
 /** True for Ctrl+S on Windows and Linux, and Cmd+S on macOS. */
 export function isSaveShortcut(event: ShortcutEvent): boolean {
-  return event.key.toLowerCase() === 's'
-    && (event.ctrlKey || event.metaKey)
-    && !event.shiftKey
-    && !event.altKey
+  return (
+    event.key.toLowerCase() === 's' &&
+    (event.ctrlKey || event.metaKey) &&
+    !event.shiftKey &&
+    !event.altKey
+  )
 }
 
-export type SavedAgo = {
- unit: 'now'
-} | {
- unit: 'minute' | 'hour' | 'day'
-value: number
-}
+export type SavedAgo =
+  | {
+      unit: 'now'
+    }
+  | {
+      unit: 'minute' | 'hour' | 'day'
+      value: number
+    }
 
 /** How long ago a save happened, in whole units. Under 45 seconds is "now". */
 export function savedAgo(diffMs: number): SavedAgo {
@@ -97,7 +105,8 @@ export function savedAgo(diffMs: number): SavedAgo {
 }
 
 /** The elements whose press changes the form value. A plain click on the page does not. */
-const EDITING_TARGET = 'button, a, input, select, textarea, label, [contenteditable], [draggable="true"], [role="option"], [role="menuitem"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], [role="tab"]'
+const EDITING_TARGET =
+  'button, a, input, select, textarea, label, [contenteditable], [draggable="true"], [role="option"], [role="menuitem"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], [role="tab"]'
 
 /**
  * True when a user event can be an edit. A key press, a paste and a drop always
@@ -107,10 +116,16 @@ const EDITING_TARGET = 'button, a, input, select, textarea, label, [contentedita
 export function isEditingEvent(
   type: string,
   target: {
- closest?: (selector: string) => unknown
-} | null
+    closest?: (selector: string) => unknown
+  } | null
 ): boolean {
-  if (type === 'keydown' || type === 'input' || type === 'change' || type === 'paste' || type === 'drop') {
+  if (
+    type === 'keydown' ||
+    type === 'input' ||
+    type === 'change' ||
+    type === 'paste' ||
+    type === 'drop'
+  ) {
     return true
   }
   return Boolean(target?.closest?.(EDITING_TARGET))

@@ -36,7 +36,9 @@ function useLocaleScope(scope: 'admin' | 'site') {
   const config = getConfig()
   // The same resolver as the pluto-i18n plugin: the stored choice, not the
   // default locale, even when this runs before the plugin.
-  const state = useState<string>(`pluto-${scope}-locale`, () => resolveScopeLocale(scope))
+  const state = useState<string>(`pluto-${scope}-locale`, () =>
+    resolveScopeLocale(scope)
+  )
   const locales = scope === 'admin' ? config.adminLocales : config.siteLocales
 
   const { t, te, tx } = createTranslator({
@@ -50,12 +52,16 @@ function useLocaleScope(scope: 'admin' | 'site') {
     state,
     locales,
     locale: computed(() => state.value),
-    uiLocale: computed(() => uiLocaleCache.get(state.value) ?? uiLocaleCache.get('en')),
+    uiLocale: computed(
+      () => uiLocaleCache.get(state.value) ?? uiLocaleCache.get('en')
+    ),
     t: (key: string, params?: MessageParams | number) => t(key, params),
     tx: (value: string, params?: MessageParams | number) => tx(value, params),
     te,
-    n: (value: number, options?: Intl.NumberFormatOptions) => formatNumber(state.value, value, options),
-    d: (value: Date | number | string, options?: Intl.DateTimeFormatOptions) => formatDate(state.value, value, options),
+    n: (value: number, options?: Intl.NumberFormatOptions) =>
+      formatNumber(state.value, value, options),
+    d: (value: Date | number | string, options?: Intl.DateTimeFormatOptions) =>
+      formatDate(state.value, value, options),
   }
 }
 
@@ -71,10 +77,15 @@ export function usePlutoI18n() {
   const scope = useLocaleScope('admin')
   const registry = usePlutoRegistry()
   const cookie = useLocaleCookie(ADMIN_LOCALE_COOKIE)
-  const driver = computed(() => registry.localeDrivers.list.value.at(-1) ?? null)
+  const driver = computed(
+    () => registry.localeDrivers.list.value.at(-1) ?? null
+  )
 
   /** The stored choice. Null means Automatic. */
-  const preference = useState<string | null>('pluto-admin-locale-preference', () => readAdminPreference())
+  const preference = useState<string | null>(
+    'pluto-admin-locale-preference',
+    () => readAdminPreference()
+  )
 
   async function switchTo(code: string) {
     await loadPlutoLocale(code)
@@ -112,7 +123,9 @@ export function usePlutoI18n() {
     try {
       stored = await driver.value.load()
     } catch (error) {
-      warnOnce(`[pluto-i18n] Could not load the user's language: ${error instanceof Error ? error.message : String(error)}`)
+      warnOnce(
+        `[pluto-i18n] Could not load the user's language: ${error instanceof Error ? error.message : String(error)}`
+      )
       return
     }
     if (stored && scope.locales.includes(stored)) {

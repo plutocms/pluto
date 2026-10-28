@@ -1,5 +1,13 @@
-import type { FlatMessages, MessageTree, Translator } from '../../app/composables/internal/i18n-core'
-import { createTranslator, flattenMessages, matchLocale } from '../../app/composables/internal/i18n-core'
+import type {
+  FlatMessages,
+  MessageTree,
+  Translator,
+} from '../../app/composables/internal/i18n-core'
+import {
+  createTranslator,
+  flattenMessages,
+  matchLocale,
+} from '../../app/composables/internal/i18n-core'
 
 /** The locale data of the Nitro virtual module `#pluto-i18n-server`. */
 export interface PlutoServerMessageSource {
@@ -29,7 +37,9 @@ function warnInDev(message: string): void {
  * `localeCodes`, else the default locale. A key that is missing in the
  * locale falls back to the default locale, then to the key itself.
  */
-export function createPlutoServerTranslatorFactory(source: PlutoServerMessageSource) {
+export function createPlutoServerTranslatorFactory(
+  source: PlutoServerMessageSource
+) {
   const cache = new Map<string, FlatMessages>()
   const pending = new Map<string, Promise<void>>()
 
@@ -55,8 +65,12 @@ export function createPlutoServerTranslatorFactory(source: PlutoServerMessageSou
     return promise
   }
 
-  return async function getTranslator(locale?: string | null): Promise<PlutoServerTranslator> {
-    const resolved = (locale ? matchLocale([locale], source.localeCodes) : null) ?? source.defaultLocale
+  return async function getTranslator(
+    locale?: string | null
+  ): Promise<PlutoServerTranslator> {
+    const resolved =
+      (locale ? matchLocale([locale], source.localeCodes) : null) ??
+      source.defaultLocale
     await Promise.all([load(resolved), load(source.defaultLocale)])
 
     const translator = createTranslator({
@@ -79,7 +93,9 @@ let factory: ReturnType<typeof createPlutoServerTranslatorFactory> | undefined
  * merged across layers, base layer first and the app last. An unknown or
  * missing locale uses the default locale.
  */
-export async function usePlutoServerTranslator(locale?: string | null): Promise<PlutoServerTranslator> {
+export async function usePlutoServerTranslator(
+  locale?: string | null
+): Promise<PlutoServerTranslator> {
   if (!factory) {
     const source = await import('#pluto-i18n-server')
     factory = createPlutoServerTranslatorFactory(source)

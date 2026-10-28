@@ -1,4 +1,7 @@
-import { ADMIN_BAR_HINT_COOKIE, isStaff } from '../composables/internal/admin-shell'
+import {
+  ADMIN_BAR_HINT_COOKIE,
+  isStaff,
+} from '../composables/internal/admin-shell'
 
 /** Seconds that the admin bar hint lives. When it expires, the next visit of staff writes it again. */
 const HINT_MAX_AGE = 60 * 60 * 24 * 30
@@ -41,9 +44,11 @@ export default defineNuxtPlugin({
     // The driver reads the session after this plugin runs. Until it is ready, a
     // signed-out state can mean "not read yet".
     const driverReady = ref(false)
-    Promise.resolve(auth.ready()).catch(() => {}).finally(() => {
-      driverReady.value = true
-    })
+    Promise.resolve(auth.ready())
+      .catch(() => {})
+      .finally(() => {
+        driverReady.value = true
+      })
 
     // The public-page bar waits for the mount too. The session and the
     // capabilities can be ready before hydration (no permissions driver, or a
@@ -78,7 +83,9 @@ export default defineNuxtPlugin({
           // The route guard shares this request through `ensureLoaded`.
           await permissions.ensureLoaded(user.value?.id ?? '')
           // Ignore a result that arrives after a sign-out.
-          known.value = loggedIn.value && (!permissions.hasDriver.value || permissions.loaded.value)
+          known.value =
+            loggedIn.value &&
+            (!permissions.hasDriver.value || permissions.loaded.value)
         } catch {
           known.value = false
         } finally {
@@ -103,7 +110,10 @@ export default defineNuxtPlugin({
         if (!settled.value) {
           return
         }
-        const staff = loggedIn.value && known.value && isStaff(permissions.hasDriver.value, permissions.granted.value)
+        const staff =
+          loggedIn.value &&
+          known.value &&
+          isStaff(permissions.hasDriver.value, permissions.granted.value)
         const next = staff ? true : null
         if (hintCookie.value !== next) {
           hintCookie.value = next

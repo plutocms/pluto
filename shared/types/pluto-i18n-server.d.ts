@@ -5,5 +5,8 @@
 declare module '#pluto-i18n-server' {
   export const localeCodes: string[]
   export const defaultLocale: string
-  export const messageLoaders: Record<string, () => Promise<Record<string, unknown>>>
+  export const messageLoaders: Record<
+    string,
+    () => Promise<Record<string, unknown>>
+  >
 }

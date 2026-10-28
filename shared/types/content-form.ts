@@ -69,7 +69,14 @@ export interface PlutoFormHeaderButton {
   icon: string
   /** `solid` is the main button. */
   variant?: 'solid' | 'outline' | 'soft' | 'subtle' | 'ghost' | 'link'
-  color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
+  color?:
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'info'
+    | 'warning'
+    | 'error'
+    | 'neutral'
   /** On a narrow screen a secondary button shows its icon only. */
   secondary?: boolean
 }

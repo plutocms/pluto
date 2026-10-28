@@ -7,7 +7,11 @@ const type = byName(typeName)
 const text = usePlutoContentText(type)
 
 if (!type) {
-  throw createError({ statusCode: 404, statusMessage: 'Content type not found.', fatal: true })
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Content type not found.',
+    fatal: true,
+  })
 }
 
 useHead({

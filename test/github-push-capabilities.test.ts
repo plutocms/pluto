@@ -15,13 +15,18 @@ function docType(): PlutoContentType {
     source: 'docs',
     titleField: 'title',
     fields: [{ name: 'title', type: 'text', label: 'Title' }],
-    capabilities: { read: 'docs:read', write: 'docs:write', delete: 'docs:delete' },
+    capabilities: {
+      read: 'docs:read',
+      write: 'docs:write',
+      delete: 'docs:delete',
+    },
   }
 }
 
 async function load() {
   const registry = await import('../server/utils/pluto-content')
-  const oauth = await import('../modules/pluto-github/runtime/server/utils/github-oauth')
+  const oauth =
+    await import('../modules/pluto-github/runtime/server/utils/github-oauth')
   return { ...registry, ...oauth }
 }
 
@@ -41,13 +46,25 @@ describe('mapRepoPermission for push', () => {
   it('falls back to the post type when no type is registered', async () => {
     const { mapRepoPermission } = await load()
 
-    expect(mapRepoPermission({ push: true })!.capabilities).toEqual(['posts:read_drafts', 'posts:publish', 'posts:delete'])
+    expect(mapRepoPermission({ push: true })!.capabilities).toEqual([
+      'posts:read_drafts',
+      'posts:publish',
+      'posts:delete',
+    ])
   })
 
   it('gives the capabilities of every registered type', async () => {
     const { registerContentType, mapRepoPermission } = await load()
     registerContentType(docType())
-    registerContentType({ ...docType(), name: 'other', capabilities: { read: 'docs:read', write: 'other:write', publish: 'other:publish' } })
+    registerContentType({
+      ...docType(),
+      name: 'other',
+      capabilities: {
+        read: 'docs:read',
+        write: 'other:write',
+        publish: 'other:publish',
+      },
+    })
 
     expect(mapRepoPermission({ push: true })!.capabilities).toEqual([
       'docs:read',
@@ -62,7 +79,10 @@ describe('mapRepoPermission for push', () => {
     const { registerContentType, mapRepoPermission } = await load()
     registerContentType(docType())
 
-    expect(mapRepoPermission({ admin: true })).toEqual({ permission: 'admin', capabilities: ['*'] })
+    expect(mapRepoPermission({ admin: true })).toEqual({
+      permission: 'admin',
+      capabilities: ['*'],
+    })
     expect(mapRepoPermission({ pull: true })).toBeNull()
   })
 })

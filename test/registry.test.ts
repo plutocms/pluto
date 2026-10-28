@@ -68,6 +68,8 @@ describe('createOwnedRegistry', () => {
     registry.set('owner-b', [{ id: 'two', label: 'Two' }])
     registry.remove('owner-a')
 
-    expect(registry.list.value.map((entry) => entry.id)).toEqual(['owner-b:two'])
+    expect(registry.list.value.map((entry) => entry.id)).toEqual([
+      'owner-b:two',
+    ])
   })
 })

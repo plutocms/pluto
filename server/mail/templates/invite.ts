@@ -11,7 +11,10 @@ export interface PlutoInviteEmailData {
 }
 
 /** The invitation to manage the site. */
-export function renderInviteEmail(context: PlutoEmailContext, data: PlutoInviteEmailData): PlutoEmailContent {
+export function renderInviteEmail(
+  context: PlutoEmailContext,
+  data: PlutoInviteEmailData
+): PlutoEmailContent {
   const { t, siteName } = context
   const params = { siteName }
   const inviter = data.inviterName?.trim()

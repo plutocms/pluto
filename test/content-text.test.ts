@@ -11,20 +11,40 @@ const type: PlutoContentType = {
   source: 'posts',
   titleField: 'title',
   fields: [
-    { name: 'title', type: 'text', label: 'Title', description: 'The headline.', placeholder: 'Type a title' },
-    { name: 'kind', type: 'select', label: 'Kind', options: [{ label: 'News', value: 'news' }, { label: 'Tip', value: 'tip' }] },
+    {
+      name: 'title',
+      type: 'text',
+      label: 'Title',
+      description: 'The headline.',
+      placeholder: 'Type a title',
+    },
+    {
+      name: 'kind',
+      type: 'select',
+      label: 'Kind',
+      options: [
+        { label: 'News', value: 'news' },
+        { label: 'Tip', value: 'tip' },
+      ],
+    },
   ],
 }
 
 /** An i18n object with extra messages, as a layer's locale file would add. */
-function withMessages(messages: Record<string, string>, locale: string | {
- value: string
-} = 'en') {
+function withMessages(
+  messages: Record<string, string>,
+  locale:
+    | string
+    | {
+        value: string
+      } = 'en'
+) {
   const stub = createI18nStub(locale)
   return {
     ...stub,
     te: (key: string) => key in messages || stub.te(key),
-    t: (key: string, params?: Record<string, unknown> | number) => messages[key] ?? stub.t(key, params),
+    t: (key: string, params?: Record<string, unknown> | number) =>
+      messages[key] ?? stub.t(key, params),
   }
 }
 
@@ -44,13 +64,16 @@ describe('createContentText', () => {
   })
 
   it('prefers a convention key over the literal', () => {
-    const text = createContentText(() => type, withMessages({
-      'content.post.label': 'Artigo',
-      'content.post.labelPlural': 'Artigos',
-      'content.post.new': 'Novo artigo',
-      'content.post.status.draft': 'Rascunho',
-      'content.post.fields.title.label': 'Título',
-    }))
+    const text = createContentText(
+      () => type,
+      withMessages({
+        'content.post.label': 'Artigo',
+        'content.post.labelPlural': 'Artigos',
+        'content.post.new': 'Novo artigo',
+        'content.post.status.draft': 'Rascunho',
+        'content.post.fields.title.label': 'Título',
+      })
+    )
 
     expect(text.label).toBe('Artigo')
     expect(text.labelPlural).toBe('Artigos')
@@ -62,28 +85,60 @@ describe('createContentText', () => {
   })
 
   it('builds the new label from the core phrase and the translated label when there is no .new key', () => {
-    expect(createContentText(() => type, withMessages({ 'content.post.label': 'Artigo' })).newLabel).toBe('New Artigo')
-    expect(createContentText(() => type, withMessages({ 'content.post.label': 'Artigo' }, 'pt-BR')).newLabel).toBe('Criar Artigo')
+    expect(
+      createContentText(
+        () => type,
+        withMessages({ 'content.post.label': 'Artigo' })
+      ).newLabel
+    ).toBe('New Artigo')
+    expect(
+      createContentText(
+        () => type,
+        withMessages({ 'content.post.label': 'Artigo' }, 'pt-BR')
+      ).newLabel
+    ).toBe('Criar Artigo')
   })
 
   it('returns a translated copy of a field and never changes the original', () => {
-    const text = createContentText(() => type, withMessages({
-      'content.post.fields.title.label': 'Título',
-      'content.post.fields.title.description': 'O título.',
-      'content.post.fields.title.placeholder': 'Digite um título',
-      'content.post.fields.kind.options.news': 'Notícia',
-    }))
+    const text = createContentText(
+      () => type,
+      withMessages({
+        'content.post.fields.title.label': 'Título',
+        'content.post.fields.title.description': 'O título.',
+        'content.post.fields.title.placeholder': 'Digite um título',
+        'content.post.fields.kind.options.news': 'Notícia',
+      })
+    )
 
     const title = text.field(type.fields[0]!)
     const kind = text.field(type.fields[1]!)
 
-    expect(title).toMatchObject({ name: 'title', type: 'text', label: 'Título', description: 'O título.', placeholder: 'Digite um título' })
-    expect(kind).toMatchObject({ options: [{ label: 'Notícia', value: 'news' }, { label: 'Tip', value: 'tip' }] })
-    expect(type.fields[0]).toMatchObject({ label: 'Title', description: 'The headline.', placeholder: 'Type a title' })
+    expect(title).toMatchObject({
+      name: 'title',
+      type: 'text',
+      label: 'Título',
+      description: 'O título.',
+      placeholder: 'Digite um título',
+    })
+    expect(kind).toMatchObject({
+      options: [
+        { label: 'Notícia', value: 'news' },
+        { label: 'Tip', value: 'tip' },
+      ],
+    })
+    expect(type.fields[0]).toMatchObject({
+      label: 'Title',
+      description: 'The headline.',
+      placeholder: 'Type a title',
+    })
   })
 
   it('does not add a description or a placeholder that nobody set', () => {
-    const copy = createContentText(() => type, createI18nStub()).field({ name: 'n', type: 'number', label: 'N' })
+    const copy = createContentText(() => type, createI18nStub()).field({
+      name: 'n',
+      type: 'number',
+      label: 'N',
+    })
 
     expect(copy).toEqual({ name: 'n', type: 'number', label: 'N' })
   })
@@ -120,8 +175,11 @@ describe('usePlutoContentText', () => {
   it('wraps createContentText with the admin i18n and accepts a ref', async () => {
     vi.stubGlobal('computed', computed)
     vi.stubGlobal('toValue', toValue)
-    vi.stubGlobal('usePlutoI18n', () => withMessages({ 'content.post.labelPlural': 'Artigos' }))
-    const { usePlutoContentText } = await import('../app/composables/pluto-content-text')
+    vi.stubGlobal('usePlutoI18n', () =>
+      withMessages({ 'content.post.labelPlural': 'Artigos' })
+    )
+    const { usePlutoContentText } =
+      await import('../app/composables/pluto-content-text')
 
     const text = usePlutoContentText(ref(type))
 

@@ -38,17 +38,21 @@ async function loadComposables() {
   const { usePlutoRegistry } = await import('../app/composables/pluto-registry')
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)
 
-  const { definePlutoExtension } = await import('../app/composables/pluto-extension')
-  const { usePlutoPermissions } = await import('../app/composables/pluto-permissions')
+  const { definePlutoExtension } =
+    await import('../app/composables/pluto-extension')
+  const { usePlutoPermissions } =
+    await import('../app/composables/pluto-permissions')
   vi.stubGlobal('usePlutoPermissions', usePlutoPermissions)
-  const { usePlutoSettingsPages } = await import('../app/composables/pluto-settings')
+  const { usePlutoSettingsPages } =
+    await import('../app/composables/pluto-settings')
 
   return { definePlutoExtension, usePlutoPermissions, usePlutoSettingsPages }
 }
 
 describe('usePlutoSettingsPages', () => {
   it('sorts the pages by order and resolves a key label', async () => {
-    const { definePlutoExtension, usePlutoSettingsPages } = await loadComposables()
+    const { definePlutoExtension, usePlutoSettingsPages } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-layer',
@@ -59,22 +63,40 @@ describe('usePlutoSettingsPages', () => {
     })
     definePlutoExtension({
       id: 'pluto',
-      settingsPages: [{ id: 'general', order: 0, label: 'pluto.settings.tabs.general', to: '/admin/settings' }],
+      settingsPages: [
+        {
+          id: 'general',
+          order: 0,
+          label: 'pluto.settings.tabs.general',
+          to: '/admin/settings',
+        },
+      ],
     })
 
     const { items } = usePlutoSettingsPages()
 
-    expect(items.value.map((page) => page.label)).toEqual(['General', 'Users', 'Roles'])
+    expect(items.value.map((page) => page.label)).toEqual([
+      'General',
+      'Users',
+      'Roles',
+    ])
   })
 
   it('translates the labels again when the locale changes', async () => {
-    const { definePlutoExtension, usePlutoSettingsPages } = await loadComposables()
+    const { definePlutoExtension, usePlutoSettingsPages } =
+      await loadComposables()
     const locale = ref('en')
     vi.stubGlobal('usePlutoI18n', () => createI18nStub(locale))
 
     definePlutoExtension({
       id: 'pluto',
-      settingsPages: [{ id: 'general', label: 'pluto.settings.tabs.general', to: '/admin/settings' }],
+      settingsPages: [
+        {
+          id: 'general',
+          label: 'pluto.settings.tabs.general',
+          to: '/admin/settings',
+        },
+      ],
     })
 
     const { items } = usePlutoSettingsPages()
@@ -87,12 +109,20 @@ describe('usePlutoSettingsPages', () => {
   })
 
   it('hides a page whose enabled() returns false', async () => {
-    const { definePlutoExtension, usePlutoSettingsPages } = await loadComposables()
+    const { definePlutoExtension, usePlutoSettingsPages } =
+      await loadComposables()
     const on = ref(false)
 
     definePlutoExtension({
       id: 'test-layer',
-      settingsPages: [{ id: 'users', label: 'Users', to: '/admin/settings/users', enabled: () => on.value }],
+      settingsPages: [
+        {
+          id: 'users',
+          label: 'Users',
+          to: '/admin/settings/users',
+          enabled: () => on.value,
+        },
+      ],
     })
 
     const { items } = usePlutoSettingsPages()
@@ -105,11 +135,19 @@ describe('usePlutoSettingsPages', () => {
   })
 
   it('shows every page when no permissions driver is registered', async () => {
-    const { definePlutoExtension, usePlutoSettingsPages } = await loadComposables()
+    const { definePlutoExtension, usePlutoSettingsPages } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-layer',
-      settingsPages: [{ id: 'email', label: 'Email', to: '/admin/settings/email', capability: '*' }],
+      settingsPages: [
+        {
+          id: 'email',
+          label: 'Email',
+          to: '/admin/settings/email',
+          capability: '*',
+        },
+      ],
     })
 
     expect(usePlutoSettingsPages().items.value).toHaveLength(1)
@@ -124,8 +162,20 @@ describe('usePlutoSettingsPages', () => {
         permissionsDriver: { id: 'driver', load: async () => granted },
         settingsPages: [
           { id: 'general', order: 0, label: 'General', to: '/admin/settings' },
-          { id: 'seo', order: 10, label: 'SEO', to: '/admin/settings/seo', capability: 'seo:manage' },
-          { id: 'email', order: 20, label: 'Email', to: '/admin/settings/email', capability: '*' },
+          {
+            id: 'seo',
+            order: 10,
+            label: 'SEO',
+            to: '/admin/settings/seo',
+            capability: 'seo:manage',
+          },
+          {
+            id: 'email',
+            order: 20,
+            label: 'Email',
+            to: '/admin/settings/email',
+            capability: '*',
+          },
         ],
       })
       await loaded.usePlutoPermissions().load()
@@ -140,8 +190,12 @@ describe('usePlutoSettingsPages', () => {
     })
 
     it('treats the star capability as admin only', async () => {
-      expect((await setup(['seo:manage'])).items.value.map((page) => page.label)).not.toContain('Email')
-      expect((await setup(['*'])).items.value.map((page) => page.label)).toContain('Email')
+      expect(
+        (await setup(['seo:manage'])).items.value.map((page) => page.label)
+      ).not.toContain('Email')
+      expect(
+        (await setup(['*'])).items.value.map((page) => page.label)
+      ).toContain('Email')
     })
 
     it('reports allowed = false for a route the user may not open', async () => {
@@ -169,7 +223,11 @@ describe('usePlutoSettingsPages', () => {
         settingsPages: [
           { id: 'general', label: 'General', to: '/admin/settings' },
           { id: 'users', label: 'Users', to: '/admin/settings/users' },
-          { id: 'users-roles', label: 'Roles', to: '/admin/settings/users/roles' },
+          {
+            id: 'users-roles',
+            label: 'Roles',
+            to: '/admin/settings/users/roles',
+          },
         ],
       })
 

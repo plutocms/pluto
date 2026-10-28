@@ -50,7 +50,10 @@ export function getGithubConfig(): GithubConfig {
   const secret = (config.plutoGithub ?? {}) as Record<string, unknown>
   const open = (config.public.plutoGithub ?? {}) as Record<string, unknown>
   // Nuxt parses an env value like `12345` as a number, so accept numbers too.
-  const text = (value: unknown, fallback = '') => (typeof value === 'string' || typeof value === 'number' ? String(value) : fallback)
+  const text = (value: unknown, fallback = '') =>
+    typeof value === 'string' || typeof value === 'number'
+      ? String(value)
+      : fallback
 
   return {
     dev: import.meta.dev,
@@ -63,8 +66,11 @@ export function getGithubConfig(): GithubConfig {
     fsRoot: text(secret.fsRoot),
     rootDir: text(secret.rootDir),
     siteName: text((config.public as Record<string, unknown>).websiteName),
-    skipDeploy: secret.skipDeploy !== false && String(secret.skipDeploy) !== 'false',
-    headTtl: Number.isFinite(Number(secret.headTtl)) ? Number(secret.headTtl) : 60,
+    skipDeploy:
+      secret.skipDeploy !== false && String(secret.skipDeploy) !== 'false',
+    headTtl: Number.isFinite(Number(secret.headTtl))
+      ? Number(secret.headTtl)
+      : 60,
     cacheStorage: text(secret.cacheStorage, 'cache'),
     postType: secret.postType !== false && String(secret.postType) !== 'false',
     sessionPassword: text(secret.sessionPassword),

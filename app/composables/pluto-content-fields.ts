@@ -19,6 +19,7 @@ export function usePlutoContentFieldWidget(field: PlutoField) {
       }
     }
 
-    return entries.filter((entry) => entry.fieldType === field.type).at(-1)?.component
+    return entries.filter((entry) => entry.fieldType === field.type).at(-1)
+      ?.component
   })
 }

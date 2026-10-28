@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { markdownToPlainText, renderMarkdown, stripMdc } from '../modules/pluto-github/runtime/server/utils/markdown'
+import {
+  markdownToPlainText,
+  renderMarkdown,
+  stripMdc,
+} from '../modules/pluto-github/runtime/server/utils/markdown'
 
 describe('renderMarkdown', () => {
   it('renders headings, emphasis and lists', () => {
-    const html = renderMarkdown('# Title\n\nSome **bold** and *italic* text.\n\n- one\n- two\n\n1. first\n2. second\n')
+    const html = renderMarkdown(
+      '# Title\n\nSome **bold** and *italic* text.\n\n- one\n- two\n\n1. first\n2. second\n'
+    )
 
     expect(html).toContain('<h1>Title</h1>')
     expect(html).toContain('<strong>bold</strong>')
@@ -58,7 +64,9 @@ describe('renderMarkdown', () => {
     })
 
     it('removes raw HTML, inline and as a block', () => {
-      const html = renderMarkdown('a <b onclick="x()">bold</b> b\n\n<div style="color:red">block</div>\n\n<iframe src="https://evil.example"></iframe>')
+      const html = renderMarkdown(
+        'a <b onclick="x()">bold</b> b\n\n<div style="color:red">block</div>\n\n<iframe src="https://evil.example"></iframe>'
+      )
 
       expect(html).not.toContain('onclick')
       expect(html).not.toContain('style')
@@ -75,14 +83,18 @@ describe('renderMarkdown', () => {
     })
 
     it('drops an obfuscated javascript: link', () => {
-      const html = renderMarkdown('[x](java&#115;cript:alert(1))\n\n[y](JaVaScRiPt:alert(1))')
+      const html = renderMarkdown(
+        '[x](java&#115;cript:alert(1))\n\n[y](JaVaScRiPt:alert(1))'
+      )
 
       expect(html.toLowerCase()).not.toContain('javascript:')
       expect(html).not.toContain('href')
     })
 
     it('drops a javascript: autolink and a reference link', () => {
-      const html = renderMarkdown('<javascript:alert(1)>\n\n[r]\n\n[r]: javascript:alert(1)')
+      const html = renderMarkdown(
+        '<javascript:alert(1)>\n\n[r]\n\n[r]: javascript:alert(1)'
+      )
 
       // The text may stay as plain link text. There is no href.
       expect(html).not.toContain('href')
@@ -96,13 +108,17 @@ describe('renderMarkdown', () => {
     })
 
     it('drops a data: link and a data:text/html image', () => {
-      const html = renderMarkdown('[x](data:text/html,<script>alert(1)</script>)\n\n![y](data:text/html;base64,aaaa)')
+      const html = renderMarkdown(
+        '[x](data:text/html,<script>alert(1)</script>)\n\n![y](data:text/html;base64,aaaa)'
+      )
 
       expect(html).not.toContain('data:')
     })
 
     it('drops an SVG data URL but keeps a PNG data URL', () => {
-      const svg = renderMarkdown('![x](data:image/svg+xml,%3Csvg%20onload=alert(1)%3E)')
+      const svg = renderMarkdown(
+        '![x](data:image/svg+xml,%3Csvg%20onload=alert(1)%3E)'
+      )
       const png = renderMarkdown('![x](data:image/png;base64,aaaa)')
 
       expect(svg).not.toContain('data:')
@@ -110,13 +126,17 @@ describe('renderMarkdown', () => {
     })
 
     it('does not let a title break out of its attribute', () => {
-      const html = renderMarkdown('[x](https://a.example "t\\" onmouseover=\\"alert(1)")')
+      const html = renderMarkdown(
+        '[x](https://a.example "t\\" onmouseover=\\"alert(1)")'
+      )
 
       expect(html).not.toContain('" onmouseover=')
     })
 
     it('keeps http, https, mailto and relative links', () => {
-      const html = renderMarkdown('[a](https://a.example) [b](http://b.example) [c](mailto:a@b.c) [d](/post/x) [e](#top)')
+      const html = renderMarkdown(
+        '[a](https://a.example) [b](http://b.example) [c](mailto:a@b.c) [d](/post/x) [e](#top)'
+      )
 
       expect(html).toContain('href="https://a.example"')
       expect(html).toContain('href="http://b.example"')
@@ -129,13 +149,17 @@ describe('renderMarkdown', () => {
 
 describe('markdownToPlainText', () => {
   it('strips the markup and separates blocks', () => {
-    const text = markdownToPlainText('# Title\n\nSome **bold** text with a [link](https://a.example).\n\n- one\n- two\n')
+    const text = markdownToPlainText(
+      '# Title\n\nSome **bold** text with a [link](https://a.example).\n\n- one\n- two\n'
+    )
 
     expect(text).toBe('Title Some bold text with a link. one two')
   })
 
   it('decodes entities and drops raw HTML', () => {
-    const text = markdownToPlainText('Fish &amp; chips <script>alert(1)</script> 1 < 2')
+    const text = markdownToPlainText(
+      'Fish &amp; chips <script>alert(1)</script> 1 < 2'
+    )
 
     expect(text).toContain('Fish & chips')
     expect(text).not.toContain('<script')
@@ -212,7 +236,11 @@ describe('stripMdc', () => {
   })
 
   it('gives clean html and a clean excerpt for an MDC page', () => {
-    expect(renderMarkdown('::note\nSave your work.\n::')).toBe('<p>Save your work.</p>\n')
-    expect(markdownToPlainText(page, 200)).toBe('Small core. Big heart. A small CMS with a biiiig heart. Get started Read the docs and more. ::note #title ::')
+    expect(renderMarkdown('::note\nSave your work.\n::')).toBe(
+      '<p>Save your work.</p>\n'
+    )
+    expect(markdownToPlainText(page, 200)).toBe(
+      'Small core. Big heart. A small CMS with a biiiig heart. Get started Read the docs and more. ::note #title ::'
+    )
   })
 })

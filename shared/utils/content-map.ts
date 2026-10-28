@@ -1,4 +1,8 @@
-import type { PlutoContentItem, PlutoContentType, PlutoField } from '../types/content'
+import type {
+  PlutoContentItem,
+  PlutoContentType,
+  PlutoField,
+} from '../types/content'
 
 /** Resolves the storage column for a field. Falls back to `field.name` when `field.column` is unset. */
 export function fieldColumn(field: PlutoField): string {

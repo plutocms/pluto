@@ -14,17 +14,20 @@ export interface RateLimiter {
  * flow.
  */
 export function createRateLimiter(options: {
- limit: number
-windowMs: number
-now?: () => number
-maxKeys?: number
+  limit: number
+  windowMs: number
+  now?: () => number
+  maxKeys?: number
 }): RateLimiter {
   const now = options.now ?? Date.now
   const maxKeys = options.maxKeys ?? 10_000
-  const windows = new Map<string, {
- start: number
-count: number
-}>()
+  const windows = new Map<
+    string,
+    {
+      start: number
+      count: number
+    }
+  >()
 
   return {
     hit(key) {
@@ -46,7 +49,12 @@ count: number
         return 0
       }
       current.count++
-      return current.count > options.limit ? Math.max(1, Math.ceil((current.start + options.windowMs - time) / 1000)) : 0
+      return current.count > options.limit
+        ? Math.max(
+            1,
+            Math.ceil((current.start + options.windowMs - time) / 1000)
+          )
+        : 0
     },
   }
 }
@@ -58,7 +66,10 @@ const authLimiter = createRateLimiter({ limit: 20, windowMs: 60_000 })
  * from the socket, or from `x-forwarded-for` when a proxy sets it. A client
  * can fake that header, so this stays a brake and not a gate.
  */
-export function enforceAuthRateLimit(event: H3Event, limiter: RateLimiter = authLimiter): void {
+export function enforceAuthRateLimit(
+  event: H3Event,
+  limiter: RateLimiter = authLimiter
+): void {
   const ip = getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'
   const wait = limiter.hit(ip)
   if (wait > 0) {

@@ -26,9 +26,12 @@ export interface PlutoMediaAdapter {
     data: PlutoMediaItem[]
     total?: number
   }>
-  upload: (file: File, meta?: {
-    alt?: string
-  }) => Promise<PlutoMediaItem>
+  upload: (
+    file: File,
+    meta?: {
+      alt?: string
+    }
+  ) => Promise<PlutoMediaItem>
   remove: (id: string) => Promise<void>
   getUrl: (id: string) => string
 }

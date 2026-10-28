@@ -14,17 +14,21 @@ const props = defineProps<{
 const { t } = usePlutoI18n()
 const setup = usePlutoGithubSetup()
 const route = useRoute()
-const appSlug = (useRuntimeConfig().public as {
-  plutoGithub?: {
-    appSlug?: string
+const appSlug = (
+  useRuntimeConfig().public as {
+    plutoGithub?: {
+      appSlug?: string
+    }
   }
-}).plutoGithub?.appSlug
+).plutoGithub?.appSlug
 
 // A full page load: the route is a server route that redirects to GitHub.
 // The server checks the redirect again. It accepts only a path on this site.
 const loginUrl = computed(() => {
   const base = '/api/_pluto/auth/github/login'
-  return props.redirect ? `${base}?redirect=${encodeURIComponent(props.redirect)}` : base
+  return props.redirect
+    ? `${base}?redirect=${encodeURIComponent(props.redirect)}`
+    : base
 })
 
 const errorKey = computed(() => {
@@ -46,7 +50,11 @@ const errorKey = computed(() => {
 // The sign-in needs the setup. The button stays off until the status says it is ready. A failed read keeps it on.
 const notReady = computed(() => setup.status.value?.ready === false)
 
-const installUrl = computed(() => (appSlug ? `https://github.com/apps/${encodeURIComponent(appSlug)}/installations/new` : ''))
+const installUrl = computed(() =>
+  appSlug
+    ? `https://github.com/apps/${encodeURIComponent(appSlug)}/installations/new`
+    : ''
+)
 </script>
 
 <template>
@@ -71,7 +79,11 @@ const installUrl = computed(() => (appSlug ? `https://github.com/apps/${encodeUR
       class="w-full justify-center"
     />
 
-    <PlutoGithubSetupPanel v-if="notReady" :status="setup.status.value" variant="login" />
+    <PlutoGithubSetupPanel
+      v-if="notReady"
+      :status="setup.status.value"
+      variant="login"
+    />
 
     <UButton
       :to="notReady ? undefined : loginUrl"

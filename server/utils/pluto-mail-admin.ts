@@ -1,7 +1,12 @@
 import type { H3Event } from 'h3'
 import type { PlutoMailErrorCode } from '../../shared/types/mail'
 import { createHash } from 'node:crypto'
-import { getRequestHeader, getRequestHost, getRequestIP, setResponseHeader } from 'h3'
+import {
+  getRequestHeader,
+  getRequestHost,
+  getRequestIP,
+  setResponseHeader,
+} from 'h3'
 import { isPlutoMailError, PlutoMailError } from '../mail/errors'
 import { createResendClient } from '../mail/resend-client'
 import { getContentAdapter } from './pluto-content'
@@ -33,9 +38,12 @@ function forbidden() {
  * has no backing store, and its routes use the server's secrets, so no
  * guard means no access.
  */
-export async function requireMailAdmin(event: H3Event, options: {
- write?: boolean
-} = {}): Promise<void> {
+export async function requireMailAdmin(
+  event: H3Event,
+  options: {
+    write?: boolean
+  } = {}
+): Promise<void> {
   const adapter = getContentAdapter()
   if (!adapter?.authorize) {
     throw forbidden()
@@ -48,12 +56,18 @@ export async function requireMailAdmin(event: H3Event, options: {
   try {
     await adapter.authorize(event, '*')
   } catch (error) {
-    const status = (error as {
- statusCode?: number
-} | null)?.statusCode
+    const status = (
+      error as {
+        statusCode?: number
+      } | null
+    )?.statusCode
     // Keep a 401 so the admin can ask for a new sign-in. Everything else is a 403.
     throw status === 401
-      ? createPlutoError({ statusCode: 401, message: 'Sign in to continue.', key: 'pluto.errors.unauthorized' })
+      ? createPlutoError({
+          statusCode: 401,
+          message: 'Sign in to continue.',
+          key: 'pluto.errors.unauthorized',
+        })
       : forbidden()
   }
 }
@@ -142,10 +156,13 @@ export function createMailRateLimiter(options: {
 }): MailRateLimiter {
   const now = options.now ?? Date.now
   const maxKeys = options.maxKeys ?? 1000
-  const windows = new Map<string, {
- start: number
-count: number
-}>()
+  const windows = new Map<
+    string,
+    {
+      start: number
+      count: number
+    }
+  >()
 
   return {
     hit(key) {
@@ -166,7 +183,12 @@ count: number
         return 0
       }
       current.count++
-      return current.count > options.limit ? Math.max(1, Math.ceil((current.start + options.windowMs - time) / 1000)) : 0
+      return current.count > options.limit
+        ? Math.max(
+            1,
+            Math.ceil((current.start + options.windowMs - time) / 1000)
+          )
+        : 0
     },
   }
 }
@@ -177,7 +199,9 @@ count: number
  * secret sits in memory. With neither, it falls back to the IP address.
  */
 export function adminRateKey(event: H3Event): string {
-  const credentials = getRequestHeader(event, 'authorization') || getRequestHeader(event, 'cookie')
+  const credentials =
+    getRequestHeader(event, 'authorization') ||
+    getRequestHeader(event, 'cookie')
   if (credentials) {
     return `session:${createHash('sha256').update(credentials).digest('hex')}`
   }
@@ -185,9 +209,15 @@ export function adminRateKey(event: H3Event): string {
 }
 
 /** 5 test emails in 10 minutes for each admin. */
-export const testMailLimiter = createMailRateLimiter({ limit: 5, windowMs: 10 * 60 * 1000 })
+export const testMailLimiter = createMailRateLimiter({
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+})
 
-export function enforceTestMailRateLimit(event: H3Event, limiter: MailRateLimiter = testMailLimiter): void {
+export function enforceTestMailRateLimit(
+  event: H3Event,
+  limiter: MailRateLimiter = testMailLimiter
+): void {
   const wait = limiter.hit(adminRateKey(event))
   if (wait > 0) {
     setResponseHeader(event, 'Retry-After', wait)

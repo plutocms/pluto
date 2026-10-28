@@ -21,7 +21,9 @@ interface MemoryContentAdapterOptions {
  * Pass `options.authorize` to test a capability check that throws (the 403
  * path). Omit it to test the fail-open path (no `authorize` method at all).
  */
-export function createMemoryContentAdapter(options?: MemoryContentAdapterOptions): PlutoContentAdapter {
+export function createMemoryContentAdapter(
+  options?: MemoryContentAdapterOptions
+): PlutoContentAdapter {
   const rows: PlutoContentItem[] = []
   let nextId = 1
 
@@ -32,16 +34,23 @@ export function createMemoryContentAdapter(options?: MemoryContentAdapterOptions
   const adapter: PlutoContentAdapter = {
     id: 'memory',
 
-    async list(ctx: PlutoContentContext, query: PlutoContentQuery): Promise<PlutoContentListResult> {
+    async list(
+      ctx: PlutoContentContext,
+      query: PlutoContentQuery
+    ): Promise<PlutoContentListResult> {
       let data = rows
 
       if (!query.includeUnpublished) {
-        data = data.filter((row) => row.status === undefined || row.status === 'published')
+        data = data.filter(
+          (row) => row.status === undefined || row.status === 'published'
+        )
       }
 
       if (query.search) {
         const needle = query.search.toLowerCase()
-        data = data.filter((row) => titleValue(ctx, row).toLowerCase().includes(needle))
+        data = data.filter((row) =>
+          titleValue(ctx, row).toLowerCase().includes(needle)
+        )
       }
 
       return { data, total: data.length }
@@ -52,7 +61,10 @@ export function createMemoryContentAdapter(options?: MemoryContentAdapterOptions
     },
 
     async create(_ctx, values) {
-      const item: PlutoContentItem = { ...values, id: nextId++ } as PlutoContentItem
+      const item: PlutoContentItem = {
+        ...values,
+        id: nextId++,
+      } as PlutoContentItem
       rows.push(item)
       return item
     },
@@ -63,7 +75,11 @@ export function createMemoryContentAdapter(options?: MemoryContentAdapterOptions
         throw new Error(`No item with id "${id}".`)
       }
       const existing = rows[index] as PlutoContentItem
-      const updated: PlutoContentItem = { ...existing, ...values, id: existing.id }
+      const updated: PlutoContentItem = {
+        ...existing,
+        ...values,
+        id: existing.id,
+      }
       rows[index] = updated
       return updated
     },

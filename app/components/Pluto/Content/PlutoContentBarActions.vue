@@ -23,16 +23,29 @@ const newButtons = computed(() =>
   contentTypes.value
     .map((entry) => entry.type)
     .filter((type) => contentTypeAdminBar(type).new && canWrite(type))
-    .map((type) => ({ name: type.name, label: texts(type.name).newLabel, to: contentTypeNewPath(type) }))
+    .map((type) => ({
+      name: type.name,
+      label: texts(type.name).newLabel,
+      to: contentTypeNewPath(type),
+    }))
 )
 
 const editButton = computed(() => {
   const item = current.value
   const type = item ? byName(item.type) : undefined
-  if (!item || !type || isAdminPath(route.path) || !contentTypeAdminBar(type).edit || !canWrite(type)) {
+  if (
+    !item ||
+    !type ||
+    isAdminPath(route.path) ||
+    !contentTypeAdminBar(type).edit ||
+    !canWrite(type)
+  ) {
     return null
   }
-  return { label: t('pluto.content.edit', { label: texts(type.name).label }), to: contentTypeEditPath(type, item.id) }
+  return {
+    label: t('pluto.content.edit', { label: texts(type.name).label }),
+    to: contentTypeEditPath(type, item.id),
+  }
 })
 </script>
 

@@ -33,10 +33,13 @@ interface Request {
   fetch: ReturnType<typeof getGithubConfig>['fetch']
 }
 
-const cache = new Map<string, {
- at: number
-value: Promise<Sources>
-}>()
+const cache = new Map<
+  string,
+  {
+    at: number
+    value: Promise<Sources>
+  }
+>()
 
 /** Forgets the cached sources. A test calls this. */
 export function clearBuildStatusCache(): void {
@@ -46,14 +49,14 @@ export function clearBuildStatusCache(): void {
 interface RawCommit {
   sha?: string
   commit?: {
- message?: string
-committer?: {
- date?: string
-} | null
-author?: {
- date?: string
-} | null
-}
+    message?: string
+    committer?: {
+      date?: string
+    } | null
+    author?: {
+      date?: string
+    } | null
+  }
 }
 
 /**
@@ -61,11 +64,19 @@ author?: {
  * permission is missing), so the source counts as unavailable. Any other error
  * goes up.
  */
-async function readSource<T>(kind: PlutoBuildItemKind, unavailable: PlutoBuildItemKind[], read: () => Promise<T>, fallback: T): Promise<T> {
+async function readSource<T>(
+  kind: PlutoBuildItemKind,
+  unavailable: PlutoBuildItemKind[],
+  read: () => Promise<T>,
+  fallback: T
+): Promise<T> {
   try {
     return await read()
   } catch (error) {
-    if (error instanceof PlutoGithubStoreError && (error.code === 'forbidden' || error.code === 'not-found')) {
+    if (
+      error instanceof PlutoGithubStoreError &&
+      (error.code === 'forbidden' || error.code === 'not-found')
+    ) {
       unavailable.push(kind)
       return fallback
     }
@@ -73,39 +84,76 @@ async function readSource<T>(kind: PlutoBuildItemKind, unavailable: PlutoBuildIt
   }
 }
 
-async function loadSources(repo: string, sha: string, request: Request): Promise<Sources> {
+async function loadSources(
+  repo: string,
+  sha: string,
+  request: Request
+): Promise<Sources> {
   const unavailable: PlutoBuildItemKind[] = []
-  const get = <T>(path: string) => githubRest<T>(`/repos/${repo}${path}`, request).then((result) => result.data)
+  const get = <T>(path: string) =>
+    githubRest<T>(`/repos/${repo}${path}`, request).then(
+      (result) => result.data
+    )
 
   const [checkRuns, statuses, deployments] = await Promise.all([
-    readSource('check', unavailable, async () => {
-      const data = await get<{
- check_runs?: RawCheckRun[]
-}>(`/commits/${sha}/check-runs?per_page=100`)
-      return data?.check_runs ?? []
-    }, [] as RawCheckRun[]),
-    readSource('status', unavailable, async () => {
-      const data = await get<{
- statuses?: RawCommitStatus[]
-}>(`/commits/${sha}/status?per_page=100`)
-      return data?.statuses ?? []
-    }, [] as RawCommitStatus[]),
-    readSource('deployment', unavailable, async () => {
-      const list = await get<RawDeployment[]>(`/deployments?sha=${sha}&per_page=20`)
-      // The newest deployment of each environment only.
-      const newest = new Map<string, RawDeployment>()
-      for (const deployment of Array.isArray(list) ? list : []) {
-        const key = deployment.environment ?? ''
-        const current = newest.get(key)
-        if (!current || Date.parse(deployment.created_at ?? '') > Date.parse(current.created_at ?? '')) {
-          newest.set(key, deployment)
+    readSource(
+      'check',
+      unavailable,
+      async () => {
+        const data = await get<{
+          check_runs?: RawCheckRun[]
+        }>(`/commits/${sha}/check-runs?per_page=100`)
+        return data?.check_runs ?? []
+      },
+      [] as RawCheckRun[]
+    ),
+    readSource(
+      'status',
+      unavailable,
+      async () => {
+        const data = await get<{
+          statuses?: RawCommitStatus[]
+        }>(`/commits/${sha}/status?per_page=100`)
+        return data?.statuses ?? []
+      },
+      [] as RawCommitStatus[]
+    ),
+    readSource(
+      'deployment',
+      unavailable,
+      async () => {
+        const list = await get<RawDeployment[]>(
+          `/deployments?sha=${sha}&per_page=20`
+        )
+        // The newest deployment of each environment only.
+        const newest = new Map<string, RawDeployment>()
+        for (const deployment of Array.isArray(list) ? list : []) {
+          const key = deployment.environment ?? ''
+          const current = newest.get(key)
+          if (
+            !current ||
+            Date.parse(deployment.created_at ?? '') >
+              Date.parse(current.created_at ?? '')
+          ) {
+            newest.set(key, deployment)
+          }
         }
-      }
-      return Promise.all([...newest.values()].slice(0, MAX_DEPLOYMENTS).map(async (deployment) => {
-        const latest = await get<NonNullable<RawDeployment['status']>[]>(`/deployments/${deployment.id}/statuses?per_page=1`)
-        return { ...deployment, status: Array.isArray(latest) ? (latest[0] ?? null) : null }
-      }))
-    }, [] as RawDeployment[]),
+        return Promise.all(
+          [...newest.values()]
+            .slice(0, MAX_DEPLOYMENTS)
+            .map(async (deployment) => {
+              const latest = await get<NonNullable<RawDeployment['status']>[]>(
+                `/deployments/${deployment.id}/statuses?per_page=1`
+              )
+              return {
+                ...deployment,
+                status: Array.isArray(latest) ? (latest[0] ?? null) : null,
+              }
+            })
+        )
+      },
+      [] as RawDeployment[]
+    ),
   ])
 
   return { checkRuns, statuses, deployments, unavailable }
@@ -124,7 +172,10 @@ function toHttpError(error: unknown, event: H3Event): unknown {
         key: 'pluto.github.errors.githubAuth',
       })
     case 'rate-limit': {
-      const retryAfter = error.retryAfter === undefined ? undefined : Math.max(1, Math.ceil(error.retryAfter))
+      const retryAfter =
+        error.retryAfter === undefined
+          ? undefined
+          : Math.max(1, Math.ceil(error.retryAfter))
       if (retryAfter !== undefined) {
         setResponseHeader(event, 'Retry-After', retryAfter)
       }
@@ -157,7 +208,9 @@ function toHttpError(error: unknown, event: H3Event): unknown {
  * It needs a signed-in user and reads with the token of that user. The `fs`
  * store has no builds, so it answers `none`.
  */
-export async function handleBuildStatus(event: H3Event): Promise<PlutoBuildStatus> {
+export async function handleBuildStatus(
+  event: H3Event
+): Promise<PlutoBuildStatus> {
   setResponseHeader(event, 'Cache-Control', 'no-store')
   const session = await requireGithubSession(event)
   const config = getGithubConfig()
@@ -166,7 +219,11 @@ export async function handleBuildStatus(event: H3Event): Promise<PlutoBuildStatu
     return { sha: '', shortSha: '', message: '', state: 'none', items: [] }
   }
 
-  const request: Request = { token: session.token, apiUrl: config.apiUrl, fetch: config.fetch }
+  const request: Request = {
+    token: session.token,
+    apiUrl: config.apiUrl,
+    fetch: config.fetch,
+  }
   try {
     const { data: commit } = await githubRest<RawCommit>(
       `/repos/${config.repo}/commits/${encodeURIComponent(config.branch)}`,
@@ -174,7 +231,10 @@ export async function handleBuildStatus(event: H3Event): Promise<PlutoBuildStatu
     )
     const sha = String(commit?.sha ?? '')
     if (!/^[0-9a-f]{7,64}$/i.test(sha)) {
-      throw new PlutoGithubStoreError('github', 'GitHub sent a commit with no valid sha.')
+      throw new PlutoGithubStoreError(
+        'github',
+        'GitHub sent a commit with no valid sha.'
+      )
     }
 
     // A few seconds of memory for each user and sha: several tabs share one set of calls.
@@ -202,10 +262,15 @@ export async function handleBuildStatus(event: H3Event): Promise<PlutoBuildStatu
       sha,
       shortSha: sha.slice(0, 7),
       message: commitHeadline(commit?.commit?.message),
-      committedAt: commit?.commit?.committer?.date ?? commit?.commit?.author?.date ?? undefined,
+      committedAt:
+        commit?.commit?.committer?.date ??
+        commit?.commit?.author?.date ??
+        undefined,
       state,
       items,
-      ...(sources.unavailable.length > 0 ? { unavailable: sources.unavailable } : {}),
+      ...(sources.unavailable.length > 0
+        ? { unavailable: sources.unavailable }
+        : {}),
     }
   } catch (error) {
     throw toHttpError(error, event)

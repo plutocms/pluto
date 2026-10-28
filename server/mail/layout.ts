@@ -13,7 +13,7 @@ const HTML_ESCAPES: Record<string, string> = {
   '<': '&lt;',
   '>': '&gt;',
   '"': '&quot;',
-  '\'': '&#39;',
+  "'": '&#39;',
 }
 
 /** Escapes a text for HTML content and for a double-quoted or single-quoted attribute. */
@@ -50,9 +50,9 @@ export interface EmailLayoutInput {
   paragraphs: string[]
   /** A call to action. `url` must be an http(s) URL. */
   button?: {
- label: string
-url: string
-}
+    label: string
+    url: string
+  }
   /** A sentence above the plain link under the button. Needs `button`. */
   linkHint?: string
   /** Small print under the button, for example "If you did not expect this email...". */
@@ -61,37 +61,45 @@ url: string
   footer: string
 }
 
-const FONT = '-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif'
+const FONT =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif"
 const TEXT_COLOR = '#1f2328'
 const MUTED_COLOR = '#656d76'
 const BUTTON_COLOR = '#2563eb'
 
 /** Renders the HTML and the plain text of one email. */
 export function renderEmailLayout(input: EmailLayoutInput): {
- html: string
-text: string
+  html: string
+  text: string
 } {
   const url = input.button ? assertHttpUrl(input.button.url) : undefined
 
   const paragraphs = input.paragraphs
-    .map((paragraph) => `<p style="margin:0 0 16px;font-size:16px;line-height:24px;color:${TEXT_COLOR};">${escapeHtml(paragraph)}</p>`)
+    .map(
+      (paragraph) =>
+        `<p style="margin:0 0 16px;font-size:16px;line-height:24px;color:${TEXT_COLOR};">${escapeHtml(paragraph)}</p>`
+    )
     .join('')
 
-  const button = input.button && url
-    ? [
-        `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 24px;"><tr>`,
-        `<td align="center" bgcolor="${BUTTON_COLOR}" style="border-radius:6px;background-color:${BUTTON_COLOR};">`,
-        `<a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 24px;font-size:16px;font-weight:600;line-height:20px;color:#ffffff;text-decoration:none;border-radius:6px;">${escapeHtml(input.button.label)}</a>`,
-        `</td></tr></table>`,
-        input.linkHint
-          ? `<p style="margin:0 0 4px;font-size:14px;line-height:20px;color:${MUTED_COLOR};">${escapeHtml(input.linkHint)}</p>`
-          : '',
-        `<p style="margin:0 0 24px;font-size:14px;line-height:20px;word-break:break-all;"><a href="${escapeHtml(url)}" style="color:${BUTTON_COLOR};">${escapeHtml(url)}</a></p>`,
-      ].join('')
-    : ''
+  const button =
+    input.button && url
+      ? [
+          `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 24px;"><tr>`,
+          `<td align="center" bgcolor="${BUTTON_COLOR}" style="border-radius:6px;background-color:${BUTTON_COLOR};">`,
+          `<a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 24px;font-size:16px;font-weight:600;line-height:20px;color:#ffffff;text-decoration:none;border-radius:6px;">${escapeHtml(input.button.label)}</a>`,
+          `</td></tr></table>`,
+          input.linkHint
+            ? `<p style="margin:0 0 4px;font-size:14px;line-height:20px;color:${MUTED_COLOR};">${escapeHtml(input.linkHint)}</p>`
+            : '',
+          `<p style="margin:0 0 24px;font-size:14px;line-height:20px;word-break:break-all;"><a href="${escapeHtml(url)}" style="color:${BUTTON_COLOR};">${escapeHtml(url)}</a></p>`,
+        ].join('')
+      : ''
 
   const notes = (input.notes ?? [])
-    .map((note) => `<p style="margin:0 0 8px;font-size:14px;line-height:20px;color:${MUTED_COLOR};">${escapeHtml(note)}</p>`)
+    .map(
+      (note) =>
+        `<p style="margin:0 0 8px;font-size:14px;line-height:20px;color:${MUTED_COLOR};">${escapeHtml(note)}</p>`
+    )
     .join('')
 
   const html = [
@@ -120,7 +128,11 @@ text: string
     '</html>',
   ].join('')
 
-  const textParts = [input.heading, '', ...input.paragraphs.flatMap((paragraph) => [paragraph, ''])]
+  const textParts = [
+    input.heading,
+    '',
+    ...input.paragraphs.flatMap((paragraph) => [paragraph, '']),
+  ]
   if (input.button && url) {
     textParts.push(`${input.button.label}:`, url, '')
   }

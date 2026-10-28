@@ -61,11 +61,15 @@ const slideoverOpen = computed({
     :class="resizable ? 'w-full' : 'border-default shrink-0 border-s'"
     class="flex h-full flex-col"
   >
-    <div class="border-default flex h-12 shrink-0 items-center justify-between gap-1.5 border-b px-4">
+    <div
+      class="border-default flex h-12 shrink-0 items-center justify-between gap-1.5 border-b px-4"
+    >
       <div v-if="$slots.header" class="min-w-0 flex-1">
         <slot name="header" />
       </div>
-      <h2 v-else class="text-highlighted truncate text-sm font-semibold">{{ title }}</h2>
+      <h2 v-else class="text-highlighted truncate text-sm font-semibold">
+        {{ title }}
+      </h2>
       <UTooltip :text="t('pluto.common.hidePanel')">
         <UButton
           :aria-label="t('pluto.common.hidePanel')"

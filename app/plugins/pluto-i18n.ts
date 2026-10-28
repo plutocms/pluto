@@ -1,4 +1,7 @@
-import { loadPlutoLocale, resolveScopeLocale } from '../composables/internal/i18n-runtime'
+import {
+  loadPlutoLocale,
+  resolveScopeLocale,
+} from '../composables/internal/i18n-runtime'
 
 // Resolves the admin locale and the site locale, and loads their messages and
 // Nuxt UI locale before the first render. The locales live in `useState`, so
@@ -8,9 +11,16 @@ import { loadPlutoLocale, resolveScopeLocale } from '../composables/internal/i18
 export default defineNuxtPlugin({
   name: 'pluto-i18n',
   async setup() {
-    const admin = useState<string>('pluto-admin-locale', () => resolveScopeLocale('admin'))
-    const site = useState<string>('pluto-site-locale', () => resolveScopeLocale('site'))
+    const admin = useState<string>('pluto-admin-locale', () =>
+      resolveScopeLocale('admin')
+    )
+    const site = useState<string>('pluto-site-locale', () =>
+      resolveScopeLocale('site')
+    )
 
-    await Promise.all([loadPlutoLocale(admin.value), loadPlutoLocale(site.value)])
+    await Promise.all([
+      loadPlutoLocale(admin.value),
+      loadPlutoLocale(site.value),
+    ])
   },
 })

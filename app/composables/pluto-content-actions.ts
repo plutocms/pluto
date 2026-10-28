@@ -5,7 +5,10 @@
  * `placement` defaults to 'toolbar', matching `PlutoContentAction.placement`.
  * The label is key-or-literal. It resolves with `tx()` inside the `computed`.
  */
-export function usePlutoContentActions(typeName: string, placement: 'toolbar' | 'aside' = 'toolbar') {
+export function usePlutoContentActions(
+  typeName: string,
+  placement: 'toolbar' | 'aside' = 'toolbar'
+) {
   const registry = usePlutoRegistry()
   const { tx } = usePlutoI18n()
 

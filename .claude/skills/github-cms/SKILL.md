@@ -74,19 +74,19 @@ no shell command. Tests: `test/github-git-remote.test.ts`, `test/pluto-github-op
 
 ## Options
 
-| Option | Default | Rule |
-|---|---|---|
-| `enabled` | `'auto'` | `'auto'`, `true` or `false`. See "On unless a backend layer is present". |
-| `storage` | `'fs'` in dev, `'github'` in production | `'github'` or `'fs'`. `'fs'` is valid in dev only. |
-| `github.repo` | found (see "Defaults") | `owner/name`. Required when storage is `github`. |
-| `github.branch` | `'main'` | The branch to read and commit to. |
-| `github.appSlug` | the env var, else `''` | The slug of the GitHub App. |
-| `github.apiUrl` | `'https://api.github.com'` | The API base URL. |
-| `dir` | `'content'` | Relative path. No `..`, no leading `/`, no drive letter. The module changes `\` to `/` and removes a trailing `/`. |
-| `commit.skipDeploy` | `true` | Add `[skip ci]` to commit messages. A site that must redeploy on each edit (for example a docs site) sets it to `false`. See "Skip a deploy on Vercel". |
-| `cache.headTtl` | `60` | Seconds. Zero or more. |
-| `cache.storage` | `'cache'` | The Nitro storage mount for the cache. |
-| `postType` | `true` | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`. |
+| Option              | Default                                 | Rule                                                                                                                                                    |
+| ------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`           | `'auto'`                                | `'auto'`, `true` or `false`. See "On unless a backend layer is present".                                                                                |
+| `storage`           | `'fs'` in dev, `'github'` in production | `'github'` or `'fs'`. `'fs'` is valid in dev only.                                                                                                      |
+| `github.repo`       | found (see "Defaults")                  | `owner/name`. Required when storage is `github`.                                                                                                        |
+| `github.branch`     | `'main'`                                | The branch to read and commit to.                                                                                                                       |
+| `github.appSlug`    | the env var, else `''`                  | The slug of the GitHub App.                                                                                                                             |
+| `github.apiUrl`     | `'https://api.github.com'`              | The API base URL.                                                                                                                                       |
+| `dir`               | `'content'`                             | Relative path. No `..`, no leading `/`, no drive letter. The module changes `\` to `/` and removes a trailing `/`.                                      |
+| `commit.skipDeploy` | `true`                                  | Add `[skip ci]` to commit messages. A site that must redeploy on each edit (for example a docs site) sets it to `false`. See "Skip a deploy on Vercel". |
+| `cache.headTtl`     | `60`                                    | Seconds. Zero or more.                                                                                                                                  |
+| `cache.storage`     | `'cache'`                               | The Nitro storage mount for the cache.                                                                                                                  |
+| `postType`          | `true`                                  | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`.                            |
 
 A bad option turns the CMS off and logs an error. The module does not throw.
 
@@ -353,7 +353,7 @@ An anonymous caller sees published posts only. The store reads with a server tok
 2. Else an installation token of the App. The code signs an App JWT (RS256, `iat` now minus 60
    seconds, `exp` now plus 540 seconds, `iss` the app id). The private key may use literal `\n`
    escapes. It reads `GET /repos/{o}/{r}/installation`, then `POST
-   /app/installations/{id}/access_tokens` for this repo with `contents: read`. It caches the token
+/app/installations/{id}/access_tokens` for this repo with `contents: read`. It caches the token
    in memory until 5 minutes before it ends.
 3. With neither set, an anonymous read answers 503 (`pluto.github.errors.githubUnavailable`) and logs
    the cause once. The server does not fail at boot.
@@ -374,7 +374,7 @@ never change state.
 ### Client
 
 - `usePlutoGithubSession()` gives `{ user, capabilities, repo, loggedIn, status, ready, refresh,
-  logout }`. It uses `useFetch` with the key `pluto-github-session` and `server: false`, so the
+logout }`. It uses `useFetch` with the key `pluto-github-session` and `server: false`, so the
   server HTML of a public page never holds a user (a CDN may cache it). The admin is client-only.
 - The auth driver (`id: 'pluto-github-auth'`) maps the session: `user()` gives `id`, `name`, `username`
   (the GitHub login) and `avatarUrl`. `loggedIn()` reads `usePlutoGithubSession().loggedIn`. The
@@ -644,10 +644,10 @@ stale.
 (`test/github-sanitize-html.test.ts`).
 
 - Kept elements: `p h1-h6 strong b em i s del u code pre blockquote ul ol li hr br a img table thead
-  tbody tr th td input`.
+tbody tr th td input`.
 - Dropped with their children: `script style iframe object embed template noscript svg math link
-  meta base form button select textarea audio video source track canvas applet frame frameset
-  portal`. Any other element is unwrapped: the tag goes and the text stays.
+meta base form button select textarea audio video source track canvas applet frame frameset
+portal`. Any other element is unwrapped: the tag goes and the text stays.
 - Kept attributes: `a`: `href`, `title`. `img`: `src`, `alt`, `title`, `width`, `height`. `code`: a
   `class` of the form `language-*`. `input`: only a checkbox, with `checked` and `disabled` as
   flags. `th` and `td`: `align` (left, center, right). Every other attribute goes, so `on*` and
@@ -674,7 +674,10 @@ Use on a site page:
 ```vue
 <script setup lang="ts">
 const route = useRoute()
-const { data } = await usePlutoPublicItem<{ title: string, html: string }>('post', String(route.params.slug))
+const { data } = await usePlutoPublicItem<{ title: string; html: string }>(
+  'post',
+  String(route.params.slug)
+)
 </script>
 <template><PlutoMarkdown v-if="data" :html="data.data.html" /></template>
 ```

@@ -20,18 +20,22 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: unknown]
   /** The widget code loaded and the widget rendered. */
-  'ready': []
+  ready: []
 }>()
 
 const widget = usePlutoContentFieldWidget(props.field)
 
 const { t } = usePlutoI18n()
 const { byName } = usePlutoContentTypes()
-const text = usePlutoContentText(() => (props.type ? byName(props.type) : undefined))
+const text = usePlutoContentText(() =>
+  props.type ? byName(props.type) : undefined
+)
 
 // The widget gets a translated copy, so a widget from any layer shows the
 // translated text with no change. Without a type, the copy keeps the original.
-const translated = computed(() => (props.type ? text.field(props.field) : props.field))
+const translated = computed(() =>
+  props.type ? text.field(props.field) : props.field
+)
 </script>
 
 <template>

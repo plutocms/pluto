@@ -33,7 +33,9 @@ async function loadOptions() {
   pending.value = true
 
   try {
-    const result = await $fetch<ReferenceOptionsResponse>(props.field.optionsUrl)
+    const result = await $fetch<ReferenceOptionsResponse>(
+      props.field.optionsUrl
+    )
     const labelKey = props.field.labelKey ?? 'label'
     const valueKey = props.field.valueKey ?? 'id'
 
@@ -54,7 +56,11 @@ const value = computed(() => props.modelValue as string | number | undefined)
 </script>
 
 <template>
-  <UFormField :label="field.label" :description="field.description" :required="field.required">
+  <UFormField
+    :label="field.label"
+    :description="field.description"
+    :required="field.required"
+  >
     <UInputMenu
       v-if="hasOptionsSource"
       :model-value="value"

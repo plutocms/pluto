@@ -65,9 +65,13 @@ export interface PlutoMailResolution {
   resendKey: string
 }
 
-function normalizeConfig(raw: Partial<PlutoMailConfig> | undefined): PlutoMailConfig {
+function normalizeConfig(
+  raw: Partial<PlutoMailConfig> | undefined
+): PlutoMailConfig {
   return {
-    driver: String(raw?.driver ?? '').trim().toLowerCase(),
+    driver: String(raw?.driver ?? '')
+      .trim()
+      .toLowerCase(),
     from: String(raw?.from ?? '').trim(),
     replyTo: String(raw?.replyTo ?? '').trim(),
     resend: { apiKey: String(raw?.resend?.apiKey ?? '').trim() },
@@ -88,16 +92,22 @@ const warnedDrivers = new Set<string>()
  *
  * Production never falls back to `dev`.
  */
-export async function resolveMailDriver(options: ResolveMailOptions = {}): Promise<PlutoMailResolution> {
+export async function resolveMailDriver(
+  options: ResolveMailOptions = {}
+): Promise<PlutoMailResolution> {
   const config = normalizeConfig(options.config ?? useRuntimeConfig().plutoMail)
   const dev = options.dev ?? import.meta.dev
 
-  const resendKey = config.resend.apiKey || (await store?.get('resendApiKey').catch(() => null)) || ''
+  const resendKey =
+    config.resend.apiKey ||
+    (await store?.get('resendApiKey').catch(() => null)) ||
+    ''
   const hasKey = Boolean(resendKey)
   const mailpitUrl = config.mailpit.url
 
   const builtIn: Record<string, () => PlutoMailDriver> = {
-    resend: () => createResendDriver({ apiKey: resendKey, fetch: options.fetch }),
+    resend: () =>
+      createResendDriver({ apiKey: resendKey, fetch: options.fetch }),
     dev: () => createDevDriver({ dev, mailpitUrl, fetch: options.fetch }),
     none: () => createNoneDriver(),
   }
@@ -113,7 +123,9 @@ export async function resolveMailDriver(options: ResolveMailOptions = {}): Promi
     } else {
       if (!warnedDrivers.has(config.driver)) {
         warnedDrivers.add(config.driver)
-        console.warn(`[pluto-mail] Unknown mail driver "${config.driver}". Using "none".`)
+        console.warn(
+          `[pluto-mail] Unknown mail driver "${config.driver}". Using "none".`
+        )
       }
       driver = createNoneDriver()
     }
@@ -139,11 +151,18 @@ export async function resolveMailDriver(options: ResolveMailOptions = {}): Promi
     mailpit: driver.id === 'dev' && Boolean(mailpitUrl),
   }
 
-  return { driver, context: { from: config.from, replyTo: config.replyTo }, status, resendKey }
+  return {
+    driver,
+    context: { from: config.from, replyTo: config.replyTo },
+    status,
+    resendKey,
+  }
 }
 
 /** What the admin shows about the mail setup. It holds no secret. */
-export async function getPlutoMailStatus(options: ResolveMailOptions = {}): Promise<PlutoMailStatus> {
+export async function getPlutoMailStatus(
+  options: ResolveMailOptions = {}
+): Promise<PlutoMailStatus> {
   return (await resolveMailDriver(options)).status
 }
 
@@ -151,14 +170,32 @@ const HEADER_BREAK = /[\r\n]/
 
 function assertMessage(message: PlutoMailMessage): void {
   const recipients = Array.isArray(message.to) ? message.to : [message.to]
-  const headers = [message.subject, message.from ?? '', message.replyTo ?? '', ...recipients]
+  const headers = [
+    message.subject,
+    message.from ?? '',
+    message.replyTo ?? '',
+    ...recipients,
+  ]
 
-  if (recipients.length === 0 || recipients.some((to) => typeof to !== 'string' || !to.includes('@'))) {
-    throw new PlutoMailError('invalid_message', 'The message needs at least one valid recipient.')
+  if (
+    recipients.length === 0 ||
+    recipients.some((to) => typeof to !== 'string' || !to.includes('@'))
+  ) {
+    throw new PlutoMailError(
+      'invalid_message',
+      'The message needs at least one valid recipient.'
+    )
   }
   // A line break in a header value could add a header (header injection).
-  if (headers.some((value) => typeof value !== 'string' || HEADER_BREAK.test(value))) {
-    throw new PlutoMailError('invalid_message', 'A header value has a line break.')
+  if (
+    headers.some(
+      (value) => typeof value !== 'string' || HEADER_BREAK.test(value)
+    )
+  ) {
+    throw new PlutoMailError(
+      'invalid_message',
+      'A header value has a line break.'
+    )
   }
 }
 
@@ -166,7 +203,10 @@ function assertMessage(message: PlutoMailMessage): void {
  * Sends one email through the resolved driver. It throws a `PlutoMailError`
  * on failure. It logs nothing: not a recipient, a subject, a link or a key.
  */
-export async function sendPlutoMail(message: PlutoMailMessage, options: ResolveMailOptions = {}): Promise<PlutoMailSendResult> {
+export async function sendPlutoMail(
+  message: PlutoMailMessage,
+  options: ResolveMailOptions = {}
+): Promise<PlutoMailSendResult> {
   assertMessage(message)
   const { driver, context } = await resolveMailDriver(options)
   return driver.send(message, context)
@@ -185,9 +225,9 @@ export interface RenderEmailOptions {
   siteName?: string
   /** Default: `usePlutoServerTranslator(locale)`. A test passes its own. */
   translator?: {
- t: (key: string, params?: Record<string, unknown>) => string
-locale: string
-}
+    t: (key: string, params?: Record<string, unknown>) => string
+    locale: string
+  }
 }
 
 /**
@@ -203,11 +243,14 @@ export async function renderPlutoEmail<N extends keyof PlutoEmailTemplates>(
   data: PlutoEmailTemplates[N],
   options: RenderEmailOptions = {}
 ): Promise<PlutoEmailContent> {
-  const translator = options.translator ?? await usePlutoServerTranslator(options.locale)
+  const translator =
+    options.translator ?? (await usePlutoServerTranslator(options.locale))
   const context = {
     t: translator.t,
     locale: translator.locale,
-    siteName: options.siteName ?? String(useRuntimeConfig().public.websiteName ?? 'Pluto'),
+    siteName:
+      options.siteName ??
+      String(useRuntimeConfig().public.websiteName ?? 'Pluto'),
   }
 
   switch (name) {
@@ -216,6 +259,9 @@ export async function renderPlutoEmail<N extends keyof PlutoEmailTemplates>(
     case 'invite':
       return renderInviteEmail(context, data as PlutoInviteEmailData)
     default:
-      throw new PlutoMailError('invalid_message', `Unknown email template "${String(name)}".`)
+      throw new PlutoMailError(
+        'invalid_message',
+        `Unknown email template "${String(name)}".`
+      )
   }
 }

@@ -29,13 +29,18 @@ async function loadComposables() {
   const { usePlutoRegistry } = await import('../app/composables/pluto-registry')
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)
 
-  const { definePlutoExtension } = await import('../app/composables/pluto-extension')
-  const { usePlutoContentTypes } = await import('../app/composables/pluto-content-types')
+  const { definePlutoExtension } =
+    await import('../app/composables/pluto-extension')
+  const { usePlutoContentTypes } =
+    await import('../app/composables/pluto-content-types')
 
   return { usePlutoRegistry, definePlutoExtension, usePlutoContentTypes }
 }
 
-function contentType(name: string, overrides: Partial<PlutoContentType> = {}): PlutoContentType {
+function contentType(
+  name: string,
+  overrides: Partial<PlutoContentType> = {}
+): PlutoContentType {
   return {
     name,
     label: name,
@@ -106,11 +111,15 @@ describe('contentTypes bucket', () => {
     })
     definePlutoExtension({
       id: 'owner-a',
-      contentTypes: [{ id: 'one', type: contentType('post', { label: 'Post (updated)' }) }],
+      contentTypes: [
+        { id: 'one', type: contentType('post', { label: 'Post (updated)' }) },
+      ],
     })
 
     expect(registry.contentTypes.list.value).toHaveLength(1)
-    expect(registry.contentTypes.list.value[0]?.type.label).toBe('Post (updated)')
+    expect(registry.contentTypes.list.value[0]?.type.label).toBe(
+      'Post (updated)'
+    )
   })
 
   it('drops an owner entire contribution when re-registered with an empty list', async () => {
@@ -121,14 +130,20 @@ describe('contentTypes bucket', () => {
       id: 'owner-a',
       contentTypes: [{ id: 'one', type: contentType('post') }],
     })
-    definePlutoExtension({ id: 'owner-b', contentTypes: [{ id: 'two', type: contentType('page') }] })
+    definePlutoExtension({
+      id: 'owner-b',
+      contentTypes: [{ id: 'two', type: contentType('page') }],
+    })
     definePlutoExtension({ id: 'owner-a', contentTypes: [] })
 
-    expect(registry.contentTypes.list.value.map((entry) => entry.id)).toEqual(['owner-b:two'])
+    expect(registry.contentTypes.list.value.map((entry) => entry.id)).toEqual([
+      'owner-b:two',
+    ])
   })
 
   it('rewrites entry id to "<owner>:<id>" but never touches type.name', async () => {
-    const { definePlutoExtension, usePlutoContentTypes } = await loadComposables()
+    const { definePlutoExtension, usePlutoContentTypes } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-layer',
@@ -143,7 +158,8 @@ describe('contentTypes bucket', () => {
   })
 
   it('byName looks up by type.name, not the registry entry id', async () => {
-    const { definePlutoExtension, usePlutoContentTypes } = await loadComposables()
+    const { definePlutoExtension, usePlutoContentTypes } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-layer',
@@ -165,17 +181,20 @@ describe('contentFieldWidgets bucket', () => {
 
     definePlutoExtension({
       id: 'owner-a',
-      contentFieldWidgets: [{ id: 'b', order: 50, fieldType: 'text', component: FakeComponent }],
+      contentFieldWidgets: [
+        { id: 'b', order: 50, fieldType: 'text', component: FakeComponent },
+      ],
     })
     definePlutoExtension({
       id: 'owner-b',
-      contentFieldWidgets: [{ id: 'a', order: 10, fieldType: 'number', component: FakeComponent }],
+      contentFieldWidgets: [
+        { id: 'a', order: 10, fieldType: 'number', component: FakeComponent },
+      ],
     })
 
-    expect(registry.contentFieldWidgets.list.value.map((entry) => entry.id)).toEqual([
-      'owner-b:a',
-      'owner-a:b',
-    ])
+    expect(
+      registry.contentFieldWidgets.list.value.map((entry) => entry.id)
+    ).toEqual(['owner-b:a', 'owner-a:b'])
   })
 
   it('replaces an owner contribution instead of appending to it', async () => {
@@ -184,15 +203,21 @@ describe('contentFieldWidgets bucket', () => {
 
     definePlutoExtension({
       id: 'owner-a',
-      contentFieldWidgets: [{ id: 'one', fieldType: 'text', component: FakeComponent }],
+      contentFieldWidgets: [
+        { id: 'one', fieldType: 'text', component: FakeComponent },
+      ],
     })
     definePlutoExtension({
       id: 'owner-a',
-      contentFieldWidgets: [{ id: 'one', fieldType: 'richtext', component: FakeComponent }],
+      contentFieldWidgets: [
+        { id: 'one', fieldType: 'richtext', component: FakeComponent },
+      ],
     })
 
     expect(registry.contentFieldWidgets.list.value).toHaveLength(1)
-    expect(registry.contentFieldWidgets.list.value[0]?.fieldType).toBe('richtext')
+    expect(registry.contentFieldWidgets.list.value[0]?.fieldType).toBe(
+      'richtext'
+    )
   })
 
   it('drops an owner entire contribution on remove', async () => {
@@ -201,17 +226,21 @@ describe('contentFieldWidgets bucket', () => {
 
     definePlutoExtension({
       id: 'owner-a',
-      contentFieldWidgets: [{ id: 'one', fieldType: 'text', component: FakeComponent }],
+      contentFieldWidgets: [
+        { id: 'one', fieldType: 'text', component: FakeComponent },
+      ],
     })
     definePlutoExtension({
       id: 'owner-b',
-      contentFieldWidgets: [{ id: 'two', fieldType: 'number', component: FakeComponent }],
+      contentFieldWidgets: [
+        { id: 'two', fieldType: 'number', component: FakeComponent },
+      ],
     })
     registry.contentFieldWidgets.remove('owner-a')
 
-    expect(registry.contentFieldWidgets.list.value.map((entry) => entry.id)).toEqual([
-      'owner-b:two',
-    ])
+    expect(
+      registry.contentFieldWidgets.list.value.map((entry) => entry.id)
+    ).toEqual(['owner-b:two'])
   })
 })
 
@@ -239,13 +268,20 @@ describe('mediaAdapters bucket', () => {
     const { usePlutoRegistry, definePlutoExtension } = await loadComposables()
     const registry = usePlutoRegistry()
 
-    definePlutoExtension({ id: 'owner-a', mediaAdapters: [{ id: 'one', adapter: fakeAdapter }] })
     definePlutoExtension({
       id: 'owner-a',
-      mediaAdapters: [{ id: 'one', adapter: { ...fakeAdapter, id: 'fake-updated' } }],
+      mediaAdapters: [{ id: 'one', adapter: fakeAdapter }],
+    })
+    definePlutoExtension({
+      id: 'owner-a',
+      mediaAdapters: [
+        { id: 'one', adapter: { ...fakeAdapter, id: 'fake-updated' } },
+      ],
     })
 
     expect(registry.mediaAdapters.list.value).toHaveLength(1)
-    expect(registry.mediaAdapters.list.value[0]?.adapter.id).toBe('fake-updated')
+    expect(registry.mediaAdapters.list.value[0]?.adapter.id).toBe(
+      'fake-updated'
+    )
   })
 })

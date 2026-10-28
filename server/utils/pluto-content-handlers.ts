@@ -54,7 +54,10 @@ export function requireContentAdapter(): PlutoContentAdapter {
  *   the adapter's own backing store (RLS, or equivalent) is still the real
  *   gate.
  */
-export async function authorizeContentOperation(event: H3Event, capability: string | undefined): Promise<void> {
+export async function authorizeContentOperation(
+  event: H3Event,
+  capability: string | undefined
+): Promise<void> {
   if (!capability) {
     return
   }
@@ -102,11 +105,18 @@ export async function listContentItems(
 }
 
 /** Gets one item by id or slug. No capability check — see `listContentItems`. */
-export async function getContentItem(ctx: PlutoContentContext, idOrSlug: string | number): Promise<PlutoContentItem> {
+export async function getContentItem(
+  ctx: PlutoContentContext,
+  idOrSlug: string | number
+): Promise<PlutoContentItem> {
   const item = await requireContentAdapter().get(ctx, idOrSlug)
 
   if (!item) {
-    throw createPlutoError({ statusCode: 404, message: 'Not found.', key: 'pluto.errors.notFound' })
+    throw createPlutoError({
+      statusCode: 404,
+      message: 'Not found.',
+      key: 'pluto.errors.notFound',
+    })
   }
 
   return item
@@ -130,7 +140,10 @@ function requirePlainObjectBody(body: unknown): Record<string, unknown> {
  * `type.hooks.afterCreate` when one is registered. A hook error propagates
  * — it is not swallowed.
  */
-export async function createContentItem(ctx: PlutoContentContext, body: unknown): Promise<PlutoContentItem> {
+export async function createContentItem(
+  ctx: PlutoContentContext,
+  body: unknown
+): Promise<PlutoContentItem> {
   const payload = requirePlainObjectBody(body)
 
   const errors = validateContentPayload(ctx.type, payload)
@@ -189,7 +202,10 @@ export async function updateContentItem(
 }
 
 /** Deletes one item. Authorizes against `type.capabilities.delete` before calling the adapter. */
-export async function deleteContentItem(ctx: PlutoContentContext, id: string | number): Promise<void> {
+export async function deleteContentItem(
+  ctx: PlutoContentContext,
+  id: string | number
+): Promise<void> {
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
 
   await requireContentAdapter().remove(ctx, id)
@@ -200,7 +216,9 @@ export const CONTENT_ACTIVITY_MAX_WEEKS = 52
 
 /** Monday 00:00 UTC of the week that contains `date`. */
 function startOfWeekUtc(date: Date): Date {
-  const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+  const start = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  )
   const daysSinceMonday = (start.getUTCDay() + 6) % 7
   start.setUTCDate(start.getUTCDate() - daysSinceMonday)
   return start
@@ -220,18 +238,25 @@ function startOfWeekUtc(date: Date): Date {
 export async function contentActivity(
   ctx: PlutoContentContext,
   options: {
- weeks: number
-now?: Date
-}
+    weeks: number
+    now?: Date
+  }
 ): Promise<PlutoContentActivity> {
   const adapter = requireContentAdapter()
-  const unsupported: PlutoContentActivity = { supported: false, interval: 'week', points: [] }
+  const unsupported: PlutoContentActivity = {
+    supported: false,
+    interval: 'week',
+    points: [],
+  }
 
   if (!adapter.countCreated) {
     return unsupported
   }
 
-  const weeks = Math.min(CONTENT_ACTIVITY_MAX_WEEKS, Math.max(1, Math.trunc(options.weeks)))
+  const weeks = Math.min(
+    CONTENT_ACTIVITY_MAX_WEEKS,
+    Math.max(1, Math.trunc(options.weeks))
+  )
   const thisWeek = startOfWeekUtc(options.now ?? new Date())
   const DAY = 24 * 60 * 60 * 1000
 
@@ -241,7 +266,9 @@ now?: Date
     return { from: from.toISOString(), to: to.toISOString() }
   })
 
-  const counts = await Promise.all(ranges.map((range) => adapter.countCreated!(ctx, range)))
+  const counts = await Promise.all(
+    ranges.map((range) => adapter.countCreated!(ctx, range))
+  )
 
   if (counts.includes(null)) {
     return unsupported
@@ -250,6 +277,9 @@ now?: Date
   return {
     supported: true,
     interval: 'week',
-    points: ranges.map((range, index) => ({ start: range.from.slice(0, 10), count: counts[index] as number })),
+    points: ranges.map((range, index) => ({
+      start: range.from.slice(0, 10),
+      count: counts[index] as number,
+    })),
   }
 }

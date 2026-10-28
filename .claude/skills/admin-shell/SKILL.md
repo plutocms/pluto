@@ -15,17 +15,17 @@ It extends the [extension registry](../extension-registry/SKILL.md).
 A layer sets `authDriver` in `definePlutoExtension`. The last registered driver wins, like the
 other drivers. `PlutoAuthDriver` (in `shared/types/registry.ts`) has:
 
-| Field | Purpose |
-|---|---|
-| `user()` | The signed-in `PlutoAuthUser` (`id`, `name`, `username`, `email`, `avatarUrl`), or `null`. |
-| `loggedIn()` | Optional. Default is `user() !== null`. |
-| `ready()` | A promise. It resolves after the first session check. It never rejects. |
-| `refresh()` | Optional. Reads the session again. |
-| `signOut()` | Ends the session. Core then shows a toast and goes to `/admin/login`. |
-| `signIn` | The sign-in form component. Core passes `PlutoAuthSignInProps` (`redirect`). |
-| `signInTitle`, `signInDescription` | Key-or-literal text for the login frame. |
-| `links` | `signUp` and `forgotPassword` URLs. |
-| `publicPaths` | Paths that need no sign-in. A string, or `{ path, signedIn: 'redirect' \| 'allow' }`. `/admin/login` is always one. |
+| Field                              | Purpose                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `user()`                           | The signed-in `PlutoAuthUser` (`id`, `name`, `username`, `email`, `avatarUrl`), or `null`.                          |
+| `loggedIn()`                       | Optional. Default is `user() !== null`.                                                                             |
+| `ready()`                          | A promise. It resolves after the first session check. It never rejects.                                             |
+| `refresh()`                        | Optional. Reads the session again.                                                                                  |
+| `signOut()`                        | Ends the session. Core then shows a toast and goes to `/admin/login`.                                               |
+| `signIn`                           | The sign-in form component. Core passes `PlutoAuthSignInProps` (`redirect`).                                        |
+| `signInTitle`, `signInDescription` | Key-or-literal text for the login frame.                                                                            |
+| `links`                            | `signUp` and `forgotPassword` URLs.                                                                                 |
+| `publicPaths`                      | Paths that need no sign-in. A string, or `{ path, signedIn: 'redirect' \| 'allow' }`. `/admin/login` is always one. |
 
 `user` and `loggedIn` are getters, not refs. They read reactive state of the backend.
 
@@ -42,19 +42,19 @@ Core adds no `ClientOnly` around the whole bar and uses no top-level await in it
 
 ## Other buckets
 
-| Field | Type | Purpose |
-|---|---|---|
-| `accountMenu` | `PlutoAccountMenuItem[]` | Items in the user menu. `label` is key-or-literal. Sorted by `order`. |
-| `adminBanners` | `PlutoAdminBanner[]` | Banner components for the admin. The admin layout renders them. See "Admin banners". |
-| `site` | `PlutoSiteInfo` | `name()` and `url()` of the public site. For each field, the last value wins. |
+| Field          | Type                     | Purpose                                                                              |
+| -------------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `accountMenu`  | `PlutoAccountMenuItem[]` | Items in the user menu. `label` is key-or-literal. Sorted by `order`.                |
+| `adminBanners` | `PlutoAdminBanner[]`     | Banner components for the admin. The admin layout renders them. See "Admin banners". |
+| `site`         | `PlutoSiteInfo`          | `name()` and `url()` of the public site. For each field, the last value wins.        |
 
 ## Routes
 
-| File | Route | Purpose |
-|---|---|---|
-| `app/pages/admin.vue` | `/admin` (parent) | `definePageMeta({ layout: 'admin' })` and `<NuxtPage />`. Every `/admin/**` page is a child. |
-| `app/pages/admin/(auth)/login.vue` | `/admin/login` | The login page. It sets the `auth` layout and renders `PlutoAdminAuthCard`. |
-| `app/pages/admin/no-access.vue` | `/admin/no-access` | The page for a signed-in user with no capability. It uses the `auth` layout. See "The staff step". |
+| File                               | Route              | Purpose                                                                                            |
+| ---------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------- |
+| `app/pages/admin.vue`              | `/admin` (parent)  | `definePageMeta({ layout: 'admin' })` and `<NuxtPage />`. Every `/admin/**` page is a child.       |
+| `app/pages/admin/(auth)/login.vue` | `/admin/login`     | The login page. It sets the `auth` layout and renders `PlutoAdminAuthCard`.                        |
+| `app/pages/admin/no-access.vue`    | `/admin/no-access` | The page for a signed-in user with no capability. It uses the `auth` layout. See "The staff step". |
 
 A child that must not use the admin layout (the auth pages) sets its own layout in
 `definePageMeta`. The `(auth)` folder is a route group: it adds no path segment.

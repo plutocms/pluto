@@ -22,8 +22,10 @@ afterEach(() => {
 async function load() {
   const { usePlutoRegistry } = await import('../app/composables/pluto-registry')
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)
-  const { definePlutoExtension } = await import('../app/composables/pluto-extension')
-  const { usePlutoContentToolbarItems } = await import('../app/composables/pluto-content-toolbar-items')
+  const { definePlutoExtension } =
+    await import('../app/composables/pluto-extension')
+  const { usePlutoContentToolbarItems } =
+    await import('../app/composables/pluto-content-toolbar-items')
   return { definePlutoExtension, usePlutoContentToolbarItems }
 }
 
@@ -41,8 +43,12 @@ describe('usePlutoContentToolbarItems', () => {
       ],
     })
 
-    expect(usePlutoContentToolbarItems('post').value.map((item) => item.id)).toEqual(['layer:all', 'layer:post'])
-    expect(usePlutoContentToolbarItems('page').value.map((item) => item.id)).toEqual(['layer:all'])
+    expect(
+      usePlutoContentToolbarItems('post').value.map((item) => item.id)
+    ).toEqual(['layer:all', 'layer:post'])
+    expect(
+      usePlutoContentToolbarItems('page').value.map((item) => item.id)
+    ).toEqual(['layer:all'])
   })
 
   it('sorts by order and drops a disabled item', async () => {
@@ -56,15 +62,25 @@ describe('usePlutoContentToolbarItems', () => {
       ],
     })
 
-    expect(usePlutoContentToolbarItems('post').value.map((item) => item.id)).toEqual(['layer:early', 'layer:late'])
+    expect(
+      usePlutoContentToolbarItems('post').value.map((item) => item.id)
+    ).toEqual(['layer:early', 'layer:late'])
   })
 
   it('replaces the items of a layer when it registers again', async () => {
     const { definePlutoExtension, usePlutoContentToolbarItems } = await load()
-    definePlutoExtension({ id: 'layer', contentToolbarItems: [{ id: 'a', contentType: '*', component }] })
-    definePlutoExtension({ id: 'layer', contentToolbarItems: [{ id: 'b', contentType: '*', component }] })
+    definePlutoExtension({
+      id: 'layer',
+      contentToolbarItems: [{ id: 'a', contentType: '*', component }],
+    })
+    definePlutoExtension({
+      id: 'layer',
+      contentToolbarItems: [{ id: 'b', contentType: '*', component }],
+    })
 
-    expect(usePlutoContentToolbarItems('post').value.map((item) => item.id)).toEqual(['layer:b'])
+    expect(
+      usePlutoContentToolbarItems('post').value.map((item) => item.id)
+    ).toEqual(['layer:b'])
     definePlutoExtension({ id: 'layer' })
     expect(usePlutoContentToolbarItems('post').value).toEqual([])
   })
@@ -72,13 +88,17 @@ describe('usePlutoContentToolbarItems', () => {
 
 describe('findSyncComponents', () => {
   it('flags a toolbar item that is not async', () => {
-    const asyncComponent = defineAsyncComponent(() => Promise.resolve(component))
-    expect(findSyncComponents({
-      id: 'layer',
-      contentToolbarItems: [
-        { id: 'sync', component },
-        { id: 'lazy', component: asyncComponent },
-      ],
-    })).toEqual(['layer:contentToolbarItems:sync'])
+    const asyncComponent = defineAsyncComponent(() =>
+      Promise.resolve(component)
+    )
+    expect(
+      findSyncComponents({
+        id: 'layer',
+        contentToolbarItems: [
+          { id: 'sync', component },
+          { id: 'lazy', component: asyncComponent },
+        ],
+      })
+    ).toEqual(['layer:contentToolbarItems:sync'])
   })
 })

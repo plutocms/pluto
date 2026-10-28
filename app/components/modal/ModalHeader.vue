@@ -48,11 +48,7 @@ function closeModal() {
     />
 
     <div class="flex items-start justify-between gap-3 py-3 sm:py-4">
-      <h2
-        :class="
-          twMerge(['text-2xl/8 font-medium sm:text-3xl/10'])
-        "
-      >
+      <h2 :class="twMerge(['text-2xl/8 font-medium sm:text-3xl/10'])">
         <slot />
       </h2>
 

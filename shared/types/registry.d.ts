@@ -10,9 +10,9 @@ declare module '#app' {
     _plutoRegistry?: PlutoRegistry
     /** The capability request in flight, shared by every caller. See `usePlutoPermissions`. */
     _plutoPermissionsLoad?: {
- userId: string
-promise: Promise<void>
-}
+      userId: string
+      promise: Promise<void>
+    }
   }
 }
 

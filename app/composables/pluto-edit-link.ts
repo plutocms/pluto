@@ -16,7 +16,10 @@ let nextOwner = 0
  * "Edit <type>". The server never sets it.
  */
 export function usePlutoCurrentContent() {
-  return useState<PlutoCurrentContent | null>('pluto-current-content', () => null)
+  return useState<PlutoCurrentContent | null>(
+    'pluto-current-content',
+    () => null
+  )
 }
 
 /**
@@ -32,7 +35,10 @@ export function usePlutoCurrentContent() {
  * @example
  * const editLink = usePlutoEditLink('post', () => route.params.slug as string)
  */
-export function usePlutoEditLink(type: string, id: MaybeRefOrGetter<string | number | null | undefined>) {
+export function usePlutoEditLink(
+  type: string,
+  id: MaybeRefOrGetter<string | number | null | undefined>
+) {
   const bar = usePlutoAdminBar()
   const current = usePlutoCurrentContent()
   const { byName } = usePlutoContentTypes()
@@ -45,7 +51,10 @@ export function usePlutoEditLink(type: string, id: MaybeRefOrGetter<string | num
     watch(
       () => toValue(id),
       (value) => {
-        current.value = value === null || value === undefined || value === '' ? null : { type, id: String(value), owner }
+        current.value =
+          value === null || value === undefined || value === ''
+            ? null
+            : { type, id: String(value), owner }
       },
       { immediate: true }
     )
@@ -59,11 +68,20 @@ export function usePlutoEditLink(type: string, id: MaybeRefOrGetter<string | num
   return computed(() => {
     const value = toValue(id)
     const contentType = byName(type)
-    if (!bar.confirmed.value || value === null || value === undefined || value === '' || !contentType) {
+    if (
+      !bar.confirmed.value ||
+      value === null ||
+      value === undefined ||
+      value === '' ||
+      !contentType
+    ) {
       return null
     }
     // No capability declared means open to anyone who can reach the admin, like the form.
-    if (contentType.capabilities?.write && !can(contentType.capabilities.write)) {
+    if (
+      contentType.capabilities?.write &&
+      !can(contentType.capabilities.write)
+    ) {
       return null
     }
     return contentTypeEditPath(contentType, value)

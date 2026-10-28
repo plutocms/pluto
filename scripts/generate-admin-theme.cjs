@@ -6,14 +6,25 @@
 const fs = require('node:fs')
 const path = require('node:path')
 
-const theme = fs.readFileSync(path.join(path.dirname(require.resolve('tailwindcss/package.json', { paths: [process.cwd()] })), 'theme.css'), 'utf8')
+const theme = fs.readFileSync(
+  path.join(
+    path.dirname(
+      require.resolve('tailwindcss/package.json', { paths: [process.cwd()] })
+    ),
+    'theme.css'
+  ),
+  'utf8'
+)
 const tokens = fs.readFileSync('app/assets/css/pluto-tokens.css', 'utf8')
 
 // sRGB hex to an OKLCH literal, so every value in the theme has one form.
-const toLinear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+const toLinear = (c) =>
+  c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 function hexToOklch(hex) {
   const n = Number.parseInt(hex.slice(1), 16)
-  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((value) => toLinear(value / 255))
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((value) =>
+    toLinear(value / 255)
+  )
   const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
   const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
   const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
@@ -27,36 +38,100 @@ function hexToOklch(hex) {
 
 // A Pluto token (tholin, haze, heart, kuiper) or a Tailwind color, as an OKLCH literal.
 function v(name) {
-  const own = tokens.match(new RegExp(String.raw`--color-${name}: (#[0-9A-Fa-f]{6})`))
+  const own = tokens.match(
+    new RegExp(String.raw`--color-${name}: (#[0-9A-Fa-f]{6})`)
+  )
   if (own) {
     return hexToOklch(own[1])
   }
-  return theme.match(new RegExp(String.raw`--color-${name}: (oklch\([^)]*\))`))[1]
+  return theme.match(
+    new RegExp(String.raw`--color-${name}: (oklch\([^)]*\))`)
+  )[1]
 }
 
 // Tholin is a red-orange (hue 37). Tailwind red (hue 27) looks like it next
 // to a primary button, so errors use rose (hue 17). Info is haze, the blue of
 // the Pluto palette.
-const roles = { primary: 'tholin', secondary: 'haze', success: 'green', info: 'haze', warning: 'amber', error: 'rose', neutral: 'kuiper' }
+const roles = {
+  primary: 'tholin',
+  secondary: 'haze',
+  success: 'green',
+  info: 'haze',
+  warning: 'amber',
+  error: 'rose',
+  neutral: 'kuiper',
+}
 const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]
-const scales = Object.entries(roles).map(([role, hue]) => `  /* ${role}: ${hue} */\n${shades.map((s) => `  --ui-color-${role}-${s}: ${v(`${hue}-${s}`)};`).join('\n')}`).join('\n\n')
+const scales = Object.entries(roles)
+  .map(
+    ([role, hue]) =>
+      `  /* ${role}: ${hue} */\n${shades.map((s) => `  --ui-color-${role}-${s}: ${v(`${hue}-${s}`)};`).join('\n')}`
+  )
+  .join('\n\n')
 
 // The semantic step of each role. Light: tholin 600 and haze 700 for 4.5:1 on
 // white (the docs site uses the same steps), the status colors at 500. Dark:
 // 400 for every role.
-const lightSteps = { primary: 600, secondary: 700, success: 500, info: 500, warning: 500, error: 500 }
-const semantic = (steps) => Object.entries(steps).map(([role, step]) => `  --ui-${role}: var(--ui-color-${role}-${step});`).join('\n')
-const darkSteps = Object.fromEntries(Object.keys(lightSteps).map((role) => [role, 400]))
+const lightSteps = {
+  primary: 600,
+  secondary: 700,
+  success: 500,
+  info: 500,
+  warning: 500,
+  error: 500,
+}
+const semantic = (steps) =>
+  Object.entries(steps)
+    .map(([role, step]) => `  --ui-${role}: var(--ui-color-${role}-${step});`)
+    .join('\n')
+const darkSteps = Object.fromEntries(
+  Object.keys(lightSteps).map((role) => [role, 400])
+)
 
 const n = (s) => `var(--ui-color-neutral-${s})`
-const neutralLight = { 'text-dimmed': n(400), 'text-muted': n(500), 'text-toned': n(600), 'text': n(700), 'text-highlighted': n(900), 'text-inverted': '#fff', 'bg': '#fff', 'bg-muted': n(50), 'bg-elevated': n(100), 'bg-accented': n(200), 'bg-inverted': n(900), 'border': n(200), 'border-muted': n(200), 'border-accented': n(300), 'border-inverted': n(900) }
+const neutralLight = {
+  'text-dimmed': n(400),
+  'text-muted': n(500),
+  'text-toned': n(600),
+  text: n(700),
+  'text-highlighted': n(900),
+  'text-inverted': '#fff',
+  bg: '#fff',
+  'bg-muted': n(50),
+  'bg-elevated': n(100),
+  'bg-accented': n(200),
+  'bg-inverted': n(900),
+  border: n(200),
+  'border-muted': n(200),
+  'border-accented': n(300),
+  'border-inverted': n(900),
+}
 // Dark surfaces on the kuiper hue (273). Cards sit one step above the
 // kuiper-900 canvas. The sidebar sits between the kuiper-950 navbar and the
 // canvas. The chart palette passes the dataviz checks on the card surface.
 const CARD_DARK = 'oklch(28% 0.042 273)'
 const SIDEBAR_DARK = 'oklch(20.5% 0.040 273)'
-const neutralDark = { 'text-dimmed': n(500), 'text-muted': n(400), 'text-toned': n(300), 'text': n(200), 'text-highlighted': '#fff', 'text-inverted': n(900), 'bg': CARD_DARK, 'bg-muted': n(800), 'bg-elevated': n(800), 'bg-accented': n(700), 'bg-inverted': '#fff', 'border': n(800), 'border-muted': n(700), 'border-accented': n(700), 'border-inverted': '#fff' }
-const declare = (o) => Object.entries(o).map(([k, val]) => `  --ui-${k}: ${val};`).join('\n')
+const neutralDark = {
+  'text-dimmed': n(500),
+  'text-muted': n(400),
+  'text-toned': n(300),
+  text: n(200),
+  'text-highlighted': '#fff',
+  'text-inverted': n(900),
+  bg: CARD_DARK,
+  'bg-muted': n(800),
+  'bg-elevated': n(800),
+  'bg-accented': n(700),
+  'bg-inverted': '#fff',
+  border: n(800),
+  'border-muted': n(700),
+  'border-accented': n(700),
+  'border-inverted': '#fff',
+}
+const declare = (o) =>
+  Object.entries(o)
+    .map(([k, val]) => `  --ui-${k}: ${val};`)
+    .join('\n')
 
 // The chart series, in a fixed order: tholin, haze, lime, violet, teal, amber.
 // Validated with the dataviz palette checks (lightness band, chroma floor,
@@ -64,14 +139,30 @@ const declare = (o) => Object.entries(o).map(([k, val]) => `  --ui-${k}: ${val};
 // for light, and on the dark card surface for dark. Dark uses tholin 500, not
 // the primary 400, which is too light for the dark band. Re-run the checks
 // before you change a slot.
-const chartLight = ['tholin-600', 'haze-600', 'lime-700', 'violet-500', 'teal-600', 'amber-600']
-const chartDark = ['tholin-500', 'haze-500', 'lime-600', 'violet-500', 'teal-600', 'amber-600']
+const chartLight = [
+  'tholin-600',
+  'haze-600',
+  'lime-700',
+  'violet-500',
+  'teal-600',
+  'amber-600',
+]
+const chartDark = [
+  'tholin-500',
+  'haze-500',
+  'lime-600',
+  'violet-500',
+  'teal-600',
+  'amber-600',
+]
 // Slot 1 reads the primary scale (tholin 600 in light, 500 in dark), so a
 // brand primary (appConfig.pluto.brand) recolors it too.
 function chart(list, primaryStep) {
   return [
     `  --ui-chart-1: var(--ui-color-primary-${primaryStep}); /* ${list[0]} */`,
-    ...list.slice(1).map((c, i) => `  --ui-chart-${i + 2}: ${v(c)}; /* ${c} */`),
+    ...list
+      .slice(1)
+      .map((c, i) => `  --ui-chart-${i + 2}: ${v(c)}; /* ${c} */`),
   ].join('\n')
 }
 

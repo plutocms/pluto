@@ -5,8 +5,14 @@ import type { GithubCache } from './github-cache'
 import type { GithubConfig } from './github-config'
 import { resolve } from 'node:path'
 import process from 'node:process'
-import { registerContentAdapter, registerContentType } from '../../../../../server/utils/pluto-content'
-import { isPublicRead, markPublicRead } from '../../../../../server/utils/pluto-public-read'
+import {
+  registerContentAdapter,
+  registerContentType,
+} from '../../../../../server/utils/pluto-content'
+import {
+  isPublicRead,
+  markPublicRead,
+} from '../../../../../server/utils/pluto-public-read'
 import { plutoGithubPostType } from '../../shared/post-type'
 import { createMarkdownContentAdapter } from '../adapter'
 import { createAppTokenProvider } from '../github/app-token'
@@ -20,10 +26,16 @@ import { getGithubSession } from './session'
  * GitHub store reads for anonymous callers with the read token, or with an
  * installation token of the App. See `createAppTokenProvider`.
  */
-export function createContentStore(config: GithubConfig, cache: GithubCache): PlutoGithubStore {
+export function createContentStore(
+  config: GithubConfig,
+  cache: GithubCache
+): PlutoGithubStore {
   if (config.storage === 'fs') {
     // Only the content dir makes the head id. The root is the project dir.
-    return createFsStore({ root: resolve(config.fsRoot || process.cwd()), headDir: config.dir })
+    return createFsStore({
+      root: resolve(config.fsRoot || process.cwd()),
+      headDir: config.dir,
+    })
   }
   const tokens = createAppTokenProvider({
     repo: config.repo,
@@ -58,7 +70,9 @@ export function markGithubAnonymous(event: H3Event): void {
  * capabilities. Everyone else is anonymous (`null`), and so is a request that
  * `markGithubAnonymous` marked.
  */
-export async function getGithubAccess(event: H3Event): Promise<PlutoGithubAccess | null> {
+export async function getGithubAccess(
+  event: H3Event
+): Promise<PlutoGithubAccess | null> {
   if (isPublicRead(event)) {
     return null
   }
@@ -78,16 +92,21 @@ export function getRegisteredGithubCache(): GithubCache {
 }
 
 /** Registers the post type and the Markdown adapter with the core content registry. */
-export function registerGithubContent(config: GithubConfig, cache: GithubCache): void {
+export function registerGithubContent(
+  config: GithubConfig,
+  cache: GithubCache
+): void {
   registeredCache = cache
   if (config.postType) {
     registerContentType(plutoGithubPostType)
   }
-  registerContentAdapter(createMarkdownContentAdapter({
-    store: createContentStore(config, cache),
-    dir: config.dir,
-    cache,
-    commit: { skipDeploy: config.skipDeploy },
-    getAccess: getGithubAccess,
-  }))
+  registerContentAdapter(
+    createMarkdownContentAdapter({
+      store: createContentStore(config, cache),
+      dir: config.dir,
+      cache,
+      commit: { skipDeploy: config.skipDeploy },
+      getAccess: getGithubAccess,
+    })
+  )
 }

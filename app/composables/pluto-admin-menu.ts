@@ -60,13 +60,25 @@ export function usePlutoAdminMenuGroups() {
   const known = useState<string[]>('pluto-admin-menu-known', () => [])
 
   function update(navigated: boolean) {
-    open.value = nextOpenGroups(open.value, items.value, route.path, new Set(known.value), navigated)
+    open.value = nextOpenGroups(
+      open.value,
+      items.value,
+      route.path,
+      new Set(known.value),
+      navigated
+    )
     known.value = items.value.map((item) => item.id)
   }
 
   update(false)
-  watch(() => route.path, () => update(true))
-  watch(() => items.value.map((item) => item.id).join(','), () => update(false))
+  watch(
+    () => route.path,
+    () => update(true)
+  )
+  watch(
+    () => items.value.map((item) => item.id).join(','),
+    () => update(false)
+  )
 
   return open
 }

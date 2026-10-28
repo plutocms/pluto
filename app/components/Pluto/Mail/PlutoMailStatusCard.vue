@@ -46,7 +46,9 @@ const note = computed(() => {
   <UCard>
     <template #header>
       <div class="flex items-center justify-between gap-3">
-        <h2 class="font-semibold">{{ t('pluto.mail.status.title') }}</h2>
+        <h2 class="font-semibold">
+          {{ t('pluto.mail.status.title') }}
+        </h2>
         <UButton
           :loading="statusPending"
           :aria-label="t('pluto.mail.status.refresh')"
@@ -59,36 +61,74 @@ const note = computed(() => {
       </div>
     </template>
 
-    <UAlert v-if="loadError" :title="loadError" color="error" variant="subtle" icon="lucide:circle-alert" />
+    <UAlert
+      v-if="loadError"
+      :title="loadError"
+      color="error"
+      variant="subtle"
+      icon="lucide:circle-alert"
+    />
 
-    <div v-else-if="!status" class="text-muted text-sm">{{ t('pluto.common.loading') }}</div>
+    <div v-else-if="!status" class="text-muted text-sm">
+      {{ t('pluto.common.loading') }}
+    </div>
 
     <div v-else class="flex flex-col gap-y-4">
       <div class="flex flex-wrap items-center gap-2">
         <UBadge
-          :label="status.configured ? t('pluto.mail.status.ready') : t('pluto.mail.status.notReady')"
+          :label="
+            status.configured
+              ? t('pluto.mail.status.ready')
+              : t('pluto.mail.status.notReady')
+          "
           :color="status.configured ? 'success' : 'warning'"
           variant="subtle"
         />
-        <UBadge :label="t('pluto.mail.status.driver', { driver: driverName })" color="neutral" variant="outline" />
+        <UBadge
+          :label="t('pluto.mail.status.driver', { driver: driverName })"
+          color="neutral"
+          variant="outline"
+        />
       </div>
 
       <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
         <div>
-          <dt class="text-muted">{{ t('pluto.mail.status.key') }}</dt>
-          <dd>{{ status.hasKey ? t('pluto.mail.status.keySet') : t('pluto.mail.status.keyNotSet') }}</dd>
+          <dt class="text-muted">
+            {{ t('pluto.mail.status.key') }}
+          </dt>
+          <dd>
+            {{
+              status.hasKey
+                ? t('pluto.mail.status.keySet')
+                : t('pluto.mail.status.keyNotSet')
+            }}
+          </dd>
         </div>
         <div>
-          <dt class="text-muted">{{ t('pluto.mail.status.from') }}</dt>
-          <dd class="break-all">{{ status.from ?? t('pluto.mail.status.fromEmpty') }}</dd>
+          <dt class="text-muted">
+            {{ t('pluto.mail.status.from') }}
+          </dt>
+          <dd class="break-all">
+            {{ status.from ?? t('pluto.mail.status.fromEmpty') }}
+          </dd>
         </div>
         <div>
-          <dt class="text-muted">{{ t('pluto.mail.status.replyTo') }}</dt>
-          <dd class="break-all">{{ status.replyTo ?? t('pluto.mail.status.replyToEmpty') }}</dd>
+          <dt class="text-muted">
+            {{ t('pluto.mail.status.replyTo') }}
+          </dt>
+          <dd class="break-all">
+            {{ status.replyTo ?? t('pluto.mail.status.replyToEmpty') }}
+          </dd>
         </div>
       </dl>
 
-      <UAlert v-if="note" :description="note" color="neutral" variant="subtle" icon="lucide:info" />
+      <UAlert
+        v-if="note"
+        :description="note"
+        color="neutral"
+        variant="subtle"
+        icon="lucide:info"
+      />
     </div>
   </UCard>
 </template>

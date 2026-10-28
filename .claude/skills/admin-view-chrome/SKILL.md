@@ -283,14 +283,14 @@ const form = usePlutoContentForm()
 form?.onSaved((saved) => refetchMedia(saved.id)) // after each save that worked
 ```
 
-| Key | Meaning |
-|---|---|
-| `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode |
-| `saving`, `dirty` | a save runs, the item has unsaved changes |
-| `errorsByField` | the validation message of each field that failed the last save |
-| `layout`, `canvas` | the layout, and true for 'canvas' |
-| `onSaved(callback)` | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope. |
-| `openPanel(id)` | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only) |
+| Key                       | Meaning                                                                                                              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode                                                            |
+| `saving`, `dirty`         | a save runs, the item has unsaved changes                                                                            |
+| `errorsByField`           | the validation message of each field that failed the last save                                                       |
+| `layout`, `canvas`        | the layout, and true for 'canvas'                                                                                    |
+| `onSaved(callback)`       | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope. |
+| `openPanel(id)`           | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only)                                           |
 
 ## Skeletons and scroll
 
@@ -390,7 +390,9 @@ Never call `can('')` as a stand-in for "no capability declared":
 
 ```ts
 const canPublish = computed(() => {
-  const cap = contentType.value?.capabilities?.publish ?? contentType.value?.capabilities?.write
+  const cap =
+    contentType.value?.capabilities?.publish ??
+    contentType.value?.capabilities?.write
   return !cap || can(cap)
 })
 ```

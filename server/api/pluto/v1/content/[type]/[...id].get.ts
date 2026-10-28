@@ -3,5 +3,9 @@
  * can hold slashes (a nested type), so the route takes the rest of the path.
  */
 export default defineEventHandler((event) => {
-  return getPublicContent(event, getRouterParam(event, 'type') ?? '', getRouterParam(event, 'id', { decode: true }) ?? '')
+  return getPublicContent(
+    event,
+    getRouterParam(event, 'type') ?? '',
+    getRouterParam(event, 'id', { decode: true }) ?? ''
+  )
 })

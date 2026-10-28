@@ -12,7 +12,12 @@ const texts = usePlutoContentTexts()
 
 // The week starts are UTC dates. Format them in UTC so a viewer west of
 // UTC does not see the previous day.
-const weekLabel = (start: string) => d(new Date(`${start}T00:00:00Z`), { month: 'short', day: 'numeric', timeZone: 'UTC' })
+const weekLabel = (start: string) =>
+  d(new Date(`${start}T00:00:00Z`), {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
 
 const rows = computed(() => {
   const first = series.value[0]
@@ -20,7 +25,9 @@ const rows = computed(() => {
     return []
   }
   return first.points.map((point, index) => {
-    const row: Record<string, string | number> = { week: weekLabel(point.start) }
+    const row: Record<string, string | number> = {
+      week: weekLabel(point.start),
+    }
     for (const entry of series.value) {
       row[entry.name] = entry.points[index]?.count ?? 0
     }
@@ -29,11 +36,18 @@ const rows = computed(() => {
 })
 
 // The series carry the English labels. The content text resolves the keys.
-const seriesLabel = (entry: PlutoContentActivitySeries) => texts(entry.name).labelPlural
-const categories = computed(() => series.value.map((entry) => ({ key: entry.name, label: seriesLabel(entry) })))
+const seriesLabel = (entry: PlutoContentActivitySeries) =>
+  texts(entry.name).labelPlural
+const categories = computed(() =>
+  series.value.map((entry) => ({ key: entry.name, label: seriesLabel(entry) }))
+)
 
 const total = computed(() =>
-  series.value.reduce((sum, entry) => sum + entry.points.reduce((acc, point) => acc + point.count, 0), 0)
+  series.value.reduce(
+    (sum, entry) =>
+      sum + entry.points.reduce((acc, point) => acc + point.count, 0),
+    0
+  )
 )
 
 const chartType = computed(() => (series.value.length > 1 ? 'line' : 'area'))
@@ -48,24 +62,40 @@ function retry() {
     <template #header>
       <div class="flex items-start justify-between gap-4">
         <div>
-          <h3 class="text-highlighted font-semibold">{{ t('pluto.dashboard.activity.title') }}</h3>
-          <p class="text-muted text-sm">{{ t('pluto.dashboard.activity.subtitle', { weeks: WEEKS }) }}</p>
+          <h3 class="text-highlighted font-semibold">
+            {{ t('pluto.dashboard.activity.title') }}
+          </h3>
+          <p class="text-muted text-sm">
+            {{ t('pluto.dashboard.activity.subtitle', { weeks: WEEKS }) }}
+          </p>
         </div>
         <div v-if="status === 'success' && series.length" class="text-right">
-          <p class="text-highlighted text-2xl font-semibold tabular-nums">{{ n(total) }}</p>
-          <p class="text-muted text-xs">{{ t('pluto.dashboard.activity.created', total) }}</p>
+          <p class="text-highlighted text-2xl font-semibold tabular-nums">
+            {{ n(total) }}
+          </p>
+          <p class="text-muted text-xs">
+            {{ t('pluto.dashboard.activity.created', total) }}
+          </p>
         </div>
       </div>
     </template>
 
     <!-- The frame of the chart while the counts load: the y labels, the grid lines and the x labels. -->
-    <div v-if="status === 'pending' || status === 'idle'" class="flex h-64 gap-3" aria-hidden="true">
+    <div
+      v-if="status === 'pending' || status === 'idle'"
+      class="flex h-64 gap-3"
+      aria-hidden="true"
+    >
       <div class="flex flex-col justify-between pb-6">
         <USkeleton v-for="tick in 5" :key="tick" class="h-3 w-5" />
       </div>
       <div class="flex min-w-0 flex-1 flex-col">
         <div class="flex flex-1 flex-col justify-between py-1.5">
-          <div v-for="tick in 5" :key="tick" class="h-px w-full bg-(--ui-border)" />
+          <div
+            v-for="tick in 5"
+            :key="tick"
+            class="h-px w-full bg-(--ui-border)"
+          />
         </div>
         <div class="flex h-6 items-end justify-between">
           <USkeleton v-for="tick in 6" :key="tick" class="h-3 w-9" />
@@ -75,7 +105,14 @@ function retry() {
 
     <UAlert
       v-else-if="status === 'error'"
-      :actions="[{ label: t('pluto.common.tryAgain'), color: 'error', variant: 'outline', onClick: retry }]"
+      :actions="[
+        {
+          label: t('pluto.common.tryAgain'),
+          color: 'error',
+          variant: 'outline',
+          onClick: retry,
+        },
+      ]"
       :title="t('pluto.dashboard.activity.loadFailed')"
       color="error"
       variant="subtle"
@@ -111,17 +148,29 @@ function retry() {
       />
 
       <table class="sr-only">
-        <caption>{{ t('pluto.dashboard.activity.subtitle', { weeks: WEEKS }) }}</caption>
+        <caption>
+          {{
+            t('pluto.dashboard.activity.subtitle', { weeks: WEEKS })
+          }}
+        </caption>
         <thead>
           <tr>
-            <th scope="col">{{ t('pluto.dashboard.activity.weekOf') }}</th>
-            <th v-for="entry in series" :key="entry.name" scope="col">{{ seriesLabel(entry) }}</th>
+            <th scope="col">
+              {{ t('pluto.dashboard.activity.weekOf') }}
+            </th>
+            <th v-for="entry in series" :key="entry.name" scope="col">
+              {{ seriesLabel(entry) }}
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="row in rows" :key="String(row.week)">
-            <th scope="row">{{ row.week }}</th>
-            <td v-for="entry in series" :key="entry.name">{{ row[entry.name] }}</td>
+            <th scope="row">
+              {{ row.week }}
+            </th>
+            <td v-for="entry in series" :key="entry.name">
+              {{ row[entry.name] }}
+            </td>
           </tr>
         </tbody>
       </table>

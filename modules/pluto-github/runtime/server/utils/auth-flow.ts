@@ -1,6 +1,12 @@
 import type { H3Event } from 'h3'
 import type { GithubSessionData } from './session'
-import { getQuery, getRequestURL, sendRedirect, setResponseHeader, setResponseStatus } from 'h3'
+import {
+  getQuery,
+  getRequestURL,
+  sendRedirect,
+  setResponseHeader,
+  setResponseStatus,
+} from 'h3'
 import { getGithubConfig } from './github-config'
 import {
   buildAuthorizeUrl,
@@ -43,7 +49,9 @@ export async function handleLogin(event: H3Event) {
   noStore(event)
   const config = getGithubConfig()
   if (!config.clientId || !config.clientSecret) {
-    console.error('[pluto-github] NUXT_PLUTO_GITHUB_CLIENT_ID and NUXT_PLUTO_GITHUB_CLIENT_SECRET are not set.')
+    console.error(
+      '[pluto-github] NUXT_PLUTO_GITHUB_CLIENT_ID and NUXT_PLUTO_GITHUB_CLIENT_SECRET are not set.'
+    )
     throw authNotConfigured()
   }
 
@@ -54,13 +62,17 @@ export async function handleLogin(event: H3Event) {
   const oauth = await useGithubOAuthSession(event, config)
   await oauth.update({ state, verifier: pkce.verifier, redirect })
 
-  return sendRedirect(event, buildAuthorizeUrl({
-    clientId: config.clientId,
-    redirectUri: callbackUrl(event),
-    state,
-    codeChallenge: pkce.challenge,
-    apiUrl: config.apiUrl,
-  }), 302)
+  return sendRedirect(
+    event,
+    buildAuthorizeUrl({
+      clientId: config.clientId,
+      redirectUri: callbackUrl(event),
+      state,
+      codeChallenge: pkce.challenge,
+      apiUrl: config.apiUrl,
+    }),
+    302
+  )
 }
 
 /** Ends the GitHub sign-in. It checks `state`, trades the code, checks the repo permission and starts the session. */
@@ -79,10 +91,10 @@ export async function handleCallback(event: H3Event) {
   await oauth.clear()
 
   if (
-    !saved.state
-    || !saved.verifier
-    || typeof query.state !== 'string'
-    || !safeEqual(saved.state, query.state)
+    !saved.state ||
+    !saved.verifier ||
+    typeof query.state !== 'string' ||
+    !safeEqual(saved.state, query.state)
   ) {
     return loginError(event, 'state')
   }
@@ -106,7 +118,11 @@ export async function handleCallback(event: H3Event) {
     })
     const user = await fetchUser(tokens.accessToken, transport)
     // The USER token reads the repo. A repo the user or the App cannot see gives a 404.
-    const repo = await fetchRepoPermission(tokens.accessToken, config.repo, transport)
+    const repo = await fetchRepoPermission(
+      tokens.accessToken,
+      config.repo,
+      transport
+    )
     if (!repo) {
       return loginError(event, 'not_installed')
     }
@@ -114,7 +130,10 @@ export async function handleCallback(event: H3Event) {
     if (!mapped) {
       return loginError(event, 'forbidden')
     }
-    if (config.allowedUsers.length > 0 && !config.allowedUsers.includes(user.login.toLowerCase())) {
+    if (
+      config.allowedUsers.length > 0 &&
+      !config.allowedUsers.includes(user.login.toLowerCase())
+    ) {
       return loginError(event, 'forbidden')
     }
     data = {
@@ -154,9 +173,13 @@ export async function handleSession(event: H3Event) {
     session = await getGithubSession(event)
   } catch (error) {
     // A session that is over gives `{ user: null }`. Its cookie is already cleared.
-    if ((error as {
- statusCode?: number
-})?.statusCode === 401) {
+    if (
+      (
+        error as {
+          statusCode?: number
+        }
+      )?.statusCode === 401
+    ) {
       return { user: null }
     }
     throw error

@@ -24,9 +24,12 @@ describe('formatListValue', () => {
       name: 'price',
       type: 'number',
       label: 'Price',
-      listFormat: (value, item) => `${item.currency} ${((value as number) / 100).toFixed(2)}`,
+      listFormat: (value, item) =>
+        `${item.currency} ${((value as number) / 100).toFixed(2)}`,
     }
-    expect(formatListValue(price, { id: 1, price: 4990, currency: 'R$' })).toBe('R$ 49.90')
+    expect(formatListValue(price, { id: 1, price: 4990, currency: 'R$' })).toBe(
+      'R$ 49.90'
+    )
   })
 
   it('turns a nullish formatter result into an empty string', () => {

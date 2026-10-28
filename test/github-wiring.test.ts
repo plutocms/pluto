@@ -3,7 +3,10 @@ import { defineEventHandler, getQuery, getRouterParam, readBody } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createGithubCache } from '../modules/pluto-github/runtime/server/utils/github-cache'
 import { registerGithubContent } from '../modules/pluto-github/runtime/server/utils/github-setup'
-import { getContentAdapter, getContentType } from '../server/utils/pluto-content'
+import {
+  getContentAdapter,
+  getContentType,
+} from '../server/utils/pluto-content'
 import {
   createContentItem,
   deleteContentItem,
@@ -12,12 +15,20 @@ import {
   requireContentType,
 } from '../server/utils/pluto-content-handlers'
 import { createFakeGithub } from './fixtures/fake-github'
-import { createAuthApp, resetTestConfig, signIn, testConfig } from './fixtures/github-auth-harness'
+import {
+  createAuthApp,
+  resetTestConfig,
+  signIn,
+  testConfig,
+} from './fixtures/github-auth-harness'
 
-vi.mock('../modules/pluto-github/runtime/server/utils/github-config', async () => {
-  const { testConfig } = await import('./fixtures/github-test-config')
-  return { getGithubConfig: () => testConfig }
-})
+vi.mock(
+  '../modules/pluto-github/runtime/server/utils/github-config',
+  async () => {
+    const { testConfig } = await import('./fixtures/github-test-config')
+    return { getGithubConfig: () => testConfig }
+  }
+)
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -25,12 +36,17 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   publicKeyEncoding: { type: 'spki', format: 'pem' },
 })
 
-const PUBLISHED = '---\ntitle: Live\nstatus: published\ncreatedAt: 2026-01-01T00:00:00.000Z\n---\nHello\n'
-const DRAFT = '---\ntitle: Secret\nstatus: draft\ncreatedAt: 2026-01-02T00:00:00.000Z\n---\nNot yet\n'
+const PUBLISHED =
+  '---\ntitle: Live\nstatus: published\ncreatedAt: 2026-01-01T00:00:00.000Z\n---\nHello\n'
+const DRAFT =
+  '---\ntitle: Secret\nstatus: draft\ncreatedAt: 2026-01-02T00:00:00.000Z\n---\nNot yet\n'
 
 function setup(patch: Parameters<typeof resetTestConfig>[1] = {}) {
   const fake = createFakeGithub({
-    files: { 'content/posts/live.md': PUBLISHED, 'content/posts/secret.md': DRAFT },
+    files: {
+      'content/posts/live.md': PUBLISHED,
+      'content/posts/secret.md': DRAFT,
+    },
     users: {
       ada: { id: 7, permission: 'push' },
       boss: { id: 8, permission: 'admin' },
@@ -43,24 +59,42 @@ function setup(patch: Parameters<typeof resetTestConfig>[1] = {}) {
 
   // The same logic as the generic content routes in server/api/_pluto/content.
   const app = createAuthApp((router) => {
-    router.get('/api/_pluto/content/:type', defineEventHandler((event) => {
-      const type = requireContentType(getRouterParam(event, 'type') ?? '')
-      const published = getQuery(event).published === '1'
-      return listContentItems({ event, type }, { published })
-    }))
-    router.get('/api/_pluto/content/:type/:id', defineEventHandler((event) => {
-      const type = requireContentType(getRouterParam(event, 'type') ?? '')
-      return getContentItem({ event, type }, getRouterParam(event, 'id') ?? '')
-    }))
-    router.post('/api/_pluto/content/:type', defineEventHandler(async (event) => {
-      const type = requireContentType(getRouterParam(event, 'type') ?? '')
-      return createContentItem({ event, type }, await readBody(event))
-    }))
-    router.delete('/api/_pluto/content/:type/:id', defineEventHandler(async (event) => {
-      const type = requireContentType(getRouterParam(event, 'type') ?? '')
-      await deleteContentItem({ event, type }, getRouterParam(event, 'id') ?? '')
-      return { ok: true }
-    }))
+    router.get(
+      '/api/_pluto/content/:type',
+      defineEventHandler((event) => {
+        const type = requireContentType(getRouterParam(event, 'type') ?? '')
+        const published = getQuery(event).published === '1'
+        return listContentItems({ event, type }, { published })
+      })
+    )
+    router.get(
+      '/api/_pluto/content/:type/:id',
+      defineEventHandler((event) => {
+        const type = requireContentType(getRouterParam(event, 'type') ?? '')
+        return getContentItem(
+          { event, type },
+          getRouterParam(event, 'id') ?? ''
+        )
+      })
+    )
+    router.post(
+      '/api/_pluto/content/:type',
+      defineEventHandler(async (event) => {
+        const type = requireContentType(getRouterParam(event, 'type') ?? '')
+        return createContentItem({ event, type }, await readBody(event))
+      })
+    )
+    router.delete(
+      '/api/_pluto/content/:type/:id',
+      defineEventHandler(async (event) => {
+        const type = requireContentType(getRouterParam(event, 'type') ?? '')
+        await deleteContentItem(
+          { event, type },
+          getRouterParam(event, 'id') ?? ''
+        )
+        return { ok: true }
+      })
+    )
   })
   return { fake, app, config }
 }
@@ -76,7 +110,8 @@ describe('registerGithubContent', () => {
   it('registers no post type when postType is off, and still the adapter', async () => {
     vi.resetModules()
     const registry = await import('../server/utils/pluto-content')
-    const wiring = await import('../modules/pluto-github/runtime/server/utils/github-setup')
+    const wiring =
+      await import('../modules/pluto-github/runtime/server/utils/github-setup')
     const cache = createGithubCache({ headTtl: 0 })
 
     wiring.registerGithubContent({ ...testConfig, postType: false }, cache)
@@ -94,17 +129,25 @@ describe('anonymous callers', () => {
   it('cannot create: 401', async () => {
     const { app, fake } = setup()
 
-    const response = await app.request('/api/_pluto/content/post', { method: 'POST', body: { title: 'Hi', content: 'x' } })
+    const response = await app.request('/api/_pluto/content/post', {
+      method: 'POST',
+      body: { title: 'Hi', content: 'x' },
+    })
 
     expect(response.status).toBe(401)
-    expect((await response.json()).data.i18n.key).toBe('pluto.github.errors.signInRequired')
+    expect((await response.json()).data.i18n.key).toBe(
+      'pluto.github.errors.signInRequired'
+    )
     expect(fake.calls.commit).toBe(0)
   })
 
   it('cannot delete: 401', async () => {
     const { app, fake } = setup()
 
-    expect((await app.request('/api/_pluto/content/post/live', { method: 'DELETE' })).status).toBe(401)
+    expect(
+      (await app.request('/api/_pluto/content/post/live', { method: 'DELETE' }))
+        .status
+    ).toBe(401)
     expect(fake.read('content/posts/live.md')).toBe(PUBLISHED)
   })
 
@@ -113,11 +156,15 @@ describe('anonymous callers', () => {
 
     const list = await (await app.request('/api/_pluto/content/post')).json()
 
-    expect(list.data.map((item: {
- slug: string
-}) => item.slug)).toEqual(['live'])
-    expect((await app.request('/api/_pluto/content/post/secret')).status).toBe(404)
-    expect((await app.request('/api/_pluto/content/post/live')).status).toBe(200)
+    expect(list.data.map((item: { slug: string }) => item.slug)).toEqual([
+      'live',
+    ])
+    expect((await app.request('/api/_pluto/content/post/secret')).status).toBe(
+      404
+    )
+    expect((await app.request('/api/_pluto/content/post/live')).status).toBe(
+      200
+    )
   })
 
   it('read with an installation token of the App', async () => {
@@ -128,7 +175,9 @@ describe('anonymous callers', () => {
     const tokens = new Set(fake.calls.graphqlTokens)
     expect(tokens.size).toBe(1)
     expect([...tokens][0]).toMatch(/^ghs_/)
-    expect(fake.appCalls.tokenRequests).toEqual([{ repositories: ['site'], permissions: { contents: 'read' } }])
+    expect(fake.appCalls.tokenRequests).toEqual([
+      { repositories: ['site'], permissions: { contents: 'read' } },
+    ])
   })
 
   it('read with the read token when it is set, and never ask the App', async () => {
@@ -136,7 +185,9 @@ describe('anonymous callers', () => {
 
     await app.request('/api/_pluto/content/post')
 
-    expect(new Set(fake.calls.graphqlTokens)).toEqual(new Set(['github_pat_ro']))
+    expect(new Set(fake.calls.graphqlTokens)).toEqual(
+      new Set(['github_pat_ro'])
+    )
     expect(fake.appCalls.lookups).toBe(0)
   })
 
@@ -146,7 +197,9 @@ describe('anonymous callers', () => {
     const response = await app.request('/api/_pluto/content/post')
 
     expect(response.status).toBe(503)
-    expect((await response.json()).data.i18n.key).toBe('pluto.github.errors.githubUnavailable')
+    expect((await response.json()).data.i18n.key).toBe(
+      'pluto.github.errors.githubUnavailable'
+    )
   })
 })
 
@@ -166,7 +219,9 @@ describe('signed-in callers', () => {
 
     expect(response.status).toBe(200)
     expect((await response.json()).slug).toBe('fresh-post')
-    expect(fake.read('content/posts/fresh-post.md')).toContain('title: Fresh post')
+    expect(fake.read('content/posts/fresh-post.md')).toContain(
+      'title: Fresh post'
+    )
     expect(fake.calls.graphqlTokens.at(-1)).toBe(fake.oauth.last.accessToken)
   })
 
@@ -176,17 +231,22 @@ describe('signed-in callers', () => {
 
     const list = await (await app.request('/api/_pluto/content/post')).json()
 
-    expect(list.data.map((item: {
- slug: string
-}) => item.slug).sort()).toEqual(['live', 'secret'])
-    expect((await app.request('/api/_pluto/content/post/secret')).status).toBe(200)
+    expect(list.data.map((item: { slug: string }) => item.slug).sort()).toEqual(
+      ['live', 'secret']
+    )
+    expect((await app.request('/api/_pluto/content/post/secret')).status).toBe(
+      200
+    )
   })
 
   it('with admin can delete', async () => {
     const { app, fake } = setup()
     await signIn(app, fake, 'boss')
 
-    expect((await app.request('/api/_pluto/content/post/live', { method: 'DELETE' })).status).toBe(200)
+    expect(
+      (await app.request('/api/_pluto/content/post/live', { method: 'DELETE' }))
+        .status
+    ).toBe(200)
     expect(fake.read('content/posts/live.md')).toBeUndefined()
   })
 
@@ -195,7 +255,10 @@ describe('signed-in callers', () => {
     await signIn(app, fake, 'ada')
     await app.request('/api/_pluto/auth/logout', { method: 'POST' })
 
-    const response = await app.request('/api/_pluto/content/post', { method: 'POST', body: { title: 'Late', content: 'x' } })
+    const response = await app.request('/api/_pluto/content/post', {
+      method: 'POST',
+      body: { title: 'Late', content: 'x' },
+    })
 
     expect(response.status).toBe(401)
   })
@@ -220,7 +283,14 @@ describe('signed-in callers', () => {
     const { done } = await signIn(app, fake, 'reader')
 
     expect(done.location).toBe('/admin/login?error=forbidden')
-    expect((await app.request('/api/_pluto/content/post', { method: 'POST', body: { title: 'No', content: 'x' } })).status).toBe(401)
+    expect(
+      (
+        await app.request('/api/_pluto/content/post', {
+          method: 'POST',
+          body: { title: 'No', content: 'x' },
+        })
+      ).status
+    ).toBe(401)
   })
 
   it('test config is the one the routes use', () => {

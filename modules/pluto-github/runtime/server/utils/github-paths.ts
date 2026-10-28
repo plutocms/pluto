@@ -1,4 +1,7 @@
-import { SLUG_MAX_LENGTH, slugifyTitle } from '../../../../../shared/utils/content-slug'
+import {
+  SLUG_MAX_LENGTH,
+  slugifyTitle,
+} from '../../../../../shared/utils/content-slug'
 import { normalizeGithubDir } from '../../../options'
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -22,7 +25,12 @@ export interface PlutoGithubPathOptions {
 
 /** Throws when the slug is not a lowercase, dash-separated ASCII slug. */
 export function assertSafeSlug(slug: string, label = 'slug'): void {
-  if (typeof slug !== 'string' || slug.length === 0 || slug.length > MAX_SLUG_LENGTH || !SLUG_PATTERN.test(slug)) {
+  if (
+    typeof slug !== 'string' ||
+    slug.length === 0 ||
+    slug.length > MAX_SLUG_LENGTH ||
+    !SLUG_PATTERN.test(slug)
+  ) {
     throw new PlutoGithubPathError(`The ${label} is not valid.`)
   }
 }
@@ -33,16 +41,27 @@ export function assertSafeSlug(slug: string, label = 'slug'): void {
  * is a slug with an optional numeric prefix. This refuses `..`, an empty
  * segment, a dot segment and a backslash.
  */
-export function assertSafeContentId(id: string, options: PlutoGithubPathOptions = {}, label = 'slug'): void {
+export function assertSafeContentId(
+  id: string,
+  options: PlutoGithubPathOptions = {},
+  label = 'slug'
+): void {
   if (!options.nested) {
     assertSafeSlug(id, label)
     return
   }
-  if (typeof id !== 'string' || id.length === 0 || id.length > MAX_NESTED_LENGTH) {
+  if (
+    typeof id !== 'string' ||
+    id.length === 0 ||
+    id.length > MAX_NESTED_LENGTH
+  ) {
     throw new PlutoGithubPathError(`The ${label} is not valid.`)
   }
   const segments = id.split('/')
-  if (segments.length > MAX_NESTED_SEGMENTS || segments.some((segment) => !SEGMENT_PATTERN.test(segment))) {
+  if (
+    segments.length > MAX_NESTED_SEGMENTS ||
+    segments.some((segment) => !SEGMENT_PATTERN.test(segment))
+  ) {
     throw new PlutoGithubPathError(`The ${label} is not valid.`)
   }
 }
@@ -59,7 +78,11 @@ function baseOf(dir: string): string {
  * The folder of one content type under `base`. A flat type needs a slug as
  * `source`. A nested type can use `''` (the dir itself) or a nested path.
  */
-function typeFolder(base: string, source: string, options: PlutoGithubPathOptions): string {
+function typeFolder(
+  base: string,
+  source: string,
+  options: PlutoGithubPathOptions
+): string {
   if (options.nested && source === '') {
     return base
   }
@@ -71,26 +94,43 @@ function typeFolder(base: string, source: string, options: PlutoGithubPathOption
  * The file path `<dir>/<source>/<id>.md`. It always stays under `dir`. For a
  * nested type, `id` can hold `/` and `source` can be `''`.
  */
-export function contentFilePath(dir: string, source: string, slug: string, options: PlutoGithubPathOptions = {}): string {
+export function contentFilePath(
+  dir: string,
+  source: string,
+  slug: string,
+  options: PlutoGithubPathOptions = {}
+): string {
   const base = baseOf(dir)
   const folder = typeFolder(base, source, options)
   assertSafeContentId(slug, options)
   const path = `${folder}/${slug}.md`
-  if (!path.startsWith(`${base}/`) || path.slice(base.length + 1).split('/').includes('..')) {
+  if (
+    !path.startsWith(`${base}/`) ||
+    path
+      .slice(base.length + 1)
+      .split('/')
+      .includes('..')
+  ) {
     throw new PlutoGithubPathError('The path leaves the content dir.')
   }
   return path
 }
 
 /** The folder `<dir>/<source>` that holds the files of one content type. */
-export function contentDirPath(dir: string, source: string, options: PlutoGithubPathOptions = {}): string {
+export function contentDirPath(
+  dir: string,
+  source: string,
+  options: PlutoGithubPathOptions = {}
+): string {
   return typeFolder(baseOf(dir), source, options)
 }
 
 const MAX_RELATIVE_LENGTH = 255
 /** True when the text has a control character (code under 32, or 127). */
 function hasControlChar(text: string): boolean {
-  return [...text].some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)
+  return [...text].some(
+    (char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127
+  )
 }
 
 /**
@@ -102,18 +142,22 @@ function hasControlChar(text: string): boolean {
  */
 export function typeRelativePath(folder: string, relative: string): string {
   if (
-    typeof relative !== 'string'
-    || relative === ''
-    || relative.length > MAX_RELATIVE_LENGTH
-    || relative.includes('\\')
-    || relative.includes('%')
-    || hasControlChar(relative)
-    || /^[a-z]:/i.test(relative)
+    typeof relative !== 'string' ||
+    relative === '' ||
+    relative.length > MAX_RELATIVE_LENGTH ||
+    relative.includes('\\') ||
+    relative.includes('%') ||
+    hasControlChar(relative) ||
+    /^[a-z]:/i.test(relative)
   ) {
     throw new PlutoGithubPathError('The path is not valid.')
   }
   const segments = relative.split('/')
-  if (segments.some((segment) => segment === '' || segment === '.' || segment === '..')) {
+  if (
+    segments.some(
+      (segment) => segment === '' || segment === '.' || segment === '..'
+    )
+  ) {
     throw new PlutoGithubPathError('The path is not valid.')
   }
   return `${folder}/${relative}`

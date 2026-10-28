@@ -11,8 +11,16 @@ describe('findLayerCssFiles', () => {
   it('returns existing layer files, base layer first', () => {
     // Nuxt lists layers top first: the app, then the layers it extends.
     // POSIX input, so the test runs the same on Windows and on Linux CI.
-    const appDirs = ['/site/app/', '/layers/shop/app/', '/layers/ui/app/', '/layers/pluto/app/']
-    const existing = new Set(['/layers/shop/app/assets/css/pluto-layer.css', '/layers/pluto/app/assets/css/pluto-layer.css'])
+    const appDirs = [
+      '/site/app/',
+      '/layers/shop/app/',
+      '/layers/ui/app/',
+      '/layers/pluto/app/',
+    ]
+    const existing = new Set([
+      '/layers/shop/app/assets/css/pluto-layer.css',
+      '/layers/pluto/app/assets/css/pluto-layer.css',
+    ])
 
     expect(findLayerCssFiles(appDirs, (path) => existing.has(path))).toEqual([
       '/layers/pluto/app/assets/css/pluto-layer.css',
@@ -23,9 +31,14 @@ describe('findLayerCssFiles', () => {
 
 describe('renderPlutoCss', () => {
   it('imports each file relative to the build dir', () => {
-    const css = renderPlutoCss(['/work/pluto/app/assets/css/pluto-layer.css'], '/work/site/.nuxt')
+    const css = renderPlutoCss(
+      ['/work/pluto/app/assets/css/pluto-layer.css'],
+      '/work/site/.nuxt'
+    )
 
-    expect(css).toContain('@import "../../pluto/app/assets/css/pluto-layer.css";')
+    expect(css).toContain(
+      '@import "../../pluto/app/assets/css/pluto-layer.css";'
+    )
     expect(css).not.toContain('tailwindcss')
   })
 })
@@ -41,7 +54,13 @@ describe('parseCssImports', () => {
       `@import '#build/pluto.css';`,
     ].join('\n')
 
-    expect(parseCssImports(css)).toEqual(['tailwindcss', '@nuxt/ui', './a.css', './b.css', '#build/pluto.css'])
+    expect(parseCssImports(css)).toEqual([
+      'tailwindcss',
+      '@nuxt/ui',
+      './a.css',
+      './b.css',
+      '#build/pluto.css',
+    ])
   })
 })
 
@@ -54,7 +73,10 @@ describe('analyzeCssEntry', () => {
     const info = analyzeCssEntry(
       '/site/main.css',
       (path) => files[path],
-      (specifier, from) => (specifier.startsWith('./') ? `${from.slice(0, from.lastIndexOf('/'))}/${specifier.slice(2)}` : undefined)
+      (specifier, from) =>
+        specifier.startsWith('./')
+          ? `${from.slice(0, from.lastIndexOf('/'))}/${specifier.slice(2)}`
+          : undefined
     )
 
     expect(info).toMatchObject({ tailwind: true, nuxtUi: true, plutoCss: true })
@@ -62,26 +84,50 @@ describe('analyzeCssEntry', () => {
 })
 
 describe('checkCssSetup', () => {
-  const app = (overrides: Partial<{
-    file: string
-    tailwind: boolean
-    nuxtUi: boolean
-    plutoCss: boolean
-  }> = {}) =>
-    ({ file: '/site/app/assets/css/main.css', tailwind: true, nuxtUi: true, plutoCss: true, ...overrides })
+  const app = (
+    overrides: Partial<{
+      file: string
+      tailwind: boolean
+      nuxtUi: boolean
+      plutoCss: boolean
+    }> = {}
+  ) => ({
+    file: '/site/app/assets/css/main.css',
+    tailwind: true,
+    nuxtUi: true,
+    plutoCss: true,
+    ...overrides,
+  })
 
   it('injects the fallback when no entry imports Tailwind', () => {
-    expect(checkCssSetup([], ['/layers/pluto/'])).toEqual({ injectFallback: true, warnings: [] })
+    expect(checkCssSetup([], ['/layers/pluto/'])).toEqual({
+      injectFallback: true,
+      warnings: [],
+    })
   })
 
   it('is silent for the correct setup', () => {
-    expect(checkCssSetup([app()], ['/layers/pluto/'])).toEqual({ injectFallback: false, warnings: [] })
+    expect(checkCssSetup([app()], ['/layers/pluto/'])).toEqual({
+      injectFallback: false,
+      warnings: [],
+    })
   })
 
   it('warns about a layer that registers its own Tailwind build', () => {
-    const report = checkCssSetup([app(), app({ file: '/layers/shop/app/assets/css/tailwind.css', plutoCss: false })], ['/layers/shop/'])
+    const report = checkCssSetup(
+      [
+        app(),
+        app({
+          file: '/layers/shop/app/assets/css/tailwind.css',
+          plutoCss: false,
+        }),
+      ],
+      ['/layers/shop/']
+    )
 
-    expect(report.warnings.join('\n')).toMatch(/Layer \/layers\/shop\/ registers its own Tailwind build/)
+    expect(report.warnings.join('\n')).toMatch(
+      /Layer \/layers\/shop\/ registers its own Tailwind build/
+    )
     expect(report.warnings.join('\n')).toMatch(/Found 2 Tailwind builds/)
   })
 
@@ -89,7 +135,9 @@ describe('checkCssSetup', () => {
     const report = checkCssSetup([app({ plutoCss: false, nuxtUi: false })], [])
 
     expect(report.warnings).toHaveLength(2)
-    expect(report.warnings[0]).toMatch(/No CSS entry imports #build\/pluto\.css/)
+    expect(report.warnings[0]).toMatch(
+      /No CSS entry imports #build\/pluto\.css/
+    )
     expect(report.warnings[1]).toMatch(/No CSS entry imports @nuxt\/ui/)
   })
 })

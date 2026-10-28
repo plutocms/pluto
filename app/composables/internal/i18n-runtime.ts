@@ -4,15 +4,28 @@
 import type { Locale, Messages } from '@nuxt/ui'
 import type { FlatMessages, MessageTree } from './i18n-core'
 import { markRaw } from 'vue'
-import { defaultLocale, messageLoaders, uiLocaleLoaders } from '#build/pluto-i18n.mjs'
+import {
+  defaultLocale,
+  messageLoaders,
+  uiLocaleLoaders,
+} from '#build/pluto-i18n.mjs'
 import { useCookie, useRequestHeaders, useRuntimeConfig } from '#imports'
-import { createLocaleCache, flattenMessages, matchLocale, parseAcceptLanguage } from './i18n-core'
+import {
+  createLocaleCache,
+  flattenMessages,
+  matchLocale,
+  parseAcceptLanguage,
+} from './i18n-core'
 
 /** Cookie names. The admin and the site keep a separate locale. */
 export const ADMIN_LOCALE_COOKIE = 'pluto-admin-locale'
 export const SITE_LOCALE_COOKIE = 'pluto-site-locale'
 
-const COOKIE_OPTIONS = { maxAge: 60 * 60 * 24 * 365, path: '/', sameSite: 'lax' } as const
+const COOKIE_OPTIONS = {
+  maxAge: 60 * 60 * 24 * 365,
+  path: '/',
+  sameSite: 'lax',
+} as const
 
 /**
  * One message cache for both scopes. Messages never change per request, so
@@ -44,7 +57,10 @@ export function getConfig() {
 }
 
 export function useLocaleCookie(name: string) {
-  return useCookie<string | null>(name, { ...COOKIE_OPTIONS, default: () => null })
+  return useCookie<string | null>(name, {
+    ...COOKIE_OPTIONS,
+    default: () => null,
+  })
 }
 
 /**
@@ -54,7 +70,9 @@ export function useLocaleCookie(name: string) {
  */
 export function getBrowserLanguages(): string[] {
   if (import.meta.server) {
-    return parseAcceptLanguage(useRequestHeaders(['accept-language'])['accept-language'])
+    return parseAcceptLanguage(
+      useRequestHeaders(['accept-language'])['accept-language']
+    )
   }
   return typeof navigator === 'undefined' ? [] : [...navigator.languages]
 }
@@ -62,7 +80,10 @@ export function getBrowserLanguages(): string[] {
 /** The admin locale from the browser language alone: no cookie, no stored choice. */
 export function detectAdminLocale(): string {
   const config = getConfig()
-  return matchLocale(getBrowserLanguages(), config.adminLocales) ?? config.defaultLocale
+  return (
+    matchLocale(getBrowserLanguages(), config.adminLocales) ??
+    config.defaultLocale
+  )
 }
 
 /** A stored admin choice, or null. Only a supported code counts. */

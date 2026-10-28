@@ -11,7 +11,10 @@ const toast = useToast()
 const items = computed(() => [
   { label: t('pluto.settings.language.automatic'), value: AUTOMATIC },
   // Each language is named in its own language, so a user finds it.
-  ...locales.value.map((code) => ({ label: getLanguageName(code), value: code })),
+  ...locales.value.map((code) => ({
+    label: getLanguageName(code),
+    value: code,
+  })),
 ])
 
 const selected = computed(() => preference.value ?? AUTOMATIC)
@@ -36,10 +39,15 @@ async function onChange(value: string) {
 <template>
   <UCard>
     <template #header>
-      <h2 class="font-semibold">{{ t('pluto.settings.language.cardTitle') }}</h2>
+      <h2 class="font-semibold">
+        {{ t('pluto.settings.language.cardTitle') }}
+      </h2>
     </template>
 
-    <UFormField :label="t('pluto.settings.language.label')" :description="t('pluto.settings.language.description')">
+    <UFormField
+      :label="t('pluto.settings.language.label')"
+      :description="t('pluto.settings.language.description')"
+    >
       <USelect
         :model-value="selected"
         :items="items"

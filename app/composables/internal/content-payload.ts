@@ -1,6 +1,9 @@
 // Pure part of `PlutoContentForm`. It does not use Nuxt auto-imports, so
 // plain Vitest can import it.
-import type { PlutoContentItem, PlutoContentType } from '../../../shared/types/content'
+import type {
+  PlutoContentItem,
+  PlutoContentType,
+} from '../../../shared/types/content'
 
 /**
  * Builds the body the form sends on save.

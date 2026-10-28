@@ -39,7 +39,7 @@ withDefaults(
       :size="size"
       :square="square"
       as="span"
-      class="pointer-events-none group-hover:bg-elevated group-active:bg-elevated group-focus-visible:outline-3"
+      class="group-hover:bg-elevated group-active:bg-elevated pointer-events-none group-focus-visible:outline-3"
       color="neutral"
       variant="ghost"
       aria-hidden="true"

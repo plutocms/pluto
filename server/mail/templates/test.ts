@@ -12,7 +12,10 @@ export function renderTestEmail(context: PlutoEmailContext): PlutoEmailContent {
       lang: context.locale,
       siteName,
       heading: t('pluto.mail.test.heading', params),
-      paragraphs: [t('pluto.mail.test.body', params), t('pluto.mail.test.hint', params)],
+      paragraphs: [
+        t('pluto.mail.test.body', params),
+        t('pluto.mail.test.hint', params),
+      ],
       footer: t('pluto.mail.footer', params),
     }),
   }

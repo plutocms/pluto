@@ -47,20 +47,30 @@ const newPath = computed(
   () => contentType.value?.newPath ?? `${basePath.value}/new`
 )
 function editPath(id: string | number) {
-  return contentType.value?.editPath?.(id) ?? `${basePath.value}/${contentIdPath(id)}`
+  return (
+    contentType.value?.editPath?.(id) ??
+    `${basePath.value}/${contentIdPath(id)}`
+  )
 }
 
 // Load the list 50 rows at a time. The table is virtualized, so only the
 // visible rows render, and the next page loads when the user scrolls near
 // the end of the table (or of the card list, on mobile).
 const PAGE_SIZE = 50
-const { items, total, pending, loadingMore, hasMore, error, refresh, loadMore, remove } = usePlutoContentList(
-  props.type,
-  { pageSize: PAGE_SIZE }
-)
+const {
+  items,
+  total,
+  pending,
+  loadingMore,
+  hasMore,
+  error,
+  refresh,
+  loadMore,
+  remove,
+} = usePlutoContentList(props.type, { pageSize: PAGE_SIZE })
 
 const tableRef = useTemplateRef<{
- $el: HTMLElement
+  $el: HTMLElement
 }>('table')
 const mobileListRef = useTemplateRef<HTMLElement>('mobileList')
 
@@ -71,7 +81,10 @@ function loadMoreSafely() {
 
 // Stop while an error shows, so a failing page does not load in a loop.
 const canLoadMore = () => hasMore.value && !error.value
-useInfiniteScroll(() => tableRef.value?.$el, loadMoreSafely, { distance: 240, canLoadMore })
+useInfiniteScroll(() => tableRef.value?.$el, loadMoreSafely, {
+  distance: 240,
+  canLoadMore,
+})
 useInfiniteScroll(mobileListRef, loadMoreSafely, { distance: 240, canLoadMore })
 
 // What to show while the list has no rows. With rows, the list shows
@@ -98,10 +111,24 @@ const emptyActions = computed<ButtonProps[]>(() => {
     return []
   }
   if (emptyState.value === 'error') {
-    return [{ label: t('pluto.common.tryAgain'), icon: 'lucide:refresh-ccw', color: 'neutral', variant: 'outline', onClick: retry }]
+    return [
+      {
+        label: t('pluto.common.tryAgain'),
+        icon: 'lucide:refresh-ccw',
+        color: 'neutral',
+        variant: 'outline',
+        onClick: retry,
+      },
+    ]
   }
   return canWrite.value
-    ? [{ label: text.newLabel, icon: 'lucide:plus', onClick: () => navigateTo(newPath.value) }]
+    ? [
+        {
+          label: text.newLabel,
+          icon: 'lucide:plus',
+          onClick: () => navigateTo(newPath.value),
+        },
+      ]
     : []
 })
 
@@ -109,11 +136,15 @@ const emptyActions = computed<ButtonProps[]>(() => {
 // item without one, so its row still has a link to open it.
 function itemTitle(item: PlutoContentItem): string {
   const value = item[contentType.value?.titleField ?? '']
-  return typeof value === 'string' || typeof value === 'number' ? String(value).trim() : ''
+  return typeof value === 'string' || typeof value === 'number'
+    ? String(value).trim()
+    : ''
 }
 
 // The table slot of the title column. The title cell links to the edit page.
-const titleCellSlot = computed(() => `${contentType.value?.titleField ?? ''}-cell`)
+const titleCellSlot = computed(
+  () => `${contentType.value?.titleField ?? ''}-cell`
+)
 
 const listFields = computed(() =>
   (contentType.value?.fields ?? [])
@@ -122,15 +153,19 @@ const listFields = computed(() =>
 )
 
 // The fields of a card on a small screen. The title is the card heading.
-const cardFields = computed(() => listFields.value.filter((field) => field.name !== contentType.value?.titleField))
+const cardFields = computed(() =>
+  listFields.value.filter(
+    (field) => field.name !== contentType.value?.titleField
+  )
+)
 
 // The status of each item, for a type with a publish workflow. A draft shows
 // a neutral badge, a published item a green one, as in the form toolbar.
 const statusConfig = computed(() => contentType.value?.status || null)
 
 function itemStatus(item: PlutoContentItem): {
- label: string
-published: boolean
+  label: string
+  published: boolean
 } | null {
   const config = statusConfig.value
   if (!config) {
@@ -141,7 +176,10 @@ published: boolean
     return null
   }
   const literal = config.values.find((entry) => entry.value === value)?.label
-  return { label: text.statusLabel(value, literal), published: value === (config.publishedValue ?? 'published') }
+  return {
+    label: text.statusLabel(value, literal),
+    published: value === (config.publishedValue ?? 'published'),
+  }
 }
 
 const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
@@ -149,14 +187,20 @@ const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
     accessorKey: field.name,
     header: text.fieldLabel(field),
     ...(field.listFormat
-? { cell: ({ row }: {
- row: {
- original: PlutoContentItem
-}
-}) => formatListValue(field, row.original) }
-: {}),
+      ? {
+          cell: ({
+            row,
+          }: {
+            row: {
+              original: PlutoContentItem
+            }
+          }) => formatListValue(field, row.original),
+        }
+      : {}),
   })),
-  ...(statusConfig.value ? [{ id: 'status', header: t('pluto.list.status') }] : []),
+  ...(statusConfig.value
+    ? [{ id: 'status', header: t('pluto.list.status') }]
+    : []),
   { id: 'actions', header: '' },
 ])
 
@@ -186,9 +230,18 @@ async function confirmDelete() {
 // page loads. The phrase has the plural label as a parameter, so a language
 // can put it anywhere.
 const footer = computed(() => {
-  const params = { loaded: n(items.value.length), total: total.value === undefined ? '' : n(total.value), labelPlural: text.labelPluralLower }
-  const summary = t(total.value === undefined ? 'pluto.list.showing' : 'pluto.list.showingOf', params)
-  return loadingMore.value ? `${summary} · ${t('pluto.list.loadingMore')}` : summary
+  const params = {
+    loaded: n(items.value.length),
+    total: total.value === undefined ? '' : n(total.value),
+    labelPlural: text.labelPluralLower,
+  }
+  const summary = t(
+    total.value === undefined ? 'pluto.list.showing' : 'pluto.list.showingOf',
+    params
+  )
+  return loadingMore.value
+    ? `${summary} · ${t('pluto.list.loadingMore')}`
+    : summary
 })
 </script>
 
@@ -219,13 +272,17 @@ const footer = computed(() => {
       v-if="emptyState === 'loading'"
       :columns="listFields.map((field) => text.fieldLabel(field))"
       :status="Boolean(statusConfig)"
-      :aria-label="t('pluto.list.loading', { labelPlural: text.labelPluralLower })"
+      :aria-label="
+        t('pluto.list.loading', { labelPlural: text.labelPluralLower })
+      "
       aria-busy="true"
     />
 
     <UEmpty
       v-else-if="emptyState === 'error'"
-      :title="t('pluto.list.loadFailed', { labelPlural: text.labelPluralLower })"
+      :title="
+        t('pluto.list.loadFailed', { labelPlural: text.labelPluralLower })
+      "
       :actions="emptyActions"
       :description="t('pluto.list.loadFailedHint')"
       icon="lucide:circle-alert"
@@ -235,7 +292,11 @@ const footer = computed(() => {
     <UEmpty
       v-else-if="emptyState === 'empty'"
       :title="t('pluto.list.empty', { labelPlural: text.labelPluralLower })"
-      :description="canWrite ? t('pluto.list.emptyCanWrite', { label: text.labelLower }) : t('pluto.list.emptyReadOnly')"
+      :description="
+        canWrite
+          ? t('pluto.list.emptyCanWrite', { label: text.labelLower })
+          : t('pluto.list.emptyReadOnly')
+      "
       :icon="contentType.icon ?? 'lucide:inbox'"
       :actions="emptyActions"
       variant="naked"
@@ -243,8 +304,17 @@ const footer = computed(() => {
 
     <UAlert
       v-if="!emptyState && error"
-      :actions="[{ label: t('pluto.common.tryAgain'), color: 'error', variant: 'outline', onClick: retry }]"
-      :title="t('pluto.list.refreshFailed', { labelPlural: text.labelPluralLower })"
+      :actions="[
+        {
+          label: t('pluto.common.tryAgain'),
+          color: 'error',
+          variant: 'outline',
+          onClick: retry,
+        },
+      ]"
+      :title="
+        t('pluto.list.refreshFailed', { labelPlural: text.labelPluralLower })
+      "
       :description="t('pluto.list.refreshFailedHint')"
       color="error"
       variant="subtle"
@@ -279,8 +349,12 @@ const footer = computed(() => {
 
           <dl class="grid grid-cols-2 gap-3 text-sm">
             <div v-for="field in cardFields" :key="field.name">
-              <dt class="text-muted">{{ text.fieldLabel(field) }}</dt>
-              <dd class="font-medium">{{ formatListValue(field, item) }}</dd>
+              <dt class="text-muted">
+                {{ text.fieldLabel(field) }}
+              </dt>
+              <dd class="font-medium">
+                {{ formatListValue(field, item) }}
+              </dd>
             </div>
           </dl>
 
@@ -326,7 +400,9 @@ const footer = computed(() => {
       <template #[titleCellSlot]="{ row }">
         <NuxtLink
           :to="editPath(row.original.id)"
-          :class="itemTitle(row.original) ? 'text-highlighted' : 'text-muted italic'"
+          :class="
+            itemTitle(row.original) ? 'text-highlighted' : 'text-muted italic'
+          "
           class="font-medium hover:underline"
         >
           {{ itemTitle(row.original) || t('pluto.content.untitled') }}
@@ -348,7 +424,9 @@ const footer = computed(() => {
         on a device without hover and while they hold the keyboard focus.
       -->
       <template #actions-cell="{ row }">
-        <div class="flex justify-end gap-3 group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0">
+        <div
+          class="flex justify-end gap-3 group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
+        >
           <NuxtLink
             v-if="canWrite"
             :to="editPath(row.original.id)"
@@ -369,7 +447,11 @@ const footer = computed(() => {
       </template>
     </UTable>
 
-    <p v-if="!emptyState" class="text-muted shrink-0 text-xs tabular-nums" aria-live="polite">
+    <p
+      v-if="!emptyState"
+      class="text-muted shrink-0 text-xs tabular-nums"
+      aria-live="polite"
+    >
       {{ footer }}
     </p>
   </PlutoViewAdminPanel>
@@ -383,7 +465,9 @@ const footer = computed(() => {
   </PlutoViewAdminPanel>
 
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
-    <ModalHeader @close="closeDeleteModal">{{ t('pluto.list.removeTitle') }}</ModalHeader>
+    <ModalHeader @close="closeDeleteModal">
+      {{ t('pluto.list.removeTitle') }}
+    </ModalHeader>
 
     <ModalContent>
       <p>{{ t('pluto.content.removeConfirm') }}</p>

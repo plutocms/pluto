@@ -3,20 +3,37 @@ import { defineEventHandler, getQuery, getRouterParam } from 'h3'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { gitBlobSha } from '../modules/pluto-github/runtime/server/utils/blob-sha'
 import { createGithubCache } from '../modules/pluto-github/runtime/server/utils/github-cache'
-import { getRegisteredGithubCache, registerGithubContent } from '../modules/pluto-github/runtime/server/utils/github-setup'
-import { getPublicContent, listPublicContent } from '../server/utils/pluto-public-api'
+import {
+  getRegisteredGithubCache,
+  registerGithubContent,
+} from '../modules/pluto-github/runtime/server/utils/github-setup'
+import {
+  getPublicContent,
+  listPublicContent,
+} from '../server/utils/pluto-public-api'
 import { createFakeGithub } from './fixtures/fake-github'
-import { createAuthApp, resetTestConfig, signIn } from './fixtures/github-auth-harness'
+import {
+  createAuthApp,
+  resetTestConfig,
+  signIn,
+} from './fixtures/github-auth-harness'
 
 // The posts of the GitHub CMS through the public API of core (`/api/pluto/v1/content/post`).
 
-vi.mock('../modules/pluto-github/runtime/server/utils/github-config', async () => {
-  const { testConfig } = await import('./fixtures/github-test-config')
-  return { getGithubConfig: () => testConfig }
-})
+vi.mock(
+  '../modules/pluto-github/runtime/server/utils/github-config',
+  async () => {
+    const { testConfig } = await import('./fixtures/github-test-config')
+    return { getGithubConfig: () => testConfig }
+  }
+)
 
-const apiConfig = vi.hoisted(() => ({ value: { cors: true as boolean | string[], maxAge: 60 } }))
-vi.mock('../server/utils/pluto-api-config', () => ({ getPlutoApiConfig: () => apiConfig.value }))
+const apiConfig = vi.hoisted(() => ({
+  value: { cors: true as boolean | string[], maxAge: 60 },
+}))
+vi.mock('../server/utils/pluto-api-config', () => ({
+  getPlutoApiConfig: () => apiConfig.value,
+}))
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -24,30 +41,83 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   publicKeyEncoding: { type: 'spki', format: 'pem' },
 })
 
-function post(title: string, status: string, createdAt: string, body: string, extra = ''): string {
+function post(
+  title: string,
+  status: string,
+  createdAt: string,
+  body: string,
+  extra = ''
+): string {
   return `---\ntitle: ${title}\nstatus: ${status}\ncreatedAt: ${createdAt}\n${extra}---\n${body}\n`
 }
 
 const FILES: Record<string, string> = {
-  'content/posts/live.md': post('Live', 'published', '2026-01-01T00:00:00.000Z', 'Hello **world**.\n\n| A | B |\n|---|---|\n| 1 | 2 |'),
-  'content/posts/with-excerpt.md': post('With excerpt', 'published', '2026-01-03T00:00:00.000Z', 'Body text.', 'excerpt: My own excerpt\n'),
-  'content/posts/secret.md': post('Secret', 'draft', '2026-01-02T00:00:00.000Z', 'Not yet'),
-  'content/posts/evil.md': post('Evil', 'published', '2026-01-04T00:00:00.000Z', 'Hi\n\n<script>alert(1)</script>\n\n[x](javascript:alert(1))'),
-  'content/posts/long.md': post('Long', 'published', '2026-01-05T00:00:00.000Z', `${'word '.repeat(100)}`),
+  'content/posts/live.md': post(
+    'Live',
+    'published',
+    '2026-01-01T00:00:00.000Z',
+    'Hello **world**.\n\n| A | B |\n|---|---|\n| 1 | 2 |'
+  ),
+  'content/posts/with-excerpt.md': post(
+    'With excerpt',
+    'published',
+    '2026-01-03T00:00:00.000Z',
+    'Body text.',
+    'excerpt: My own excerpt\n'
+  ),
+  'content/posts/secret.md': post(
+    'Secret',
+    'draft',
+    '2026-01-02T00:00:00.000Z',
+    'Not yet'
+  ),
+  'content/posts/evil.md': post(
+    'Evil',
+    'published',
+    '2026-01-04T00:00:00.000Z',
+    'Hi\n\n<script>alert(1)</script>\n\n[x](javascript:alert(1))'
+  ),
+  'content/posts/long.md': post(
+    'Long',
+    'published',
+    '2026-01-05T00:00:00.000Z',
+    `${'word '.repeat(100)}`
+  ),
 }
 
 function setup() {
   const fake = createFakeGithub({
     files: { ...FILES },
-    users: { ada: { id: 7, permission: 'push' }, boss: { id: 8, permission: 'admin' } },
+    users: {
+      ada: { id: 7, permission: 'push' },
+      boss: { id: 8, permission: 'admin' },
+    },
     app: { id: '12345', installationId: 99, publicKey },
   })
   const config = resetTestConfig(fake, { appId: '12345', privateKey })
   registerGithubContent(config, createGithubCache({ headTtl: 0 }))
 
   const app = createAuthApp((router) => {
-    router.get('/api/pluto/v1/content/:type', defineEventHandler((event) => listPublicContent(event, getRouterParam(event, 'type') ?? '', getQuery(event))))
-    router.get('/api/pluto/v1/content/:type/:id', defineEventHandler((event) => getPublicContent(event, getRouterParam(event, 'type') ?? '', getRouterParam(event, 'id', { decode: true }) ?? '')))
+    router.get(
+      '/api/pluto/v1/content/:type',
+      defineEventHandler((event) =>
+        listPublicContent(
+          event,
+          getRouterParam(event, 'type') ?? '',
+          getQuery(event)
+        )
+      )
+    )
+    router.get(
+      '/api/pluto/v1/content/:type/:id',
+      defineEventHandler((event) =>
+        getPublicContent(
+          event,
+          getRouterParam(event, 'type') ?? '',
+          getRouterParam(event, 'id', { decode: true }) ?? ''
+        )
+      )
+    )
   })
   return { fake, app, config }
 }
@@ -73,17 +143,22 @@ describe('the post list', () => {
     const { app } = setup()
 
     const response = await app.request(LIST)
-    const body = await response.json() as ListBody
+    const body = (await response.json()) as ListBody
 
     expect(response.status).toBe(200)
-    expect(body.data.map((item) => item.id)).toEqual(['long', 'evil', 'with-excerpt', 'live'])
+    expect(body.data.map((item) => item.id)).toEqual([
+      'long',
+      'evil',
+      'with-excerpt',
+      'live',
+    ])
     expect(body.meta).toEqual({ total: 4, limit: 20, offset: 0 })
   })
 
   it('returns no body, no draft, and no internal key', async () => {
     const { app } = setup()
 
-    const body = await (await app.request(LIST)).json() as ListBody
+    const body = (await (await app.request(LIST)).json()) as ListBody
 
     for (const item of body.data) {
       expect(item).not.toHaveProperty('content')
@@ -100,8 +175,10 @@ describe('the post list', () => {
   it('uses the excerpt field, and falls back to the start of the body as plain text', async () => {
     const { app } = setup()
 
-    const body = await (await app.request(LIST)).json() as ListBody
-    const byId = Object.fromEntries(body.data.map((item) => [item.id as string, item]))
+    const body = (await (await app.request(LIST)).json()) as ListBody
+    const byId = Object.fromEntries(
+      body.data.map((item) => [item.id as string, item])
+    )
 
     expect(byId['with-excerpt']!.excerpt).toBe('My own excerpt')
     expect(byId.live!.excerpt).toBe('Hello world. A B 1 2')
@@ -111,7 +188,7 @@ describe('the post list', () => {
   it('cuts a long fallback excerpt to 200 characters', async () => {
     const { app } = setup()
 
-    const body = await (await app.request(LIST)).json() as ListBody
+    const body = (await (await app.request(LIST)).json()) as ListBody
     const long = body.data.find((item) => item.id === 'long')!
 
     expect((long.excerpt as string).length).toBeLessThanOrEqual(200)
@@ -121,8 +198,12 @@ describe('the post list', () => {
   it('applies limit and offset', async () => {
     const { app } = setup()
 
-    const first = await (await app.request(`${LIST}?limit=2`)).json() as ListBody
-    const second = await (await app.request(`${LIST}?limit=2&offset=2`)).json() as ListBody
+    const first = (await (
+      await app.request(`${LIST}?limit=2`)
+    ).json()) as ListBody
+    const second = (await (
+      await app.request(`${LIST}?limit=2&offset=2`)
+    ).json()) as ListBody
 
     expect(first.data.map((item) => item.id)).toEqual(['long', 'evil'])
     expect(second.data.map((item) => item.id)).toEqual(['with-excerpt', 'live'])
@@ -132,13 +213,24 @@ describe('the post list', () => {
   it('sorts by a public field or a timestamp, and filters by a field', async () => {
     const { app } = setup()
 
-    const byTitle = await (await app.request(`${LIST}?sort=title`)).json() as ListBody
-    expect(byTitle.data.map((item) => item.id)).toEqual(['evil', 'live', 'long', 'with-excerpt'])
+    const byTitle = (await (
+      await app.request(`${LIST}?sort=title`)
+    ).json()) as ListBody
+    expect(byTitle.data.map((item) => item.id)).toEqual([
+      'evil',
+      'live',
+      'long',
+      'with-excerpt',
+    ])
 
-    const oldest = await (await app.request(`${LIST}?sort=createdAt&limit=1`)).json() as ListBody
+    const oldest = (await (
+      await app.request(`${LIST}?sort=createdAt&limit=1`)
+    ).json()) as ListBody
     expect(oldest.data.map((item) => item.id)).toEqual(['live'])
 
-    const filtered = await (await app.request(`${LIST}?filter[title]=Evil`)).json() as ListBody
+    const filtered = (await (
+      await app.request(`${LIST}?filter[title]=Evil`)
+    ).json()) as ListBody
     expect(filtered.data.map((item) => item.id)).toEqual(['evil'])
     expect(filtered.meta.total).toBe(1)
   })
@@ -153,8 +245,16 @@ describe('the post list', () => {
   it('never shows drafts, whatever the query says', async () => {
     const { app } = setup()
 
-    for (const query of ['includeUnpublished=true', 'published=0', 'drafts=1', 'status=draft', 'search=Secret']) {
-      const body = await (await app.request(`${LIST}?${query}`)).json() as ListBody
+    for (const query of [
+      'includeUnpublished=true',
+      'published=0',
+      'drafts=1',
+      'status=draft',
+      'search=Secret',
+    ]) {
+      const body = (await (
+        await app.request(`${LIST}?${query}`)
+      ).json()) as ListBody
 
       expect(body.data.map((item) => item.id)).not.toContain('secret')
     }
@@ -172,12 +272,16 @@ describe('one post', () => {
     const { app } = setup()
 
     const response = await app.request(`${LIST}/live`)
-    const { data } = await response.json() as {
- data: Record<string, unknown>
-}
+    const { data } = (await response.json()) as {
+      data: Record<string, unknown>
+    }
 
     expect(response.status).toBe(200)
-    expect(data).toMatchObject({ id: 'live', title: 'Live', createdAt: '2026-01-01T00:00:00.000Z' })
+    expect(data).toMatchObject({
+      id: 'live',
+      title: 'Live',
+      createdAt: '2026-01-01T00:00:00.000Z',
+    })
     expect(data.html).toContain('<strong>world</strong>')
     expect(data.html).toContain('<table>')
     expect(data).not.toHaveProperty('_version')
@@ -187,7 +291,7 @@ describe('one post', () => {
   it('removes script, raw HTML and javascript: links from the html', async () => {
     const { app } = setup()
 
-    const { data } = await (await app.request(`${LIST}/evil`)).json() as {
+    const { data } = (await (await app.request(`${LIST}/evil`)).json()) as {
       data: {
         html: string
       }
@@ -210,7 +314,7 @@ describe('one post', () => {
     expect(done.status).toBe(302)
 
     expect((await app.request(`${LIST}/secret`)).status).toBe(404)
-    const body = await (await app.request(LIST)).json() as ListBody
+    const body = (await (await app.request(LIST)).json()) as ListBody
     expect(body.data.map((item) => item.id)).not.toContain('secret')
   })
 
@@ -223,22 +327,34 @@ describe('one post', () => {
   it('never answers 200 or 500 for a bad slug', async () => {
     const { app } = setup()
 
-    for (const slug of ['Bad_Slug', 'UPPER', 'a--b', '-a', 'a.b', 'a%2fb', 'x'.repeat(101)]) {
-      expect([400, 404], slug).toContain((await app.request(`${LIST}/${slug}`)).status)
+    for (const slug of [
+      'Bad_Slug',
+      'UPPER',
+      'a--b',
+      '-a',
+      'a.b',
+      'a%2fb',
+      'x'.repeat(101),
+    ]) {
+      expect([400, 404], slug).toContain(
+        (await app.request(`${LIST}/${slug}`)).status
+      )
     }
   })
 
   it('keeps the rendered html in the cache by blob id', async () => {
     const { app } = setup()
 
-    const { data } = await (await app.request(`${LIST}/live`)).json() as {
+    const { data } = (await (await app.request(`${LIST}/live`)).json()) as {
       data: {
         html: string
       }
     }
     // The html is in the cache under the blob id of the file.
     const oid = gitBlobSha(FILES['content/posts/live.md']!)
-    expect(await getRegisteredGithubCache().getBlob<string>(`html:${oid}`)).toBe(data.html)
+    expect(
+      await getRegisteredGithubCache().getBlob<string>(`html:${oid}`)
+    ).toBe(data.html)
   })
 })
 
@@ -249,7 +365,9 @@ describe('the answers are anonymous and cacheable', () => {
     for (const path of [LIST, `${LIST}/live`]) {
       const response = await app.request(path)
 
-      expect(response.headers.get('cache-control')).toBe('public, s-maxage=60, stale-while-revalidate=300')
+      expect(response.headers.get('cache-control')).toBe(
+        'public, s-maxage=60, stale-while-revalidate=300'
+      )
     }
   })
 
@@ -257,13 +375,17 @@ describe('the answers are anonymous and cacheable', () => {
     apiConfig.value = { cors: true, maxAge: 0 }
     const { app } = setup()
 
-    expect((await app.request(LIST)).headers.get('cache-control')).toBe('no-store')
+    expect((await app.request(LIST)).headers.get('cache-control')).toBe(
+      'no-store'
+    )
   })
 
   it('does not set a cache header on an error', async () => {
     const { app } = setup()
 
-    expect((await app.request(`${LIST}/secret`)).headers.get('cache-control') ?? '').not.toContain('public')
+    expect(
+      (await app.request(`${LIST}/secret`)).headers.get('cache-control') ?? ''
+    ).not.toContain('public')
   })
 
   it('sets no cookie, signed out or signed in', async () => {
@@ -293,7 +415,9 @@ describe('the answers are anonymous and cacheable', () => {
   it('never opens the session cookie, even a bad one', async () => {
     const { app } = setup()
 
-    const response = await app.request(LIST, { headers: { cookie: 'pluto-github-session=garbage' } })
+    const response = await app.request(LIST, {
+      headers: { cookie: 'pluto-github-session=garbage' },
+    })
 
     expect(response.status).toBe(200)
     expect(response.headers.getSetCookie()).toEqual([])

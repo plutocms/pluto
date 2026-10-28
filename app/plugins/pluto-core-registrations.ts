@@ -1,16 +1,40 @@
 // Every component loads on demand. Core's renderers show a skeleton for each
 // one while its chunk loads (see PlutoSkeletonField and PlutoSkeletonWidget).
-const PlutoFieldBoolean = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldBoolean.vue'))
-const PlutoFieldDate = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldDate.vue'))
-const PlutoFieldNumber = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldNumber.vue'))
-const PlutoFieldReference = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldReference.vue'))
-const PlutoFieldSelect = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldSelect.vue'))
-const PlutoFieldSlug = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldSlug.vue'))
-const PlutoFieldText = defineAsyncComponent(() => import('../components/Pluto/Content/fields/PlutoFieldText.vue'))
-const PlutoDashboardContentActivity = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardContentActivity.vue'))
-const PlutoDashboardContentOverview = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardContentOverview.vue'))
-const PlutoDashboardQuickActions = defineAsyncComponent(() => import('../components/Pluto/Dashboard/PlutoDashboardQuickActions.vue'))
-const PlutoContentBarActions = defineAsyncComponent(() => import('../components/Pluto/Content/PlutoContentBarActions.vue'))
+const PlutoFieldBoolean = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldBoolean.vue')
+)
+const PlutoFieldDate = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldDate.vue')
+)
+const PlutoFieldNumber = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldNumber.vue')
+)
+const PlutoFieldReference = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldReference.vue')
+)
+const PlutoFieldSelect = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldSelect.vue')
+)
+const PlutoFieldSlug = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldSlug.vue')
+)
+const PlutoFieldText = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldText.vue')
+)
+const PlutoDashboardContentActivity = defineAsyncComponent(
+  () =>
+    import('../components/Pluto/Dashboard/PlutoDashboardContentActivity.vue')
+)
+const PlutoDashboardContentOverview = defineAsyncComponent(
+  () =>
+    import('../components/Pluto/Dashboard/PlutoDashboardContentOverview.vue')
+)
+const PlutoDashboardQuickActions = defineAsyncComponent(
+  () => import('../components/Pluto/Dashboard/PlutoDashboardQuickActions.vue')
+)
+const PlutoContentBarActions = defineAsyncComponent(
+  () => import('../components/Pluto/Content/PlutoContentBarActions.vue')
+)
 
 // Registers core's own Home and Settings anchors, plus the eight built-in
 // content field widgets. `order: 0` and `order: 1000` are reserved for the
@@ -33,19 +57,54 @@ export default defineNuxtPlugin(() => {
   definePlutoExtension({
     id: 'pluto',
     nav: [
-      { id: 'home', order: 0, label: 'pluto.nav.home', icon: 'lucide:house', to: '/admin/home' },
-      { id: 'settings', order: 1000, label: 'pluto.nav.settings', icon: 'lucide:settings', to: '/admin/settings' },
+      {
+        id: 'home',
+        order: 0,
+        label: 'pluto.nav.home',
+        icon: 'lucide:house',
+        to: '/admin/home',
+      },
+      {
+        id: 'settings',
+        order: 1000,
+        label: 'pluto.nav.settings',
+        icon: 'lucide:settings',
+        to: '/admin/settings',
+      },
     ],
     pages: [
-      { id: 'home', path: '/admin/home', title: 'pluto.pages.dashboard', icon: 'lucide:house' },
-      { id: 'settings', path: '/admin/settings', title: 'pluto.pages.settings', icon: 'lucide:settings' },
+      {
+        id: 'home',
+        path: '/admin/home',
+        title: 'pluto.pages.dashboard',
+        icon: 'lucide:house',
+      },
+      {
+        id: 'settings',
+        path: '/admin/settings',
+        title: 'pluto.pages.settings',
+        icon: 'lucide:settings',
+      },
     ],
     // The General tab holds the settings panels and the language card. A layer
     // adds a tab with a file at `pages/admin/settings/<x>.vue` and an entry here.
     settingsPages: [
-      { id: 'general', order: 0, label: 'pluto.settings.tabs.general', icon: 'lucide:sliders-horizontal', to: '/admin/settings' },
+      {
+        id: 'general',
+        order: 0,
+        label: 'pluto.settings.tabs.general',
+        icon: 'lucide:sliders-horizontal',
+        to: '/admin/settings',
+      },
       // Admin only ('*'). The page and its routes (`/api/_pluto/mail/**`) check it.
-      { id: 'email', order: 200, label: 'pluto.settings.tabs.email', icon: 'lucide:mail', to: '/admin/settings/email', capability: '*' },
+      {
+        id: 'email',
+        order: 200,
+        label: 'pluto.settings.tabs.email',
+        icon: 'lucide:mail',
+        to: '/admin/settings/email',
+        capability: '*',
+      },
     ],
     contentFieldWidgets: [
       { id: 'text', fieldType: 'text', component: PlutoFieldText },
@@ -55,7 +114,11 @@ export default defineNuxtPlugin(() => {
       { id: 'boolean', fieldType: 'boolean', component: PlutoFieldBoolean },
       { id: 'date', fieldType: 'date', component: PlutoFieldDate },
       { id: 'select', fieldType: 'select', component: PlutoFieldSelect },
-      { id: 'reference', fieldType: 'reference', component: PlutoFieldReference },
+      {
+        id: 'reference',
+        fieldType: 'reference',
+        component: PlutoFieldReference,
+      },
     ],
     // `order: 0` puts the content overview first. It spans the full row
     // because it lays out its own grid of tiles. It is disabled while no

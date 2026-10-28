@@ -7,9 +7,13 @@ import { dirname, isAbsolute, join, resolve } from 'node:path'
  */
 export function parseGithubRepoUrl(url: string): string | undefined {
   const value = url.trim()
-  const match
-    = /^(?:https?|git|ssh):\/\/(?:[^@/]+@)?github\.com(?::\d+)?\/([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/i.exec(value)
-      ?? /^(?:[^@/\s]+@)?github\.com:([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/i.exec(value)
+  const match =
+    /^(?:https?|git|ssh):\/\/(?:[^@/]+@)?github\.com(?::\d+)?\/([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/i.exec(
+      value
+    ) ??
+    /^(?:[^@/\s]+@)?github\.com:([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/i.exec(
+      value
+    )
   return match ? `${match[1]}/${match[2]}` : undefined
 }
 
@@ -42,9 +46,13 @@ function findGitConfig(rootDir: string): string | undefined {
       // A worktree or a submodule: `.git` is a file with `gitdir: <path>`.
       const pointer = /^gitdir: ?(\S.*)$/m.exec(readFileSync(dotGit, 'utf8'))
       if (pointer) {
-        const gitDir = isAbsolute(pointer[1]!.trim()) ? pointer[1]!.trim() : resolve(dir, pointer[1]!.trim())
+        const gitDir = isAbsolute(pointer[1]!.trim())
+          ? pointer[1]!.trim()
+          : resolve(dir, pointer[1]!.trim())
         const commonFile = join(gitDir, 'commondir')
-        const commonDir = existsSync(commonFile) ? resolve(gitDir, readFileSync(commonFile, 'utf8').trim()) : gitDir
+        const commonDir = existsSync(commonFile)
+          ? resolve(gitDir, readFileSync(commonFile, 'utf8').trim())
+          : gitDir
         return join(commonDir, 'config')
       }
       return undefined
@@ -61,7 +69,9 @@ function findGitConfig(rootDir: string): string | undefined {
 export function readGitOrigin(rootDir: string): string | undefined {
   try {
     const file = findGitConfig(rootDir)
-    return file && existsSync(file) ? parseGitConfigOrigin(readFileSync(file, 'utf8')) : undefined
+    return file && existsSync(file)
+      ? parseGitConfigOrigin(readFileSync(file, 'utf8'))
+      : undefined
   } catch {
     return undefined
   }

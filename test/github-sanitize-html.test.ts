@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { isSafeUrl, sanitizeHtml } from '../modules/pluto-github/runtime/server/utils/sanitize-html'
+import {
+  isSafeUrl,
+  sanitizeHtml,
+} from '../modules/pluto-github/runtime/server/utils/sanitize-html'
 
 describe('sanitizeHtml', () => {
   it('drops a script element and its body', () => {
@@ -11,7 +14,9 @@ describe('sanitizeHtml', () => {
   })
 
   it('drops onclick, onerror, and onload attributes', () => {
-    const html = sanitizeHtml('<p onclick="evil()">a</p><img src="/a.png" onerror="evil()">')
+    const html = sanitizeHtml(
+      '<p onclick="evil()">a</p><img src="/a.png" onerror="evil()">'
+    )
 
     expect(html).not.toContain('onclick')
     expect(html).not.toContain('onerror')
@@ -52,7 +57,9 @@ describe('sanitizeHtml', () => {
   })
 
   it('rejects a data:image/svg+xml src, keeps a data:image/png src', () => {
-    const svg = sanitizeHtml('<img src="data:image/svg+xml,<svg onload=alert(1)>">')
+    const svg = sanitizeHtml(
+      '<img src="data:image/svg+xml,<svg onload=alert(1)>">'
+    )
     const png = sanitizeHtml('<img src="data:image/png;base64,aaaa">')
 
     expect(svg).not.toContain('data:image/svg')
@@ -62,7 +69,9 @@ describe('sanitizeHtml', () => {
   it('keeps relative, anchor, and mailto hrefs', () => {
     expect(sanitizeHtml('<a href="/post/x">a</a>')).toContain('href="/post/x"')
     expect(sanitizeHtml('<a href="#anchor">a</a>')).toContain('href="#anchor"')
-    expect(sanitizeHtml('<a href="mailto:a@b.c">a</a>')).toContain('href="mailto:a@b.c"')
+    expect(sanitizeHtml('<a href="mailto:a@b.c">a</a>')).toContain(
+      'href="mailto:a@b.c"'
+    )
   })
 
   it('keeps a language- class on code, drops any other class', () => {
@@ -84,7 +93,9 @@ describe('sanitizeHtml', () => {
   })
 
   it('keeps a task-list checkbox', () => {
-    const html = sanitizeHtml('<li><input type="checkbox" checked disabled>done</li>')
+    const html = sanitizeHtml(
+      '<li><input type="checkbox" checked disabled>done</li>'
+    )
 
     expect(html).toContain('type="checkbox"')
     expect(html).toContain('checked')

@@ -94,8 +94,8 @@ export const PLUTO_GITHUB_SECRET_ENV = {
 const REPO_PATTERN = /^[\w.-]+\/[\w.-]+$/
 const DRIVE_PATTERN = /^[a-z]:/i
 
-export const SUPABASE_CONFLICT_ERROR
-  = 'The standalone CMS cannot run with the supabase layer. Remove plutoGithub.enabled or the supabase layer.'
+export const SUPABASE_CONFLICT_ERROR =
+  'The standalone CMS cannot run with the supabase layer. Remove plutoGithub.enabled or the supabase layer.'
 
 /**
  * Normalizes a content dir to forward slashes with no trailing slash.
@@ -106,7 +106,9 @@ export function normalizeGithubDir(dir: string): string | undefined {
   if (!value || value.startsWith('/') || DRIVE_PATTERN.test(value)) {
     return undefined
   }
-  const segments = value.split('/').filter((segment) => segment !== '' && segment !== '.')
+  const segments = value
+    .split('/')
+    .filter((segment) => segment !== '' && segment !== '.')
   if (segments.length === 0 || segments.includes('..')) {
     return undefined
   }
@@ -121,17 +123,26 @@ export function resolvePlutoGithubOptions(
   const errors: string[] = []
   const env = ctx.env ?? {}
   // The first name with a value wins.
-  const fromEnv = (...names: string[]) => names.map((name) => env[name]?.trim()).find(Boolean)
+  const fromEnv = (...names: string[]) =>
+    names.map((name) => env[name]?.trim()).find(Boolean)
 
   const resolved: ResolvedPlutoGithubOptions = {
-    storage: options.storage
-      ?? (fromEnv('PLUTO_GITHUB_STORAGE') as ResolvedPlutoGithubOptions['storage'] | undefined)
-      ?? (ctx.dev ? 'fs' : 'github'),
+    storage:
+      options.storage ??
+      (fromEnv('PLUTO_GITHUB_STORAGE') as
+        ResolvedPlutoGithubOptions['storage'] | undefined) ??
+      (ctx.dev ? 'fs' : 'github'),
     github: {
       repo: options.github?.repo || detectRepo(ctx, fromEnv),
       branch: options.github?.branch ?? 'main',
-      appSlug: options.github?.appSlug ?? fromEnv('NUXT_PLUTO_GITHUB_APP_SLUG', 'PLUTO_GITHUB_APP_SLUG') ?? '',
-      apiUrl: (options.github?.apiUrl ?? 'https://api.github.com').replace(/\/+$/, ''),
+      appSlug:
+        options.github?.appSlug ??
+        fromEnv('NUXT_PLUTO_GITHUB_APP_SLUG', 'PLUTO_GITHUB_APP_SLUG') ??
+        '',
+      apiUrl: (options.github?.apiUrl ?? 'https://api.github.com').replace(
+        /\/+$/,
+        ''
+      ),
     },
     dir: 'content',
     commit: { skipDeploy: options.commit?.skipDeploy ?? true },
@@ -147,7 +158,9 @@ export function resolvePlutoGithubOptions(
     return { enabled: false, resolved, warnings, errors }
   }
   if (mode !== true && mode !== 'auto') {
-    errors.push(`plutoGithub.enabled must be true, false or "auto". Got "${String(mode)}".`)
+    errors.push(
+      `plutoGithub.enabled must be true, false or "auto". Got "${String(mode)}".`
+    )
     return { enabled: false, resolved, warnings, errors }
   }
 
@@ -160,22 +173,33 @@ export function resolvePlutoGithubOptions(
   }
 
   if (resolved.storage !== 'github' && resolved.storage !== 'fs') {
-    errors.push(`plutoGithub.storage must be "github" or "fs". Got "${String(resolved.storage)}".`)
+    errors.push(
+      `plutoGithub.storage must be "github" or "fs". Got "${String(resolved.storage)}".`
+    )
   } else if (resolved.storage === 'fs' && !ctx.dev) {
-    errors.push('plutoGithub.storage "fs" works in dev only. Use "github" for a build.')
+    errors.push(
+      'plutoGithub.storage "fs" works in dev only. Use "github" for a build.'
+    )
   } else if (resolved.storage === 'github' && !resolved.github.repo) {
     errors.push(
-      'The standalone CMS needs a GitHub repo. Set plutoGithub.github.repo, or the PLUTO_GITHUB_REPO env var. '
-      + 'Set plutoGithub.enabled to false to turn the CMS off.'
+      'The standalone CMS needs a GitHub repo. Set plutoGithub.github.repo, or the PLUTO_GITHUB_REPO env var. ' +
+        'Set plutoGithub.enabled to false to turn the CMS off.'
     )
-  } else if (resolved.storage === 'github' && !REPO_PATTERN.test(resolved.github.repo)) {
-    errors.push(`plutoGithub.github.repo must look like "owner/name". Got "${resolved.github.repo}".`)
+  } else if (
+    resolved.storage === 'github' &&
+    !REPO_PATTERN.test(resolved.github.repo)
+  ) {
+    errors.push(
+      `plutoGithub.github.repo must look like "owner/name". Got "${resolved.github.repo}".`
+    )
   }
 
   if (options.dir !== undefined) {
     const dir = normalizeGithubDir(String(options.dir))
     if (dir === undefined) {
-      errors.push(`plutoGithub.dir must be a relative path with no ".." segment. Got "${options.dir}".`)
+      errors.push(
+        `plutoGithub.dir must be a relative path with no ".." segment. Got "${options.dir}".`
+      )
     } else {
       resolved.dir = dir
     }
@@ -183,7 +207,9 @@ export function resolvePlutoGithubOptions(
 
   const ttl = resolved.cache.headTtl
   if (typeof ttl !== 'number' || !Number.isFinite(ttl) || ttl < 0) {
-    errors.push(`plutoGithub.cache.headTtl must be a number of seconds, zero or more. Got "${String(ttl)}".`)
+    errors.push(
+      `plutoGithub.cache.headTtl must be a number of seconds, zero or more. Got "${String(ttl)}".`
+    )
   }
 
   return { enabled: errors.length === 0, resolved, warnings, errors }
@@ -203,5 +229,7 @@ function detectRepo(
   if (owner && slug) {
     return `${owner}/${slug}`
   }
-  return ctx.dev && ctx.gitOrigin ? (parseGithubRepoUrl(ctx.gitOrigin) ?? '') : ''
+  return ctx.dev && ctx.gitOrigin
+    ? (parseGithubRepoUrl(ctx.gitOrigin) ?? '')
+    : ''
 }

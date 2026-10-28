@@ -13,13 +13,28 @@ import {
 
 describe('isPlutoMailAddress', () => {
   it('accepts a normal address', () => {
-    for (const value of ['a@example.com', 'first.last+tag@mail.example.com.br']) {
+    for (const value of [
+      'a@example.com',
+      'first.last+tag@mail.example.com.br',
+    ]) {
       expect(isPlutoMailAddress(value), value).toBe(true)
     }
   })
 
   it('rejects a bad address', () => {
-    for (const value of ['', 'a', 'a@b', 'a@@b.com', '@b.com', 'a@.com', 'a@b.', 'a b@c.com', 'a@b.com,c@d.com', 'Name <a@b.com>', `${'a'.repeat(250)}@b.com`]) {
+    for (const value of [
+      '',
+      'a',
+      'a@b',
+      'a@@b.com',
+      '@b.com',
+      'a@.com',
+      'a@b.',
+      'a b@c.com',
+      'a@b.com,c@d.com',
+      'Name <a@b.com>',
+      `${'a'.repeat(250)}@b.com`,
+    ]) {
       expect(isPlutoMailAddress(value), value).toBe(false)
     }
   })
@@ -27,13 +42,32 @@ describe('isPlutoMailAddress', () => {
 
 describe('isPlutoMailDomain', () => {
   it('accepts a domain name', () => {
-    for (const value of ['example.com', 'mail.example.com.br', 'a-b.co', 'xn--bcher-kva.example']) {
+    for (const value of [
+      'example.com',
+      'mail.example.com.br',
+      'a-b.co',
+      'xn--bcher-kva.example',
+    ]) {
       expect(isPlutoMailDomain(value), value).toBe(true)
     }
   })
 
   it('rejects anything else', () => {
-    for (const value of ['', 'example', 'Example.com', 'exa mple.com', 'https://example.com', 'example.com/x', '-a.com', 'a-.com', 'a..com', 'a.c', 'a.com:80', 'a.123', `${'a'.repeat(64)}.com`]) {
+    for (const value of [
+      '',
+      'example',
+      'Example.com',
+      'exa mple.com',
+      'https://example.com',
+      'example.com/x',
+      '-a.com',
+      'a-.com',
+      'a..com',
+      'a.c',
+      'a.com:80',
+      'a.123',
+      `${'a'.repeat(64)}.com`,
+    ]) {
       expect(isPlutoMailDomain(value), value).toBe(false)
     }
   })
@@ -48,12 +82,18 @@ describe('pLUTO_MAIL_REGIONS', () => {
 
 describe('plutoMailEnvLine', () => {
   it('leaves a simple value as it is', () => {
-    expect(plutoMailEnvLine('NUXT_PLUTO_MAIL_DRIVER', 'resend')).toBe('NUXT_PLUTO_MAIL_DRIVER=resend')
-    expect(plutoMailEnvLine('NUXT_PLUTO_MAIL_FROM', 'hello@example.com')).toBe('NUXT_PLUTO_MAIL_FROM=hello@example.com')
+    expect(plutoMailEnvLine('NUXT_PLUTO_MAIL_DRIVER', 'resend')).toBe(
+      'NUXT_PLUTO_MAIL_DRIVER=resend'
+    )
+    expect(plutoMailEnvLine('NUXT_PLUTO_MAIL_FROM', 'hello@example.com')).toBe(
+      'NUXT_PLUTO_MAIL_FROM=hello@example.com'
+    )
   })
 
   it('quotes a value with spaces or angle brackets', () => {
-    expect(plutoMailEnvLine('NUXT_PLUTO_MAIL_FROM', 'Shop <hello@example.com>')).toBe('NUXT_PLUTO_MAIL_FROM="Shop <hello@example.com>"')
+    expect(
+      plutoMailEnvLine('NUXT_PLUTO_MAIL_FROM', 'Shop <hello@example.com>')
+    ).toBe('NUXT_PLUTO_MAIL_FROM="Shop <hello@example.com>"')
   })
 
   it('escapes a quote and a backslash', () => {
@@ -71,7 +111,13 @@ describe('plutoMailDomainState', () => {
     expect(plutoMailDomainState('verified')).toBe('verified')
     expect(plutoMailDomainState('failed')).toBe('failed')
     expect(plutoMailDomainState('partially_failed')).toBe('failed')
-    for (const status of ['not_started', 'pending', 'partially_verified', 'temporary_failure', 'something_new']) {
+    for (const status of [
+      'not_started',
+      'pending',
+      'partially_verified',
+      'temporary_failure',
+      'something_new',
+    ]) {
       expect(plutoMailDomainState(status), status).toBe('pending')
     }
   })
@@ -104,15 +150,29 @@ describe('plutoMailPollDelay', () => {
 
 describe('plutoMailErrorCode', () => {
   it('reads the code of a $fetch error', () => {
-    expect(plutoMailErrorCode({ data: { statusCode: 400, data: { mail: { code: 'test_sender_only' } } } })).toBe('test_sender_only')
+    expect(
+      plutoMailErrorCode({
+        data: { statusCode: 400, data: { mail: { code: 'test_sender_only' } } },
+      })
+    ).toBe('test_sender_only')
   })
 
   it('reads the code of an error that Nuxt created', () => {
-    expect(plutoMailErrorCode({ data: { mail: { code: 'invalid_key' } } })).toBe('invalid_key')
+    expect(
+      plutoMailErrorCode({ data: { mail: { code: 'invalid_key' } } })
+    ).toBe('invalid_key')
   })
 
   it('returns undefined for anything else', () => {
-    for (const value of [undefined, null, 'text', {}, { data: {} }, { data: { data: { mail: {} } } }, { data: { mail: { code: 5 } } }]) {
+    for (const value of [
+      undefined,
+      null,
+      'text',
+      {},
+      { data: {} },
+      { data: { data: { mail: {} } } },
+      { data: { mail: { code: 5 } } },
+    ]) {
       expect(plutoMailErrorCode(value)).toBeUndefined()
     }
   })
@@ -163,7 +223,9 @@ describe('createPlutoMailPoller', () => {
     poller.start()
     await vi.advanceTimersByTimeAsync(11 * 60 * 1000)
 
-    expect(times.slice(0, 7)).toEqual([10_000, 20_000, 30_000, 40_000, 50_000, 60_000, 80_000])
+    expect(times.slice(0, 7)).toEqual([
+      10_000, 20_000, 30_000, 40_000, 50_000, 60_000, 80_000,
+    ])
     expect(times.at(-1)).toBeLessThanOrEqual(600_000)
     const gaps = times.slice(1).map((time, index) => time - times[index]!)
     expect(Math.max(...gaps)).toBe(60_000)
@@ -192,9 +254,12 @@ describe('createPlutoMailPoller', () => {
   it('stops on request, even while a check waits', async () => {
     vi.useFakeTimers()
     let release: (value: boolean) => void = () => {}
-    const check = vi.fn(() => new Promise<boolean>((resolve) => {
-      release = resolve
-    }))
+    const check = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          release = resolve
+        })
+    )
     const onStop = vi.fn()
     const poller = createPlutoMailPoller({ check, onStop })
 

@@ -14,7 +14,11 @@ const token = ref<string | null>(null)
 const creating = ref(false)
 const failure = ref<string | null>(null)
 
-const lines = computed(() => (token.value ? [plutoMailEnvLine('NUXT_PLUTO_MAIL_RESEND_API_KEY', token.value)] : []))
+const lines = computed(() =>
+  token.value
+    ? [plutoMailEnvLine('NUXT_PLUTO_MAIL_RESEND_API_KEY', token.value)]
+    : []
+)
 const locked = computed(() => keyState.value !== 'full')
 
 async function create() {
@@ -43,7 +47,11 @@ onBeforeUnmount(() => {
   >
     <UAlert
       v-if="locked"
-      :description="keyState === 'sending' ? t('pluto.mail.sendingKey.alreadySending') : t('pluto.mail.sendingKey.lockedKey')"
+      :description="
+        keyState === 'sending'
+          ? t('pluto.mail.sendingKey.alreadySending')
+          : t('pluto.mail.sendingKey.lockedKey')
+      "
       color="neutral"
       variant="subtle"
       icon="lucide:lock"
@@ -51,16 +59,32 @@ onBeforeUnmount(() => {
 
     <template v-else>
       <p class="text-muted text-sm">
-        {{ domain ? t('pluto.mail.sendingKey.forDomain', { domain: domain.name }) : t('pluto.mail.sendingKey.forAccount') }}
+        {{
+          domain
+            ? t('pluto.mail.sendingKey.forDomain', { domain: domain.name })
+            : t('pluto.mail.sendingKey.forAccount')
+        }}
       </p>
 
       <div v-if="!token">
-        <UButton :loading="creating" icon="lucide:key-round" color="neutral" variant="outline" @click="create">
+        <UButton
+          :loading="creating"
+          icon="lucide:key-round"
+          color="neutral"
+          variant="outline"
+          @click="create"
+        >
           {{ t('pluto.mail.sendingKey.create') }}
         </UButton>
       </div>
 
-      <UAlert v-if="failure" :description="failure" color="error" variant="subtle" icon="lucide:circle-x" />
+      <UAlert
+        v-if="failure"
+        :description="failure"
+        color="error"
+        variant="subtle"
+        icon="lucide:circle-x"
+      />
 
       <template v-if="token">
         <UAlert
@@ -71,7 +95,9 @@ onBeforeUnmount(() => {
           icon="lucide:triangle-alert"
         />
         <PlutoMailEnvLines :lines="lines" />
-        <p class="text-muted text-sm">{{ t('pluto.mail.sendingKey.next') }}</p>
+        <p class="text-muted text-sm">
+          {{ t('pluto.mail.sendingKey.next') }}
+        </p>
       </template>
     </template>
   </PlutoMailStep>

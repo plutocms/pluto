@@ -45,7 +45,9 @@ export function usePlutoContentItem(
     loadError.value = null
 
     try {
-      item.value = await $fetch<PlutoContentItem>(`/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`)
+      item.value = await $fetch<PlutoContentItem>(
+        `/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`
+      )
     } catch (caught) {
       error.value = caught
       loadError.value = caught
@@ -63,7 +65,9 @@ export function usePlutoContentItem(
   // again later still gets a real rejection to `await`.
   refresh().catch(() => {})
 
-  async function save(values: Record<string, unknown>): Promise<PlutoContentItem> {
+  async function save(
+    values: Record<string, unknown>
+  ): Promise<PlutoContentItem> {
     error.value = null
 
     try {
@@ -72,10 +76,13 @@ export function usePlutoContentItem(
             method: 'POST',
             body: values,
           })
-        : await $fetch<PlutoContentItem>(`/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`, {
-            method: 'PATCH',
-            body: values,
-          })
+        : await $fetch<PlutoContentItem>(
+            `/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`,
+            {
+              method: 'PATCH',
+              body: values,
+            }
+          )
 
       item.value = saved
       return saved
@@ -91,7 +98,10 @@ export function usePlutoContentItem(
     }
 
     try {
-      await $fetch<unknown>(`/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`, { method: 'DELETE' })
+      await $fetch<unknown>(
+        `/api/_pluto/content/${typeName}/${contentIdPath(resolvedId)}`,
+        { method: 'DELETE' }
+      )
     } catch (caught) {
       error.value = caught
       throw caught

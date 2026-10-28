@@ -21,7 +21,10 @@ const { t } = usePlutoI18n()
       `data-pluto-admin-scope` wrapper gives it the admin theme there.
     -->
     <template #content>
-      <div class="text-default flex h-full flex-col bg-(--pluto-admin-sidebar)" data-pluto-admin-scope>
+      <div
+        class="text-default flex h-full flex-col bg-(--pluto-admin-sidebar)"
+        data-pluto-admin-scope
+      >
         <div class="flex shrink-0 justify-end p-2">
           <UButton
             :aria-label="t('pluto.common.close')"

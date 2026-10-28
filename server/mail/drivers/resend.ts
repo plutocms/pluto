@@ -20,13 +20,18 @@ export interface ResendDriverOptions {
  * timeout. A network error, a timeout or a 5xx gets one retry with the same
  * `Idempotency-Key`, so Resend never sends the same message twice.
  */
-export function createResendDriver(options: ResendDriverOptions): PlutoMailDriver {
+export function createResendDriver(
+  options: ResendDriverOptions
+): PlutoMailDriver {
   return {
     id: 'resend',
     isConfigured: () => Boolean(options.apiKey),
     async send(message, context) {
       if (!options.apiKey) {
-        throw new PlutoMailError('not_configured', 'The Resend API key is not set.')
+        throw new PlutoMailError(
+          'not_configured',
+          'The Resend API key is not set.'
+        )
       }
 
       const client = createResendClient({
@@ -37,8 +42,8 @@ export function createResendDriver(options: ResendDriverOptions): PlutoMailDrive
 
       const replyTo = message.replyTo || context.replyTo
       const result = await client.request<{
- id?: string
-}>('POST', '/emails', {
+        id?: string
+      }>('POST', '/emails', {
         idempotencyKey: message.idempotencyKey ?? crypto.randomUUID(),
         retry: true,
         body: {
@@ -51,7 +56,10 @@ export function createResendDriver(options: ResendDriverOptions): PlutoMailDrive
         },
       })
 
-      return { id: typeof result?.id === 'string' ? result.id : null, driver: 'resend' }
+      return {
+        id: typeof result?.id === 'string' ? result.id : null,
+        driver: 'resend',
+      }
     },
   }
 }

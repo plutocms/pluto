@@ -37,12 +37,17 @@ export function usePlutoAdminPages() {
         ]
       })
 
-    const registered = registry.pages.list.value.map((page) => ({ ...page, title: tx(page.title) }))
+    const registered = registry.pages.list.value.map((page) => ({
+      ...page,
+      title: tx(page.title),
+    }))
 
     return [...registered, ...contentPages]
   })
 
-  const current = computed(() => items.value.find((page) => page.path === route.path))
+  const current = computed(() =>
+    items.value.find((page) => page.path === route.path)
+  )
 
   return { items, current }
 }

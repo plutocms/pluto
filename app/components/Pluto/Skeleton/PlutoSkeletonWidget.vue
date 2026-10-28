@@ -15,7 +15,12 @@ withDefaults(
 
 <template>
   <!-- The shape of a dashboard card: a header with a title and a subtitle, then the body. -->
-  <UCard v-if="variant === 'card'" :style="{ height }" class="w-full" aria-hidden="true">
+  <UCard
+    v-if="variant === 'card'"
+    :style="{ height }"
+    class="w-full"
+    aria-hidden="true"
+  >
     <template #header>
       <div class="flex flex-col gap-1.5">
         <USkeleton class="h-4 w-32" />
@@ -29,7 +34,12 @@ withDefaults(
     </div>
   </UCard>
 
-  <div v-else :style="{ height }" class="flex flex-col gap-3" aria-hidden="true">
+  <div
+    v-else
+    :style="{ height }"
+    class="flex flex-col gap-3"
+    aria-hidden="true"
+  >
     <USkeleton class="h-4 w-40" />
     <USkeleton class="h-8 w-full" />
   </div>

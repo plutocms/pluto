@@ -25,14 +25,18 @@ const emit = defineEmits<{
 
 const { t } = usePlutoI18n()
 
-const value = computed(() => (typeof props.modelValue === 'string' ? props.modelValue : ''))
+const value = computed(() =>
+  typeof props.modelValue === 'string' ? props.modelValue : ''
+)
 
 // The Markdown that the visual editor cannot keep. It follows the text, so
 // Visual turns on again when the author removes that syntax in Source.
 const unsafe = computed(() => findUnsafeMarkdown(value.value))
 const visualBlocked = computed(() => unsafe.value.length > 0)
 
-const mode = ref<'visual' | 'source'>(pickMarkdownEditorMode(props.field.editor, value.value))
+const mode = ref<'visual' | 'source'>(
+  pickMarkdownEditorMode(props.field.editor, value.value)
+)
 
 function setMode(next: 'visual' | 'source') {
   if (next === 'visual' && visualBlocked.value) {
@@ -41,17 +45,31 @@ function setMode(next: 'visual' | 'source') {
   mode.value = next
 }
 
-const placeholder = computed(() => props.field.placeholder ?? t('pluto.github.editor.placeholder'))
+const placeholder = computed(
+  () => props.field.placeholder ?? t('pluto.github.editor.placeholder')
+)
 
 // The toolbar items are shared: `usePlutoMarkdownToolbar`. The link button is a slot.
 const items = usePlutoMarkdownToolbar({ link: true })
 </script>
 
 <template>
-  <UFormField :label="field.label" :description="field.description" :required="field.required">
+  <UFormField
+    :label="field.label"
+    :description="field.description"
+    :required="field.required"
+  >
     <div class="mb-2 flex justify-end">
-      <div :aria-label="t('pluto.github.editor.mode')" class="flex gap-1" role="group">
-        <UTooltip :text="t('pluto.github.editor.unsafe')" :disabled="!visualBlocked" :content="{ side: 'top' }">
+      <div
+        :aria-label="t('pluto.github.editor.mode')"
+        class="flex gap-1"
+        role="group"
+      >
+        <UTooltip
+          :text="t('pluto.github.editor.unsafe')"
+          :disabled="!visualBlocked"
+          :content="{ side: 'top' }"
+        >
           <!-- A disabled button gets no pointer events, so the span carries the tooltip. -->
           <span class="inline-flex">
             <UButton

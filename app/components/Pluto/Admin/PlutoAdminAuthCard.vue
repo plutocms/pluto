@@ -51,8 +51,16 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
       <div class="flex flex-col gap-y-6">
         <div class="flex items-center gap-x-2">
           <template v-if="logoLight">
-            <img :src="logoLight" :alt="brand.name ?? ''" class="block h-8 w-auto max-w-48 object-contain dark:hidden" />
-            <img :src="logoDark" :alt="brand.name ?? ''" class="hidden h-8 w-auto max-w-48 object-contain dark:block" />
+            <img
+              :src="logoLight"
+              :alt="brand.name ?? ''"
+              class="block h-8 w-auto max-w-48 object-contain dark:hidden"
+            />
+            <img
+              :src="logoDark"
+              :alt="brand.name ?? ''"
+              class="hidden h-8 w-auto max-w-48 object-contain dark:block"
+            />
           </template>
           <PlutoLogo
             v-else
@@ -62,13 +70,18 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
           <span
             v-if="siteName"
             class="text-highlighted truncate text-sm font-semibold"
-            >{{ siteName }}</span>
+            >{{ siteName }}</span
+          >
         </div>
 
         <template v-if="driver || slots.default">
           <div class="flex flex-col gap-y-1">
-            <h1 class="text-3xl font-bold">{{ heading }}</h1>
-            <p v-if="subheading" class="text-muted text-sm">{{ subheading }}</p>
+            <h1 class="text-3xl font-bold">
+              {{ heading }}
+            </h1>
+            <p v-if="subheading" class="text-muted text-sm">
+              {{ subheading }}
+            </p>
           </div>
 
           <slot v-if="slots.default" />

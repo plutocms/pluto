@@ -40,7 +40,10 @@ afterEach(() => {
   vi.resetModules()
 })
 
-function contentType(name: string, overrides: Partial<PlutoContentType> = {}): PlutoContentType {
+function contentType(
+  name: string,
+  overrides: Partial<PlutoContentType> = {}
+): PlutoContentType {
   return {
     name,
     label: name,
@@ -56,19 +59,29 @@ async function loadComposables() {
   const { usePlutoRegistry } = await import('../app/composables/pluto-registry')
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)
 
-  const { definePlutoExtension } = await import('../app/composables/pluto-extension')
-  const { usePlutoContentTypes } = await import('../app/composables/pluto-content-types')
+  const { definePlutoExtension } =
+    await import('../app/composables/pluto-extension')
+  const { usePlutoContentTypes } =
+    await import('../app/composables/pluto-content-types')
   vi.stubGlobal('usePlutoContentTypes', usePlutoContentTypes)
 
-  const { usePlutoPermissions } = await import('../app/composables/pluto-permissions')
+  const { usePlutoPermissions } =
+    await import('../app/composables/pluto-permissions')
   vi.stubGlobal('usePlutoPermissions', usePlutoPermissions)
 
-  const { usePlutoSettingsPages } = await import('../app/composables/pluto-settings')
+  const { usePlutoSettingsPages } =
+    await import('../app/composables/pluto-settings')
   vi.stubGlobal('usePlutoSettingsPages', usePlutoSettingsPages)
 
-  const { usePlutoAdminNav } = await import('../app/composables/pluto-admin-nav')
+  const { usePlutoAdminNav } =
+    await import('../app/composables/pluto-admin-nav')
 
-  return { usePlutoRegistry, definePlutoExtension, usePlutoPermissions, usePlutoAdminNav }
+  return {
+    usePlutoRegistry,
+    definePlutoExtension,
+    usePlutoPermissions,
+    usePlutoAdminNav,
+  }
 }
 
 describe('usePlutoAdminNav — registry', () => {
@@ -97,7 +110,13 @@ describe('usePlutoAdminNav — labels', () => {
       id: 'test-layer',
       nav: [
         { id: 'home', order: 0, label: 'pluto.nav.home', to: '/admin/home' },
-        { id: 'posts', order: 10, label: 'Posts', to: '/admin/posts', children: [{ label: 'pluto.nav.settings', to: '/x' }] },
+        {
+          id: 'posts',
+          order: 10,
+          label: 'Posts',
+          to: '/admin/posts',
+          children: [{ label: 'pluto.nav.settings', to: '/x' }],
+        },
       ],
     })
 
@@ -112,7 +131,10 @@ describe('usePlutoAdminNav — labels', () => {
     const locale = ref('en')
     vi.stubGlobal('usePlutoI18n', () => createI18nStub(locale))
 
-    definePlutoExtension({ id: 'test-layer', nav: [{ id: 'home', label: 'pluto.nav.home', to: '/admin/home' }] })
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [{ id: 'home', label: 'pluto.nav.home', to: '/admin/home' }],
+    })
 
     const { items } = usePlutoAdminNav()
 
@@ -125,26 +147,41 @@ describe('usePlutoAdminNav — labels', () => {
 
   it('uses the convention keys of a content type, with the English literal as the fallback', async () => {
     const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
-    const messages: Record<string, string> = { 'content.post.labelPlural': 'Artigos', 'content.post.label': 'Artigo' }
+    const messages: Record<string, string> = {
+      'content.post.labelPlural': 'Artigos',
+      'content.post.label': 'Artigo',
+    }
     vi.stubGlobal('usePlutoI18n', () => ({
       ...createI18nStub(),
       te: (key: string) => key in messages,
       t: (key: string, params?: Record<string, unknown>) =>
-        messages[key] ?? (key === 'pluto.content.all' ? `All ${params?.labelPlural}` : `Create new ${params?.label}`),
+        messages[key] ??
+        (key === 'pluto.content.all'
+          ? `All ${params?.labelPlural}`
+          : `Create new ${params?.label}`),
     }))
 
     definePlutoExtension({
       id: 'test-layer',
       contentTypes: [
-        { id: 'posts', type: contentType('post', { label: 'Post', labelPlural: 'Posts' }) },
-        { id: 'pages', type: contentType('page', { label: 'Page', labelPlural: 'Pages' }) },
+        {
+          id: 'posts',
+          type: contentType('post', { label: 'Post', labelPlural: 'Posts' }),
+        },
+        {
+          id: 'pages',
+          type: contentType('page', { label: 'Page', labelPlural: 'Pages' }),
+        },
       ],
     })
 
     const entries = usePlutoAdminNav().items.value
 
     expect(entries.map((entry) => entry.label)).toEqual(['Artigos', 'Pages'])
-    expect(entries[0]?.children?.map((child) => child.label)).toEqual(['All Artigos', 'Create new Artigo'])
+    expect(entries[0]?.children?.map((child) => child.label)).toEqual([
+      'All Artigos',
+      'Create new Artigo',
+    ])
   })
 })
 
@@ -154,7 +191,12 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
 
     definePlutoExtension({
       id: 'test-layer',
-      contentTypes: [{ id: 'posts', type: contentType('post', { label: 'Post', labelPlural: 'Posts' }) }],
+      contentTypes: [
+        {
+          id: 'posts',
+          type: contentType('post', { label: 'Post', labelPlural: 'Posts' }),
+        },
+      ],
     })
 
     const { items } = usePlutoAdminNav()
@@ -174,7 +216,12 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
 
     definePlutoExtension({
       id: 'test-layer',
-      contentTypes: [{ id: 'posts', type: contentType('post', { basePath: '/admin/posts' }) }],
+      contentTypes: [
+        {
+          id: 'posts',
+          type: contentType('post', { basePath: '/admin/posts' }),
+        },
+      ],
     })
 
     const { items } = usePlutoAdminNav()
@@ -188,12 +235,16 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
 
     definePlutoExtension({
       id: 'test-layer',
-      contentTypes: [{ id: 'posts', type: contentType('post', { autoRoutes: false }) }],
+      contentTypes: [
+        { id: 'posts', type: contentType('post', { autoRoutes: false }) },
+      ],
     })
 
     const { items } = usePlutoAdminNav()
 
-    expect(items.value.find((item) => item.id === 'content:post')).toBeUndefined()
+    expect(
+      items.value.find((item) => item.id === 'content:post')
+    ).toBeUndefined()
   })
 
   it('shows the entry when the content type declares no read capability at all', async () => {
@@ -210,16 +261,23 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
   })
 
   it('hides the entry when can() returns false for a declared read capability', async () => {
-    const { definePlutoExtension, usePlutoPermissions, usePlutoAdminNav } = await loadComposables()
+    const { definePlutoExtension, usePlutoPermissions, usePlutoAdminNav } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-permissions',
-      permissionsDriver: { id: 'driver', load: async () => ['other:capability'] },
+      permissionsDriver: {
+        id: 'driver',
+        load: async () => ['other:capability'],
+      },
     })
     definePlutoExtension({
       id: 'test-layer',
       contentTypes: [
-        { id: 'posts', type: contentType('post', { capabilities: { read: 'posts:read' } }) },
+        {
+          id: 'posts',
+          type: contentType('post', { capabilities: { read: 'posts:read' } }),
+        },
       ],
     })
 
@@ -227,11 +285,14 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
 
     const { items } = usePlutoAdminNav()
 
-    expect(items.value.find((item) => item.id === 'content:post')).toBeUndefined()
+    expect(
+      items.value.find((item) => item.id === 'content:post')
+    ).toBeUndefined()
   })
 
   it('shows the entry once can() grants the declared read capability', async () => {
-    const { definePlutoExtension, usePlutoPermissions, usePlutoAdminNav } = await loadComposables()
+    const { definePlutoExtension, usePlutoPermissions, usePlutoAdminNav } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-permissions',
@@ -240,7 +301,10 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
     definePlutoExtension({
       id: 'test-layer',
       contentTypes: [
-        { id: 'posts', type: contentType('post', { capabilities: { read: 'posts:read' } }) },
+        {
+          id: 'posts',
+          type: contentType('post', { capabilities: { read: 'posts:read' } }),
+        },
       ],
     })
 
@@ -256,8 +320,22 @@ describe('usePlutoAdminNav — Settings children', () => {
   function core(definePlutoExtension: (definition: PlutoExtension) => void) {
     definePlutoExtension({
       id: 'pluto',
-      nav: [{ id: 'settings', order: 1000, label: 'pluto.nav.settings', to: '/admin/settings' }],
-      settingsPages: [{ id: 'general', order: 0, label: 'pluto.settings.tabs.general', to: '/admin/settings' }],
+      nav: [
+        {
+          id: 'settings',
+          order: 1000,
+          label: 'pluto.nav.settings',
+          to: '/admin/settings',
+        },
+      ],
+      settingsPages: [
+        {
+          id: 'general',
+          order: 0,
+          label: 'pluto.settings.tabs.general',
+          to: '/admin/settings',
+        },
+      ],
     })
   }
 
@@ -276,7 +354,9 @@ describe('usePlutoAdminNav — Settings children', () => {
     core(definePlutoExtension)
     definePlutoExtension({
       id: 'test-layer',
-      settingsPages: [{ id: 'users', order: 10, label: 'Users', to: '/admin/settings/users' }],
+      settingsPages: [
+        { id: 'users', order: 10, label: 'Users', to: '/admin/settings/users' },
+      ],
     })
 
     const settings = usePlutoAdminNav().items.value[0]
@@ -293,7 +373,9 @@ describe('usePlutoAdminNav — Settings children', () => {
     core(definePlutoExtension)
     definePlutoExtension({
       id: 'test-layer',
-      settingsPages: [{ id: 'users', label: 'Users', to: '/admin/settings/users' }],
+      settingsPages: [
+        { id: 'users', label: 'Users', to: '/admin/settings/users' },
+      ],
     })
     routePath.value = '/admin/settings/users'
 
@@ -306,9 +388,17 @@ describe('usePlutoAdminNav — Settings children', () => {
     definePlutoExtension({
       id: 'test-layer',
       permissionsDriver: { id: 'driver', load: async () => ['posts:read'] },
-      settingsPages: [{ id: 'email', label: 'Email', to: '/admin/settings/email', capability: '*' }],
+      settingsPages: [
+        {
+          id: 'email',
+          label: 'Email',
+          to: '/admin/settings/email',
+          capability: '*',
+        },
+      ],
     })
-    const { usePlutoPermissions } = await import('../app/composables/pluto-permissions')
+    const { usePlutoPermissions } =
+      await import('../app/composables/pluto-permissions')
     await usePlutoPermissions().load()
 
     expect(usePlutoAdminNav().items.value[0]?.children).toBeUndefined()

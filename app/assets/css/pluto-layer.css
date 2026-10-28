@@ -87,15 +87,27 @@
  * has no transition at all. Transforms and keyframe animations (chevrons,
  * slideovers, accordions) are not touched.
  */
-:root[data-pluto-admin] :where(.transition, .transition-colors, .transition-opacity, .transition-all),
+:root[data-pluto-admin]
+  :where(.transition, .transition-colors, .transition-opacity, .transition-all),
 :root[data-pluto-admin] :where([class*='before:transition'])::before,
-[data-pluto-admin-scope] :where(.transition, .transition-colors, .transition-opacity, .transition-all),
+[data-pluto-admin-scope]
+  :where(.transition, .transition-colors, .transition-opacity, .transition-all),
 [data-pluto-admin-scope] :where([class*='before:transition'])::before {
   transition-duration: 0s;
 }
 
-:root[data-pluto-admin] :where(button, a)[data-slot='base']:where(.transition, .transition-colors, .transition-all),
-[data-pluto-admin-scope] :where(button, a)[data-slot='base']:where(.transition, .transition-colors, .transition-all) {
+:root[data-pluto-admin]
+  :where(button, a)[data-slot='base']:where(
+    .transition,
+    .transition-colors,
+    .transition-all
+  ),
+[data-pluto-admin-scope]
+  :where(button, a)[data-slot='base']:where(
+    .transition,
+    .transition-colors,
+    .transition-all
+  ) {
   transition-duration: 75ms;
 }
 
@@ -110,6 +122,10 @@
  * preview) must not take the pointer. Without this, the drag stops when the
  * pointer moves over the iframe.
  */
-:root[data-pluto-admin]:has([data-dragging='true'], [data-resize-handle-state='drag']) iframe {
+:root[data-pluto-admin]:has(
+    [data-dragging='true'],
+    [data-resize-handle-state='drag']
+  )
+  iframe {
   pointer-events: none;
 }
