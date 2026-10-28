@@ -35,13 +35,13 @@ const widths = ['w-3/4', 'w-1/2', 'w-2/3', 'w-2/5', 'w-3/5', 'w-1/3']
         </thead>
         <tbody class="divide-y divide-default">
           <tr v-for="row in rows" :key="row">
-            <td v-for="(column, index) in columns" :key="column" class="px-4 py-4">
+            <td v-for="(column, index) in columns" :key="column" class="p-4">
               <USkeleton :class="widths[(row + index) % widths.length]" class="h-4" />
             </td>
-            <td v-if="status" class="px-4 py-4">
+            <td v-if="status" class="p-4">
               <USkeleton class="h-5 w-20 rounded-full" />
             </td>
-            <td class="px-4 py-4">
+            <td class="p-4">
               <div class="flex justify-end gap-3">
                 <USkeleton class="h-4 w-8" />
                 <USkeleton class="h-4 w-14" />

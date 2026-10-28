@@ -73,7 +73,7 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             <!-- The site that this admin edits, as a chip. -->
             <span
               v-if="siteName"
-              class="border-default bg-elevated text-highlighted hidden h-6 max-w-48 items-center truncate rounded-full border px-2.5 text-xs leading-6 font-semibold sm:inline-block"
+              class="border-default bg-elevated text-highlighted hidden h-6 max-w-48 items-center truncate rounded-full border px-2.5 text-xs/6 font-semibold sm:inline-block"
             >
               {{ siteName }}
             </span>

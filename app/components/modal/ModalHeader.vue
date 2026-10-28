@@ -44,13 +44,13 @@ function closeModal() {
 <template>
   <div :class="resolvedClasses">
     <div
-      class="bg-default absolute top-0 left-0 z-[-1] h-full w-full rounded-t-lg backdrop-blur-md"
+      class="bg-default absolute top-0 left-0 z-[-1] size-full rounded-t-lg backdrop-blur-md"
     />
 
     <div class="flex items-start justify-between gap-3 py-3 sm:py-4">
       <h2
         :class="
-          twMerge(['text-2xl leading-8 font-medium sm:text-3xl sm:leading-10'])
+          twMerge(['text-2xl/8 font-medium sm:text-3xl/10'])
         "
       >
         <slot />

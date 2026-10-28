@@ -46,7 +46,7 @@ const resolvedClasses = computed(() => {
     <div
       :class="
         twMerge([
-          'bg-opacity-90 absolute top-0 left-0 z-[-1] h-full w-full rounded-b-lg backdrop-blur-md',
+          'bg-opacity-90 absolute top-0 left-0 z-[-1] size-full rounded-b-lg backdrop-blur-md',
           'bg-default',
         ])
       "
@@ -54,7 +54,7 @@ const resolvedClasses = computed(() => {
 
     <div
       :class="resolvedAlign"
-      class="flex flex-wrap gap-2 px-3 py-3 sm:px-4 sm:py-4"
+      class="flex flex-wrap gap-2 p-3 sm:p-4"
     >
       <slot />
     </div>

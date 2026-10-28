@@ -168,7 +168,7 @@ const items = computed<SplitterItem[]>(() => [
         @dragging="onDragging"
       >
         <template #left>
-          <div ref="leftEl" class="flex h-full w-full flex-col overflow-y-auto">
+          <div ref="leftEl" class="flex size-full flex-col overflow-y-auto">
             <slot name="left" />
           </div>
         </template>
@@ -178,7 +178,7 @@ const items = computed<SplitterItem[]>(() => [
             `scrollbar-gutter: stable` keeps the space of the scrollbar on a short page too, so
             the content does not move sideways between a short and a long page.
           -->
-          <main :class="fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto [scrollbar-gutter:stable]'" class="min-h-0 w-full">
+          <main :class="fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto scrollbar-gutter-stable'" class="min-h-0 w-full">
             <!--
               'container' matches AdminView's own padding/gap classes, so a view
               moving from AdminView to this panel looks the same. 'full' adds
@@ -197,7 +197,7 @@ const items = computed<SplitterItem[]>(() => [
         </template>
 
         <template #aside>
-          <div ref="asideEl" class="h-full w-full">
+          <div ref="asideEl" class="size-full">
             <slot name="aside" />
           </div>
         </template>
