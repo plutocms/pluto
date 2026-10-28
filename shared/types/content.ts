@@ -263,6 +263,16 @@ export interface PlutoContentType {
     layout?: 'default' | 'focus' | 'canvas'
     /** The field that fills the main region in the 'canvas' layout. Required for 'canvas'. */
     canvasField?: string
+    /**
+     * 'canvas' only: the widget of the canvas field adds a left panel. Core shows a skeleton
+     * of a list panel there while the item or the widget code loads, so the panel does not pop
+     * in later. A string is the label (key-or-literal). An object also gives `class`, the
+     * classes of the skeleton root (for example the background of the real panel).
+     */
+    leftPanel?: string | {
+      label: string
+      class?: string
+    }
     /** true = always show. false = never. 'auto' (default) = show when any field has region 'side'. */
     aside?: boolean | 'auto'
     /** Aside starts closed. Default false, or true when layout is 'focus'. */

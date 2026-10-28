@@ -20,7 +20,7 @@ const props = defineProps<{
 
 const { byName } = usePlutoContentTypes()
 const contentType = computed(() => byName(props.type))
-const { t, locale } = usePlutoI18n()
+const { t, tx, locale } = usePlutoI18n()
 const text = usePlutoContentText(contentType)
 const errorText = usePlutoErrorText()
 
@@ -562,6 +562,17 @@ const asideModel = computed({
 })
 
 const hasLeft = computed(() => isCanvas.value && leftPanels.value.length > 0 && !loadFailed.value)
+// A type that declares its left panel (`form.leftPanel`) shows a skeleton of it until the
+// widget registers the real panel.
+const leftPanelOption = computed(() => {
+  const option = contentType.value?.form?.leftPanel
+  return typeof option === 'string' ? { label: option } : option
+})
+// The canvas widget rendered (its code loaded). After that, a missing left panel is final: the
+// widget shows none in its current mode, so the skeleton goes.
+const canvasReady = ref(false)
+const leftSkeleton = computed(() => isCanvas.value && !hasLeft.value && !loadFailed.value && Boolean(leftPanelOption.value) && (itemPending.value || !canvasReady.value))
+const leftTitle = computed(() => leftPanels.value[0]?.label ?? (leftPanelOption.value ? tx(leftPanelOption.value.label) : undefined))
 const hasRight = computed(() => isCanvas.value && rightTabs.value.length > 0 && !loadFailed.value)
 
 function openPanel(id: string) {
@@ -723,7 +734,7 @@ const asideTitle = computed(() =>
     ref="viewPanel"
     v-model:left-open="leftOpen"
     :aside-open="asideSlot && asideModel"
-    :left-title="leftPanels[0]?.label"
+    :left-title="leftTitle"
     :width="layout === 'default' ? 'container' : 'full'"
     :fill="isCanvas"
     panel-toggles
@@ -796,6 +807,8 @@ const asideTitle = computed(() =>
         v-if="canvasFieldDef"
         :type="type"
         :field="canvasFieldDef"
+        canvas
+        @ready="canvasReady = true"
         :model-value="item[canvasFieldDef.name]"
         :disabled="!canWrite || saving"
         @update:model-value="updateField(canvasFieldDef, $event)"
@@ -843,6 +856,9 @@ const asideTitle = computed(() =>
     <!-- The left panel of the canvas layout. Widget panels teleport into it. -->
     <template v-if="hasLeft" #left>
       <div :ref="setLeftTarget" class="flex min-h-0 flex-1 flex-col" />
+    </template>
+    <template v-else-if="leftSkeleton" #left>
+      <PlutoSkeletonPanel :title="leftTitle" :class="leftPanelOption?.class" />
     </template>
 
     <template v-if="asideSlot" #aside>
