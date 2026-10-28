@@ -142,7 +142,7 @@ const items = computed<SplitterItem[]>(() => [
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col overflow-hidden">
+  <div class="flex h-full min-h-0 flex-col overflow-hidden" data-pluto-view>
     <div class="shrink-0">
       <slot name="toolbar" />
     </div>
@@ -170,7 +170,11 @@ const items = computed<SplitterItem[]>(() => [
         </template>
 
         <template #main>
-          <main :class="fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'" class="min-h-0 w-full">
+          <!--
+            `scrollbar-gutter: stable` keeps the space of the scrollbar on a short page too, so
+            the content does not move sideways between a short and a long page.
+          -->
+          <main :class="fill ? 'flex flex-col overflow-hidden' : 'overflow-y-auto [scrollbar-gutter:stable]'" class="min-h-0 w-full">
             <!--
               'container' matches AdminView's own padding/gap classes, so a view
               moving from AdminView to this panel looks the same. 'full' adds

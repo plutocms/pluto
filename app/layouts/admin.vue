@@ -65,7 +65,11 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         root: 'min-h-0 bg-(--pluto-admin-canvas)',
         // The pages set their own padding. Nuxt UI also adds `sm:p-6` and
         // `sm:gap-6`, and the merge keeps a responsive class, so reset them too.
-        body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-x-hidden',
+        // `scrollbar-gutter: stable` keeps the scrollbar space on a short page,
+        // so the content does not move sideways between pages. A page with
+        // PlutoViewAdminPanel (`data-pluto-view`) scrolls in its own region,
+        // which keeps the gutter itself.
+        body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-x-hidden [scrollbar-gutter:stable] has-[[data-pluto-view]]:[scrollbar-gutter:auto]',
       }"
     >
       <template #body>
