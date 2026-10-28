@@ -3,23 +3,12 @@ import { contentTextFor } from './internal/content-text'
 // The id of core's Settings nav item (extension `pluto`, entry `settings`).
 const SETTINGS_NAV_ID = 'pluto:settings'
 
-// The old `NavigationMenuItem`/`NavigationMenuChildItem` shape (from
-// `@plutocms/utils`) always carries a plain `href`, never Nuxt's typed `to`.
-// This narrows just the field the bridge below reads.
-interface LegacyHrefLink {
-  href?: string
-}
-
 /**
- * The admin sidebar nav. Merges three sources:
+ * The admin sidebar nav. Merges two sources:
  *
  * 1. The registry's own `nav` bucket — a layer's own `definePlutoExtension`
  *    call.
- * 2. The old `useSidebarAdminActions` composable (`@plutocms/utils`), so an
- *    unmigrated layer's sidebar entries keep showing up. A bridged entry is
- *    skipped when a registered entry already uses the same label, so a
- *    layer that migrates does not get a duplicate item.
- * 3. One synthesized entry per auto-routed content type (`type.autoRoutes
+ * 2. One synthesized entry per auto-routed content type (`type.autoRoutes
  *    !== false`) — a layer that declares a content type gets a nav entry
  *    for free, without calling `definePlutoExtension` itself. Gated on the
  *    same "no capability declared = always visible" rule the generic
@@ -27,26 +16,24 @@ interface LegacyHrefLink {
  *    when `type.capabilities.read` is unset, the entry is always visible;
  *    when it is set, `can(...)` decides.
  *
- * Labels are key-or-literal. They resolve with `tx()` after the legacy dedupe
- * above, which compares the raw labels. A content type's labels come from
- * `usePlutoContentText`, so the convention keys apply. The `computed` reads
- * the active locale, so a locale switch updates the labels.
+ * Labels are key-or-literal. They resolve with `tx()`. A content type's
+ * labels come from `usePlutoContentText`, so the convention keys apply. The
+ * `computed` reads the active locale, so a locale switch updates the labels.
  *
  * The Settings item (`pluto:settings`) gets one child per visible settings page
  * (`usePlutoSettingsPages`) when there are two or more. It opens by default
  * on `/admin/settings/**`.
  *
- * `entry.enabled` is read and enforced uniformly across all three sources
+ * `entry.enabled` is read and enforced uniformly across both sources
  * here. Source 1 already filters on it a second time, inside
  * `createOwnedRegistry` itself (see
  * `app/composables/internal/registry-factory.ts`) — applying the same
- * filter again here is harmless for that source, and is what makes sources
- * 2 and 3 (plain objects that never pass through that registry) respect
+ * filter again here is harmless for that source, and is what makes source
+ * 2 (plain objects that never pass through that registry) respect
  * `enabled` too, instead of only source 1.
  */
 export function usePlutoAdminNav() {
   const registry = usePlutoRegistry()
-  const legacy = useSidebarAdminActions()
   const { items: contentTypes } = usePlutoContentTypes()
   const { can } = usePlutoPermissions()
   const { items: settingsPages, current: currentSettingsPage } = usePlutoSettingsPages()
@@ -55,24 +42,6 @@ export function usePlutoAdminNav() {
 
   const items = computed<PlutoNavItem[]>(() => {
     const registered = registry.nav.list.value
-    const seen = new Set(registered.map((item) => item.label))
-
-    const bridged: PlutoNavItem[] = legacy.actions.value
-      .filter((action) => !seen.has(String(action.label)))
-      .map((action, index) => ({
-        id: `legacy:sidebar-${index}`,
-        order: 500,
-        label: String(action.label ?? ''),
-        icon: action.icon,
-        to: (action as LegacyHrefLink).href,
-        defaultOpen: action.defaultOpen,
-        children: (action.children ?? []).map((child) => ({
-          label: String(child.label ?? ''),
-          to: (child as LegacyHrefLink).href ?? '',
-        })),
-      }))
-
-    // Resolve the labels now, after the dedupe above has compared the raw ones.
     const resolveLabels = (item: PlutoNavItem): PlutoNavItem => ({
       ...item,
       label: tx(item.label),
@@ -111,7 +80,7 @@ export function usePlutoAdminNav() {
           }
         : item
 
-    return [...registered.map(resolveLabels).map(withSettingsChildren), ...bridged.map(resolveLabels), ...contentNav]
+    return [...registered.map(resolveLabels).map(withSettingsChildren), ...contentNav]
       .filter((item) => item.enabled?.() ?? true)
       .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
   })

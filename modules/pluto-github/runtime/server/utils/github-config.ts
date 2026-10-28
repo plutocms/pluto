@@ -1,7 +1,5 @@
 import type { GithubFetch } from '../github/client'
-import process from 'node:process'
 import { useRuntimeConfig } from 'nitropack/runtime'
-import { legacyEnvWarning, readLegacySecrets } from '../../../options'
 
 /**
  * The run-time config of the CMS server code, in one flat object. Only this
@@ -47,20 +45,9 @@ export function parseAllowedUsers(value: unknown): string[] {
     .filter(Boolean)
 }
 
-let legacyWarned = false
-
 export function getGithubConfig(): GithubConfig {
   const config = useRuntimeConfig()
-  const runtimeSecret = (config.plutoGithub ?? {}) as Record<string, unknown>
-  // A secret that the host still sets under its old name (`NUXT_PLUTO_CMS_*`, before 0.28).
-  const legacy = readLegacySecrets(runtimeSecret, process.env)
-  if (legacy.used.length > 0 && !legacyWarned) {
-    legacyWarned = true
-    for (const { oldName, newName } of legacy.used) {
-      console.warn(`[pluto-github] ${legacyEnvWarning(oldName, newName)}`)
-    }
-  }
-  const secret = { ...runtimeSecret, ...legacy.values }
+  const secret = (config.plutoGithub ?? {}) as Record<string, unknown>
   const open = (config.public.plutoGithub ?? {}) as Record<string, unknown>
   // Nuxt parses an env value like `12345` as a number, so accept numbers too.
   const text = (value: unknown, fallback = '') => (typeof value === 'string' || typeof value === 'number' ? String(value) : fallback)

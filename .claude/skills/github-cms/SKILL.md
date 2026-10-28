@@ -101,14 +101,9 @@ Required: `SESSION_PASSWORD`, `APP_ID`, `CLIENT_ID`, `CLIENT_SECRET`,
 
 ### Old env names (before 0.28)
 
-Until 0.27 the module was `pluto-cms` (config key `plutoCms`), and the env vars were
-`NUXT_PLUTO_CMS_SESSION_PASSWORD`, `NUXT_PLUTO_CMS_ALLOWED_USERS`, `NUXT_PLUTO_CMS_GITHUB_<NAME>` for the
-GitHub secrets, and `PLUTO_CMS_REPO`, `PLUTO_CMS_APP_SLUG`, `PLUTO_CMS_STORAGE`. A deployed site has them in
-its host. So the module still reads an old name when the new one is not set, and logs a warning that
-names the new one: `legacyGithubEnvName(name)` maps a new name to its old name, `resolvePlutoGithubOptions`
-reads the build names that way (a warning in the build log), and `getGithubConfig` reads the secrets with
-`readLegacySecrets` (one `console.warn` per process). The new name always wins. Tests:
-`test/pluto-github-options.test.ts` ("old env names"). Remove the fallback in a later release.
+Until 0.27 the env vars were `NUXT_PLUTO_CMS_*` and `PLUTO_CMS_*`. 0.28 read them as a fallback.
+Pluto no longer reads them: a host that still has an old name has no value for the new one.
+Test: `test/pluto-github-options.test.ts` ("old env names").
 
 ## Runtime config
 
