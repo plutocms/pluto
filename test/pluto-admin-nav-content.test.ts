@@ -5,39 +5,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, reactive, ref } from 'vue'
 import { createI18nStub } from './fixtures/i18n-stub'
 
-// A minimal stand-in for `@plutocms/utils`' own `NavigationMenuItem`, just
-// the fields `usePlutoAdminNav`'s legacy bridge reads.
-interface LegacyActionChild {
-  label?: string
-  href?: string
-}
-
-interface LegacyAction {
-  label?: string
-  href?: string
-  defaultOpen?: boolean
-  icon?: string
-  children?: LegacyActionChild[]
-}
-
 // Same Nuxt-global stubbing as test/permissions.test.ts and
 // test/content-registry.test.ts — see those files for why:
 // pluto-admin-nav.ts leans on Nuxt's auto-imported globals (`useNuxtApp`,
 // `computed`, `ref`, `useState`) plus two composables this repo's Nuxt
-// layer setup normally auto-imports for it (`useSidebarAdminActions` from
-// `@plutocms/utils`, and its own sibling composables), none of which exist
-// outside a Nuxt build.
+// layer setup normally auto-imports for it (its own sibling composables),
+// none of which exist outside a Nuxt build.
 let fakeNuxtApp: {
   _plutoRegistry?: PlutoRegistry
 }
 let stateStore: Map<string, ReturnType<typeof ref>>
-let legacyActions: Ref<LegacyAction[]>
 let routePath: Ref<string>
 
 beforeEach(() => {
   fakeNuxtApp = {}
   stateStore = new Map()
-  legacyActions = ref<LegacyAction[]>([])
   routePath = ref('/admin/home')
 
   vi.stubGlobal('useNuxtApp', () => fakeNuxtApp)
@@ -51,12 +33,6 @@ beforeEach(() => {
     return stateStore.get(key)
   })
   vi.stubGlobal('useRoute', () => reactive({ path: routePath }))
-  vi.stubGlobal('useSidebarAdminActions', () => ({
-    actions: legacyActions,
-    addAction: (action: LegacyAction[]) => {
-      legacyActions.value = [...legacyActions.value, ...action]
-    },
-  }))
 })
 
 afterEach(() => {
@@ -95,34 +71,21 @@ async function loadComposables() {
   return { usePlutoRegistry, definePlutoExtension, usePlutoPermissions, usePlutoAdminNav }
 }
 
-describe('usePlutoAdminNav — pre-existing registry + legacy-bridge merge (regression check)', () => {
-  it('merges a registered nav item with a bridged legacy item, sorted by order', async () => {
+describe('usePlutoAdminNav — registry', () => {
+  it('sorts the registered nav items by order', async () => {
     const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
 
     definePlutoExtension({
       id: 'test-layer',
-      nav: [{ id: 'posts', order: 10, label: 'Posts', to: '/admin/posts' }],
+      nav: [
+        { id: 'posts', order: 10, label: 'Posts', to: '/admin/posts' },
+        { id: 'pages', order: 5, label: 'Pages', to: '/admin/pages' },
+      ],
     })
-    legacyActions.value = [{ label: 'Legacy item', href: '/admin/legacy' }]
 
     const { items } = usePlutoAdminNav()
 
-    expect(items.value.map((item) => item.label)).toEqual(['Posts', 'Legacy item'])
-  })
-
-  it('skips a bridged legacy item whose label already matches a registered item', async () => {
-    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
-
-    definePlutoExtension({
-      id: 'test-layer',
-      nav: [{ id: 'posts', label: 'Posts', to: '/admin/posts' }],
-    })
-    legacyActions.value = [{ label: 'Posts', href: '/admin/posts-legacy' }]
-
-    const { items } = usePlutoAdminNav()
-
-    expect(items.value).toHaveLength(1)
-    expect(items.value[0]?.to).toBe('/admin/posts')
+    expect(items.value.map((item) => item.label)).toEqual(['Pages', 'Posts'])
   })
 })
 
@@ -142,21 +105,6 @@ describe('usePlutoAdminNav — labels', () => {
 
     expect(items.value.map((item) => item.label)).toEqual(['Home', 'Posts'])
     expect(items.value[1]?.children?.[0]?.label).toBe('Settings')
-  })
-
-  it('compares the raw labels in the legacy dedupe, before it resolves the keys', async () => {
-    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
-
-    definePlutoExtension({
-      id: 'test-layer',
-      nav: [{ id: 'home', label: 'pluto.nav.home', to: '/admin/home' }],
-    })
-    // The legacy item uses the resolved text, which does not match the raw key.
-    legacyActions.value = [{ label: 'Home', href: '/admin/legacy-home' }]
-
-    const { items } = usePlutoAdminNav()
-
-    expect(items.value.map((item) => item.to)).toEqual(['/admin/home', '/admin/legacy-home'])
   })
 
   it('translates the labels again when the locale changes', async () => {

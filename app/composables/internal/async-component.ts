@@ -44,7 +44,7 @@ component: Component
 
 /**
  * Lists the registered components of an extension that are not async, as
- * `<extension id>:<bucket>:<entry id>`. The navbar buckets are not checked:
+ * `<extension id>:<bucket>:<entry id>`. The navbar actions are not checked:
  * the navbar must be ready at the first paint.
  */
 export function findSyncComponents(definition: ExtensionComponents): string[] {

@@ -5,8 +5,7 @@ import { contentTextFor } from './internal/content-text'
  * creates from files, plus two synthesized entries per auto-routed content
  * type (`type.autoRoutes !== false`): a list page and a "new" page — the
  * page-metadata equivalent of the nav entry `usePlutoAdminNav` synthesizes
- * for the same content type. No layer registers page metadata today, so
- * the registry bucket itself has no legacy bridge.
+ * for the same content type.
  *
  * Titles are key-or-literal. They resolve with `tx()` inside the `computed`,
  * so a locale switch updates them.

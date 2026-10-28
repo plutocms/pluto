@@ -602,8 +602,7 @@ copying its watcher too literally.
 ## Nav and pages derivation for auto-routed content types
 
 `usePlutoAdminNav()` synthesizes one `PlutoNavItem` per content type where
-`type.autoRoutes !== false`, alongside its two existing sources (the registry's own `nav`
-bucket, and the legacy `@plutocms/utils` sidebar bridge):
+`type.autoRoutes !== false`, alongside the registry's own `nav` bucket:
 
 ```ts
 {
@@ -622,10 +621,8 @@ server-side rule already is above: when `type.capabilities.read` is unset, the n
 unconditionally; when it is set, `can(...)` decides. This is the same rule `PlutoContentList`'s
 and `PlutoContentForm`'s own `canWrite`/`canDelete` follow, applied to nav visibility instead.
 
-This wave also fixed a latent gap while adding this: `PlutoEntry.enabled` was already read and
-enforced for the registry's own `nav` bucket (inside `createOwnedRegistry`), but the merged nav
-computed never applied it to the legacy-bridge source. It now applies the same `enabled?.() ??
-true` filter uniformly across all three sources.
+`PlutoEntry.enabled` applies to both sources: the registry filters its own entries, and
+`usePlutoAdminNav` filters the merged list again with `enabled?.() ?? true`.
 
 `usePlutoAdminPages()` synthesizes two `PlutoAdminPage` entries per auto-routed content type — a
 list page (`path: basePath, title: labelPlural`) and a "new" page (`path: `${basePath}/new``,

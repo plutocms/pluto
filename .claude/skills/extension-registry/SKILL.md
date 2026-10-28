@@ -7,7 +7,7 @@ contribution into one reactive registry, and the admin UI renders from that regi
 It adds:
 
 - `shared/types/registry.ts` — the `PlutoExtension` shape and the type of each registrable
-  thing (`PlutoNavItem`, `PlutoNavbarShell`, `PlutoNavbarAction`, `PlutoAdminPage`,
+  thing (`PlutoNavItem`, `PlutoNavbarAction`, `PlutoAdminPage`,
   `PlutoDashboardWidget`, `PlutoSettingsPanel`, `PlutoSettingsPage`, `PlutoSettingsDriver`, `PlutoLocaleDriver`,
   `PlutoAuthDriver`, `PlutoAccountMenuItem`, `PlutoAdminBanner`, `PlutoSiteInfo`;
   `PlutoNavbarAction` is a union of `PlutoNavbarComponentAction` and `PlutoNavbarLinkAction`),
@@ -21,7 +21,7 @@ It adds:
   container.
 - `app/composables/pluto-extension.ts` — `definePlutoExtension(definition)`, the one function a
   layer author calls.
-- `app/composables/pluto-navbar.ts` — `usePlutoNavbarShell()`, `usePlutoNavbarActions()`,
+- `app/composables/pluto-navbar.ts` — `usePlutoNavbarActions()`,
   `usePlutoAdminBar()`, `usePlutoAccountMenu()` and `usePlutoSiteInfo()`.
 - `app/composables/pluto-admin-nav.ts` — `usePlutoAdminNav()`, the sidebar nav.
 - `app/composables/pluto-admin-pages.ts` — `usePlutoAdminPages()`, page metadata.
@@ -45,7 +45,6 @@ sets only what it has.
 
 | Field | Type | Purpose |
 |---|---|---|
-| `navbar` | `PlutoNavbarShell` | The whole admin top bar. One extension normally provides it. |
 | `navbarActions` | `PlutoNavbarAction[]` | Small buttons in the navbar. Each is a component action (`{ component }`) or a link action (`{ label, icon?, to, target? }`). A union type. |
 | `nav` | `PlutoNavItem[]` | Sidebar entries, with optional `children`. |
 | `pages` | `PlutoAdminPage[]` | Metadata (title, icon, parent) for a route Nuxt already made from a file. |
@@ -97,8 +96,7 @@ move to keys one entry at a time. See the i18n skill.
 
 Core's own registrations (`app/plugins/pluto-core-registrations.ts`) use keys, for example
 `pluto.nav.home` and `pluto.dashboard.activity.title`. The consumer composables resolve every
-entry text inside a `computed`: `usePlutoAdminNav` (after the legacy dedupe, which compares the
-raw labels), `usePlutoCommandPalette`, `usePlutoSettingsPanels`, `usePlutoDashboardWidgets`,
+entry text inside a `computed`: `usePlutoAdminNav`, `usePlutoCommandPalette`, `usePlutoSettingsPanels`, `usePlutoDashboardWidgets`,
 `usePlutoAdminPages`, `usePlutoContentActions`, and `usePlutoCapabilities`. A language switch
 updates them. A registry field stays a `string`.
 
@@ -193,23 +191,18 @@ not wait for a chunk:
 - `pages/admin/settings.vue`: `PlutoSkeletonWidget` with `variant="panel"`.
 - `layouts/admin.vue`: an empty fallback. A banner never blocks the layout.
 
-The navbar buckets (`navbar`, `navbarActions`) stay eager on purpose.
+The navbar actions (`navbarActions`) stay eager on purpose.
 
 In dev, `definePlutoExtension` logs a `console.warn` once per component that is not async (it
 checks `__asyncLoader`; see `app/composables/internal/async-component.ts`). The check is
 `import.meta.dev` only, so production has no cost. Test: `test/async-component.test.ts`.
 
-## Compatibility bridge with `@plutocms/utils`
+## No bridge to `@plutocms/utils`
 
-Three composables in `@plutocms/utils` predate this registry: `useNavbarAdmin()`,
-`useNavbarAdminActions()`, and `useSidebarAdminActions()`. Every consumer composable in this
-feature (`usePlutoNavbarShell`, `usePlutoNavbarActions`, `usePlutoAdminNav`) reads both the new
-registry and these old composables, and merges the two. A layer that still calls the old
-composables keeps working, unchanged, with no migration required in this pass.
-
-This bridge is temporary. It exists only so an unmigrated layer is not broken by this change.
-Removing it, and migrating every layer to `definePlutoExtension`, is separate future work, not
-covered here.
+The old composables of `@plutocms/utils` (`useNavbarAdmin()`, `useNavbarAdminActions()`,
+`useSidebarAdminActions()`) and the registry `navbar` field are gone. Core always renders its own
+navbar (`PlutoAdminNavbarProvider`). A layer adds to it with `navbarActions`, `accountMenu` and
+`nav`.
 
 ## Why `internal/`
 
@@ -226,7 +219,7 @@ it.
   `db/migrations/003_settings_generic_keys.sql` in that repo. A layer other than core can
   register its own settings panel and persist a genuinely new key through it, as long as the
   key is namespaced with the layer's own name so two layers can never collide.
-- `usePlutoAdminPages()` has no legacy bridge and is not wired into any page's UI yet (no
+- `usePlutoAdminPages()` is not wired into any page's UI yet (no
   breadcrumb component). It ships so a later pass can build on it.
 - There is no drag-and-drop, per-user layout persistence, or relative (`before`/`after`)
   ordering. `order` is a plain number.

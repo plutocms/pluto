@@ -216,8 +216,7 @@ locale files. The locale-file test allows the top-level `content` namespace for 
 A registry entry holds a key or a literal. The consumer composables resolve it with `tx()` inside
 a `computed`, so a language switch updates it: `usePlutoAdminNav`, `usePlutoCommandPalette`,
 `usePlutoSettingsPanels`, `usePlutoDashboardWidgets`, `usePlutoAdminPages`,
-`usePlutoContentActions`, and `usePlutoCapabilities`. `usePlutoAdminNav` resolves the labels
-after the legacy dedupe, which compares the raw labels. Core's own registrations
+`usePlutoContentActions`, and `usePlutoCapabilities`. Core's own registrations
 (`app/plugins/pluto-core-registrations.ts`) use keys, such as `pluto.nav.home`.
 
 ## Validation messages

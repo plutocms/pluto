@@ -28,7 +28,7 @@ feature adds:
 
 Do not confuse these with `app/layouts/admin.vue` or `PlutoNavbarAdmin.vue`. Those two are
 **app-level, one per admin session**: the layout owns the left sidebar and the page frame, and
-`PlutoNavbarAdmin` is the single global top bar registered through `PlutoNavbarShell`. A page's
+`PlutoNavbarAdmin` is the single global top bar that core renders. A page's
 own content renders inside the layout's body slot.
 
 `PlutoViewAdminPanel`, `PlutoViewToolbar`, and `PlutoViewAside` are **per-view, one set per page**.
