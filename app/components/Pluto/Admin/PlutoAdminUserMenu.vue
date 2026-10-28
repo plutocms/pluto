@@ -4,8 +4,8 @@ import { displayName, shortName } from '../../../composables/internal/admin-shel
 
 // The user menu of the admin navbar: the avatar, the short name and a dropdown
 // with Settings, the items of the layers, the Pluto link and Sign out. An
-// administrator (the capability '*') gets an "Admin" badge in the bar, a chip
-// on the avatar on a small screen, and "Administrator" in the menu.
+// administrator (the capability '*') gets a chip on the avatar and an "Admin"
+// badge in the menu header.
 const { t } = usePlutoI18n()
 const { user, signOut } = usePlutoAuth()
 const account = usePlutoAccountMenu()
@@ -42,8 +42,8 @@ const items = computed<DropdownMenuItem[][]>(() => [
       avatar: avatar.value
         ? { src: avatar.value, alt: name.value }
         : { icon: 'lucide:user', class: 'bg-primary', ui: { icon: 'text-inverted text-sm' } },
-      description: isAdmin.value ? t('pluto.navbar.administrator') : undefined,
       type: 'label',
+      slot: 'account' as const,
     },
   ],
   [
@@ -119,7 +119,7 @@ onUnmounted(() => portalTarget.value?.remove())
             :src="avatar"
             :alt="name"
             :ui="{ root: 'rounded-xl', icon: 'text-inverted text-lg' }"
-            :chip="isAdmin ? { color: 'warning', position: 'bottom-right', class: 'lg:hidden' } : undefined"
+            :chip="isAdmin ? { color: 'warning', position: 'bottom-right' } : undefined"
             size="sm"
             icon="lucide:user"
             class="bg-primary"
@@ -129,17 +129,20 @@ onUnmounted(() => portalTarget.value?.remove())
             {{ short }}
           </span>
 
-          <UBadge
-            v-if="isAdmin"
-            :label="t('pluto.navbar.adminBadge')"
-            icon="lucide:shield-check"
-            color="warning"
-            variant="subtle"
-            size="sm"
-            class="hidden lg:inline-flex"
-          />
         </div>
       </button>
+
+      <template #account-trailing>
+        <UBadge
+          v-if="isAdmin"
+          :label="t('pluto.navbar.adminBadge')"
+          :title="t('pluto.navbar.administrator')"
+          icon="lucide:shield-check"
+          color="warning"
+          variant="subtle"
+          size="sm"
+        />
+      </template>
     </UDropdownMenu>
   </div>
 </template>
