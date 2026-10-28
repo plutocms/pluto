@@ -78,3 +78,28 @@
   background-color: oklch(13% 0.03 273 / 0.6);
   backdrop-filter: blur(6px);
 }
+
+/*
+ * Snappy hovers in the admin. A color change on hover shows at once: the
+ * color, opacity and `transition` utilities get no duration, also on the
+ * `::before` layer that Nuxt UI paints the menu items on. A Nuxt UI button
+ * (`data-slot="base"`) keeps a short 75ms. The navbar (`data-pluto-admin-dark`)
+ * has no transition at all. Transforms and keyframe animations (chevrons,
+ * slideovers, accordions) are not touched.
+ */
+:root[data-pluto-admin] :where(.transition, .transition-colors, .transition-opacity, .transition-all),
+:root[data-pluto-admin] :where([class*='before:transition'])::before,
+[data-pluto-admin-scope] :where(.transition, .transition-colors, .transition-opacity, .transition-all),
+[data-pluto-admin-scope] :where([class*='before:transition'])::before {
+  transition-duration: 0s;
+}
+
+:root[data-pluto-admin] :where(button, a)[data-slot='base']:where(.transition, .transition-colors, .transition-all),
+[data-pluto-admin-scope] :where(button, a)[data-slot='base']:where(.transition, .transition-colors, .transition-all) {
+  transition-duration: 75ms;
+}
+
+[data-pluto-admin-dark] :where(button, a, span)[data-slot],
+[data-pluto-admin-dark] :where([class*='before:transition'])::before {
+  transition-duration: 0s !important;
+}
