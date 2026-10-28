@@ -14,7 +14,7 @@ const children = ['w-1/2', 'w-3/5', 'w-2/3']
 </script>
 
 <template>
-  <div class="flex min-h-0 flex-1 flex-col" role="status" :aria-label="title">
+  <div :aria-label="title" class="flex min-h-0 flex-1 flex-col" role="status">
     <div class="flex h-12 shrink-0 items-center gap-1 border-b border-default px-3" aria-hidden="true">
       <span v-if="title" class="text-highlighted min-w-0 truncate text-sm font-semibold max-lg:hidden">{{ title }}</span>
       <div class="ms-auto flex items-center gap-1.5">

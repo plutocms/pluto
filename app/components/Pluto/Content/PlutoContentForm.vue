@@ -807,10 +807,10 @@ const asideTitle = computed(() =>
         v-if="canvasFieldDef"
         :type="type"
         :field="canvasFieldDef"
-        canvas
-        @ready="canvasReady = true"
         :model-value="item[canvasFieldDef.name]"
         :disabled="!canWrite || saving"
+        canvas
+        @ready="canvasReady = true"
         @update:model-value="updateField(canvasFieldDef, $event)"
       />
     </div>
