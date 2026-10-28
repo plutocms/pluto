@@ -6,6 +6,7 @@
 // routes only.
 const open = usePlutoAdminMenuOpen()
 const menu = usePlutoAdminMenu()
+const openGroups = usePlutoAdminMenuGroups()
 const { t } = usePlutoI18n()
 </script>
 
@@ -34,6 +35,7 @@ const { t } = usePlutoI18n()
 
         <div class="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
           <UNavigationMenu
+            v-model="openGroups"
             :items="menu"
             :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-[18px]' }"
             orientation="vertical"

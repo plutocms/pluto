@@ -31,7 +31,9 @@
       "defaultUserName": "Conta",
       "github": "Pluto no GitHub",
       "signOut": "Sair",
-      "signedOut": "Você saiu"
+      "signedOut": "Você saiu",
+      "administrator": "Administrador",
+      "adminBadge": "Admin"
     },
     "nav": {
       "home": "Início",
@@ -52,7 +54,8 @@
       "createNew": "Criar {label}",
       "typeNotFound": "Tipo de conteúdo não encontrado",
       "typeNotFoundDescription": "Nenhum tipo de conteúdo chamado \"{type}\" está registrado.",
-      "removeConfirm": "Deseja mesmo remover este item?"
+      "removeConfirm": "Deseja mesmo remover este item?",
+      "untitled": "Sem título"
     },
     "form": {
       "published": "Publicado",

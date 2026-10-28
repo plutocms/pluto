@@ -2,6 +2,7 @@
 // The menu items and the open state are shared with the admin menu that
 // public pages show (PlutoNavbarAdminMenu). See pluto-admin-menu.ts.
 const menu = usePlutoAdminMenu()
+const openGroups = usePlutoAdminMenuGroups()
 const isSidebarOpen = usePlutoAdminMenuOpen()
 
 const commandGroups = usePlutoCommandPalette()
@@ -50,6 +51,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
       </template>
 
       <UNavigationMenu
+        v-model="openGroups"
         :items="menu"
         :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-[18px]' }"
         orientation="vertical"

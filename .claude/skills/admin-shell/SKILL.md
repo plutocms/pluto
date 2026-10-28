@@ -253,8 +253,10 @@ later page load has it in the first paint. If the capabilities load fails, the b
 order:
 
 1. The menu button, for small screens (`usePlutoAdminMenuOpen`).
-2. The logo and the site name. The name is `site.name()`, else `runtimeConfig.public.websiteName`.
-   It is hidden when empty or `Untitled`.
+2. The logo and the site name chip. Below `sm` the logo is the planet only (`PlutoLogo mark`),
+   and the chip is hidden. From `sm` the logo has the wordmark, and the site name shows as a
+   rounded chip. The name is `site.name()`, else `runtimeConfig.public.websiteName`. The chip is
+   hidden when the name is empty or `Untitled`.
 3. "View site", on `/admin/**` only. It opens `site.url()`, else `/`. The title is
    "Visit {domain}".
 4. The navbar actions, inside `ClientOnly` with a spinner fallback. Core adds one: the content
@@ -263,7 +265,11 @@ order:
 6. `PlutoAdminUserMenu`, only when a driver is registered. It is `ClientOnly`, with an avatar
    skeleton as the fallback.
 
-The user menu has the avatar and the short name. The dropdown has a header (`Name (username)`),
+The user menu has the avatar and the short name. An administrator (`usePlutoPermissions().isAdmin`:
+the capability `'*'`) gets an "Admin" badge (`pluto.navbar.adminBadge`) next to the name from
+`lg`, a warning chip on the avatar below `lg`, "Administrator" (`pluto.navbar.administrator`) in
+the dropdown header and in the accessible name of the button. The supabase `admin` role and a
+GitHub user with admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)`),
 Settings (`meta+,`), the `accountMenu` items, "Pluto on GitHub" (`plutocms/pluto`) and Sign out
 (`meta+shift+q`). Shortcuts use `defineShortcuts(extractShortcuts(items))`.
 `PlutoAdminNavbarProvider` shows the bar when `usePlutoAdminBar().visible` is true.

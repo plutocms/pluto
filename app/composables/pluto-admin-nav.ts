@@ -1,3 +1,4 @@
+import { contentTypeMatches } from './internal/admin-menu'
 import { contentTextFor } from './internal/content-text'
 
 // The id of core's Settings nav item (extension `pluto`, entry `settings`).
@@ -80,7 +81,14 @@ export function usePlutoAdminNav() {
           }
         : item
 
-    return [...registered.map(resolveLabels).map(withSettingsChildren), ...contentNav]
+    // A registered item at the `basePath` of a content type also owns the
+    // type's new and edit pages, so the sidebar opens it there.
+    const withTypeMatches = (item: PlutoNavItem): PlutoNavItem => {
+      const extra = contentTypeMatches(item, contentTypes.value.map((entry) => entry.type))
+      return extra.length > 0 ? { ...item, match: [...(item.match ?? []), ...extra] } : item
+    }
+
+    return [...registered.map(resolveLabels).map(withSettingsChildren).map(withTypeMatches), ...contentNav]
       .filter((item) => item.enabled?.() ?? true)
       .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
   })

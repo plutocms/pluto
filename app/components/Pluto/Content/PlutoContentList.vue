@@ -105,11 +105,24 @@ const emptyActions = computed<ButtonProps[]>(() => {
     : []
 })
 
+// The title of an item, or an empty string. The list shows "Untitled" for an
+// item without one, so its row still has a link to open it.
+function itemTitle(item: PlutoContentItem): string {
+  const value = item[contentType.value?.titleField ?? '']
+  return typeof value === 'string' || typeof value === 'number' ? String(value).trim() : ''
+}
+
+// The table slot of the title column. The title cell links to the edit page.
+const titleCellSlot = computed(() => `${contentType.value?.titleField ?? ''}-cell`)
+
 const listFields = computed(() =>
   (contentType.value?.fields ?? [])
     .filter((field) => field.inList)
     .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
 )
+
+// The fields of a card on a small screen. The title is the card heading.
+const cardFields = computed(() => listFields.value.filter((field) => field.name !== contentType.value?.titleField))
 
 // The status of each item, for a type with a publish workflow. A draft shows
 // a neutral badge, a published item a green one, as in the form toolbar.
@@ -240,16 +253,17 @@ const footer = computed(() => {
     <div
       v-if="!emptyState"
       ref="mobileList"
-      class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto lg:hidden"
+      class="flex min-h-0 flex-col gap-3 overflow-y-auto lg:hidden"
     >
       <UCard v-for="item in items" :key="item.id" class="shrink-0">
         <div class="flex flex-col gap-4">
           <div class="flex min-w-0 items-center justify-between gap-3">
             <NuxtLink
               :to="editPath(item.id)"
+              :class="itemTitle(item) ? undefined : 'text-muted italic'"
               class="block truncate text-lg font-semibold hover:underline"
             >
-              {{ item[contentType.titleField] }}
+              {{ itemTitle(item) || t('pluto.content.untitled') }}
             </NuxtLink>
 
             <UBadge
@@ -263,7 +277,7 @@ const footer = computed(() => {
           </div>
 
           <dl class="grid grid-cols-2 gap-3 text-sm">
-            <div v-for="field in listFields" :key="field.name">
+            <div v-for="field in cardFields" :key="field.name">
               <dt class="text-muted">{{ text.fieldLabel(field) }}</dt>
               <dd class="font-medium">{{ formatListValue(field, item) }}</dd>
             </div>
@@ -303,10 +317,20 @@ const footer = computed(() => {
       :columns="columns"
       :loading="pending || loadingMore"
       :empty="t('pluto.list.emptyTable')"
-      class="ring-default hidden min-h-0 flex-1 rounded-lg ring lg:block"
+      class="ring-default hidden min-h-0 rounded-lg ring lg:block"
       sticky
       virtualize
     >
+      <template #[titleCellSlot]="{ row }">
+        <NuxtLink
+          :to="editPath(row.original.id)"
+          :class="itemTitle(row.original) ? 'text-highlighted' : 'text-muted italic'"
+          class="font-medium hover:underline"
+        >
+          {{ itemTitle(row.original) || t('pluto.content.untitled') }}
+        </NuxtLink>
+      </template>
+
       <template #status-cell="{ row }">
         <UBadge
           v-if="itemStatus(row.original)"
@@ -318,24 +342,24 @@ const footer = computed(() => {
       </template>
 
       <template #actions-cell="{ row }">
-            <div class="flex justify-end gap-3">
-              <NuxtLink
-                v-if="canWrite"
-                :to="editPath(row.original.id)"
-                class="text-info px-0 py-0.5 hover:underline"
-              >
-                {{ t('pluto.common.edit') }}
-              </NuxtLink>
+        <div class="flex justify-end gap-3">
+          <NuxtLink
+            v-if="canWrite"
+            :to="editPath(row.original.id)"
+            class="text-info px-0 py-0.5 hover:underline"
+          >
+            {{ t('pluto.common.edit') }}
+          </NuxtLink>
 
-              <button
-                v-if="canDelete"
-                type="button"
-                class="text-error cursor-pointer px-0 py-0.5 hover:underline"
-                @click="openDeleteModal(row.original.id)"
-              >
-                {{ t('pluto.common.remove') }}
-              </button>
-            </div>
+          <button
+            v-if="canDelete"
+            type="button"
+            class="text-error cursor-pointer px-0 py-0.5 hover:underline"
+            @click="openDeleteModal(row.original.id)"
+          >
+            {{ t('pluto.common.remove') }}
+          </button>
+        </div>
       </template>
     </UTable>
 

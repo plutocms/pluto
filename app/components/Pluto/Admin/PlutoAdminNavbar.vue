@@ -2,9 +2,9 @@
 import { isAdminPath } from '../../../composables/internal/admin-shell'
 
 // The core admin navbar: the 40px bar, the menu button for small screens, the
-// logo and site name, "View site", the actions of the layers, the color mode
-// button and the user menu. It has no top-level await, so it renders from the
-// state of the auth driver. See the admin-shell skill.
+// logo, the site name chip, "View site", the actions of the layers, the color
+// mode button and the user menu. It has no top-level await, so it renders from
+// the state of the auth driver. See the admin-shell skill.
 const route = useRoute()
 const isSidebarOpen = usePlutoAdminMenuOpen()
 const { t } = usePlutoI18n()
@@ -42,13 +42,20 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             to="/admin/home"
             class="group flex h-full items-center gap-x-2"
           >
+            <!-- The planet only on a small screen. The wordmark from `sm`. -->
             <PlutoLogo
               aria-hidden="true"
-              class="text-highlighted block h-[31px] w-auto grayscale-100 group-hover:grayscale-0"
+              class="block h-[27px] w-auto grayscale-100 group-hover:grayscale-0 sm:hidden"
+              mark
             />
+            <PlutoLogo
+              aria-hidden="true"
+              class="text-highlighted hidden h-[31px] w-auto grayscale-100 group-hover:grayscale-0 sm:block"
+            />
+            <!-- The site that this admin edits, as a chip. -->
             <span
               v-if="siteName"
-              class="text-highlighted hidden max-w-48 truncate text-sm font-semibold md:inline"
+              class="border-default bg-elevated text-highlighted hidden h-6 max-w-48 items-center truncate rounded-full border px-2.5 text-xs leading-6 font-semibold sm:inline-block"
             >
               {{ siteName }}
             </span>
