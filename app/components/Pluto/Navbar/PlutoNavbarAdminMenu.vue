@@ -37,7 +37,7 @@ const { t } = usePlutoI18n()
           <UNavigationMenu
             v-model="openGroups"
             :items="menu"
-            :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-[18px]' }"
+            :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-4.5' }"
             orientation="vertical"
             variant="pill"
             class="data-[orientation=vertical]:w-full"

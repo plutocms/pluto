@@ -128,7 +128,7 @@ export default withNuxt(
         rootFontSize: 16,
         selectors: [
           ...getDefaultSelectors(),
-          { kind: 'attribute', name: '^ui$', match: [{ type: 'objectValues' }] },
+          { kind: 'attribute', name: '^(?:v-bind:)?ui$', match: [{ type: 'objectValues' }] },
         ],
       },
     },

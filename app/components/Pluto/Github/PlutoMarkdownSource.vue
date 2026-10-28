@@ -73,7 +73,7 @@ defineExpose({ insert, focus })
       :rows="rows"
       :maxrows="maxRows"
       :aria-label="ariaLabel"
-      :ui="{ base: 'font-mono text-sm leading-6 px-4 py-3 sm:px-4' }"
+      :ui="{ base: 'font-mono text-sm/6 px-4 py-3 sm:px-4' }"
       spellcheck="false"
       autocomplete="off"
       autocapitalize="off"

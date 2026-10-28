@@ -163,7 +163,7 @@ const items = computed<SplitterItem[]>(() => [
           // area, and the 6px haze-400 bar: it fades in after 300ms of hover, and
           // shows at once while dragging. The `!` keeps the duration and the
           // delay against the no-transition rule of the admin (pluto-layer.css).
-          handle: 'w-px bg-(--ui-border) before:absolute before:inset-y-0 before:-inset-x-[2.5px] before:z-10 before:transition-colors before:duration-150! hover:before:bg-haze-400 hover:before:delay-300! data-[resize-handle-state=drag]:before:bg-haze-400 data-[resize-handle-state=drag]:before:delay-0!',
+          handle: 'w-px bg-(--ui-border) before:absolute before:inset-y-0 before:inset-x-[-2.5px] before:z-10 before:transition-colors before:duration-150! hover:before:bg-haze-400 hover:before:delay-300! data-[resize-handle-state=drag]:before:bg-haze-400 data-[resize-handle-state=drag]:before:delay-0!',
         }"
         @dragging="onDragging"
       >

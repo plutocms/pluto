@@ -62,7 +62,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           v-model="openGroups"
           :items="menu"
           :collapsed="collapsed"
-          :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-[18px]' }"
+          :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-4.5' }"
           orientation="vertical"
           variant="pill"
           class="data-[orientation=vertical]:w-full"
@@ -85,7 +85,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         // so the content does not move sideways between pages. A page with
         // PlutoViewAdminPanel (`data-pluto-view`) scrolls in its own region,
         // which keeps the gutter itself.
-        body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-x-hidden [scrollbar-gutter:stable] has-[[data-pluto-view]]:[scrollbar-gutter:auto]',
+        body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-x-hidden scrollbar-gutter-stable has-data-pluto-view:scrollbar-gutter-auto',
       }"
     >
       <template #body>
