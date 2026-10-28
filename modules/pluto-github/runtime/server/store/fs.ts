@@ -3,6 +3,7 @@ import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { gitBlobSha, listingOid } from '../utils/blob-sha'
 import { PlutoGithubConflictError, PlutoGithubStoreError } from './errors'
+import { commitLocalFiles } from './local-git'
 
 export interface FsStoreOptions {
   /** The absolute root dir. All paths are relative to it. */
@@ -14,7 +15,19 @@ export interface FsStoreOptions {
    * too, on each request.
    */
   headDir?: string
+  /**
+   * Commit each write to the local Git repo of `root` (local Git publishing). The files are
+   * written first, so a commit that fails (a hook, no Git author) never loses the save: a
+   * warning says why. Default false.
+   */
+  gitCommit?: boolean
 }
+
+// A skip-deploy marker belongs to a push from the admin. A local commit reaches the remote
+// later, with the author's own push, which must deploy.
+const SKIP_MARKER = /\s*\[skip ci\]\s*$/
+
+let warnedNoRepo = false
 
 /** Dirs the head never reads: dependencies, build output and dot dirs. */
 const SKIPPED_DIRS = new Set([
@@ -30,7 +43,8 @@ const SKIPPED_DIRS = new Set([
 /**
  * A store over the local file system, for dev. The head id is a hash of the
  * file listing (path and blob id) under `headDir`, so it changes after a
- * write. A file change made by hand changes it too.
+ * write. A file change made by hand changes it too. With `gitCommit`, each
+ * write is also a commit in the local Git repo.
  */
 export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
   const root = resolve(options.root)
@@ -192,6 +206,37 @@ export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
       for (const item of additions) {
         await mkdir(dirname(item.full), { recursive: true })
         await writeFile(item.full, item.contents, 'utf8')
+      }
+      if (options.gitCommit) {
+        const paths = [...input.additions, ...input.deletions].map(
+          (item) => item.path
+        )
+        try {
+          const result = await commitLocalFiles(
+            root,
+            paths,
+            input.message.replace(SKIP_MARKER, '')
+          )
+          if (
+            !result.committed &&
+            result.skipped !== 'no-changes' &&
+            !warnedNoRepo
+          ) {
+            warnedNoRepo = true
+            console.warn(
+              result.skipped === 'no-git'
+                ? '[pluto-github] Git is not installed. Pluto saves the files without a commit.'
+                : '[pluto-github] The project is not a Git repo. Pluto saves the files without a commit. Run `git init` to commit each save.'
+            )
+          }
+        } catch (error) {
+          const detail =
+            (error as { stderr?: string }).stderr?.trim() ||
+            (error as Error).message
+          console.warn(
+            `[pluto-github] The save is on disk, but the local Git commit failed: ${detail}`
+          )
+        }
       }
       return { oid: await currentHead() }
     },

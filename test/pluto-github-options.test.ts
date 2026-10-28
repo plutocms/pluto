@@ -84,7 +84,7 @@ describe('resolvePlutoGithubOptions', () => {
         apiUrl: 'https://api.github.com',
       },
       dir: 'content',
-      commit: { skipDeploy: true },
+      commit: { skipDeploy: true, local: true },
       cache: { headTtl: 60, storage: 'cache' },
       postType: true,
     })

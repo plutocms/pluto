@@ -32,8 +32,9 @@ export default defineNuxtConfig({
 })
 ```
 
-With no other layer, Pluto is a Markdown CMS on GitHub: posts are files in your repository, and
-each save is a commit. See [GitHub CMS](https://pluto.vulmix.dev/github-cms/quickstart).
+With no other layer, Pluto is a Markdown CMS on Git: posts are files in your repository, and each
+save is a commit. It works out of the box with your local Git repo in development. Connect GitHub
+to publish from a deployed site. See [GitHub CMS](https://pluto.vulmix.dev/github-cms/quickstart).
 
 ## Use it headless
 

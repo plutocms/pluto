@@ -22,6 +22,8 @@ export interface GithubConfig {
   /** The site name (`websiteName`), or an empty string. */
   siteName: string
   skipDeploy: boolean
+  /** Local mode: commit each save to the local Git repo. */
+  localCommit: boolean
   headTtl: number
   cacheStorage: string
   postType: boolean
@@ -68,6 +70,8 @@ export function getGithubConfig(): GithubConfig {
     siteName: text((config.public as Record<string, unknown>).websiteName),
     skipDeploy:
       secret.skipDeploy !== false && String(secret.skipDeploy) !== 'false',
+    localCommit:
+      secret.localCommit !== false && String(secret.localCommit) !== 'false',
     headTtl: Number.isFinite(Number(secret.headTtl))
       ? Number(secret.headTtl)
       : 60,

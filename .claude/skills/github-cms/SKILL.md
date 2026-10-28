@@ -84,6 +84,7 @@ no shell command. Tests: `test/github-git-remote.test.ts`, `test/pluto-github-op
 | `github.apiUrl`     | `'https://api.github.com'`              | The API base URL.                                                                                                                                       |
 | `dir`               | `'content'`                             | Relative path. No `..`, no leading `/`, no drive letter. The module changes `\` to `/` and removes a trailing `/`.                                      |
 | `commit.skipDeploy` | `true`                                  | Add `[skip ci]` to commit messages. A site that must redeploy on each edit (for example a docs site) sets it to `false`. See "Skip a deploy on Vercel". |
+| `commit.local`      | `true`                                  | Local mode (`fs`, dev only): commit each save to the local Git repo of the project. No repo: Pluto only writes the files.                               |
 | `cache.headTtl`     | `60`                                    | Seconds. Zero or more.                                                                                                                                  |
 | `cache.storage`     | `'cache'`                               | The Nitro storage mount for the cache.                                                                                                                  |
 | `postType`          | `true`                                  | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`.                            |
@@ -121,7 +122,15 @@ The storage layer is in `modules/pluto-github/runtime/server/`. The Nitro plugin
   `rate-limit`, `not-found`, `github`. The code has no HTTP link. PR 4 maps it.
 - `store/memory.ts` — an in-memory store for tests.
 - `store/fs.ts` — a dev store over a local dir. The head is a hash of the file listing. It refuses
-  any path outside the root.
+  any path outside the root. With `gitCommit` (from `commit.local`), each write is also a commit in
+  the local Git repo (local Git publishing, see below).
+- `store/local-git.ts` — `commitLocalFiles(root, paths, message)`: `git add -A` and
+  `git commit -- <paths>` for the changed paths only, so the author's other staged changes stay
+  staged. It runs the repo hooks and uses the repo author. It returns `committed: false` with
+  `not-a-repo`, `no-git` or `no-changes` instead of failing. The fs store writes the files first:
+  a failed commit (a hook, no author) only logs a warning, and a missing repo or Git logs one
+  warning per process. The local commit drops the `[skip ci]` marker: the author's own push of
+  these commits must deploy. Tests: `test/github-local-git.test.ts` (a temp Git repo).
 - `store/github.ts` — `createGithubStore`. `head` uses the REST sha call with an ETag and a TTL.
   `listDir` is one GraphQL call. `listTree(dir, head, auth)` reads every `.md` file under a dir with
   one GraphQL call that nests `... on Tree { entries }` six levels deep. The cache key is

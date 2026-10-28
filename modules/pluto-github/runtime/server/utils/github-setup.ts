@@ -35,6 +35,7 @@ export function createContentStore(
     return createFsStore({
       root: resolve(config.fsRoot || process.cwd()),
       headDir: config.dir,
+      gitCommit: config.localCommit,
     })
   }
   const tokens = createAppTokenProvider({
