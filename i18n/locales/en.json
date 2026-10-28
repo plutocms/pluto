@@ -591,6 +591,9 @@
       "tryAgain": "Try again",
       "goToSite": "Go to the site",
       "signOut": "Sign out"
+    },
+    "post": {
+      "previewTitle": "Post preview"
     }
   }
 }

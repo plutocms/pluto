@@ -591,6 +591,9 @@
       "tryAgain": "Tentar novamente",
       "goToSite": "Ir para o site",
       "signOut": "Sair"
+    },
+    "post": {
+      "previewTitle": "Prévia do post"
     }
   }
 }
