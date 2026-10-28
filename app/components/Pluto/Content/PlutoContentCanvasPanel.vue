@@ -44,7 +44,7 @@ const target = computed(() => {
   <slot v-if="!host" />
 
   <Teleport v-else-if="target" :to="target">
-    <div :data-pluto-canvas-panel="id" class="flex min-h-0 flex-col">
+    <div :data-pluto-canvas-panel="id" class="flex min-h-0 flex-1 flex-col">
       <slot />
     </div>
   </Teleport>

@@ -76,6 +76,20 @@ navbar's menu button sets that state.
 - `PlutoRoot` closes the menu after every navigation. The watch is in `PlutoRoot`, because the
   public-page menu unmounts when the route moves into `/admin`.
 
+### Open groups
+
+`usePlutoAdminMenuGroups()` holds the ids of the open groups (the `v-model` of `UNavigationMenu`,
+state key `pluto-admin-menu-groups`). The sidebar and the public-page menu share it. Each menu
+item has `value: <nav item id>`. After each navigation, the group of the active page opens. A
+group with `defaultOpen` opens when it first shows. The user can close any group. It stays closed
+until the next navigation into it. The pure rules are in `app/composables/internal/admin-menu.ts`
+(`activeNavGroups`, `nextOpenGroups`, `contentTypeMatches`). Tests: `test/admin-menu.test.ts`.
+
+A group is active when the path is (or is below) the item's `to`, a child's `to`, or a path in
+the item's `match`. `usePlutoAdminNav` adds to `match` the new page and the edit pages of each
+content type whose `basePath` is the item's `to`. So `/admin/product/edit/7` opens the Products
+item at `/admin/products` without a `match` in the layer.
+
 Every entry (`PlutoNavItem`, `PlutoDashboardWidget`, and so on) extends `PlutoEntry`:
 
 - `id` — unique inside the extension. Core stores it as `"<extensionId>:<id>"`, so two layers

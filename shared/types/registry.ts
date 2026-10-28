@@ -21,6 +21,11 @@ export interface PlutoNavItem extends PlutoEntry {
   icon?: string
   /** Admin route path, for example '/admin/posts'. Plain string on purpose. */
   to?: string
+  /**
+   * More admin paths that belong to this item, for example '/admin/product' for
+   * the edit pages of a product. The sidebar opens the item on these pages too.
+   */
+  match?: string[]
   children?: PlutoNavChild[]
   defaultOpen?: boolean
 }

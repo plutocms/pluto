@@ -31,7 +31,9 @@
       "defaultUserName": "Account",
       "github": "Pluto on GitHub",
       "signOut": "Sign out",
-      "signedOut": "Signed out"
+      "signedOut": "Signed out",
+      "administrator": "Administrator",
+      "adminBadge": "Admin"
     },
     "nav": {
       "home": "Home",
@@ -52,7 +54,8 @@
       "createNew": "Create new {label}",
       "typeNotFound": "Content type not found",
       "typeNotFoundDescription": "No content type named \"{type}\" is registered.",
-      "removeConfirm": "Do you really want to remove this item?"
+      "removeConfirm": "Do you really want to remove this item?",
+      "untitled": "Untitled"
     },
     "form": {
       "published": "Published",

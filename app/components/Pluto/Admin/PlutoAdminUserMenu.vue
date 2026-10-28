@@ -3,10 +3,13 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 import { displayName, shortName } from '../../../composables/internal/admin-shell'
 
 // The user menu of the admin navbar: the avatar, the short name and a dropdown
-// with Settings, the items of the layers, the Pluto link and Sign out.
+// with Settings, the items of the layers, the Pluto link and Sign out. An
+// administrator (the capability '*') gets an "Admin" badge in the bar, a chip
+// on the avatar on a small screen, and "Administrator" in the menu.
 const { t } = usePlutoI18n()
 const { user, signOut } = usePlutoAuth()
 const account = usePlutoAccountMenu()
+const { isAdmin } = usePlutoPermissions()
 
 const name = computed(() => displayName(user.value, t('pluto.navbar.defaultUserName')))
 const short = computed(() => shortName(user.value, t('pluto.navbar.defaultUserName')))
@@ -14,6 +17,9 @@ const menuLabel = computed(() =>
   user.value?.username && user.value.username !== name.value ? `${name.value} (${user.value.username})` : name.value
 )
 const avatar = computed(() => user.value?.avatarUrl || undefined)
+const buttonLabel = computed(() =>
+  isAdmin.value ? `${t('pluto.navbar.openUserMenu')} (${t('pluto.navbar.administrator')})` : t('pluto.navbar.openUserMenu')
+)
 
 const items = computed<DropdownMenuItem[][]>(() => [
   [
@@ -22,6 +28,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
       avatar: avatar.value
         ? { src: avatar.value, alt: name.value }
         : { icon: 'lucide:user', class: 'bg-primary', ui: { icon: 'text-inverted text-sm' } },
+      description: isAdmin.value ? t('pluto.navbar.administrator') : undefined,
       type: 'label',
     },
   ],
@@ -98,7 +105,7 @@ onUnmounted(() => portalTarget.value?.remove())
         hover and focus look. See PlutoNavbarHit.
       -->
       <button
-        :aria-label="t('pluto.navbar.openUserMenu')"
+        :aria-label="buttonLabel"
         class="group flex h-full items-center outline-none"
         type="button"
       >
@@ -107,6 +114,7 @@ onUnmounted(() => portalTarget.value?.remove())
             :src="avatar"
             :alt="name"
             :ui="{ root: 'rounded-xl', icon: 'text-inverted text-lg' }"
+            :chip="isAdmin ? { color: 'warning', position: 'bottom-right', class: 'lg:hidden' } : undefined"
             size="sm"
             icon="lucide:user"
             class="bg-primary"
@@ -115,6 +123,16 @@ onUnmounted(() => portalTarget.value?.remove())
           <span class="text-highlighted hidden text-sm font-semibold lg:inline">
             {{ short }}
           </span>
+
+          <UBadge
+            v-if="isAdmin"
+            :label="t('pluto.navbar.adminBadge')"
+            icon="lucide:shield-check"
+            color="warning"
+            variant="subtle"
+            size="sm"
+            class="hidden lg:inline-flex"
+          />
         </div>
       </button>
     </UDropdownMenu>

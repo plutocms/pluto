@@ -147,6 +147,13 @@ and a second instance of it here would fight the app-level sidebar for that hook
   It reads `plutoViewLeftPanelKey` (`close()`, `collapseButtons`). The panel exposes
   `leftCollapsible` (true while one is mounted) through a template ref.
 
+## Titles in `PlutoContentList`
+
+The title (`titleField`) links to the edit page: the title cell of the table (the
+`<titleField>-cell` slot, when the field is `inList`) and the heading of each card. An item
+without a title shows "Untitled" (`pluto.content.untitled`) in muted italics, so it still has a
+link. A card does not repeat the title in its field list.
+
 ## List states in `PlutoContentList`
 
 While the list has no rows, `PlutoContentList` shows one Nuxt UI `UEmpty` instead of the cards
@@ -170,7 +177,8 @@ uses `PlutoViewAdminPanel` with `fill`, so the list scrolls inside its own regio
 does not scroll:
 
 - Desktop: `UTable` with `virtualize` (only the visible rows render) and `sticky` (the header
-  row stays at the top). The table fills the remaining height.
+  row stays at the top). The table is as tall as its rows, up to the remaining height. Then it
+  scrolls. It does not fill the height, so a short list has no empty box under its rows.
 - Mobile: the card list is a flex column that scrolls. Each card has `shrink-0`. In a grid or
   flex container with a fixed height, a card without it collapses to its border.
 - `useInfiniteScroll` on the table and on the card list calls `loadMore()` 240px before the
@@ -295,7 +303,8 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   - `right`: the content is one tab of the right panel (`UTabs`, widget panels first, then "Page").
     With one tab, the aside title shows its label and there are no tabs.
 - The panel content stays in the widget's component tree. Vue `Teleport`s the DOM into an element
-  of the form. The element is a ref, so the content mounts when the element exists (the panel is
+  of the form. The wrapper is `flex min-h-0 flex-1 flex-col`, so a left panel fills the column
+  and its footer sits at the bottom. The element is a ref, so the content mounts when the element exists (the panel is
   open, the tab mounted) and the state of the widget does not reset. Outside a canvas form,
   `PlutoContentCanvasPanel` renders its slot inline.
 - Desktop: an open panel closes from the button in its own header. A closed panel opens from a
