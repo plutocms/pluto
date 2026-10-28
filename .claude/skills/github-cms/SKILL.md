@@ -571,8 +571,10 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   editor can share them. The link button is a slot
   (`PlutoGithubEditorLink.vue`, a popover with the URL). The image and mention extensions are off.
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
-  a click anywhere in the box puts the cursor in the text. The post type uses the focus layout
-  with the full width.
+  a click anywhere in the box puts the cursor in the text. The post type shows the widget through
+  the post editor (see below).
+- With the `canvas` prop, the widget has no label, no border and no mode switch. It is a centered
+  column (`max-w-3xl`) that fills the canvas. The post editor uses it for the Visual mode.
 - The text comes from `pluto.github.editor.*` in `en.json` and `pt-BR.json`.
 - The client plugin registers the widget as a `contentFieldWidgets` entry for
   `fieldType: 'richtext'`, in CMS mode only. It uses `defineAsyncComponent`, so Tiptap loads on the
@@ -596,12 +598,62 @@ grows with the text, with `spellcheck="false"`. It never parses or rewrites the 
   (`pluto.github.editor.unsafe`). It turns on again when the author removes the syntax in Source. An
   explicit `editor: 'visual'` still opens Visual: the author of the type owns that choice.
 - `PlutoMarkdownSource` props: `modelValue`, `disabled`, `placeholder`, `rows` (18), `maxRows`,
-  `ariaLabel`. Slot `toolbar` (slot props `insert`, `focus`). Exposed: `insert(text, { block })`
-  (it replaces the selection and puts the caret after the text; `block` adds a blank line before
-  and after) and `focus()`. `insertMarkdownText` is the pure helper. The CMS module registers the
+  `ariaLabel`, `fill` (fill the height of the parent; the text scrolls and the box does not
+  grow). Slot `toolbar` (slot props `insert`, `focus`). Exposed: `insert(text, { block })` (it
+  replaces the selection and puts the caret after the text; `block` adds a blank line before and
+  after), `focus()` and `goToLine(line)` (the caret goes to the start of the line, from 0, and the
+  line scrolls to the top). `insertMarkdownText` is the pure helper. The CMS module registers the
   short name `PlutoMarkdownSource` (only when the CMS is on), the same way as `PlutoMarkdown`. A
   layer uses it to build its own field widget.
 - i18n keys: `pluto.github.editor.visual`, `source`, `unsafe`, `mode`.
+
+### Post editor (`post-canvas`)
+
+The `post` type edits its body in the post editor, like the page editor of the nuxt-content
+layer. The type sets `widget: 'post-canvas'` on the `content` field and `form: { layout:
+'canvas', canvasField: 'content', leftPanel: { label: 'pluto.post.outline', … } }`. Core owns the
+editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` body can use it.
+`@plutocms/supabase-blog` uses it too.
+
+- `PlutoFieldPostCanvas.vue` is the widget. Core registers it by name only
+  (`widget: 'post-canvas'`), so it never competes for `richtext`. Outside a canvas form it shows
+  the `richtext` widget as a normal field.
+- **Visual** mode shows the `richtext` widget of the app
+  (`usePlutoContentFieldWidget({ ...field, widget: undefined })`) with the `canvas` prop. A
+  `richtext` widget of a layer must accept `canvas`: no label, and a column that fills the canvas.
+- **Markdown** mode shows `PlutoMarkdownSource` (`fill`) and the preview side by side in a
+  `USplitter` (stacked under `lg`). The cookie `pluto-post-split` keeps the sizes.
+- Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
+  widget. The cookie `pluto-post-editor-mode` keeps the last mode.
+- The left panel (`PlutoPostOutline.vue`) lists the headings (`plutoMarkdownHeadings(text)` in
+  `shared/utils/markdown-headings.ts`: ATX and setext headings, not in a code fence, in the order
+  of the rendered `h1` to `h6`). A click goes to the heading: in Markdown mode the caret goes to
+  its line and the preview scrolls to it; in Visual mode the editor scrolls to the nth heading
+  of `.ProseMirror`. The footer has the Visual/Markdown switch.
+- The other fields are in the right panel.
+
+#### Preview
+
+The preview is an iframe of `/_pluto/post-preview` (`PLUTO_POST_PREVIEW_PATH`), so the post shows
+with the CSS of the site. It is not under `/_pluto/preview`, because the nuxt-content layer owns
+that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
+
+- `PlutoPostPreviewFrame.vue` sends the text to the frame with `postMessage`. The frame renders it
+  with `renderMarkdown` (`shared/markdown/render.ts`: marked, MDC stripped, the allowlist
+  sanitizer), the same code as the public API. The render waits 150 ms after a change. A frame
+  that does not answer in 12 s shows an error with a retry.
+- The protocol is in `shared/utils/post-preview-protocol.ts`. The parent sends `render`
+  (`contentType`, `item` without the body, `markdown`) and `scroll-to` (a heading index). The
+  frame sends `ready`. Both sides accept a message only from the same origin, and only from the
+  parent window or the frame.
+- The page shows `PlutoPostPreview` with the props `contentType`, `item` and `html`. The default
+  (`app/components/Pluto/Post/PlutoPostPreview.vue`) shows the title, the date, the excerpt and
+  the body. An app replaces it with its own `components/PlutoPostPreview.vue` with the same
+  props, to use the layout of its post page. Put `data-pluto-post-body` on the element of the
+  body: `scroll-to` finds the headings in it. The blog templates have one.
+- i18n keys: `pluto.post.*` (`outline`, `outlineEmpty`, `outlineEmptyHint`, `mode`, `visual`,
+  `markdown`, `visualBlocked`, `previewTitle`, `previewLoading`, `previewFailedTitle`,
+  `previewFailed`).
 
 Limits of the editor:
 

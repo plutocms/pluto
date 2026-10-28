@@ -58,7 +58,10 @@ pattern as [permissions](../permissions/SKILL.md). Read both first. This feature
   list and form components.
 - `app/pages/admin/content/[type]/index.vue`, `new.vue`, `[id].vue` — the three generated pages.
 - `app/plugins/pluto-core-registrations.ts` (extended) — registers the eight built-in widgets,
-  alongside core's existing Home/Settings nav anchors.
+  alongside core's existing Home/Settings nav anchors. It also registers the `post-canvas` widget
+  by name only (`widget: 'post-canvas'`): the post editor of a Markdown `richtext` body (see the
+  github-cms skill). A `richtext` widget that the post editor shows must accept the `canvas`
+  prop.
 - `app/composables/pluto-admin-nav.ts`, `pluto-admin-pages.ts` (extended) — a third nav source,
   and two page-metadata entries, synthesized per auto-routed content type.
 - `test/pluto-content-list.test.ts`, `test/pluto-content-item.test.ts`,

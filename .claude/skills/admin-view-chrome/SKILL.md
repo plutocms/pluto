@@ -325,8 +325,11 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
 
 - The `canvasField` widget fills the main region (`PlutoViewAdminPanel` with `fill` and `width: 'full'`).
   Its root must fill its parent (`h-full`) and scroll its own content.
-- Every other field goes in the "Page" tab of the right panel, sorted by `order`. `region` does not
-  matter in this layout.
+- Every other field goes in a tab of the right panel, sorted by `order`. The tab takes the label of
+  the type ("Post", "Page"), else "Page" (`pluto.canvas.page`). `region` does not matter in this
+  layout.
+- The core post editor (`widget: 'post-canvas'`, see the github-cms skill) is a canvas widget: an
+  outline in the left panel, and a Visual mode or a Markdown mode with a preview of the site.
 - A widget adds panels with `PlutoContentCanvasPanel` (props `side: 'left' | 'right'`, `id`,
   `label?`, `icon?`; slot: the panel content):
   - `left`: the content stacks in the left panel. Put `PlutoViewLeftCollapse` in its header.
