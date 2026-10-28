@@ -83,7 +83,9 @@ gets `collapsed`, `tooltip` (the item label) and `popover` (the children of a gr
 keeps the state in the `pluto-admin` group cookie.
 
 Only a top-level item shows the active background. Each child item has
-`ui.link: 'data-active:before:bg-transparent'`, so an active child shows the primary text alone.
+`ui.link: 'data-active:before:bg-transparent'`, so an active child shows the primary text alone. A group
+item is `active` on every page that belongs to it (`activeNavGroups`: its path, a child path, a
+page below one, or a `match` path), not only on its own path.
 
 ### Open groups
 
