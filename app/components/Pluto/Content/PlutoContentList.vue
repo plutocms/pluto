@@ -317,6 +317,7 @@ const footer = computed(() => {
       :columns="columns"
       :loading="pending || loadingMore"
       :empty="t('pluto.list.emptyTable')"
+      :ui="{ tr: 'group' }"
       class="ring-default hidden min-h-0 rounded-lg ring lg:block"
       sticky
       virtualize
@@ -341,8 +342,12 @@ const footer = computed(() => {
         </UBadge>
       </template>
 
+      <!--
+        Edit and Remove show on row hover. They keep their place (opacity only), and stay visible
+        on a device without hover and while they hold the keyboard focus.
+      -->
       <template #actions-cell="{ row }">
-        <div class="flex justify-end gap-3">
+        <div class="flex justify-end gap-3 group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0">
           <NuxtLink
             v-if="canWrite"
             :to="editPath(row.original.id)"
