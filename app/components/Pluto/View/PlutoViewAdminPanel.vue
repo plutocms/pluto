@@ -159,7 +159,11 @@ const items = computed<SplitterItem[]>(() => [
         :items="items"
         :ui="{
           root: 'min-h-0 flex-1',
-          handle: 'w-px bg-(--ui-border) transition-colors hover:bg-primary data-[resize-handle-state=drag]:bg-primary',
+          // A 1px line. A `::before` 2.5px wider on each side is the 6px grab
+          // area, and the 6px primary bar: it fades in after 300ms of hover, and
+          // shows at once while dragging. The `!` keeps the duration and the
+          // delay against the no-transition rule of the admin (pluto-layer.css).
+          handle: 'w-px bg-(--ui-border) before:absolute before:inset-y-0 before:-inset-x-[2.5px] before:z-10 before:transition-colors before:duration-150! hover:before:bg-primary hover:before:delay-300! data-[resize-handle-state=drag]:before:bg-primary data-[resize-handle-state=drag]:before:delay-0!',
         }"
         @dragging="onDragging"
       >
