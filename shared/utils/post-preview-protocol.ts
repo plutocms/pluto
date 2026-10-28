@@ -77,7 +77,9 @@ export function parsePlutoPostPreviewMessage(
     return undefined
   }
   if (direction === 'from-frame') {
-    return data.type === 'ready' ? (data as PlutoPostPreviewReady) : undefined
+    return data.type === 'ready'
+      ? (data as unknown as PlutoPostPreviewReady)
+      : undefined
   }
   if (data.type === 'render') {
     return typeof data.contentType === 'string' &&
