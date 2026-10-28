@@ -128,8 +128,7 @@ onUnmounted(() => portalTarget.value?.remove())
           <span class="text-highlighted hidden text-sm font-semibold lg:inline">
             {{ short }}
           </span>
-
-        </div>
+</div>
       </button>
 
       <template #account-trailing>

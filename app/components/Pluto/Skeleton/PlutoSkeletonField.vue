@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const type = computed(() => props.field?.type ?? props.fieldType ?? 'text')
 const hasDescription = computed(() => Boolean(props.field?.description))
-const multipleMedia = computed(() => props.field?.type === 'media' && Boolean((props.field as { multiple?: boolean }).multiple))
+const multipleMedia = computed(() => props.field?.type === 'media' && Boolean(props.field.multiple))
 </script>
 
 <template>
