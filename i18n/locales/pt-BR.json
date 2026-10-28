@@ -593,7 +593,17 @@
       "signOut": "Sair"
     },
     "post": {
-      "previewTitle": "Prévia do post"
+      "previewTitle": "Prévia do post",
+      "outline": "Estrutura",
+      "outlineEmpty": "Nenhum título ainda",
+      "outlineEmptyHint": "Adicione um título (## Título) para vê-lo aqui.",
+      "mode": "Editor",
+      "visual": "Visual",
+      "markdown": "Markdown",
+      "visualBlocked": "Este texto tem uma sintaxe que o editor visual não consegue manter (MDC, HTML, tabelas, listas de tarefas ou notas de rodapé). Edite-o em Markdown.",
+      "previewLoading": "Carregando a prévia…",
+      "previewFailedTitle": "A prévia não carregou",
+      "previewFailed": "A página de prévia do site não respondeu. Verifique se o site está no ar e tente de novo."
     }
   }
 }

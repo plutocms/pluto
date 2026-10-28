@@ -21,6 +21,11 @@ const PlutoFieldSlug = defineAsyncComponent(
 const PlutoFieldText = defineAsyncComponent(
   () => import('../components/Pluto/Content/fields/PlutoFieldText.vue')
 )
+// The post editor (canvas layout): by widget name only, so it never replaces the
+// `richtext` widget of a field that does not ask for it.
+const PlutoFieldPostCanvas = defineAsyncComponent(
+  () => import('../components/Pluto/Post/PlutoFieldPostCanvas.vue')
+)
 const PlutoDashboardContentActivity = defineAsyncComponent(
   () =>
     import('../components/Pluto/Dashboard/PlutoDashboardContentActivity.vue')
@@ -118,6 +123,11 @@ export default defineNuxtPlugin(() => {
         id: 'reference',
         fieldType: 'reference',
         component: PlutoFieldReference,
+      },
+      {
+        id: 'post-canvas',
+        widget: 'post-canvas',
+        component: PlutoFieldPostCanvas,
       },
     ],
     // `order: 0` puts the content overview first. It spans the full row

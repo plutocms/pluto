@@ -16,6 +16,11 @@ const props = withDefaults(
     /** The box grows up to this many rows, then it scrolls. Default: no limit. */
     maxRows?: number
     ariaLabel?: string
+    /**
+     * Fill the height of the parent: the text scrolls inside the box, which does not grow. For
+     * a full-height editor, such as the Markdown mode of the post editor.
+     */
+    fill?: boolean
   }>(),
   {
     rows: 18,
@@ -65,11 +70,33 @@ function insert(
   })
 }
 
-defineExpose({ insert, focus })
+/**
+ * Puts the caret at the start of a line (from 0), and scrolls that line to the top of the box.
+ * The outline of the post editor uses it to jump to a heading.
+ */
+function goToLine(line: number): void {
+  const el = element()
+  if (!el) {
+    return
+  }
+  const lines = props.modelValue.split('\n')
+  const offset = lines
+    .slice(0, Math.max(0, line))
+    .reduce((sum, text) => sum + text.length + 1, 0)
+  el.focus()
+  el.setSelectionRange(offset, offset)
+  const lineHeight = Number.parseFloat(getComputedStyle(el).lineHeight) || 24
+  el.scrollTop = Math.max(0, line * lineHeight)
+}
+
+defineExpose({ insert, focus, goToLine })
 </script>
 
 <template>
-  <div class="bg-default border-default w-full rounded-md border">
+  <div
+    :class="fill ? 'flex h-full min-h-0 flex-col' : undefined"
+    class="bg-default border-default w-full rounded-md border"
+  >
     <div
       v-if="$slots.toolbar"
       class="border-default bg-default flex flex-wrap items-center gap-1 rounded-t-md border-b px-2 py-1.5"
@@ -84,13 +111,18 @@ defineExpose({ insert, focus })
       :rows="rows"
       :maxrows="maxRows"
       :aria-label="ariaLabel"
-      :ui="{ base: 'font-mono text-sm/6 px-4 py-3 sm:px-4' }"
+      :ui="{
+        root: fill ? 'min-h-0 flex-1' : undefined,
+        base: fill
+          ? 'h-full resize-none px-4 py-3 font-mono text-sm/6 sm:px-4'
+          : 'px-4 py-3 font-mono text-sm/6 sm:px-4',
+      }"
+      :autoresize="!fill"
       spellcheck="false"
       autocomplete="off"
       autocapitalize="off"
       variant="none"
       class="w-full"
-      autoresize
       @update:model-value="emit('update:modelValue', $event as string)"
     />
   </div>
