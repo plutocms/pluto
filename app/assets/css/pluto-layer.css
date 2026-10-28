@@ -67,3 +67,14 @@
   --radius-2xl: calc(var(--ui-radius) * 4);
   --radius-3xl: calc(var(--ui-radius) * 6);
 }
+
+/*
+ * The overlay of the admin search (Cmd/Ctrl+K) is darker than the Nuxt UI
+ * default and blurs the page under it. The overlay is the sibling just before
+ * the modal content, which carries `pluto-admin-search` (app/layouts/admin.vue).
+ * Other modals keep the Nuxt UI overlay.
+ */
+:root[data-pluto-admin] [data-slot='overlay']:has(+ .pluto-admin-search) {
+  background-color: oklch(13% 0.03 273 / 0.6);
+  backdrop-filter: blur(6px);
+}

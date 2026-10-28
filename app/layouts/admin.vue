@@ -47,7 +47,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         button has no dashboard context and its click does nothing.
       -->
       <template #header>
-        <UDashboardSearchButton class="w-full" />
+        <UDashboardSearchButton variant="soft" class="w-full" />
       </template>
 
       <UNavigationMenu
@@ -80,6 +80,11 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
     </UDashboardPanel>
 
     <!-- Cmd/Ctrl+K. See usePlutoCommandPalette for the commands. -->
-    <UDashboardSearch :groups="commandGroups" :placeholder="t('pluto.palette.placeholder')" />
+    <!-- `pluto-admin-search` gets the darker, blurred overlay (pluto-layer.css). -->
+    <UDashboardSearch
+      :groups="commandGroups"
+      :placeholder="t('pluto.palette.placeholder')"
+      :ui="{ modal: 'pluto-admin-search' }"
+    />
   </UDashboardGroup>
 </template>
