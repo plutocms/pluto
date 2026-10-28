@@ -22,6 +22,9 @@ function toMenuItem(item: PlutoNavItem): PlutoAdminMenuItem {
       // A child that points at its parent's own path (Settings > General)
       // must not stay active on the sibling pages below that path.
       exact: child.to === item.to ? true : undefined,
+      // Only a top-level item shows the active background. An active child
+      // shows the primary text color alone.
+      ui: { link: 'data-active:before:bg-transparent' },
     })),
   }
 }
