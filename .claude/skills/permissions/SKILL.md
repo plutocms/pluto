@@ -93,7 +93,17 @@ Returns the current user's loaded capability list, and a `can()` check, backed b
 `PlutoPermissionsDriver` is registered:
 
 ```ts
-const { granted, loaded, status, hasDriver, isAdmin, load, ensureLoaded, clear, can } = usePlutoPermissions()
+const {
+  granted,
+  loaded,
+  status,
+  hasDriver,
+  isAdmin,
+  load,
+  ensureLoaded,
+  clear,
+  can,
+} = usePlutoPermissions()
 
 await ensureLoaded(user.id) // populates `granted` for this user, once
 can('posts:publish') // true if the user holds this capability, or holds '*'

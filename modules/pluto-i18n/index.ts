@@ -1,7 +1,14 @@
 import type { PlutoI18nOptions } from './locale-files'
 import { existsSync, readdirSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { addTemplate, defineNuxtModule, getLayerDirectories, resolvePath, updateTemplates, useLogger } from '@nuxt/kit'
+import {
+  addTemplate,
+  defineNuxtModule,
+  getLayerDirectories,
+  resolvePath,
+  updateTemplates,
+  useLogger,
+} from '@nuxt/kit'
 import {
   findLayerLocaleFiles,
   LOCALE_DIR,
@@ -39,7 +46,9 @@ export default defineNuxtModule<PlutoI18nOptions>({
 
     // Nuxt UI's locale files. The generated file imports them by absolute
     // path, so the app needs no direct `@nuxt/ui` dependency.
-    const uiLocaleDir = dirname(await resolvePath('@nuxt/ui/runtime/locale/en.js'))
+    const uiLocaleDir = dirname(
+      await resolvePath('@nuxt/ui/runtime/locale/en.js')
+    )
     const uiLocaleFiles = listDir(uiLocaleDir)
       .filter((name) => name.endsWith('.js'))
       .map((name) => name.slice(0, -'.js'.length))
@@ -65,12 +74,13 @@ export default defineNuxtModule<PlutoI18nOptions>({
     addTemplate({
       filename: 'pluto-i18n.mjs',
       write: true,
-      getContents: () => renderI18nTemplate({
-        files,
-        defaultLocale: resolved.defaultLocale,
-        uiLocaleDir,
-        uiLocaleFiles,
-      }),
+      getContents: () =>
+        renderI18nTemplate({
+          files,
+          defaultLocale: resolved.defaultLocale,
+          uiLocaleDir,
+          uiLocaleFiles,
+        }),
     })
 
     // The server translator (`server/utils/pluto-i18n.ts`) reads the same
@@ -93,11 +103,16 @@ export default defineNuxtModule<PlutoI18nOptions>({
     // after a new language. An edit of an existing file hot-reloads on its own.
     nuxt.hook('builder:watch', async (_event, path) => {
       const normalized = path.replaceAll('\\', '/')
-      if (!normalized.includes(`/${LOCALE_DIR}/`) || !normalized.endsWith('.json')) {
+      if (
+        !normalized.includes(`/${LOCALE_DIR}/`) ||
+        !normalized.endsWith('.json')
+      ) {
         return
       }
       files = findLayerLocaleFiles(layerRoots, listDir)
-      await updateTemplates({ filter: (template) => template.filename.startsWith('pluto-i18n.') })
+      await updateTemplates({
+        filter: (template) => template.filename.startsWith('pluto-i18n.'),
+      })
     })
   },
 })

@@ -7,7 +7,10 @@ export const PLUTO_API_PREFIX = '/api/pluto/v1'
  * The path of a public content route: the list of `type`, or one item when `id` is set. Each
  * segment of a nested id (`1.start/2.install`) is encoded on its own, so the slashes stay.
  */
-export function plutoContentApiPath(type: string, id?: string | number): string {
+export function plutoContentApiPath(
+  type: string,
+  id?: string | number
+): string {
   const base = `${PLUTO_API_PREFIX}/content/${encodeURIComponent(type)}`
   if (id === undefined || id === '') {
     return base
@@ -16,7 +19,9 @@ export function plutoContentApiPath(type: string, id?: string | number): string 
 }
 
 /** The URL query of a list route, as `fetch` and `useFetch` take it. `filter` becomes `filter[field]`. */
-export function plutoPublicQueryParams(query: PlutoPublicQuery = {}): Record<string, string> {
+export function plutoPublicQueryParams(
+  query: PlutoPublicQuery = {}
+): Record<string, string> {
   const params: Record<string, string> = {}
   if (query.limit !== undefined) {
     params.limit = String(query.limit)

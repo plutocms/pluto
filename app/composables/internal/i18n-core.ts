@@ -76,7 +76,11 @@ function getPluralRules(locale: string): Intl.PluralRules {
  * - Three forms (`zero | one | other`): 0 gives the first form, even in a
  *   locale where 0 is `one` (pt-BR). Then `Intl.PluralRules` decides.
  */
-export function selectPlural(message: string, count: number, locale: string): string {
+export function selectPlural(
+  message: string,
+  count: number,
+  locale: string
+): string {
   const forms = message.split(PLURAL_SEPARATOR)
   if (forms.length === 1) {
     return message
@@ -118,16 +122,20 @@ export interface Translator {
 export function createTranslator(options: TranslatorOptions): Translator {
   const fallbackLocale = options.fallbackLocale ?? 'en'
   const warned = new Set<string>()
-  const warn = options.warn ?? ((message: string) => {
-    if (import.meta.dev) {
-      console.warn(message)
-    }
-  })
+  const warn =
+    options.warn ??
+    ((message: string) => {
+      if (import.meta.dev) {
+        console.warn(message)
+      }
+    })
 
-  function lookup(key: string): {
- message: string
-locale: string
-} | undefined {
+  function lookup(key: string):
+    | {
+        message: string
+        locale: string
+      }
+    | undefined {
     const locale = options.locale()
     const active = options.messages(locale)?.[key]
     if (active !== undefined) {
@@ -149,11 +157,16 @@ locale: string
       }
       return key
     }
-    const values: MessageParams = typeof params === 'number' ? { count: params } : (params ?? {})
+    const values: MessageParams =
+      typeof params === 'number' ? { count: params } : (params ?? {})
     let message = found.message
     if (message.includes(PLURAL_SEPARATOR)) {
       const count = Number(values.count)
-      message = selectPlural(message, Number.isNaN(count) ? 1 : count, found.locale)
+      message = selectPlural(
+        message,
+        Number.isNaN(count) ? 1 : count,
+        found.locale
+      )
     }
     return interpolate(message, values)
   }
@@ -176,7 +189,10 @@ export function mergeMessageTrees(...trees: MessageTree[]): MessageTree {
     for (const [key, value] of Object.entries(tree)) {
       const current = result[key]
       if (typeof value === 'object' && value !== null) {
-        result[key] = mergeMessageTrees(typeof current === 'object' && current !== null ? current : {}, value)
+        result[key] = mergeMessageTrees(
+          typeof current === 'object' && current !== null ? current : {},
+          value
+        )
       } else {
         result[key] = value
       }
@@ -233,7 +249,11 @@ const numberFormats = new Map<string, Intl.NumberFormat>()
 const dateFormats = new Map<string, Intl.DateTimeFormat>()
 
 /** Formats a number. The `Intl` formatter is cached per locale and options. */
-export function formatNumber(locale: string, value: number, options?: Intl.NumberFormatOptions): string {
+export function formatNumber(
+  locale: string,
+  value: number,
+  options?: Intl.NumberFormatOptions
+): string {
   const key = `${locale}|${JSON.stringify(options ?? {})}`
   let format = numberFormats.get(key)
   if (!format) {
@@ -244,7 +264,11 @@ export function formatNumber(locale: string, value: number, options?: Intl.Numbe
 }
 
 /** Formats a date. The `Intl` formatter is cached per locale and options. */
-export function formatDate(locale: string, value: Date | number | string, options?: Intl.DateTimeFormatOptions): string {
+export function formatDate(
+  locale: string,
+  value: Date | number | string,
+  options?: Intl.DateTimeFormatOptions
+): string {
   const key = `${locale}|${JSON.stringify(options ?? {})}`
   let format = dateFormats.get(key)
   if (!format) {
@@ -280,7 +304,9 @@ export function parseAcceptLanguage(header: string | undefined): string[] {
     .split(',')
     .map((part, index) => {
       const [tag = '', ...params] = part.trim().split(';')
-      const q = params.map((param) => /^\s*q=([\d.]+)\s*$/.exec(param)?.[1]).find(Boolean)
+      const q = params
+        .map((param) => /^\s*q=([\d.]+)\s*$/.exec(param)?.[1])
+        .find(Boolean)
       return { tag: tag.trim(), q: q === undefined ? 1 : Number(q), index }
     })
     .filter((entry) => entry.tag && entry.tag !== '*' && entry.q > 0)
@@ -293,7 +319,10 @@ export function parseAcceptLanguage(header: string | undefined): string[] {
  * tag, in order: an exact match (ignoring case), then the first supported
  * code with the same base language. Returns null if nothing matches.
  */
-export function matchLocale(requested: string[], supported: string[]): string | null {
+export function matchLocale(
+  requested: string[],
+  supported: string[]
+): string | null {
   const lower = new Map(supported.map((code) => [code.toLowerCase(), code]))
   for (const tag of requested) {
     const exact = lower.get(tag.toLowerCase())
@@ -301,7 +330,9 @@ export function matchLocale(requested: string[], supported: string[]): string | 
       return exact
     }
     const base = tag.toLowerCase().split('-')[0]!
-    const byBase = supported.find((code) => code.toLowerCase().split('-')[0] === base)
+    const byBase = supported.find(
+      (code) => code.toLowerCase().split('-')[0] === base
+    )
     if (byBase) {
       return byBase
     }

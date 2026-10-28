@@ -15,9 +15,9 @@ export interface PlutoGithubSessionResponse {
   user: PlutoGithubUser | null
   capabilities?: string[]
   repo?: {
- name: string
-private?: boolean
-}
+    name: string
+    private?: boolean
+  }
 }
 
 /**

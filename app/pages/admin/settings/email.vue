@@ -17,8 +17,12 @@ const { items: panels } = usePlutoMailPanels()
 <template>
   <div class="flex flex-col gap-y-6 lg:gap-y-8">
     <div>
-      <h2 class="text-xl font-semibold">{{ t('pluto.mail.page.title') }}</h2>
-      <p class="text-muted text-sm">{{ t('pluto.mail.page.intro') }}</p>
+      <h2 class="text-xl font-semibold">
+        {{ t('pluto.mail.page.title') }}
+      </h2>
+      <p class="text-muted text-sm">
+        {{ t('pluto.mail.page.intro') }}
+      </p>
     </div>
 
     <LazyPlutoMailStatusCard />
@@ -28,7 +32,9 @@ const { items: panels } = usePlutoMailPanels()
       :title="t('pluto.mail.account.title')"
       :description="t('pluto.mail.account.description')"
     >
-      <p class="text-muted text-sm">{{ t('pluto.mail.account.body') }}</p>
+      <p class="text-muted text-sm">
+        {{ t('pluto.mail.account.body') }}
+      </p>
       <div>
         <UButton
           to="https://resend.com/signup"
@@ -53,8 +59,12 @@ const { items: panels } = usePlutoMailPanels()
     <!-- Sections that other layers add (the mailPanels bucket). -->
     <UCard v-for="panel in panels" :key="panel.id">
       <template #header>
-        <h2 class="font-semibold">{{ panel.title }}</h2>
-        <p v-if="panel.description" class="text-muted text-sm">{{ panel.description }}</p>
+        <h2 class="font-semibold">
+          {{ panel.title }}
+        </h2>
+        <p v-if="panel.description" class="text-muted text-sm">
+          {{ panel.description }}
+        </p>
       </template>
 
       <Suspense>

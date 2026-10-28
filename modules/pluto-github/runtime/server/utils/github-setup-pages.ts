@@ -5,14 +5,17 @@
  * Every value goes through `escapeHtml`.
  */
 
-export type SetupTranslate = (key: string, params?: Record<string, string | number>) => string
+export type SetupTranslate = (
+  key: string,
+  params?: Record<string, string | number>
+) => string
 
 const ESCAPES: Record<string, string> = {
   '&': '&amp;',
   '<': '&lt;',
   '>': '&gt;',
   '"': '&quot;',
-  '\'': '&#39;',
+  "'": '&#39;',
 }
 
 /** Escapes text for an HTML body or a quoted attribute. */

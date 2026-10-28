@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { findUnsafeMarkdown, insertMarkdownText, pickMarkdownEditorMode } from '../shared/utils/markdown-syntax'
+import {
+  findUnsafeMarkdown,
+  insertMarkdownText,
+  pickMarkdownEditorMode,
+} from '../shared/utils/markdown-syntax'
 
-const kinds = (text: string) => findUnsafeMarkdown(text).map((issue) => issue.kind)
+const kinds = (text: string) =>
+  findUnsafeMarkdown(text).map((issue) => issue.kind)
 
 describe('findUnsafeMarkdown', () => {
   it('accepts plain CommonMark and strikethrough', () => {
@@ -32,7 +37,9 @@ describe('findUnsafeMarkdown', () => {
   })
 
   it('finds an MDC block', () => {
-    expect(findUnsafeMarkdown('Text\n\n::note\nHello\n::\n')).toEqual([{ kind: 'mdc-block', line: 3 }])
+    expect(findUnsafeMarkdown('Text\n\n::note\nHello\n::\n')).toEqual([
+      { kind: 'mdc-block', line: 3 },
+    ])
     expect(kinds('  :::tabs\n')).toContain('mdc-block')
   })
 
@@ -49,17 +56,29 @@ describe('findUnsafeMarkdown', () => {
   })
 
   it('finds HTML', () => {
-    for (const text of ['<div class="a">x</div>', 'a<br>b', '<img src="x" />', '<!-- note -->', '</section>']) {
+    for (const text of [
+      '<div class="a">x</div>',
+      'a<br>b',
+      '<img src="x" />',
+      '<!-- note -->',
+      '</section>',
+    ]) {
       expect(kinds(text), text).toContain('html')
     }
   })
 
   it('does not flag an autolink or a lone angle bracket', () => {
-    expect(findUnsafeMarkdown('<https://example.com> and <me@example.com> and 1 < 2 > 0')).toEqual([])
+    expect(
+      findUnsafeMarkdown(
+        '<https://example.com> and <me@example.com> and 1 < 2 > 0'
+      )
+    ).toEqual([])
   })
 
   it('finds a GFM table', () => {
-    expect(findUnsafeMarkdown('| a | b |\n| --- | --- |\n| 1 | 2 |')).toEqual([{ kind: 'table', line: 2 }])
+    expect(findUnsafeMarkdown('| a | b |\n| --- | --- |\n| 1 | 2 |')).toEqual([
+      { kind: 'table', line: 2 },
+    ])
     expect(kinds('a | b\n:-: | --:\n1 | 2')).toEqual(['table'])
     // A thematic break is not a table.
     expect(findUnsafeMarkdown('text\n---\n')).toEqual([])
@@ -109,7 +128,10 @@ describe('findUnsafeMarkdown', () => {
   it('reports each kind once, with its first line', () => {
     const issues = findUnsafeMarkdown('<b>a</b>\n\n::x\n\n<i>b</i>')
 
-    expect(issues).toEqual([{ kind: 'html', line: 1 }, { kind: 'mdc-block', line: 3 }])
+    expect(issues).toEqual([
+      { kind: 'html', line: 1 },
+      { kind: 'mdc-block', line: 3 },
+    ])
   })
 
   it('reads CRLF text', () => {
@@ -119,25 +141,49 @@ describe('findUnsafeMarkdown', () => {
 
 describe('insertMarkdownText', () => {
   it('replaces the selection and puts the caret after the snippet', () => {
-    expect(insertMarkdownText('Hello world', { start: 6, end: 11 }, ':icon{}')).toEqual({ value: 'Hello :icon{}', caret: 13 })
+    expect(
+      insertMarkdownText('Hello world', { start: 6, end: 11 }, ':icon{}')
+    ).toEqual({ value: 'Hello :icon{}', caret: 13 })
   })
 
   it('inserts at the caret', () => {
-    expect(insertMarkdownText('ab', { start: 1, end: 1 }, 'X')).toEqual({ value: 'aXb', caret: 2 })
+    expect(insertMarkdownText('ab', { start: 1, end: 1 }, 'X')).toEqual({
+      value: 'aXb',
+      caret: 2,
+    })
   })
 
   it('puts a block on its own lines', () => {
-    expect(insertMarkdownText('Before\nAfter', { start: 7, end: 7 }, '::note\nx\n::\n', { block: true })).toEqual({
+    expect(
+      insertMarkdownText(
+        'Before\nAfter',
+        { start: 7, end: 7 },
+        '::note\nx\n::\n',
+        { block: true }
+      )
+    ).toEqual({
       value: 'Before\n\n::note\nx\n::\n\nAfter',
       caret: 7 + 1 + '::note\nx\n::'.length,
     })
-    expect(insertMarkdownText('Text', { start: 4, end: 4 }, '::x\n::', { block: true }).value).toBe('Text\n\n::x\n::')
-    expect(insertMarkdownText('', { start: 0, end: 0 }, '::x\n::', { block: true }).value).toBe('::x\n::')
-    expect(insertMarkdownText('a\n\nb', { start: 3, end: 3 }, '::x', { block: true }).value).toBe('a\n\n::x\n\nb')
+    expect(
+      insertMarkdownText('Text', { start: 4, end: 4 }, '::x\n::', {
+        block: true,
+      }).value
+    ).toBe('Text\n\n::x\n::')
+    expect(
+      insertMarkdownText('', { start: 0, end: 0 }, '::x\n::', { block: true })
+        .value
+    ).toBe('::x\n::')
+    expect(
+      insertMarkdownText('a\n\nb', { start: 3, end: 3 }, '::x', { block: true })
+        .value
+    ).toBe('a\n\n::x\n\nb')
   })
 
   it('clamps a selection outside the text', () => {
-    expect(insertMarkdownText('ab', { start: 9, end: 20 }, 'X').value).toBe('abX')
+    expect(insertMarkdownText('ab', { start: 9, end: 20 }, 'X').value).toBe(
+      'abX'
+    )
   })
 })
 

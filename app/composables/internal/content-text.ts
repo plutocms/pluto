@@ -1,7 +1,10 @@
 // Pure part of `usePlutoContentText`. It does not use Nuxt auto-imports, so
 // plain Vitest can import it, and so a composable can call it for each type
 // inside one `computed`.
-import type { PlutoContentType, PlutoField } from '../../../shared/types/content'
+import type {
+  PlutoContentType,
+  PlutoField,
+} from '../../../shared/types/content'
 import type { MessageParams } from './i18n-core'
 
 /** The part of `usePlutoI18n()` that content text needs. */
@@ -9,8 +12,8 @@ export interface ContentTextI18n {
   t: (key: string, params?: MessageParams | number) => string
   te: (key: string) => boolean
   locale: {
- readonly value: string
-}
+    readonly value: string
+  }
 }
 
 export interface PlutoContentText {
@@ -40,17 +43,24 @@ export interface PlutoContentText {
  * `getType` runs on each read, so a locale switch or a changed type shows at
  * once when the caller reads inside a reactive scope.
  */
-export function createContentText(getType: () => PlutoContentType | undefined, i18n: ContentTextI18n): PlutoContentText {
+export function createContentText(
+  getType: () => PlutoContentType | undefined,
+  i18n: ContentTextI18n
+): PlutoContentText {
   const prefix = () => `content.${getType()?.name ?? ''}`
 
   /** The translation when the key exists, else the literal. */
-  function pick<L extends string | undefined>(key: string, literal: L): string | L {
+  function pick<L extends string | undefined>(
+    key: string,
+    literal: L
+  ): string | L {
     return i18n.te(key) ? i18n.t(key) : literal
   }
 
   const lower = (value: string) => value.toLocaleLowerCase(i18n.locale.value)
   const label = () => pick(`${prefix()}.label`, getType()?.label ?? '')
-  const labelPlural = () => pick(`${prefix()}.labelPlural`, getType()?.labelPlural ?? '')
+  const labelPlural = () =>
+    pick(`${prefix()}.labelPlural`, getType()?.labelPlural ?? '')
 
   function fieldLabel(field: PlutoField): string {
     return pick(`${prefix()}.fields.${field.name}.label`, field.label)
@@ -58,16 +68,24 @@ export function createContentText(getType: () => PlutoContentType | undefined, i
 
   function field<F extends PlutoField>(source: F): F {
     const base = `${prefix()}.fields.${source.name}`
-    const copy: Record<string, unknown> = { ...source, label: fieldLabel(source) }
+    const copy: Record<string, unknown> = {
+      ...source,
+      label: fieldLabel(source),
+    }
 
     const description = pick(`${base}.description`, source.description)
     if (description !== undefined) {
       copy.description = description
     }
 
-    const placeholder = pick(`${base}.placeholder`, (source as {
- placeholder?: string
-}).placeholder)
+    const placeholder = pick(
+      `${base}.placeholder`,
+      (
+        source as {
+          placeholder?: string
+        }
+      ).placeholder
+    )
     if (placeholder !== undefined) {
       copy.placeholder = placeholder
     }
@@ -97,15 +115,21 @@ export function createContentText(getType: () => PlutoContentType | undefined, i
     },
     get newLabel() {
       const key = `${prefix()}.new`
-      return i18n.te(key) ? i18n.t(key) : i18n.t('pluto.content.new', { label: label() })
+      return i18n.te(key)
+        ? i18n.t(key)
+        : i18n.t('pluto.content.new', { label: label() })
     },
     fieldLabel,
     field,
-    statusLabel: (value, literal) => pick(`${prefix()}.status.${value}`, literal ?? value),
+    statusLabel: (value, literal) =>
+      pick(`${prefix()}.status.${value}`, literal ?? value),
   }
 }
 
 /** Same as `createContentText`, for a type that is already in hand. */
-export function contentTextFor(type: PlutoContentType, i18n: ContentTextI18n): PlutoContentText {
+export function contentTextFor(
+  type: PlutoContentType,
+  i18n: ContentTextI18n
+): PlutoContentText {
   return createContentText(() => type, i18n)
 }

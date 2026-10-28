@@ -1,4 +1,7 @@
-import type { PlutoContentAdapter, PlutoContentType } from '../shared/types/content'
+import type {
+  PlutoContentAdapter,
+  PlutoContentType,
+} from '../shared/types/content'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 // pluto-content.ts (server/utils) is a plain module-scope singleton by

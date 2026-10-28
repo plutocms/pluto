@@ -18,8 +18,8 @@ const to = ref(props.mode === 'self' ? (user.value?.email ?? '') : '')
 const sending = ref(false)
 const sent = ref(false)
 const failure = ref<{
- code?: string
-text: string
+  code?: string
+  text: string
 } | null>(null)
 
 const emailValid = computed(() => isPlutoMailAddress(to.value.trim()))
@@ -28,7 +28,11 @@ const emailValid = computed(() => isPlutoMailAddress(to.value.trim()))
 // driver can "send" (it prints to the server console).
 const canSend = computed(() => Boolean(status.value?.configured))
 
-const domainVerified = computed(() => domain.value !== null && plutoMailDomainState(domain.value.status) === 'verified')
+const domainVerified = computed(
+  () =>
+    domain.value !== null &&
+    plutoMailDomainState(domain.value.status) === 'verified'
+)
 
 const state = computed(() => {
   if (sent.value) {
@@ -58,7 +62,10 @@ async function send() {
     await sendTest(to.value.trim(), locale.value)
     sent.value = true
   } catch (error) {
-    failure.value = { code: plutoMailErrorCode(error), text: errorText(error, 'pluto.mail.test.failed') }
+    failure.value = {
+      code: plutoMailErrorCode(error),
+      text: errorText(error, 'pluto.mail.test.failed'),
+    }
   } finally {
     sending.value = false
   }
@@ -68,11 +75,25 @@ async function send() {
 <template>
   <PlutoMailStep
     :number="number"
-    :title="mode === 'self' ? t('pluto.mail.test.selfTitle') : t('pluto.mail.test.anyoneTitle')"
-    :description="mode === 'self' ? t('pluto.mail.test.selfDescription') : t('pluto.mail.test.anyoneDescription')"
+    :title="
+      mode === 'self'
+        ? t('pluto.mail.test.selfTitle')
+        : t('pluto.mail.test.anyoneTitle')
+    "
+    :description="
+      mode === 'self'
+        ? t('pluto.mail.test.selfDescription')
+        : t('pluto.mail.test.anyoneDescription')
+    "
     :state="state"
   >
-    <UAlert v-if="lockedHint" :description="lockedHint" color="neutral" variant="subtle" icon="lucide:lock" />
+    <UAlert
+      v-if="lockedHint"
+      :description="lockedHint"
+      color="neutral"
+      variant="subtle"
+      icon="lucide:lock"
+    />
 
     <template v-else>
       <UAlert
@@ -83,7 +104,10 @@ async function send() {
         icon="lucide:info"
       />
 
-      <UFormField :label="t('pluto.mail.test.to')" :help="mode === 'anyone' ? t('pluto.mail.test.anyoneHelp') : undefined">
+      <UFormField
+        :label="t('pluto.mail.test.to')"
+        :help="mode === 'anyone' ? t('pluto.mail.test.anyoneHelp') : undefined"
+      >
         <UInput
           v-model="to"
           :placeholder="t('pluto.mail.test.toPlaceholder')"
@@ -95,7 +119,12 @@ async function send() {
       </UFormField>
 
       <div>
-        <UButton :loading="sending" :disabled="!emailValid" icon="lucide:send" @click="send">
+        <UButton
+          :loading="sending"
+          :disabled="!emailValid"
+          icon="lucide:send"
+          @click="send"
+        >
           {{ t('pluto.mail.test.send') }}
         </UButton>
       </div>
@@ -103,7 +132,11 @@ async function send() {
       <UAlert
         v-if="sent"
         :title="t('pluto.mail.test.sentTitle')"
-        :description="status?.logOnly ? t('pluto.mail.test.sentDev') : t('pluto.mail.test.sentHint')"
+        :description="
+          status?.logOnly
+            ? t('pluto.mail.test.sentDev')
+            : t('pluto.mail.test.sentHint')
+        "
         color="success"
         variant="subtle"
         icon="lucide:circle-check"

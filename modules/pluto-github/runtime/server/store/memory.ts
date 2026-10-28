@@ -21,15 +21,24 @@ function parentOf(path: string): string {
  * and `readFile` ignore the head id they get. The head id comes from the
  * content, so it changes after each change.
  */
-export function createMemoryStore(initial: Record<string, string> = {}): MemoryStore {
+export function createMemoryStore(
+  initial: Record<string, string> = {}
+): MemoryStore {
   const files = new Map<string, string>(Object.entries(initial))
 
   function currentHead(): string {
-    return listingOid([...files].map(([path, text]) => ({ path, oid: gitBlobSha(text) })))
+    return listingOid(
+      [...files].map(([path, text]) => ({ path, oid: gitBlobSha(text) }))
+    )
   }
 
   function toFile(path: string, text: string): PlutoGithubFile {
-    return { path, name: path.slice(path.lastIndexOf('/') + 1), oid: gitBlobSha(text), text }
+    return {
+      path,
+      name: path.slice(path.lastIndexOf('/') + 1),
+      oid: gitBlobSha(text),
+      text,
+    }
   }
 
   return {
@@ -48,7 +57,15 @@ export function createMemoryStore(initial: Record<string, string> = {}): MemoryS
       const base = dir.replace(/\/+$/, '')
       const prefix = base === '' ? '' : `${base}/`
       return [...files]
-        .filter(([path]) => path.startsWith(prefix) && path.endsWith('.md') && !path.slice(prefix.length).split('/').some((part) => part.startsWith('.')))
+        .filter(
+          ([path]) =>
+            path.startsWith(prefix) &&
+            path.endsWith('.md') &&
+            !path
+              .slice(prefix.length)
+              .split('/')
+              .some((part) => part.startsWith('.'))
+        )
         .map(([path, text]) => toFile(path, text))
         .sort(byPath)
     },

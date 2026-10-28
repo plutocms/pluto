@@ -31,14 +31,20 @@ export function defineContentType(type: PlutoContentType): PlutoContentType {
     }
 
     if (!type.fields.some((field) => field.name === type.titleField)) {
-      console.warn(`${prefix} titleField "${type.titleField}" does not match any field.`)
+      console.warn(
+        `${prefix} titleField "${type.titleField}" does not match any field.`
+      )
     }
 
     if (type.slug) {
       const slug = type.slug
-      const field = type.fields.find((candidate) => candidate.name === slug.field)
+      const field = type.fields.find(
+        (candidate) => candidate.name === slug.field
+      )
       if (!field || field.type !== 'slug') {
-        console.warn(`${prefix} slug.field "${slug.field}" does not name a field of type "slug".`)
+        console.warn(
+          `${prefix} slug.field "${slug.field}" does not name a field of type "slug".`
+        )
       }
     }
 
@@ -46,8 +52,13 @@ export function defineContentType(type: PlutoContentType): PlutoContentType {
       console.warn(`${prefix} an empty source needs files.nested.`)
     }
 
-    if (type.form?.layout === 'canvas' && !type.fields.some((field) => field.name === type.form?.canvasField)) {
-      console.warn(`${prefix} form.canvasField "${type.form.canvasField ?? ''}" does not match any field.`)
+    if (
+      type.form?.layout === 'canvas' &&
+      !type.fields.some((field) => field.name === type.form?.canvasField)
+    ) {
+      console.warn(
+        `${prefix} form.canvasField "${type.form.canvasField ?? ''}" does not match any field.`
+      )
     }
 
     if (type.status && type.status.values.length === 0) {

@@ -35,7 +35,10 @@ interface ResendErrorBody {
  * fixed per code: it never repeats the provider text, because that text can
  * hold the address of the recipient.
  */
-export function mapResendError(status: number, body: ResendErrorBody | null): PlutoMailError {
+export function mapResendError(
+  status: number,
+  body: ResendErrorBody | null
+): PlutoMailError {
   const name = typeof body?.name === 'string' ? body.name : undefined
   const message = typeof body?.message === 'string' ? body.message : ''
   const options = { status, providerCode: name }
@@ -45,17 +48,30 @@ export function mapResendError(status: number, body: ResendErrorBody | null): Pl
   }
 
   if (name === 'restricted_api_key') {
-    return error('restricted_key', 'The Resend key can only send emails. This call needs full access.')
+    return error(
+      'restricted_key',
+      'The Resend key can only send emails. This call needs full access.'
+    )
   }
-  if (status === 401 || name === 'invalid_api_key' || name === 'missing_api_key') {
+  if (
+    status === 401 ||
+    name === 'invalid_api_key' ||
+    name === 'missing_api_key'
+  ) {
     return error('invalid_key', 'Resend rejected the API key.')
   }
   if (status === 403) {
     if (/testing emails/i.test(message)) {
-      return error('test_sender_only', 'The From domain is not verified, so Resend sends only to the account owner.')
+      return error(
+        'test_sender_only',
+        'The From domain is not verified, so Resend sends only to the account owner.'
+      )
     }
     if (/not verified/i.test(message)) {
-      return error('domain_not_verified', 'The From domain is not verified in Resend.')
+      return error(
+        'domain_not_verified',
+        'The From domain is not verified in Resend.'
+      )
     }
     return error('provider_error', 'Resend refused the request.')
   }
@@ -80,14 +96,18 @@ export function createResendClient(options: ResendClientOptions) {
   const timeoutMs = options.timeoutMs ?? RESEND_TIMEOUT_MS
   const baseUrl = options.baseUrl ?? BASE_URL
 
-  async function attempt<T>(method: string, path: string, request: ResendRequestOptions): Promise<T> {
+  async function attempt<T>(
+    method: string,
+    path: string,
+    request: ResendRequestOptions
+  ): Promise<T> {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), timeoutMs)
     try {
       const headers: Record<string, string> = {
-        'Authorization': `Bearer ${options.apiKey}`,
+        Authorization: `Bearer ${options.apiKey}`,
         'User-Agent': RESEND_USER_AGENT,
-        'Accept': 'application/json',
+        Accept: 'application/json',
       }
       if (request.body !== undefined) {
         headers['Content-Type'] = 'application/json'
@@ -101,11 +121,16 @@ export function createResendClient(options: ResendClientOptions) {
         response = await doFetch(`${baseUrl}${path}`, {
           method,
           headers,
-          body: request.body === undefined ? undefined : JSON.stringify(request.body),
+          body:
+            request.body === undefined
+              ? undefined
+              : JSON.stringify(request.body),
           signal: controller.signal,
         })
       } catch (error) {
-        const aborted = controller.signal.aborted || (error instanceof Error && error.name === 'AbortError')
+        const aborted =
+          controller.signal.aborted ||
+          (error instanceof Error && error.name === 'AbortError')
         throw aborted
           ? new PlutoMailError('timeout', 'Resend did not answer in time.')
           : new PlutoMailError('network', 'The request did not reach Resend.')
@@ -131,12 +156,20 @@ export function createResendClient(options: ResendClientOptions) {
     if (!(error instanceof PlutoMailError)) {
       return false
     }
-    return error.code === 'network' || error.code === 'timeout' || (error.status !== undefined && error.status >= 500)
+    return (
+      error.code === 'network' ||
+      error.code === 'timeout' ||
+      (error.status !== undefined && error.status >= 500)
+    )
   }
 
   return {
     /** Calls the Resend API. Returns the parsed JSON body. Throws a `PlutoMailError`. */
-    async request<T = unknown>(method: string, path: string, request: ResendRequestOptions = {}): Promise<T> {
+    async request<T = unknown>(
+      method: string,
+      path: string,
+      request: ResendRequestOptions = {}
+    ): Promise<T> {
       try {
         return await attempt<T>(method, path, request)
       } catch (error) {

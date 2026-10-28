@@ -15,6 +15,7 @@
  * - Add no @source for app/: Nuxt UI already scans every layer's app/ dir.
  * See the single-tailwind-build skill.
  */
+@import './pluto-tokens.css';
 @import './admin-theme.css';
 
 @theme {
@@ -65,4 +66,66 @@
   --radius-xl: calc(var(--ui-radius) * 3);
   --radius-2xl: calc(var(--ui-radius) * 4);
   --radius-3xl: calc(var(--ui-radius) * 6);
+}
+
+/*
+ * The overlay of the admin search (Cmd/Ctrl+K) is darker than the Nuxt UI
+ * default and blurs the page under it. The overlay is the sibling just before
+ * the modal content, which carries `pluto-admin-search` (app/layouts/admin.vue).
+ * Other modals keep the Nuxt UI overlay.
+ */
+:root[data-pluto-admin] [data-slot='overlay']:has(+ .pluto-admin-search) {
+  background-color: oklch(13% 0.03 273 / 0.6);
+  backdrop-filter: blur(6px);
+}
+
+/*
+ * Snappy hovers in the admin. A color change on hover shows at once: the
+ * color, opacity and `transition` utilities get no duration, also on the
+ * `::before` layer that Nuxt UI paints the menu items on. A Nuxt UI button
+ * (`data-slot="base"`) keeps a short 75ms. The navbar (`data-pluto-admin-dark`)
+ * has no transition at all. Transforms and keyframe animations (chevrons,
+ * slideovers, accordions) are not touched.
+ */
+:root[data-pluto-admin]
+  :where(.transition, .transition-colors, .transition-opacity, .transition-all),
+:root[data-pluto-admin] :where([class*='before:transition'])::before,
+[data-pluto-admin-scope]
+  :where(.transition, .transition-colors, .transition-opacity, .transition-all),
+[data-pluto-admin-scope] :where([class*='before:transition'])::before {
+  transition-duration: 0s;
+}
+
+:root[data-pluto-admin]
+  :where(button, a)[data-slot='base']:where(
+    .transition,
+    .transition-colors,
+    .transition-all
+  ),
+[data-pluto-admin-scope]
+  :where(button, a)[data-slot='base']:where(
+    .transition,
+    .transition-colors,
+    .transition-all
+  ) {
+  transition-duration: 75ms;
+}
+
+[data-pluto-admin-dark] :where(button, a, span)[data-slot],
+[data-pluto-admin-dark] :where([class*='before:transition'])::before {
+  transition-duration: 0s !important;
+}
+
+/*
+ * While a panel resizes (the admin sidebar sets `data-dragging="true"`, a
+ * splitter handle `data-resize-handle-state="drag"`), an iframe (the page
+ * preview) must not take the pointer. Without this, the drag stops when the
+ * pointer moves over the iframe.
+ */
+:root[data-pluto-admin]:has(
+    [data-dragging='true'],
+    [data-resize-handle-state='drag']
+  )
+  iframe {
+  pointer-events: none;
 }

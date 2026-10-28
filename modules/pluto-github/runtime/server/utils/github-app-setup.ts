@@ -55,9 +55,9 @@ export interface AppManifest {
   name: string
   url: string
   hook_attributes: {
- url: string
-active: boolean
-}
+    url: string
+    active: boolean
+  }
   redirect_url: string
   callback_urls: string[]
   public: boolean
@@ -68,8 +68,8 @@ active: boolean
 
 /** The manifest that the browser posts to GitHub. `origin` has no trailing slash. */
 export function buildAppManifest(options: {
- siteName?: string
-origin: string
+  siteName?: string
+  origin: string
 }): AppManifest {
   const origin = options.origin.replace(/\/+$/, '')
   const callbacks = [`${origin}${AUTH_CALLBACK_PATH}`]
@@ -84,7 +84,13 @@ origin: string
     redirect_url: `${origin}${SETUP_CALLBACK_PATH}`,
     callback_urls: callbacks,
     public: false,
-    default_permissions: { contents: 'write', metadata: 'read', checks: 'read', statuses: 'read', deployments: 'read' },
+    default_permissions: {
+      contents: 'write',
+      metadata: 'read',
+      checks: 'read',
+      statuses: 'read',
+      deployments: 'read',
+    },
     default_events: [],
     request_oauth_on_install: false,
   }
@@ -97,10 +103,10 @@ origin: string
  * of a GitHub Enterprise Server).
  */
 export function manifestFormAction(options: {
- webBase: string
-owner?: string
-ownerType?: string
-state: string
+  webBase: string
+  owner?: string
+  ownerType?: string
+  state: string
 }): string {
   const base = options.webBase.replace(/\/+$/, '')
   const state = encodeURIComponent(options.state)
@@ -146,7 +152,8 @@ export function parseConversion(data: unknown): ConvertedApp | null {
   }
   const body = data as Record<string, unknown>
   const text = (value: unknown) => (typeof value === 'string' ? value : '')
-  const id = typeof body.id === 'number' || typeof body.id === 'string' ? body.id : ''
+  const id =
+    typeof body.id === 'number' || typeof body.id === 'string' ? body.id : ''
   const app: ConvertedApp = {
     id,
     slug: text(body.slug),
@@ -155,7 +162,13 @@ export function parseConversion(data: unknown): ConvertedApp | null {
     pem: text(body.pem),
     htmlUrl: text(body.html_url),
   }
-  return app.id !== '' && app.slug && app.clientId && app.clientSecret && app.pem ? app : null
+  return app.id !== '' &&
+    app.slug &&
+    app.clientId &&
+    app.clientSecret &&
+    app.pem
+    ? app
+    : null
 }
 
 export type EnvEntries = Array<[key: string, value: string]>
@@ -164,7 +177,10 @@ export type EnvEntries = Array<[key: string, value: string]>
  * The env vars for a new App. The private key is the base64 of the PEM, on
  * one line. The session password is included only when the caller gives one.
  */
-export function buildEnvEntries(app: ConvertedApp, sessionPassword?: string): EnvEntries {
+export function buildEnvEntries(
+  app: ConvertedApp,
+  sessionPassword?: string
+): EnvEntries {
   const entries: EnvEntries = [
     [SETUP_ENV_KEYS.appId, String(app.id)],
     [SETUP_ENV_KEYS.clientId, app.clientId],
@@ -196,7 +212,7 @@ function lineSetsKey(line: string, key: string): boolean {
 function opensMultiline(line: string): boolean {
   const value = line.slice(line.indexOf('=') + 1).trim()
   const quote = value[0]
-  if (quote !== '"' && quote !== '\'' && quote !== '`') {
+  if (quote !== '"' && quote !== "'" && quote !== '`') {
     return false
   }
   return !(value.length > 1 && value.endsWith(quote))
@@ -255,10 +271,19 @@ export function isEnvIgnored(gitignore: string): boolean {
   return gitignore
     .split(/\r?\n/)
     .map((line) => line.trim())
-    .some((line) => ['.env', '/.env', '.env*', '*.env', '**/.env', '.env/'].includes(line))
+    .some((line) =>
+      ['.env', '/.env', '.env*', '*.env', '**/.env', '.env/'].includes(line)
+    )
 }
 
-export type SetupCheckId = 'repo' | 'sessionPassword' | 'appId' | 'clientId' | 'clientSecret' | 'privateKey' | 'installation'
+export type SetupCheckId =
+  | 'repo'
+  | 'sessionPassword'
+  | 'appId'
+  | 'clientId'
+  | 'clientSecret'
+  | 'privateKey'
+  | 'installation'
 
 export interface SetupCheck {
   id: SetupCheckId
@@ -289,8 +314,14 @@ export interface SetupInput {
 }
 
 /** The installation check needs a valid app id and a key that parses. */
-export function needsInstallationCheck(input: Pick<SetupInput, 'repo' | 'appId' | 'privateKey'>): boolean {
-  return REPO_PATTERN.test(input.repo) && input.appId.trim() !== '' && isPrivateKeyReadable(input.privateKey)
+export function needsInstallationCheck(
+  input: Pick<SetupInput, 'repo' | 'appId' | 'privateKey'>
+): boolean {
+  return (
+    REPO_PATTERN.test(input.repo) &&
+    input.appId.trim() !== '' &&
+    isPrivateKeyReadable(input.privateKey)
+  )
 }
 
 /**
@@ -298,19 +329,24 @@ export function needsInstallationCheck(input: Pick<SetupInput, 'repo' | 'appId' 
  * `installation` check is in the list only when `installed` is set.
  */
 export function computeSetupChecks(input: SetupInput): {
- ready: boolean
-checks: SetupCheck[]
+  ready: boolean
+  checks: SetupCheck[]
 } {
   const checks: SetupCheck[] = [
     { id: 'repo', ok: REPO_PATTERN.test(input.repo) },
-    { id: 'sessionPassword', ok: input.sessionPassword.length >= MIN_PASSWORD_LENGTH },
+    {
+      id: 'sessionPassword',
+      ok: input.sessionPassword.length >= MIN_PASSWORD_LENGTH,
+    },
     { id: 'appId', ok: input.appId.trim() !== '' },
     { id: 'clientId', ok: input.clientId.trim() !== '' },
     { id: 'clientSecret', ok: input.clientSecret.trim() !== '' },
     { id: 'privateKey', ok: isPrivateKeyReadable(input.privateKey) },
   ]
   // The sign-in works with these five. The repo is not part of the answer.
-  const ready = checks.filter((check) => check.id !== 'repo').every((check) => check.ok)
+  const ready = checks
+    .filter((check) => check.id !== 'repo')
+    .every((check) => check.ok)
   if (input.installed !== undefined) {
     checks.push({ id: 'installation', ok: input.installed })
   }

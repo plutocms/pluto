@@ -4,7 +4,17 @@ import type { GithubConfig } from './github-config'
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import process from 'node:process'
-import { createError, deleteCookie, getCookie, getQuery, getRequestHeader, getRequestURL, setCookie, setResponseHeader, setResponseStatus } from 'h3'
+import {
+  createError,
+  deleteCookie,
+  getCookie,
+  getQuery,
+  getRequestHeader,
+  getRequestURL,
+  setCookie,
+  setResponseHeader,
+  setResponseStatus,
+} from 'h3'
 import { usePlutoServerTranslator } from '../../../../../server/utils/pluto-i18n'
 import { createAppJwt } from '../github/app-token'
 import { githubRest } from '../github/client'
@@ -30,13 +40,18 @@ import {
 } from './github-app-setup'
 import { getGithubConfig } from './github-config'
 import { oauthBaseUrl, randomToken, safeEqual } from './github-oauth'
-import { renderErrorPage, renderResultPage, renderStartPage } from './github-setup-pages'
+import {
+  renderErrorPage,
+  renderResultPage,
+  renderStartPage,
+} from './github-setup-pages'
 import { enforceAuthRateLimit } from './rate-limit'
 import { getGithubSession, isLocalRequest } from './session'
 
 /** The origin of the site as the browser sees it. */
 function siteOrigin(event: H3Event): string {
-  return getRequestURL(event, { xForwardedHost: true, xForwardedProto: true }).origin
+  return getRequestURL(event, { xForwardedHost: true, xForwardedProto: true })
+    .origin
 }
 
 function noStore(event: H3Event): void {
@@ -76,8 +91,15 @@ function assertSetupAllowed(event: H3Event, config: GithubConfig): void {
 /** True when the App is installed on the repo. It asks GitHub with the App JWT. */
 async function appIsInstalled(config: GithubConfig): Promise<boolean> {
   try {
-    const jwt = createAppJwt({ appId: config.appId, privateKey: config.privateKey })
-    await githubRest(`/repos/${config.repo}/installation`, { token: jwt, apiUrl: config.apiUrl, fetch: config.fetch })
+    const jwt = createAppJwt({
+      appId: config.appId,
+      privateKey: config.privateKey,
+    })
+    await githubRest(`/repos/${config.repo}/installation`, {
+      token: jwt,
+      apiUrl: config.apiUrl,
+      fetch: config.fetch,
+    })
     return true
   } catch {
     return false
@@ -120,7 +142,9 @@ export async function handleSetupStatus(event: H3Event): Promise<SetupStatus> {
   }
 
   const input = inputOf(config)
-  const installed = needsInstallationCheck(input) ? await appIsInstalled(config) : undefined
+  const installed = needsInstallationCheck(input)
+    ? await appIsInstalled(config)
+    : undefined
   const { ready, checks } = computeSetupChecks({ ...input, installed })
   return {
     ready,
@@ -133,10 +157,13 @@ export async function handleSetupStatus(event: H3Event): Promise<SetupStatus> {
 }
 
 async function pageTranslator(event: H3Event) {
-  const translator = await usePlutoServerTranslator(firstLanguage(getRequestHeader(event, 'accept-language')))
+  const translator = await usePlutoServerTranslator(
+    firstLanguage(getRequestHeader(event, 'accept-language'))
+  )
   return {
     lang: translator.locale,
-    t: (key: string, params?: Record<string, string | number>) => translator.t(key, params),
+    t: (key: string, params?: Record<string, string | number>) =>
+      translator.t(key, params),
   }
 }
 
@@ -151,15 +178,20 @@ function sendHtml(event: H3Event, html: string, status = 200): string {
 }
 
 /** The owner of the repo is an organization or a user. A failed lookup counts as a user. */
-async function lookupOwnerType(config: GithubConfig): Promise<string | undefined> {
+async function lookupOwnerType(
+  config: GithubConfig
+): Promise<string | undefined> {
   const owner = repoOwner(config.repo)
   if (!owner) {
     return undefined
   }
   try {
     const { data } = await githubRest<{
- type?: string
-}>(`/users/${encodeURIComponent(owner)}`, { apiUrl: config.apiUrl, fetch: config.fetch })
+      type?: string
+    }>(`/users/${encodeURIComponent(owner)}`, {
+      apiUrl: config.apiUrl,
+      fetch: config.fetch,
+    })
     return data?.type
   } catch {
     return undefined
@@ -183,7 +215,10 @@ export async function handleSetupStart(event: H3Event): Promise<string> {
     path: SETUP_BASE_PATH,
   })
 
-  const manifest = buildAppManifest({ siteName: config.siteName || repoName(config.repo), origin })
+  const manifest = buildAppManifest({
+    siteName: config.siteName || repoName(config.repo),
+    origin,
+  })
   const action = manifestFormAction({
     webBase: oauthBaseUrl(config.apiUrl),
     owner: repoOwner(config.repo),
@@ -191,13 +226,16 @@ export async function handleSetupStart(event: H3Event): Promise<string> {
     state,
   })
   const { t, lang } = await pageTranslator(event)
-  return sendHtml(event, renderStartPage({
-    t,
-    lang,
-    action,
-    manifest: JSON.stringify(manifest),
-    appName: manifestAppName(config.siteName || repoName(config.repo)),
-  }))
+  return sendHtml(
+    event,
+    renderStartPage({
+      t,
+      lang,
+      action,
+      manifest: JSON.stringify(manifest),
+      appName: manifestAppName(config.siteName || repoName(config.repo)),
+    })
+  )
 }
 
 function repoName(repo: string): string {
@@ -205,10 +243,13 @@ function repoName(repo: string): string {
 }
 
 /** Writes the values into `<rootDir>/.env`. It returns what happened and never logs a value. */
-async function writeEnvFile(config: GithubConfig, entries: Array<[string, string]>): Promise<{
- saved: boolean
-failed: boolean
-notIgnored: boolean
+async function writeEnvFile(
+  config: GithubConfig,
+  entries: Array<[string, string]>
+): Promise<{
+  saved: boolean
+  failed: boolean
+  notIgnored: boolean
 }> {
   const root = config.rootDir || process.cwd()
   try {
@@ -222,7 +263,9 @@ notIgnored: boolean
     }
     await writeFile(join(root, '.env'), updateEnvText(current, entries), 'utf8')
   } catch (error) {
-    console.error(`[pluto-github] Could not write the .env file (${(error as NodeJS.ErrnoException).code ?? 'error'}).`)
+    console.error(
+      `[pluto-github] Could not write the .env file (${(error as NodeJS.ErrnoException).code ?? 'error'}).`
+    )
     return { saved: false, failed: true, notIgnored: false }
   }
   let ignored = false
@@ -254,7 +297,11 @@ export async function handleSetupCallback(event: H3Event): Promise<string> {
   const saved = getCookie(event, SETUP_STATE_COOKIE)
   // The state works once.
   deleteCookie(event, SETUP_STATE_COOKIE, { path: SETUP_BASE_PATH })
-  if (!saved || typeof query.state !== 'string' || !safeEqual(saved, query.state)) {
+  if (
+    !saved ||
+    typeof query.state !== 'string' ||
+    !safeEqual(saved, query.state)
+  ) {
     return fail('state', 400)
   }
   if (typeof query.code !== 'string' || !/^[\w-]{1,128}$/.test(query.code)) {
@@ -263,40 +310,51 @@ export async function handleSetupCallback(event: H3Event): Promise<string> {
 
   let converted
   try {
-    const response = await githubRest(`/app-manifests/${query.code}/conversions`, {
-      method: 'POST',
-      apiUrl: config.apiUrl,
-      fetch: config.fetch,
-    })
+    const response = await githubRest(
+      `/app-manifests/${query.code}/conversions`,
+      {
+        method: 'POST',
+        apiUrl: config.apiUrl,
+        fetch: config.fetch,
+      }
+    )
     converted = parseConversion(response.data)
   } catch (error) {
     // Log the kind of failure only. The error text can come from GitHub.
-    console.error(`[pluto-github] GitHub did not convert the App manifest (${error instanceof PlutoGithubStoreError ? error.code : 'error'}).`)
+    console.error(
+      `[pluto-github] GitHub did not convert the App manifest (${error instanceof PlutoGithubStoreError ? error.code : 'error'}).`
+    )
     return fail('github', 502)
   }
   if (!converted) {
-    console.error('[pluto-github] GitHub answered the App manifest without the expected fields.')
+    console.error(
+      '[pluto-github] GitHub answered the App manifest without the expected fields.'
+    )
     return fail('github', 502)
   }
 
   // A site that has no valid session password gets a new one.
-  const newPassword = config.sessionPassword.length >= 32 ? undefined : randomToken(32)
+  const newPassword =
+    config.sessionPassword.length >= 32 ? undefined : randomToken(32)
   const entries = buildEnvEntries(converted, newPassword)
   const devLocal = isDevLocal(event, config)
   const env = devLocal
     ? await writeEnvFile(config, entries)
     : { saved: false, failed: false, notIgnored: false }
 
-  return sendHtml(event, renderResultPage({
-    t,
-    lang,
-    appName: converted.slug,
-    envBlock: formatEnvBlock(entries),
-    installUrl: installUrl(oauthBaseUrl(config.apiUrl), converted.slug),
-    envSaved: env.saved,
-    envFailed: env.failed,
-    envNotIgnored: env.notIgnored,
-    dev: devLocal,
-    signInUrl: '/admin/login',
-  }))
+  return sendHtml(
+    event,
+    renderResultPage({
+      t,
+      lang,
+      appName: converted.slug,
+      envBlock: formatEnvBlock(entries),
+      installUrl: installUrl(oauthBaseUrl(config.apiUrl), converted.slug),
+      envSaved: env.saved,
+      envFailed: env.failed,
+      envNotIgnored: env.notIgnored,
+      dev: devLocal,
+      signInUrl: '/admin/login',
+    })
+  )
 }

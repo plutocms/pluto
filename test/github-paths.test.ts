@@ -1,9 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { assertSafeContentId, assertSafeSlug, contentDirPath, contentFilePath, slugifyTitle } from '../modules/pluto-github/runtime/server/utils/github-paths'
+import {
+  assertSafeContentId,
+  assertSafeSlug,
+  contentDirPath,
+  contentFilePath,
+  slugifyTitle,
+} from '../modules/pluto-github/runtime/server/utils/github-paths'
 
 describe('assertSafeSlug', () => {
   it('accepts a normal slug', () => {
-    for (const slug of ['a', 'hello-world', 'post-2', 'a1-b2-c3', 'x'.repeat(100)]) {
+    for (const slug of [
+      'a',
+      'hello-world',
+      'post-2',
+      'a1-b2-c3',
+      'x'.repeat(100),
+    ]) {
       expect(() => assertSafeSlug(slug)).not.toThrow()
     }
   })
@@ -36,11 +48,15 @@ describe('assertSafeSlug', () => {
 
 describe('contentFilePath', () => {
   it('builds the path under the dir', () => {
-    expect(contentFilePath('content', 'posts', 'hello')).toBe('content/posts/hello.md')
+    expect(contentFilePath('content', 'posts', 'hello')).toBe(
+      'content/posts/hello.md'
+    )
   })
 
   it('normalizes the dir', () => {
-    expect(contentFilePath('docs\\blog/', 'posts', 'hello')).toBe('docs/blog/posts/hello.md')
+    expect(contentFilePath('docs\\blog/', 'posts', 'hello')).toBe(
+      'docs/blog/posts/hello.md'
+    )
   })
 
   it('rejects a bad dir, source or slug', () => {
@@ -76,7 +92,14 @@ describe('assertSafeContentId', () => {
   })
 
   it('accepts a nested id of slug segments with an optional numeric prefix', () => {
-    for (const id of ['index', 'a/b', '1.start/2.install', '10.guide/index', 'a/b/c/d/e/f', '1/2']) {
+    for (const id of [
+      'index',
+      'a/b',
+      '1.start/2.install',
+      '10.guide/index',
+      'a/b/c/d/e/f',
+      '1/2',
+    ]) {
       expect(() => assertSafeContentId(id, { nested: true }), id).not.toThrow()
     }
   })
@@ -124,12 +147,18 @@ describe('nested paths', () => {
   const nested = { nested: true }
 
   it('builds a file path for a nested id', () => {
-    expect(contentFilePath('content', 'docs', '1.start/2.install', nested)).toBe('content/docs/1.start/2.install.md')
+    expect(
+      contentFilePath('content', 'docs', '1.start/2.install', nested)
+    ).toBe('content/docs/1.start/2.install.md')
   })
 
   it('uses the dir itself for an empty source', () => {
-    expect(contentFilePath('content', '', 'index', nested)).toBe('content/index.md')
-    expect(contentFilePath('content', '', '1.a/b', nested)).toBe('content/1.a/b.md')
+    expect(contentFilePath('content', '', 'index', nested)).toBe(
+      'content/index.md'
+    )
+    expect(contentFilePath('content', '', '1.a/b', nested)).toBe(
+      'content/1.a/b.md'
+    )
     expect(contentDirPath('content/', '', nested)).toBe('content')
   })
 

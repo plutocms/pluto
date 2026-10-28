@@ -15,13 +15,18 @@ export function isPathWithin(path: string, base: string | undefined): boolean {
  * item's own `to`, a child's `to`, or one of the item's `match` paths is the
  * page or a page above it.
  */
-export function activeNavGroups(items: readonly PlutoNavItem[], path: string): string[] {
+export function activeNavGroups(
+  items: readonly PlutoNavItem[],
+  path: string
+): string[] {
   return items
     .filter((item) => (item.children?.length ?? 0) > 0)
-    .filter((item) =>
-      isPathWithin(path, item.to)
-      || item.children!.some((child) => isPathWithin(path, child.to))
-      || (item.match ?? []).some((base) => isPathWithin(path, base)))
+    .filter(
+      (item) =>
+        isPathWithin(path, item.to) ||
+        item.children!.some((child) => isPathWithin(path, child.to)) ||
+        (item.match ?? []).some((base) => isPathWithin(path, base))
+    )
     .map((item) => item.id)
 }
 
@@ -58,7 +63,10 @@ export function nextOpenGroups(
  * sidebar opens the item on them. A layer with its own routes, such as
  * `/admin/product/edit/:id` under `/admin/products`, needs no `match`.
  */
-export function contentTypeMatches(item: PlutoNavItem, types: readonly PlutoContentType[]): string[] {
+export function contentTypeMatches(
+  item: PlutoNavItem,
+  types: readonly PlutoContentType[]
+): string[] {
   if (!item.to) {
     return []
   }

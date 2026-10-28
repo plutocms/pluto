@@ -17,7 +17,9 @@ const { items, current, allowed } = usePlutoSettingsPages()
 // not active on the pages below it. Any other tab matches by prefix.
 function isActive(to: string): boolean {
   const path = route.path.replace(/\/+$/, '') || '/'
-  return to === '/admin/settings' ? path === to : path === to || path.startsWith(`${to}/`)
+  return to === '/admin/settings'
+    ? path === to
+    : path === to || path.startsWith(`${to}/`)
 }
 
 const tabs = computed<NavigationMenuItem[]>(() =>
@@ -34,7 +36,9 @@ const tabs = computed<NavigationMenuItem[]>(() =>
 <template>
   <main>
     <AdminView>
-      <h1 class="text-3xl font-bold lg:text-4xl">{{ t('pluto.pages.settings') }}</h1>
+      <h1 class="text-3xl font-bold lg:text-4xl">
+        {{ t('pluto.pages.settings') }}
+      </h1>
 
       <!-- One page (General only) needs no tabs. -->
       <UNavigationMenu
@@ -49,7 +53,11 @@ const tabs = computed<NavigationMenuItem[]>(() =>
       <UAlert
         v-if="!allowed"
         :title="t('pluto.settings.noPermission.title')"
-        :description="t('pluto.settings.noPermission.description', { page: current?.label ?? '' })"
+        :description="
+          t('pluto.settings.noPermission.description', {
+            page: current?.label ?? '',
+          })
+        "
         icon="lucide:lock"
         color="warning"
       />

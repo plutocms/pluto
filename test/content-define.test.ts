@@ -30,7 +30,9 @@ describe('defineContentType', () => {
   })
 
   it('accepts a canvas layout whose canvasField names a field', () => {
-    defineContentType(baseType({ form: { layout: 'canvas', canvasField: 'title' } }))
+    defineContentType(
+      baseType({ form: { layout: 'canvas', canvasField: 'title' } })
+    )
     expect(console.warn).not.toHaveBeenCalled()
   })
 

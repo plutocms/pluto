@@ -3,12 +3,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import buildStatusRoute from '../modules/pluto-github/runtime/server/api/build-status.get'
 import { clearBuildStatusCache } from '../modules/pluto-github/runtime/server/utils/build-status'
 import { createFakeGithub } from './fixtures/fake-github'
-import { createAuthApp, resetTestConfig, signIn } from './fixtures/github-auth-harness'
+import {
+  createAuthApp,
+  resetTestConfig,
+  signIn,
+} from './fixtures/github-auth-harness'
 
-vi.mock('../modules/pluto-github/runtime/server/utils/github-config', async () => {
-  const { testConfig } = await import('./fixtures/github-test-config')
-  return { getGithubConfig: () => testConfig }
-})
+vi.mock(
+  '../modules/pluto-github/runtime/server/utils/github-config',
+  async () => {
+    const { testConfig } = await import('./fixtures/github-test-config')
+    return { getGithubConfig: () => testConfig }
+  }
+)
 
 const SHA = 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678'
 const URL_PATH = '/api/_pluto/github/build-status'
@@ -19,20 +26,31 @@ interface Answers {
   deployments?: unknown
   deploymentStatuses?: Record<string, unknown>
   /** A status code for a source, instead of its data. */
-  fail?: Partial<Record<'commit' | 'checks' | 'status' | 'deployments', {
- status: number
-headers?: Record<string, string>
-}>>
+  fail?: Partial<
+    Record<
+      'commit' | 'checks' | 'status' | 'deployments',
+      {
+        status: number
+        headers?: Record<string, string>
+      }
+    >
+  >
 }
 
 /** The fake GitHub, plus the build-status calls. */
 function setup(answers: Answers = {}) {
-  const fake = createFakeGithub({ users: { ada: { id: 7, permission: 'push' } } })
+  const fake = createFakeGithub({
+    users: { ada: { id: 7, permission: 'push' } },
+  })
   const calls: {
- path: string
-token: string
-}[] = []
-  const respond = (status: number, data: unknown, headers: Record<string, string> = {}) => ({
+    path: string
+    token: string
+  }[] = []
+  const respond = (
+    status: number,
+    data: unknown,
+    headers: Record<string, string> = {}
+  ) => ({
     status,
     headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
     data,
@@ -43,29 +61,56 @@ token: string
     const prefix = '/repos/acme/site'
     const fail = (key: keyof NonNullable<Answers['fail']>) => {
       const stub = answers.fail?.[key]
-      return stub ? respond(stub.status, { message: stub.status === 403 && stub.headers ? 'API rate limit exceeded' : 'Resource not accessible by integration' }, stub.headers) : undefined
+      return stub
+        ? respond(
+            stub.status,
+            {
+              message:
+                stub.status === 403 && stub.headers
+                  ? 'API rate limit exceeded'
+                  : 'Resource not accessible by integration',
+            },
+            stub.headers
+          )
+        : undefined
     }
 
-    if (pathname === `${prefix}/commits/main` && init.headers.Accept === 'application/vnd.github+json') {
+    if (
+      pathname === `${prefix}/commits/main` &&
+      init.headers.Accept === 'application/vnd.github+json'
+    ) {
       calls.push({ path: pathname, token })
-      return fail('commit') ?? respond(200, {
-        sha: SHA,
-        commit: { message: 'content(post): update "a"\n\nbody', committer: { date: '2026-10-26T10:00:00Z' } },
-      })
+      return (
+        fail('commit') ??
+        respond(200, {
+          sha: SHA,
+          commit: {
+            message: 'content(post): update "a"\n\nbody',
+            committer: { date: '2026-10-26T10:00:00Z' },
+          },
+        })
+      )
     }
     if (pathname === `${prefix}/commits/${SHA}/check-runs`) {
       calls.push({ path: pathname + search, token })
-      return fail('checks') ?? respond(200, answers.checks ?? { total_count: 0, check_runs: [] })
+      return (
+        fail('checks') ??
+        respond(200, answers.checks ?? { total_count: 0, check_runs: [] })
+      )
     }
     if (pathname === `${prefix}/commits/${SHA}/status`) {
       calls.push({ path: pathname + search, token })
-      return fail('status') ?? respond(200, answers.status ?? { state: 'pending', statuses: [] })
+      return (
+        fail('status') ??
+        respond(200, answers.status ?? { state: 'pending', statuses: [] })
+      )
     }
     if (pathname === `${prefix}/deployments`) {
       calls.push({ path: pathname + search, token })
       return fail('deployments') ?? respond(200, answers.deployments ?? [])
     }
-    const statusMatch = /^\/repos\/acme\/site\/deployments\/(\d+)\/statuses$/.exec(pathname)
+    const statusMatch =
+      /^\/repos\/acme\/site\/deployments\/(\d+)\/statuses$/.exec(pathname)
     if (statusMatch) {
       calls.push({ path: pathname + search, token })
       return respond(200, answers.deploymentStatuses?.[statusMatch[1]!] ?? [])
@@ -75,7 +120,10 @@ token: string
   return { fake, fetch, calls }
 }
 
-async function signedIn(answers: Answers = {}, patch: Parameters<typeof resetTestConfig>[1] = {}) {
+async function signedIn(
+  answers: Answers = {},
+  patch: Parameters<typeof resetTestConfig>[1] = {}
+) {
   const { fake, fetch, calls } = setup(answers)
   resetTestConfig(fake, { ...patch, fetch })
   const app = createAuthApp((router) => router.get(URL_PATH, buildStatusRoute))
@@ -91,7 +139,9 @@ describe('gET /api/_pluto/github/build-status', () => {
   it('needs a signed-in user', async () => {
     const { fake, fetch } = setup()
     resetTestConfig(fake, { fetch })
-    const app = createAuthApp((router) => router.get(URL_PATH, buildStatusRoute))
+    const app = createAuthApp((router) =>
+      router.get(URL_PATH, buildStatusRoute)
+    )
     const response = await app.request(URL_PATH)
     expect(response.status).toBe(401)
   })
@@ -115,28 +165,79 @@ describe('gET /api/_pluto/github/build-status', () => {
     const { app } = await signedIn({
       checks: {
         total_count: 1,
-        check_runs: [{ name: 'deploy', status: 'in_progress', conclusion: null, html_url: 'https://github.com/acme/site/actions/runs/5', started_at: '2026-10-26T10:00:05Z' }],
+        check_runs: [
+          {
+            name: 'deploy',
+            status: 'in_progress',
+            conclusion: null,
+            html_url: 'https://github.com/acme/site/actions/runs/5',
+            started_at: '2026-10-26T10:00:05Z',
+          },
+        ],
       },
     })
     const body = await (await app.request(URL_PATH)).json()
     expect(body.state).toBe('pending')
-    expect(body.items).toEqual([{ kind: 'check', name: 'deploy', state: 'pending', url: 'https://github.com/acme/site/actions/runs/5', startedAt: '2026-10-26T10:00:05Z' }])
+    expect(body.items).toEqual([
+      {
+        kind: 'check',
+        name: 'deploy',
+        state: 'pending',
+        url: 'https://github.com/acme/site/actions/runs/5',
+        startedAt: '2026-10-26T10:00:05Z',
+      },
+    ])
   })
 
   it('merges check runs, commit statuses and deployments', async () => {
     const { app, calls } = await signedIn({
-      checks: { check_runs: [{ name: 'lint', status: 'completed', conclusion: 'success', html_url: 'https://github.com/acme/site/actions/runs/1' }] },
-      status: { state: 'success', statuses: [{ context: 'Vercel', state: 'success', target_url: 'https://vercel.com/x', description: 'Deployment has completed' }] },
-      deployments: [{ id: 11, environment: 'Production', created_at: '2026-10-26T10:00:00Z' }],
-      deploymentStatuses: { 11: [{ state: 'success', log_url: 'https://vercel.com/log', created_at: '2026-10-26T10:02:00Z' }] },
+      checks: {
+        check_runs: [
+          {
+            name: 'lint',
+            status: 'completed',
+            conclusion: 'success',
+            html_url: 'https://github.com/acme/site/actions/runs/1',
+          },
+        ],
+      },
+      status: {
+        state: 'success',
+        statuses: [
+          {
+            context: 'Vercel',
+            state: 'success',
+            target_url: 'https://vercel.com/x',
+            description: 'Deployment has completed',
+          },
+        ],
+      },
+      deployments: [
+        {
+          id: 11,
+          environment: 'Production',
+          created_at: '2026-10-26T10:00:00Z',
+        },
+      ],
+      deploymentStatuses: {
+        11: [
+          {
+            state: 'success',
+            log_url: 'https://vercel.com/log',
+            created_at: '2026-10-26T10:02:00Z',
+          },
+        ],
+      },
     })
     const body = await (await app.request(URL_PATH)).json()
     expect(body.state).toBe('success')
-    expect(body.items.map((item: {
- kind: string
-name: string
-state: string
-}) => [item.kind, item.name, item.state])).toEqual([
+    expect(
+      body.items.map((item: { kind: string; name: string; state: string }) => [
+        item.kind,
+        item.name,
+        item.state,
+      ])
+    ).toEqual([
       ['check', 'lint', 'success'],
       ['status', 'Vercel', 'success'],
       ['deployment', 'Production', 'success'],
@@ -148,7 +249,16 @@ state: string
 
   it('answers failure when a check fails', async () => {
     const { app } = await signedIn({
-      checks: { check_runs: [{ name: 'build', status: 'completed', conclusion: 'failure', html_url: 'https://github.com/acme/site/actions/runs/2' }] },
+      checks: {
+        check_runs: [
+          {
+            name: 'build',
+            status: 'completed',
+            conclusion: 'failure',
+            html_url: 'https://github.com/acme/site/actions/runs/2',
+          },
+        ],
+      },
     })
     expect((await (await app.request(URL_PATH)).json()).state).toBe('failure')
   })
@@ -173,7 +283,9 @@ state: string
   })
 
   it('answers 503 with Retry-After on a rate limit', async () => {
-    const { app } = await signedIn({ fail: { checks: { status: 403, headers: { 'retry-after': '30' } } } })
+    const { app } = await signedIn({
+      fail: { checks: { status: 403, headers: { 'retry-after': '30' } } },
+    })
     const response = await app.request(URL_PATH)
     expect(response.status).toBe(503)
     expect(response.headers.get('retry-after')).toBe('30')

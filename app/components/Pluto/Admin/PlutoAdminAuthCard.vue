@@ -38,6 +38,11 @@ const subheading = computed(() => {
   return value ? tx(value) : ''
 })
 const links = computed(() => driver.value?.links ?? {})
+// A brand logo (white label), else the Pluto logo. The card follows the color
+// mode, so it shows `logo` in light mode and `logoDark` in dark mode.
+const { brand } = usePlutoBrand()
+const logoLight = computed(() => brand.value.logo || brand.value.logoDark || '')
+const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
 </script>
 
 <template>
@@ -45,20 +50,38 @@ const links = computed(() => driver.value?.links ?? {})
     <UCard class="w-full max-w-100">
       <div class="flex flex-col gap-y-6">
         <div class="flex items-center gap-x-2">
+          <template v-if="logoLight">
+            <img
+              :src="logoLight"
+              :alt="brand.name ?? ''"
+              class="block h-8 w-auto max-w-48 object-contain dark:hidden"
+            />
+            <img
+              :src="logoDark"
+              :alt="brand.name ?? ''"
+              class="hidden h-8 w-auto max-w-48 object-contain dark:block"
+            />
+          </template>
           <PlutoLogo
+            v-else
             aria-hidden="true"
             class="text-highlighted block h-8 w-auto"
           />
           <span
             v-if="siteName"
             class="text-highlighted truncate text-sm font-semibold"
-            >{{ siteName }}</span>
+            >{{ siteName }}</span
+          >
         </div>
 
         <template v-if="driver || slots.default">
           <div class="flex flex-col gap-y-1">
-            <h1 class="text-3xl font-bold">{{ heading }}</h1>
-            <p v-if="subheading" class="text-muted text-sm">{{ subheading }}</p>
+            <h1 class="text-3xl font-bold">
+              {{ heading }}
+            </h1>
+            <p v-if="subheading" class="text-muted text-sm">
+              {{ subheading }}
+            </p>
           </div>
 
           <slot v-if="slots.default" />

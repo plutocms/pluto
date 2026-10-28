@@ -22,17 +22,20 @@ function contract(label: string, make: () => Promise<PlutoGithubStore>) {
     it('lists the .md files of a dir, sorted, and skips other files', async () => {
       const store = await make()
       const head = await store.head()
-      await store.commit({
-        expectedHeadOid: head,
-        message: 'seed',
-        additions: [
-          { path: 'content/posts/b.md', contents: 'B' },
-          { path: 'content/posts/a.md', contents: 'A' },
-          { path: 'content/posts/note.txt', contents: 'T' },
-          { path: 'content/posts/sub/c.md', contents: 'C' },
-        ],
-        deletions: [],
-      }, auth)
+      await store.commit(
+        {
+          expectedHeadOid: head,
+          message: 'seed',
+          additions: [
+            { path: 'content/posts/b.md', contents: 'B' },
+            { path: 'content/posts/a.md', contents: 'A' },
+            { path: 'content/posts/note.txt', contents: 'T' },
+            { path: 'content/posts/sub/c.md', contents: 'C' },
+          ],
+          deletions: [],
+        },
+        auth
+      )
 
       const files = await store.listDir('content/posts', await store.head())
 
@@ -42,21 +45,24 @@ function contract(label: string, make: () => Promise<PlutoGithubStore>) {
 
     it('lists the .md files of a tree at any depth, sorted by path, and skips dot dirs and dot files', async () => {
       const store = await make()
-      await store.commit({
-        expectedHeadOid: await store.head(),
-        message: 'seed',
-        additions: [
-          { path: 'content/index.md', contents: 'I' },
-          { path: 'content/2.b/1.x.md', contents: 'BX' },
-          { path: 'content/1.a/index.md', contents: 'AI' },
-          { path: 'content/1.a/deep/er/z.md', contents: 'Z' },
-          { path: 'content/1.a/note.txt', contents: 'T' },
-          { path: 'content/.hidden/h.md', contents: 'H' },
-          { path: 'content/1.a/.dot.md', contents: 'D' },
-          { path: 'other/o.md', contents: 'O' },
-        ],
-        deletions: [],
-      }, auth)
+      await store.commit(
+        {
+          expectedHeadOid: await store.head(),
+          message: 'seed',
+          additions: [
+            { path: 'content/index.md', contents: 'I' },
+            { path: 'content/2.b/1.x.md', contents: 'BX' },
+            { path: 'content/1.a/index.md', contents: 'AI' },
+            { path: 'content/1.a/deep/er/z.md', contents: 'Z' },
+            { path: 'content/1.a/note.txt', contents: 'T' },
+            { path: 'content/.hidden/h.md', contents: 'H' },
+            { path: 'content/1.a/.dot.md', contents: 'D' },
+            { path: 'other/o.md', contents: 'O' },
+          ],
+          deletions: [],
+        },
+        auth
+      )
 
       const files = await store.listTree('content/', await store.head())
 
@@ -67,7 +73,9 @@ function contract(label: string, make: () => Promise<PlutoGithubStore>) {
         'content/index.md',
       ])
       expect(files[1]).toMatchObject({ name: 'index.md', text: 'AI' })
-      expect(await store.listTree('content/none', await store.head())).toEqual([])
+      expect(await store.listTree('content/none', await store.head())).toEqual(
+        []
+      )
     })
 
     it('gives an empty list for a missing dir and null for a missing file', async () => {
@@ -81,23 +89,29 @@ function contract(label: string, make: () => Promise<PlutoGithubStore>) {
     it('changes the head after a commit and applies deletions', async () => {
       const store = await make()
       const first = await store.head()
-      const { oid } = await store.commit({
-        expectedHeadOid: first,
-        message: 'add',
-        additions: [{ path: 'content/posts/a.md', contents: 'A' }],
-        deletions: [],
-      }, auth)
+      const { oid } = await store.commit(
+        {
+          expectedHeadOid: first,
+          message: 'add',
+          additions: [{ path: 'content/posts/a.md', contents: 'A' }],
+          deletions: [],
+        },
+        auth
+      )
 
       expect(oid).not.toBe(first)
       expect(await store.head()).toBe(oid)
       expect((await store.readFile('content/posts/a.md', oid))?.text).toBe('A')
 
-      const next = await store.commit({
-        expectedHeadOid: oid,
-        message: 'remove',
-        additions: [],
-        deletions: [{ path: 'content/posts/a.md' }],
-      }, auth)
+      const next = await store.commit(
+        {
+          expectedHeadOid: oid,
+          message: 'remove',
+          additions: [],
+          deletions: [{ path: 'content/posts/a.md' }],
+        },
+        auth
+      )
 
       expect(await store.readFile('content/posts/a.md', next.oid)).toBeNull()
     })
@@ -105,20 +119,30 @@ function contract(label: string, make: () => Promise<PlutoGithubStore>) {
     it('throws a conflict error for a stale head', async () => {
       const store = await make()
       const first = await store.head()
-      await store.commit({
-        expectedHeadOid: first,
-        message: 'add',
-        additions: [{ path: 'content/posts/a.md', contents: 'A' }],
-        deletions: [],
-      }, auth)
+      await store.commit(
+        {
+          expectedHeadOid: first,
+          message: 'add',
+          additions: [{ path: 'content/posts/a.md', contents: 'A' }],
+          deletions: [],
+        },
+        auth
+      )
 
-      await expect(store.commit({
-        expectedHeadOid: first,
-        message: 'late',
-        additions: [{ path: 'content/posts/b.md', contents: 'B' }],
-        deletions: [],
-      }, auth)).rejects.toBeInstanceOf(PlutoGithubConflictError)
-      expect(await store.readFile('content/posts/b.md', await store.head())).toBeNull()
+      await expect(
+        store.commit(
+          {
+            expectedHeadOid: first,
+            message: 'late',
+            additions: [{ path: 'content/posts/b.md', contents: 'B' }],
+            deletions: [],
+          },
+          auth
+        )
+      ).rejects.toBeInstanceOf(PlutoGithubConflictError)
+      expect(
+        await store.readFile('content/posts/b.md', await store.head())
+      ).toBeNull()
     })
   })
 }
@@ -189,13 +213,27 @@ describe('fs store', () => {
     const store = createFsStore({ root })
     const head = await store.head()
 
-    for (const path of ['../evil.md', 'content/../../evil.md', '/etc/evil.md', '']) {
-      await expect(store.commit({
-        expectedHeadOid: head,
-        message: 'bad',
-        additions: [{ path: 'content/ok.md', contents: 'ok' }, { path, contents: 'x' }],
-        deletions: [],
-      }, auth), path).rejects.toMatchObject({ code: 'forbidden' })
+    for (const path of [
+      '../evil.md',
+      'content/../../evil.md',
+      '/etc/evil.md',
+      '',
+    ]) {
+      await expect(
+        store.commit(
+          {
+            expectedHeadOid: head,
+            message: 'bad',
+            additions: [
+              { path: 'content/ok.md', contents: 'ok' },
+              { path, contents: 'x' },
+            ],
+            deletions: [],
+          },
+          auth
+        ),
+        path
+      ).rejects.toMatchObject({ code: 'forbidden' })
     }
     expect(await store.readFile('content/ok.md', head)).toBeNull()
     await expect(readFile(join(root, '..', 'evil.md'))).rejects.toThrow()

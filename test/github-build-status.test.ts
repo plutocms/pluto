@@ -14,7 +14,13 @@ import { showBuildStatus } from '../modules/pluto-github/runtime/shared/client-r
 
 describe('checkRunState', () => {
   it('is pending until the run is completed', () => {
-    for (const status of ['queued', 'in_progress', 'waiting', 'requested', 'pending']) {
+    for (const status of [
+      'queued',
+      'in_progress',
+      'waiting',
+      'requested',
+      'pending',
+    ]) {
       expect(checkRunState({ status })).toBe('pending')
     }
   })
@@ -26,7 +32,15 @@ describe('checkRunState', () => {
   })
 
   it('fails for every other conclusion', () => {
-    for (const conclusion of ['failure', 'cancelled', 'timed_out', 'action_required', 'startup_failure', 'stale', null]) {
+    for (const conclusion of [
+      'failure',
+      'cancelled',
+      'timed_out',
+      'action_required',
+      'startup_failure',
+      'stale',
+      null,
+    ]) {
       expect(checkRunState({ status: 'completed', conclusion })).toBe('failure')
     }
   })
@@ -58,87 +72,158 @@ describe('reduceBuildState', () => {
   })
 
   it('is pending while any item is pending, even when another failed', () => {
-    expect(reduceBuildState([{ state: 'success' }, { state: 'pending' }])).toBe('pending')
-    expect(reduceBuildState([{ state: 'failure' }, { state: 'pending' }])).toBe('pending')
+    expect(reduceBuildState([{ state: 'success' }, { state: 'pending' }])).toBe(
+      'pending'
+    )
+    expect(reduceBuildState([{ state: 'failure' }, { state: 'pending' }])).toBe(
+      'pending'
+    )
   })
 
   it('is failure when all are done and one failed', () => {
-    expect(reduceBuildState([{ state: 'success' }, { state: 'failure' }])).toBe('failure')
+    expect(reduceBuildState([{ state: 'success' }, { state: 'failure' }])).toBe(
+      'failure'
+    )
   })
 
   it('is success when all are done and none failed', () => {
-    expect(reduceBuildState([{ state: 'success' }, { state: 'success' }])).toBe('success')
+    expect(reduceBuildState([{ state: 'success' }, { state: 'success' }])).toBe(
+      'success'
+    )
   })
 })
 
 describe('reduceBuildStatus', () => {
   it('gives none when the commit has no item', () => {
     expect(reduceBuildStatus({})).toEqual({ state: 'none', items: [] })
-    expect(reduceBuildStatus({ checkRuns: [], statuses: [], deployments: [] })).toEqual({ state: 'none', items: [] })
+    expect(
+      reduceBuildStatus({ checkRuns: [], statuses: [], deployments: [] })
+    ).toEqual({ state: 'none', items: [] })
   })
 
   it('reads a check run (a GitHub Action)', () => {
     const { state, items } = reduceBuildStatus({
-      checkRuns: [{
-        name: 'build',
-        status: 'in_progress',
-        conclusion: null,
-        html_url: 'https://github.com/acme/site/actions/runs/1',
-        started_at: '2026-10-26T10:00:00Z',
-      }],
+      checkRuns: [
+        {
+          name: 'build',
+          status: 'in_progress',
+          conclusion: null,
+          html_url: 'https://github.com/acme/site/actions/runs/1',
+          started_at: '2026-10-26T10:00:00Z',
+        },
+      ],
     })
     expect(state).toBe('pending')
-    expect(items).toEqual([{
-      kind: 'check',
-      name: 'build',
-      state: 'pending',
-      url: 'https://github.com/acme/site/actions/runs/1',
-      startedAt: '2026-10-26T10:00:00Z',
-      completedAt: undefined,
-      description: undefined,
-    }])
+    expect(items).toEqual([
+      {
+        kind: 'check',
+        name: 'build',
+        state: 'pending',
+        url: 'https://github.com/acme/site/actions/runs/1',
+        startedAt: '2026-10-26T10:00:00Z',
+        completedAt: undefined,
+        description: undefined,
+      },
+    ])
   })
 
   it('falls back to details_url when a check run has no html_url', () => {
-    const [item] = buildStatusItems({ checkRuns: [{ name: 'a', status: 'completed', conclusion: 'success', details_url: 'https://ci.example.com/run/3' }] })
+    const [item] = buildStatusItems({
+      checkRuns: [
+        {
+          name: 'a',
+          status: 'completed',
+          conclusion: 'success',
+          details_url: 'https://ci.example.com/run/3',
+        },
+      ],
+    })
     expect(item!.url).toBe('https://ci.example.com/run/3')
   })
 
   it('reads a commit status (Vercel)', () => {
     const { state, items } = reduceBuildStatus({
-      statuses: [{ context: 'Vercel', state: 'success', target_url: 'https://vercel.com/acme/site/abc', description: 'Deployment has completed', updated_at: '2026-10-26T10:03:00Z' }],
+      statuses: [
+        {
+          context: 'Vercel',
+          state: 'success',
+          target_url: 'https://vercel.com/acme/site/abc',
+          description: 'Deployment has completed',
+          updated_at: '2026-10-26T10:03:00Z',
+        },
+      ],
     })
     expect(state).toBe('success')
-    expect(items[0]).toMatchObject({ kind: 'status', name: 'Vercel', state: 'success', url: 'https://vercel.com/acme/site/abc', description: 'Deployment has completed', completedAt: '2026-10-26T10:03:00Z' })
+    expect(items[0]).toMatchObject({
+      kind: 'status',
+      name: 'Vercel',
+      state: 'success',
+      url: 'https://vercel.com/acme/site/abc',
+      description: 'Deployment has completed',
+      completedAt: '2026-10-26T10:03:00Z',
+    })
   })
 
   it('reads a deployment with its latest status', () => {
     const { state, items } = reduceBuildStatus({
-      deployments: [{
-        id: 9,
-        environment: 'Production',
-        created_at: '2026-10-26T10:00:00Z',
-        status: { state: 'success', log_url: 'https://vercel.com/log', environment_url: 'https://site.example.com', created_at: '2026-10-26T10:02:00Z' },
-      }],
+      deployments: [
+        {
+          id: 9,
+          environment: 'Production',
+          created_at: '2026-10-26T10:00:00Z',
+          status: {
+            state: 'success',
+            log_url: 'https://vercel.com/log',
+            environment_url: 'https://site.example.com',
+            created_at: '2026-10-26T10:02:00Z',
+          },
+        },
+      ],
     })
     expect(state).toBe('success')
-    expect(items[0]).toMatchObject({ kind: 'deployment', name: 'Production', state: 'success', url: 'https://vercel.com/log', completedAt: '2026-10-26T10:02:00Z' })
+    expect(items[0]).toMatchObject({
+      kind: 'deployment',
+      name: 'Production',
+      state: 'success',
+      url: 'https://vercel.com/log',
+      completedAt: '2026-10-26T10:02:00Z',
+    })
   })
 
   it('counts a deployment with no status as pending', () => {
-    const { state } = reduceBuildStatus({ deployments: [{ id: 1, environment: 'Production', status: null }] })
+    const { state } = reduceBuildStatus({
+      deployments: [{ id: 1, environment: 'Production', status: null }],
+    })
     expect(state).toBe('pending')
   })
 
   it('keeps the newest deployment of each environment', () => {
     const { items } = reduceBuildStatus({
       deployments: [
-        { id: 1, environment: 'Production', created_at: '2026-10-26T09:00:00Z', status: { state: 'failure' } },
-        { id: 2, environment: 'Production', created_at: '2026-10-26T10:00:00Z', status: { state: 'success' } },
-        { id: 3, environment: 'Preview', created_at: '2026-10-26T08:00:00Z', status: { state: 'success' } },
+        {
+          id: 1,
+          environment: 'Production',
+          created_at: '2026-10-26T09:00:00Z',
+          status: { state: 'failure' },
+        },
+        {
+          id: 2,
+          environment: 'Production',
+          created_at: '2026-10-26T10:00:00Z',
+          status: { state: 'success' },
+        },
+        {
+          id: 3,
+          environment: 'Preview',
+          created_at: '2026-10-26T08:00:00Z',
+          status: { state: 'success' },
+        },
       ],
     })
-    expect(items.map((item) => [item.name, item.state])).toEqual([['Production', 'success'], ['Preview', 'success']])
+    expect(items.map((item) => [item.name, item.state])).toEqual([
+      ['Production', 'success'],
+      ['Preview', 'success'],
+    ])
   })
 
   it('handles a mix: an Action done, Vercel pending', () => {
@@ -152,9 +237,14 @@ describe('reduceBuildStatus', () => {
 
   it('handles a mix: all done, one failed', () => {
     const { state } = reduceBuildStatus({
-      checkRuns: [{ name: 'lint', status: 'completed', conclusion: 'success' }, { name: 'build', status: 'completed', conclusion: 'failure' }],
+      checkRuns: [
+        { name: 'lint', status: 'completed', conclusion: 'success' },
+        { name: 'build', status: 'completed', conclusion: 'failure' },
+      ],
       statuses: [{ context: 'Vercel', state: 'success' }],
-      deployments: [{ id: 1, environment: 'Production', status: { state: 'success' } }],
+      deployments: [
+        { id: 1, environment: 'Production', status: { state: 'success' } },
+      ],
     })
     expect(state).toBe('failure')
   })
@@ -163,18 +253,37 @@ describe('reduceBuildStatus', () => {
     const { state } = reduceBuildStatus({
       checkRuns: [{ name: 'lint', status: 'completed', conclusion: 'skipped' }],
       statuses: [{ context: 'Vercel', state: 'success' }],
-      deployments: [{ id: 1, environment: 'Production', status: { state: 'inactive' } }],
+      deployments: [
+        { id: 1, environment: 'Production', status: { state: 'inactive' } },
+      ],
     })
     expect(state).toBe('success')
   })
 
   it('gives names to unnamed items', () => {
-    const items = buildStatusItems({ checkRuns: [{ status: 'queued' }], statuses: [{ state: 'pending' }], deployments: [{ status: null }] })
-    expect(items.map((item) => item.name)).toEqual(['Check', 'Status', 'Deployment'])
+    const items = buildStatusItems({
+      checkRuns: [{ status: 'queued' }],
+      statuses: [{ state: 'pending' }],
+      deployments: [{ status: null }],
+    })
+    expect(items.map((item) => item.name)).toEqual([
+      'Check',
+      'Status',
+      'Deployment',
+    ])
   })
 
   it('drops a bad date and a URL that is not http or https', () => {
-    const [item] = buildStatusItems({ statuses: [{ context: 'x', state: 'success', target_url: 'javascript:alert(1)', created_at: 'not a date' }] })
+    const [item] = buildStatusItems({
+      statuses: [
+        {
+          context: 'x',
+          state: 'success',
+          target_url: 'javascript:alert(1)',
+          created_at: 'not a date',
+        },
+      ],
+    })
     expect(item!.url).toBeUndefined()
     expect(item!.startedAt).toBeUndefined()
   })
@@ -183,7 +292,9 @@ describe('reduceBuildStatus', () => {
 describe('safeHttpUrl', () => {
   it('keeps http and https only', () => {
     expect(safeHttpUrl('https://github.com/a/b')).toBe('https://github.com/a/b')
-    expect(safeHttpUrl('http://localhost:3000/x')).toBe('http://localhost:3000/x')
+    expect(safeHttpUrl('http://localhost:3000/x')).toBe(
+      'http://localhost:3000/x'
+    )
     expect(safeHttpUrl('javascript:alert(1)')).toBeUndefined()
     expect(safeHttpUrl('data:text/html,hi')).toBeUndefined()
     expect(safeHttpUrl('/relative')).toBeUndefined()
@@ -194,7 +305,9 @@ describe('safeHttpUrl', () => {
 
 describe('commitHeadline', () => {
   it('keeps the first line, cut to 200 characters', () => {
-    expect(commitHeadline('content(post): update "a"\n\nbody')).toBe('content(post): update "a"')
+    expect(commitHeadline('content(post): update "a"\n\nbody')).toBe(
+      'content(post): update "a"'
+    )
     expect(commitHeadline('x'.repeat(300))).toHaveLength(200)
     expect(commitHeadline(undefined)).toBe('')
   })
@@ -219,15 +332,40 @@ describe('shouldPoll', () => {
   })
 
   it('stops after 15 minutes', () => {
-    expect(shouldPoll({ ...base, state: 'pending', now: 1_000 + 15 * 60_000 - 1 })).toBe(true)
-    expect(shouldPoll({ ...base, state: 'pending', now: 1_000 + 15 * 60_000 })).toBe(false)
+    expect(
+      shouldPoll({ ...base, state: 'pending', now: 1_000 + 15 * 60_000 - 1 })
+    ).toBe(true)
+    expect(
+      shouldPoll({ ...base, state: 'pending', now: 1_000 + 15 * 60_000 })
+    ).toBe(false)
   })
 
   it('waits for the checks after a save: none is not final for a minute', () => {
     expect(shouldPoll({ ...base, state: 'none', afterSave: true })).toBe(true)
-    expect(shouldPoll({ ...base, state: 'none', afterSave: true, now: 1_000 + 59_000 })).toBe(true)
-    expect(shouldPoll({ ...base, state: 'none', afterSave: true, now: 1_000 + 60_000 })).toBe(false)
-    expect(shouldPoll({ ...base, state: 'none', afterSave: false, now: 1_000 + 5_000 })).toBe(false)
+    expect(
+      shouldPoll({
+        ...base,
+        state: 'none',
+        afterSave: true,
+        now: 1_000 + 59_000,
+      })
+    ).toBe(true)
+    expect(
+      shouldPoll({
+        ...base,
+        state: 'none',
+        afterSave: true,
+        now: 1_000 + 60_000,
+      })
+    ).toBe(false)
+    expect(
+      shouldPoll({
+        ...base,
+        state: 'none',
+        afterSave: false,
+        now: 1_000 + 5_000,
+      })
+    ).toBe(false)
   })
 })
 

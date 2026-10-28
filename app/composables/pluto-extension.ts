@@ -31,20 +31,32 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.id,
     definition.localeDriver ? [definition.localeDriver] : []
   )
-  registry.dashboardWidgets.set(definition.id, definition.dashboardWidgets ?? [])
+  registry.dashboardWidgets.set(
+    definition.id,
+    definition.dashboardWidgets ?? []
+  )
   registry.capabilities.set(definition.id, definition.capabilities ?? [])
   registry.permissionsDrivers.set(
     definition.id,
     definition.permissionsDriver ? [definition.permissionsDriver] : []
   )
-  registry.authDrivers.set(definition.id, definition.authDriver ? [definition.authDriver] : [])
+  registry.authDrivers.set(
+    definition.id,
+    definition.authDriver ? [definition.authDriver] : []
+  )
   registry.accountMenu.set(definition.id, definition.accountMenu ?? [])
   registry.adminBanners.set(definition.id, definition.adminBanners ?? [])
   registry.siteInfo.set(definition.id, definition.site ? [definition.site] : [])
   registry.contentTypes.set(definition.id, definition.contentTypes ?? [])
-  registry.contentFieldWidgets.set(definition.id, definition.contentFieldWidgets ?? [])
+  registry.contentFieldWidgets.set(
+    definition.id,
+    definition.contentFieldWidgets ?? []
+  )
   registry.contentActions.set(definition.id, definition.contentActions ?? [])
-  registry.contentToolbarItems.set(definition.id, definition.contentToolbarItems ?? [])
+  registry.contentToolbarItems.set(
+    definition.id,
+    definition.contentToolbarItems ?? []
+  )
   registry.mediaAdapters.set(definition.id, definition.mediaAdapters ?? [])
 }
 

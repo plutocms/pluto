@@ -11,7 +11,10 @@ import type { PlutoContentItem, PlutoField } from '../types/content'
  * This function is pure and has no browser or Nuxt dependency, so it is safe
  * to call on the server too.
  */
-export function formatListValue(field: PlutoField, item: PlutoContentItem): string {
+export function formatListValue(
+  field: PlutoField,
+  item: PlutoContentItem
+): string {
   const value = item[field.name]
 
   if (field.listFormat) {

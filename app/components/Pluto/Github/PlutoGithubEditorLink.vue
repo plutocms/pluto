@@ -17,7 +17,8 @@ const disabled = ref(true)
 function sync() {
   const { editor } = props
   active.value = editor.isActive('link')
-  disabled.value = !editor.isEditable || (editor.state.selection.empty && !active.value)
+  disabled.value =
+    !editor.isEditable || (editor.state.selection.empty && !active.value)
   url.value = (editor.getAttributes('link').href as string | undefined) ?? ''
 }
 
@@ -41,7 +42,11 @@ function setLink() {
     return
   }
   const empty = props.editor.state.selection.empty
-  let chain = props.editor.chain().focus().extendMarkRange('link').setLink({ href })
+  let chain = props.editor
+    .chain()
+    .focus()
+    .extendMarkRange('link')
+    .setLink({ href })
   if (empty) {
     chain = chain.insertContent({ type: 'text', text: href })
   }

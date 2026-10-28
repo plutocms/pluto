@@ -5,7 +5,9 @@
 const groups = usePlutoCommandPalette()
 const { t } = usePlutoI18n()
 
-const create = computed(() => groups.value.find((group) => group.id === 'pluto-create')?.items ?? [])
+const create = computed(
+  () => groups.value.find((group) => group.id === 'pluto-create')?.items ?? []
+)
 
 const goTo = computed(() =>
   (groups.value.find((group) => group.id === 'pluto-go-to')?.items ?? [])
@@ -14,9 +16,7 @@ const goTo = computed(() =>
     .slice(0, 4)
 )
 
-function run(item: {
- onSelect?: (event: Event) => void
-}) {
+function run(item: { onSelect?: (event: Event) => void }) {
   item.onSelect?.(new Event('select'))
 }
 </script>
@@ -24,7 +24,9 @@ function run(item: {
 <template>
   <UCard class="h-full">
     <template #header>
-      <h3 class="text-highlighted font-semibold">{{ t('pluto.dashboard.quickActions.title') }}</h3>
+      <h3 class="text-highlighted font-semibold">
+        {{ t('pluto.dashboard.quickActions.title') }}
+      </h3>
       <p class="text-muted text-sm">
         {{ t('pluto.dashboard.quickActions.pressBefore') }}
         <UKbd value="meta" size="sm" />
@@ -50,12 +52,16 @@ function run(item: {
       </div>
 
       <div v-if="goTo.length" class="flex flex-col gap-1">
-        <p class="text-dimmed text-xs font-medium tracking-wide uppercase">{{ t('pluto.palette.goTo') }}</p>
+        <p class="text-dimmed text-xs font-medium tracking-wide uppercase">
+          {{ t('pluto.palette.goTo') }}
+        </p>
         <UButton
           v-for="item in goTo"
           :key="item.label"
           :label="item.label"
-          :icon="typeof item.icon === 'string' ? item.icon : 'lucide:arrow-right'"
+          :icon="
+            typeof item.icon === 'string' ? item.icon : 'lucide:arrow-right'
+          "
           :ui="{ trailingIcon: 'ms-auto text-dimmed' }"
           trailing-icon="lucide:chevron-right"
           color="neutral"

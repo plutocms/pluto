@@ -19,7 +19,11 @@ describe('compareContentIds', () => {
 
   it('puts index first in its folder', () => {
     expect(sorted(['b', 'index', 'a'])).toEqual(['index', 'a', 'b'])
-    expect(sorted(['1.a/2.x', '1.a/index', '1.a/1.y'])).toEqual(['1.a/index', '1.a/1.y', '1.a/2.x'])
+    expect(sorted(['1.a/2.x', '1.a/index', '1.a/1.y'])).toEqual([
+      '1.a/index',
+      '1.a/1.y',
+      '1.a/2.x',
+    ])
   })
 
   it('sorts a numeric prefix as a number', () => {
@@ -32,13 +36,9 @@ describe('compareContentIds', () => {
   })
 
   it('compares segment by segment, so a folder keeps its items together', () => {
-    expect(sorted(['2.b/index', '1.a/z', 'index', '1.a/index', '2.b'])).toEqual([
-      'index',
-      '1.a/index',
-      '1.a/z',
-      '2.b',
-      '2.b/index',
-    ])
+    expect(sorted(['2.b/index', '1.a/z', 'index', '1.a/index', '2.b'])).toEqual(
+      ['index', '1.a/index', '1.a/z', '2.b', '2.b/index']
+    )
   })
 
   it('returns 0 for the same id', () => {

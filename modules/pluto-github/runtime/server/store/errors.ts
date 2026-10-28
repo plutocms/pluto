@@ -1,10 +1,5 @@
-export type PlutoGithubStoreErrorCode
-  = | 'conflict'
-    | 'auth'
-    | 'forbidden'
-    | 'rate-limit'
-    | 'not-found'
-    | 'github'
+export type PlutoGithubStoreErrorCode =
+  'conflict' | 'auth' | 'forbidden' | 'rate-limit' | 'not-found' | 'github'
 
 /**
  * A typed error of the storage layer. It is framework-free. The content
@@ -17,10 +12,14 @@ export class PlutoGithubStoreError extends Error {
   /** Seconds to wait before a retry, for a rate-limit error. */
   readonly retryAfter?: number
 
-  constructor(code: PlutoGithubStoreErrorCode, message: string, extra: {
- status?: number
-retryAfter?: number
-} = {}) {
+  constructor(
+    code: PlutoGithubStoreErrorCode,
+    message: string,
+    extra: {
+      status?: number
+      retryAfter?: number
+    } = {}
+  ) {
     super(message)
     this.name = 'PlutoGithubStoreError'
     this.code = code
@@ -37,6 +36,8 @@ export class PlutoGithubConflictError extends PlutoGithubStoreError {
   }
 }
 
-export function isPlutoGithubConflictError(error: unknown): error is PlutoGithubConflictError {
+export function isPlutoGithubConflictError(
+  error: unknown
+): error is PlutoGithubConflictError {
   return error instanceof PlutoGithubConflictError
 }

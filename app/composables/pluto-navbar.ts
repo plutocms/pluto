@@ -1,10 +1,16 @@
-import { ADMIN_BAR_HINT_COOKIE, isStaff, navbarVisible } from './internal/admin-shell'
+import {
+  ADMIN_BAR_HINT_COOKIE,
+  isStaff,
+  navbarVisible,
+} from './internal/admin-shell'
 
 /** The small action buttons rendered inside the navbar. */
 export function usePlutoNavbarActions() {
   const registry = usePlutoRegistry()
 
-  const items = computed<PlutoNavbarAction[]>(() => registry.navbarActions.list.value)
+  const items = computed<PlutoNavbarAction[]>(
+    () => registry.navbarActions.list.value
+  )
 
   return { items }
 }
@@ -40,11 +46,15 @@ export function usePlutoAdminBar() {
   const settled = usePlutoAuthSettled()
   const hint = usePlutoAdminBarHint()
 
-  const staff = computed(() => isStaff(permissions.hasDriver.value, permissions.granted.value))
+  const staff = computed(() =>
+    isStaff(permissions.hasDriver.value, permissions.granted.value)
+  )
   // The public-page rule also waits for the mount, so the first client render
   // matches the server HTML. The admin rule does not read it.
   const known = computed(() => capabilitiesKnown.value && mounted.value)
-  const hiddenByRoute = computed(() => route.meta.plutoAdminBar === false || isPlutoPreviewPath(route.path))
+  const hiddenByRoute = computed(
+    () => route.meta.plutoAdminBar === false || isPlutoPreviewPath(route.path)
+  )
 
   const visible = computed(() =>
     navbarVisible({
@@ -58,7 +68,9 @@ export function usePlutoAdminBar() {
     })
   )
 
-  const confirmed = computed(() => !hiddenByRoute.value && loggedIn.value && known.value && staff.value)
+  const confirmed = computed(
+    () => !hiddenByRoute.value && loggedIn.value && known.value && staff.value
+  )
 
   return { visible, confirmed }
 }
@@ -70,7 +82,11 @@ export function usePlutoAdminBar() {
  */
 export function usePlutoAdminBarHint() {
   return useState<boolean>('pluto-admin-bar-hint', () =>
-    import.meta.server ? useCookie<boolean | null>(ADMIN_BAR_HINT_COOKIE, { readonly: true }).value === true : false)
+    import.meta.server
+      ? useCookie<boolean | null>(ADMIN_BAR_HINT_COOKIE, { readonly: true })
+          .value === true
+      : false
+  )
 }
 
 /**
@@ -83,7 +99,10 @@ export function usePlutoAccountMenu() {
   const { tx } = usePlutoI18n()
 
   const items = computed<PlutoAccountMenuItem[]>(() =>
-    registry.accountMenu.list.value.map((item) => ({ ...item, label: tx(item.label) }))
+    registry.accountMenu.list.value.map((item) => ({
+      ...item,
+      label: tx(item.label),
+    }))
   )
 
   return { items }

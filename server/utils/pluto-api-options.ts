@@ -14,7 +14,9 @@ function corsValue(value: unknown): boolean | string[] {
     return value
   }
   if (Array.isArray(value)) {
-    return value.filter((origin): origin is string => typeof origin === 'string' && origin !== '')
+    return value.filter(
+      (origin): origin is string => typeof origin === 'string' && origin !== ''
+    )
   }
   if (value === 'false') {
     return false
@@ -24,10 +26,19 @@ function corsValue(value: unknown): boolean | string[] {
 
 /** Makes a clean config from the raw `runtimeConfig.plutoApi`. A bad value uses the default. */
 export function resolvePlutoApiConfig(raw: unknown): PlutoApiConfig {
-  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<
+    string,
+    unknown
+  >
   const maxAge = Number(value.maxAge)
   return {
-    cors: value.cors === undefined ? PLUTO_API_DEFAULTS.cors : corsValue(value.cors),
-    maxAge: Number.isFinite(maxAge) && maxAge >= 0 ? Math.trunc(maxAge) : PLUTO_API_DEFAULTS.maxAge,
+    cors:
+      value.cors === undefined
+        ? PLUTO_API_DEFAULTS.cors
+        : corsValue(value.cors),
+    maxAge:
+      Number.isFinite(maxAge) && maxAge >= 0
+        ? Math.trunc(maxAge)
+        : PLUTO_API_DEFAULTS.maxAge,
   }
 }

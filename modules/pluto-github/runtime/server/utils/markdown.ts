@@ -45,7 +45,11 @@ export function stripMdc(markdown: string): string {
     const fenceMatch = FENCE.exec(line)
     if (fence) {
       out.push(line)
-      if (fenceMatch && fenceMatch[1]!.startsWith(fence[0]!) && fenceMatch[1]!.length >= fence.length) {
+      if (
+        fenceMatch &&
+        fenceMatch[1]!.startsWith(fence[0]!) &&
+        fenceMatch[1]!.length >= fence.length
+      ) {
         fence = undefined
       }
       continue
@@ -101,19 +105,25 @@ const NAMED_TEXT_ENTITIES: Record<string, string> = {
   lt: '<',
   gt: '>',
   quot: '"',
-  apos: '\'',
+  apos: "'",
   nbsp: ' ',
 }
 
 function decodeEntities(value: string): string {
-  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (match, body: string) => {
-    if (body[0] === '#') {
-      const isHex = body[1] === 'x' || body[1] === 'X'
-      const codePoint = Number.parseInt(isHex ? body.slice(2) : body.slice(1), isHex ? 16 : 10)
-      return Number.isNaN(codePoint) ? match : String.fromCodePoint(codePoint)
+  return value.replace(
+    /&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,
+    (match, body: string) => {
+      if (body[0] === '#') {
+        const isHex = body[1] === 'x' || body[1] === 'X'
+        const codePoint = Number.parseInt(
+          isHex ? body.slice(2) : body.slice(1),
+          isHex ? 16 : 10
+        )
+        return Number.isNaN(codePoint) ? match : String.fromCodePoint(codePoint)
+      }
+      return NAMED_TEXT_ENTITIES[body] ?? match
     }
-    return NAMED_TEXT_ENTITIES[body] ?? match
-  })
+  )
 }
 
 /**

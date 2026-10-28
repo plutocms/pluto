@@ -6,7 +6,12 @@ import { deleteCookie, getCookie, useSession } from 'h3'
 import { createPlutoError } from '../../../../../server/utils/pluto-error'
 import { PlutoGithubStoreError } from '../store/errors'
 import { getGithubConfig } from './github-config'
-import { fetchRepoPermission, mapRepoPermission, PlutoGithubOAuthError, refreshUserToken } from './github-oauth'
+import {
+  fetchRepoPermission,
+  mapRepoPermission,
+  PlutoGithubOAuthError,
+  refreshUserToken,
+} from './github-oauth'
 
 export const CMS_SESSION_NAME = 'pluto-github-session'
 export const CMS_OAUTH_SESSION_NAME = 'pluto-github-oauth'
@@ -107,14 +112,24 @@ export function resolveSessionPassword(config: GithubConfig): string {
   }
   if (config.dev) {
     devPassword ??= randomBytes(32).toString('base64url')
-    logOnce('dev-password', 'NUXT_PLUTO_GITHUB_SESSION_PASSWORD is missing or short. Using a random password for this dev process.')
+    logOnce(
+      'dev-password',
+      'NUXT_PLUTO_GITHUB_SESSION_PASSWORD is missing or short. Using a random password for this dev process.'
+    )
     return devPassword
   }
-  logOnce('password', 'NUXT_PLUTO_GITHUB_SESSION_PASSWORD must have 32 characters or more. Sign-in is off until you set it.')
+  logOnce(
+    'password',
+    'NUXT_PLUTO_GITHUB_SESSION_PASSWORD must have 32 characters or more. Sign-in is off until you set it.'
+  )
   throw authNotConfigured()
 }
 
-function sessionOptions(config: GithubConfig, name: string, maxAge: number): SessionConfig {
+function sessionOptions(
+  config: GithubConfig,
+  name: string,
+  maxAge: number
+): SessionConfig {
   return {
     name,
     password: resolveSessionPassword(config),
@@ -131,8 +146,14 @@ function sessionOptions(config: GithubConfig, name: string, maxAge: number): Ses
 }
 
 /** The sealed session of the signed-in user. */
-export function useGithubSession(event: H3Event, config: GithubConfig = getGithubConfig()) {
-  return useSession<Partial<GithubSessionData>>(event, sessionOptions(config, CMS_SESSION_NAME, SESSION_MAX_AGE))
+export function useGithubSession(
+  event: H3Event,
+  config: GithubConfig = getGithubConfig()
+) {
+  return useSession<Partial<GithubSessionData>>(
+    event,
+    sessionOptions(config, CMS_SESSION_NAME, SESSION_MAX_AGE)
+  )
 }
 
 export interface GithubOAuthState {
@@ -142,8 +163,14 @@ export interface GithubOAuthState {
 }
 
 /** The short sealed session that holds the state of one sign-in attempt. */
-export function useGithubOAuthSession(event: H3Event, config: GithubConfig = getGithubConfig()) {
-  return useSession<Partial<GithubOAuthState>>(event, sessionOptions(config, CMS_OAUTH_SESSION_NAME, OAUTH_MAX_AGE))
+export function useGithubOAuthSession(
+  event: H3Event,
+  config: GithubConfig = getGithubConfig()
+) {
+  return useSession<Partial<GithubOAuthState>>(
+    event,
+    sessionOptions(config, CMS_OAUTH_SESSION_NAME, OAUTH_MAX_AGE)
+  )
 }
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1'])
@@ -156,9 +183,15 @@ const LOCAL_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
  * client can send its own `x-forwarded-for`, but the proxy still appends the
  * real address after it, so only the last entry counts.
  */
-function devProxyClientAddress(header: string | string[] | undefined): string | undefined {
+function devProxyClientAddress(
+  header: string | string[] | undefined
+): string | undefined {
   const value = Array.isArray(header) ? header.join(',') : header
-  const last = value?.split(',').map((part) => part.trim()).filter(Boolean).at(-1)
+  const last = value
+    ?.split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .at(-1)
   return last || undefined
 }
 
@@ -183,7 +216,11 @@ export function isLocalRequest(event: H3Event): boolean {
   }
   const address = req.socket?.remoteAddress
   if (address) {
-    if (!LOCAL_ADDRESSES.has(address) || req.headers['x-forwarded-for'] || req.headers.forwarded) {
+    if (
+      !LOCAL_ADDRESSES.has(address) ||
+      req.headers['x-forwarded-for'] ||
+      req.headers.forwarded
+    ) {
       return false
     }
   } else {
@@ -193,16 +230,21 @@ export function isLocalRequest(event: H3Event): boolean {
     }
   }
   const host = String(req.headers.host ?? '').toLowerCase()
-  const name = host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : host.split(':')[0]!
+  const name = host.startsWith('[')
+    ? host.slice(0, host.indexOf(']') + 1)
+    : host.split(':')[0]!
   return LOCAL_HOSTS.has(name)
 }
 
 const refreshing = new Map<string, Promise<OAuthTokens>>()
 /** Fresh results by the refresh token they replaced, for a short time. */
-const refreshed = new Map<string, {
- tokens: OAuthTokens
-at: number
-}>()
+const refreshed = new Map<
+  string,
+  {
+    tokens: OAuthTokens
+    at: number
+  }
+>()
 /** How long a late request, sent with the old cookie, may reuse a refresh result. */
 const REFRESH_REUSE = 60 * 1000
 
@@ -213,7 +255,10 @@ const REFRESH_REUSE = 60 * 1000
  * time shares its promise. A call that comes soon after reuses its result.
  * The results stay in the memory of this server process only.
  */
-function refreshOnce(config: GithubConfig, refreshToken: string): Promise<OAuthTokens> {
+function refreshOnce(
+  config: GithubConfig,
+  refreshToken: string
+): Promise<OAuthTokens> {
   const now = Date.now()
   for (const [key, entry] of refreshed) {
     if (now - entry.at > REFRESH_REUSE) {
@@ -234,22 +279,35 @@ function refreshOnce(config: GithubConfig, refreshToken: string): Promise<OAuthT
     refreshToken,
     apiUrl: config.apiUrl,
     fetch: config.fetch,
-  }).then((tokens) => {
-    refreshed.set(refreshToken, { tokens, at: Date.now() })
-    return tokens
-  }).finally(() => {
-    refreshing.delete(refreshToken)
   })
+    .then((tokens) => {
+      refreshed.set(refreshToken, { tokens, at: Date.now() })
+      return tokens
+    })
+    .finally(() => {
+      refreshing.delete(refreshToken)
+    })
   refreshing.set(refreshToken, promise)
   return promise
 }
 
-function isSessionData(data: Partial<GithubSessionData>): data is GithubSessionData {
-  return Boolean(data.user && typeof data.user.login === 'string' && typeof data.token === 'string' && data.token !== ''
-    && Array.isArray(data.capabilities) && typeof data.checkedAt === 'number')
+function isSessionData(
+  data: Partial<GithubSessionData>
+): data is GithubSessionData {
+  return Boolean(
+    data.user &&
+    typeof data.user.login === 'string' &&
+    typeof data.token === 'string' &&
+    data.token !== '' &&
+    Array.isArray(data.capabilities) &&
+    typeof data.checkedAt === 'number'
+  )
 }
 
-async function loadSession(event: H3Event, config: GithubConfig): Promise<GithubSession | null> {
+async function loadSession(
+  event: H3Event,
+  config: GithubConfig
+): Promise<GithubSession | null> {
   if (config.dev && config.storage === 'fs') {
     return isLocalRequest(event) ? LOCAL_SESSION : null
   }
@@ -265,8 +323,15 @@ async function loadSession(event: H3Event, config: GithubConfig): Promise<Github
   }
   let current: GithubSessionData = { ...session.data }
 
-  if (current.expiresAt !== undefined && current.expiresAt - REFRESH_MARGIN < Date.now()) {
-    if (!current.refreshToken || (current.refreshExpiresAt !== undefined && current.refreshExpiresAt < Date.now())) {
+  if (
+    current.expiresAt !== undefined &&
+    current.expiresAt - REFRESH_MARGIN < Date.now()
+  ) {
+    if (
+      !current.refreshToken ||
+      (current.refreshExpiresAt !== undefined &&
+        current.refreshExpiresAt < Date.now())
+    ) {
       dropSessionCookie(event, config)
       throw signInRequired()
     }
@@ -293,7 +358,10 @@ async function loadSession(event: H3Event, config: GithubConfig): Promise<Github
 
   if (Date.now() - current.checkedAt > RECHECK_AFTER) {
     try {
-      const repo = await fetchRepoPermission(current.token, config.repo, { apiUrl: config.apiUrl, fetch: config.fetch })
+      const repo = await fetchRepoPermission(current.token, config.repo, {
+        apiUrl: config.apiUrl,
+        fetch: config.fetch,
+      })
       const mapped = repo ? mapRepoPermission(repo.permissions) : null
       if (!mapped) {
         // The user lost push access, or the app lost the repo.
@@ -317,7 +385,10 @@ async function loadSession(event: H3Event, config: GithubConfig): Promise<Github
       if (error instanceof PlutoGithubStoreError) {
         // GitHub is down or limits us. We cannot prove the access, so deny
         // this request. The session stays, so the next request tries again.
-        console.error('[pluto-github] Could not check the repo permission.', error)
+        console.error(
+          '[pluto-github] Could not check the repo permission.',
+          error
+        )
         throw githubUnavailable()
       }
       throw error
@@ -332,7 +403,9 @@ async function loadSession(event: H3Event, config: GithubConfig): Promise<Github
  * when it ends soon. It checks the repo permission again every 10 minutes.
  * One request runs these steps once. A session that is over gives a 401.
  */
-export function getGithubSession(event: H3Event): Promise<GithubSession | null> {
+export function getGithubSession(
+  event: H3Event
+): Promise<GithubSession | null> {
   const context = event.context as Record<string, unknown>
   const memo = context[MEMO_KEY] as Promise<GithubSession | null> | undefined
   if (memo) {
@@ -343,7 +416,9 @@ export function getGithubSession(event: H3Event): Promise<GithubSession | null> 
   return promise
 }
 
-export async function requireGithubSession(event: H3Event): Promise<GithubSession> {
+export async function requireGithubSession(
+  event: H3Event
+): Promise<GithubSession> {
   const session = await getGithubSession(event)
   if (!session) {
     throw signInRequired()
@@ -351,9 +426,15 @@ export async function requireGithubSession(event: H3Event): Promise<GithubSessio
   return session
 }
 
-export async function requireGithubCapability(event: H3Event, capability: string): Promise<GithubSession> {
+export async function requireGithubCapability(
+  event: H3Event,
+  capability: string
+): Promise<GithubSession> {
   const session = await requireGithubSession(event)
-  if (!session.capabilities.includes('*') && !session.capabilities.includes(capability)) {
+  if (
+    !session.capabilities.includes('*') &&
+    !session.capabilities.includes(capability)
+  ) {
     throw createPlutoError({
       statusCode: 403,
       message: 'You do not have permission to do this.',
@@ -365,7 +446,10 @@ export async function requireGithubCapability(event: H3Event, capability: string
 }
 
 /** Starts a session after a sign-in. */
-export async function setGithubSession(event: H3Event, data: GithubSessionData): Promise<void> {
+export async function setGithubSession(
+  event: H3Event,
+  data: GithubSessionData
+): Promise<void> {
   const session = await useGithubSession(event)
   await session.update(data)
   delete (event.context as Record<string, unknown>)[MEMO_KEY]
@@ -374,14 +458,24 @@ export async function setGithubSession(event: H3Event, data: GithubSessionData):
 /** Deletes the cookie. It works even when the session password is missing. */
 function dropSessionCookie(event: H3Event, config: GithubConfig): void {
   const context = event.context as Record<string, unknown>
-  delete (context.sessions as Record<string, unknown> | undefined)?.[CMS_SESSION_NAME]
-  deleteCookie(event, CMS_SESSION_NAME, { httpOnly: true, sameSite: 'lax', secure: !config.dev, path: '/' })
+  delete (context.sessions as Record<string, unknown> | undefined)?.[
+    CMS_SESSION_NAME
+  ]
+  deleteCookie(event, CMS_SESSION_NAME, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: !config.dev,
+    path: '/',
+  })
 }
 
 /**
  * Ends the session. Later reads in the same request see a signed-out user.
  */
-export function clearGithubSession(event: H3Event, config: GithubConfig = getGithubConfig()): void {
+export function clearGithubSession(
+  event: H3Event,
+  config: GithubConfig = getGithubConfig()
+): void {
   dropSessionCookie(event, config)
   const context = event.context as Record<string, unknown>
   context[MEMO_KEY] = Promise.resolve(null)

@@ -7,7 +7,9 @@ export const PLUTO_PREVIEW_PATH = '/_pluto/preview'
  * the same check to skip its own shell, such as a header or a footer.
  */
 export function isPlutoPreviewPath(path: string): boolean {
-  return path === PLUTO_PREVIEW_PATH
-    || path === `${PLUTO_PREVIEW_PATH}/`
-    || path.startsWith(`${PLUTO_PREVIEW_PATH}/`)
+  return (
+    path === PLUTO_PREVIEW_PATH ||
+    path === `${PLUTO_PREVIEW_PATH}/` ||
+    path.startsWith(`${PLUTO_PREVIEW_PATH}/`)
+  )
 }

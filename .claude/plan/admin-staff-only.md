@@ -12,7 +12,7 @@ Branch / PR: fix/admin-staff-only, #196 (released as 0.17.1)
 - Why: found on 2026-10-22 while testing the Data API grants. A new account with no role (sign-up
   is open) could open every admin page in the menu. The data stays safe (the API answers 403, and
   RLS hides rows: for example, settings Save gives `403 ... missing the "settings:manage"
-  permission`), but a customer should not see the admin at all.
+permission`), but a customer should not see the admin at all.
 - Facts:
   - Core owns the `/admin` route guard and the navbar (see the `admin-shell` skill). Today the
     guard checks only "signed in". The navbar on public pages already shows for staff only, so a

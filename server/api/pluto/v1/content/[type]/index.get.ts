@@ -3,5 +3,9 @@
  * content-model skill ("The public API").
  */
 export default defineEventHandler((event) => {
-  return listPublicContent(event, getRouterParam(event, 'type') ?? '', getQuery(event))
+  return listPublicContent(
+    event,
+    getRouterParam(event, 'type') ?? '',
+    getQuery(event)
+  )
 })

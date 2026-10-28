@@ -75,7 +75,10 @@ export interface PlutoMailDriver {
   id: string
   /** False when the driver cannot send yet (for example, a missing key). Default true. */
   isConfigured?: () => boolean
-  send: (message: PlutoMailMessage, context: PlutoMailSendContext) => Promise<PlutoMailSendResult>
+  send: (
+    message: PlutoMailMessage,
+    context: PlutoMailSendContext
+  ) => Promise<PlutoMailSendResult>
 }
 
 /**
@@ -96,11 +99,11 @@ export interface PlutoMailConfig {
   from: string
   replyTo: string
   resend: {
- apiKey: string
-}
+    apiKey: string
+  }
   mailpit: {
- url: string
-}
+    url: string
+  }
 }
 
 /** What the admin shows about the mail setup. It holds no secret. */

@@ -1,5 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { addTemplate, defineNuxtModule, getLayerDirectories, resolvePath, useLogger } from '@nuxt/kit'
+import {
+  addTemplate,
+  defineNuxtModule,
+  getLayerDirectories,
+  resolvePath,
+  useLogger,
+} from '@nuxt/kit'
 import {
   analyzeCssEntry,
   checkCssSetup,
@@ -37,7 +43,10 @@ export default defineNuxtModule<PlutoCssOptions>({
   async setup(options, nuxt) {
     const logger = useLogger('pluto-css')
     const layers = getLayerDirectories(nuxt)
-    const layerCssFiles = findLayerCssFiles(layers.map((layer) => layer.app), existsSync)
+    const layerCssFiles = findLayerCssFiles(
+      layers.map((layer) => layer.app),
+      existsSync
+    )
 
     addTemplate({
       filename: 'pluto.css',
@@ -53,7 +62,10 @@ export default defineNuxtModule<PlutoCssOptions>({
 
     const entries = []
     for (const entry of nuxt.options.css) {
-      const file = typeof entry === 'string' ? await resolvePath(entry).catch(() => undefined) : undefined
+      const file =
+        typeof entry === 'string'
+          ? await resolvePath(entry).catch(() => undefined)
+          : undefined
       if (!file || !file.endsWith('.css') || !existsSync(file)) {
         continue
       }
@@ -66,14 +78,20 @@ export default defineNuxtModule<PlutoCssOptions>({
       )
     }
 
-    const appRoot = nuxt.options.rootDir.replaceAll('\\', '/').replace(/\/?$/, '/')
-    const layerRoots = layers.map((layer) => layer.root.replaceAll('\\', '/')).filter((root) => root !== appRoot)
+    const appRoot = nuxt.options.rootDir
+      .replaceAll('\\', '/')
+      .replace(/\/?$/, '/')
+    const layerRoots = layers
+      .map((layer) => layer.root.replaceAll('\\', '/'))
+      .filter((root) => root !== appRoot)
     const report = checkCssSetup(entries, layerRoots)
 
     if (report.injectFallback) {
       nuxt.options.css.push('#build/pluto-entry.css')
       if (!nuxt.options._prepare) {
-        logger.info('No CSS entry imports Tailwind. Using the Pluto fallback entry (#build/pluto-entry.css).')
+        logger.info(
+          'No CSS entry imports Tailwind. Using the Pluto fallback entry (#build/pluto-entry.css).'
+        )
       }
     }
 

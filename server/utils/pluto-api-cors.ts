@@ -7,7 +7,9 @@ import { getPlutoApiConfig } from './pluto-api-config'
 /** True for a path of the public API, with or without a query. */
 export function isPlutoApiPath(path: string): boolean {
   const pathname = path.split('?')[0] ?? ''
-  return pathname === PLUTO_API_PREFIX || pathname.startsWith(`${PLUTO_API_PREFIX}/`)
+  return (
+    pathname === PLUTO_API_PREFIX || pathname.startsWith(`${PLUTO_API_PREFIX}/`)
+  )
 }
 
 /**
@@ -15,7 +17,10 @@ export function isPlutoApiPath(path: string): boolean {
  * headers allow `GET`, `HEAD` and `OPTIONS` only, and never credentials. With a list of origins,
  * a request from another origin gets no `Access-Control-Allow-Origin`, so the browser blocks it.
  */
-export function plutoApiCorsHeaders(origin: string | undefined, cors: PlutoApiConfig['cors']): Record<string, string> {
+export function plutoApiCorsHeaders(
+  origin: string | undefined,
+  cors: PlutoApiConfig['cors']
+): Record<string, string> {
   if (cors === false || (Array.isArray(cors) && cors.length === 0)) {
     return {}
   }
@@ -43,7 +48,10 @@ export function handlePlutoApiCors(event: H3Event): boolean {
   if (!isPlutoApiPath(event.path)) {
     return false
   }
-  const headers = plutoApiCorsHeaders(getRequestHeader(event, 'origin'), getPlutoApiConfig().cors)
+  const headers = plutoApiCorsHeaders(
+    getRequestHeader(event, 'origin'),
+    getPlutoApiConfig().cors
+  )
   for (const [name, value] of Object.entries(headers)) {
     setResponseHeader(event, name, value)
   }

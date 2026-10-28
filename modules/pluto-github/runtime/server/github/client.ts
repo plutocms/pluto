@@ -1,5 +1,8 @@
 import { ofetch } from 'ofetch'
-import { PlutoGithubConflictError, PlutoGithubStoreError } from '../store/errors'
+import {
+  PlutoGithubConflictError,
+  PlutoGithubStoreError,
+} from '../store/errors'
 
 export const GITHUB_API_URL = 'https://api.github.com'
 const API_VERSION = '2022-11-28'
@@ -13,14 +16,17 @@ export interface GithubFetchInit {
 export interface GithubFetchResponse {
   status: number
   headers: {
- get: (name: string) => string | null
-}
+    get: (name: string) => string | null
+  }
   /** The parsed JSON body, or the text body for a `sha` accept. */
   data: unknown
 }
 
 /** The transport. Tests inject a stub. The default uses `ofetch`. */
-export type GithubFetch = (url: string, init: GithubFetchInit) => Promise<GithubFetchResponse>
+export type GithubFetch = (
+  url: string,
+  init: GithubFetchInit
+) => Promise<GithubFetchResponse>
 
 /** The default transport. It never throws on an HTTP error status. */
 export const defaultGithubFetch: GithubFetch = async (url, init) => {
@@ -32,7 +38,11 @@ export const defaultGithubFetch: GithubFetch = async (url, init) => {
     ignoreResponseError: true,
     responseType: wantsText ? 'text' : 'json',
   })
-  return { status: response.status, headers: response.headers, data: response._data }
+  return {
+    status: response.status,
+    headers: response.headers,
+    data: response._data,
+  }
 }
 
 export interface GithubRequestOptions {
@@ -54,9 +64,12 @@ export interface GithubRestResult<T> {
   etag?: string
 }
 
-function baseHeaders(token: string | undefined, accept: string): Record<string, string> {
+function baseHeaders(
+  token: string | undefined,
+  accept: string
+): Record<string, string> {
   const headers: Record<string, string> = {
-    'Accept': accept,
+    Accept: accept,
     'User-Agent': 'plutocms',
     'X-GitHub-Api-Version': API_VERSION,
   }
@@ -67,14 +80,21 @@ function baseHeaders(token: string | undefined, accept: string): Record<string, 
 }
 
 function messageOf(data: unknown, fallback: string): string {
-  if (data && typeof data === 'object' && 'message' in data && typeof data.message === 'string') {
+  if (
+    data &&
+    typeof data === 'object' &&
+    'message' in data &&
+    typeof data.message === 'string'
+  ) {
     return data.message
   }
   return fallback
 }
 
 /** Maps a failed HTTP response to a typed error. */
-export function errorFromResponse(response: GithubFetchResponse): PlutoGithubStoreError {
+export function errorFromResponse(
+  response: GithubFetchResponse
+): PlutoGithubStoreError {
   const { status, headers, data } = response
   const message = messageOf(data, `GitHub answered with status ${status}.`)
 
@@ -84,8 +104,12 @@ export function errorFromResponse(response: GithubFetchResponse): PlutoGithubSto
 
   const remaining = headers.get('x-ratelimit-remaining')
   const retryHeader = headers.get('retry-after')
-  const isRateLimit = status === 429
-    || (status === 403 && (remaining === '0' || retryHeader !== null || /rate limit/i.test(message)))
+  const isRateLimit =
+    status === 429 ||
+    (status === 403 &&
+      (remaining === '0' ||
+        retryHeader !== null ||
+        /rate limit/i.test(message)))
   if (isRateLimit) {
     let retryAfter: number | undefined
     if (retryHeader !== null && Number.isFinite(Number(retryHeader))) {
@@ -96,7 +120,10 @@ export function errorFromResponse(response: GithubFetchResponse): PlutoGithubSto
         retryAfter = Math.max(0, Math.ceil(reset - Date.now() / 1000))
       }
     }
-    return new PlutoGithubStoreError('rate-limit', message, { status, retryAfter })
+    return new PlutoGithubStoreError('rate-limit', message, {
+      status,
+      retryAfter,
+    })
   }
 
   if (status === 403) {
@@ -114,7 +141,10 @@ export async function githubRest<T = unknown>(
   options: GithubRestOptions = {}
 ): Promise<GithubRestResult<T>> {
   const apiUrl = (options.apiUrl ?? GITHUB_API_URL).replace(/\/+$/, '')
-  const headers = baseHeaders(options.token, options.accept ?? 'application/vnd.github+json')
+  const headers = baseHeaders(
+    options.token,
+    options.accept ?? 'application/vnd.github+json'
+  )
   if (options.etag) {
     headers['If-None-Match'] = options.etag
   }
@@ -124,7 +154,11 @@ export async function githubRest<T = unknown>(
     headers['Content-Type'] = 'application/json'
   }
   const send = options.fetch ?? defaultGithubFetch
-  const response = await send(`${apiUrl}${path}`, { method: options.method ?? 'GET', headers, body })
+  const response = await send(`${apiUrl}${path}`, {
+    method: options.method ?? 'GET',
+    headers,
+    body,
+  })
 
   if (response.status === 304) {
     return { status: 304, data: undefined as T, etag: options.etag }
@@ -132,13 +166,19 @@ export async function githubRest<T = unknown>(
   if (response.status >= 400) {
     throw errorFromResponse(response)
   }
-  return { status: response.status, data: response.data as T, etag: response.headers.get('etag') ?? undefined }
+  return {
+    status: response.status,
+    data: response.data as T,
+    etag: response.headers.get('etag') ?? undefined,
+  }
 }
 
 /** The GraphQL endpoint for an API URL. GitHub Enterprise uses `/api/v3` for REST. */
 export function graphqlUrl(apiUrl: string): string {
   const base = apiUrl.replace(/\/+$/, '')
-  return base.endsWith('/api/v3') ? `${base.slice(0, -'/v3'.length)}/graphql` : `${base}/graphql`
+  return base.endsWith('/api/v3')
+    ? `${base.slice(0, -'/v3'.length)}/graphql`
+    : `${base}/graphql`
 }
 
 interface GraphqlError {
@@ -149,18 +189,37 @@ interface GraphqlError {
 const STALE_PATTERN = /expectedHeadOid|is not the latest|STALE_DATA|stale/i
 
 /** Maps GraphQL `errors[]` to a typed error. */
-export function errorFromGraphql(errors: GraphqlError[]): PlutoGithubStoreError {
-  const message = errors.map((error) => error.message ?? 'GraphQL error').join(' ')
-  if (errors.some((error) => error.type === 'STALE_DATA' || STALE_PATTERN.test(error.message ?? ''))) {
+export function errorFromGraphql(
+  errors: GraphqlError[]
+): PlutoGithubStoreError {
+  const message = errors
+    .map((error) => error.message ?? 'GraphQL error')
+    .join(' ')
+  if (
+    errors.some(
+      (error) =>
+        error.type === 'STALE_DATA' || STALE_PATTERN.test(error.message ?? '')
+    )
+  ) {
     return new PlutoGithubConflictError()
   }
-  if (errors.some((error) => error.type === 'RATE_LIMITED' || /rate limit/i.test(error.message ?? ''))) {
+  if (
+    errors.some(
+      (error) =>
+        error.type === 'RATE_LIMITED' || /rate limit/i.test(error.message ?? '')
+    )
+  ) {
     return new PlutoGithubStoreError('rate-limit', message, { status: 403 })
   }
   if (errors.some((error) => error.type === 'NOT_FOUND')) {
     return new PlutoGithubStoreError('not-found', message, { status: 404 })
   }
-  if (errors.some((error) => error.type === 'FORBIDDEN' || error.type === 'INSUFFICIENT_SCOPES')) {
+  if (
+    errors.some(
+      (error) =>
+        error.type === 'FORBIDDEN' || error.type === 'INSUFFICIENT_SCOPES'
+    )
+  ) {
     return new PlutoGithubStoreError('forbidden', message, { status: 403 })
   }
   return new PlutoGithubStoreError('github', message)
@@ -183,10 +242,12 @@ export async function githubGraphql<T = unknown>(
   if (response.status >= 400) {
     throw errorFromResponse(response)
   }
-  const payload = response.data as {
- data?: T | null
-errors?: GraphqlError[]
-} | undefined
+  const payload = response.data as
+    | {
+        data?: T | null
+        errors?: GraphqlError[]
+      }
+    | undefined
   if (payload?.errors && payload.errors.length > 0) {
     throw errorFromGraphql(payload.errors)
   }

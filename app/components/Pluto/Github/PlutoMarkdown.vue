@@ -6,14 +6,17 @@ import theme from '#build/ui/editor'
 // and sanitizes it (see `modules/pluto-github/runtime/server/utils/sanitize-html.ts`),
 // so the string is safe to set as `innerHTML`. This component never parses
 // Markdown. Do not pass any other HTML to it.
-const props = withDefaults(defineProps<{
-  html: string
-  tag?: string
-  class?: any
-}>(), {
-  tag: 'article',
-  class: undefined,
-})
+const props = withDefaults(
+  defineProps<{
+    html: string
+    tag?: string
+    class?: any
+  }>(),
+  {
+    tag: 'article',
+    class: undefined,
+  }
+)
 
 // The base of the Nuxt UI editor theme gives readable prose with semantic
 // color tokens. The editor adds side padding, so `sm:px-0` removes it.

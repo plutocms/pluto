@@ -1,5 +1,8 @@
 import type { H3Event } from 'h3'
-import type { PlutoContentContext, PlutoContentType } from '../shared/types/content'
+import type {
+  PlutoContentContext,
+  PlutoContentType,
+} from '../shared/types/content'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryContentAdapter } from './fixtures/memory-content-adapter'
 
@@ -21,7 +24,9 @@ async function loadHandlers() {
 
 const fakeEvent = {} as H3Event
 
-function contentType(overrides: Partial<PlutoContentType> = {}): PlutoContentType {
+function contentType(
+  overrides: Partial<PlutoContentType> = {}
+): PlutoContentType {
   return {
     name: 'post',
     label: 'Post',
@@ -94,7 +99,10 @@ describe('listContentItems', () => {
     const type = contentType({ capabilities: { read: 'posts:read' } })
     const ctx = ctxFor(type)
 
-    await expect(listContentItems(ctx, {})).resolves.toEqual({ data: [], total: 0 })
+    await expect(listContentItems(ctx, {})).resolves.toEqual({
+      data: [],
+      total: 0,
+    })
     expect(authorize).not.toHaveBeenCalled()
   })
 
@@ -109,7 +117,10 @@ describe('listContentItems', () => {
 
     await listContentItems(ctx, { limit: 1, published: true })
 
-    expect(listSpy).toHaveBeenCalledWith(ctx, expect.objectContaining({ limit: 1, includeUnpublished: false }))
+    expect(listSpy).toHaveBeenCalledWith(
+      ctx,
+      expect.objectContaining({ limit: 1, includeUnpublished: false })
+    )
   })
 
   it('requests includeUnpublished from the adapter by default', async () => {
@@ -124,7 +135,10 @@ describe('listContentItems', () => {
 
     await listContentItems(ctx, {})
 
-    expect(listSpy).toHaveBeenCalledWith(ctx, expect.objectContaining({ includeUnpublished: true }))
+    expect(listSpy).toHaveBeenCalledWith(
+      ctx,
+      expect.objectContaining({ includeUnpublished: true })
+    )
   })
 })
 
@@ -237,7 +251,9 @@ describe('createContentItem', () => {
 
     const ctx = ctxFor(contentType({ capabilities: { write: 'posts:write' } }))
 
-    await expect(createContentItem(ctx, { title: 'Hello' })).rejects.toThrow('forbidden')
+    await expect(createContentItem(ctx, { title: 'Hello' })).rejects.toThrow(
+      'forbidden'
+    )
   })
 
   it('fails open when the type declares a write capability but the adapter has no authorize method', async () => {
@@ -250,7 +266,9 @@ describe('createContentItem', () => {
 
     const ctx = ctxFor(contentType({ capabilities: { write: 'posts:write' } }))
 
-    await expect(createContentItem(ctx, { title: 'Hello' })).resolves.toMatchObject({
+    await expect(
+      createContentItem(ctx, { title: 'Hello' })
+    ).resolves.toMatchObject({
       title: 'Hello',
     })
   })
@@ -293,7 +311,9 @@ describe('createContentItem', () => {
     })
     const ctx = ctxFor(contentType({ hooks: { afterCreate } }))
 
-    await expect(createContentItem(ctx, { title: 'Hello' })).rejects.toThrow('hook failed')
+    await expect(createContentItem(ctx, { title: 'Hello' })).rejects.toThrow(
+      'hook failed'
+    )
   })
 })
 
@@ -335,9 +355,9 @@ describe('updateContentItem', () => {
     const ctx = ctxFor(contentType())
     const created = await adapter.create(ctx, { title: 'Hello' })
 
-    await expect(updateContentItem(ctx, created.id, { title: '' })).rejects.toThrow(
-      expect.objectContaining({ statusCode: 400 })
-    )
+    await expect(
+      updateContentItem(ctx, created.id, { title: '' })
+    ).rejects.toThrow(expect.objectContaining({ statusCode: 400 }))
   })
 
   it('calls adapter.authorize with the declared write capability', async () => {
@@ -385,13 +405,16 @@ describe('updateContentItem', () => {
     const ctx = ctxFor(type)
     const created = await adapter.create(ctx, { title: 'Hello' })
 
-    await expect(updateContentItem(ctx, created.id, { title: 'Updated' })).rejects.toThrow('hook failed')
+    await expect(
+      updateContentItem(ctx, created.id, { title: 'Updated' })
+    ).rejects.toThrow('hook failed')
   })
 })
 
 describe('deleteContentItem', () => {
   it('calls adapter.remove', async () => {
-    const { registerContentAdapter, deleteContentItem, getContentItem } = await loadHandlers()
+    const { registerContentAdapter, deleteContentItem, getContentItem } =
+      await loadHandlers()
 
     const adapter = createMemoryContentAdapter()
     registerContentAdapter(adapter)
@@ -413,7 +436,9 @@ describe('deleteContentItem', () => {
     const adapter = createMemoryContentAdapter({ authorize })
     registerContentAdapter(adapter)
 
-    const ctx = ctxFor(contentType({ capabilities: { delete: 'posts:delete' } }))
+    const ctx = ctxFor(
+      contentType({ capabilities: { delete: 'posts:delete' } })
+    )
     const created = await adapter.create(ctx, { title: 'Hello' })
 
     await deleteContentItem(ctx, created.id)
@@ -430,10 +455,14 @@ describe('deleteContentItem', () => {
     const adapter = createMemoryContentAdapter({ authorize })
     registerContentAdapter(adapter)
 
-    const ctx = ctxFor(contentType({ capabilities: { delete: 'posts:delete' } }))
+    const ctx = ctxFor(
+      contentType({ capabilities: { delete: 'posts:delete' } })
+    )
     const created = await adapter.create(ctx, { title: 'Hello' })
 
-    await expect(deleteContentItem(ctx, created.id)).rejects.toThrow('forbidden')
+    await expect(deleteContentItem(ctx, created.id)).rejects.toThrow(
+      'forbidden'
+    )
   })
 
   it('fails open when the type declares a delete capability but the adapter has no authorize method', async () => {
@@ -442,7 +471,9 @@ describe('deleteContentItem', () => {
     const adapter = createMemoryContentAdapter()
     registerContentAdapter(adapter)
 
-    const ctx = ctxFor(contentType({ capabilities: { delete: 'posts:delete' } }))
+    const ctx = ctxFor(
+      contentType({ capabilities: { delete: 'posts:delete' } })
+    )
     const created = await adapter.create(ctx, { title: 'Hello' })
 
     await expect(deleteContentItem(ctx, created.id)).resolves.toBeUndefined()
@@ -472,7 +503,10 @@ describe('contentActivity', () => {
     const { registerContentAdapter, contentActivity } = await loadHandlers()
     registerContentAdapter(createMemoryContentAdapter())
 
-    const result = await contentActivity(ctxFor(contentType()), { weeks: 4, now })
+    const result = await contentActivity(ctxFor(contentType()), {
+      weeks: 4,
+      now,
+    })
 
     expect(result).toEqual({ supported: false, interval: 'week', points: [] })
   })
@@ -480,9 +514,9 @@ describe('contentActivity', () => {
   it('counts one Monday-to-Monday UTC range per week, oldest first', async () => {
     const { registerContentAdapter, contentActivity } = await loadHandlers()
     const ranges: {
- from: string
-to: string
-}[] = []
+      from: string
+      to: string
+    }[] = []
     registerContentAdapter({
       ...createMemoryContentAdapter(),
       countCreated: async (_ctx, range) => {
@@ -491,27 +525,54 @@ to: string
       },
     })
 
-    const result = await contentActivity(ctxFor(contentType()), { weeks: 3, now })
+    const result = await contentActivity(ctxFor(contentType()), {
+      weeks: 3,
+      now,
+    })
 
     expect(result.supported).toBe(true)
-    expect(result.points.map((point) => point.start)).toEqual(['2026-09-28', '2026-10-05', '2026-10-12'])
-    expect(ranges[2]).toEqual({ from: '2026-10-12T00:00:00.000Z', to: '2026-10-19T00:00:00.000Z' })
+    expect(result.points.map((point) => point.start)).toEqual([
+      '2026-09-28',
+      '2026-10-05',
+      '2026-10-12',
+    ])
+    expect(ranges[2]).toEqual({
+      from: '2026-10-12T00:00:00.000Z',
+      to: '2026-10-19T00:00:00.000Z',
+    })
     expect(result.points.map((point) => point.count)).toEqual([1, 2, 3])
   })
 
   it('clamps weeks between 1 and the maximum', async () => {
-    const { registerContentAdapter, contentActivity, CONTENT_ACTIVITY_MAX_WEEKS } = await loadHandlers()
-    registerContentAdapter({ ...createMemoryContentAdapter(), countCreated: async () => 0 })
+    const {
+      registerContentAdapter,
+      contentActivity,
+      CONTENT_ACTIVITY_MAX_WEEKS,
+    } = await loadHandlers()
+    registerContentAdapter({
+      ...createMemoryContentAdapter(),
+      countCreated: async () => 0,
+    })
 
-    expect((await contentActivity(ctxFor(contentType()), { weeks: 0, now })).points).toHaveLength(1)
-    expect((await contentActivity(ctxFor(contentType()), { weeks: 999, now })).points).toHaveLength(CONTENT_ACTIVITY_MAX_WEEKS)
+    expect(
+      (await contentActivity(ctxFor(contentType()), { weeks: 0, now })).points
+    ).toHaveLength(1)
+    expect(
+      (await contentActivity(ctxFor(contentType()), { weeks: 999, now })).points
+    ).toHaveLength(CONTENT_ACTIVITY_MAX_WEEKS)
   })
 
   it('reports unsupported when the adapter returns null for the type', async () => {
     const { registerContentAdapter, contentActivity } = await loadHandlers()
-    registerContentAdapter({ ...createMemoryContentAdapter(), countCreated: async () => null })
+    registerContentAdapter({
+      ...createMemoryContentAdapter(),
+      countCreated: async () => null,
+    })
 
-    const result = await contentActivity(ctxFor(contentType()), { weeks: 4, now })
+    const result = await contentActivity(ctxFor(contentType()), {
+      weeks: 4,
+      now,
+    })
 
     expect(result).toEqual({ supported: false, interval: 'week', points: [] })
   })

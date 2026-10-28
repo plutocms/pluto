@@ -1,14 +1,18 @@
 import type { PlutoAuthDriver } from '../types/registry'
 
 function isComponent(value: unknown): boolean {
-  return typeof value === 'function' || (typeof value === 'object' && value !== null)
+  return (
+    typeof value === 'function' || (typeof value === 'object' && value !== null)
+  )
 }
 
 /**
  * Checks an auth driver. It gives one message for each problem, and an empty
  * list when the driver is valid. Core calls it in development only.
  */
-export function validatePlutoAuthDriver(driver: Partial<PlutoAuthDriver> | null | undefined): string[] {
+export function validatePlutoAuthDriver(
+  driver: Partial<PlutoAuthDriver> | null | undefined
+): string[] {
   if (!driver || typeof driver !== 'object') {
     return ['The auth driver is not an object.']
   }
@@ -45,9 +49,16 @@ export function validatePlutoAuthDriver(driver: Partial<PlutoAuthDriver> | null 
     for (const entry of driver.publicPaths ?? []) {
       const path = typeof entry === 'string' ? entry : entry?.path
       if (typeof path !== 'string' || !path.startsWith('/')) {
-        problems.push(`A public path must start with "/": ${JSON.stringify(path)}.`)
+        problems.push(
+          `A public path must start with "/": ${JSON.stringify(path)}.`
+        )
       }
-      if (typeof entry === 'object' && entry.signedIn !== undefined && entry.signedIn !== 'redirect' && entry.signedIn !== 'allow') {
+      if (
+        typeof entry === 'object' &&
+        entry.signedIn !== undefined &&
+        entry.signedIn !== 'redirect' &&
+        entry.signedIn !== 'allow'
+      ) {
         problems.push(`"signedIn" of "${path}" must be "redirect" or "allow".`)
       }
     }

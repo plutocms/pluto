@@ -27,7 +27,8 @@ export function usePlutoGithubBuildStatus() {
     onError: () => {
       failed.value = true
     },
-    isHidden: () => typeof document !== 'undefined' && document.visibilityState === 'hidden',
+    isHidden: () =>
+      typeof document !== 'undefined' && document.visibilityState === 'hidden',
   })
 
   function onVisibility() {

@@ -10,7 +10,8 @@ export function usePlutoMailPanels() {
     registry.mailPanels.list.value.map((panel) => ({
       ...panel,
       title: tx(panel.title),
-      description: panel.description === undefined ? undefined : tx(panel.description),
+      description:
+        panel.description === undefined ? undefined : tx(panel.description),
     }))
   )
 
@@ -25,7 +26,8 @@ export interface PlutoMailTestResult {
 }
 
 /** What the key check knows. `unknown` means the check did not run yet. */
-export type PlutoMailKeyState = 'unknown' | 'checking' | 'full' | 'sending' | 'invalid' | 'missing' | 'failed'
+export type PlutoMailKeyState =
+  'unknown' | 'checking' | 'full' | 'sending' | 'invalid' | 'missing' | 'failed'
 
 // The domain the admin worked on last, per browser. A convenience only: it
 // saves picking the domain again after a reload. Storage can be blocked, so
@@ -70,11 +72,23 @@ function keyStateFromError(error: unknown): PlutoMailKeyState {
  * with `usePlutoErrorText()`.
  */
 export function usePlutoMail() {
-  const status = useState<PlutoMailStatus | null>('pluto-mail-status', () => null)
-  const statusPending = useState<boolean>('pluto-mail-status-pending', () => false)
-  const keyState = useState<PlutoMailKeyState>('pluto-mail-key-state', () => 'unknown')
+  const status = useState<PlutoMailStatus | null>(
+    'pluto-mail-status',
+    () => null
+  )
+  const statusPending = useState<boolean>(
+    'pluto-mail-status-pending',
+    () => false
+  )
+  const keyState = useState<PlutoMailKeyState>(
+    'pluto-mail-key-state',
+    () => 'unknown'
+  )
   const domains = useState<PlutoMailDomain[]>('pluto-mail-domains', () => [])
-  const domain = useState<PlutoMailDomain | null>('pluto-mail-domain', () => null)
+  const domain = useState<PlutoMailDomain | null>(
+    'pluto-mail-domain',
+    () => null
+  )
 
   async function loadStatus(): Promise<PlutoMailStatus> {
     statusPending.value = true
@@ -102,13 +116,18 @@ export function usePlutoMail() {
   async function checkKey(): Promise<PlutoMailKeyState> {
     keyState.value = 'checking'
     try {
-      const result = await $fetch<PlutoMailKeyCheck>('/api/_pluto/mail/resend/check-key', { method: 'POST' })
+      const result = await $fetch<PlutoMailKeyCheck>(
+        '/api/_pluto/mail/resend/check-key',
+        { method: 'POST' }
+      )
       domains.value = result.domains
       keyState.value = result.access
       // Pick the domain of the last visit, if it still exists.
       const recalled = recalledDomainId()
       if (!domain.value && recalled) {
-        selectDomain(result.domains.find((entry) => entry.id === recalled) ?? null)
+        selectDomain(
+          result.domains.find((entry) => entry.id === recalled) ?? null
+        )
       }
     } catch (error) {
       domains.value = []
@@ -119,31 +138,48 @@ export function usePlutoMail() {
 
   // The explicit result type keeps TypeScript from walking the typed route
   // tree of every layer ("excessive stack depth" in a big app).
-  async function sendTest(to: string, locale?: string): Promise<PlutoMailTestResult> {
-    return $fetch<PlutoMailTestResult>('/api/_pluto/mail/test', { method: 'POST', body: { to, locale } })
+  async function sendTest(
+    to: string,
+    locale?: string
+  ): Promise<PlutoMailTestResult> {
+    return $fetch<PlutoMailTestResult>('/api/_pluto/mail/test', {
+      method: 'POST',
+      body: { to, locale },
+    })
   }
 
-  async function createDomain(name: string, region: string): Promise<PlutoMailDomain> {
-    const created = await $fetch<PlutoMailDomain>('/api/_pluto/mail/resend/domains', { method: 'POST', body: { name, region } })
+  async function createDomain(
+    name: string,
+    region: string
+  ): Promise<PlutoMailDomain> {
+    const created = await $fetch<PlutoMailDomain>(
+      '/api/_pluto/mail/resend/domains',
+      { method: 'POST', body: { name, region } }
+    )
     selectDomain(created)
     return created
   }
 
   async function refreshDomain(id: string): Promise<PlutoMailDomain> {
-    const fresh = await $fetch<PlutoMailDomain>(`/api/_pluto/mail/resend/domains/${encodeURIComponent(id)}`)
+    const fresh = await $fetch<PlutoMailDomain>(
+      `/api/_pluto/mail/resend/domains/${encodeURIComponent(id)}`
+    )
     selectDomain(fresh)
     return fresh
   }
 
   async function verifyDomain(id: string): Promise<void> {
-    await $fetch(`/api/_pluto/mail/resend/domains/${encodeURIComponent(id)}/verify`, { method: 'POST' })
+    await $fetch(
+      `/api/_pluto/mail/resend/domains/${encodeURIComponent(id)}/verify`,
+      { method: 'POST' }
+    )
   }
 
   /** Makes a sending-only key. The answer holds the key once. */
   async function createSendingKey(domainId?: string): Promise<string> {
     const result = await $fetch<{
- token: string
-}>('/api/_pluto/mail/resend/sending-key', {
+      token: string
+    }>('/api/_pluto/mail/resend/sending-key', {
       method: 'POST',
       body: { domainId },
     })

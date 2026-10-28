@@ -1,5 +1,9 @@
 import type { PlutoBuildStatus } from './build-status'
-import { BUILD_POLL_INTERVAL_MS, BUILD_POLL_MAX_MS, shouldPoll } from './build-status'
+import {
+  BUILD_POLL_INTERVAL_MS,
+  BUILD_POLL_MAX_MS,
+  shouldPoll,
+} from './build-status'
 
 /** The most seconds between two tries after errors. */
 const MAX_BACKOFF_MS = 60_000
@@ -23,9 +27,7 @@ export interface BuildPoller {
    * the checks some seconds to appear (an answer of `none` is not final yet).
    * It resets the 15-minute limit.
    */
-  start: (options?: {
- afterSave?: boolean
-}) => void
+  start: (options?: { afterSave?: boolean }) => void
   /** Stops all timers. A read in progress still ends, and its answer is dropped. */
   stop: () => void
   /** Call it when the page becomes visible. It reads again. */
@@ -34,9 +36,9 @@ export interface BuildPoller {
 
 function statusCodeOf(error: unknown): number | undefined {
   const value = error as {
- statusCode?: number
-status?: number
-} | null
+    statusCode?: number
+    status?: number
+  } | null
   return value?.statusCode ?? value?.status
 }
 
@@ -83,7 +85,15 @@ export function createBuildPoller(options: BuildPollerOptions): BuildPoller {
       }
       errors = 0
       options.onStatus(status)
-      if (shouldPoll({ state: status.state, startedAt, now: now(), hidden: options.isHidden(), afterSave })) {
+      if (
+        shouldPoll({
+          state: status.state,
+          startedAt,
+          now: now(),
+          hidden: options.isHidden(),
+          afterSave,
+        })
+      ) {
         schedule(BUILD_POLL_INTERVAL_MS, current)
       }
     } catch (error) {
@@ -96,15 +106,27 @@ export function createBuildPoller(options: BuildPollerOptions): BuildPoller {
       if (code === 401 || code === 403 || errors >= MAX_ERRORS) {
         return
       }
-      if (shouldPoll({ state: undefined, startedAt, now: now(), hidden: options.isHidden() })) {
-        schedule(Math.min(BUILD_POLL_INTERVAL_MS * 2 ** errors, MAX_BACKOFF_MS), current)
+      if (
+        shouldPoll({
+          state: undefined,
+          startedAt,
+          now: now(),
+          hidden: options.isHidden(),
+        })
+      ) {
+        schedule(
+          Math.min(BUILD_POLL_INTERVAL_MS * 2 ** errors, MAX_BACKOFF_MS),
+          current
+        )
       }
     }
   }
 
-  function start(startOptions: {
- afterSave?: boolean
-} = {}) {
+  function start(
+    startOptions: {
+      afterSave?: boolean
+    } = {}
+  ) {
     clear()
     run++
     startedAt = now()

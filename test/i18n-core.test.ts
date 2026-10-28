@@ -16,13 +16,29 @@ import {
 
 describe('isMessageKey', () => {
   it('accepts dotted keys', () => {
-    for (const key of ['pluto.common.save', 'content.post.fields.title.label', 'supabase-blog.posts.list-title', 'site.nav.home']) {
+    for (const key of [
+      'pluto.common.save',
+      'content.post.fields.title.label',
+      'supabase-blog.posts.list-title',
+      'site.nav.home',
+    ]) {
       expect(isMessageKey(key)).toBe(true)
     }
   })
 
   it('rejects plain labels and other values', () => {
-    for (const value of ['Save', 'Posts', 'new post', 'Hello.', 'pluto', 'pluto.', '.pluto.save', 'Pluto.common.save', 'a b.c', '']) {
+    for (const value of [
+      'Save',
+      'Posts',
+      'new post',
+      'Hello.',
+      'pluto',
+      'pluto.',
+      '.pluto.save',
+      'Pluto.common.save',
+      'a b.c',
+      '',
+    ]) {
       expect(isMessageKey(value)).toBe(false)
     }
     expect(isMessageKey(undefined)).toBe(false)
@@ -32,7 +48,11 @@ describe('isMessageKey', () => {
 
 describe('flattenMessages', () => {
   it('flattens nested trees to dotted keys', () => {
-    expect(flattenMessages({ a: { b: 'x', c: { d: 'y' } }, e: 'z' })).toEqual({ 'a.b': 'x', 'a.c.d': 'y', 'e': 'z' })
+    expect(flattenMessages({ a: { b: 'x', c: { d: 'y' } }, e: 'z' })).toEqual({
+      'a.b': 'x',
+      'a.c.d': 'y',
+      e: 'z',
+    })
   })
 })
 
@@ -41,14 +61,23 @@ describe('mergeMessageTrees', () => {
     const base = { a: { x: '1', y: '1' }, b: 'base' }
     const app = { a: { y: '2' }, c: 'app' }
 
-    expect(mergeMessageTrees(base, app)).toEqual({ a: { x: '1', y: '2' }, b: 'base', c: 'app' })
+    expect(mergeMessageTrees(base, app)).toEqual({
+      a: { x: '1', y: '2' },
+      b: 'base',
+      c: 'app',
+    })
     expect(base.a.y).toBe('1')
   })
 })
 
 describe('interpolate', () => {
   it('replaces named params', () => {
-    expect(interpolate('Hello {name}, you have {count} items', { name: 'Ana', count: 3 })).toBe('Hello Ana, you have 3 items')
+    expect(
+      interpolate('Hello {name}, you have {count} items', {
+        name: 'Ana',
+        count: 3,
+      })
+    ).toBe('Hello Ana, you have 3 items')
   })
 
   it('keeps a missing param as it is', () => {
@@ -67,15 +96,23 @@ describe('selectPlural', () => {
   })
 
   it('uses one | other with Intl.PluralRules', () => {
-    expect(selectPlural('{count} post | {count} posts', 1, 'en')).toBe('{count} post')
-    expect(selectPlural('{count} post | {count} posts', 0, 'en')).toBe('{count} posts')
-    expect(selectPlural('{count} post | {count} posts', 2, 'en')).toBe('{count} posts')
+    expect(selectPlural('{count} post | {count} posts', 1, 'en')).toBe(
+      '{count} post'
+    )
+    expect(selectPlural('{count} post | {count} posts', 0, 'en')).toBe(
+      '{count} posts'
+    )
+    expect(selectPlural('{count} post | {count} posts', 2, 'en')).toBe(
+      '{count} posts'
+    )
   })
 
   it('treats 0 as one in pt-BR for two forms', () => {
     // pt-BR PluralRules gives "one" for 0.
     expect(new Intl.PluralRules('pt-BR').select(0)).toBe('one')
-    expect(selectPlural('{count} post | {count} posts', 0, 'pt-BR')).toBe('{count} post')
+    expect(selectPlural('{count} post | {count} posts', 0, 'pt-BR')).toBe(
+      '{count} post'
+    )
   })
 
   it('uses zero | one | other, and the zero form wins for 0 in every locale', () => {
@@ -92,8 +129,15 @@ describe('selectPlural', () => {
 function makeTranslator(locale: string) {
   const warn = vi.fn()
   const messages: Record<string, Record<string, string>> = {
-    en: { 'a.hello': 'Hello {name}', 'a.only-en': 'Only English', 'a.posts': 'No posts | One post | {count} posts' },
-    pt: { 'a.hello': 'Olá {name}', 'a.posts': 'Nenhum post | Um post | {count} posts' },
+    en: {
+      'a.hello': 'Hello {name}',
+      'a.only-en': 'Only English',
+      'a.posts': 'No posts | One post | {count} posts',
+    },
+    pt: {
+      'a.hello': 'Olá {name}',
+      'a.posts': 'Nenhum post | Um post | {count} posts',
+    },
   }
   const state = { locale }
   const translator = createTranslator({
@@ -162,7 +206,9 @@ describe('createTranslator', () => {
 
   describe('tx', () => {
     it('translates a value that is a known key', () => {
-      expect(makeTranslator('pt').tx('a.hello', { name: 'Ana' })).toBe('Olá Ana')
+      expect(makeTranslator('pt').tx('a.hello', { name: 'Ana' })).toBe(
+        'Olá Ana'
+      )
     })
 
     it('returns a literal as it is', () => {
@@ -213,8 +259,15 @@ describe('formatters', () => {
   it('formats dates per locale', () => {
     const date = new Date(Date.UTC(2026, 9, 18, 12))
 
-    expect(formatDate('en', date, { dateStyle: 'medium', timeZone: 'UTC' })).toBe('Oct 18, 2026')
-    expect(formatDate('pt-BR', date.getTime(), { dateStyle: 'medium', timeZone: 'UTC' })).toBe('18 de out. de 2026')
+    expect(
+      formatDate('en', date, { dateStyle: 'medium', timeZone: 'UTC' })
+    ).toBe('Oct 18, 2026')
+    expect(
+      formatDate('pt-BR', date.getTime(), {
+        dateStyle: 'medium',
+        timeZone: 'UTC',
+      })
+    ).toBe('18 de out. de 2026')
   })
 
   it('reuses one Intl formatter for the same locale and options', () => {
@@ -236,7 +289,10 @@ describe('getLanguageName', () => {
 
 describe('parseAcceptLanguage', () => {
   it('orders tags by quality and drops q=0 and *', () => {
-    expect(parseAcceptLanguage('en;q=0.5, pt-BR, fr;q=0, *;q=0.1')).toEqual(['pt-BR', 'en'])
+    expect(parseAcceptLanguage('en;q=0.5, pt-BR, fr;q=0, *;q=0.1')).toEqual([
+      'pt-BR',
+      'en',
+    ])
   })
 
   it('returns an empty list for no header', () => {
@@ -245,6 +301,11 @@ describe('parseAcceptLanguage', () => {
   })
 
   it('works with matchLocale', () => {
-    expect(matchLocale(parseAcceptLanguage('pt-PT,pt;q=0.9,en;q=0.8'), ['en', 'pt-BR'])).toBe('pt-BR')
+    expect(
+      matchLocale(parseAcceptLanguage('pt-PT,pt;q=0.9,en;q=0.8'), [
+        'en',
+        'pt-BR',
+      ])
+    ).toBe('pt-BR')
   })
 })

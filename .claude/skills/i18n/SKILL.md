@@ -4,7 +4,7 @@ Pluto has its own small i18n engine. It has no `@nuxtjs/i18n` dependency. It tra
 UI and, with a separate scope, the public site. The shipped languages are `en` (the default) and
 `pt-BR`. A new language is a new set of JSON files. It needs no code change.
 
-The message format stays vue-i18n compatible: `{name}` for values, and ` | ` for plural forms.
+The message format stays vue-i18n compatible: `{name}` for values, and `|` for plural forms.
 
 ## Files
 
@@ -50,12 +50,12 @@ types use `content.<typeName>.*`, owned by the layer that declares the type. Pub
 
 Set them under `plutoI18n` in `nuxt.config.ts`. All are optional.
 
-| Option | Default | Meaning |
-|---|---|---|
-| `defaultLocale` | `en` | The fallback, and the last choice of every resolve order. |
-| `adminLocales` | every discovered locale | The languages the admin offers. |
-| `siteLocales` | every discovered locale | The languages the public site can use. |
-| `siteLocale` | `defaultLocale` | The site language before a visitor picks one. |
+| Option          | Default                 | Meaning                                                   |
+| --------------- | ----------------------- | --------------------------------------------------------- |
+| `defaultLocale` | `en`                    | The fallback, and the last choice of every resolve order. |
+| `adminLocales`  | every discovered locale | The languages the admin offers.                           |
+| `siteLocales`   | every discovered locale | The languages the public site can use.                    |
+| `siteLocale`    | `defaultLocale`         | The site language before a visitor picks one.             |
 
 The module drops a locale that has no file, and warns. It puts the resolved values in
 `runtimeConfig.public.plutoI18n`. In dev, a new or removed locale file regenerates the loaders.
@@ -83,7 +83,7 @@ match, so a literal is safe to pass to `tx()`.
 
 ### Plurals
 
-A message with ` | ` has plural forms. Three forms are `zero | one | other`. Two forms are
+A message with `|` has plural forms. Three forms are `zero | one | other`. Two forms are
 `one | other`, chosen by `Intl.PluralRules` of the locale. For the count 0, the three-form
 message always uses the first form. This matters in pt-BR, where `PluralRules` gives `one` for 0.
 
@@ -188,14 +188,14 @@ test.
 A content type keeps English literals. `usePlutoContentText(type)` takes a type (or a ref, or a
 getter) and returns the text of the type:
 
-| Value | Key tried first | Fallback |
-|---|---|---|
-| `label`, `labelPlural` | `content.<name>.label`, `.labelPlural` | `type.label`, `type.labelPlural` |
-| `labelLower`, `labelPluralLower` | the two above, in lowercase | the same |
-| `newLabel` | `content.<name>.new` | the phrase `pluto.content.new` with the label |
-| `fieldLabel(field)` | `content.<name>.fields.<field>.label` | `field.label` |
-| `field(field)` | `…fields.<field>.label`, `.description`, `.placeholder`, `.options.<value>` | the literals |
-| `statusLabel(value, literal?)` | `content.<name>.status.<value>` | `literal`, else the value |
+| Value                            | Key tried first                                                             | Fallback                                      |
+| -------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------- |
+| `label`, `labelPlural`           | `content.<name>.label`, `.labelPlural`                                      | `type.label`, `type.labelPlural`              |
+| `labelLower`, `labelPluralLower` | the two above, in lowercase                                                 | the same                                      |
+| `newLabel`                       | `content.<name>.new`                                                        | the phrase `pluto.content.new` with the label |
+| `fieldLabel(field)`              | `content.<name>.fields.<field>.label`                                       | `field.label`                                 |
+| `field(field)`                   | `…fields.<field>.label`, `.description`, `.placeholder`, `.options.<value>` | the literals                                  |
+| `statusLabel(value, literal?)`   | `content.<name>.status.<value>`                                             | `literal`, else the value                     |
 
 A key counts only when it exists. A type with no keys keeps its English text. `field(field)`
 returns a translated **copy**, and never changes the field of the type. `PlutoContentField`

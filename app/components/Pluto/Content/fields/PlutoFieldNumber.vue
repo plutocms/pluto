@@ -16,7 +16,11 @@ const value = computed(() => {
 </script>
 
 <template>
-  <UFormField :label="field.label" :description="field.description" :required="field.required">
+  <UFormField
+    :label="field.label"
+    :description="field.description"
+    :required="field.required"
+  >
     <UInputNumber
       :model-value="value"
       :min="field.min"

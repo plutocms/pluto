@@ -35,7 +35,9 @@ export function usePlutoContentStats() {
     if (result.total !== undefined) {
       return result.total
     }
-    const all = await $fetch<PlutoContentListResult>(url, { query: published ? { published: 1 } : {} })
+    const all = await $fetch<PlutoContentListResult>(url, {
+      query: published ? { published: 1 } : {},
+    })
     return all.data.length
   }
 
@@ -58,7 +60,9 @@ export function usePlutoContentStats() {
             icon: type.icon,
             path: type.basePath ?? `/admin/content/${type.name}`,
             total,
-            ...(published === undefined ? {} : { published, drafts: Math.max(0, total - published) }),
+            ...(published === undefined
+              ? {}
+              : { published, drafts: Math.max(0, total - published) }),
           }
         })
       )

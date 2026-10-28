@@ -1,13 +1,13 @@
 /** The kind of Markdown syntax that the visual editor (CommonMark and strikethrough) cannot keep. */
-export type UnsafeMarkdownKind
-  = | 'mdc-block'
-    | 'mdc-inline'
-    | 'attributes'
-    | 'html'
-    | 'table'
-    | 'task-list'
-    | 'footnote'
-    | 'fence-meta'
+export type UnsafeMarkdownKind =
+  | 'mdc-block'
+  | 'mdc-inline'
+  | 'attributes'
+  | 'html'
+  | 'table'
+  | 'task-list'
+  | 'footnote'
+  | 'fence-meta'
 
 export interface UnsafeMarkdownIssue {
   kind: UnsafeMarkdownKind
@@ -30,11 +30,13 @@ const FOOTNOTE = /\[\^[^\]\s]+\]/
 const INLINE_CODE = /(?<!`)(`+)(?!`)(.*?[^`])\1(?!`)/g
 
 /** Reads a fence opening line: three or more backticks or tildes, then the info string. */
-function openingFence(line: string): {
- char: string
-size: number
-info: string
-} | undefined {
+function openingFence(line: string):
+  | {
+      char: string
+      size: number
+      info: string
+    }
+  | undefined {
   const text = line.trimStart()
   const char = text[0]
   if (char !== '`' && char !== '~') {
@@ -46,7 +48,9 @@ info: string
   }
   const info = text.slice(size).trim()
   // A backtick fence cannot have a backtick in its info string.
-  return size >= 3 && !(char === '`' && info.includes('`')) ? { char, size, info } : undefined
+  return size >= 3 && !(char === '`' && info.includes('`'))
+    ? { char, size, info }
+    : undefined
 }
 
 /**
@@ -69,10 +73,12 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
   const lines = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n').split('\n')
   // The prose lines. A line inside a fence is blank, so line numbers stay.
   const prose: string[] = []
-  let fence: {
- char: string
-size: number
-} | undefined
+  let fence:
+    | {
+        char: string
+        size: number
+      }
+    | undefined
 
   for (const [index, line] of lines.entries()) {
     const number = index + 1
@@ -127,7 +133,11 @@ size: number
       add('footnote', number)
     }
     // A table needs a header row with a pipe, then a delimiter row.
-    if (index > 0 && blanked[index - 1]!.includes('|') && isTableDelimiter(line)) {
+    if (
+      index > 0 &&
+      blanked[index - 1]!.includes('|') &&
+      isTableDelimiter(line)
+    ) {
       add('table', number)
     }
   }
@@ -143,16 +153,16 @@ size: number
 export function insertMarkdownText(
   value: string,
   selection: {
- start: number
-end: number
-},
+    start: number
+    end: number
+  },
   snippet: string,
   options: {
- block?: boolean
-} = {}
+    block?: boolean
+  } = {}
 ): {
- value: string
-caret: number
+  value: string
+  caret: number
 } {
   const start = Math.max(0, Math.min(selection.start, value.length))
   const end = Math.max(start, Math.min(selection.end, value.length))
@@ -168,7 +178,10 @@ caret: number
     }
     text = snippet.replace(/\n+$/, '')
   }
-  return { value: `${before}${text}${after}`, caret: before.length + text.length }
+  return {
+    value: `${before}${text}${after}`,
+    caret: before.length + text.length,
+  }
 }
 
 /**
@@ -176,7 +189,10 @@ caret: number
  * text. `visual` and `source` are fixed. `auto` (or no option) opens Source
  * when the text has syntax that the visual editor cannot keep.
  */
-export function pickMarkdownEditorMode(editor: 'auto' | 'visual' | 'source' | undefined, text: string): 'visual' | 'source' {
+export function pickMarkdownEditorMode(
+  editor: 'auto' | 'visual' | 'source' | undefined,
+  text: string
+): 'visual' | 'source' {
   if (editor === 'visual' || editor === 'source') {
     return editor
   }

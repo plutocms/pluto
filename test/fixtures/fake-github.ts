@@ -1,7 +1,13 @@
-import type { GithubFetch, GithubFetchResponse } from '../../modules/pluto-github/runtime/server/github/client'
+import type {
+  GithubFetch,
+  GithubFetchResponse,
+} from '../../modules/pluto-github/runtime/server/github/client'
 import { Buffer } from 'node:buffer'
 import { createVerify, randomBytes } from 'node:crypto'
-import { gitBlobSha, listingOid } from '../../modules/pluto-github/runtime/server/utils/blob-sha'
+import {
+  gitBlobSha,
+  listingOid,
+} from '../../modules/pluto-github/runtime/server/utils/blob-sha'
 
 export interface FakeGithubCalls {
   /** REST head calls that answered 200. */
@@ -31,10 +37,10 @@ export interface FakeGithubOptions {
   users?: Record<string, FakeGithubUser>
   /** The GitHub App. With a `publicKey`, the fake checks the JWT signature. */
   app?: {
- id: string
-installationId?: number
-publicKey?: string
-}
+    id: string
+    installationId?: number
+    publicKey?: string
+  }
   /** The clock for the expiry of installation tokens. Default `Date.now`. */
   clock?: () => number
   /** Seconds an installation token lives. Default 3600. */
@@ -70,23 +76,48 @@ export function createFakeGithub(options: FakeGithubOptions = {}) {
   let failure: FailureStub | undefined
   let delayMs = 0
 
-  const calls: FakeGithubCalls = { head: 0, headNotModified: 0, graphql: 0, graphqlTokens: [], tree: 0, blob: 0, commit: 0 }
+  const calls: FakeGithubCalls = {
+    head: 0,
+    headNotModified: 0,
+    graphql: 0,
+    graphqlTokens: [],
+    tree: 0,
+    blob: 0,
+    commit: 0,
+  }
 
   function snapshot(): string {
-    const oid = listingOid([...files].map(([path, text]) => ({ path, oid: gitBlobSha(text) })))
+    const oid = listingOid(
+      [...files].map(([path, text]) => ({ path, oid: gitBlobSha(text) }))
+    )
     snapshots.set(oid, new Map(files))
     return oid
   }
 
-  function respond(status: number, data: unknown, headers: Record<string, string> = {}): GithubFetchResponse {
-    const lower = Object.fromEntries(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]))
-    return { status, headers: { get: (name) => lower[name.toLowerCase()] ?? null }, data }
+  function respond(
+    status: number,
+    data: unknown,
+    headers: Record<string, string> = {}
+  ): GithubFetchResponse {
+    const lower = Object.fromEntries(
+      Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value])
+    )
+    return {
+      status,
+      headers: { get: (name) => lower[name.toLowerCase()] ?? null },
+      data,
+    }
   }
 
-  function header(init: {
- headers: Record<string, string>
-}, name: string): string | undefined {
-    const key = Object.keys(init.headers).find((candidate) => candidate.toLowerCase() === name.toLowerCase())
+  function header(
+    init: {
+      headers: Record<string, string>
+    },
+    name: string
+  ): string | undefined {
+    const key = Object.keys(init.headers).find(
+      (candidate) => candidate.toLowerCase() === name.toLowerCase()
+    )
     return key === undefined ? undefined : init.headers[key]
   }
 
@@ -100,22 +131,22 @@ export function createFakeGithub(options: FakeGithubOptions = {}) {
     }
   }
 
-  type Resolved
-    = | {
- kind: 'blob'
-path: string
-text: string
-}
-      | {
- kind: 'tree'
-entries: {
- name: string
-type: 'blob' | 'tree'
-oid: string
-object: unknown
-}[]
-}
-      | null
+  type Resolved =
+    | {
+        kind: 'blob'
+        path: string
+        text: string
+      }
+    | {
+        kind: 'tree'
+        entries: {
+          name: string
+          type: 'blob' | 'tree'
+          oid: string
+          object: unknown
+        }[]
+      }
+    | null
 
   function resolveObject(expression: string): Resolved {
     const separator = expression.indexOf(':')
@@ -130,11 +161,11 @@ object: unknown
     }
     const prefix = path === '' ? '' : `${path}/`
     const entries: {
- name: string
-type: 'blob' | 'tree'
-oid: string
-object: unknown
-}[] = []
+      name: string
+      type: 'blob' | 'tree'
+      oid: string
+      object: unknown
+    }[] = []
     const seen = new Set<string>()
     for (const [filePath, text] of snap) {
       if (!filePath.startsWith(prefix)) {
@@ -143,7 +174,12 @@ object: unknown
       const rest = filePath.slice(prefix.length)
       const slash = rest.indexOf('/')
       if (slash === -1) {
-        entries.push({ name: rest, type: 'blob', oid: gitBlobSha(text), object: blobNode(filePath, text) })
+        entries.push({
+          name: rest,
+          type: 'blob',
+          oid: gitBlobSha(text),
+          object: blobNode(filePath, text),
+        })
       } else if (!seen.has(rest.slice(0, slash))) {
         seen.add(rest.slice(0, slash))
         // A nested query (`... on Tree { entries }`) reads the folder too, so every tree entry
@@ -196,7 +232,11 @@ object: unknown
     /** The last token pair the endpoint issued. */
     last: { accessToken: '', refreshToken: '' },
   }
-  const appCalls = { lookups: 0, tokenRequests: [] as Record<string, unknown>[], jwts: [] as Record<string, unknown>[] }
+  const appCalls = {
+    lookups: 0,
+    tokenRequests: [] as Record<string, unknown>[],
+    jwts: [] as Record<string, unknown>[],
+  }
 
   function issueTokens(login: string): GithubFetchResponse {
     const accessToken = `ghu_${randomBytes(8).toString('hex')}`
@@ -215,20 +255,34 @@ object: unknown
 
   function tokenEndpoint(body: Record<string, string>): GithubFetchResponse {
     oauth.exchanges.push(body)
-    if (body.client_id !== oauth.clientId || body.client_secret !== oauth.clientSecret) {
-      return respond(200, { error: 'incorrect_client_credentials', error_description: 'The client_id and/or client_secret passed are incorrect.' })
+    if (
+      body.client_id !== oauth.clientId ||
+      body.client_secret !== oauth.clientSecret
+    ) {
+      return respond(200, {
+        error: 'incorrect_client_credentials',
+        error_description:
+          'The client_id and/or client_secret passed are incorrect.',
+      })
     }
     if (body.grant_type === 'refresh_token') {
       const login = refreshTokens.get(body.refresh_token ?? '')
       if (!login) {
-        return respond(200, { error: 'bad_refresh_token', error_description: 'The refresh token passed is incorrect or expired.' })
+        return respond(200, {
+          error: 'bad_refresh_token',
+          error_description:
+            'The refresh token passed is incorrect or expired.',
+        })
       }
       refreshTokens.delete(body.refresh_token!)
       return issueTokens(login)
     }
     const login = codes.get(body.code ?? '')
     if (!login) {
-      return respond(200, { error: 'bad_verification_code', error_description: 'The code passed is incorrect or expired.' })
+      return respond(200, {
+        error: 'bad_verification_code',
+        error_description: 'The code passed is incorrect or expired.',
+      })
     }
     codes.delete(body.code!)
     return issueTokens(login)
@@ -236,21 +290,36 @@ object: unknown
 
   /** Checks an App JWT. Returns a failure response, or `undefined` when it is valid. */
   function checkJwt(token: string): GithubFetchResponse | undefined {
-    const bad = respond(401, { message: 'A JSON web token could not be decoded' })
+    const bad = respond(401, {
+      message: 'A JSON web token could not be decoded',
+    })
     const parts = token.split('.')
     if (parts.length !== 3 || !options.app) {
       return bad
     }
     try {
-      const header = JSON.parse(Buffer.from(parts[0]!, 'base64url').toString('utf8'))
-      const payload = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString('utf8'))
-      if (header.alg !== 'RS256' || payload.iss !== options.app.id || payload.exp <= clock() / 1000) {
+      const header = JSON.parse(
+        Buffer.from(parts[0]!, 'base64url').toString('utf8')
+      )
+      const payload = JSON.parse(
+        Buffer.from(parts[1]!, 'base64url').toString('utf8')
+      )
+      if (
+        header.alg !== 'RS256' ||
+        payload.iss !== options.app.id ||
+        payload.exp <= clock() / 1000
+      ) {
         return bad
       }
       if (options.app.publicKey) {
         const verifier = createVerify('RSA-SHA256')
         verifier.update(`${parts[0]}.${parts[1]}`)
-        if (!verifier.verify(options.app.publicKey, Buffer.from(parts[2]!, 'base64url'))) {
+        if (
+          !verifier.verify(
+            options.app.publicKey,
+            Buffer.from(parts[2]!, 'base64url')
+          )
+        ) {
           return bad
         }
       }
@@ -268,12 +337,20 @@ object: unknown
     if (failure) {
       const stub = failure
       failure = undefined
-      return respond(stub.status, stub.body ?? { message: 'Failure' }, stub.headers)
+      return respond(
+        stub.status,
+        stub.body ?? { message: 'Failure' },
+        stub.headers
+      )
     }
     const { pathname, host } = new URL(url)
     const bearer = (header(init, 'Authorization') ?? '').replace(/^Bearer /, '')
 
-    if (host === 'github.com' && init.method === 'POST' && pathname === '/login/oauth/access_token') {
+    if (
+      host === 'github.com' &&
+      init.method === 'POST' &&
+      pathname === '/login/oauth/access_token'
+    ) {
       return tokenEndpoint(JSON.parse(init.body ?? '{}'))
     }
 
@@ -283,7 +360,12 @@ object: unknown
         return respond(401, { message: 'Bad credentials' })
       }
       const user = users[login]!
-      return respond(200, { id: user.id ?? 1, login, name: user.name ?? null, avatar_url: `https://avatars.example/${login}.png` })
+      return respond(200, {
+        id: user.id ?? 1,
+        login,
+        name: user.name ?? null,
+        avatar_url: `https://avatars.example/${login}.png`,
+      })
     }
 
     if (init.method === 'GET' && pathname === `/repos/${repo}`) {
@@ -296,7 +378,14 @@ object: unknown
       if (user.installed === false || (role === 'none' && isPrivate)) {
         return respond(404, { message: 'Not Found' })
       }
-      const rank = ['none', 'read', 'triage', 'push', 'maintain', 'admin'].indexOf(role)
+      const rank = [
+        'none',
+        'read',
+        'triage',
+        'push',
+        'maintain',
+        'admin',
+      ].indexOf(role)
       return respond(200, {
         name: repo.split('/')[1],
         private: isPrivate,
@@ -316,10 +405,14 @@ object: unknown
         return denied
       }
       appCalls.lookups++
-      return options.app?.installationId === undefined ? respond(404, { message: 'Not Found' }) : respond(200, { id: options.app.installationId })
+      return options.app?.installationId === undefined
+        ? respond(404, { message: 'Not Found' })
+        : respond(200, { id: options.app.installationId })
     }
 
-    const tokenMatch = /^\/app\/installations\/(\d+)\/access_tokens$/.exec(pathname)
+    const tokenMatch = /^\/app\/installations\/(\d+)\/access_tokens$/.exec(
+      pathname
+    )
     if (init.method === 'POST' && tokenMatch) {
       const denied = checkJwt(bearer)
       if (denied) {
@@ -331,10 +424,16 @@ object: unknown
       appCalls.tokenRequests.push(JSON.parse(init.body ?? '{}'))
       const token = `ghs_${randomBytes(8).toString('hex')}`
       installTokens.add(token)
-      return respond(201, { token, expires_at: new Date(clock() + appTokenTtl * 1000).toISOString() })
+      return respond(201, {
+        token,
+        expires_at: new Date(clock() + appTokenTtl * 1000).toISOString(),
+      })
     }
 
-    if (init.method === 'GET' && pathname === `/repos/${repo}/commits/${branch}`) {
+    if (
+      init.method === 'GET' &&
+      pathname === `/repos/${repo}/commits/${branch}`
+    ) {
       const etag = `"${headOid}"`
       if (header(init, 'If-None-Match') === etag) {
         calls.headNotModified++
@@ -348,37 +447,51 @@ object: unknown
       calls.graphql++
       calls.graphqlTokens.push(bearer)
       const { query, variables } = JSON.parse(init.body ?? '{}') as {
- query: string
-variables: Record<string, any>
-}
+        query: string
+        variables: Record<string, any>
+      }
 
       if (query.includes('createCommitOnBranch')) {
         calls.commit++
         const input = variables.input
-        if (input.branch.repositoryNameWithOwner !== repo || input.branch.branchName !== branch) {
+        if (
+          input.branch.repositoryNameWithOwner !== repo ||
+          input.branch.branchName !== branch
+        ) {
           return graphqlError('NOT_FOUND', 'Could not resolve to a Ref.')
         }
         if (input.expectedHeadOid !== headOid) {
-          return graphqlError('STALE_DATA', `Expected branch to point to "${input.expectedHeadOid}" but it did not. Pull and try again.`)
+          return graphqlError(
+            'STALE_DATA',
+            `Expected branch to point to "${input.expectedHeadOid}" but it did not. Pull and try again.`
+          )
         }
         for (const deletion of input.fileChanges.deletions ?? []) {
           files.delete(deletion.path)
         }
         for (const addition of input.fileChanges.additions ?? []) {
-          files.set(addition.path, Buffer.from(addition.contents, 'base64').toString('utf8'))
+          files.set(
+            addition.path,
+            Buffer.from(addition.contents, 'base64').toString('utf8')
+          )
         }
         headOid = snapshot()
-        return respond(200, { data: { createCommitOnBranch: { commit: { oid: headOid } } } })
+        return respond(200, {
+          data: { createCommitOnBranch: { commit: { oid: headOid } } },
+        })
       }
 
       const object = resolveObject(variables.expression)
       if (query.includes('entries')) {
         calls.tree++
         const entries = object?.kind === 'tree' ? object.entries : undefined
-        return respond(200, { data: { repository: { object: entries ? { entries } : null } } })
+        return respond(200, {
+          data: { repository: { object: entries ? { entries } : null } },
+        })
       }
       calls.blob++
-      const node = object?.kind === 'blob' ? blobNode(object.path, object.text) : null
+      const node =
+        object?.kind === 'blob' ? blobNode(object.path, object.text) : null
       return respond(200, { data: { repository: { object: node } } })
     }
 

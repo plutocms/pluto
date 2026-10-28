@@ -48,7 +48,9 @@ export interface PlutoOriginCheckInput {
  * Nitro has no setting to trust a proxy, and a client can fake that header.
  * A proxy in front of the app must pass the public `Host` header on.
  */
-export function isPlutoSameOriginRequest(input: PlutoOriginCheckInput): boolean {
+export function isPlutoSameOriginRequest(
+  input: PlutoOriginCheckInput
+): boolean {
   if (SAFE_METHODS.has(input.method.toUpperCase())) {
     return true
   }

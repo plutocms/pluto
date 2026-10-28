@@ -25,7 +25,10 @@ export function usePlutoCapabilities() {
     registry.capabilities.list.value.map((capability) => ({
       ...capability,
       label: tx(capability.label),
-      description: capability.description === undefined ? undefined : tx(capability.description),
+      description:
+        capability.description === undefined
+          ? undefined
+          : tx(capability.description),
     }))
   )
 
@@ -46,14 +49,22 @@ export function usePlutoCapabilities() {
       byOwner.set(owner, [...(byOwner.get(owner) ?? []), capability])
     }
 
-    const groups = [...byOwner].map(([id, list]) => ({ id, label: groupLabel(id), items: list }))
+    const groups = [...byOwner].map(([id, list]) => ({
+      id,
+      label: groupLabel(id),
+      items: list,
+    }))
 
     const known = new Set(items.value.map((capability) => capability.key))
     const other = [...new Set(unknownKeys)]
       .filter((key) => !known.has(key))
       .map((key): PlutoCapability => ({ id: key, key, label: key }))
     if (other.length > 0) {
-      groups.push({ id: 'other', label: t('pluto.capabilities.otherGroup'), items: other })
+      groups.push({
+        id: 'other',
+        label: t('pluto.capabilities.otherGroup'),
+        items: other,
+      })
     }
 
     return groups
@@ -74,7 +85,9 @@ export function usePlutoCapabilities() {
  */
 export function usePlutoPermissions() {
   const registry = usePlutoRegistry()
-  const driver = computed(() => registry.permissionsDrivers.list.value.at(-1) ?? null)
+  const driver = computed(
+    () => registry.permissionsDrivers.list.value.at(-1) ?? null
+  )
 
   const granted = useState<string[]>('pluto-permissions-granted', () => [])
   const loaded = useState<boolean>('pluto-permissions-loaded', () => false)
@@ -97,10 +110,12 @@ export function usePlutoPermissions() {
 
     const nuxtApp = useNuxtApp()
     // Cast: see `usePlutoRegistry` for why vue-tsc needs it.
-    const running = nuxtApp._plutoPermissionsLoad as {
- userId: string
-promise: Promise<void>
-} | undefined
+    const running = nuxtApp._plutoPermissionsLoad as
+      | {
+          userId: string
+          promise: Promise<void>
+        }
+      | undefined
     if (running && (userId === undefined || running.userId === userId)) {
       return running.promise
     }

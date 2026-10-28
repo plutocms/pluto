@@ -9,15 +9,20 @@ const adminBar = usePlutoAdminBar()
 const route = useRoute()
 const admin = usePlutoI18n()
 const site = usePlutoSiteI18n()
-const isAdmin = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'))
+const isAdmin = computed(
+  () => route.path === '/admin' || route.path.startsWith('/admin/')
+)
 
 // Close the admin menu after a navigation, so it is not open on the next
 // page. The watch lives here because the public-page menu unmounts when the
 // route moves into /admin, before its own watch could run.
 const adminMenuOpen = usePlutoAdminMenuOpen()
-watch(() => route.fullPath, () => {
-  adminMenuOpen.value = false
-})
+watch(
+  () => route.fullPath,
+  () => {
+    adminMenuOpen.value = false
+  }
+)
 
 const active = computed(() => (isAdmin.value ? admin : site))
 const uiLocale = computed(() => active.value.uiLocale.value)
@@ -32,16 +37,51 @@ const managesLang = computed(() => isAdmin.value || Boolean(siteManaged))
 // site info name, then the `websiteName` runtime config, then the admin name.
 // Public routes keep the title template of the app. Every value is the same on
 // the server and on the client, so the title is hydration-safe.
+// The brand of the admin (white label): the primary scale, the radius and the
+// fonts, after the admin theme. See usePlutoBrand and the admin-theme skill.
+const plutoBrand = usePlutoBrand()
+useHead({
+  style: computed(() =>
+    plutoBrand.css.value
+      ? [{ key: 'pluto-brand', textContent: plutoBrand.css.value }]
+      : []
+  ),
+})
+
+if (import.meta.dev) {
+  const primary = plutoBrand.brand.value.primary
+  if (primary !== undefined && !isPlutoBrandHex(primary)) {
+    console.warn(
+      `[pluto] appConfig.pluto.brand.primary must be a hex color such as #0F766E. "${primary}" is not used.`
+    )
+  } else if (primary && plutoBrandContrast(primary) < 4.5) {
+    console.warn(
+      `[pluto] appConfig.pluto.brand.primary ${primary} has ${plutoBrandContrast(primary).toFixed(1)}:1 contrast with white text. Use a darker color (4.5:1 or more).`
+    )
+  }
+}
+
 const siteInfo = usePlutoSiteInfo()
 const websiteName = useRuntimeConfig().public.websiteName as string | undefined
-const siteName = computed(() => resolveSiteName(siteInfo.name.value, websiteName, admin.t('pluto.app.name')))
+const siteName = computed(() =>
+  resolveSiteName(
+    siteInfo.name.value,
+    websiteName,
+    plutoBrand.brand.value.name || admin.t('pluto.app.name')
+  )
+)
 
 // The input is reactive, so a public route adds no entry and the title
 // template of the app stays in force there.
 useHead(
-  computed(() => (isAdmin.value
-    ? { titleTemplate: (title?: string) => (title ? `${title} - ${siteName.value}` : siteName.value) }
-    : {}))
+  computed(() =>
+    isAdmin.value
+      ? {
+          titleTemplate: (title?: string) =>
+            title ? `${title} - ${siteName.value}` : siteName.value,
+        }
+      : {}
+  )
 )
 
 // `data-pluto-admin-bar` marks <html> while the admin bar shows, so a site can
@@ -49,7 +89,9 @@ useHead(
 // HTML when the hint puts the bar there (see `usePlutoAdminBar`).
 useHead({
   htmlAttrs: {
-    'data-pluto-admin-bar': computed(() => (adminBar.visible.value ? 'true' : undefined)),
+    'data-pluto-admin-bar': computed(() =>
+      adminBar.visible.value ? 'true' : undefined
+    ),
   },
 })
 
@@ -61,15 +103,19 @@ if (import.meta.server && usePlutoAdminBarHint().value) {
 
 useHead({
   htmlAttrs: {
-    lang: computed(() => (managesLang.value ? active.value.locale.value : undefined)),
-    dir: computed(() => (managesLang.value ? (uiLocale.value?.dir ?? 'ltr') : undefined)),
+    lang: computed(() =>
+      managesLang.value ? active.value.locale.value : undefined
+    ),
+    dir: computed(() =>
+      managesLang.value ? (uiLocale.value?.dir ?? 'ltr') : undefined
+    ),
   },
 })
 </script>
 
 <template>
-  <div class="flex min-h-0 min-w-0 w-full grow flex-col">
-    <UApp :locale="uiLocale" class="flex min-h-0 min-w-0 w-full grow flex-col">
+  <div class="flex min-h-0 w-full min-w-0 grow flex-col">
+    <UApp :locale="uiLocale" class="flex min-h-0 w-full min-w-0 grow flex-col">
       <NuxtRouteAnnouncer />
       <NuxtLoadingIndicator />
 
@@ -81,7 +127,7 @@ useHead({
       -->
       <PlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
 
-      <div class="min-h-0 min-w-0 w-full grow">
+      <div class="min-h-0 w-full min-w-0 grow">
         <NuxtLayout>
           <slot />
         </NuxtLayout>

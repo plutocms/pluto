@@ -43,22 +43,22 @@ It adds:
 A layer's `definePlutoExtension` call can set any of these. Every field is optional; a layer
 sets only what it has.
 
-| Field | Type | Purpose |
-|---|---|---|
-| `navbarActions` | `PlutoNavbarAction[]` | Small buttons in the navbar. Each is a component action (`{ component }`) or a link action (`{ label, icon?, to, target? }`). A union type. |
-| `nav` | `PlutoNavItem[]` | Sidebar entries, with optional `children`. |
-| `pages` | `PlutoAdminPage[]` | Metadata (title, icon, parent) for a route Nuxt already made from a file. |
-| `dashboardWidgets` | `PlutoDashboardWidget[]` | Cards shown on `/admin/home`. |
-| `settingsPanels` | `PlutoSettingsPanel[]` | Forms shown on `/admin/settings`. |
-| `settingsPages` | `PlutoSettingsPage[]` | Tabs of the Settings section. See "Settings pages" below. |
-| `mailPanels` | `PlutoMailPanel[]` | Sections that a layer adds to the Email settings page. See the [mail skill](../mail/SKILL.md). |
-| `settingsDriver` | `PlutoSettingsDriver` | Load/save functions for settings storage. One layer normally provides it. |
-| `localeDriver` | `PlutoLocaleDriver` | Load/save functions for the current user's admin language. One layer normally provides it. |
-| `authDriver` | `PlutoAuthDriver` | The sign-in backend of the admin. The last one wins. See the admin-shell skill. |
-| `accountMenu` | `PlutoAccountMenuItem[]` | Extra items in the navbar user menu. |
-| `adminBanners` | `PlutoAdminBanner[]` | Banner components for the admin. Registered now, rendered later. |
+| Field                 | Type                        | Purpose                                                                                                                                      |
+| --------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `navbarActions`       | `PlutoNavbarAction[]`       | Small buttons in the navbar. Each is a component action (`{ component }`) or a link action (`{ label, icon?, to, target? }`). A union type.  |
+| `nav`                 | `PlutoNavItem[]`            | Sidebar entries, with optional `children`.                                                                                                   |
+| `pages`               | `PlutoAdminPage[]`          | Metadata (title, icon, parent) for a route Nuxt already made from a file.                                                                    |
+| `dashboardWidgets`    | `PlutoDashboardWidget[]`    | Cards shown on `/admin/home`.                                                                                                                |
+| `settingsPanels`      | `PlutoSettingsPanel[]`      | Forms shown on `/admin/settings`.                                                                                                            |
+| `settingsPages`       | `PlutoSettingsPage[]`       | Tabs of the Settings section. See "Settings pages" below.                                                                                    |
+| `mailPanels`          | `PlutoMailPanel[]`          | Sections that a layer adds to the Email settings page. See the [mail skill](../mail/SKILL.md).                                               |
+| `settingsDriver`      | `PlutoSettingsDriver`       | Load/save functions for settings storage. One layer normally provides it.                                                                    |
+| `localeDriver`        | `PlutoLocaleDriver`         | Load/save functions for the current user's admin language. One layer normally provides it.                                                   |
+| `authDriver`          | `PlutoAuthDriver`           | The sign-in backend of the admin. The last one wins. See the admin-shell skill.                                                              |
+| `accountMenu`         | `PlutoAccountMenuItem[]`    | Extra items in the navbar user menu.                                                                                                         |
+| `adminBanners`        | `PlutoAdminBanner[]`        | Banner components for the admin. Registered now, rendered later.                                                                             |
 | `contentToolbarItems` | `PlutoContentToolbarItem[]` | Components in the toolbar of the generic content form, before the buttons. See the [admin view chrome](../admin-view-chrome/SKILL.md) skill. |
-| `site` | `PlutoSiteInfo` | `name()` and `url()` of the public site. |
+| `site`                | `PlutoSiteInfo`             | `name()` and `url()` of the public site.                                                                                                     |
 
 The registry buckets for the last four are `authDrivers`, `accountMenu`, `adminBanners` and
 `siteInfo`. Core renders the navbar from them. See the [admin shell](../admin-shell/SKILL.md).
@@ -74,6 +74,18 @@ navbar's menu button sets that state.
   instead: a left `USlideover` with the same menu and the admin theme (`data-pluto-admin-scope`).
 - `PlutoRoot` closes the menu after every navigation. The watch is in `PlutoRoot`, because the
   public-page menu unmounts when the route moves into `/admin`.
+
+### Collapse and active items
+
+The admin sidebar is `collapsible` (Nuxt UI): its footer has `UDashboardSidebarCollapse`
+(desktop only). Collapsed, it is a 4rem rail: the search button is square, and `UNavigationMenu`
+gets `collapsed`, `tooltip` (the item label) and `popover` (the children of a group). Nuxt UI
+keeps the state in the `pluto-admin` group cookie.
+
+Only a top-level item shows the active background. Each child item has
+`ui.link: 'data-active:before:bg-transparent'`, so an active child shows the primary text alone. A group
+item is `active` on every page that belongs to it (`activeNavGroups`: its path, a child path, a
+page below one, or a `match` path), not only on its own path.
 
 ### Open groups
 
@@ -145,10 +157,20 @@ export default defineNuxtPlugin(() => {
   definePlutoExtension({
     id: 'supabase-blog',
     nav: [
-      { id: 'posts', label: 'Posts', icon: 'lucide:file-text', to: '/admin/posts' },
+      {
+        id: 'posts',
+        label: 'Posts',
+        icon: 'lucide:file-text',
+        to: '/admin/posts',
+      },
     ],
     pages: [
-      { id: 'posts', path: '/admin/posts', title: 'Posts', icon: 'lucide:file-text' },
+      {
+        id: 'posts',
+        path: '/admin/posts',
+        title: 'Posts',
+        icon: 'lucide:file-text',
+      },
     ],
     dashboardWidgets: [
       { id: 'recent-posts', component: RecentPostsWidget, colSpan: 2 },
@@ -192,7 +214,9 @@ component. Do not register a bare `() => import()` loader. Core cannot tell it f
 component.
 
 ```ts
-const RecentPostsWidget = defineAsyncComponent(() => import('../components/RecentPostsWidget.vue'))
+const RecentPostsWidget = defineAsyncComponent(
+  () => import('../components/RecentPostsWidget.vue')
+)
 ```
 
 Keep the default `suspensible: true`. Core shows a skeleton for each registered component. Each

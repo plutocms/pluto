@@ -1,15 +1,19 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
-import { nextOpenGroups } from './internal/admin-menu'
+import { activeNavGroups, nextOpenGroups } from './internal/admin-menu'
 
 // `to` is typed per-app via Nuxt's typed pages, so it differs across every
 // app that extends this layer. This menu only ever uses `href`, so drop `to`
 // here to avoid a cross-app type mismatch on that field.
 export type PlutoAdminMenuItem = Omit<NavigationMenuItem, 'to'>
 
-function toMenuItem(item: PlutoNavItem): PlutoAdminMenuItem {
+function toMenuItem(item: PlutoNavItem, active: boolean): PlutoAdminMenuItem {
   return {
     // The value names the item in the open groups (usePlutoAdminMenuGroups).
     value: item.id,
+    // A group is active on every page that belongs to it: its own path, a
+    // child's path, a page below one of them, or a `match` path (an edit
+    // page). Without it, the link is active on its own path only.
+    active: active || undefined,
     label: item.label,
     icon: item.icon,
     href: item.to,
@@ -22,6 +26,9 @@ function toMenuItem(item: PlutoNavItem): PlutoAdminMenuItem {
       // A child that points at its parent's own path (Settings > General)
       // must not stay active on the sibling pages below that path.
       exact: child.to === item.to ? true : undefined,
+      // Only a top-level item shows the active background. An active child
+      // shows the primary text color alone.
+      ui: { link: 'data-active:before:bg-transparent' },
     })),
   }
 }
@@ -32,8 +39,12 @@ function toMenuItem(item: PlutoNavItem): PlutoAdminMenuItem {
  * use it, so they always show the same items.
  */
 export function usePlutoAdminMenu() {
+  const route = useRoute()
   const { items } = usePlutoAdminNav()
-  return computed<PlutoAdminMenuItem[]>(() => items.value.map(toMenuItem))
+  return computed<PlutoAdminMenuItem[]>(() => {
+    const active = new Set(activeNavGroups(items.value, route.path))
+    return items.value.map((item) => toMenuItem(item, active.has(item.id)))
+  })
 }
 
 /**
@@ -49,13 +60,25 @@ export function usePlutoAdminMenuGroups() {
   const known = useState<string[]>('pluto-admin-menu-known', () => [])
 
   function update(navigated: boolean) {
-    open.value = nextOpenGroups(open.value, items.value, route.path, new Set(known.value), navigated)
+    open.value = nextOpenGroups(
+      open.value,
+      items.value,
+      route.path,
+      new Set(known.value),
+      navigated
+    )
     known.value = items.value.map((item) => item.id)
   }
 
   update(false)
-  watch(() => route.path, () => update(true))
-  watch(() => items.value.map((item) => item.id).join(','), () => update(false))
+  watch(
+    () => route.path,
+    () => update(true)
+  )
+  watch(
+    () => items.value.map((item) => item.id).join(','),
+    () => update(false)
+  )
 
   return open
 }

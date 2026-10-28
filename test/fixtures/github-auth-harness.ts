@@ -7,7 +7,11 @@ import logout from '../../modules/pluto-github/runtime/server/api/auth/logout.po
 import sessionRoute from '../../modules/pluto-github/runtime/server/api/auth/session.get'
 import origin from '../../server/middleware/pluto-origin'
 
-export { resetTestConfig, SESSION_PASSWORD, testConfig } from './github-test-config'
+export {
+  resetTestConfig,
+  SESSION_PASSWORD,
+  testConfig,
+} from './github-test-config'
 
 export interface TestResponse {
   status: number
@@ -24,7 +28,9 @@ let ipCounter = 0
  * keeps cookies like a browser. It does not follow redirects. Each request
  * gets a new fake IP, so the rate limit does not link tests.
  */
-export function createAuthApp(extra?: (router: ReturnType<typeof createRouter>) => void) {
+export function createAuthApp(
+  extra?: (router: ReturnType<typeof createRouter>) => void
+) {
   const app = createApp()
   app.use(origin)
   const router = createRouter()
@@ -32,8 +38,14 @@ export function createAuthApp(extra?: (router: ReturnType<typeof createRouter>) 
   router.get('/api/_pluto/auth/github/callback', callback)
   router.post('/api/_pluto/auth/logout', logout)
   router.get('/api/_pluto/auth/session', sessionRoute)
-  router.post('/api/_pluto/echo', defineEventHandler(() => ({ ok: true })))
-  router.get('/api/_pluto/echo', defineEventHandler(() => ({ ok: true })))
+  router.post(
+    '/api/_pluto/echo',
+    defineEventHandler(() => ({ ok: true }))
+  )
+  router.get(
+    '/api/_pluto/echo',
+    defineEventHandler(() => ({ ok: true }))
+  )
   extra?.(router)
   app.use(router)
   const handler = toWebHandler(app)
@@ -43,11 +55,17 @@ export function createAuthApp(extra?: (router: ReturnType<typeof createRouter>) 
 
   function storeCookies(headers: Headers) {
     for (const line of headers.getSetCookie()) {
-      const [pair = '', ...attributes] = line.split(';').map((part) => part.trim())
+      const [pair = '', ...attributes] = line
+        .split(';')
+        .map((part) => part.trim())
       const index = pair.indexOf('=')
       const name = pair.slice(0, index)
       const value = pair.slice(index + 1)
-      const expired = attributes.some((attribute) => /^expires=/i.test(attribute) && Date.parse(attribute.slice('expires='.length)) < Date.now())
+      const expired = attributes.some(
+        (attribute) =>
+          /^expires=/i.test(attribute) &&
+          Date.parse(attribute.slice('expires='.length)) < Date.now()
+      )
       if (value === '' || expired) {
         jar.delete(name)
         deleted.push(name)
@@ -60,33 +78,43 @@ export function createAuthApp(extra?: (router: ReturnType<typeof createRouter>) 
   async function request(
     path: string,
     init: {
- method?: string
-headers?: Record<string, string>
-ip?: string
-sameOrigin?: boolean
-body?: unknown
-} = {}
+      method?: string
+      headers?: Record<string, string>
+      ip?: string
+      sameOrigin?: boolean
+      body?: unknown
+    } = {}
   ): Promise<TestResponse> {
     const method = init.method ?? 'GET'
     const headers: Record<string, string> = {
-      'host': 'cms.test',
-      'x-forwarded-for': init.ip ?? `10.0.${Math.floor(++ipCounter / 250)}.${ipCounter % 250}`,
+      host: 'cms.test',
+      'x-forwarded-for':
+        init.ip ?? `10.0.${Math.floor(++ipCounter / 250)}.${ipCounter % 250}`,
       ...init.headers,
     }
-    if (init.sameOrigin !== false && method !== 'GET' && !headers.origin && !headers.referer) {
+    if (
+      init.sameOrigin !== false &&
+      method !== 'GET' &&
+      !headers.origin &&
+      !headers.referer
+    ) {
       headers.origin = 'http://cms.test'
     }
     if (jar.size > 0) {
-      headers.cookie = [...jar].map(([name, value]) => `${name}=${value}`).join('; ')
+      headers.cookie = [...jar]
+        .map(([name, value]) => `${name}=${value}`)
+        .join('; ')
     }
     if (init.body !== undefined) {
       headers['content-type'] = 'application/json'
     }
-    const response = await handler(new Request(`http://cms.test${path}`, {
-      method,
-      headers,
-      body: init.body === undefined ? undefined : JSON.stringify(init.body),
-    }))
+    const response = await handler(
+      new Request(`http://cms.test${path}`, {
+        method,
+        headers,
+        body: init.body === undefined ? undefined : JSON.stringify(init.body),
+      })
+    )
     storeCookies(response.headers)
     return {
       status: response.status,
@@ -101,12 +129,19 @@ body?: unknown
 }
 
 /** The fake event of a unit test of a function that reads the socket and the headers. */
-export function fakeEvent(options: {
- address?: string
-headers?: Record<string, string>
-} = {}): H3Event {
+export function fakeEvent(
+  options: {
+    address?: string
+    headers?: Record<string, string>
+  } = {}
+): H3Event {
   return {
-    node: { req: { socket: { remoteAddress: options.address }, headers: options.headers ?? {} } },
+    node: {
+      req: {
+        socket: { remoteAddress: options.address },
+        headers: options.headers ?? {},
+      },
+    },
     context: {},
   } as unknown as H3Event
 }
@@ -118,9 +153,13 @@ export async function signIn(
   login: string,
   redirect?: string
 ) {
-  const start = await app.request(`/api/_pluto/auth/github/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`)
+  const start = await app.request(
+    `/api/_pluto/auth/github/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`
+  )
   const authorize = new URL(start.location!)
   const code = fake.oauth.issueCode(login)
-  const done = await app.request(`/api/_pluto/auth/github/callback?code=${code}&state=${authorize.searchParams.get('state')}`)
+  const done = await app.request(
+    `/api/_pluto/auth/github/callback?code=${code}&state=${authorize.searchParams.get('state')}`
+  )
   return { start, authorize, done }
 }

@@ -1,10 +1,10 @@
 import { vi } from 'vitest'
 
 type Pages = {
- name?: string
-path: string
-file?: string
-children?: Pages
+  name?: string
+  path: string
+  file?: string
+  children?: Pages
 }[]
 
 /** What the module asked `@nuxt/kit` to add. A test reads it after it runs the module. */
@@ -36,12 +36,20 @@ export function countKitCalls(): number {
 export function kitMock<T extends object>(actual: T): T {
   return {
     ...actual,
-    addServerHandler: vi.fn((handler: Record<string, unknown>) => kitCalls.serverHandlers.push(handler)),
+    addServerHandler: vi.fn((handler: Record<string, unknown>) =>
+      kitCalls.serverHandlers.push(handler)
+    ),
     addServerPlugin: vi.fn((path: string) => kitCalls.serverPlugins.push(path)),
     addPlugin: vi.fn((plugin: unknown) => kitCalls.plugins.push(plugin)),
-    addRouteMiddleware: vi.fn((middleware: Record<string, unknown>) => kitCalls.routeMiddleware.push(middleware)),
-    addComponent: vi.fn((component: Record<string, unknown>) => kitCalls.components.push(component)),
+    addRouteMiddleware: vi.fn((middleware: Record<string, unknown>) =>
+      kitCalls.routeMiddleware.push(middleware)
+    ),
+    addComponent: vi.fn((component: Record<string, unknown>) =>
+      kitCalls.components.push(component)
+    ),
     addImportsDir: vi.fn((dir: string) => kitCalls.importsDirs.push(dir)),
-    extendPages: vi.fn((extender: (pages: Pages) => void) => kitCalls.pageExtenders.push(extender)),
+    extendPages: vi.fn((extender: (pages: Pages) => void) =>
+      kitCalls.pageExtenders.push(extender)
+    ),
   }
 }

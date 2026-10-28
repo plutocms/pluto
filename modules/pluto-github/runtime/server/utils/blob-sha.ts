@@ -11,12 +11,16 @@ export function gitBlobSha(text: string): string {
 }
 
 /** A head id for a flat listing. It changes when a path or a content changes. */
-export function listingOid(entries: {
- path: string
-oid: string
-}[]): string {
+export function listingOid(
+  entries: {
+    path: string
+    oid: string
+  }[]
+): string {
   const hash = createHash('sha1')
-  const sorted = [...entries].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
+  const sorted = [...entries].sort((a, b) =>
+    a.path < b.path ? -1 : a.path > b.path ? 1 : 0
+  )
   for (const entry of sorted) {
     hash.update(`${entry.path}\0${entry.oid}\n`)
   }

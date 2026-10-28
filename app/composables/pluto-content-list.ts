@@ -25,7 +25,10 @@ export interface PlutoContentListOptions {
  * of `await`ing the composable's own return value through a hand-rolled
  * `.then()`.
  */
-export function usePlutoContentList(typeName: string, options: PlutoContentListOptions = {}) {
+export function usePlutoContentList(
+  typeName: string,
+  options: PlutoContentListOptions = {}
+) {
   const { pageSize } = options
   const url = `/api/_pluto/content/${typeName}`
 
@@ -45,7 +48,9 @@ export function usePlutoContentList(typeName: string, options: PlutoContentListO
   function fetchPage(offset: number): Promise<PlutoContentListResult> {
     return pageSize === undefined
       ? $fetch<PlutoContentListResult>(url)
-      : $fetch<PlutoContentListResult>(url, { query: { limit: pageSize, offset } })
+      : $fetch<PlutoContentListResult>(url, {
+          query: { limit: pageSize, offset },
+        })
   }
 
   function updateHasMore(lastPageLength: number) {
@@ -54,7 +59,10 @@ export function usePlutoContentList(typeName: string, options: PlutoContentListO
       return
     }
     // Without a total, a full page means there may be another one.
-    hasMore.value = total.value === undefined ? lastPageLength === pageSize : items.value.length < total.value
+    hasMore.value =
+      total.value === undefined
+        ? lastPageLength === pageSize
+        : items.value.length < total.value
   }
 
   async function refresh(): Promise<void> {
@@ -137,5 +145,15 @@ export function usePlutoContentList(typeName: string, options: PlutoContentListO
     }
   }
 
-  return { items, total, pending, loadingMore, hasMore, error, refresh, loadMore, remove }
+  return {
+    items,
+    total,
+    pending,
+    loadingMore,
+    hasMore,
+    error,
+    refresh,
+    loadMore,
+    remove,
+  }
 }

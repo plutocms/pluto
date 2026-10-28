@@ -14,7 +14,12 @@ describe('createPlutoError', () => {
 
     expect(error.statusCode).toBe(404)
     expect(error.statusMessage).toBe('Content type "post" not found.')
-    expect(error.data).toEqual({ i18n: { key: 'pluto.errors.contentTypeNotFound', params: { name: 'post' } } })
+    expect(error.data).toEqual({
+      i18n: {
+        key: 'pluto.errors.contentTypeNotFound',
+        params: { name: 'post' },
+      },
+    })
   })
 
   it('keeps extra data next to the i18n pair', () => {
@@ -25,7 +30,10 @@ describe('createPlutoError', () => {
       data: { errors: [{ field: 'title' }] },
     })
 
-    expect(error.data).toMatchObject({ errors: [{ field: 'title' }], i18n: { key: 'pluto.errors.validationFailed' } })
+    expect(error.data).toMatchObject({
+      errors: [{ field: 'title' }],
+      i18n: { key: 'pluto.errors.validationFailed' },
+    })
   })
 })
 
@@ -38,45 +46,80 @@ describe('resolveErrorText', () => {
     data: {
       statusMessage: 'Content type "post" not found.',
       message: 'Content type "post" not found.',
-      data: { i18n: { key: 'pluto.errors.contentTypeNotFound', params: { name: 'post' } } },
+      data: {
+        i18n: {
+          key: 'pluto.errors.contentTypeNotFound',
+          params: { name: 'post' },
+        },
+      },
     },
   }
 
   it('prefers the translated data.i18n of a server error', () => {
-    expect(resolveErrorText(fetchError, 'pluto.form.saveError', pt)).toBe('Tipo de conteúdo "post" não encontrado.')
-    expect(resolveErrorText(fetchError, 'pluto.form.saveError', en)).toBe('Content type "post" not found.')
+    expect(resolveErrorText(fetchError, 'pluto.form.saveError', pt)).toBe(
+      'Tipo de conteúdo "post" não encontrado.'
+    )
+    expect(resolveErrorText(fetchError, 'pluto.form.saveError', en)).toBe(
+      'Content type "post" not found.'
+    )
   })
 
   it('reads data.i18n of an error that Nuxt created on the client', () => {
     const error = { data: { i18n: { key: 'pluto.errors.notFound' } } }
 
-    expect(resolveErrorText(error, 'pluto.form.saveError', pt)).toBe('Não encontrado.')
+    expect(resolveErrorText(error, 'pluto.form.saveError', pt)).toBe(
+      'Não encontrado.'
+    )
   })
 
   it('uses the server statusMessage when the key is unknown or missing', () => {
-    const unknownKey = { statusMessage: 'Forbidden', data: { data: { i18n: { key: 'nope.missing' } } } }
+    const unknownKey = {
+      statusMessage: 'Forbidden',
+      data: { data: { i18n: { key: 'nope.missing' } } },
+    }
     const noKey = { statusMessage: 'Forbidden' }
 
-    expect(resolveErrorText(unknownKey, 'pluto.form.saveError', pt)).toBe('Forbidden')
-    expect(resolveErrorText(noKey, 'pluto.form.saveError', pt)).toBe('Forbidden')
+    expect(resolveErrorText(unknownKey, 'pluto.form.saveError', pt)).toBe(
+      'Forbidden'
+    )
+    expect(resolveErrorText(noKey, 'pluto.form.saveError', pt)).toBe(
+      'Forbidden'
+    )
   })
 
   it('prefers the response body message over the HTTP status text', () => {
     const fetchError = {
       statusMessage: 'Unsupported Media Type',
-      data: { statusCode: 415, statusMessage: 'File type "text/plain" is not allowed.' },
+      data: {
+        statusCode: 415,
+        statusMessage: 'File type "text/plain" is not allowed.',
+      },
     }
 
-    expect(resolveErrorText(fetchError, 'pluto.form.saveError', en)).toBe('File type "text/plain" is not allowed.')
+    expect(resolveErrorText(fetchError, 'pluto.form.saveError', en)).toBe(
+      'File type "text/plain" is not allowed.'
+    )
   })
 
   it('uses the server message when there is no statusMessage', () => {
-    expect(resolveErrorText({ data: { message: 'Boom' } }, 'pluto.form.saveError', en)).toBe('Boom')
+    expect(
+      resolveErrorText(
+        { data: { message: 'Boom' } },
+        'pluto.form.saveError',
+        en
+      )
+    ).toBe('Boom')
   })
 
   it('falls back to the translated fallback key', () => {
-    expect(resolveErrorText(new Error('network'), 'pluto.form.saveError', pt)).toBe('Ocorreu um erro ao salvar.')
-    expect(resolveErrorText(undefined, 'pluto.errors.unknown', en)).toBe('Something went wrong.')
-    expect(resolveErrorText({ statusMessage: '  ' }, 'pluto.form.saveError', en)).toBe('An error occurred while saving.')
+    expect(
+      resolveErrorText(new Error('network'), 'pluto.form.saveError', pt)
+    ).toBe('Ocorreu um erro ao salvar.')
+    expect(resolveErrorText(undefined, 'pluto.errors.unknown', en)).toBe(
+      'Something went wrong.'
+    )
+    expect(
+      resolveErrorText({ statusMessage: '  ' }, 'pluto.form.saveError', en)
+    ).toBe('An error occurred while saving.')
   })
 })

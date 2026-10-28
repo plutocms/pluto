@@ -1,7 +1,15 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { PlutoPublicItem, PlutoPublicList, PlutoPublicOne, PlutoPublicQuery } from '../../shared/types/public-api'
+import type {
+  PlutoPublicItem,
+  PlutoPublicList,
+  PlutoPublicOne,
+  PlutoPublicQuery,
+} from '../../shared/types/public-api'
 import { computed, toValue } from 'vue'
-import { plutoContentApiPath, plutoPublicQueryParams } from '../../shared/utils/public-api'
+import {
+  plutoContentApiPath,
+  plutoPublicQueryParams,
+} from '../../shared/utils/public-api'
 
 /**
  * The published items of a public content type, from the public API
@@ -16,10 +24,16 @@ export function usePlutoPublicList<T = PlutoPublicItem>(
   query: MaybeRefOrGetter<PlutoPublicQuery> = {}
 ) {
   const params = computed(() => plutoPublicQueryParams(toValue(query)))
-  return useFetch<PlutoPublicList<T>>(() => plutoContentApiPath(toValue(type)), {
-    key: computed(() => `pluto-public-list:${toValue(type)}:${JSON.stringify(params.value)}`),
-    query: params,
-  })
+  return useFetch<PlutoPublicList<T>>(
+    () => plutoContentApiPath(toValue(type)),
+    {
+      key: computed(
+        () =>
+          `pluto-public-list:${toValue(type)}:${JSON.stringify(params.value)}`
+      ),
+      query: params,
+    }
+  )
 }
 
 /**
@@ -33,7 +47,10 @@ export function usePlutoPublicItem<T = PlutoPublicItem>(
   type: MaybeRefOrGetter<string>,
   id: MaybeRefOrGetter<string | number>
 ) {
-  return useFetch<PlutoPublicOne<T>>(() => plutoContentApiPath(toValue(type), toValue(id)), {
-    key: computed(() => `pluto-public-item:${toValue(type)}:${toValue(id)}`),
-  })
+  return useFetch<PlutoPublicOne<T>>(
+    () => plutoContentApiPath(toValue(type), toValue(id)),
+    {
+      key: computed(() => `pluto-public-item:${toValue(type)}:${toValue(id)}`),
+    }
+  )
 }

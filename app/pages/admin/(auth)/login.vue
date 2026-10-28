@@ -13,7 +13,9 @@ const route = useRoute()
 useHead({ title: () => t('pluto.auth.signIn') })
 
 const query = route.query.redirect
-const redirect = computed(() => safeRedirect(Array.isArray(query) ? query[0] : query))
+const redirect = computed(() =>
+  safeRedirect(Array.isArray(query) ? query[0] : query)
+)
 </script>
 
 <template>

@@ -4,13 +4,15 @@ import type { InjectionKey } from 'vue'
  * `PlutoContentForm` provides the form context under this key. Read it with
  * `usePlutoContentForm()`.
  */
-export const plutoContentFormKey: InjectionKey<PlutoContentFormContext> = Symbol('plutoContentForm')
+export const plutoContentFormKey: InjectionKey<PlutoContentFormContext> =
+  Symbol('plutoContentForm')
 
 /**
  * `PlutoContentForm` provides this key in the 'canvas' layout.
  * `PlutoContentCanvasPanel` reads it. A widget does not use it directly.
  */
-export const plutoCanvasHostKey: InjectionKey<PlutoCanvasHost> = Symbol('plutoCanvasHost')
+export const plutoCanvasHostKey: InjectionKey<PlutoCanvasHost> =
+  Symbol('plutoCanvasHost')
 
 /**
  * The context of the content form that holds the calling component. Use it in

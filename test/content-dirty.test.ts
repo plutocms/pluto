@@ -9,11 +9,15 @@ import {
 
 describe('stableStringify', () => {
   it('gives the same text for any key order, at any depth', () => {
-    expect(stableStringify({ b: 1, a: { d: 1, c: 2 } })).toBe(stableStringify({ a: { c: 2, d: 1 }, b: 1 }))
+    expect(stableStringify({ b: 1, a: { d: 1, c: 2 } })).toBe(
+      stableStringify({ a: { c: 2, d: 1 }, b: 1 })
+    )
   })
 
   it('keeps the order of an array', () => {
-    expect(stableStringify({ a: [1, 2] })).not.toBe(stableStringify({ a: [2, 1] }))
+    expect(stableStringify({ a: [1, 2] })).not.toBe(
+      stableStringify({ a: [2, 1] })
+    )
   })
 
   it('gives an empty text for undefined', () => {
@@ -59,7 +63,13 @@ describe('createDirtyTracker', () => {
 })
 
 describe('isSaveShortcut', () => {
-  const key = { key: 's', ctrlKey: false, metaKey: false, shiftKey: false, altKey: false }
+  const key = {
+    key: 's',
+    ctrlKey: false,
+    metaKey: false,
+    shiftKey: false,
+    altKey: false,
+  }
 
   it('matches Ctrl+S and Cmd+S', () => {
     expect(isSaveShortcut({ ...key, ctrlKey: true })).toBe(true)
@@ -69,7 +79,9 @@ describe('isSaveShortcut', () => {
 
   it('does not match S alone, or with Shift or Alt', () => {
     expect(isSaveShortcut(key)).toBe(false)
-    expect(isSaveShortcut({ ...key, ctrlKey: true, shiftKey: true })).toBe(false)
+    expect(isSaveShortcut({ ...key, ctrlKey: true, shiftKey: true })).toBe(
+      false
+    )
     expect(isSaveShortcut({ ...key, ctrlKey: true, altKey: true })).toBe(false)
     expect(isSaveShortcut({ ...key, key: 'a', ctrlKey: true })).toBe(false)
   })
@@ -91,7 +103,9 @@ describe('savedAgo', () => {
 })
 
 describe('isEditingEvent', () => {
-  const control = { closest: (selector: string) => (selector.includes('button') ? {} : null) }
+  const control = {
+    closest: (selector: string) => (selector.includes('button') ? {} : null),
+  }
   const page = { closest: () => null }
 
   it('counts a key press and a paste on any target', () => {

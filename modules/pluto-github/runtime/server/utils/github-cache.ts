@@ -56,9 +56,16 @@ export function createGithubCache(options: GithubCacheOptions): GithubCache {
   return {
     getHead: () => backend.get<GithubHeadEntry>(`${prefix}:head`),
     isHeadFresh: (entry) => now() - entry.at < options.headTtl * 1000,
-    setHead: (oid, etag) => backend.set(`${prefix}:head`, { oid, etag, at: now() } satisfies GithubHeadEntry),
-    getIndex: (dir, headOid) => backend.get(`${prefix}:index:${dir}@${headOid}`),
-    setIndex: (dir, headOid, value) => backend.set(`${prefix}:index:${dir}@${headOid}`, value),
+    setHead: (oid, etag) =>
+      backend.set(`${prefix}:head`, {
+        oid,
+        etag,
+        at: now(),
+      } satisfies GithubHeadEntry),
+    getIndex: (dir, headOid) =>
+      backend.get(`${prefix}:index:${dir}@${headOid}`),
+    setIndex: (dir, headOid, value) =>
+      backend.set(`${prefix}:index:${dir}@${headOid}`, value),
     getBlob: (oid) => backend.get(`${prefix}:blob:${oid}`),
     setBlob: (oid, value) => backend.set(`${prefix}:blob:${oid}`, value),
     singleFlight<T>(key: string, loader: () => Promise<T>): Promise<T> {

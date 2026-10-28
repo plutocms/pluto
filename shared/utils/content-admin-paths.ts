@@ -12,8 +12,13 @@ export function contentTypeNewPath(type: PlutoContentType): string {
 }
 
 /** The admin form of an item: `editPath(id)`, else `<basePath>/<id>` (each segment encoded). */
-export function contentTypeEditPath(type: PlutoContentType, id: string | number): string {
-  return type.editPath?.(id) ?? `${contentTypeBasePath(type)}/${contentIdPath(id)}`
+export function contentTypeEditPath(
+  type: PlutoContentType,
+  id: string | number
+): string {
+  return (
+    type.editPath?.(id) ?? `${contentTypeBasePath(type)}/${contentIdPath(id)}`
+  )
 }
 
 /** The admin bar buttons that a type asks for. `true` gives both. Unset gives none. */

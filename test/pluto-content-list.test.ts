@@ -19,7 +19,8 @@ afterEach(() => {
 })
 
 async function loadComposable() {
-  const { usePlutoContentList } = await import('../app/composables/pluto-content-list')
+  const { usePlutoContentList } =
+    await import('../app/composables/pluto-content-list')
   return { usePlutoContentList }
 }
 
@@ -62,7 +63,9 @@ describe('usePlutoContentList', () => {
 
     await list.remove(1)
 
-    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/_pluto/content/post/1', { method: 'DELETE' })
+    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/_pluto/content/post/1', {
+      method: 'DELETE',
+    })
     expect(fetchMock).toHaveBeenCalledTimes(3)
     expect(list.items.value).toEqual([])
   })
@@ -98,7 +101,8 @@ describe('usePlutoContentList', () => {
 })
 
 describe('usePlutoContentList with pageSize', () => {
-  const rows = (from: number, count: number) => Array.from({ length: count }, (_, i) => ({ id: from + i }))
+  const rows = (from: number, count: number) =>
+    Array.from({ length: count }, (_, i) => ({ id: from + i }))
 
   it('fetches the first page with limit and offset', async () => {
     fetchMock.mockResolvedValue({ data: rows(1, 2), total: 5 })
@@ -107,7 +111,9 @@ describe('usePlutoContentList with pageSize', () => {
     const list = usePlutoContentList('post', { pageSize: 2 })
     await vi.waitFor(() => expect(list.pending.value).toBe(false))
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/_pluto/content/post', { query: { limit: 2, offset: 0 } })
+    expect(fetchMock).toHaveBeenCalledWith('/api/_pluto/content/post', {
+      query: { limit: 2, offset: 0 },
+    })
     expect(list.items.value).toHaveLength(2)
     expect(list.hasMore.value).toBe(true)
   })
@@ -122,7 +128,9 @@ describe('usePlutoContentList with pageSize', () => {
     await vi.waitFor(() => expect(list.pending.value).toBe(false))
     await list.loadMore()
 
-    expect(fetchMock).toHaveBeenLastCalledWith('/api/_pluto/content/post', { query: { limit: 2, offset: 2 } })
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/_pluto/content/post', {
+      query: { limit: 2, offset: 2 },
+    })
     expect(list.items.value.map((item) => item.id)).toEqual([1, 2, 3])
     expect(list.hasMore.value).toBe(false)
 
@@ -162,9 +170,11 @@ describe('usePlutoContentList with pageSize', () => {
   it('drops a page that finishes after a newer refresh()', async () => {
     let resolveFirst!: (value: unknown) => void
     fetchMock
-      .mockReturnValueOnce(new Promise((resolve) => {
- resolveFirst = resolve
-}))
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFirst = resolve
+        })
+      )
       .mockResolvedValueOnce({ data: rows(10, 1), total: 1 })
     const { usePlutoContentList } = await loadComposable()
 

@@ -14,8 +14,23 @@ export const plutoGithubPostType: PlutoContentType = {
   source: 'posts',
   titleField: 'title',
   fields: [
-    { name: 'title', type: 'text', label: 'Title', required: true, inList: true, region: 'main' },
-    { name: 'slug', type: 'slug', label: 'Slug', from: 'title', preview: '/post/', inList: true, region: 'side' },
+    {
+      name: 'title',
+      type: 'text',
+      label: 'Title',
+      required: true,
+      inList: true,
+      region: 'main',
+    },
+    {
+      name: 'slug',
+      type: 'slug',
+      label: 'Slug',
+      from: 'title',
+      preview: '/post/',
+      inList: true,
+      region: 'side',
+    },
     { name: 'excerpt', type: 'textarea', label: 'Excerpt', region: 'side' },
     { name: 'content', type: 'richtext', label: 'Content', region: 'main' },
   ],
@@ -31,7 +46,11 @@ export const plutoGithubPostType: PlutoContentType = {
     ],
   },
   timestamps: { created: 'createdAt', updated: 'updatedAt' },
-  capabilities: { read: 'posts:read_drafts', write: 'posts:publish', delete: 'posts:delete' },
+  capabilities: {
+    read: 'posts:read_drafts',
+    write: 'posts:publish',
+    delete: 'posts:delete',
+  },
   defaultSort: { field: 'createdAt', direction: 'desc' },
   // "New Post" in the admin bar, and "Edit Post" on a page that calls `usePlutoEditLink('post', slug)`.
   adminBar: true,

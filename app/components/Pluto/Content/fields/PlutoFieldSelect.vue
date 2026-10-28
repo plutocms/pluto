@@ -10,13 +10,20 @@ defineEmits<{
 }>()
 
 const items = computed(() =>
-  props.field.options.map((option) => ({ label: option.label, value: option.value }))
+  props.field.options.map((option) => ({
+    label: option.label,
+    value: option.value,
+  }))
 )
 const value = computed(() => props.modelValue as string | number | undefined)
 </script>
 
 <template>
-  <UFormField :label="field.label" :description="field.description" :required="field.required">
+  <UFormField
+    :label="field.label"
+    :description="field.description"
+    :required="field.required"
+  >
     <USelect
       :model-value="value"
       :items="items"

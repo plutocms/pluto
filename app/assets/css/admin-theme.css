@@ -13,6 +13,11 @@
  * admin navbar is near black in light mode too, so its text and buttons need
  * the dark values.
  *
+ * The colors are the Pluto UI tokens (pluto-tokens.css): primary tholin,
+ * secondary and info haze, neutral kuiper. The status colors come from
+ * Tailwind: green, amber, rose. The fonts are Public Sans for text and
+ * Fredoka for page titles.
+ *
  * Every value is a literal. The consumer app styles its public site through
  * its own app.config colors and @theme. Both reach the admin unless the admin
  * pins its own values: app.config colors set Nuxt UI's --ui-color-* scales on
@@ -26,37 +31,37 @@
  *
  * Chart colors are a validated categorical palette: lightness band, chroma
  * floor, colorblind separation, and 3:1 contrast pass on white (light) and
- * on zinc-900 (dark). This file is generated; keep the values in sync with
- * scripts/generate-admin-theme.cjs: run it from the repo root, never edit this
- * file by hand.
+ * on the dark card surface (dark). This file is generated; keep the values in
+ * sync with scripts/generate-admin-theme.cjs: run it from the repo root, never
+ * edit this file by hand.
  */
 :root[data-pluto-admin],
 [data-pluto-admin-scope] {
-  /* primary: indigo */
-  --ui-color-primary-50: oklch(96.2% 0.018 272.314);
-  --ui-color-primary-100: oklch(93% 0.034 272.788);
-  --ui-color-primary-200: oklch(87% 0.065 274.039);
-  --ui-color-primary-300: oklch(78.5% 0.115 274.713);
-  --ui-color-primary-400: oklch(67.3% 0.182 276.935);
-  --ui-color-primary-500: oklch(58.5% 0.233 277.117);
-  --ui-color-primary-600: oklch(51.1% 0.262 276.966);
-  --ui-color-primary-700: oklch(45.7% 0.24 277.023);
-  --ui-color-primary-800: oklch(39.8% 0.195 277.366);
-  --ui-color-primary-900: oklch(35.9% 0.144 278.697);
-  --ui-color-primary-950: oklch(25.7% 0.09 281.288);
+  /* primary: tholin */
+  --ui-color-primary-50: oklch(97.6% 0.013 53.36);
+  --ui-color-primary-100: oklch(94.4% 0.032 52.33);
+  --ui-color-primary-200: oklch(88.1% 0.070 48.83);
+  --ui-color-primary-300: oklch(80.1% 0.121 44.33);
+  --ui-color-primary-400: oklch(72.8% 0.165 40.63);
+  --ui-color-primary-500: oklch(66.4% 0.188 37.76);
+  --ui-color-primary-600: oklch(58.7% 0.184 36.16);
+  --ui-color-primary-700: oklch(50.7% 0.162 35.13);
+  --ui-color-primary-800: oklch(43.8% 0.132 34.41);
+  --ui-color-primary-900: oklch(38.4% 0.109 34.35);
+  --ui-color-primary-950: oklch(25.2% 0.072 31.36);
 
-  /* secondary: violet */
-  --ui-color-secondary-50: oklch(96.9% 0.016 293.756);
-  --ui-color-secondary-100: oklch(94.3% 0.029 294.588);
-  --ui-color-secondary-200: oklch(89.4% 0.057 293.283);
-  --ui-color-secondary-300: oklch(81.1% 0.111 293.571);
-  --ui-color-secondary-400: oklch(70.2% 0.183 293.541);
-  --ui-color-secondary-500: oklch(60.6% 0.25 292.717);
-  --ui-color-secondary-600: oklch(54.1% 0.281 293.009);
-  --ui-color-secondary-700: oklch(49.1% 0.27 292.581);
-  --ui-color-secondary-800: oklch(43.2% 0.232 292.759);
-  --ui-color-secondary-900: oklch(38% 0.189 293.745);
-  --ui-color-secondary-950: oklch(28.3% 0.141 291.089);
+  /* secondary: haze */
+  --ui-color-secondary-50: oklch(97.4% 0.013 240.95);
+  --ui-color-secondary-100: oklch(94.2% 0.030 242.00);
+  --ui-color-secondary-200: oklch(89.9% 0.054 241.63);
+  --ui-color-secondary-300: oklch(83.3% 0.093 239.73);
+  --ui-color-secondary-400: oklch(74.8% 0.130 243.08);
+  --ui-color-secondary-500: oklch(66.6% 0.156 248.24);
+  --ui-color-secondary-600: oklch(57.7% 0.158 252.03);
+  --ui-color-secondary-700: oklch(49.9% 0.136 252.31);
+  --ui-color-secondary-800: oklch(43.9% 0.109 251.29);
+  --ui-color-secondary-900: oklch(39.1% 0.089 251.20);
+  --ui-color-secondary-950: oklch(29.4% 0.065 254.26);
 
   /* success: green */
   --ui-color-success-50: oklch(98.2% 0.018 155.826);
@@ -71,18 +76,18 @@
   --ui-color-success-900: oklch(39.3% 0.095 152.535);
   --ui-color-success-950: oklch(26.6% 0.065 152.934);
 
-  /* info: blue */
-  --ui-color-info-50: oklch(97% 0.014 254.604);
-  --ui-color-info-100: oklch(93.2% 0.032 255.585);
-  --ui-color-info-200: oklch(88.2% 0.059 254.128);
-  --ui-color-info-300: oklch(80.9% 0.105 251.813);
-  --ui-color-info-400: oklch(70.7% 0.165 254.624);
-  --ui-color-info-500: oklch(62.3% 0.214 259.815);
-  --ui-color-info-600: oklch(54.6% 0.245 262.881);
-  --ui-color-info-700: oklch(48.8% 0.243 264.376);
-  --ui-color-info-800: oklch(42.4% 0.199 265.638);
-  --ui-color-info-900: oklch(37.9% 0.146 265.522);
-  --ui-color-info-950: oklch(28.2% 0.091 267.935);
+  /* info: haze */
+  --ui-color-info-50: oklch(97.4% 0.013 240.95);
+  --ui-color-info-100: oklch(94.2% 0.030 242.00);
+  --ui-color-info-200: oklch(89.9% 0.054 241.63);
+  --ui-color-info-300: oklch(83.3% 0.093 239.73);
+  --ui-color-info-400: oklch(74.8% 0.130 243.08);
+  --ui-color-info-500: oklch(66.6% 0.156 248.24);
+  --ui-color-info-600: oklch(57.7% 0.158 252.03);
+  --ui-color-info-700: oklch(49.9% 0.136 252.31);
+  --ui-color-info-800: oklch(43.9% 0.109 251.29);
+  --ui-color-info-900: oklch(39.1% 0.089 251.20);
+  --ui-color-info-950: oklch(29.4% 0.065 254.26);
 
   /* warning: amber */
   --ui-color-warning-50: oklch(98.7% 0.022 95.277);
@@ -97,34 +102,34 @@
   --ui-color-warning-900: oklch(41.4% 0.112 45.904);
   --ui-color-warning-950: oklch(27.9% 0.077 45.635);
 
-  /* error: red */
-  --ui-color-error-50: oklch(97.1% 0.013 17.38);
-  --ui-color-error-100: oklch(93.6% 0.032 17.717);
-  --ui-color-error-200: oklch(88.5% 0.062 18.334);
-  --ui-color-error-300: oklch(80.8% 0.114 19.571);
-  --ui-color-error-400: oklch(70.4% 0.191 22.216);
-  --ui-color-error-500: oklch(63.7% 0.237 25.331);
-  --ui-color-error-600: oklch(57.7% 0.245 27.325);
-  --ui-color-error-700: oklch(50.5% 0.213 27.518);
-  --ui-color-error-800: oklch(44.4% 0.177 26.899);
-  --ui-color-error-900: oklch(39.6% 0.141 25.723);
-  --ui-color-error-950: oklch(25.8% 0.092 26.042);
+  /* error: rose */
+  --ui-color-error-50: oklch(96.9% 0.015 12.422);
+  --ui-color-error-100: oklch(94.1% 0.03 12.58);
+  --ui-color-error-200: oklch(89.2% 0.058 10.001);
+  --ui-color-error-300: oklch(81% 0.117 11.638);
+  --ui-color-error-400: oklch(71.2% 0.194 13.428);
+  --ui-color-error-500: oklch(64.5% 0.246 16.439);
+  --ui-color-error-600: oklch(58.6% 0.253 17.585);
+  --ui-color-error-700: oklch(51.4% 0.222 16.935);
+  --ui-color-error-800: oklch(45.5% 0.188 13.697);
+  --ui-color-error-900: oklch(41% 0.159 10.272);
+  --ui-color-error-950: oklch(27.1% 0.105 12.094);
 
-  /* neutral: zinc */
-  --ui-color-neutral-50: oklch(98.5% 0 none);
-  --ui-color-neutral-100: oklch(96.7% 0.001 286.375);
-  --ui-color-neutral-200: oklch(92% 0.004 286.32);
-  --ui-color-neutral-300: oklch(87.1% 0.006 286.286);
-  --ui-color-neutral-400: oklch(70.5% 0.015 286.067);
-  --ui-color-neutral-500: oklch(55.2% 0.016 285.938);
-  --ui-color-neutral-600: oklch(44.2% 0.017 285.786);
-  --ui-color-neutral-700: oklch(37% 0.013 285.805);
-  --ui-color-neutral-800: oklch(27.4% 0.006 286.033);
-  --ui-color-neutral-900: oklch(21% 0.006 285.885);
-  --ui-color-neutral-950: oklch(14.1% 0.005 285.823);
+  /* neutral: kuiper */
+  --ui-color-neutral-50: oklch(97.9% 0.004 271.37);
+  --ui-color-neutral-100: oklch(95.5% 0.008 271.33);
+  --ui-color-neutral-200: oklch(91.0% 0.016 269.97);
+  --ui-color-neutral-300: oklch(83.3% 0.025 270.30);
+  --ui-color-neutral-400: oklch(68.5% 0.039 271.84);
+  --ui-color-neutral-500: oklch(56.0% 0.049 273.45);
+  --ui-color-neutral-600: oklch(47.2% 0.048 272.49);
+  --ui-color-neutral-700: oklch(39.7% 0.050 273.48);
+  --ui-color-neutral-800: oklch(31.2% 0.048 273.43);
+  --ui-color-neutral-900: oklch(24.1% 0.041 272.80);
+  --ui-color-neutral-950: oklch(17.5% 0.034 274.37);
 
-  --ui-primary: var(--ui-color-primary-500);
-  --ui-secondary: var(--ui-color-secondary-500);
+  --ui-primary: var(--ui-color-primary-600);
+  --ui-secondary: var(--ui-color-secondary-700);
   --ui-success: var(--ui-color-success-500);
   --ui-info: var(--ui-color-info-500);
   --ui-warning: var(--ui-color-warning-500);
@@ -146,19 +151,21 @@
   --ui-border-accented: var(--ui-color-neutral-300);
   --ui-border-inverted: var(--ui-color-neutral-900);
 
-  --ui-chart-1: var(--ui-primary);
-  --ui-chart-2: oklch(66.6% 0.179 58.318); /* amber-600 */
-  --ui-chart-3: oklch(60% 0.118 184.704); /* teal-600 */
-  --ui-chart-4: oklch(64.5% 0.246 16.439); /* rose-500 */
-  --ui-chart-5: oklch(58.8% 0.158 241.966); /* sky-600 */
-  --ui-chart-6: oklch(53.2% 0.157 131.589); /* lime-700 */
+  --ui-chart-1: var(--ui-color-primary-600); /* tholin-600 */
+  --ui-chart-2: oklch(57.7% 0.158 252.03); /* haze-600 */
+  --ui-chart-3: oklch(53.2% 0.157 131.589); /* lime-700 */
+  --ui-chart-4: oklch(60.6% 0.25 292.717); /* violet-500 */
+  --ui-chart-5: oklch(60% 0.118 184.704); /* teal-600 */
+  --ui-chart-6: oklch(66.6% 0.179 58.318); /* amber-600 */
 
   /* Surfaces. The navbar is near black in both modes. */
   --pluto-admin-canvas: #fff;
-  --pluto-admin-sidebar: oklch(98.5% 0 none);
-  --pluto-admin-navbar: oklch(14.1% 0.005 285.823);
+  --pluto-admin-sidebar: oklch(97.9% 0.004 271.37);
+  --pluto-admin-navbar: oklch(17.5% 0.034 274.37);
 
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  /* The Pluto fonts, as literals like the colors (see pluto-tokens.css). */
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --pluto-admin-font-display: "Fredoka", "Public Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root[data-pluto-admin].dark,
@@ -177,7 +184,7 @@
   --ui-text: var(--ui-color-neutral-200);
   --ui-text-highlighted: #fff;
   --ui-text-inverted: var(--ui-color-neutral-900);
-  --ui-bg: oklch(24% 0.006 286);
+  --ui-bg: oklch(28% 0.042 273);
   --ui-bg-muted: var(--ui-color-neutral-800);
   --ui-bg-elevated: var(--ui-color-neutral-800);
   --ui-bg-accented: var(--ui-color-neutral-700);
@@ -187,21 +194,21 @@
   --ui-border-accented: var(--ui-color-neutral-700);
   --ui-border-inverted: #fff;
 
-  --ui-chart-1: var(--ui-primary);
-  --ui-chart-2: oklch(66.6% 0.179 58.318); /* amber-600 */
-  --ui-chart-3: oklch(60% 0.118 184.704); /* teal-600 */
-  --ui-chart-4: oklch(64.5% 0.246 16.439); /* rose-500 */
-  --ui-chart-5: oklch(58.8% 0.158 241.966); /* sky-600 */
-  --ui-chart-6: oklch(64.8% 0.2 131.684); /* lime-600 */
+  --ui-chart-1: var(--ui-color-primary-500); /* tholin-500 */
+  --ui-chart-2: oklch(66.6% 0.156 248.24); /* haze-500 */
+  --ui-chart-3: oklch(64.8% 0.2 131.684); /* lime-600 */
+  --ui-chart-4: oklch(60.6% 0.25 292.717); /* violet-500 */
+  --ui-chart-5: oklch(60% 0.118 184.704); /* teal-600 */
+  --ui-chart-6: oklch(66.6% 0.179 58.318); /* amber-600 */
 
   /*
    * Four steps, darkest at the top: a near-black navbar, a darker sidebar,
-   * a dim dark gray canvas (not pitch black), and cards (--ui-bg) one step
-   * above the canvas.
+   * a dim dark canvas (not pitch black), and cards (--ui-bg) one step above
+   * the canvas.
    */
-  --pluto-admin-navbar: oklch(14.1% 0.005 285.823);
-  --pluto-admin-sidebar: oklch(17.5% 0.0055 286);
-  --pluto-admin-canvas: oklch(21% 0.006 285.885);
+  --pluto-admin-navbar: oklch(17.5% 0.034 274.37);
+  --pluto-admin-sidebar: oklch(20.5% 0.040 273);
+  --pluto-admin-canvas: oklch(24.1% 0.041 272.80);
 }
 
 :root[data-pluto-admin] body {
@@ -212,4 +219,11 @@
 [data-pluto-admin-scope] {
   font-family: var(--font-sans);
   color: var(--ui-text);
+}
+
+/* Page titles (h1 only) use the rounded face of the wordmark, as on the docs site. */
+:root[data-pluto-admin] h1,
+[data-pluto-admin-scope] h1 {
+  font-family: var(--pluto-admin-font-display);
+  letter-spacing: -0.01em;
 }

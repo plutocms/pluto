@@ -1,25 +1,41 @@
 import { describe, expect, it, vi } from 'vitest'
-import { githubGraphql, githubRest, graphqlUrl } from '../modules/pluto-github/runtime/server/github/client'
+import {
+  githubGraphql,
+  githubRest,
+  graphqlUrl,
+} from '../modules/pluto-github/runtime/server/github/client'
 import { createGithubStore } from '../modules/pluto-github/runtime/server/store/github'
-import { PlutoGithubConflictError, PlutoGithubStoreError } from '../modules/pluto-github/runtime/server/store/types'
+import {
+  PlutoGithubConflictError,
+  PlutoGithubStoreError,
+} from '../modules/pluto-github/runtime/server/store/types'
 import { createGithubCache } from '../modules/pluto-github/runtime/server/utils/github-cache'
 import { createFakeGithub } from './fixtures/fake-github'
 
 const auth = { token: 'token' }
 
-function setup(options: {
- headTtl?: number
-files?: Record<string, string>
-binary?: string[]
-truncated?: string[]
-} = {}) {
+function setup(
+  options: {
+    headTtl?: number
+    files?: Record<string, string>
+    binary?: string[]
+    truncated?: string[]
+  } = {}
+) {
   const github = createFakeGithub({
-    files: options.files ?? { 'content/posts/a.md': 'A', 'content/posts/b.md': 'B', 'content/other/x.md': 'X' },
+    files: options.files ?? {
+      'content/posts/a.md': 'A',
+      'content/posts/b.md': 'B',
+      'content/other/x.md': 'X',
+    },
     binary: options.binary,
     truncated: options.truncated,
   })
   const clock = { now: 1_000_000 }
-  const cache = createGithubCache({ headTtl: options.headTtl ?? 60, now: () => clock.now })
+  const cache = createGithubCache({
+    headTtl: options.headTtl ?? 60,
+    now: () => clock.now,
+  })
   const store = createGithubStore({
     repo: github.repo,
     branch: github.branch,
@@ -52,8 +68,8 @@ describe('github store listTree', () => {
       readToken: 'read',
       fetch: async (url, init) => {
         const body = JSON.parse(init.body ?? '{}') as {
- query?: string
-}
+          query?: string
+        }
         if (body.query) {
           queries.push(body.query)
         }
@@ -63,7 +79,11 @@ describe('github store listTree', () => {
 
     const tree = await store.listTree('content', await store.head(), auth)
 
-    expect(tree.map((file) => file.path)).toEqual(['content/1.a/2.b/c.md', 'content/1.a/index.md', 'content/index.md'])
+    expect(tree.map((file) => file.path)).toEqual([
+      'content/1.a/2.b/c.md',
+      'content/1.a/index.md',
+      'content/index.md',
+    ])
     expect(tree[0]).toMatchObject({ name: 'c.md', text: 'C' })
     expect(github.calls.tree).toBe(1)
     // The query nests `entries` six levels deep.
@@ -88,7 +108,9 @@ describe('github store listTree', () => {
   it('gives an empty list for a missing dir', async () => {
     const { store } = setup({ files })
 
-    expect(await store.listTree('content/none', await store.head(), auth)).toEqual([])
+    expect(
+      await store.listTree('content/none', await store.head(), auth)
+    ).toEqual([])
   })
 })
 
@@ -147,8 +169,16 @@ describe('github store listDir', () => {
     const files = await store.listDir('content/posts', head, auth)
 
     expect(files).toEqual([
-      expect.objectContaining({ path: 'content/posts/a.md', name: 'a.md', text: 'A' }),
-      expect.objectContaining({ path: 'content/posts/b.md', name: 'b.md', text: 'B' }),
+      expect.objectContaining({
+        path: 'content/posts/a.md',
+        name: 'a.md',
+        text: 'A',
+      }),
+      expect.objectContaining({
+        path: 'content/posts/b.md',
+        name: 'b.md',
+        text: 'B',
+      }),
     ])
     expect(files[0]!.oid).toHaveLength(40)
     expect(github.calls.graphql).toBe(1)
@@ -215,7 +245,11 @@ describe('github store readFile', () => {
 
     const file = await store.readFile('content/posts/a.md', head)
 
-    expect(file).toMatchObject({ path: 'content/posts/a.md', name: 'a.md', text: 'A' })
+    expect(file).toMatchObject({
+      path: 'content/posts/a.md',
+      name: 'a.md',
+      text: 'A',
+    })
     expect(github.calls.blob).toBe(1)
     expect(await store.readFile('content/posts/none.md', head)).toBeNull()
   })
@@ -226,12 +260,15 @@ describe('github store commit', () => {
     const { github, store } = setup()
     const head = await store.head()
 
-    const { oid } = await store.commit({
-      expectedHeadOid: head,
-      message: 'feat: add\n\nBody text',
-      additions: [{ path: 'content/posts/c.md', contents: 'café' }],
-      deletions: [{ path: 'content/posts/a.md' }],
-    }, auth)
+    const { oid } = await store.commit(
+      {
+        expectedHeadOid: head,
+        message: 'feat: add\n\nBody text',
+        additions: [{ path: 'content/posts/c.md', contents: 'café' }],
+        deletions: [{ path: 'content/posts/a.md' }],
+      },
+      auth
+    )
 
     expect(oid).toBe(github.head)
     expect(github.read('content/posts/c.md')).toBe('café')
@@ -240,7 +277,9 @@ describe('github store commit', () => {
     const headCalls = github.calls.head
     expect(await store.head()).toBe(oid)
     expect(github.calls.head).toBe(headCalls)
-    expect((await store.listDir('content/posts', oid)).map((file) => file.name)).toEqual(['b.md', 'c.md'])
+    expect(
+      (await store.listDir('content/posts', oid)).map((file) => file.name)
+    ).toEqual(['b.md', 'c.md'])
   })
 
   it('throws a conflict error for a stale head', async () => {
@@ -248,24 +287,34 @@ describe('github store commit', () => {
     const head = await store.head()
     github.push('content/posts/z.md', 'Z')
 
-    await expect(store.commit({
-      expectedHeadOid: head,
-      message: 'late',
-      additions: [{ path: 'content/posts/c.md', contents: 'C' }],
-      deletions: [],
-    }, auth)).rejects.toBeInstanceOf(PlutoGithubConflictError)
+    await expect(
+      store.commit(
+        {
+          expectedHeadOid: head,
+          message: 'late',
+          additions: [{ path: 'content/posts/c.md', contents: 'C' }],
+          deletions: [],
+        },
+        auth
+      )
+    ).rejects.toBeInstanceOf(PlutoGithubConflictError)
     expect(github.read('content/posts/c.md')).toBeUndefined()
   })
 
   it('needs a token', async () => {
     const { store } = setup()
 
-    await expect(store.commit({
-      expectedHeadOid: await store.head(),
-      message: 'm',
-      additions: [],
-      deletions: [],
-    }, { token: '' })).rejects.toMatchObject({ code: 'auth' })
+    await expect(
+      store.commit(
+        {
+          expectedHeadOid: await store.head(),
+          message: 'm',
+          additions: [],
+          deletions: [],
+        },
+        { token: '' }
+      )
+    ).rejects.toMatchObject({ code: 'auth' })
   })
 })
 
@@ -274,23 +323,36 @@ describe('github client errors', () => {
     const { github } = setup()
 
     github.failNext({ status: 401, body: { message: 'Bad credentials' } })
-    await expect(githubRest('/x', { fetch: github.fetch })).rejects.toMatchObject({ code: 'auth', status: 401 })
+    await expect(
+      githubRest('/x', { fetch: github.fetch })
+    ).rejects.toMatchObject({ code: 'auth', status: 401 })
 
     github.failNext({ status: 404, body: { message: 'Not Found' } })
-    await expect(githubRest('/x', { fetch: github.fetch })).rejects.toMatchObject({ code: 'not-found' })
+    await expect(
+      githubRest('/x', { fetch: github.fetch })
+    ).rejects.toMatchObject({ code: 'not-found' })
 
     github.failNext({ status: 500 })
-    await expect(githubRest('/x', { fetch: github.fetch })).rejects.toMatchObject({ code: 'github', status: 500 })
+    await expect(
+      githubRest('/x', { fetch: github.fetch })
+    ).rejects.toMatchObject({ code: 'github', status: 500 })
 
-    github.failNext({ status: 403, body: { message: 'Resource not accessible' } })
-    await expect(githubRest('/x', { fetch: github.fetch })).rejects.toMatchObject({ code: 'forbidden' })
+    github.failNext({
+      status: 403,
+      body: { message: 'Resource not accessible' },
+    })
+    await expect(
+      githubRest('/x', { fetch: github.fetch })
+    ).rejects.toMatchObject({ code: 'forbidden' })
   })
 
   it('types a rate limit and reads retry-after', async () => {
     const { github } = setup()
 
     github.failNext({ status: 429, headers: { 'Retry-After': '30' } })
-    const error = await githubRest('/x', { fetch: github.fetch }).catch((caught) => caught)
+    const error = await githubRest('/x', { fetch: github.fetch }).catch(
+      (caught) => caught
+    )
 
     expect(error).toBeInstanceOf(PlutoGithubStoreError)
     expect(error).toMatchObject({ code: 'rate-limit', retryAfter: 30 })
@@ -302,10 +364,15 @@ describe('github client errors', () => {
 
     github.failNext({
       status: 403,
-      headers: { 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': String(reset) },
+      headers: {
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(reset),
+      },
       body: { message: 'API rate limit exceeded' },
     })
-    const error = await githubRest('/x', { fetch: github.fetch }).catch((caught) => caught)
+    const error = await githubRest('/x', { fetch: github.fetch }).catch(
+      (caught) => caught
+    )
 
     expect(error.code).toBe('rate-limit')
     expect(error.retryAfter).toBeGreaterThan(100)
@@ -314,22 +381,33 @@ describe('github client errors', () => {
 
   it('types GraphQL errors', async () => {
     const { github } = setup()
-    const stub = (type: string, message: string) => github.failNext({ status: 200, body: { errors: [{ type, message }] } })
+    const stub = (type: string, message: string) =>
+      github.failNext({ status: 200, body: { errors: [{ type, message }] } })
 
     stub('RATE_LIMITED', 'API rate limit exceeded')
-    await expect(githubGraphql('q', {}, { fetch: github.fetch })).rejects.toMatchObject({ code: 'rate-limit' })
+    await expect(
+      githubGraphql('q', {}, { fetch: github.fetch })
+    ).rejects.toMatchObject({ code: 'rate-limit' })
 
     stub('NOT_FOUND', 'Could not resolve')
-    await expect(githubGraphql('q', {}, { fetch: github.fetch })).rejects.toMatchObject({ code: 'not-found' })
+    await expect(
+      githubGraphql('q', {}, { fetch: github.fetch })
+    ).rejects.toMatchObject({ code: 'not-found' })
 
     stub('STALE_DATA', 'Expected branch to point to "x"')
-    await expect(githubGraphql('q', {}, { fetch: github.fetch })).rejects.toBeInstanceOf(PlutoGithubConflictError)
+    await expect(
+      githubGraphql('q', {}, { fetch: github.fetch })
+    ).rejects.toBeInstanceOf(PlutoGithubConflictError)
 
     stub('OTHER', 'The expectedHeadOid is not the latest')
-    await expect(githubGraphql('q', {}, { fetch: github.fetch })).rejects.toBeInstanceOf(PlutoGithubConflictError)
+    await expect(
+      githubGraphql('q', {}, { fetch: github.fetch })
+    ).rejects.toBeInstanceOf(PlutoGithubConflictError)
 
     stub('OTHER', 'Something else')
-    await expect(githubGraphql('q', {}, { fetch: github.fetch })).rejects.toMatchObject({ code: 'github' })
+    await expect(
+      githubGraphql('q', {}, { fetch: github.fetch })
+    ).rejects.toMatchObject({ code: 'github' })
   })
 
   it('sends the standard headers', async () => {
@@ -343,14 +421,18 @@ describe('github client errors', () => {
     })
 
     expect(seen[0]).toMatchObject({
-      'Authorization': 'Bearer tok',
+      Authorization: 'Bearer tok',
       'User-Agent': 'plutocms',
       'X-GitHub-Api-Version': '2022-11-28',
     })
   })
 
   it('finds the GraphQL url for github.com and for Enterprise', () => {
-    expect(graphqlUrl('https://api.github.com')).toBe('https://api.github.com/graphql')
-    expect(graphqlUrl('https://ghe.example.com/api/v3/')).toBe('https://ghe.example.com/api/graphql')
+    expect(graphqlUrl('https://api.github.com')).toBe(
+      'https://api.github.com/graphql'
+    )
+    expect(graphqlUrl('https://ghe.example.com/api/v3/')).toBe(
+      'https://ghe.example.com/api/graphql'
+    )
   })
 })

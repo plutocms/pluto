@@ -22,7 +22,16 @@ describe('isLocaleCode', () => {
   })
 
   it('rejects anything else', () => {
-    for (const value of ['', 'EN', 'pt_BR', 'pt-br', 'english', 'en-', 'messages', 'index']) {
+    for (const value of [
+      '',
+      'EN',
+      'pt_BR',
+      'pt-br',
+      'english',
+      'en-',
+      'messages',
+      'index',
+    ]) {
       expect(isLocaleCode(value)).toBe(false)
     }
   })
@@ -39,18 +48,29 @@ describe('findLayerLocaleFiles', () => {
       '/layers/pluto/i18n/locales': ['pt-BR.json', 'en.json'],
     }
 
-    expect(findLayerLocaleFiles(roots, (dir) => dirs[toPosix(dir)] ?? [])).toEqual({
-      'en': [
+    expect(
+      findLayerLocaleFiles(roots, (dir) => dirs[toPosix(dir)] ?? [])
+    ).toEqual({
+      en: [
         '/layers/pluto/i18n/locales/en.json',
         '/layers/shop/i18n/locales/en.json',
         '/site/i18n/locales/en.json',
       ],
-      'pt-BR': ['/layers/pluto/i18n/locales/pt-BR.json', '/site/i18n/locales/pt-BR.json'],
+      'pt-BR': [
+        '/layers/pluto/i18n/locales/pt-BR.json',
+        '/site/i18n/locales/pt-BR.json',
+      ],
     })
   })
 
   it('ignores files that are not valid locale files', () => {
-    const files = findLayerLocaleFiles(['/a'], () => ['en.json', 'README.md', 'messages.json', 'pt_BR.json', 'en.json.bak'])
+    const files = findLayerLocaleFiles(['/a'], () => [
+      'en.json',
+      'README.md',
+      'messages.json',
+      'pt_BR.json',
+      'en.json.bak',
+    ])
 
     expect(Object.keys(files)).toEqual(['en'])
   })
@@ -102,8 +122,11 @@ describe('matchLocale', () => {
 describe('renderI18nTemplate', () => {
   const source = renderI18nTemplate({
     files: {
-      'pt-BR': ['/pluto/i18n/locales/pt-BR.json', '/site/i18n/locales/pt-BR.json'],
-      'en': ['/pluto/i18n/locales/en.json'],
+      'pt-BR': [
+        '/pluto/i18n/locales/pt-BR.json',
+        '/site/i18n/locales/pt-BR.json',
+      ],
+      en: ['/pluto/i18n/locales/en.json'],
     },
     defaultLocale: 'en',
     uiLocaleDir: ['C:', 'ui', 'dist', 'runtime', 'locale'].join(BACKSLASH),
@@ -116,27 +139,44 @@ describe('renderI18nTemplate', () => {
   })
 
   it('imports each layer file in order, in one loader per code', () => {
-    expect(source).toContain('"pt-BR": async () => merge(...(await Promise.all([import("/pluto/i18n/locales/pt-BR.json"), import("/site/i18n/locales/pt-BR.json")]))')
+    expect(source).toContain(
+      '"pt-BR": async () => merge(...(await Promise.all([import("/pluto/i18n/locales/pt-BR.json"), import("/site/i18n/locales/pt-BR.json")]))'
+    )
   })
 
   it('imports the Nuxt UI locale with forward slashes', () => {
-    expect(source).toContain('"pt-BR": () => import("C:/ui/dist/runtime/locale/pt_br.js")')
-    expect(source).toContain('"en": () => import("C:/ui/dist/runtime/locale/en.js")')
+    expect(source).toContain(
+      '"pt-BR": () => import("C:/ui/dist/runtime/locale/pt_br.js")'
+    )
+    expect(source).toContain(
+      '"en": () => import("C:/ui/dist/runtime/locale/en.js")'
+    )
     expect(source).not.toContain(BACKSLASH.repeat(2))
   })
 
   it('is valid JavaScript that exports working loaders', async () => {
     // Replace the file imports with fixtures, then run the generated code.
     const tweaked = source
-      .replace('import("/pluto/i18n/locales/pt-BR.json")', 'Promise.resolve({ default: { a: { x: "1", y: "1" } } })')
-      .replace('import("/site/i18n/locales/pt-BR.json")', 'Promise.resolve({ default: { a: { y: "2" } } })')
-      .replace('import("/pluto/i18n/locales/en.json")', 'Promise.resolve({ default: {} })')
+      .replace(
+        'import("/pluto/i18n/locales/pt-BR.json")',
+        'Promise.resolve({ default: { a: { x: "1", y: "1" } } })'
+      )
+      .replace(
+        'import("/site/i18n/locales/pt-BR.json")',
+        'Promise.resolve({ default: { a: { y: "2" } } })'
+      )
+      .replace(
+        'import("/pluto/i18n/locales/en.json")',
+        'Promise.resolve({ default: {} })'
+      )
       .replace(/import\("C:[^)]*\)/g, 'Promise.resolve({ default: {} })')
     const url = `data:text/javascript,${encodeURIComponent(tweaked)}`
     const mod = await import(/* @vite-ignore */ url)
 
     expect(mod.localeCodes).toEqual(['en', 'pt-BR'])
-    expect(await mod.messageLoaders['pt-BR']()).toEqual({ a: { x: '1', y: '2' } })
+    expect(await mod.messageLoaders['pt-BR']()).toEqual({
+      a: { x: '1', y: '2' },
+    })
   })
 })
 
@@ -153,9 +193,15 @@ describe('resolveI18nOptions', () => {
   })
 
   it('marks the site as managed only when the app sets a site option', () => {
-    expect(resolveI18nOptions({ siteLocale: 'pt-BR' }, ['en', 'pt-BR']).siteManaged).toBe(true)
-    expect(resolveI18nOptions({ siteLocales: ['en'] }, ['en', 'pt-BR']).siteManaged).toBe(true)
-    expect(resolveI18nOptions({ adminLocales: ['en'] }, ['en', 'pt-BR']).siteManaged).toBe(false)
+    expect(
+      resolveI18nOptions({ siteLocale: 'pt-BR' }, ['en', 'pt-BR']).siteManaged
+    ).toBe(true)
+    expect(
+      resolveI18nOptions({ siteLocales: ['en'] }, ['en', 'pt-BR']).siteManaged
+    ).toBe(true)
+    expect(
+      resolveI18nOptions({ adminLocales: ['en'] }, ['en', 'pt-BR']).siteManaged
+    ).toBe(false)
   })
 
   it('keeps the options that name a discovered locale', () => {
@@ -170,7 +216,10 @@ describe('resolveI18nOptions', () => {
   })
 
   it('drops an unknown locale and warns', () => {
-    const resolved = resolveI18nOptions({ adminLocales: ['en', 'fr'] }, ['en', 'pt-BR'])
+    const resolved = resolveI18nOptions({ adminLocales: ['en', 'fr'] }, [
+      'en',
+      'pt-BR',
+    ])
 
     expect(resolved.adminLocales).toEqual(['en'])
     expect(resolved.warnings).toHaveLength(1)
@@ -178,7 +227,10 @@ describe('resolveI18nOptions', () => {
   })
 
   it('falls back to en when the default or site locale is not usable', () => {
-    const resolved = resolveI18nOptions({ defaultLocale: 'fr', siteLocale: 'de' }, ['en'])
+    const resolved = resolveI18nOptions(
+      { defaultLocale: 'fr', siteLocale: 'de' },
+      ['en']
+    )
 
     expect(resolved.defaultLocale).toBe('en')
     expect(resolved.siteLocale).toBe('en')

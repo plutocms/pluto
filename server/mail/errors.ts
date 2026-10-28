@@ -12,10 +12,14 @@ export class PlutoMailError extends Error {
   /** The provider's own error name (a short token such as `validation_error`), when there was one. */
   readonly providerCode?: string
 
-  constructor(code: PlutoMailErrorCode, message: string, options: {
- status?: number
-providerCode?: string
-} = {}) {
+  constructor(
+    code: PlutoMailErrorCode,
+    message: string,
+    options: {
+      status?: number
+      providerCode?: string
+    } = {}
+  ) {
     super(message)
     this.name = 'PlutoMailError'
     this.code = code

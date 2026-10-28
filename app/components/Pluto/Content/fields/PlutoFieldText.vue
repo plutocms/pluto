@@ -12,11 +12,17 @@ defineEmits<{
 }>()
 
 const isTextarea = computed(() => props.field.type === 'textarea')
-const value = computed(() => (props.modelValue as string | undefined) ?? undefined)
+const value = computed(
+  () => (props.modelValue as string | undefined) ?? undefined
+)
 </script>
 
 <template>
-  <UFormField :label="field.label" :description="field.description" :required="field.required">
+  <UFormField
+    :label="field.label"
+    :description="field.description"
+    :required="field.required"
+  >
     <UTextarea
       v-if="isTextarea"
       :model-value="value"

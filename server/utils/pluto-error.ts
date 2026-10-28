@@ -22,6 +22,9 @@ export function createPlutoError(options: PlutoErrorOptions): H3Error {
   return createError({
     statusCode: options.statusCode,
     statusMessage: options.message,
-    data: { ...options.data, i18n: { key: options.key, params: options.params } },
+    data: {
+      ...options.data,
+      i18n: { key: options.key, params: options.params },
+    },
   })
 }

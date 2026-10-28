@@ -16,7 +16,11 @@ const isDark = computed({
   <ClientOnly v-if="!colorMode?.forced">
     <PlutoNavbarHit
       :icon="isDark ? 'i-lucide-moon' : 'i-lucide-sun'"
-      :label="isDark ? t('pluto.common.switchToLightMode') : t('pluto.common.switchToDarkMode')"
+      :label="
+        isDark
+          ? t('pluto.common.switchToLightMode')
+          : t('pluto.common.switchToDarkMode')
+      "
       square
       @click="isDark = !isDark"
     />

@@ -4,7 +4,12 @@
  */
 
 /** The regions Resend offers for a domain. The first one is the default. */
-export const PLUTO_MAIL_REGIONS = ['us-east-1', 'eu-west-1', 'sa-east-1', 'ap-northeast-1'] as const
+export const PLUTO_MAIL_REGIONS = [
+  'us-east-1',
+  'eu-west-1',
+  'sa-east-1',
+  'ap-northeast-1',
+] as const
 
 /** True for a plausible email address. The provider does the real check. */
 export function isPlutoMailAddress(value: string): boolean {
@@ -12,7 +17,13 @@ export function isPlutoMailAddress(value: string): boolean {
     return false
   }
   const parts = value.split('@')
-  return parts.length === 2 && parts[0]!.length > 0 && parts[1]!.includes('.') && !parts[1]!.startsWith('.') && !parts[1]!.endsWith('.')
+  return (
+    parts.length === 2 &&
+    parts[0]!.length > 0 &&
+    parts[1]!.includes('.') &&
+    !parts[1]!.startsWith('.') &&
+    !parts[1]!.endsWith('.')
+  )
 }
 
 /** True for a domain name such as `example.com` or `mail.example.com.br`. Lowercase only. */
@@ -23,7 +34,12 @@ export function isPlutoMailDomain(value: string): boolean {
   const labels = value.split('.')
   return (
     labels.length >= 2 &&
-    labels.every((label) => label.length > 0 && label.length <= 63 && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label)) &&
+    labels.every(
+      (label) =>
+        label.length > 0 &&
+        label.length <= 63 &&
+        /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label)
+    ) &&
     /^[a-z]{2,63}$/.test(labels.at(-1)!)
   )
 }
@@ -165,10 +181,16 @@ export function createPlutoMailPoller(options: PlutoMailPollerOptions) {
  * client holds it in `data.mail.code`.
  */
 export function plutoMailErrorCode(error: unknown): string | undefined {
-  const asRecord = (value: unknown) => (typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : undefined)
+  const asRecord = (value: unknown) =>
+    typeof value === 'object' && value !== null
+      ? (value as Record<string, unknown>)
+      : undefined
   const data = asRecord(asRecord(error)?.data)
 
-  for (const candidate of [asRecord(data?.mail), asRecord(asRecord(data?.data)?.mail)]) {
+  for (const candidate of [
+    asRecord(data?.mail),
+    asRecord(asRecord(data?.data)?.mail),
+  ]) {
     if (typeof candidate?.code === 'string') {
       return candidate.code
     }

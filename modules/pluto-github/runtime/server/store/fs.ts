@@ -17,7 +17,15 @@ export interface FsStoreOptions {
 }
 
 /** Dirs the head never reads: dependencies, build output and dot dirs. */
-const SKIPPED_DIRS = new Set(['node_modules', '.nuxt', '.output', '.data', '.nitro', '.cache', 'dist'])
+const SKIPPED_DIRS = new Set([
+  'node_modules',
+  '.nuxt',
+  '.output',
+  '.data',
+  '.nitro',
+  '.cache',
+  'dist',
+])
 
 /**
  * A store over the local file system, for dev. The head id is a hash of the
@@ -31,16 +39,28 @@ export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
   function safePath(path: string): string {
     const full = resolve(root, path)
     const rel = relative(root, full)
-    if (!path || isAbsolute(path) || rel === '' || rel.startsWith('..') || isAbsolute(rel)) {
-      throw new PlutoGithubStoreError('forbidden', `The path "${path}" is outside the content root.`)
+    if (
+      !path ||
+      isAbsolute(path) ||
+      rel === '' ||
+      rel.startsWith('..') ||
+      isAbsolute(rel)
+    ) {
+      throw new PlutoGithubStoreError(
+        'forbidden',
+        `The path "${path}" is outside the content root.`
+      )
     }
     return full
   }
 
-  async function walk(dir: string, out: {
- path: string
-oid: string
-}[]): Promise<void> {
+  async function walk(
+    dir: string,
+    out: {
+      path: string
+      oid: string
+    }[]
+  ): Promise<void> {
     let entries
     try {
       entries = await readdir(dir, { withFileTypes: true })
@@ -56,7 +76,10 @@ oid: string
         await walk(full, out)
       } else if (entry.isFile()) {
         const text = await readFile(full, 'utf8')
-        out.push({ path: relative(root, full).split(sep).join('/'), oid: gitBlobSha(text) })
+        out.push({
+          path: relative(root, full).split(sep).join('/'),
+          oid: gitBlobSha(text),
+        })
       }
     }
   }
@@ -86,9 +109,9 @@ oid: string
 
   async function currentHead(): Promise<string> {
     const entries: {
- path: string
-oid: string
-}[] = []
+      path: string
+      oid: string
+    }[] = []
     await walk(headRoot, entries)
     return listingOid(entries)
   }
@@ -96,7 +119,12 @@ oid: string
   async function read(path: string): Promise<PlutoGithubFile | null> {
     try {
       const text = await readFile(safePath(path), 'utf8')
-      return { path, name: path.slice(path.lastIndexOf('/') + 1), oid: gitBlobSha(text), text }
+      return {
+        path,
+        name: path.slice(path.lastIndexOf('/') + 1),
+        oid: gitBlobSha(text),
+        text,
+      }
     } catch (error) {
       if (error instanceof PlutoGithubStoreError) {
         throw error
@@ -111,7 +139,11 @@ oid: string
       const base = dir.replace(/\/+$/, '')
       let names: string[]
       try {
-        names = (await readdir(base === '' ? root : safePath(base), { withFileTypes: true }))
+        names = (
+          await readdir(base === '' ? root : safePath(base), {
+            withFileTypes: true,
+          })
+        )
           .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
           .map((entry) => entry.name)
       } catch (error) {
@@ -146,9 +178,12 @@ oid: string
     readFile: async (path) => read(path),
     commit: async (input) => {
       // Check every path first, so a bad path changes nothing.
-      const additions = input.additions.map((item) => ({ full: safePath(item.path), contents: item.contents }))
+      const additions = input.additions.map((item) => ({
+        full: safePath(item.path),
+        contents: item.contents,
+      }))
       const deletions = input.deletions.map((item) => safePath(item.path))
-      if (input.expectedHeadOid !== await currentHead()) {
+      if (input.expectedHeadOid !== (await currentHead())) {
         throw new PlutoGithubConflictError()
       }
       for (const full of deletions) {

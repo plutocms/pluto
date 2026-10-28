@@ -15,17 +15,17 @@ It extends the [extension registry](../extension-registry/SKILL.md).
 A layer sets `authDriver` in `definePlutoExtension`. The last registered driver wins, like the
 other drivers. `PlutoAuthDriver` (in `shared/types/registry.ts`) has:
 
-| Field | Purpose |
-|---|---|
-| `user()` | The signed-in `PlutoAuthUser` (`id`, `name`, `username`, `email`, `avatarUrl`), or `null`. |
-| `loggedIn()` | Optional. Default is `user() !== null`. |
-| `ready()` | A promise. It resolves after the first session check. It never rejects. |
-| `refresh()` | Optional. Reads the session again. |
-| `signOut()` | Ends the session. Core then shows a toast and goes to `/admin/login`. |
-| `signIn` | The sign-in form component. Core passes `PlutoAuthSignInProps` (`redirect`). |
-| `signInTitle`, `signInDescription` | Key-or-literal text for the login frame. |
-| `links` | `signUp` and `forgotPassword` URLs. |
-| `publicPaths` | Paths that need no sign-in. A string, or `{ path, signedIn: 'redirect' \| 'allow' }`. `/admin/login` is always one. |
+| Field                              | Purpose                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `user()`                           | The signed-in `PlutoAuthUser` (`id`, `name`, `username`, `email`, `avatarUrl`), or `null`.                          |
+| `loggedIn()`                       | Optional. Default is `user() !== null`.                                                                             |
+| `ready()`                          | A promise. It resolves after the first session check. It never rejects.                                             |
+| `refresh()`                        | Optional. Reads the session again.                                                                                  |
+| `signOut()`                        | Ends the session. Core then shows a toast and goes to `/admin/login`.                                               |
+| `signIn`                           | The sign-in form component. Core passes `PlutoAuthSignInProps` (`redirect`).                                        |
+| `signInTitle`, `signInDescription` | Key-or-literal text for the login frame.                                                                            |
+| `links`                            | `signUp` and `forgotPassword` URLs.                                                                                 |
+| `publicPaths`                      | Paths that need no sign-in. A string, or `{ path, signedIn: 'redirect' \| 'allow' }`. `/admin/login` is always one. |
 
 `user` and `loggedIn` are getters, not refs. They read reactive state of the backend.
 
@@ -42,19 +42,19 @@ Core adds no `ClientOnly` around the whole bar and uses no top-level await in it
 
 ## Other buckets
 
-| Field | Type | Purpose |
-|---|---|---|
-| `accountMenu` | `PlutoAccountMenuItem[]` | Items in the user menu. `label` is key-or-literal. Sorted by `order`. |
-| `adminBanners` | `PlutoAdminBanner[]` | Banner components for the admin. The admin layout renders them. See "Admin banners". |
-| `site` | `PlutoSiteInfo` | `name()` and `url()` of the public site. For each field, the last value wins. |
+| Field          | Type                     | Purpose                                                                              |
+| -------------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `accountMenu`  | `PlutoAccountMenuItem[]` | Items in the user menu. `label` is key-or-literal. Sorted by `order`.                |
+| `adminBanners` | `PlutoAdminBanner[]`     | Banner components for the admin. The admin layout renders them. See "Admin banners". |
+| `site`         | `PlutoSiteInfo`          | `name()` and `url()` of the public site. For each field, the last value wins.        |
 
 ## Routes
 
-| File | Route | Purpose |
-|---|---|---|
-| `app/pages/admin.vue` | `/admin` (parent) | `definePageMeta({ layout: 'admin' })` and `<NuxtPage />`. Every `/admin/**` page is a child. |
-| `app/pages/admin/(auth)/login.vue` | `/admin/login` | The login page. It sets the `auth` layout and renders `PlutoAdminAuthCard`. |
-| `app/pages/admin/no-access.vue` | `/admin/no-access` | The page for a signed-in user with no capability. It uses the `auth` layout. See "The staff step". |
+| File                               | Route              | Purpose                                                                                            |
+| ---------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------- |
+| `app/pages/admin.vue`              | `/admin` (parent)  | `definePageMeta({ layout: 'admin' })` and `<NuxtPage />`. Every `/admin/**` page is a child.       |
+| `app/pages/admin/(auth)/login.vue` | `/admin/login`     | The login page. It sets the `auth` layout and renders `PlutoAdminAuthCard`.                        |
+| `app/pages/admin/no-access.vue`    | `/admin/no-access` | The page for a signed-in user with no capability. It uses the `auth` layout. See "The staff step". |
 
 A child that must not use the admin layout (the auth pages) sets its own layout in
 `definePageMeta`. The `(auth)` folder is a route group: it adds no path segment.
@@ -253,7 +253,7 @@ later page load has it in the first paint. If the capabilities load fails, the b
 order:
 
 1. The menu button, for small screens (`usePlutoAdminMenuOpen`).
-2. The logo and the site name chip. Below `sm` the logo is the planet only (`PlutoLogo mark`),
+2. The logo (a brand logo with `appConfig.pluto.brand`, see the white-label skill) and the site name chip. Below `sm` the logo is the planet only (`PlutoLogo mark`),
    and the chip is hidden. From `sm` the logo has the wordmark, and the site name shows as a
    rounded chip. The name is `site.name()`, else `runtimeConfig.public.websiteName`. The chip is
    hidden when the name is empty or `Untitled`.
@@ -266,11 +266,12 @@ order:
    skeleton as the fallback.
 
 The user menu has the avatar and the short name. An administrator (`usePlutoPermissions().isAdmin`:
-the capability `'*'`) gets an "Admin" badge (`pluto.navbar.adminBadge`) next to the name from
-`lg`, a warning chip on the avatar below `lg`, "Administrator" (`pluto.navbar.administrator`) in
-the dropdown header and in the accessible name of the button. The supabase `admin` role and a
-GitHub user with admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)`),
-Settings (`meta+,`), the `accountMenu` items, "Pluto on GitHub" (`plutocms/pluto`) and Sign out
+the capability `'*'`) gets a warning chip on the avatar, an "Admin" badge (`pluto.navbar.adminBadge`,
+title `pluto.navbar.administrator`) at the end of the dropdown header (the `account` item slot,
+`#account-trailing`), and "Administrator" in the accessible name of the button. The badge is not in
+the bar: it pushed the avatar out on narrow widths. The supabase `admin` role and a GitHub user with
+admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)`),
+Settings (`meta+,`), the `accountMenu` items, the brand links ("Help" from `brand.helpUrl`, the agency from `brand.url`), "Pluto on GitHub" (`plutocms/pluto`, hidden with `brand.plutoLinks: false`) and Sign out
 (`meta+shift+q`). Shortcuts use `defineShortcuts(extractShortcuts(items))`.
 `PlutoAdminNavbarProvider` shows the bar when `usePlutoAdminBar().visible` is true.
 

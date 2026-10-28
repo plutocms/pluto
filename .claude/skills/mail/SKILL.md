@@ -38,13 +38,13 @@ All settings are private `runtimeConfig.plutoMail` values. They have empty defau
 `nuxt.config.ts`, so an environment variable sets each one **at run time**. Do not put them in the
 build environment.
 
-| Environment variable | Value |
-|---|---|
-| `NUXT_PLUTO_MAIL_DRIVER` | `resend`, `dev`, `none`, or the id of a registered driver. Empty means automatic. |
-| `NUXT_PLUTO_MAIL_RESEND_API_KEY` | The Resend API key (`re_...`). |
-| `NUXT_PLUTO_MAIL_FROM` | The From address, for example `Shop <hello@example.com>`. |
-| `NUXT_PLUTO_MAIL_REPLY_TO` | The Reply-To address. Optional. |
-| `NUXT_PLUTO_MAIL_MAILPIT_URL` | The URL of a Mailpit server, for example `http://localhost:8025`. Optional. |
+| Environment variable             | Value                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| `NUXT_PLUTO_MAIL_DRIVER`         | `resend`, `dev`, `none`, or the id of a registered driver. Empty means automatic. |
+| `NUXT_PLUTO_MAIL_RESEND_API_KEY` | The Resend API key (`re_...`).                                                    |
+| `NUXT_PLUTO_MAIL_FROM`           | The From address, for example `Shop <hello@example.com>`.                         |
+| `NUXT_PLUTO_MAIL_REPLY_TO`       | The Reply-To address. Optional.                                                   |
+| `NUXT_PLUTO_MAIL_MAILPIT_URL`    | The URL of a Mailpit server, for example `http://localhost:8025`. Optional.       |
 
 v1 keeps every secret in the environment. Nothing stores a key in the database, in the settings
 table, or in the GitHub CMS repo. A later version can add a store (`registerMailStore`) that keeps
@@ -62,11 +62,11 @@ the key in a vault. The environment always wins over a store.
 
 **Production never falls back to `dev`.** A production site with no key has the `none` driver.
 
-| Driver | Behavior |
-|---|---|
-| `resend` | Sends through the Resend HTTP API. See below. |
-| `dev` | In development it prints the email to the server console, text version included, so you can copy an invite link. With `NUXT_PLUTO_MAIL_MAILPIT_URL` it also posts the email to Mailpit (`POST /api/v1/send`). Outside development it logs nothing, and without Mailpit it throws `not_configured`. |
-| `none` | Every send throws `not_configured`. The caller decides what to do. |
+| Driver   | Behavior                                                                                                                                                                                                                                                                                           |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resend` | Sends through the Resend HTTP API. See below.                                                                                                                                                                                                                                                      |
+| `dev`    | In development it prints the email to the server console, text version included, so you can copy an invite link. With `NUXT_PLUTO_MAIL_MAILPIT_URL` it also posts the email to Mailpit (`POST /api/v1/send`). Outside development it logs nothing, and without Mailpit it throws `not_configured`. |
+| `none`   | Every send throws `not_configured`. The caller decides what to do.                                                                                                                                                                                                                                 |
 
 ### The Resend driver
 
@@ -80,22 +80,26 @@ the key in a vault. The environment always wins over a store.
 ## Sending an email
 
 ```ts
-const email = await renderPlutoEmail('invite', { url, inviterName, roles }, { locale })
+const email = await renderPlutoEmail(
+  'invite',
+  { url, inviterName, roles },
+  { locale }
+)
 await sendPlutoMail({ to, ...email })
 ```
 
 `sendPlutoMail` throws a `PlutoMailError` with a `code`:
 
-| Code | Meaning |
-|---|---|
-| `not_configured` | No driver can send (driver `none`, or no key). |
-| `invalid_key` | Resend rejected the key. |
-| `restricted_key` | The key is send-only and the call needs full access. |
-| `test_sender_only` | The From domain is not verified. Resend sends only to the account owner. |
-| `domain_not_verified` | The From domain is not verified. |
-| `invalid_message` | The message or the request is not valid (also a line break in a header value). |
-| `rate_limited`, `quota_exceeded` | Too many requests, or the plan limit is used. |
-| `timeout`, `network`, `provider_error` | Resend did not answer, was not reachable, or failed. |
+| Code                                   | Meaning                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| `not_configured`                       | No driver can send (driver `none`, or no key).                                 |
+| `invalid_key`                          | Resend rejected the key.                                                       |
+| `restricted_key`                       | The key is send-only and the call needs full access.                           |
+| `test_sender_only`                     | The From domain is not verified. Resend sends only to the account owner.       |
+| `domain_not_verified`                  | The From domain is not verified.                                               |
+| `invalid_message`                      | The message or the request is not valid (also a line break in a header value). |
+| `rate_limited`, `quota_exceeded`       | Too many requests, or the plan limit is used.                                  |
+| `timeout`, `network`, `provider_error` | Resend did not answer, was not reachable, or failed.                           |
 
 The error message is fixed English text. It never repeats the provider text, a recipient, a
 subject, a link or a key. **Mail code never logs a recipient, a subject, a link or a key.** The one
@@ -130,15 +134,15 @@ unknown locale, and a missing key, fall back to the default locale. See the i18n
 
 All routes live under `/api/_pluto/mail/` and are for administrators only.
 
-| Route | Purpose |
-|---|---|
-| `GET status` | The driver, the From address, and whether a key is set. No secret. |
-| `POST test` | Sends the test email to `{ to, locale? }`. 5 calls in 10 minutes for each admin. |
-| `POST resend/check-key` | Checks the key. `full` lists the domains. `sending` means send-only. |
-| `POST resend/domains` | Creates a domain `{ name, region? }` and returns the DNS records. |
-| `GET resend/domains/:id` | Reads a domain with its status and records. |
-| `POST resend/domains/:id/verify` | Asks Resend to check the DNS now. |
-| `POST resend/sending-key` | Makes a sending-only key `{ domainId? }`. Returns the new key once. |
+| Route                            | Purpose                                                                          |
+| -------------------------------- | -------------------------------------------------------------------------------- |
+| `GET status`                     | The driver, the From address, and whether a key is set. No secret.               |
+| `POST test`                      | Sends the test email to `{ to, locale? }`. 5 calls in 10 minutes for each admin. |
+| `POST resend/check-key`          | Checks the key. `full` lists the domains. `sending` means send-only.             |
+| `POST resend/domains`            | Creates a domain `{ name, region? }` and returns the DNS records.                |
+| `GET resend/domains/:id`         | Reads a domain with its status and records.                                      |
+| `POST resend/domains/:id/verify` | Asks Resend to check the DNS now.                                                |
+| `POST resend/sending-key`        | Makes a sending-only key `{ domainId? }`. Returns the new key once.              |
 
 Rules for these routes:
 
@@ -184,7 +188,11 @@ A layer adds a section below the steps with the `mailPanels` bucket:
 definePlutoExtension({
   id: 'supabase',
   mailPanels: [
-    { id: 'auth-emails', title: 'supabase.mail.authEmails.title', component: AuthEmailsPanel },
+    {
+      id: 'auth-emails',
+      title: 'supabase.mail.authEmails.title',
+      component: AuthEmailsPanel,
+    },
   ],
 })
 ```

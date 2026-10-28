@@ -30,7 +30,10 @@ describe('validatePlutoAuthDriver', () => {
       signInTitle: 'Sign in',
       signInDescription: 'Use your account.',
       links: { signUp: '/sign-up', forgotPassword: '/forgot' },
-      publicPaths: ['/admin/reset', { path: '/admin/invite', signedIn: 'allow' }],
+      publicPaths: [
+        '/admin/reset',
+        { path: '/admin/invite', signedIn: 'allow' },
+      ],
     })
     expect(validatePlutoAuthDriver(full)).toEqual([])
   })
@@ -55,14 +58,18 @@ describe('validatePlutoAuthDriver', () => {
   })
 
   it('reports a guard that is not a function', () => {
-    const problems = validatePlutoAuthDriver(driver({ guard: '/admin/setup' as unknown as () => undefined }))
+    const problems = validatePlutoAuthDriver(
+      driver({ guard: '/admin/setup' as unknown as () => undefined })
+    )
     expect(problems).toEqual(['"guard" must be a function when set.'])
   })
 
   it('reports a bad public path', () => {
-    const problems = validatePlutoAuthDriver(driver({
-      publicPaths: ['reset', { path: '/ok', signedIn: 'maybe' as 'allow' }],
-    }))
+    const problems = validatePlutoAuthDriver(
+      driver({
+        publicPaths: ['reset', { path: '/ok', signedIn: 'maybe' as 'allow' }],
+      })
+    )
     expect(problems).toHaveLength(2)
   })
 
@@ -72,7 +79,7 @@ describe('validatePlutoAuthDriver', () => {
 })
 
 let fakeNuxtApp: {
- _plutoRegistry?: PlutoRegistry
+  _plutoRegistry?: PlutoRegistry
 }
 
 beforeEach(() => {
@@ -91,9 +98,16 @@ afterEach(() => {
 async function load() {
   const { usePlutoRegistry } = await import('../app/composables/pluto-registry')
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)
-  const { definePlutoExtension } = await import('../app/composables/pluto-extension')
-  const { usePlutoAccountMenu, usePlutoSiteInfo } = await import('../app/composables/pluto-navbar')
-  return { usePlutoRegistry, definePlutoExtension, usePlutoAccountMenu, usePlutoSiteInfo }
+  const { definePlutoExtension } =
+    await import('../app/composables/pluto-extension')
+  const { usePlutoAccountMenu, usePlutoSiteInfo } =
+    await import('../app/composables/pluto-navbar')
+  return {
+    usePlutoRegistry,
+    definePlutoExtension,
+    usePlutoAccountMenu,
+    usePlutoSiteInfo,
+  }
 }
 
 describe('auth driver registry', () => {
@@ -102,7 +116,9 @@ describe('auth driver registry', () => {
     definePlutoExtension({ id: 'first', authDriver: driver({ id: 'a' }) })
     definePlutoExtension({ id: 'second', authDriver: driver({ id: 'b' }) })
 
-    expect(usePlutoRegistry().authDrivers.list.value.at(-1)?.id).toBe('second:b')
+    expect(usePlutoRegistry().authDrivers.list.value.at(-1)?.id).toBe(
+      'second:b'
+    )
   })
 
   it('removes a driver when the same extension registers again without it', async () => {
@@ -129,19 +145,27 @@ describe('account menu', () => {
       ],
     })
 
-    expect(usePlutoAccountMenu().items.value.map((item) => item.label)).toEqual([
-      'Settings',
-      'Default item',
-      'Late item',
-    ])
+    expect(usePlutoAccountMenu().items.value.map((item) => item.label)).toEqual(
+      ['Settings', 'Default item', 'Late item']
+    )
   })
 })
 
 describe('site info', () => {
   it('uses the last site that has a value for each field', async () => {
     const { definePlutoExtension, usePlutoSiteInfo } = await load()
-    definePlutoExtension({ id: 'a', site: { id: 'site', name: () => 'Alpha', url: () => 'https://alpha.test' } })
-    definePlutoExtension({ id: 'b', site: { id: 'site', name: () => null, url: () => 'https://beta.test' } })
+    definePlutoExtension({
+      id: 'a',
+      site: {
+        id: 'site',
+        name: () => 'Alpha',
+        url: () => 'https://alpha.test',
+      },
+    })
+    definePlutoExtension({
+      id: 'b',
+      site: { id: 'site', name: () => null, url: () => 'https://beta.test' },
+    })
 
     const site = usePlutoSiteInfo()
     expect(site.name.value).toBe('Alpha')

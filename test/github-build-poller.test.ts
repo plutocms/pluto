@@ -3,7 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createBuildPoller } from '../modules/pluto-github/runtime/shared/build-poller'
 
 function status(state: PlutoBuildStatus['state']): PlutoBuildStatus {
-  return { sha: 'a'.repeat(40), shortSha: 'aaaaaaa', message: 'm', state, items: [] }
+  return {
+    sha: 'a'.repeat(40),
+    shortSha: 'aaaaaaa',
+    message: 'm',
+    state,
+    items: [],
+  }
 }
 
 beforeEach(() => {
@@ -36,7 +42,11 @@ function setup(answers: (PlutoBuildStatus | Error)[]) {
 
 describe('createBuildPoller', () => {
   it('reads at once, then every 5 seconds while pending, and stops when done', async () => {
-    const { load, seen, poller } = setup([status('pending'), status('pending'), status('success')])
+    const { load, seen, poller } = setup([
+      status('pending'),
+      status('pending'),
+      status('success'),
+    ])
     poller.start()
     await vi.advanceTimersByTimeAsync(0)
     expect(load).toHaveBeenCalledTimes(1)
@@ -48,7 +58,11 @@ describe('createBuildPoller', () => {
     expect(load).toHaveBeenCalledTimes(3)
     await vi.advanceTimersByTimeAsync(60_000)
     expect(load).toHaveBeenCalledTimes(3)
-    expect(seen.map((value) => value.state)).toEqual(['pending', 'pending', 'success'])
+    expect(seen.map((value) => value.state)).toEqual([
+      'pending',
+      'pending',
+      'success',
+    ])
   })
 
   it('does not poll after a final state on open', async () => {
@@ -117,7 +131,9 @@ describe('createBuildPoller', () => {
 
   it('stops on 401 and 403', async () => {
     for (const statusCode of [401, 403]) {
-      const { load, errors, poller } = setup([Object.assign(new Error('no'), { statusCode })])
+      const { load, errors, poller } = setup([
+        Object.assign(new Error('no'), { statusCode }),
+      ])
       poller.start()
       await vi.advanceTimersByTimeAsync(120_000)
       expect(load).toHaveBeenCalledTimes(1)
@@ -126,7 +142,9 @@ describe('createBuildPoller', () => {
   })
 
   it('retries after other errors with a growing delay, and gives up after 5', async () => {
-    const { load, errors, poller } = setup([Object.assign(new Error('busy'), { statusCode: 503 })])
+    const { load, errors, poller } = setup([
+      Object.assign(new Error('busy'), { statusCode: 503 }),
+    ])
     poller.start()
     await vi.advanceTimersByTimeAsync(10 * 60_000)
     expect(load).toHaveBeenCalledTimes(5)

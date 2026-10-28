@@ -7,15 +7,20 @@
 const { t } = usePlutoI18n()
 
 useHead({
-  title: () => `${t('pluto.github.setup.page.settings.title')} - ${t('pluto.pages.settings')}`,
+  title: () =>
+    `${t('pluto.github.setup.page.settings.title')} - ${t('pluto.pages.settings')}`,
 })
 </script>
 
 <template>
   <div class="flex flex-col gap-y-6">
     <div>
-      <h2 class="text-xl font-semibold">{{ t('pluto.github.setup.page.settings.title') }}</h2>
-      <p class="text-muted text-sm">{{ t('pluto.github.setup.page.settings.intro') }}</p>
+      <h2 class="text-xl font-semibold">
+        {{ t('pluto.github.setup.page.settings.title') }}
+      </h2>
+      <p class="text-muted text-sm">
+        {{ t('pluto.github.setup.page.settings.intro') }}
+      </p>
     </div>
 
     <UCard class="max-w-2xl">

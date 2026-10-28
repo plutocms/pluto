@@ -1,10 +1,26 @@
 import type { H3Event } from 'h3'
-import type { PlutoMailDomain, PlutoMailDomainRecord } from '../../shared/types/mail'
+import type {
+  PlutoMailDomain,
+  PlutoMailDomainRecord,
+} from '../../shared/types/mail'
 import { getRouterParam, readBody, setResponseHeader } from 'h3'
-import { isPlutoMailAddress, isPlutoMailDomain, PLUTO_MAIL_REGIONS } from '../../shared/utils/mail'
+import {
+  isPlutoMailAddress,
+  isPlutoMailDomain,
+  PLUTO_MAIL_REGIONS,
+} from '../../shared/utils/mail'
 import { createPlutoError } from '../utils/pluto-error'
-import { getPlutoMailStatus, renderPlutoEmail, sendPlutoMail } from '../utils/pluto-mail'
-import { enforceTestMailRateLimit, requireMailAdmin, requireResendClient, withMailErrors } from '../utils/pluto-mail-admin'
+import {
+  getPlutoMailStatus,
+  renderPlutoEmail,
+  sendPlutoMail,
+} from '../utils/pluto-mail'
+import {
+  enforceTestMailRateLimit,
+  requireMailAdmin,
+  requireResendClient,
+  withMailErrors,
+} from '../utils/pluto-mail-admin'
 import { PlutoMailError } from './errors'
 
 /**
@@ -67,14 +83,23 @@ export async function mailTest(event: H3Event) {
   await requireMailAdmin(event, { write: true })
   enforceTestMailRateLimit(event)
 
-  const body = (await readBody<Record<string, unknown> | null>(event).catch(() => null)) ?? {}
+  const body =
+    (await readBody<Record<string, unknown> | null>(event).catch(() => null)) ??
+    {}
   const to = text(body.to).trim()
   if (!isPlutoMailAddress(to)) {
-    throw invalid('pluto.mail.errors.invalidEmail', 'Enter a valid email address.')
+    throw invalid(
+      'pluto.mail.errors.invalidEmail',
+      'Enter a valid email address.'
+    )
   }
 
   return withMailErrors(async () => {
-    const email = await renderPlutoEmail('test', {}, { locale: text(body.locale) || null })
+    const email = await renderPlutoEmail(
+      'test',
+      {},
+      { locale: text(body.locale) || null }
+    )
     const result = await sendPlutoMail({ to, ...email })
     return { ok: true, id: result.id, driver: result.driver }
   })
@@ -92,9 +117,12 @@ export async function mailCheckKey(event: H3Event) {
     const client = await requireResendClient()
     try {
       const result = await client.request<{
- data?: unknown[]
-}>('GET', '/domains')
-      return { access: 'full' as const, domains: (result?.data ?? []).map(toDomain) }
+        data?: unknown[]
+      }>('GET', '/domains')
+      return {
+        access: 'full' as const,
+        domains: (result?.data ?? []).map(toDomain),
+      }
     } catch (error) {
       if (error instanceof PlutoMailError && error.code === 'restricted_key') {
         return { access: 'sending' as const, domains: [] as PlutoMailDomain[] }
@@ -108,26 +136,39 @@ export async function mailCheckKey(event: H3Event) {
 export async function mailCreateDomain(event: H3Event) {
   await requireMailAdmin(event, { write: true })
 
-  const body = (await readBody<Record<string, unknown> | null>(event).catch(() => null)) ?? {}
+  const body =
+    (await readBody<Record<string, unknown> | null>(event).catch(() => null)) ??
+    {}
   const name = text(body.name).trim().toLowerCase()
   const region = text(body.region) || 'us-east-1'
   if (!isPlutoMailDomain(name)) {
-    throw invalid('pluto.mail.errors.invalidDomain', 'Enter a domain name such as example.com.')
+    throw invalid(
+      'pluto.mail.errors.invalidDomain',
+      'Enter a domain name such as example.com.'
+    )
   }
   if (!(PLUTO_MAIL_REGIONS as readonly string[]).includes(region)) {
-    throw invalid('pluto.mail.errors.invalidRegion', 'Choose one of the listed regions.')
+    throw invalid(
+      'pluto.mail.errors.invalidRegion',
+      'Choose one of the listed regions.'
+    )
   }
 
   return withMailErrors(async () => {
     const client = await requireResendClient()
-    return toDomain(await client.request('POST', '/domains', { body: { name, region } }))
+    return toDomain(
+      await client.request('POST', '/domains', { body: { name, region } })
+    )
   })
 }
 
 function domainId(event: H3Event): string {
   const id = getRouterParam(event, 'id') ?? ''
   if (!isResourceId(id)) {
-    throw invalid('pluto.mail.errors.invalidDomainId', 'The domain id is not valid.')
+    throw invalid(
+      'pluto.mail.errors.invalidDomainId',
+      'The domain id is not valid.'
+    )
   }
   return id
 }
@@ -139,7 +180,9 @@ export async function mailGetDomain(event: H3Event) {
 
   return withMailErrors(async () => {
     const client = await requireResendClient()
-    return toDomain(await client.request('GET', `/domains/${encodeURIComponent(id)}`))
+    return toDomain(
+      await client.request('GET', `/domains/${encodeURIComponent(id)}`)
+    )
   })
 }
 
@@ -163,17 +206,22 @@ export async function mailVerifyDomain(event: H3Event) {
 export async function mailCreateSendingKey(event: H3Event) {
   await requireMailAdmin(event, { write: true })
 
-  const body = (await readBody<Record<string, unknown> | null>(event).catch(() => null)) ?? {}
+  const body =
+    (await readBody<Record<string, unknown> | null>(event).catch(() => null)) ??
+    {}
   const domain = text(body.domainId).trim()
   if (domain && !isResourceId(domain)) {
-    throw invalid('pluto.mail.errors.invalidDomainId', 'The domain id is not valid.')
+    throw invalid(
+      'pluto.mail.errors.invalidDomainId',
+      'The domain id is not valid.'
+    )
   }
 
   return withMailErrors(async () => {
     const client = await requireResendClient()
     const result = await client.request<{
- token?: string
-}>('POST', '/api-keys', {
+      token?: string
+    }>('POST', '/api-keys', {
       body: {
         name: 'Pluto sending key',
         permission: 'sending_access',

@@ -1,24 +1,79 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import { displayName, shortName } from '../../../composables/internal/admin-shell'
+import {
+  displayName,
+  shortName,
+} from '../../../composables/internal/admin-shell'
 
 // The user menu of the admin navbar: the avatar, the short name and a dropdown
 // with Settings, the items of the layers, the Pluto link and Sign out. An
-// administrator (the capability '*') gets an "Admin" badge in the bar, a chip
-// on the avatar on a small screen, and "Administrator" in the menu.
+// administrator (the capability '*') gets a chip on the avatar and an "Admin"
+// badge in the menu header.
 const { t } = usePlutoI18n()
 const { user, signOut } = usePlutoAuth()
 const account = usePlutoAccountMenu()
 const { isAdmin } = usePlutoPermissions()
+// The brand (white label) adds a help link and the agency link, and can hide
+// the link to Pluto.
+const { brand, plutoLinks } = usePlutoBrand()
+const linkItems = computed<DropdownMenuItem[]>(() => [
+  ...(brand.value.helpUrl
+    ? [
+        {
+          label: t('pluto.navbar.help'),
+          icon: 'i-lucide-life-buoy',
+          type: 'link' as const,
+          to: brand.value.helpUrl,
+          target: '_blank',
+          external: true,
+        },
+      ]
+    : []),
+  ...(brand.value.url
+    ? [
+        {
+          label:
+            brand.value.name ||
+            domainFromUrl(brand.value.url) ||
+            brand.value.url,
+          icon: 'i-lucide-external-link',
+          type: 'link' as const,
+          to: brand.value.url,
+          target: '_blank',
+          external: true,
+        },
+      ]
+    : []),
+  ...(plutoLinks.value
+    ? [
+        {
+          label: t('pluto.navbar.github'),
+          icon: 'i-simple-icons-github',
+          type: 'link' as const,
+          to: 'https://github.com/plutocms/pluto',
+          target: '_blank',
+          external: true,
+        },
+      ]
+    : []),
+])
 
-const name = computed(() => displayName(user.value, t('pluto.navbar.defaultUserName')))
-const short = computed(() => shortName(user.value, t('pluto.navbar.defaultUserName')))
+const name = computed(() =>
+  displayName(user.value, t('pluto.navbar.defaultUserName'))
+)
+const short = computed(() =>
+  shortName(user.value, t('pluto.navbar.defaultUserName'))
+)
 const menuLabel = computed(() =>
-  user.value?.username && user.value.username !== name.value ? `${name.value} (${user.value.username})` : name.value
+  user.value?.username && user.value.username !== name.value
+    ? `${name.value} (${user.value.username})`
+    : name.value
 )
 const avatar = computed(() => user.value?.avatarUrl || undefined)
 const buttonLabel = computed(() =>
-  isAdmin.value ? `${t('pluto.navbar.openUserMenu')} (${t('pluto.navbar.administrator')})` : t('pluto.navbar.openUserMenu')
+  isAdmin.value
+    ? `${t('pluto.navbar.openUserMenu')} (${t('pluto.navbar.administrator')})`
+    : t('pluto.navbar.openUserMenu')
 )
 
 const items = computed<DropdownMenuItem[][]>(() => [
@@ -27,9 +82,13 @@ const items = computed<DropdownMenuItem[][]>(() => [
       label: menuLabel.value,
       avatar: avatar.value
         ? { src: avatar.value, alt: name.value }
-        : { icon: 'lucide:user', class: 'bg-primary', ui: { icon: 'text-inverted text-sm' } },
-      description: isAdmin.value ? t('pluto.navbar.administrator') : undefined,
+        : {
+            icon: 'lucide:user',
+            class: 'bg-primary',
+            ui: { icon: 'text-inverted text-sm' },
+          },
       type: 'label',
+      slot: 'account' as const,
     },
   ],
   [
@@ -49,19 +108,12 @@ const items = computed<DropdownMenuItem[][]>(() => [
       target: item.target,
       kbds: item.kbds,
       // A shortcut needs a handler. A link with a shortcut navigates in it.
-      onSelect: item.onSelect ?? (item.to && item.kbds ? () => navigateTo(item.to) : undefined),
+      onSelect:
+        item.onSelect ??
+        (item.to && item.kbds ? () => navigateTo(item.to) : undefined),
     })),
   ],
-  [
-    {
-      label: t('pluto.navbar.github'),
-      icon: 'i-simple-icons-github',
-      type: 'link',
-      to: 'https://github.com/plutocms/pluto',
-      target: '_blank',
-      external: true,
-    },
-  ],
+  ...(linkItems.value.length > 0 ? [linkItems.value] : []),
   [
     {
       label: t('pluto.navbar.signOut'),
@@ -109,12 +161,18 @@ onUnmounted(() => portalTarget.value?.remove())
         class="group flex h-full items-center outline-none"
         type="button"
       >
-        <div class="flex h-8 items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 outline-inverted/25 group-hover:bg-elevated group-focus-visible:bg-elevated group-focus-visible:outline-3">
+        <div
+          class="outline-inverted/25 group-hover:bg-elevated group-focus-visible:bg-elevated flex h-8 items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 group-focus-visible:outline-3"
+        >
           <UAvatar
             :src="avatar"
             :alt="name"
             :ui="{ root: 'rounded-xl', icon: 'text-inverted text-lg' }"
-            :chip="isAdmin ? { color: 'warning', position: 'bottom-right', class: 'lg:hidden' } : undefined"
+            :chip="
+              isAdmin
+                ? { color: 'warning', position: 'bottom-right' }
+                : undefined
+            "
             size="sm"
             icon="lucide:user"
             class="bg-primary"
@@ -123,18 +181,20 @@ onUnmounted(() => portalTarget.value?.remove())
           <span class="text-highlighted hidden text-sm font-semibold lg:inline">
             {{ short }}
           </span>
-
-          <UBadge
-            v-if="isAdmin"
-            :label="t('pluto.navbar.adminBadge')"
-            icon="lucide:shield-check"
-            color="warning"
-            variant="subtle"
-            size="sm"
-            class="hidden lg:inline-flex"
-          />
         </div>
       </button>
+
+      <template #account-trailing>
+        <UBadge
+          v-if="isAdmin"
+          :label="t('pluto.navbar.adminBadge')"
+          :title="t('pluto.navbar.administrator')"
+          icon="lucide:shield-check"
+          color="warning"
+          variant="subtle"
+          size="sm"
+        />
+      </template>
     </UDropdownMenu>
   </div>
 </template>

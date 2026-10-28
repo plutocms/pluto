@@ -24,6 +24,7 @@ Core registers three widgets. A layer adds more with `definePlutoExtension`
 Each widget has its own `<Suspense>` in `PlutoDashboardWidgets.vue`. The grid paints at once.
 A card skeleton (9rem for `colSpan` 3, 24rem for 2, 12rem for 1) shows until the widget chunk
 loads. The widget then shows its own skeleton while its data loads.
+
 - Tests: `test/content-stats.test.ts`, `test/content-handlers.test.ts` (`contentActivity`).
 
 ## Translation
@@ -34,11 +35,11 @@ are keys that `usePlutoDashboardWidgets` resolves. See the i18n skill.
 
 ## Core widgets
 
-| id | order | colSpan | Shows |
-|---|---|---|---|
-| `content-overview` | 0 | 3 | One tile per content type |
-| `content-activity` | 10 | 2 | Items created per week, last 12 weeks |
-| `quick-actions` | 20 | 1 | Create commands and a few admin destinations |
+| id                 | order | colSpan | Shows                                        |
+| ------------------ | ----- | ------- | -------------------------------------------- |
+| `content-overview` | 0     | 3       | One tile per content type                    |
+| `content-activity` | 10    | 2       | Items created per week, last 12 weeks        |
+| `quick-actions`    | 20    | 1       | Create commands and a few admin destinations |
 
 `content-overview` and `content-activity` are disabled (`enabled`) while no content type is
 registered. A layer widget with the default order (100) goes below them.

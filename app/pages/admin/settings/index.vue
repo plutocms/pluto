@@ -32,8 +32,12 @@ onMounted(() => {
     <template v-else>
       <UCard v-for="panel in items" :key="panel.id">
         <template #header>
-          <h2 class="font-semibold">{{ panel.title }}</h2>
-          <p v-if="panel.description" class="text-muted text-sm">{{ panel.description }}</p>
+          <h2 class="font-semibold">
+            {{ panel.title }}
+          </h2>
+          <p v-if="panel.description" class="text-muted text-sm">
+            {{ panel.description }}
+          </p>
         </template>
 
         <Suspense>
@@ -46,7 +50,11 @@ onMounted(() => {
       </UCard>
 
       <div class="flex">
-        <UButton :loading="status === 'saving'" icon="lucide:save" @click="save">
+        <UButton
+          :loading="status === 'saving'"
+          icon="lucide:save"
+          @click="save"
+        >
           {{ t('pluto.common.save') }}
         </UButton>
       </div>

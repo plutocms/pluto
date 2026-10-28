@@ -47,14 +47,14 @@ See [Public API](https://pluto.vulmix.dev/core/public-api).
 
 ## Layers
 
-| Package | What it adds |
-|---|---|
-| `@plutocms/pluto` | The core: the admin, the content model, and the GitHub CMS. |
-| `@plutocms/nuxt-content` | A visual editor for the pages of a Nuxt Content site. |
-| `@plutocms/supabase` | A Supabase backend: database, auth, users, and roles. |
-| `@plutocms/supabase-blog` | Blog posts on Supabase. |
-| `@plutocms/supabase-shop` | Products on Supabase. |
-| `@plutocms/supabase-storage` | Media uploads on Supabase Storage. |
+| Package                      | What it adds                                                |
+| ---------------------------- | ----------------------------------------------------------- |
+| `@plutocms/pluto`            | The core: the admin, the content model, and the GitHub CMS. |
+| `@plutocms/nuxt-content`     | A visual editor for the pages of a Nuxt Content site.       |
+| `@plutocms/supabase`         | A Supabase backend: database, auth, users, and roles.       |
+| `@plutocms/supabase-blog`    | Blog posts on Supabase.                                     |
+| `@plutocms/supabase-shop`    | Products on Supabase.                                       |
+| `@plutocms/supabase-storage` | Media uploads on Supabase Storage.                          |
 
 Read [Layers](https://pluto.vulmix.dev/core/layers) to see how they fit together.
 

@@ -15,7 +15,10 @@ import {
 } from '../app/composables/internal/admin-shell'
 import { isPlutoPreviewPath } from '../shared/utils/preview-path'
 
-const publicPaths = normalizePublicPaths(['/admin/reset', { path: '/admin/invite', signedIn: 'allow' }])
+const publicPaths = normalizePublicPaths([
+  '/admin/reset',
+  { path: '/admin/invite', signedIn: 'allow' },
+])
 
 describe('isAdminPath', () => {
   it('matches /admin and its children only', () => {
@@ -28,24 +31,33 @@ describe('isAdminPath', () => {
 
 describe('normalizePublicPaths', () => {
   it('always has the login path with redirect', () => {
-    expect(normalizePublicPaths(undefined)).toEqual([{ path: '/admin/login', signedIn: 'redirect' }])
+    expect(normalizePublicPaths(undefined)).toEqual([
+      { path: '/admin/login', signedIn: 'redirect' },
+    ])
   })
 
   it('keeps the login redirect rule when the driver lists it', () => {
-    const result = normalizePublicPaths([{ path: '/admin/login', signedIn: 'allow' }])
+    const result = normalizePublicPaths([
+      { path: '/admin/login', signedIn: 'allow' },
+    ])
     expect(result).toEqual([{ path: '/admin/login', signedIn: 'redirect' }])
   })
 
   it('turns strings into objects, trims a trailing slash and drops duplicates', () => {
     const result = normalizePublicPaths(['/admin/reset/', '/admin/reset'])
-    expect(result.map((entry) => entry.path)).toEqual(['/admin/login', '/admin/reset'])
+    expect(result.map((entry) => entry.path)).toEqual([
+      '/admin/login',
+      '/admin/reset',
+    ])
     expect(result[1]?.signedIn).toBe('redirect')
   })
 })
 
 describe('safeRedirect', () => {
   it('accepts a local path with a query and a hash', () => {
-    expect(safeRedirect('/admin/posts?page=2#top')).toBe('/admin/posts?page=2#top')
+    expect(safeRedirect('/admin/posts?page=2#top')).toBe(
+      '/admin/posts?page=2#top'
+    )
   })
 
   it.each([
@@ -78,7 +90,13 @@ describe('guardDecision', () => {
     fullPath = path,
     paths: PlutoAuthPublicPath[] = publicPaths
   ) {
-    return guardDecision({ path, fullPath, query, loggedIn, publicPaths: paths })
+    return guardDecision({
+      path,
+      fullPath,
+      query,
+      loggedIn,
+      publicPaths: paths,
+    })
   }
 
   it('allows a path outside /admin', () => {
@@ -102,20 +120,33 @@ describe('guardDecision', () => {
   })
 
   it('sends a signed-in user from the login page to the home', () => {
-    expect(decide('/admin/login', true)).toEqual({ action: 'redirect', to: '/admin/home' })
+    expect(decide('/admin/login', true)).toEqual({
+      action: 'redirect',
+      to: '/admin/home',
+    })
   })
 
   it('sends a signed-in user to a safe redirect target', () => {
-    expect(decide('/admin/login', true, { redirect: '/admin/posts' })).toEqual({ action: 'redirect', to: '/admin/posts' })
-    expect(decide('/admin/login', true, { redirect: ['/admin/posts', '/x'] })).toEqual({ action: 'redirect', to: '/admin/posts' })
+    expect(decide('/admin/login', true, { redirect: '/admin/posts' })).toEqual({
+      action: 'redirect',
+      to: '/admin/posts',
+    })
+    expect(
+      decide('/admin/login', true, { redirect: ['/admin/posts', '/x'] })
+    ).toEqual({ action: 'redirect', to: '/admin/posts' })
   })
 
   it('ignores an unsafe redirect target', () => {
-    expect(decide('/admin/login', true, { redirect: '//evil.example' })).toEqual({ action: 'redirect', to: '/admin/home' })
+    expect(
+      decide('/admin/login', true, { redirect: '//evil.example' })
+    ).toEqual({ action: 'redirect', to: '/admin/home' })
   })
 
   it('does not loop when the target is a public path that redirects', () => {
-    expect(decide('/admin/login', true, { redirect: '/admin/login' })).toEqual({ action: 'redirect', to: '/admin/home' })
+    expect(decide('/admin/login', true, { redirect: '/admin/login' })).toEqual({
+      action: 'redirect',
+      to: '/admin/home',
+    })
   })
 
   it('allows a signed-in user on a path with signedIn allow', () => {
@@ -124,20 +155,38 @@ describe('guardDecision', () => {
 })
 
 describe('navbarVisible', () => {
-  const base = { loggedIn: true, isStaff: true, capabilitiesKnown: true, publicPaths }
+  const base = {
+    loggedIn: true,
+    isStaff: true,
+    capabilitiesKnown: true,
+    publicPaths,
+  }
 
   it('hides the bar for a signed-out user everywhere', () => {
-    expect(navbarVisible({ ...base, path: '/admin/home', loggedIn: false })).toBe(false)
+    expect(
+      navbarVisible({ ...base, path: '/admin/home', loggedIn: false })
+    ).toBe(false)
     expect(navbarVisible({ ...base, path: '/', loggedIn: false })).toBe(false)
   })
 
   it('shows on /admin/** for any signed-in user, before the capabilities load', () => {
-    expect(navbarVisible({ ...base, path: '/admin/home', isStaff: false, capabilitiesKnown: false })).toBe(true)
+    expect(
+      navbarVisible({
+        ...base,
+        path: '/admin/home',
+        isStaff: false,
+        capabilitiesKnown: false,
+      })
+    ).toBe(true)
   })
 
   it('hides on /admin/** for a user known to be no staff', () => {
-    expect(navbarVisible({ ...base, path: '/admin/home', isStaff: false })).toBe(false)
-    expect(navbarVisible({ ...base, path: '/admin/no-access', isStaff: false })).toBe(false)
+    expect(
+      navbarVisible({ ...base, path: '/admin/home', isStaff: false })
+    ).toBe(false)
+    expect(
+      navbarVisible({ ...base, path: '/admin/no-access', isStaff: false })
+    ).toBe(false)
   })
 
   it('hides on the public auth paths', () => {
@@ -154,29 +203,80 @@ describe('navbarVisible', () => {
   })
 
   it('hides on a public page while the capabilities are unknown', () => {
-    expect(navbarVisible({ ...base, path: '/', capabilitiesKnown: false })).toBe(false)
-    expect(navbarVisible({ ...base, path: '/', isStaff: false, capabilitiesKnown: false })).toBe(false)
+    expect(
+      navbarVisible({ ...base, path: '/', capabilitiesKnown: false })
+    ).toBe(false)
+    expect(
+      navbarVisible({
+        ...base,
+        path: '/',
+        isStaff: false,
+        capabilitiesKnown: false,
+      })
+    ).toBe(false)
   })
 
   it('shows on a public page from the hint while the session is unknown', () => {
-    expect(navbarVisible({ ...base, path: '/', loggedIn: false, capabilitiesKnown: false, hint: true })).toBe(true)
-    expect(navbarVisible({ ...base, path: '/', loggedIn: false, capabilitiesKnown: false, hint: false })).toBe(false)
+    expect(
+      navbarVisible({
+        ...base,
+        path: '/',
+        loggedIn: false,
+        capabilitiesKnown: false,
+        hint: true,
+      })
+    ).toBe(true)
+    expect(
+      navbarVisible({
+        ...base,
+        path: '/',
+        loggedIn: false,
+        capabilitiesKnown: false,
+        hint: false,
+      })
+    ).toBe(false)
   })
 
   it('lets the known capabilities win over the hint', () => {
-    expect(navbarVisible({ ...base, path: '/', isStaff: false, hint: true })).toBe(false)
-    expect(navbarVisible({ ...base, path: '/', loggedIn: false, hint: true })).toBe(false)
+    expect(
+      navbarVisible({ ...base, path: '/', isStaff: false, hint: true })
+    ).toBe(false)
+    expect(
+      navbarVisible({ ...base, path: '/', loggedIn: false, hint: true })
+    ).toBe(false)
   })
 
   it('ignores the hint on /admin/** and on a hidden route', () => {
-    expect(navbarVisible({ ...base, path: '/admin/home', loggedIn: false, capabilitiesKnown: false, hint: true })).toBe(false)
-    expect(navbarVisible({ ...base, path: '/docs', capabilitiesKnown: false, hint: true, hiddenByRoute: true })).toBe(false)
+    expect(
+      navbarVisible({
+        ...base,
+        path: '/admin/home',
+        loggedIn: false,
+        capabilitiesKnown: false,
+        hint: true,
+      })
+    ).toBe(false)
+    expect(
+      navbarVisible({
+        ...base,
+        path: '/docs',
+        capabilitiesKnown: false,
+        hint: true,
+        hiddenByRoute: true,
+      })
+    ).toBe(false)
   })
 
   it('hides when the route hides the bar (hiddenByRoute)', () => {
-    expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: true })).toBe(false)
-    expect(navbarVisible({ ...base, path: '/admin/home', hiddenByRoute: true })).toBe(false)
-    expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: false })).toBe(true)
+    expect(navbarVisible({ ...base, path: '/docs', hiddenByRoute: true })).toBe(
+      false
+    )
+    expect(
+      navbarVisible({ ...base, path: '/admin/home', hiddenByRoute: true })
+    ).toBe(false)
+    expect(
+      navbarVisible({ ...base, path: '/docs', hiddenByRoute: false })
+    ).toBe(true)
   })
 })
 
@@ -215,25 +315,46 @@ describe('staffDecision', () => {
   }
 
   it('allows a path outside the admin', () => {
-    expect(staffDecision({ ...input, path: '/shop', fullPath: '/shop', granted: [] })).toEqual({ action: 'allow' })
+    expect(
+      staffDecision({ ...input, path: '/shop', fullPath: '/shop', granted: [] })
+    ).toEqual({ action: 'allow' })
   })
 
   it('never checks a public auth path', () => {
-    expect(staffDecision({ ...input, path: '/admin/reset', granted: [], loadFailed: true })).toEqual({ action: 'allow' })
-    expect(staffDecision({ ...input, path: '/admin/invite', granted: [] })).toEqual({ action: 'allow' })
+    expect(
+      staffDecision({
+        ...input,
+        path: '/admin/reset',
+        granted: [],
+        loadFailed: true,
+      })
+    ).toEqual({ action: 'allow' })
+    expect(
+      staffDecision({ ...input, path: '/admin/invite', granted: [] })
+    ).toEqual({ action: 'allow' })
   })
 
   it('allows everyone when there is no permissions driver', () => {
-    expect(staffDecision({ ...input, hasDriver: false, granted: [] })).toEqual({ action: 'allow' })
+    expect(staffDecision({ ...input, hasDriver: false, granted: [] })).toEqual({
+      action: 'allow',
+    })
   })
 
   it('allows staff on a private path', () => {
     expect(staffDecision(input)).toEqual({ action: 'allow' })
-    expect(staffDecision({ ...input, granted: ['*'] })).toEqual({ action: 'allow' })
+    expect(staffDecision({ ...input, granted: ['*'] })).toEqual({
+      action: 'allow',
+    })
   })
 
   it('sends a user with no capability to the no-access page and keeps the wanted path', () => {
-    expect(staffDecision({ ...input, granted: [], fullPath: '/admin/content/posts?page=2' })).toEqual({
+    expect(
+      staffDecision({
+        ...input,
+        granted: [],
+        fullPath: '/admin/content/posts?page=2',
+      })
+    ).toEqual({
       action: 'redirect',
       to: `${ADMIN_NO_ACCESS_PATH}?redirect=${encodeURIComponent('/admin/content/posts?page=2')}`,
     })
@@ -245,31 +366,57 @@ describe('staffDecision', () => {
       to: `${ADMIN_NO_ACCESS_PATH}?reason=error&redirect=${encodeURIComponent('/admin/home')}`,
     })
     // A stale list never counts as staff when the load failed.
-    expect(staffDecision({ ...input, loadFailed: true }).action).toBe('redirect')
+    expect(staffDecision({ ...input, loadFailed: true }).action).toBe(
+      'redirect'
+    )
   })
 
   it('keeps a non-staff user on the no-access page (no loop)', () => {
-    const base = { ...input, path: ADMIN_NO_ACCESS_PATH, fullPath: ADMIN_NO_ACCESS_PATH, granted: [] }
+    const base = {
+      ...input,
+      path: ADMIN_NO_ACCESS_PATH,
+      fullPath: ADMIN_NO_ACCESS_PATH,
+      granted: [],
+    }
     expect(staffDecision(base)).toEqual({ action: 'allow' })
-    expect(staffDecision({ ...base, loadFailed: true })).toEqual({ action: 'allow' })
+    expect(staffDecision({ ...base, loadFailed: true })).toEqual({
+      action: 'allow',
+    })
   })
 
   it('sends staff away from the no-access page to the redirect target or the home', () => {
-    const base = { ...input, path: ADMIN_NO_ACCESS_PATH, fullPath: ADMIN_NO_ACCESS_PATH }
-    expect(staffDecision(base)).toEqual({ action: 'redirect', to: '/admin/home' })
-    expect(staffDecision({ ...base, query: { redirect: '/admin/content/posts' } })).toEqual({
+    const base = {
+      ...input,
+      path: ADMIN_NO_ACCESS_PATH,
+      fullPath: ADMIN_NO_ACCESS_PATH,
+    }
+    expect(staffDecision(base)).toEqual({
+      action: 'redirect',
+      to: '/admin/home',
+    })
+    expect(
+      staffDecision({ ...base, query: { redirect: '/admin/content/posts' } })
+    ).toEqual({
       action: 'redirect',
       to: '/admin/content/posts',
     })
   })
 
   it('ignores an unsafe or looping redirect target', () => {
-    const base = { ...input, path: ADMIN_NO_ACCESS_PATH, fullPath: ADMIN_NO_ACCESS_PATH }
-    expect(staffDecision({ ...base, query: { redirect: 'https://evil.example' } })).toEqual({
+    const base = {
+      ...input,
+      path: ADMIN_NO_ACCESS_PATH,
+      fullPath: ADMIN_NO_ACCESS_PATH,
+    }
+    expect(
+      staffDecision({ ...base, query: { redirect: 'https://evil.example' } })
+    ).toEqual({
       action: 'redirect',
       to: '/admin/home',
     })
-    expect(staffDecision({ ...base, query: { redirect: ADMIN_NO_ACCESS_PATH } })).toEqual({
+    expect(
+      staffDecision({ ...base, query: { redirect: ADMIN_NO_ACCESS_PATH } })
+    ).toEqual({
       action: 'redirect',
       to: '/admin/home',
     })
@@ -278,7 +425,9 @@ describe('staffDecision', () => {
 
 describe('displayName and shortName', () => {
   it('uses the name, then the username, then the fallback', () => {
-    expect(displayName({ id: '1', name: 'Ada Lovelace', username: 'ada' }, 'Account')).toBe('Ada Lovelace')
+    expect(
+      displayName({ id: '1', name: 'Ada Lovelace', username: 'ada' }, 'Account')
+    ).toBe('Ada Lovelace')
     expect(displayName({ id: '1', username: 'ada' }, 'Account')).toBe('ada')
     expect(displayName({ id: '1', name: '  ' }, 'Account')).toBe('Account')
     expect(displayName(null, 'Account')).toBe('Account')
@@ -302,7 +451,11 @@ describe('resolveSiteName', () => {
   })
 
   it('skips the default Untitled website name', () => {
-    expect(resolveSiteName(undefined, 'Untitled', 'Pluto Admin')).toBe('Pluto Admin')
-    expect(resolveSiteName(undefined, undefined, 'Pluto Admin')).toBe('Pluto Admin')
+    expect(resolveSiteName(undefined, 'Untitled', 'Pluto Admin')).toBe(
+      'Pluto Admin'
+    )
+    expect(resolveSiteName(undefined, undefined, 'Pluto Admin')).toBe(
+      'Pluto Admin'
+    )
   })
 })

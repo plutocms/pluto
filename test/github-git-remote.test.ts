@@ -2,7 +2,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { parseGitConfigOrigin, parseGithubRepoUrl, readGitOrigin } from '../modules/pluto-github/git-remote'
+import {
+  parseGitConfigOrigin,
+  parseGithubRepoUrl,
+  readGitOrigin,
+} from '../modules/pluto-github/git-remote'
 
 describe('parseGithubRepoUrl', () => {
   it.each([
@@ -49,7 +53,9 @@ describe('parseGitConfigOrigin', () => {
   })
 
   it('returns undefined when there is no origin', () => {
-    expect(parseGitConfigOrigin('[remote "upstream"]\n\turl = x\n')).toBeUndefined()
+    expect(
+      parseGitConfigOrigin('[remote "upstream"]\n\turl = x\n')
+    ).toBeUndefined()
   })
 })
 
@@ -62,18 +68,32 @@ describe('readGitOrigin', () => {
     dir = mkdtempSync(join(tmpdir(), 'pluto-git-'))
     mkdirSync(join(dir, '.git'))
     mkdirSync(join(dir, 'apps', 'site'), { recursive: true })
-    writeFileSync(join(dir, '.git', 'config'), '[remote "origin"]\n\turl = https://github.com/acme/site.git\n')
+    writeFileSync(
+      join(dir, '.git', 'config'),
+      '[remote "origin"]\n\turl = https://github.com/acme/site.git\n'
+    )
 
-    expect(readGitOrigin(join(dir, 'apps', 'site'))).toBe('https://github.com/acme/site.git')
+    expect(readGitOrigin(join(dir, 'apps', 'site'))).toBe(
+      'https://github.com/acme/site.git'
+    )
   })
 
   it('follows the gitdir pointer of a worktree', () => {
     dir = mkdtempSync(join(tmpdir(), 'pluto-git-'))
     mkdirSync(join(dir, 'main', '.git', 'worktrees', 'wt'), { recursive: true })
-    writeFileSync(join(dir, 'main', '.git', 'config'), '[remote "origin"]\n\turl = git@github.com:acme/site.git\n')
-    writeFileSync(join(dir, 'main', '.git', 'worktrees', 'wt', 'commondir'), '../..\n')
+    writeFileSync(
+      join(dir, 'main', '.git', 'config'),
+      '[remote "origin"]\n\turl = git@github.com:acme/site.git\n'
+    )
+    writeFileSync(
+      join(dir, 'main', '.git', 'worktrees', 'wt', 'commondir'),
+      '../..\n'
+    )
     mkdirSync(join(dir, 'wt'))
-    writeFileSync(join(dir, 'wt', '.git'), `gitdir: ${join(dir, 'main', '.git', 'worktrees', 'wt')}\n`)
+    writeFileSync(
+      join(dir, 'wt', '.git'),
+      `gitdir: ${join(dir, 'main', '.git', 'worktrees', 'wt')}\n`
+    )
 
     expect(readGitOrigin(join(dir, 'wt'))).toBe('git@github.com:acme/site.git')
   })

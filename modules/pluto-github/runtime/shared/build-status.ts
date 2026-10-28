@@ -46,8 +46,8 @@ export interface RawCheckRun {
   started_at?: string | null
   completed_at?: string | null
   output?: {
- title?: string | null
-} | null
+    title?: string | null
+  } | null
 }
 
 /** The part of a GitHub commit status that the reducer reads. */
@@ -91,18 +91,24 @@ export function safeHttpUrl(value: unknown): string | undefined {
   }
   try {
     const url = new URL(value)
-    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : undefined
+    return url.protocol === 'https:' || url.protocol === 'http:'
+      ? url.toString()
+      : undefined
   } catch {
     return undefined
   }
 }
 
 function text(value: unknown, max = 300): string | undefined {
-  return typeof value === 'string' && value.trim() !== '' ? value.trim().slice(0, max) : undefined
+  return typeof value === 'string' && value.trim() !== ''
+    ? value.trim().slice(0, max)
+    : undefined
 }
 
 function time(value: unknown): string | undefined {
-  return typeof value === 'string' && !Number.isNaN(Date.parse(value)) ? value : undefined
+  return typeof value === 'string' && !Number.isNaN(Date.parse(value))
+    ? value
+    : undefined
 }
 
 /**
@@ -115,13 +121,17 @@ export function checkRunState(run: RawCheckRun): PlutoBuildItemState {
   if (run.status !== 'completed') {
     return 'pending'
   }
-  return run.conclusion === 'success' || run.conclusion === 'neutral' || run.conclusion === 'skipped'
+  return run.conclusion === 'success' ||
+    run.conclusion === 'neutral' ||
+    run.conclusion === 'skipped'
     ? 'success'
     : 'failure'
 }
 
 /** A commit status: `success` is a success, `pending` is pending, `failure` and `error` fail. Unknown values are pending. */
-export function commitStatusState(state: string | undefined): PlutoBuildItemState {
+export function commitStatusState(
+  state: string | undefined
+): PlutoBuildItemState {
   if (state === 'success') {
     return 'success'
   }
@@ -133,7 +143,9 @@ export function commitStatusState(state: string | undefined): PlutoBuildItemStat
  * deployment) are a success, `failure` and `error` fail. `queued`, `pending`,
  * `in_progress` and a deployment with no status yet are pending.
  */
-export function deploymentState(state: string | undefined): PlutoBuildItemState {
+export function deploymentState(
+  state: string | undefined
+): PlutoBuildItemState {
   if (state === 'success' || state === 'inactive') {
     return 'success'
   }
@@ -155,7 +167,9 @@ function latestDeployments(deployments: RawDeployment[]): RawDeployment[] {
 }
 
 /** Turns the three GitHub sources into one list of items. */
-export function buildStatusItems(sources: BuildStatusSources): PlutoBuildItem[] {
+export function buildStatusItems(
+  sources: BuildStatusSources
+): PlutoBuildItem[] {
   const items: PlutoBuildItem[] = []
 
   for (const run of sources.checkRuns ?? []) {
@@ -190,9 +204,15 @@ export function buildStatusItems(sources: BuildStatusSources): PlutoBuildItem[] 
       kind: 'deployment',
       name: text(deployment.environment, 120) ?? 'Deployment',
       state,
-      url: safeHttpUrl(latest?.log_url) ?? safeHttpUrl(latest?.target_url) ?? safeHttpUrl(latest?.environment_url),
+      url:
+        safeHttpUrl(latest?.log_url) ??
+        safeHttpUrl(latest?.target_url) ??
+        safeHttpUrl(latest?.environment_url),
       startedAt: time(deployment.created_at),
-      completedAt: state === 'pending' ? undefined : time(latest?.created_at ?? deployment.updated_at),
+      completedAt:
+        state === 'pending'
+          ? undefined
+          : time(latest?.created_at ?? deployment.updated_at),
       description: text(latest?.description) ?? text(deployment.description),
     })
   }
@@ -204,7 +224,9 @@ export function buildStatusItems(sources: BuildStatusSources): PlutoBuildItem[] 
  * The state of the commit. `none` when there is no item. `pending` while any
  * item is pending. Else `failure` when any item failed. Else `success`.
  */
-export function reduceBuildState(items: Pick<PlutoBuildItem, 'state'>[]): PlutoBuildState {
+export function reduceBuildState(
+  items: Pick<PlutoBuildItem, 'state'>[]
+): PlutoBuildState {
   if (items.length === 0) {
     return 'none'
   }
@@ -216,8 +238,8 @@ export function reduceBuildState(items: Pick<PlutoBuildItem, 'state'>[]): PlutoB
 
 /** The whole reducer: the three sources in, the state and the items out. */
 export function reduceBuildStatus(sources: BuildStatusSources): {
- state: PlutoBuildState
-items: PlutoBuildItem[]
+  state: PlutoBuildState
+  items: PlutoBuildItem[]
 } {
   const items = buildStatusItems(sources)
   return { state: reduceBuildState(items), items }
@@ -225,7 +247,8 @@ items: PlutoBuildItem[]
 
 /** The first line of a commit message, cut to 200 characters. */
 export function commitHeadline(message: unknown): string {
-  const first = typeof message === 'string' ? (message.split('\n')[0] ?? '') : ''
+  const first =
+    typeof message === 'string' ? (message.split('\n')[0] ?? '') : ''
   return first.trim().slice(0, 200)
 }
 
@@ -265,5 +288,9 @@ export function shouldPoll(options: {
   if (options.state === undefined || options.state === 'pending') {
     return true
   }
-  return options.state === 'none' && options.afterSave === true && age < BUILD_POLL_GRACE_MS
+  return (
+    options.state === 'none' &&
+    options.afterSave === true &&
+    age < BUILD_POLL_GRACE_MS
+  )
 }

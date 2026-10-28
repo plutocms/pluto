@@ -36,54 +36,81 @@ async function loadComposables() {
   const { usePlutoRegistry } = await import('../app/composables/pluto-registry')
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)
 
-  const { definePlutoExtension } = await import('../app/composables/pluto-extension')
-  const { usePlutoContentActions } = await import('../app/composables/pluto-content-actions')
+  const { definePlutoExtension } =
+    await import('../app/composables/pluto-extension')
+  const { usePlutoContentActions } =
+    await import('../app/composables/pluto-content-actions')
 
   return { definePlutoExtension, usePlutoContentActions }
 }
 
 describe('usePlutoContentActions', () => {
   it('matches an action whose contentType equals the requested type name', async () => {
-    const { definePlutoExtension, usePlutoContentActions } = await loadComposables()
+    const { definePlutoExtension, usePlutoContentActions } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-layer',
       contentActions: [
-        { id: 'post-only', contentType: 'post', label: 'Post action', onSelect: () => {} },
-        { id: 'product-only', contentType: 'product', label: 'Product action', onSelect: () => {} },
+        {
+          id: 'post-only',
+          contentType: 'post',
+          label: 'Post action',
+          onSelect: () => {},
+        },
+        {
+          id: 'product-only',
+          contentType: 'product',
+          label: 'Product action',
+          onSelect: () => {},
+        },
       ],
     })
 
     const postActions = usePlutoContentActions('post')
 
-    expect(postActions.value.map((action) => action.label)).toEqual(['Post action'])
+    expect(postActions.value.map((action) => action.label)).toEqual([
+      'Post action',
+    ])
   })
 
   it('matches an action declared for every content type ("*")', async () => {
-    const { definePlutoExtension, usePlutoContentActions } = await loadComposables()
+    const { definePlutoExtension, usePlutoContentActions } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-layer',
       contentActions: [
-        { id: 'everywhere', contentType: '*', label: 'Everywhere action', onSelect: () => {} },
+        {
+          id: 'everywhere',
+          contentType: '*',
+          label: 'Everywhere action',
+          onSelect: () => {},
+        },
       ],
     })
 
-    expect(usePlutoContentActions('post').value.map((action) => action.label)).toEqual([
-      'Everywhere action',
-    ])
-    expect(usePlutoContentActions('product').value.map((action) => action.label)).toEqual([
-      'Everywhere action',
-    ])
+    expect(
+      usePlutoContentActions('post').value.map((action) => action.label)
+    ).toEqual(['Everywhere action'])
+    expect(
+      usePlutoContentActions('product').value.map((action) => action.label)
+    ).toEqual(['Everywhere action'])
   })
 
   it('defaults placement to "toolbar" and filters by the requested placement', async () => {
-    const { definePlutoExtension, usePlutoContentActions } = await loadComposables()
+    const { definePlutoExtension, usePlutoContentActions } =
+      await loadComposables()
 
     definePlutoExtension({
       id: 'test-layer',
       contentActions: [
-        { id: 'implicit-toolbar', contentType: 'post', label: 'Implicit toolbar', onSelect: () => {} },
+        {
+          id: 'implicit-toolbar',
+          contentType: 'post',
+          label: 'Implicit toolbar',
+          onSelect: () => {},
+        },
         {
           id: 'explicit-toolbar',
           contentType: 'post',
@@ -108,6 +135,8 @@ describe('usePlutoContentActions', () => {
       'Implicit toolbar',
       'Explicit toolbar',
     ])
-    expect(asideActions.value.map((action) => action.label)).toEqual(['Aside action'])
+    expect(asideActions.value.map((action) => action.label)).toEqual([
+      'Aside action',
+    ])
   })
 })

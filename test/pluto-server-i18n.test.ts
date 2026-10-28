@@ -2,11 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderServerI18nModule } from '../modules/pluto-i18n/locale-files'
 import { createPlutoServerTranslatorFactory } from '../server/utils/pluto-i18n'
 
-function source(overrides: {
- loads?: string[]
-} = {}) {
+function source(
+  overrides: {
+    loads?: string[]
+  } = {}
+) {
   const trees: Record<string, Record<string, unknown>> = {
-    'en': { hello: 'Hello {name}', only: { en: 'English only' } },
+    en: { hello: 'Hello {name}', only: { en: 'English only' } },
     'pt-BR': { hello: 'Olá {name}' },
   }
   return {
@@ -50,7 +52,9 @@ describe('createPlutoServerTranslatorFactory', () => {
 
     expect((await getTranslator('fr')).locale).toBe('en')
     expect((await getTranslator()).locale).toBe('en')
-    expect((await getTranslator(null)).t('hello', { name: 'Bob' })).toBe('Hello Bob')
+    expect((await getTranslator(null)).t('hello', { name: 'Bob' })).toBe(
+      'Hello Bob'
+    )
   })
 
   it('falls back to the default locale for a missing key', async () => {
@@ -69,7 +73,11 @@ describe('createPlutoServerTranslatorFactory', () => {
     const loads: string[] = []
     const getTranslator = createPlutoServerTranslatorFactory(source({ loads }))
 
-    await Promise.all([getTranslator('pt-BR'), getTranslator('pt-BR'), getTranslator('en')])
+    await Promise.all([
+      getTranslator('pt-BR'),
+      getTranslator('pt-BR'),
+      getTranslator('en'),
+    ])
     await getTranslator('pt-BR')
 
     expect(loads.toSorted()).toEqual(['en', 'pt-BR'])
@@ -80,7 +88,8 @@ describe('usePlutoServerTranslator', () => {
   it('reads the Nitro virtual module', async () => {
     vi.resetModules()
     vi.doMock('#pluto-i18n-server', () => source())
-    const { usePlutoServerTranslator } = await import('../server/utils/pluto-i18n')
+    const { usePlutoServerTranslator } =
+      await import('../server/utils/pluto-i18n')
 
     const translator = await usePlutoServerTranslator('pt-BR')
 
@@ -91,14 +100,16 @@ describe('usePlutoServerTranslator', () => {
 
 describe('renderServerI18nModule', () => {
   const rendered = renderServerI18nModule({
-    files: { 'pt-BR': ['/p/pt-BR.json', '/s/pt-BR.json'], 'en': ['/p/en.json'] },
+    files: { 'pt-BR': ['/p/pt-BR.json', '/s/pt-BR.json'], en: ['/p/en.json'] },
     defaultLocale: 'en',
   })
 
   it('lists the codes, the default locale and one loader per code', () => {
     expect(rendered).toContain('export const localeCodes = ["en","pt-BR"]')
     expect(rendered).toContain('export const defaultLocale = "en"')
-    expect(rendered).toContain('"pt-BR": async () => merge(...(await Promise.all([import("/p/pt-BR.json"), import("/s/pt-BR.json")]))')
+    expect(rendered).toContain(
+      '"pt-BR": async () => merge(...(await Promise.all([import("/p/pt-BR.json"), import("/s/pt-BR.json")]))'
+    )
   })
 
   it('has no Nuxt UI locale', () => {
@@ -107,11 +118,21 @@ describe('renderServerI18nModule', () => {
 
   it('exports working loaders', async () => {
     const tweaked = rendered
-      .replace('import("/p/pt-BR.json")', 'Promise.resolve({ default: { a: { x: "1", y: "1" } } })')
-      .replace('import("/s/pt-BR.json")', 'Promise.resolve({ default: { a: { y: "2" } } })')
+      .replace(
+        'import("/p/pt-BR.json")',
+        'Promise.resolve({ default: { a: { x: "1", y: "1" } } })'
+      )
+      .replace(
+        'import("/s/pt-BR.json")',
+        'Promise.resolve({ default: { a: { y: "2" } } })'
+      )
       .replace('import("/p/en.json")', 'Promise.resolve({ default: {} })')
-    const mod = await import(/* @vite-ignore */ `data:text/javascript,${encodeURIComponent(tweaked)}`)
+    const mod = await import(
+      /* @vite-ignore */ `data:text/javascript,${encodeURIComponent(tweaked)}`
+    )
 
-    expect(await mod.messageLoaders['pt-BR']()).toEqual({ a: { x: '1', y: '2' } })
+    expect(await mod.messageLoaders['pt-BR']()).toEqual({
+      a: { x: '1', y: '2' },
+    })
   })
 })

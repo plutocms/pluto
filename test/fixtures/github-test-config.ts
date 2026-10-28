@@ -36,7 +36,10 @@ function baseConfig(): GithubConfig {
  */
 export const testConfig: GithubConfig = baseConfig()
 
-export function resetTestConfig(fake?: ReturnType<typeof createFakeGithub>, patch: Partial<GithubConfig> = {}): GithubConfig {
+export function resetTestConfig(
+  fake?: ReturnType<typeof createFakeGithub>,
+  patch: Partial<GithubConfig> = {}
+): GithubConfig {
   for (const key of Object.keys(testConfig)) {
     delete (testConfig as unknown as Record<string, unknown>)[key]
   }

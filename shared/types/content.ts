@@ -184,9 +184,11 @@ export interface PlutoContentType {
   titleField: string
   fields: PlutoField[]
   /** Name of the field that holds the slug, or `false` to disable slugging entirely. */
-  slug?: {
-    field: string
-  } | false
+  slug?:
+    | {
+        field: string
+      }
+    | false
   /** `false` disables status/publish workflow entirely for this content type. */
   status?: PlutoContentStatus | false
   /** `false` disables created/updated timestamps entirely for this content type. */
@@ -230,10 +232,12 @@ export interface PlutoContentType {
    * public page that calls `usePlutoEditLink(type, id)`. `true` gives both.
    * Unset gives none. See the admin-shell skill.
    */
-  adminBar?: boolean | {
-    new?: boolean
-    edit?: boolean
-  }
+  adminBar?:
+    | boolean
+    | {
+        new?: boolean
+        edit?: boolean
+      }
   navOrder?: number
   i18n?: PlutoContentI18n
   /**
@@ -263,6 +267,18 @@ export interface PlutoContentType {
     layout?: 'default' | 'focus' | 'canvas'
     /** The field that fills the main region in the 'canvas' layout. Required for 'canvas'. */
     canvasField?: string
+    /**
+     * 'canvas' only: the widget of the canvas field adds a left panel. Core shows a skeleton
+     * of a list panel there while the item or the widget code loads, so the panel does not pop
+     * in later. A string is the label (key-or-literal). An object also gives `class`, the
+     * classes of the skeleton root (for example the background of the real panel).
+     */
+    leftPanel?:
+      | string
+      | {
+          label: string
+          class?: string
+        }
     /** true = always show. false = never. 'auto' (default) = show when any field has region 'side'. */
     aside?: boolean | 'auto'
     /** Aside starts closed. Default false, or true when layout is 'focus'. */
@@ -285,8 +301,16 @@ export interface PlutoContentType {
    * contract with a per-layer concern.
    */
   hooks?: {
-    afterCreate?: (ctx: PlutoContentContext, item: PlutoContentItem, rawBody: Record<string, unknown>) => Promise<void> | void
-    afterUpdate?: (ctx: PlutoContentContext, item: PlutoContentItem, rawBody: Record<string, unknown>) => Promise<void> | void
+    afterCreate?: (
+      ctx: PlutoContentContext,
+      item: PlutoContentItem,
+      rawBody: Record<string, unknown>
+    ) => Promise<void> | void
+    afterUpdate?: (
+      ctx: PlutoContentContext,
+      item: PlutoContentItem,
+      rawBody: Record<string, unknown>
+    ) => Promise<void> | void
     /**
      * Changes the answer of the public API for one item, after the allow-list and after
      * `adapter.toPublic`. Return the object to send, for example with a relation or an image URL
@@ -420,10 +444,23 @@ export interface PlutoContentContext {
  */
 export interface PlutoContentAdapter {
   id: string
-  list: (ctx: PlutoContentContext, query: PlutoContentQuery) => Promise<PlutoContentListResult>
-  get: (ctx: PlutoContentContext, idOrSlug: string | number) => Promise<PlutoContentItem | null>
-  create: (ctx: PlutoContentContext, values: Record<string, unknown>) => Promise<PlutoContentItem>
-  update: (ctx: PlutoContentContext, id: string | number, values: Record<string, unknown>) => Promise<PlutoContentItem>
+  list: (
+    ctx: PlutoContentContext,
+    query: PlutoContentQuery
+  ) => Promise<PlutoContentListResult>
+  get: (
+    ctx: PlutoContentContext,
+    idOrSlug: string | number
+  ) => Promise<PlutoContentItem | null>
+  create: (
+    ctx: PlutoContentContext,
+    values: Record<string, unknown>
+  ) => Promise<PlutoContentItem>
+  update: (
+    ctx: PlutoContentContext,
+    id: string | number,
+    values: Record<string, unknown>
+  ) => Promise<PlutoContentItem>
   remove: (ctx: PlutoContentContext, id: string | number) => Promise<void>
   /** Throws when `event`'s caller does not hold `capability`. Optional — see the fail-open rule in the content-model skill. */
   authorize?: (event: H3Event, capability: string) => Promise<void>
@@ -434,10 +471,13 @@ export interface PlutoContentAdapter {
    * content type has no created timestamp. The dashboard activity chart
    * calls it once per week; without it, the chart leaves the type out.
    */
-  countCreated?: (ctx: PlutoContentContext, range: {
- from: string
-to: string
-}) => Promise<number | null>
+  countCreated?: (
+    ctx: PlutoContentContext,
+    range: {
+      from: string
+      to: string
+    }
+  ) => Promise<number | null>
   /**
    * Reads one raw file of the type, by a path relative to the type folder (for example
    * `1.start/.navigation.yml`). Optional: only a file adapter has files. Returns `null` when the
@@ -445,10 +485,13 @@ to: string
    * anonymous caller), and when the path is not safe: `..`, an absolute path, a backslash, or a
    * path that leaves the type folder. `version` is the same version as `_version` of an item.
    */
-  readFile?: (ctx: PlutoContentContext, relativePath: string) => Promise<{
- text: string
-version?: string
-} | null>
+  readFile?: (
+    ctx: PlutoContentContext,
+    relativePath: string
+  ) => Promise<{
+    text: string
+    version?: string
+  } | null>
   /**
    * The keys of the timestamps on an item of `type`, when the item has them. Optional. The public
    * API reads them and answers `createdAt`, `updatedAt` and `publishedAt`. Without it, the public

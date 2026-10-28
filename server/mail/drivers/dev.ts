@@ -1,4 +1,7 @@
-import type { PlutoMailDriver, PlutoMailMessage } from '../../../shared/types/mail'
+import type {
+  PlutoMailDriver,
+  PlutoMailMessage,
+} from '../../../shared/types/mail'
 import { PlutoMailError } from '../errors'
 
 const DEFAULT_FROM = 'Pluto <pluto@localhost>'
@@ -32,31 +35,43 @@ export function parseAddress(value: string): MailpitAddress {
   return name ? { Email: email, Name: name } : { Email: email }
 }
 
-async function postToMailpit(options: DevDriverOptions, message: PlutoMailMessage, from: string, replyTo: string) {
+async function postToMailpit(
+  options: DevDriverOptions,
+  message: PlutoMailMessage,
+  from: string,
+  replyTo: string
+) {
   const doFetch = options.fetch ?? globalThis.fetch
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
     const recipients = Array.isArray(message.to) ? message.to : [message.to]
-    const response = await doFetch(`${options.mailpitUrl!.replace(/\/+$/, '')}/api/v1/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        From: parseAddress(from),
-        To: recipients.map(parseAddress),
-        ...(replyTo ? { ReplyTo: [parseAddress(replyTo)] } : {}),
-        Subject: message.subject,
-        HTML: message.html,
-        Text: message.text,
-      }),
-    })
+    const response = await doFetch(
+      `${options.mailpitUrl!.replace(/\/+$/, '')}/api/v1/send`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          From: parseAddress(from),
+          To: recipients.map(parseAddress),
+          ...(replyTo ? { ReplyTo: [parseAddress(replyTo)] } : {}),
+          Subject: message.subject,
+          HTML: message.html,
+          Text: message.text,
+        }),
+      }
+    )
     if (!response.ok) {
-      throw new PlutoMailError('provider_error', `Mailpit failed with status ${response.status}.`, { status: response.status })
+      throw new PlutoMailError(
+        'provider_error',
+        `Mailpit failed with status ${response.status}.`,
+        { status: response.status }
+      )
     }
     const payload = (await response.json().catch(() => null)) as {
- ID?: string
-} | null
+      ID?: string
+    } | null
     return typeof payload?.ID === 'string' ? payload.ID : null
   } catch (error) {
     if (error instanceof PlutoMailError) {
@@ -87,25 +102,34 @@ export function createDevDriver(options: DevDriverOptions): PlutoMailDriver {
     isConfigured: () => options.dev || hasMailpit,
     async send(message, context) {
       if (!options.dev && !hasMailpit) {
-        throw new PlutoMailError('not_configured', 'The dev mail driver sends nothing outside development.')
+        throw new PlutoMailError(
+          'not_configured',
+          'The dev mail driver sends nothing outside development.'
+        )
       }
 
       const from = message.from || context.from || DEFAULT_FROM
       const replyTo = message.replyTo || context.replyTo
 
       if (options.dev) {
-        const to = Array.isArray(message.to) ? message.to.join(', ') : message.to
-        log([
-          '[pluto-mail] dev driver: this email is not sent. Set NUXT_PLUTO_MAIL_RESEND_API_KEY to send it.',
-          `From: ${from}`,
-          `To: ${to}`,
-          `Subject: ${message.subject}`,
-          '',
-          message.text,
-        ].join('\n'))
+        const to = Array.isArray(message.to)
+          ? message.to.join(', ')
+          : message.to
+        log(
+          [
+            '[pluto-mail] dev driver: this email is not sent. Set NUXT_PLUTO_MAIL_RESEND_API_KEY to send it.',
+            `From: ${from}`,
+            `To: ${to}`,
+            `Subject: ${message.subject}`,
+            '',
+            message.text,
+          ].join('\n')
+        )
       }
 
-      const id = hasMailpit ? await postToMailpit(options, message, from, replyTo) : null
+      const id = hasMailpit
+        ? await postToMailpit(options, message, from, replyTo)
+        : null
       return { id, driver: 'dev' }
     },
   }

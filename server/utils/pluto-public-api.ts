@@ -1,5 +1,8 @@
 import type { H3Event } from 'h3'
-import type { PlutoPublicList, PlutoPublicOne } from '../../shared/types/public-api'
+import type {
+  PlutoPublicList,
+  PlutoPublicOne,
+} from '../../shared/types/public-api'
 import { setResponseHeader } from 'h3'
 import { getPlutoApiConfig } from './pluto-api-config'
 import { getContentType } from './pluto-content'
@@ -66,7 +69,9 @@ export function requirePublicType(name: string): PlutoContentType {
 
 /** The field names that the public answer has, besides `id` and the timestamps. */
 export function publicFieldNames(type: PlutoContentType): string[] {
-  const declared = type.fields.filter((field) => !field.virtual).map((field) => field.name)
+  const declared = type.fields
+    .filter((field) => !field.virtual)
+    .map((field) => field.name)
   if (!type.api?.fields) {
     return declared
   }
@@ -74,9 +79,13 @@ export function publicFieldNames(type: PlutoContentType): string[] {
 }
 
 /** The item key of each public timestamp, from the adapter. */
-function timestampKeys(type: PlutoContentType): Partial<Record<'createdAt' | 'updatedAt' | 'publishedAt', string>> {
+function timestampKeys(
+  type: PlutoContentType
+): Partial<Record<'createdAt' | 'updatedAt' | 'publishedAt', string>> {
   const keys = requireContentAdapter().timestampKeys?.(type) ?? {}
-  const result: Partial<Record<'createdAt' | 'updatedAt' | 'publishedAt', string>> = {}
+  const result: Partial<
+    Record<'createdAt' | 'updatedAt' | 'publishedAt', string>
+  > = {}
   for (const [name, key] of TIMESTAMPS) {
     if (keys[key]) {
       result[name] = keys[key]
@@ -104,11 +113,17 @@ function singleText(value: unknown): string | undefined {
  * bad value uses the default. `sort` is `field` or `-field` (descending). `filter[field]=value`
  * filters by equality. A sort or filter on a field that the public answer does not have gives 400.
  */
-export function parsePublicQuery(type: PlutoContentType, query: Record<string, unknown>): PublicListQuery {
+export function parsePublicQuery(
+  type: PlutoContentType,
+  query: Record<string, unknown>
+): PublicListQuery {
   const fields = publicFieldNames(type)
   const stamps = timestampKeys(type)
   const result: PublicListQuery = {
-    limit: Math.min(PUBLIC_MAX_LIMIT, Math.max(1, wholeNumber(query.limit, PUBLIC_DEFAULT_LIMIT))),
+    limit: Math.min(
+      PUBLIC_MAX_LIMIT,
+      Math.max(1, wholeNumber(query.limit, PUBLIC_DEFAULT_LIMIT))
+    ),
     offset: wholeNumber(query.offset, 0),
   }
 
@@ -148,7 +163,10 @@ export function parsePublicQuery(type: PlutoContentType, query: Record<string, u
 }
 
 /** True when the item is published, or when the type has no publish workflow. */
-export function isPublishedItem(type: PlutoContentType, item: PlutoContentItem): boolean {
+export function isPublishedItem(
+  type: PlutoContentType,
+  item: PlutoContentItem
+): boolean {
   if (!type.status) {
     return true
   }
@@ -169,7 +187,12 @@ export async function toPublicData(
     }
   }
   for (const [name, key] of Object.entries(timestampKeys(ctx.type))) {
-    if (key && Object.hasOwn(item, key) && item[key] !== undefined && item[key] !== null) {
+    if (
+      key &&
+      Object.hasOwn(item, key) &&
+      item[key] !== undefined &&
+      item[key] !== null
+    ) {
       data[name] = item[key]
     }
   }
@@ -190,12 +213,18 @@ export function setPublicApiCache(event: H3Event): void {
   setResponseHeader(
     event,
     'Cache-Control',
-    maxAge > 0 ? `public, s-maxage=${maxAge}, stale-while-revalidate=${STALE_WHILE_REVALIDATE}` : 'no-store'
+    maxAge > 0
+      ? `public, s-maxage=${maxAge}, stale-while-revalidate=${STALE_WHILE_REVALIDATE}`
+      : 'no-store'
   )
 }
 
 /** `GET /api/pluto/v1/content/:type`: the published items of a public type. */
-export async function listPublicContent(event: H3Event, typeName: string, rawQuery: Record<string, unknown>): Promise<PlutoPublicList> {
+export async function listPublicContent(
+  event: H3Event,
+  typeName: string,
+  rawQuery: Record<string, unknown>
+): Promise<PlutoPublicList> {
   markPublicRead(event)
   const type = requirePublicType(typeName)
   const query = parsePublicQuery(type, rawQuery)
@@ -212,24 +241,39 @@ export async function listPublicContent(event: H3Event, typeName: string, rawQue
 
   // The adapter filters drafts already. This check makes sure that no adapter can leak one.
   const items = result.data.filter((item) => isPublishedItem(type, item))
-  const data = await Promise.all(items.map((item) => toPublicData(ctx, item, 'list', items)))
+  const data = await Promise.all(
+    items.map((item) => toPublicData(ctx, item, 'list', items))
+  )
 
   setPublicApiCache(event)
   return {
     data: data as PlutoPublicList['data'],
-    meta: { total: result.total ?? data.length, limit: query.limit, offset: query.offset },
+    meta: {
+      total: result.total ?? data.length,
+      limit: query.limit,
+      offset: query.offset,
+    },
   }
 }
 
 /** `GET /api/pluto/v1/content/:type/:id`: one published item, by id or slug. */
-export async function getPublicContent(event: H3Event, typeName: string, idOrSlug: string): Promise<PlutoPublicOne> {
+export async function getPublicContent(
+  event: H3Event,
+  typeName: string,
+  idOrSlug: string
+): Promise<PlutoPublicOne> {
   markPublicRead(event)
   const type = requirePublicType(typeName)
   const ctx = { event, type }
 
-  const item = idOrSlug === '' ? null : await requireContentAdapter().get(ctx, idOrSlug)
+  const item =
+    idOrSlug === '' ? null : await requireContentAdapter().get(ctx, idOrSlug)
   if (!item || !isPublishedItem(type, item)) {
-    throw createPlutoError({ statusCode: 404, message: 'Not found.', key: 'pluto.errors.notFound' })
+    throw createPlutoError({
+      statusCode: 404,
+      message: 'Not found.',
+      key: 'pluto.errors.notFound',
+    })
   }
 
   const data = await toPublicData(ctx, item, 'item')

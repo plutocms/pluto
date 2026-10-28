@@ -43,7 +43,11 @@ export function normalizePem(value: string): string {
   }
   const compact = text.replace(/\s+/g, '')
   if (compact !== '' && /^[\w+/=-]+$/.test(compact)) {
-    const decoded = Buffer.from(compact, 'base64').toString('utf8').replace(/\\n/g, '\n').replace(/\r\n/g, '\n').trim()
+    const decoded = Buffer.from(compact, 'base64')
+      .toString('utf8')
+      .replace(/\\n/g, '\n')
+      .replace(/\r\n/g, '\n')
+      .trim()
     if (decoded.includes('-----BEGIN')) {
       return decoded
     }
@@ -60,16 +64,24 @@ function base64Url(value: string | Buffer): string {
  * allow clock drift. The token lives 9 minutes. GitHub allows 10 at most.
  */
 export function createAppJwt(options: {
- appId: string
-privateKey: string
-now?: () => number
+  appId: string
+  privateKey: string
+  now?: () => number
 }): string {
   const seconds = Math.floor((options.now ?? Date.now)() / 1000)
   const header = base64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
-  const payload = base64Url(JSON.stringify({ iat: seconds - 60, exp: seconds + 540, iss: options.appId }))
+  const payload = base64Url(
+    JSON.stringify({
+      iat: seconds - 60,
+      exp: seconds + 540,
+      iss: options.appId,
+    })
+  )
   const signer = createSign('RSA-SHA256')
   signer.update(`${header}.${payload}`)
-  const signature = signer.sign(createPrivateKey(normalizePem(options.privateKey))).toString('base64url')
+  const signature = signer
+    .sign(createPrivateKey(normalizePem(options.privateKey)))
+    .toString('base64url')
   return `${header}.${payload}.${signature}`
 }
 
@@ -89,21 +101,28 @@ function unavailable() {
  * until 5 minutes before it ends. With no credentials at all, it throws a 503
  * and logs the cause. It never throws when it is built.
  */
-export function createAppTokenProvider(options: AppTokenOptions): AppTokenProvider {
+export function createAppTokenProvider(
+  options: AppTokenOptions
+): AppTokenProvider {
   const now = options.now ?? Date.now
   const [, name = ''] = options.repo.split('/')
   let installationId: number | undefined
-  let cached: {
- token: string
-expiresAt: number
-} | undefined
+  let cached:
+    | {
+        token: string
+        expiresAt: number
+      }
+    | undefined
   let inFlight: Promise<string> | undefined
   let warned = false
 
   function fail(reason: string, error?: unknown): never {
     if (!warned) {
       warned = true
-      console.error(`[pluto-github] Anonymous reads are off: ${reason}`, error ?? '')
+      console.error(
+        `[pluto-github] Anonymous reads are off: ${reason}`,
+        error ?? ''
+      )
     }
     throw unavailable()
   }
@@ -111,33 +130,48 @@ expiresAt: number
   async function mint(): Promise<string> {
     let jwt: string
     try {
-      jwt = createAppJwt({ appId: options.appId, privateKey: options.privateKey, now })
+      jwt = createAppJwt({
+        appId: options.appId,
+        privateKey: options.privateKey,
+        now,
+      })
     } catch (error) {
       return fail('the GitHub App private key is not valid.', error)
     }
-    const transport = { apiUrl: options.apiUrl, fetch: options.fetch, token: jwt }
+    const transport = {
+      apiUrl: options.apiUrl,
+      fetch: options.fetch,
+      token: jwt,
+    }
     try {
       if (installationId === undefined) {
         const found = await githubRest<{
- id: number
-}>(`/repos/${options.repo}/installation`, transport)
+          id: number
+        }>(`/repos/${options.repo}/installation`, transport)
         installationId = found.data.id
       }
       const created = await githubRest<{
- token: string
-expires_at: string
-}>(
-        `/app/installations/${installationId}/access_tokens`,
-        { ...transport, method: 'POST', body: { repositories: [name], permissions: { contents: 'read' } } }
-      )
+        token: string
+        expires_at: string
+      }>(`/app/installations/${installationId}/access_tokens`, {
+        ...transport,
+        method: 'POST',
+        body: { repositories: [name], permissions: { contents: 'read' } },
+      })
       const expiresAt = Date.parse(created.data.expires_at)
-      cached = { token: created.data.token, expiresAt: Number.isFinite(expiresAt) ? expiresAt : now() + 3600_000 }
+      cached = {
+        token: created.data.token,
+        expiresAt: Number.isFinite(expiresAt) ? expiresAt : now() + 3600_000,
+      }
       warned = false
       return cached.token
     } catch (error) {
       // The installation may be gone or new. Look it up again next time.
       installationId = undefined
-      return fail('GitHub did not give an installation token. Install the App on the repo.', error)
+      return fail(
+        'GitHub did not give an installation token. Install the App on the repo.',
+        error
+      )
     }
   }
 
@@ -147,7 +181,9 @@ expires_at: string
         return options.readToken
       }
       if (!options.appId || !options.privateKey) {
-        return fail('set NUXT_PLUTO_GITHUB_APP_ID and NUXT_PLUTO_GITHUB_PRIVATE_KEY, or NUXT_PLUTO_GITHUB_READ_TOKEN.')
+        return fail(
+          'set NUXT_PLUTO_GITHUB_APP_ID and NUXT_PLUTO_GITHUB_PRIVATE_KEY, or NUXT_PLUTO_GITHUB_READ_TOKEN.'
+        )
       }
       if (cached && cached.expiresAt - RENEW_MARGIN > now()) {
         return cached.token

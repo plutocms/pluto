@@ -22,7 +22,8 @@ afterEach(() => {
 })
 
 async function loadComposable() {
-  const { usePlutoContentItem } = await import('../app/composables/pluto-content-item')
+  const { usePlutoContentItem } =
+    await import('../app/composables/pluto-content-item')
   return { usePlutoContentItem }
 }
 
@@ -35,7 +36,9 @@ describe('usePlutoContentItem', () => {
 
     await vi.waitFor(() => expect(entry.pending.value).toBe(false))
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/_pluto/content/doc/1.start/a%20b')
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/_pluto/content/doc/1.start/a%20b'
+    )
   })
 
   it('fetches the item once when an id is given', async () => {
@@ -113,7 +116,9 @@ describe('usePlutoContentItem', () => {
     fetchMock.mockResolvedValueOnce(undefined)
     await entry.remove()
 
-    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/_pluto/content/post/1', { method: 'DELETE' })
+    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/_pluto/content/post/1', {
+      method: 'DELETE',
+    })
   })
 
   it('remove() rejects without calling $fetch when there is no id yet', async () => {

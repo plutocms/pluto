@@ -47,7 +47,8 @@ export interface PlutoNavbarLinkAction extends PlutoEntry {
   target?: string
 }
 
-export type PlutoNavbarAction = PlutoNavbarComponentAction | PlutoNavbarLinkAction
+export type PlutoNavbarAction =
+  PlutoNavbarComponentAction | PlutoNavbarLinkAction
 
 export interface PlutoAdminPage extends PlutoEntry {
   /** The route Nuxt already created from a file. This registry only adds metadata. */
@@ -261,9 +262,9 @@ export interface PlutoAuthDriver extends PlutoEntry {
   /** Key-or-literal. */
   signInDescription?: string
   links?: {
- signUp?: string
-forgotPassword?: string
-}
+    signUp?: string
+    forgotPassword?: string
+  }
   /** Paths that need no sign-in. '/admin/login' is always one. */
   publicPaths?: Array<string | PlutoAuthPublicPath>
   /**
@@ -273,7 +274,9 @@ forgotPassword?: string
    * check returns must handle itself: core does not run the check again on it
    * when it equals the current path. It must never reject.
    */
-  guard?: (to: PlutoAuthGuardTarget) => string | undefined | void | Promise<string | undefined | void>
+  guard?: (
+    to: PlutoAuthGuardTarget
+  ) => string | undefined | void | Promise<string | undefined | void>
 }
 
 /** The route facts that the driver's `guard` gets. */

@@ -47,7 +47,9 @@ describe('manifestAppName', () => {
   })
 
   it('keeps the name at 34 characters or less', () => {
-    const name = manifestAppName('A very long site name that goes on and on and on')
+    const name = manifestAppName(
+      'A very long site name that goes on and on and on'
+    )
 
     expect(name.length).toBeLessThanOrEqual(34)
     expect(name.endsWith(' CMS')).toBe(true)
@@ -56,7 +58,10 @@ describe('manifestAppName', () => {
 
 describe('buildAppManifest', () => {
   it('builds the manifest for a production origin', () => {
-    const manifest = buildAppManifest({ siteName: 'Acme', origin: 'https://acme.com/' })
+    const manifest = buildAppManifest({
+      siteName: 'Acme',
+      origin: 'https://acme.com/',
+    })
 
     expect(manifest).toEqual({
       name: 'Acme CMS',
@@ -68,17 +73,30 @@ describe('buildAppManifest', () => {
         'http://localhost:3000/api/_pluto/auth/github/callback',
       ],
       public: false,
-      default_permissions: { contents: 'write', metadata: 'read', checks: 'read', statuses: 'read', deployments: 'read' },
+      default_permissions: {
+        contents: 'write',
+        metadata: 'read',
+        checks: 'read',
+        statuses: 'read',
+        deployments: 'read',
+      },
       default_events: [],
       request_oauth_on_install: false,
     })
   })
 
   it('adds no second callback URL for a local origin', () => {
-    const manifest = buildAppManifest({ siteName: 'Acme', origin: 'http://localhost:3140' })
+    const manifest = buildAppManifest({
+      siteName: 'Acme',
+      origin: 'http://localhost:3140',
+    })
 
-    expect(manifest.callback_urls).toEqual(['http://localhost:3140/api/_pluto/auth/github/callback'])
-    expect(manifest.redirect_url).toBe('http://localhost:3140/api/_pluto/github/setup/callback')
+    expect(manifest.callback_urls).toEqual([
+      'http://localhost:3140/api/_pluto/auth/github/callback',
+    ])
+    expect(manifest.redirect_url).toBe(
+      'http://localhost:3140/api/_pluto/github/setup/callback'
+    )
   })
 })
 
@@ -95,29 +113,61 @@ describe('isLocalOrigin', () => {
 
 describe('manifestFormAction', () => {
   it('posts to the personal page for a user', () => {
-    expect(manifestFormAction({ webBase: 'https://github.com', owner: 'ada', ownerType: 'User', state: 'abc' }))
-      .toBe('https://github.com/settings/apps/new?state=abc')
+    expect(
+      manifestFormAction({
+        webBase: 'https://github.com',
+        owner: 'ada',
+        ownerType: 'User',
+        state: 'abc',
+      })
+    ).toBe('https://github.com/settings/apps/new?state=abc')
   })
 
   it('posts to the organization page for an organization', () => {
-    expect(manifestFormAction({ webBase: 'https://github.com', owner: 'acme', ownerType: 'Organization', state: 'a_b-c' }))
-      .toBe('https://github.com/organizations/acme/settings/apps/new?state=a_b-c')
+    expect(
+      manifestFormAction({
+        webBase: 'https://github.com',
+        owner: 'acme',
+        ownerType: 'Organization',
+        state: 'a_b-c',
+      })
+    ).toBe(
+      'https://github.com/organizations/acme/settings/apps/new?state=a_b-c'
+    )
   })
 
   it('uses the personal page when the owner is unknown', () => {
-    expect(manifestFormAction({ webBase: 'https://github.com', state: 's' })).toBe('https://github.com/settings/apps/new?state=s')
-    expect(manifestFormAction({ webBase: 'https://github.com', ownerType: 'Organization', state: 's' })).toBe('https://github.com/settings/apps/new?state=s')
+    expect(
+      manifestFormAction({ webBase: 'https://github.com', state: 's' })
+    ).toBe('https://github.com/settings/apps/new?state=s')
+    expect(
+      manifestFormAction({
+        webBase: 'https://github.com',
+        ownerType: 'Organization',
+        state: 's',
+      })
+    ).toBe('https://github.com/settings/apps/new?state=s')
   })
 
   it('uses the host of GitHub Enterprise and encodes the values', () => {
-    expect(manifestFormAction({ webBase: 'https://ghe.example.com/', owner: 'a b', ownerType: 'Organization', state: 'x&y' }))
-      .toBe('https://ghe.example.com/organizations/a%20b/settings/apps/new?state=x%26y')
+    expect(
+      manifestFormAction({
+        webBase: 'https://ghe.example.com/',
+        owner: 'a b',
+        ownerType: 'Organization',
+        state: 'x&y',
+      })
+    ).toBe(
+      'https://ghe.example.com/organizations/a%20b/settings/apps/new?state=x%26y'
+    )
   })
 })
 
 describe('small helpers', () => {
   it('builds the install URL', () => {
-    expect(installUrl('https://github.com', 'acme-cms')).toBe('https://github.com/apps/acme-cms/installations/new')
+    expect(installUrl('https://github.com', 'acme-cms')).toBe(
+      'https://github.com/apps/acme-cms/installations/new'
+    )
   })
 
   it('reads the repo owner', () => {
@@ -175,7 +225,9 @@ describe('buildEnvEntries and formatEnvBlock', () => {
   })
 
   it('leaves out the session password when the site has one', () => {
-    expect(buildEnvEntries(app).map(([key]) => key)).not.toContain('NUXT_PLUTO_GITHUB_SESSION_PASSWORD')
+    expect(buildEnvEntries(app).map(([key]) => key)).not.toContain(
+      'NUXT_PLUTO_GITHUB_SESSION_PASSWORD'
+    )
   })
 
   it('formats one KEY=value line for each entry', () => {
@@ -190,7 +242,10 @@ describe('buildEnvEntries and formatEnvBlock', () => {
 })
 
 describe('updateEnvText', () => {
-  const entries: Array<[string, string]> = [['A', '1'], ['B', '2']]
+  const entries: Array<[string, string]> = [
+    ['A', '1'],
+    ['B', '2'],
+  ]
 
   it('writes the keys into an empty file', () => {
     expect(updateEnvText('', entries)).toBe('A=1\nB=2\n')
@@ -199,7 +254,9 @@ describe('updateEnvText', () => {
   it('replaces a key that exists in its place and appends the others', () => {
     const text = '# site\nOTHER=x\nA=old\n\nLAST=y\n'
 
-    expect(updateEnvText(text, entries)).toBe('# site\nOTHER=x\nA=1\n\nLAST=y\nB=2\n')
+    expect(updateEnvText(text, entries)).toBe(
+      '# site\nOTHER=x\nA=1\n\nLAST=y\nB=2\n'
+    )
   })
 
   it('keeps the other lines and their order', () => {
@@ -209,7 +266,9 @@ describe('updateEnvText', () => {
   })
 
   it('handles export, spaces and a quoted value', () => {
-    expect(updateEnvText('export A = "old"\nB= \'old\'\n', entries)).toBe('A=1\nB=2\n')
+    expect(updateEnvText('export A = "old"\nB= \'old\'\n', entries)).toBe(
+      'A=1\nB=2\n'
+    )
   })
 
   it('replaces a quoted value that spans lines', () => {
@@ -219,7 +278,9 @@ describe('updateEnvText', () => {
   })
 
   it('keeps a CRLF file as CRLF', () => {
-    expect(updateEnvText('KEEP=1\r\nA=old\r\n', entries)).toBe('KEEP=1\r\nA=1\r\nB=2\r\n')
+    expect(updateEnvText('KEEP=1\r\nA=old\r\n', entries)).toBe(
+      'KEEP=1\r\nA=1\r\nB=2\r\n'
+    )
   })
 
   it('drops a repeated key', () => {
@@ -227,7 +288,9 @@ describe('updateEnvText', () => {
   })
 
   it('does not touch a key that only starts with the same letters', () => {
-    expect(updateEnvText('AB=1\n#A=1\n', [['A', '9']])).toBe('AB=1\n#A=1\nA=9\n')
+    expect(updateEnvText('AB=1\n#A=1\n', [['A', '9']])).toBe(
+      'AB=1\n#A=1\nA=9\n'
+    )
   })
 
   it('is stable when it runs twice', () => {
@@ -253,14 +316,22 @@ describe('isEnvIgnored', () => {
 describe('isPrivateKeyReadable', () => {
   it('accepts the three formats', () => {
     expect(isPrivateKeyReadable(privateKey)).toBe(true)
-    expect(isPrivateKeyReadable(privateKey.trim().replaceAll('\n', '\\n'))).toBe(true)
-    expect(isPrivateKeyReadable(Buffer.from(privateKey).toString('base64'))).toBe(true)
+    expect(
+      isPrivateKeyReadable(privateKey.trim().replaceAll('\n', '\\n'))
+    ).toBe(true)
+    expect(
+      isPrivateKeyReadable(Buffer.from(privateKey).toString('base64'))
+    ).toBe(true)
   })
 
   it('refuses an empty value and a value that is not a key', () => {
     expect(isPrivateKeyReadable('')).toBe(false)
     expect(isPrivateKeyReadable('nope')).toBe(false)
-    expect(isPrivateKeyReadable('-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----')).toBe(false)
+    expect(
+      isPrivateKeyReadable(
+        '-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----'
+      )
+    ).toBe(false)
   })
 })
 
@@ -278,28 +349,47 @@ describe('computeSetupChecks', () => {
     const result = computeSetupChecks(ok)
 
     expect(result.ready).toBe(true)
-    expect(result.checks.map((check) => check.id)).toEqual(['repo', 'sessionPassword', 'appId', 'clientId', 'clientSecret', 'privateKey'])
+    expect(result.checks.map((check) => check.id)).toEqual([
+      'repo',
+      'sessionPassword',
+      'appId',
+      'clientId',
+      'clientSecret',
+      'privateKey',
+    ])
     expect(result.checks.every((check) => check.ok)).toBe(true)
   })
 
   it('is not ready when a value is missing', () => {
-    for (const key of ['sessionPassword', 'appId', 'clientId', 'clientSecret', 'privateKey'] as const) {
+    for (const key of [
+      'sessionPassword',
+      'appId',
+      'clientId',
+      'clientSecret',
+      'privateKey',
+    ] as const) {
       const result = computeSetupChecks({ ...ok, [key]: '' })
 
       expect(result.ready, key).toBe(false)
-      expect(result.checks.find((check) => check.id === key)?.ok, key).toBe(false)
+      expect(result.checks.find((check) => check.id === key)?.ok, key).toBe(
+        false
+      )
     }
   })
 
   it('needs a session password of 32 characters', () => {
-    expect(computeSetupChecks({ ...ok, sessionPassword: 's'.repeat(31) }).ready).toBe(false)
+    expect(
+      computeSetupChecks({ ...ok, sessionPassword: 's'.repeat(31) }).ready
+    ).toBe(false)
   })
 
   it('needs a key that parses', () => {
     const result = computeSetupChecks({ ...ok, privateKey: 'garbage' })
 
     expect(result.ready).toBe(false)
-    expect(result.checks.find((check) => check.id === 'privateKey')?.ok).toBe(false)
+    expect(result.checks.find((check) => check.id === 'privateKey')?.ok).toBe(
+      false
+    )
   })
 
   it('does not count the repo in ready, but it shows in the checks', () => {
@@ -310,9 +400,15 @@ describe('computeSetupChecks', () => {
   })
 
   it('adds the installation check only when the caller sets it', () => {
-    expect(computeSetupChecks({ ...ok, installed: false }).checks.at(-1)).toEqual({ id: 'installation', ok: false })
-    expect(computeSetupChecks({ ...ok, installed: true }).checks.at(-1)).toEqual({ id: 'installation', ok: true })
-    expect(computeSetupChecks(ok).checks.some((check) => check.id === 'installation')).toBe(false)
+    expect(
+      computeSetupChecks({ ...ok, installed: false }).checks.at(-1)
+    ).toEqual({ id: 'installation', ok: false })
+    expect(
+      computeSetupChecks({ ...ok, installed: true }).checks.at(-1)
+    ).toEqual({ id: 'installation', ok: true })
+    expect(
+      computeSetupChecks(ok).checks.some((check) => check.id === 'installation')
+    ).toBe(false)
   })
 
   it('holds booleans and ids only, never a value', () => {
@@ -327,9 +423,17 @@ describe('computeSetupChecks', () => {
 
 describe('needsInstallationCheck', () => {
   it('needs a repo, an app id and a key that parses', () => {
-    expect(needsInstallationCheck({ repo: 'acme/site', appId: '1', privateKey })).toBe(true)
-    expect(needsInstallationCheck({ repo: '', appId: '1', privateKey })).toBe(false)
-    expect(needsInstallationCheck({ repo: 'acme/site', appId: '', privateKey })).toBe(false)
-    expect(needsInstallationCheck({ repo: 'acme/site', appId: '1', privateKey: 'x' })).toBe(false)
+    expect(
+      needsInstallationCheck({ repo: 'acme/site', appId: '1', privateKey })
+    ).toBe(true)
+    expect(needsInstallationCheck({ repo: '', appId: '1', privateKey })).toBe(
+      false
+    )
+    expect(
+      needsInstallationCheck({ repo: 'acme/site', appId: '', privateKey })
+    ).toBe(false)
+    expect(
+      needsInstallationCheck({ repo: 'acme/site', appId: '1', privateKey: 'x' })
+    ).toBe(false)
   })
 })

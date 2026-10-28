@@ -1,7 +1,10 @@
 // Pure rules of the admin shell: paths, redirects, the route guard, and the
 // navbar visibility. This file lives under `internal/` so it stays out of
 // auto-import and runs under plain Vitest. It imports no Nuxt API.
-import type { PlutoAuthPublicPath, PlutoAuthUser } from '../../../shared/types/registry'
+import type {
+  PlutoAuthPublicPath,
+  PlutoAuthUser,
+} from '../../../shared/types/registry'
 
 export const ADMIN_LOGIN_PATH = '/admin/login'
 export const ADMIN_HOME_PATH = '/admin/home'
@@ -25,7 +28,9 @@ function trimSlash(path: string): string {
 export function normalizePublicPaths(
   paths: Array<string | PlutoAuthPublicPath> | undefined
 ): PlutoAuthPublicPath[] {
-  const result: PlutoAuthPublicPath[] = [{ path: ADMIN_LOGIN_PATH, signedIn: 'redirect' }]
+  const result: PlutoAuthPublicPath[] = [
+    { path: ADMIN_LOGIN_PATH, signedIn: 'redirect' },
+  ]
   for (const entry of paths ?? []) {
     const item = typeof entry === 'string' ? { path: entry } : entry
     const path = trimSlash(item.path)
@@ -43,7 +48,9 @@ export function matchPublicPath(
   publicPaths: PlutoAuthPublicPath[]
 ): PlutoAuthPublicPath | undefined {
   const clean = trimSlash(path)
-  return publicPaths.find((entry) => clean === entry.path || clean.startsWith(`${entry.path}/`))
+  return publicPaths.find(
+    (entry) => clean === entry.path || clean.startsWith(`${entry.path}/`)
+  )
 }
 
 function hasControlCharacter(text: string): boolean {
@@ -63,7 +70,11 @@ export function safeRedirect(value: unknown): string {
   if (typeof value !== 'string' || value === '' || value.length > 2048) {
     return ''
   }
-  if (!value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+  if (
+    !value.startsWith('/') ||
+    value.startsWith('//') ||
+    value.includes('\\')
+  ) {
     return ''
   }
   if (hasControlCharacter(value)) {
@@ -79,12 +90,14 @@ export function safeRedirect(value: unknown): string {
   return value
 }
 
-export type GuardDecision = {
- action: 'allow'
-} | {
- action: 'redirect'
-to: string
-}
+export type GuardDecision =
+  | {
+      action: 'allow'
+    }
+  | {
+      action: 'redirect'
+      to: string
+    }
 
 export interface GuardInput {
   path: string
@@ -117,9 +130,14 @@ export function guardDecision(input: GuardInput): GuardDecision {
     }
     const target = safeRedirect(firstString(query.redirect))
     // A target that is a public auth path which also redirects would loop.
-    const targetEntry = target ? matchPublicPath(new URL(target, FAKE_ORIGIN).pathname, publicPaths) : undefined
+    const targetEntry = target
+      ? matchPublicPath(new URL(target, FAKE_ORIGIN).pathname, publicPaths)
+      : undefined
     const loops = targetEntry !== undefined && targetEntry.signedIn !== 'allow'
-    return { action: 'redirect', to: target && !loops ? target : ADMIN_HOME_PATH }
+    return {
+      action: 'redirect',
+      to: target && !loops ? target : ADMIN_HOME_PATH,
+    }
   }
 
   if (loggedIn) {
@@ -128,7 +146,9 @@ export function guardDecision(input: GuardInput): GuardDecision {
   const wanted = safeRedirect(fullPath)
   return {
     action: 'redirect',
-    to: wanted ? `${ADMIN_LOGIN_PATH}?redirect=${encodeURIComponent(wanted)}` : ADMIN_LOGIN_PATH,
+    to: wanted
+      ? `${ADMIN_LOGIN_PATH}?redirect=${encodeURIComponent(wanted)}`
+      : ADMIN_LOGIN_PATH,
   }
 }
 
@@ -137,7 +157,10 @@ export function guardDecision(input: GuardInput): GuardDecision {
  * permissions driver every signed-in user counts as staff, like `can()` that
  * fails open. The server RLS uses the same meaning.
  */
-export function isStaff(hasDriver: boolean, granted: readonly string[]): boolean {
+export function isStaff(
+  hasDriver: boolean,
+  granted: readonly string[]
+): boolean {
   return !hasDriver || granted.length > 0
 }
 
@@ -167,7 +190,8 @@ export interface StaffInput {
  *   free of a redirect loop.
  */
 export function staffDecision(input: StaffInput): GuardDecision {
-  const { path, fullPath, query, publicPaths, hasDriver, granted, loadFailed } = input
+  const { path, fullPath, query, publicPaths, hasDriver, granted, loadFailed } =
+    input
   if (!isAdminPath(path) || matchPublicPath(path, publicPaths)) {
     return { action: 'allow' }
   }
@@ -180,8 +204,16 @@ export function staffDecision(input: StaffInput): GuardDecision {
       return { action: 'allow' }
     }
     const target = safeRedirect(firstString(query.redirect))
-    const targetPath = target ? trimSlash(new URL(target, FAKE_ORIGIN).pathname) : ''
-    return { action: 'redirect', to: target && targetPath !== ADMIN_NO_ACCESS_PATH ? target : ADMIN_HOME_PATH }
+    const targetPath = target
+      ? trimSlash(new URL(target, FAKE_ORIGIN).pathname)
+      : ''
+    return {
+      action: 'redirect',
+      to:
+        target && targetPath !== ADMIN_NO_ACCESS_PATH
+          ? target
+          : ADMIN_HOME_PATH,
+    }
   }
 
   if (onNoAccess) {
@@ -195,7 +227,12 @@ export function staffDecision(input: StaffInput): GuardDecision {
   if (wanted) {
     params.push(`redirect=${encodeURIComponent(wanted)}`)
   }
-  return { action: 'redirect', to: params.length ? `${ADMIN_NO_ACCESS_PATH}?${params.join('&')}` : ADMIN_NO_ACCESS_PATH }
+  return {
+    action: 'redirect',
+    to: params.length
+      ? `${ADMIN_NO_ACCESS_PATH}?${params.join('&')}`
+      : ADMIN_NO_ACCESS_PATH,
+  }
 }
 
 export interface NavbarVisibleInput {
@@ -237,7 +274,15 @@ export const ADMIN_BAR_HINT_COOKIE = 'pluto-admin-bar'
  * passes `hiddenByRoute`. This file stays free of Nuxt imports.
  */
 export function navbarVisible(input: NavbarVisibleInput): boolean {
-  const { path, loggedIn, isStaff: isStaffUser, capabilitiesKnown, publicPaths, hiddenByRoute, hint } = input
+  const {
+    path,
+    loggedIn,
+    isStaff: isStaffUser,
+    capabilitiesKnown,
+    publicPaths,
+    hiddenByRoute,
+    hint,
+  } = input
   if (hiddenByRoute) {
     return false
   }
@@ -258,12 +303,18 @@ export function navbarVisible(input: NavbarVisibleInput): boolean {
 }
 
 /** The name shown for a user: name, else username, else the fallback. */
-export function displayName(user: PlutoAuthUser | null | undefined, fallback: string): string {
+export function displayName(
+  user: PlutoAuthUser | null | undefined,
+  fallback: string
+): string {
   return user?.name?.trim() || user?.username?.trim() || fallback
 }
 
 /** The first word of the display name. It shows next to the avatar. */
-export function shortName(user: PlutoAuthUser | null | undefined, fallback: string): string {
+export function shortName(
+  user: PlutoAuthUser | null | undefined,
+  fallback: string
+): string {
   const name = displayName(user, fallback)
   return name.split(/\s+/)[0] || name
 }
