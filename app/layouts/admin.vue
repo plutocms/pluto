@@ -50,7 +50,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         button has no dashboard context and its click does nothing.
       -->
       <template #header="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" variant="soft" :class="collapsed ? undefined : 'w-full'" />
+        <UDashboardSearchButton :collapsed="collapsed" :class="collapsed ? undefined : 'w-full'" variant="soft" />
       </template>
 
       <!--
