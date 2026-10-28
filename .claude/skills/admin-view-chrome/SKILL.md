@@ -316,7 +316,7 @@ of the admin layout panel unless it holds a `PlutoViewAdminPanel` (`data-pluto-v
 scrolls in its own region.
 
 The splitter handles are a 1px line. A `::before` 2.5px wider on each side is the 6px grab area
-and the 6px primary bar, which fades in after 300ms of hover and shows at once while dragging.
+and the 6px haze-400 bar, which fades in after 300ms of hover and shows at once while dragging.
 
 ## The canvas layout
 
