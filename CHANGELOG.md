@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.30.0](https://github.com/plutocms/pluto/compare/v0.29.0...v0.30.0) (2026-10-28)
+
+
+### Features
+
+* **admin:** Pluto UI tokens, the Pluto admin theme, white label and admin UI fixes ([#243](https://github.com/plutocms/pluto/issues/243)) ([ecc48cd](https://github.com/plutocms/pluto/commit/ecc48cd205c496fab9fe116006b769980b819cef))
+
 ## [0.29.0](https://github.com/plutocms/pluto/compare/v0.28.0...v0.29.0) (2026-10-28)
 
 
