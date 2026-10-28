@@ -74,6 +74,10 @@ Nuxt UI's `UDashboardNavbar` with one fix — `:toggle="false"` — because the 
 toggle button controls the app-level LEFT sidebar through a global hook. A second, page-local
 toolbar must never render that button, or it would open and close the wrong sidebar.
 
+The app config gives every button `size: 'xl'`. The toolbar row is `h-12`, so it wraps its content
+in `UTheme :props="{ button: { size: 'md' } }"`: every `UButton` in it (the page buttons and the
+toolbar items of a layer) defaults to `md`. A button with its own `size` keeps it.
+
 Props: `title?: string`, `icon?: string`, `backTo?: string` (renders a back arrow button, with an `aria-label` and a tooltip "Back", before
 the title).
 

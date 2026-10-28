@@ -77,8 +77,9 @@ policies shared by every project here.
   session, the auth driver for the core admin shell, and the stores, adapter and post type (public on the public API).
   It also has a Markdown editor with a Visual/Source switch (`PlutoMarkdownSource`, `findUnsafeMarkdown`,
   the `editor` field option), the post editor (`widget: 'post-canvas'`: the canvas layout, an outline
-  of the headings, a Visual mode and a Markdown mode with a preview of the site at `/_pluto/post-preview`,
-  which an app replaces with `components/PlutoPostPreview.vue`), nested content types
+  of the headings, a compose panel with a Visual mode and a Markdown mode (`PlutoMarkdownCodeEditor`,
+  CodeMirror with syntax colors), next to a preview of the site at `/_pluto/post-preview` with a
+  "Preview" badge, which an app replaces with `components/PlutoPostPreview.vue`), nested content types
   (`files: { nested, exclude, frontmatter }`, ids that
   are paths, one-commit moves, `listTree` in all stores, `compareContentIds`), no commit for an
   unchanged file, push capabilities for every registered type, the public answer of a Markdown item

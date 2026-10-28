@@ -618,19 +618,41 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 - `PlutoFieldPostCanvas.vue` is the widget. Core registers it by name only
   (`widget: 'post-canvas'`), so it never competes for `richtext`. Outside a canvas form it shows
   the `richtext` widget as a normal field.
+- The canvas is one `USplitter` in both modes (stacked under `lg`): the compose panel and the
+  preview. The cookie `pluto-post-split` keeps the sizes. The compose panel has a footer with
+  the Visual/Markdown switch (`PlutoPostModeSwitch.vue`).
 - **Visual** mode shows the `richtext` widget of the app
   (`usePlutoContentFieldWidget({ ...field, widget: undefined })`) with the `canvas` prop. A
-  `richtext` widget of a layer must accept `canvas`: no label, and a column that fills the canvas.
-- **Markdown** mode shows `PlutoMarkdownSource` (`fill`) and the preview side by side in a
-  `USplitter` (stacked under `lg`). The cookie `pluto-post-split` keeps the sizes.
+  `richtext` widget of a layer must accept `canvas`: no label, and a full-height box that
+  scrolls its own text (`p-4` around it, like the Markdown mode).
+- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`fill`), loaded on demand. See "Markdown
+  code editor" below.
 - Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
   widget. The cookie `pluto-post-editor-mode` keeps the last mode.
 - The left panel (`PlutoPostOutline.vue`) lists the headings (`plutoMarkdownHeadings(text)` in
   `shared/utils/markdown-headings.ts`: ATX and setext headings, not in a code fence, in the order
-  of the rendered `h1` to `h6`). A click goes to the heading: in Markdown mode the caret goes to
-  its line and the preview scrolls to it; in Visual mode the editor scrolls to the nth heading
-  of `.ProseMirror`. The footer has the Visual/Markdown switch.
+  of the rendered `h1` to `h6`). A click scrolls the preview to the heading, and goes to it in the
+  editor: in Markdown mode the caret goes to its line (`goToLine`); in Visual mode the editor
+  scrolls to the nth heading of `.ProseMirror`.
 - The other fields are in the right panel.
+
+#### Markdown code editor
+
+`app/components/Pluto/Markdown/PlutoMarkdownCodeEditor.vue` is the Markdown editor on CodeMirror 6
+(it came from the nuxt-content layer, which uses it too). The text shows its format as the author
+types, and the marks stay visible, dimmed. MDC lines (components, slots, YAML props) and code
+blocks get their own color (`mdcLineKinds`, `shared/utils/mdc-lines.ts`). A toolbar has the quick
+formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts`, tested in
+`test/markdown-format.test.ts`). It has search and history.
+
+- Props: `modelValue`, `disabled`, `placeholder`, `ariaLabel`, `fill`, `minLines` (18). Slots:
+  `toolbar` (slot props `insert`, `focus`) and `toolbar-end`. Exposed: `insert`, `focus`,
+  `reveal(start, end)` and `goToLine(line)`.
+- It uses `markdownLanguage`, not `markdown()`, which would add the HTML, CSS and JavaScript
+  languages.
+- Load it on demand (`defineAsyncComponent`, or `LazyPlutoMarkdownCodeEditor`): CodeMirror is
+  about 110 KB gzip.
+- i18n keys: `pluto.markdown.formatting`, `pluto.markdown.format.*`.
 
 #### Preview
 
@@ -648,13 +670,15 @@ that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
   (`contentType`, `item` without the body, `markdown`) and `scroll-to` (a heading index). The
   frame sends `ready`. Both sides accept a message only from the same origin, and only from the
   parent window or the frame.
+- A "Preview" badge (`pluto.post.previewBadge`) sits at the top right of the frame. It fades out
+  while the pointer is on the preview (`group-hover`), so it never hides the page.
 - The page shows `PlutoPostPreview` with the props `contentType`, `item` and `html`. The default
   (`app/components/Pluto/Post/PlutoPostPreview.vue`) shows the title, the date, the excerpt and
   the body. An app replaces it with its own `components/PlutoPostPreview.vue` with the same
   props, to use the layout of its post page. Put `data-pluto-post-body` on the element of the
   body: `scroll-to` finds the headings in it. The blog templates have one.
 - i18n keys: `pluto.post.*` (`outline`, `outlineEmpty`, `outlineEmptyHint`, `mode`, `visual`,
-  `markdown`, `visualBlocked`, `previewTitle`, `previewLoading`, `previewFailedTitle`,
+  `markdown`, `visualBlocked`, `previewTitle`, `previewBadge`, `previewLoading`, `previewFailedTitle`,
   `previewFailed`).
 
 Limits of the editor:
