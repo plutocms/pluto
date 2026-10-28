@@ -49,7 +49,7 @@
     "@nuxt/ui": "^4.12.0",
     "@plutocms/utils": "^0.3.0",
     "@tanstack/charts": "^1.1.0",
-    "@vueuse/nuxt": "^14.4.0",
+    "@vueuse/nuxt": "^15.0.0",
     "marked": "^17.0.3",
     "reka-ui": "^2.11.0",
     "tailwind-merge": "^3.7.0",
