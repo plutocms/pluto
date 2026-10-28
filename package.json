@@ -50,7 +50,7 @@
     "@plutocms/utils": "^0.3.0",
     "@tanstack/charts": "^1.1.0",
     "@vueuse/nuxt": "^14.4.0",
-    "marked": "^17.0.3",
+    "marked": "^18.1.1",
     "reka-ui": "^2.11.0",
     "tailwind-merge": "^3.7.0",
     "ultrahtml": "^1.7.0",
