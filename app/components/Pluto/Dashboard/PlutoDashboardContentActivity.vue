@@ -24,9 +24,15 @@ const rows = computed(() => {
   if (!first) {
     return []
   }
+  const last = first.points.length - 1
   return first.points.map((point, index) => {
+    // The last point is the current week, so far. Its Monday is not today, so it
+    // gets its own label.
     const row: Record<string, string | number> = {
-      week: weekLabel(point.start),
+      week:
+        index === last
+          ? t('pluto.dashboard.activity.thisWeek')
+          : weekLabel(point.start),
     }
     for (const entry of series.value) {
       row[entry.name] = entry.points[index]?.count ?? 0

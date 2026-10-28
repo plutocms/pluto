@@ -140,7 +140,8 @@
         "unavailableHint": "The content backend cannot count items by creation date yet.",
         "none": "Nothing created in the last {weeks} weeks",
         "noneHint": "New items show up here week by week.",
-        "weekOf": "Week of"
+        "weekOf": "Week of",
+        "thisWeek": "This week"
       },
       "quickActions": {
         "title": "Quick actions",

@@ -140,7 +140,8 @@
         "unavailableHint": "O backend de conteúdo ainda não consegue contar itens pela data de criação.",
         "none": "Nada criado nas últimas {weeks} semanas",
         "noneHint": "Os novos itens aparecem aqui semana a semana.",
-        "weekOf": "Semana de"
+        "weekOf": "Semana de",
+        "thisWeek": "Esta semana"
       },
       "quickActions": {
         "title": "Ações rápidas",
