@@ -639,7 +639,9 @@ with the CSS of the site. It is not under `/_pluto/preview`, because the nuxt-co
 that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
 
 - `PlutoPostPreviewFrame.vue` sends the text to the frame with `postMessage`. The frame renders it
-  with `renderMarkdown` (`shared/markdown/render.ts`: marked, MDC stripped, the allowlist
+  with `plutoPostPreviewHtml` (an auto-import; app code must not import `shared/markdown/` with a
+  relative path, because the server build of pluto keeps its own `shared/` external), which calls
+  `renderMarkdown` (`shared/markdown/render.ts`: marked, MDC stripped, the allowlist
   sanitizer), the same code as the public API. The render waits 150 ms after a change. A frame
   that does not answer in 12 s shows an error with a retry.
 - The protocol is in `shared/utils/post-preview-protocol.ts`. The parent sends `render`

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { renderMarkdown } from '../shared/markdown/render'
+import { plutoPostPreviewHtml } from '../shared/utils/post-preview-html'
 import {
   isTrustedPlutoPostPreviewOrigin,
   parsePlutoPostPreviewMessage,
@@ -61,5 +63,13 @@ describe('post preview protocol', () => {
     expect(
       isTrustedPlutoPostPreviewOrigin('https://b.dev', 'https://a.dev')
     ).toBe(false)
+  })
+})
+
+describe('plutoPostPreviewHtml', () => {
+  it('renders the same sanitized HTML as the public API', () => {
+    const markdown = '## Title\n\n<script>alert(1)</script>\n\nText'
+    expect(plutoPostPreviewHtml(markdown)).toBe(renderMarkdown(markdown))
+    expect(plutoPostPreviewHtml(markdown)).not.toContain('<script')
   })
 })

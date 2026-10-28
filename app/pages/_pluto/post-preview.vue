@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { renderMarkdown } from '../../../shared/markdown/render'
-
 // The post preview: the post editor (`post-canvas`) shows this page in an iframe. It is
 // a page of the app, outside the admin, so the site CSS and fonts apply. It fetches
 // nothing. The editor sends the item and the Markdown; the page renders the Markdown
@@ -39,7 +37,7 @@ function onMessage(event: MessageEvent) {
   if (message?.type === 'render') {
     contentType.value = message.contentType
     item.value = message.item
-    html.value = renderMarkdown(message.markdown)
+    html.value = plutoPostPreviewHtml(message.markdown)
     rendered.value = true
   } else if (message?.type === 'scroll-to') {
     scrollToHeading(message.heading)
