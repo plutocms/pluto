@@ -18,8 +18,9 @@ const props = defineProps<{
   modelValue: unknown
   disabled?: boolean
   /**
-   * The post editor (`post-canvas`) shows this widget as its Visual mode. It fills the canvas:
-   * no label, no mode switch (the post editor has its own), a centered writing column.
+   * The post editor (`post-canvas`) shows this widget as its Visual mode. It fills the compose
+   * panel: no label, no mode switch (the post editor has its own), a full-height box that
+   * scrolls its own text, like the Markdown mode.
    */
   canvas?: boolean
 }>()
@@ -60,7 +61,7 @@ const frame = computed(() =>
   props.canvas
     ? {
         is: 'div',
-        attrs: { class: 'mx-auto w-full max-w-3xl px-4 py-6 lg:px-8 lg:py-10' },
+        attrs: { class: 'flex h-full min-h-0 flex-col p-4' },
       }
     : {
         is: UFormField,
@@ -135,21 +136,31 @@ const items = usePlutoMarkdownToolbar({ link: true })
       :placeholder="placeholder"
       :image="false"
       :mention="false"
-      :ui="{
-        root: 'w-full',
-        content: 'min-h-96 cursor-text',
-        base: 'min-h-96 px-4 py-3 sm:px-4',
-      }"
-      :class="canvas ? undefined : 'border-default rounded-md border'"
+      :ui="
+        canvas
+          ? {
+              root: 'flex min-h-0 w-full flex-1 flex-col',
+              content: 'min-h-0 flex-1 cursor-text overflow-y-auto',
+              base: 'min-h-full px-4 py-3 sm:px-4',
+            }
+          : {
+              root: 'w-full',
+              content: 'min-h-96 cursor-text',
+              base: 'min-h-96 px-4 py-3 sm:px-4',
+            }
+      "
       content-type="markdown"
-      class="bg-default w-full"
+      class="border-default bg-default w-full rounded-md border"
       @update:model-value="emit('update:modelValue', $event as string)"
     >
       <UEditorToolbar
         :editor="editor"
         :items="items"
         :aria-label="t('pluto.github.editor.toolbar')"
-        class="border-default bg-default sticky top-0 z-10 overflow-x-auto rounded-t-md border-b px-2 py-1.5"
+        :class="
+          canvas ? 'shrink-0 flex-wrap' : 'sticky top-0 z-10 overflow-x-auto'
+        "
+        class="border-default bg-default rounded-t-md border-b px-2 py-1.5"
       >
         <template #link>
           <PlutoGithubEditorLink :editor="editor" />

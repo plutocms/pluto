@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import PlutoMarkdownSource from '../Github/PlutoMarkdownSource.vue'
+import type PlutoMarkdownCodeEditor from '../Markdown/PlutoMarkdownCodeEditor.vue'
+import PlutoPostModeSwitch from './PlutoPostModeSwitch.vue'
 import PlutoPostOutline from './PlutoPostOutline.vue'
 import PlutoPostPreviewFrame from './PlutoPostPreviewFrame.vue'
 
 // The `post-canvas` widget: the body of a post (a Markdown `richtext` field) in the
 // canvas layout of the content form, like the page editor of the nuxt-content layer.
 //
+// The canvas is a split: the compose panel on the left, the live preview of the site
+// on the right. The compose panel shows one of two editors, and the switch in its
+// footer picks it:
+//
 // - Visual: the rich text widget that the app has for `richtext` (the GitHub CMS
 //   Markdown editor, or the editor of a layer), with `canvas`, so it fills the
 //   height and has no label.
-// - Markdown: the Markdown source and the live preview of the site, side by side.
-// - The left panel: the outline (the headings) and the mode switch.
+// - Markdown: `PlutoMarkdownCodeEditor` (CodeMirror, with syntax colors). It loads
+//   when the author opens Markdown mode.
+//
+// The left panel of the form shows the outline (the headings).
 //
 // Markdown that the visual editor cannot keep (`findUnsafeMarkdown`) turns Visual
 // off. A cookie keeps the last mode. Outside a canvas form it shows the visual widget.
@@ -23,6 +30,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
+
+const MarkdownEditor = defineAsyncComponent(
+  () => import('../Markdown/PlutoMarkdownCodeEditor.vue')
+)
 
 const { t } = usePlutoI18n()
 const form = usePlutoContentForm()
@@ -68,7 +79,7 @@ const contentType = computed(() => form?.type.value?.name ?? '')
 
 const visualEl = useTemplateRef<HTMLElement>('visual')
 const source =
-  useTemplateRef<InstanceType<typeof PlutoMarkdownSource>>('source')
+  useTemplateRef<InstanceType<typeof PlutoMarkdownCodeEditor>>('source')
 const preview =
   useTemplateRef<InstanceType<typeof PlutoPostPreviewFrame>>('preview')
 
@@ -78,9 +89,9 @@ function goToHeading(index: number) {
   if (!heading) {
     return
   }
+  preview.value?.scrollToHeading(index)
   if (mode.value === 'markdown') {
     source.value?.goToLine(heading.line)
-    preview.value?.scrollToHeading(index)
     return
   }
   const element = visualEl.value?.querySelectorAll(
@@ -89,7 +100,7 @@ function goToHeading(index: number) {
   element?.scrollIntoView({ block: 'start', behavior: 'smooth' })
 }
 
-// The split between the source and the preview. The cookie keeps the sizes.
+// The split between the compose panel and the preview. The cookie keeps the sizes.
 const split = useCookie<number[]>('pluto-post-split', {
   default: () => [50, 50],
   maxAge: 60 * 60 * 24 * 365,
@@ -98,8 +109,8 @@ const split = useCookie<number[]>('pluto-post-split', {
 const dragging = ref(false)
 const splitItems = computed(() => [
   {
-    id: 'source',
-    slot: 'source',
+    id: 'compose',
+    slot: 'compose',
     defaultSize: split.value[0] ?? 50,
     minSize: 25,
   },
@@ -124,35 +135,11 @@ function onLayout(sizes: number[]) {
         side="left"
         icon="i-lucide-list-tree"
       >
-        <PlutoPostOutline
-          :headings="headings"
-          :mode="mode"
-          :disabled="disabled"
-          :visual-blocked="visualBlocked || !visualWidget"
-          @select="goToHeading"
-          @update:mode="setMode"
-        />
+        <PlutoPostOutline :headings="headings" @select="goToHeading" />
       </PlutoContentCanvasPanel>
 
-      <!-- Visual: the rich text widget fills the canvas and scrolls its own content. -->
-      <div
-        v-if="mode === 'visual' && visualWidget"
-        ref="visual"
-        class="min-h-0 flex-1 overflow-y-auto"
-      >
-        <component
-          :is="visualWidget"
-          :field="visualField"
-          :model-value="value"
-          :disabled="disabled"
-          canvas
-          @update:model-value="emit('update:modelValue', $event)"
-        />
-      </div>
-
-      <!-- Markdown: the source and the preview of the site, side by side (stacked on a narrow screen). -->
+      <!-- The compose panel and the preview of the site, side by side (stacked on a narrow screen). -->
       <USplitter
-        v-else
         :items="splitItems"
         :orientation="isDesktop ? 'horizontal' : 'vertical'"
         :ui="{
@@ -163,19 +150,48 @@ function onLayout(sizes: number[]) {
         @layout="onLayout"
         @dragging="(_index: number, value: boolean) => (dragging = value)"
       >
-        <template #source>
-          <div class="size-full p-4">
-            <PlutoMarkdownSource
-              ref="source"
-              :model-value="value"
-              :disabled="disabled"
-              :placeholder="
-                field.placeholder ?? t('pluto.github.editor.placeholder')
-              "
-              :aria-label="field.label"
-              fill
-              @update:model-value="emit('update:modelValue', $event)"
-            />
+        <template #compose>
+          <div class="flex size-full min-h-0 flex-col">
+            <!-- Visual: the rich text widget scrolls its own content. -->
+            <div
+              v-if="mode === 'visual' && visualWidget"
+              ref="visual"
+              class="min-h-0 flex-1 overflow-y-auto"
+            >
+              <component
+                :is="visualWidget"
+                :field="visualField"
+                :model-value="value"
+                :disabled="disabled"
+                canvas
+                @update:model-value="emit('update:modelValue', $event)"
+              />
+            </div>
+
+            <div v-else class="min-h-0 flex-1 p-4">
+              <MarkdownEditor
+                ref="source"
+                :model-value="value"
+                :disabled="disabled"
+                :placeholder="
+                  field.placeholder ?? t('pluto.github.editor.placeholder')
+                "
+                :aria-label="field.label"
+                fill
+                @update:model-value="emit('update:modelValue', $event)"
+              />
+            </div>
+
+            <div
+              class="border-default flex h-12 shrink-0 items-center gap-2 border-t px-3"
+            >
+              <PlutoPostModeSwitch
+                :mode="mode"
+                :disabled="disabled"
+                :visual-blocked="visualBlocked || !visualWidget"
+                @update:mode="setMode"
+              />
+            </div>
           </div>
         </template>
 

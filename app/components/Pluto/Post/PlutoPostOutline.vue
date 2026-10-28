@@ -6,20 +6,14 @@ import {
   ScrollAreaViewport,
 } from 'reka-ui'
 
-// The left panel of the post editor: the outline of the post (its headings) and,
-// in the footer, the switch between the Visual and the Markdown editor. A click on
+// The left panel of the post editor: the outline of the post (its headings). A click on
 // a heading jumps to it in the editor and in the preview.
 const props = defineProps<{
   headings: PlutoMarkdownHeading[]
-  mode: 'visual' | 'markdown'
-  disabled?: boolean
-  /** The text has Markdown that the visual editor cannot keep: Visual is off. */
-  visualBlocked?: boolean
 }>()
 
 const emit = defineEmits<{
   select: [index: number]
-  'update:mode': [mode: 'visual' | 'markdown']
 }>()
 
 const { t } = usePlutoI18n()
@@ -28,12 +22,6 @@ const { t } = usePlutoI18n()
 const baseLevel = computed(() =>
   props.headings.reduce((min, heading) => Math.min(min, heading.level), 6)
 )
-
-function pick(mode: 'visual' | 'markdown') {
-  if (mode !== props.mode) {
-    emit('update:mode', mode)
-  }
-}
 </script>
 
 <template>
@@ -96,41 +84,5 @@ function pick(mode: 'visual' | 'markdown') {
         />
       </ScrollAreaScrollbar>
     </ScrollAreaRoot>
-
-    <div
-      class="border-default flex shrink-0 items-center gap-2 border-t px-3 py-2"
-    >
-      <div :aria-label="t('pluto.post.mode')" class="flex gap-1" role="group">
-        <UTooltip
-          :text="t('pluto.post.visualBlocked')"
-          :disabled="!visualBlocked"
-          :content="{ side: 'top' }"
-        >
-          <!-- A disabled button gets no pointer events, so the span carries the tooltip. -->
-          <span class="inline-flex">
-            <UButton
-              :variant="mode === 'visual' ? 'solid' : 'outline'"
-              :aria-pressed="mode === 'visual'"
-              :disabled="disabled || visualBlocked"
-              :label="t('pluto.post.visual')"
-              size="xs"
-              color="neutral"
-              icon="i-lucide-pen-line"
-              @click="pick('visual')"
-            />
-          </span>
-        </UTooltip>
-        <UButton
-          :variant="mode === 'markdown' ? 'solid' : 'outline'"
-          :aria-pressed="mode === 'markdown'"
-          :disabled="disabled"
-          :label="t('pluto.post.markdown')"
-          size="xs"
-          color="neutral"
-          icon="i-lucide-file-code"
-          @click="pick('markdown')"
-        />
-      </div>
-    </div>
   </div>
 </template>
