@@ -113,67 +113,6 @@ export function normalizeGithubDir(dir: string): string | undefined {
   return segments.join('/')
 }
 
-/** The secrets that had no `GITHUB_` part in their old name (`NUXT_PLUTO_CMS_SESSION_PASSWORD`). */
-const LEGACY_SECRETS_WITHOUT_GITHUB = new Set(['SESSION_PASSWORD', 'ALLOWED_USERS'])
-
-/**
- * The old name of an env var, before the CMS names became GitHub names (pluto 0.28). For example
- * `NUXT_PLUTO_GITHUB_APP_ID` was `NUXT_PLUTO_CMS_GITHUB_APP_ID`, and `PLUTO_GITHUB_REPO` was
- * `PLUTO_CMS_REPO`. Pluto still reads the old name when the new one is not set, and logs a
- * warning, so a deployed site keeps working until its host has the new names.
- */
-export function legacyGithubEnvName(name: string): string | undefined {
-  if (name.startsWith('NUXT_PLUTO_GITHUB_')) {
-    const rest = name.slice('NUXT_PLUTO_GITHUB_'.length)
-    return LEGACY_SECRETS_WITHOUT_GITHUB.has(rest) ? `NUXT_PLUTO_CMS_${rest}` : `NUXT_PLUTO_CMS_GITHUB_${rest}`
-  }
-  if (name.startsWith('PLUTO_GITHUB_')) {
-    return `PLUTO_CMS_${name.slice('PLUTO_GITHUB_'.length)}`
-  }
-  return undefined
-}
-
-/**
- * The secrets that are empty in the run-time config but set under their old env name. Returns the
- * values by config key (`appId`) and the old names that it read, for one warning.
- */
-export function readLegacySecrets(
-  secret: Record<string, unknown>,
-  env: Record<string, string | undefined>
-): {
-  values: Record<string, string>
-  used: Array<{
-    oldName: string
-    newName: string
-  }>
-} {
-  const values: Record<string, string> = {}
-  const used: Array<{
-    oldName: string
-    newName: string
-  }> = []
-  for (const name of [...PLUTO_GITHUB_SECRET_ENV.required, ...PLUTO_GITHUB_SECRET_ENV.optional]) {
-    const key = name.toLowerCase().replace(/_([a-z])/g, (_match, char: string) => char.toUpperCase())
-    const current = secret[key]
-    if (current !== undefined && current !== null && String(current) !== '') {
-      continue
-    }
-    const newName = `NUXT_PLUTO_GITHUB_${name}`
-    const oldName = legacyGithubEnvName(newName)!
-    const old = env[oldName]
-    if (old) {
-      values[key] = old
-      used.push({ oldName, newName })
-    }
-  }
-  return { values, used }
-}
-
-/** The warning for an env var that still has its old name. */
-export function legacyEnvWarning(oldName: string, newName: string): string {
-  return `The env var ${oldName} has an old name. Pluto reads it for now. Rename it to ${newName}.`
-}
-
 export function resolvePlutoGithubOptions(
   options: PlutoGithubOptions,
   ctx: PlutoGithubResolveContext
@@ -181,22 +120,8 @@ export function resolvePlutoGithubOptions(
   const warnings: string[] = []
   const errors: string[] = []
   const env = ctx.env ?? {}
-  // The first new name with a value wins. Without one, the first old name with a value.
-  const fromEnv = (...names: string[]) => {
-    const value = names.map((name) => env[name]?.trim()).find(Boolean)
-    if (value) {
-      return value
-    }
-    for (const name of names) {
-      const legacy = legacyGithubEnvName(name)
-      const old = legacy ? env[legacy]?.trim() : undefined
-      if (legacy && old) {
-        warnings.push(legacyEnvWarning(legacy, name))
-        return old
-      }
-    }
-    return undefined
-  }
+  // The first name with a value wins.
+  const fromEnv = (...names: string[]) => names.map((name) => env[name]?.trim()).find(Boolean)
 
   const resolved: ResolvedPlutoGithubOptions = {
     storage: options.storage

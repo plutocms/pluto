@@ -322,16 +322,8 @@ for a confirmed staff user with the capability, else `null`, so a page can show 
 The GitHub CMS post type sets `adminBar: true`. The core blog template calls
 `usePlutoEditLink('post', slug)` on the post page.
 
-## The legacy shell fallback
-
-If a layer registers its own navbar (the registry `navbar` field, or `useNavbarAdmin()` from
-`@plutocms/utils`), `PlutoRoot` renders that navbar and not the core one. It logs one deprecation
-warning in development. This keeps supabase 0.10 and the standalone CMS working until they move to
-the auth driver. Remove the fallback, the `navbar` field and the `@plutocms/utils` bridge after
-every layer migrates. The standalone CMS has migrated. Supabase has not.
-
-`PlutoRoot` shows the public-page admin menu (`PlutoNavbarAdminMenu`) whenever a bar shows on a
-public page, core or legacy.
+`PlutoRoot` shows the public-page admin menu (`PlutoNavbarAdminMenu`) whenever the bar shows on a
+public page.
 
 ## Migrating a backend to the auth driver
 
@@ -364,14 +356,12 @@ Delete:
 - A named setup middleware that must run before the sign-in rule. Move its check into
   `driver.guard`. Nuxt runs the global middleware of an extended layer (core) before the app's
   own, so a file prefix such as `00.` cannot put a layer's middleware first.
-- `NavbarAdmin*` and the `navbar` registration (`useNavbarAdmin`).
+- Any navbar of its own. Core renders the only navbar.
 - The permissions and locale sync plugins. `app/plugins/pluto-auth-sync.client.ts` does both.
 
 Rename `setup-check`. It is not an auth concern: it sends a new install to `/admin/setup`. Keep
 it as its own setup guard (a route middleware), and add `/admin/setup` to `publicPaths`. Do not run
 it inside the auth middleware.
-
-After the supabase layer migrates, remove the legacy shell fallback (see above).
 
 ## Tests
 

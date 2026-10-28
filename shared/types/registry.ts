@@ -30,10 +30,6 @@ export interface PlutoNavItem extends PlutoEntry {
   defaultOpen?: boolean
 }
 
-export interface PlutoNavbarShell extends PlutoEntry {
-  component: Component
-}
-
 /** A navbar action that renders its own component. */
 export interface PlutoNavbarComponentAction extends PlutoEntry {
   component: Component
@@ -312,7 +308,6 @@ export interface PlutoSiteInfo extends PlutoEntry {
 export interface PlutoExtension {
   /** Layer name. Use the package's $meta.name, e.g. 'supabase-blog'. */
   id: string
-  navbar?: PlutoNavbarShell
   navbarActions?: PlutoNavbarAction[]
   nav?: PlutoNavItem[]
   pages?: PlutoAdminPage[]
@@ -348,7 +343,6 @@ export interface PlutoRegistryBucket<T extends PlutoEntry> {
 }
 
 export interface PlutoRegistry {
-  navbarShell: PlutoRegistryBucket<PlutoNavbarShell>
   navbarActions: PlutoRegistryBucket<PlutoNavbarAction>
   nav: PlutoRegistryBucket<PlutoNavItem>
   pages: PlutoRegistryBucket<PlutoAdminPage>

@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { resolveSiteName } from '../../composables/internal/admin-shell'
 
-// A legacy shell is a navbar a backend layer registers itself (the registry
-// `navbar` field, or `useNavbarAdmin()` from utils). It wins over the core bar
-// until that layer migrates to the auth driver. Remove it with the legacy bridge.
-const { component: navbar } = usePlutoNavbarShell()
 const adminBar = usePlutoAdminBar()
 
 // One Nuxt UI locale per page: the admin's on /admin routes, the site's on the
@@ -23,17 +19,6 @@ watch(() => route.fullPath, () => {
   adminMenuOpen.value = false
 })
 
-if (import.meta.dev) {
-  // A flag, not `stop()`: with `immediate`, the first call runs before
-  // `watch` returns its stop handle.
-  let warned = false
-  watch(navbar, (legacy) => {
-    if (legacy && !warned) {
-      warned = true
-      console.warn('[pluto] A layer registers its own admin navbar. This is deprecated. Register an authDriver and let core render the navbar.')
-    }
-  }, { immediate: true })
-}
 const active = computed(() => (isAdmin.value ? admin : site))
 const uiLocale = computed(() => active.value.uiLocale.value)
 
@@ -88,14 +73,13 @@ useHead({
       <NuxtRouteAnnouncer />
       <NuxtLoadingIndicator />
 
-      <component :is="navbar" v-if="navbar" />
-      <PlutoAdminNavbarProvider v-else />
+      <PlutoAdminNavbarProvider />
 
       <!--
         Public pages have no admin sidebar. The admin navbar menu button
         opens this slideover there instead.
       -->
-      <PlutoNavbarAdminMenu v-if="!isAdmin && (navbar || adminBar.visible.value)" />
+      <PlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
 
       <div class="min-h-0 min-w-0 w-full grow">
         <NuxtLayout>

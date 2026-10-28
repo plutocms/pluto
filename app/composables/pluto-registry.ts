@@ -14,7 +14,6 @@ export function usePlutoRegistry(): PlutoRegistry {
 
   if (!nuxtApp._plutoRegistry) {
     nuxtApp._plutoRegistry = {
-      navbarShell: createOwnedRegistry<PlutoNavbarShell>(),
       navbarActions: createOwnedRegistry<PlutoNavbarAction>(),
       nav: createOwnedRegistry<PlutoNavItem>(),
       pages: createOwnedRegistry<PlutoAdminPage>(),

@@ -17,7 +17,6 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     warnSyncComponents(definition)
   }
 
-  registry.navbarShell.set(definition.id, definition.navbar ? [definition.navbar] : [])
   registry.navbarActions.set(definition.id, definition.navbarActions ?? [])
   registry.nav.set(definition.id, definition.nav ?? [])
   registry.pages.set(definition.id, definition.pages ?? [])

@@ -1,9 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import githubModule from '../modules/pluto-github'
 import {
-  legacyGithubEnvName,
   PLUTO_GITHUB_SECRET_ENV,
-  readLegacySecrets,
   resolvePlutoGithubOptions,
   SUPABASE_CONFLICT_ERROR,
 } from '../modules/pluto-github/options'
@@ -267,36 +265,10 @@ describe('resolvePlutoGithubOptions defaults', () => {
 })
 
 describe('old env names (before 0.28)', () => {
-  it('maps each new name to its old name', () => {
-    expect(legacyGithubEnvName('NUXT_PLUTO_GITHUB_APP_ID')).toBe('NUXT_PLUTO_CMS_GITHUB_APP_ID')
-    expect(legacyGithubEnvName('NUXT_PLUTO_GITHUB_SESSION_PASSWORD')).toBe('NUXT_PLUTO_CMS_SESSION_PASSWORD')
-    expect(legacyGithubEnvName('NUXT_PLUTO_GITHUB_ALLOWED_USERS')).toBe('NUXT_PLUTO_CMS_ALLOWED_USERS')
-    expect(legacyGithubEnvName('PLUTO_GITHUB_REPO')).toBe('PLUTO_CMS_REPO')
-    expect(legacyGithubEnvName('OTHER')).toBeUndefined()
-  })
-
-  it('reads an old build env name when the new one is not set, with a warning', () => {
+  it('ignores them', () => {
     const result = resolvePlutoGithubOptions({ enabled: true }, { ...ctx, env: { PLUTO_CMS_REPO: 'acme/old', PLUTO_CMS_APP_SLUG: 'old-app' } })
 
-    expect(result.resolved.github.repo).toBe('acme/old')
-    expect(result.resolved.github.appSlug).toBe('old-app')
-    expect(result.warnings.join(' ')).toContain('PLUTO_CMS_REPO')
-  })
-
-  it('prefers the new name', () => {
-    const result = resolvePlutoGithubOptions({ enabled: true }, { ...ctx, env: { PLUTO_GITHUB_REPO: 'acme/new', PLUTO_CMS_REPO: 'acme/old' } })
-
-    expect(result.resolved.github.repo).toBe('acme/new')
-    expect(result.warnings.join(' ')).not.toContain('PLUTO_CMS_REPO')
-  })
-
-  it('fills an empty secret from its old name, and never overrides a set one', () => {
-    const result = readLegacySecrets(
-      { appId: '', sessionPassword: 'new-password', clientId: undefined },
-      { NUXT_PLUTO_CMS_GITHUB_APP_ID: '123', NUXT_PLUTO_CMS_SESSION_PASSWORD: 'old-password', NUXT_PLUTO_CMS_GITHUB_CLIENT_ID: 'Iv1' }
-    )
-
-    expect(result.values).toEqual({ appId: '123', clientId: 'Iv1' })
-    expect(result.used.map((entry) => entry.oldName)).toEqual(['NUXT_PLUTO_CMS_GITHUB_APP_ID', 'NUXT_PLUTO_CMS_GITHUB_CLIENT_ID'])
+    expect(result.resolved.github.repo).toBe('')
+    expect(result.resolved.github.appSlug).toBe('')
   })
 })
