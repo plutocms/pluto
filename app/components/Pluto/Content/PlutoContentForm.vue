@@ -781,12 +781,10 @@ const asideTitle = computed(() =>
     />
 
     <!-- The page and the fields show at once. A skeleton stands in while the item loads. -->
-    <div v-else-if="itemPending && isCanvas" class="p-4">
-      <PlutoSkeletonField v-if="canvasFieldDef" :field-type="canvasFieldDef.type" />
-    </div>
+    <PlutoSkeletonCanvas v-else-if="itemPending && isCanvas" />
 
     <template v-else-if="itemPending">
-      <PlutoSkeletonField v-for="field in mainFields" :key="field.name" :field-type="field.type" />
+      <PlutoSkeletonField v-for="field in mainFields" :key="field.name" :field="field" />
     </template>
 
     <!--
@@ -826,7 +824,7 @@ const asideTitle = computed(() =>
       </h2>
 
       <template v-if="itemPending">
-        <PlutoSkeletonField v-for="field in sideFields" :key="field.name" :field-type="field.type" />
+        <PlutoSkeletonField v-for="field in sideFields" :key="field.name" :field="field" />
       </template>
 
       <template v-else>
@@ -874,7 +872,7 @@ const asideTitle = computed(() =>
 
           <div v-show="activeTab === 'page'" class="flex flex-col gap-6">
             <template v-if="itemPending">
-              <PlutoSkeletonField v-for="field in pageFields" :key="field.name" :field-type="field.type" />
+              <PlutoSkeletonField v-for="field in pageFields" :key="field.name" :field="field" />
             </template>
 
             <template v-else>
@@ -893,7 +891,7 @@ const asideTitle = computed(() =>
 
         <div v-else class="flex flex-col gap-6">
           <template v-if="itemPending">
-            <PlutoSkeletonField v-for="field in sideFields" :key="field.name" :field-type="field.type" />
+            <PlutoSkeletonField v-for="field in sideFields" :key="field.name" :field="field" />
           </template>
 
           <template v-else>

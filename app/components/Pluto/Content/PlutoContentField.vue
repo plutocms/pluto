@@ -45,7 +45,7 @@ const translated = computed(() => (props.type ? text.field(props.field) : props.
     />
 
     <template #fallback>
-      <PlutoSkeletonField :field-type="field.type" />
+      <PlutoSkeletonField :field="field" />
     </template>
   </Suspense>
 

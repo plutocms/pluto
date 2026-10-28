@@ -215,11 +215,12 @@ const footer = computed(() => {
       </PlutoViewToolbar>
     </template>
 
-    <UEmpty
+    <PlutoSkeletonList
       v-if="emptyState === 'loading'"
-      :title="t('pluto.list.loading', { labelPlural: text.labelPluralLower })"
-      variant="naked"
-      loading
+      :columns="listFields.map((field) => text.fieldLabel(field))"
+      :status="Boolean(statusConfig)"
+      :aria-label="t('pluto.list.loading', { labelPlural: text.labelPluralLower })"
+      aria-busy="true"
     />
 
     <UEmpty

@@ -58,7 +58,20 @@ function retry() {
       </div>
     </template>
 
-    <USkeleton v-if="status === 'pending' || status === 'idle'" class="h-64 w-full" />
+    <!-- The frame of the chart while the counts load: the y labels, the grid lines and the x labels. -->
+    <div v-if="status === 'pending' || status === 'idle'" class="flex h-64 gap-3" aria-hidden="true">
+      <div class="flex flex-col justify-between pb-6">
+        <USkeleton v-for="n in 5" :key="n" class="h-3 w-5" />
+      </div>
+      <div class="flex min-w-0 flex-1 flex-col">
+        <div class="flex flex-1 flex-col justify-between py-1.5">
+          <div v-for="n in 5" :key="n" class="h-px w-full bg-(--ui-border)" />
+        </div>
+        <div class="flex h-6 items-end justify-between">
+          <USkeleton v-for="n in 6" :key="n" class="h-3 w-9" />
+        </div>
+      </div>
+    </div>
 
     <UAlert
       v-else-if="status === 'error'"
