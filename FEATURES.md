@@ -65,9 +65,11 @@ policies shared by every project here.
 - Single Tailwind build: the app owns the only Tailwind build. The pluto-css module generates
   `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md
-- GitHub CMS: a standalone CMS with Markdown posts in a GitHub repo. The module is `pluto-github` (config
+- GitHub CMS: a standalone CMS with Markdown posts in a Git repo. Out of the box it publishes to the
+  local Git repo (dev only: each save is a local commit, `commit.local`); a GitHub App publishes
+  from a deployed site. The module is `pluto-github` (config
   `plutoGithub`, env `NUXT_PLUTO_GITHUB_*` and `PLUTO_GITHUB_*`, routes `/api/_pluto/github/*`, names
-  `PlutoGithub*` and `usePlutoGithub*`). The old `CMS` env names still work, with a warning. The public
+  `PlutoGithub*` and `usePlutoGithub*`). The public
   `html` and `excerpt` of a Markdown item leave out MDC syntax (`stripMdc`). `plutoGithub.enabled` is
   `'auto'`: on, unless a backend layer is present (the supabase layer, `@nuxtjs/supabase`, or
   `$meta.plutoBackend`). It has defaults for the storage (`fs` in dev), and for the repo (env vars,

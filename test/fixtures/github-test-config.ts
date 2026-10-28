@@ -16,6 +16,7 @@ function baseConfig(): GithubConfig {
     rootDir: '',
     siteName: 'Acme',
     skipDeploy: false,
+    localCommit: false,
     headTtl: 0,
     cacheStorage: 'cache',
     postType: true,

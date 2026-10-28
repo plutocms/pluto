@@ -98,6 +98,7 @@ export default defineNuxtModule<PlutoGithubOptions>({
     Object.assign(secrets, {
       apiUrl: resolved.github.apiUrl,
       skipDeploy: resolved.commit.skipDeploy,
+      localCommit: resolved.commit.local,
       headTtl: resolved.cache.headTtl,
       cacheStorage: resolved.cache.storage,
       postType: resolved.postType,

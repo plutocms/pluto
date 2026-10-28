@@ -28,6 +28,11 @@ export interface PlutoGithubOptions {
   commit?: {
     /** Add a skip-deploy marker to the commit message. Default `true`. */
     skipDeploy?: boolean
+    /**
+     * Local mode (`fs`, dev only): commit each save to the local Git repo of the project.
+     * Default `true`. Without a Git repo, Pluto only writes the files.
+     */
+    local?: boolean
   }
   cache?: {
     /** Seconds the head commit stays cached. Default `60`. */
@@ -50,6 +55,7 @@ export interface ResolvedPlutoGithubOptions {
   dir: string
   commit: {
     skipDeploy: boolean
+    local: boolean
   }
   cache: {
     headTtl: number
@@ -145,7 +151,10 @@ export function resolvePlutoGithubOptions(
       ),
     },
     dir: 'content',
-    commit: { skipDeploy: options.commit?.skipDeploy ?? true },
+    commit: {
+      skipDeploy: options.commit?.skipDeploy ?? true,
+      local: options.commit?.local ?? true,
+    },
     cache: {
       headTtl: options.cache?.headTtl ?? 60,
       storage: options.cache?.storage ?? 'cache',
