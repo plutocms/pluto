@@ -51,6 +51,10 @@ policies shared by every project here.
 - Pluto UI tokens: the official palette (tholin, haze, heart, kuiper) and fonts (Public Sans,
   Fredoka) in `@theme`, for every app. The admin theme is generated from them.
   @.claude/skills/admin-theme/SKILL.md
+- Pluto site theme: the opt-in `#build/pluto-site.css` gives a public site the look of the Pluto
+  docs (the fonts, the shades of the app colors, a deep-space dark mode, `pluto-sky`,
+  `pluto-site-header`). The official templates use it.
+  @.claude/skills/single-tailwind-build/SKILL.md
 - White label: `appConfig.pluto.brand` gives the admin the agency brand (logos, primary color,
   radius, fonts, help and agency links, Pluto links off). @.claude/skills/white-label/SKILL.md
 - Internationalization (i18n): a custom engine for the admin and the public site. The pluto-i18n
