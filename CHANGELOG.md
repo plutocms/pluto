@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.32.0](https://github.com/plutocms/pluto/compare/v0.31.0...v0.32.0) (2026-10-29)
+
+
+### Features
+
+* **post:** the post editor with an outline, Visual and Markdown modes, and a site preview ([#248](https://github.com/plutocms/pluto/issues/248)) ([b468f36](https://github.com/plutocms/pluto/commit/b468f362fdde743ec70ad1bf59b53918f72c8e26))
+
+
+### Bug Fixes
+
+* **dashboard:** label the current week of the activity chart "This week" ([#249](https://github.com/plutocms/pluto/issues/249)) ([bcf04aa](https://github.com/plutocms/pluto/commit/bcf04aa5b5c1c6872ac5a5b8cfbdf3721641ef3c))
+
 ## [0.31.0](https://github.com/plutocms/pluto/compare/v0.30.0...v0.31.0) (2026-10-28)
 
 
