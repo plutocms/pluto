@@ -17,6 +17,13 @@ const props = defineProps<{
   field: PlutoTextField
   modelValue: unknown
   disabled?: boolean
+  /**
+   * The post editor (`post-canvas`) shows this widget as its Visual mode. It fills the compose
+   * panel: no label, no mode switch (the post editor has its own), a full-height box that
+   * scrolls its own text, like the Markdown mode. No padding: the post editor sets the space
+   * around it.
+   */
+  canvas?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -49,17 +56,31 @@ const placeholder = computed(
   () => props.field.placeholder ?? t('pluto.github.editor.placeholder')
 )
 
+// In the canvas, the post editor owns the label and the Markdown mode.
+const UFormField = resolveComponent('UFormField')
+const frame = computed(() =>
+  props.canvas
+    ? {
+        is: 'div',
+        attrs: { class: 'flex h-full min-h-0 flex-col' },
+      }
+    : {
+        is: UFormField,
+        attrs: {
+          label: props.field.label,
+          description: props.field.description,
+          required: props.field.required,
+        },
+      }
+)
+
 // The toolbar items are shared: `usePlutoMarkdownToolbar`. The link button is a slot.
 const items = usePlutoMarkdownToolbar({ link: true })
 </script>
 
 <template>
-  <UFormField
-    :label="field.label"
-    :description="field.description"
-    :required="field.required"
-  >
-    <div class="mb-2 flex justify-end">
+  <component :is="frame.is" v-bind="frame.attrs">
+    <div v-if="!canvas" class="mb-2 flex justify-end">
       <div
         :aria-label="t('pluto.github.editor.mode')"
         class="flex gap-1"
@@ -98,7 +119,7 @@ const items = usePlutoMarkdownToolbar({ link: true })
     </div>
 
     <PlutoMarkdownSource
-      v-if="mode === 'source'"
+      v-if="mode === 'source' && !canvas"
       :model-value="value"
       :disabled="disabled"
       :placeholder="placeholder"
@@ -116,25 +137,45 @@ const items = usePlutoMarkdownToolbar({ link: true })
       :placeholder="placeholder"
       :image="false"
       :mention="false"
-      :ui="{
-        root: 'w-full',
-        content: 'min-h-96 cursor-text',
-        base: 'min-h-96 px-4 py-3 sm:px-4',
-      }"
+      :ui="
+        canvas
+          ? {
+              root: 'flex min-h-0 w-full flex-1 flex-col',
+              content: 'min-h-0 flex-1 cursor-text overflow-y-auto',
+              base: 'min-h-full px-4 py-3 sm:px-4',
+            }
+          : {
+              root: 'w-full',
+              content: 'min-h-96 cursor-text',
+              base: 'min-h-96 px-4 py-3 sm:px-4',
+            }
+      "
       content-type="markdown"
-      class="bg-default border-default w-full rounded-md border"
+      class="border-default bg-default w-full rounded-md border"
       @update:model-value="emit('update:modelValue', $event as string)"
     >
-      <UEditorToolbar
-        :editor="editor"
-        :items="items"
-        :aria-label="t('pluto.github.editor.toolbar')"
-        class="border-default bg-default sticky top-0 z-10 overflow-x-auto rounded-t-md border-b px-2 py-1.5"
+      <!-- The menus of the toolbar (Heading, the link popover) open on top of the editor box,
+           which has the same background in dark mode. A darker background sets them apart. -->
+      <UTheme
+        :ui="{
+          dropdownMenu: { content: 'dark:bg-neutral-950' },
+          popover: { content: 'dark:bg-neutral-950' },
+        }"
       >
-        <template #link>
-          <PlutoGithubEditorLink :editor="editor" />
-        </template>
-      </UEditorToolbar>
+        <UEditorToolbar
+          :editor="editor"
+          :items="items"
+          :aria-label="t('pluto.github.editor.toolbar')"
+          :class="
+            canvas ? 'shrink-0 flex-wrap' : 'sticky top-0 z-10 overflow-x-auto'
+          "
+          class="border-default bg-default rounded-t-md border-b px-2 py-1.5"
+        >
+          <template #link>
+            <PlutoGithubEditorLink :editor="editor" />
+          </template>
+        </UEditorToolbar>
+      </UTheme>
     </UEditor>
-  </UFormField>
+  </component>
 </template>

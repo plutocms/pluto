@@ -81,6 +81,7 @@
       "notFound": "Item not found",
       "notFoundHint": "It may have been removed.",
       "view": "View",
+      "viewItem": "View {label}",
       "unsaved": "Unsaved changes",
       "saving": "Saving…",
       "savedJustNow": "Saved just now",
@@ -592,6 +593,35 @@
       "tryAgain": "Try again",
       "goToSite": "Go to the site",
       "signOut": "Sign out"
+    },
+    "post": {
+      "previewTitle": "Post preview",
+      "previewBadge": "Preview",
+      "outline": "Outline",
+      "outlineEmpty": "No headings yet",
+      "outlineEmptyHint": "Add a heading (## Title) to see it here.",
+      "mode": "Editor",
+      "visual": "Visual",
+      "markdown": "Markdown",
+      "visualBlocked": "This text has syntax that the visual editor cannot keep (MDC, HTML, tables, task lists or footnotes). Edit it in Markdown.",
+      "previewLoading": "Loading the preview…",
+      "previewFailedTitle": "The preview did not load",
+      "previewFailed": "The preview page of the site did not answer. Check that the site runs, then try again."
+    },
+    "markdown": {
+      "formatting": "Formatting",
+      "format": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "strike": "Strikethrough",
+        "code": "Code",
+        "link": "Link",
+        "heading": "Heading",
+        "bullet": "Bulleted list",
+        "number": "Numbered list",
+        "quote": "Quote",
+        "codeblock": "Code block"
+      }
     }
   }
 }

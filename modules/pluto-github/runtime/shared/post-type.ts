@@ -27,14 +27,27 @@ export const plutoGithubPostType: PlutoContentType = {
       type: 'slug',
       label: 'Slug',
       from: 'title',
-      preview: '/post/',
+      preview: '/posts/',
       inList: true,
       region: 'side',
     },
     { name: 'excerpt', type: 'textarea', label: 'Excerpt', region: 'side' },
-    { name: 'content', type: 'richtext', label: 'Content', region: 'main' },
+    {
+      name: 'content',
+      type: 'richtext',
+      label: 'Content',
+      region: 'main',
+      // The post editor: Visual or Markdown with the site preview, the outline at the left.
+      widget: 'post-canvas',
+    },
   ],
   slug: { field: 'slug' },
+  // The "View Post" link of the form: the post page of the core blog template
+  // (`pages/posts/[slug].vue`). A draft has no public page.
+  previewUrl: (item) =>
+    item.status === 'published' && typeof item.slug === 'string' && item.slug
+      ? `/posts/${item.slug}`
+      : undefined,
   status: {
     column: 'status',
     default: 'draft',
@@ -56,5 +69,14 @@ export const plutoGithubPostType: PlutoContentType = {
   adminBar: true,
   // Served by the public API: /api/pluto/v1/content/post.
   api: { public: true },
-  form: { layout: 'focus', aside: true, asideCollapsed: true, width: 'full' },
+  // The canvas layout, like the page editor: the body fills the page, the outline is at the
+  // left, the other fields are in the Post tab at the right.
+  form: {
+    layout: 'canvas',
+    canvasField: 'content',
+    leftPanel: {
+      label: 'pluto.post.outline',
+      class: 'bg-white dark:bg-[#0b0b0b]',
+    },
+  },
 }

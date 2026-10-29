@@ -18,8 +18,10 @@ const props = defineProps<{
   saveState: PlutoSaveState
   /** The text of the `saved` state, for example "Saved 2 min ago". */
   savedText?: string
-  /** The public URL of the item. The "View" link shows only when it is set. */
+  /** The public URL of the item. The "View <label>" link shows only when it is set. */
   viewUrl?: string
+  /** The singular label of the type, for the "View <label>" link ("View Post"). */
+  itemLabel?: string
   /** Components that a layer adds with `contentToolbarItems`, already filtered. They show before the buttons. */
   toolbarItems?: PlutoContentToolbarItem[]
   /** Buttons that a layer adds with `contentActions`, already filtered. */
@@ -49,12 +51,18 @@ const { t } = usePlutoI18n()
 // menu, and a secondary button shows its icon only.
 const isSm = useMediaQuery('(min-width: 40rem)')
 
+const viewLabel = computed(() =>
+  props.itemLabel
+    ? t('pluto.form.viewItem', { label: props.itemLabel })
+    : t('pluto.form.view')
+)
+
 const menuItems = computed(() => [
   [
     ...(props.viewUrl && !isSm.value
       ? [
           {
-            label: t('pluto.form.view'),
+            label: viewLabel.value,
             icon: 'lucide:external-link',
             to: props.viewUrl,
             target: '_blank',
@@ -180,7 +188,7 @@ const stateText = computed(() => {
       <UButton
         v-if="viewUrl && isSm"
         :to="viewUrl"
-        :label="t('pluto.form.view')"
+        :label="viewLabel"
         icon="lucide:external-link"
         color="neutral"
         variant="ghost"

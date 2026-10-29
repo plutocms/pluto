@@ -76,7 +76,11 @@ policies shared by every project here.
   Vercel, the git remote). When on, it has GitHub App sign-in, a sealed
   session, the auth driver for the core admin shell, and the stores, adapter and post type (public on the public API).
   It also has a Markdown editor with a Visual/Source switch (`PlutoMarkdownSource`, `findUnsafeMarkdown`,
-  the `editor` field option), nested content types (`files: { nested, exclude, frontmatter }`, ids that
+  the `editor` field option), the post editor (`widget: 'post-canvas'`: the canvas layout, an outline
+  of the headings, a compose panel with a Visual mode and a Markdown mode (`PlutoMarkdownCodeEditor`,
+  CodeMirror with syntax colors), next to a preview of the site at `/_pluto/post-preview` with a
+  "Preview" badge, which an app replaces with `components/PlutoPostPreview.vue`), nested content types
+  (`files: { nested, exclude, frontmatter }`, ids that
   are paths, one-commit moves, `listTree` in all stores, `compareContentIds`), no commit for an
   unchanged file, push capabilities for every registered type, the public answer of a Markdown item
   (`excerpt` in a list, `html` for one item, through `adapter.toPublic`), and `PlutoMarkdown`. The GitHub App is created from the site (App Manifest flow): the setup routes

@@ -74,6 +74,10 @@ Nuxt UI's `UDashboardNavbar` with one fix — `:toggle="false"` — because the 
 toggle button controls the app-level LEFT sidebar through a global hook. A second, page-local
 toolbar must never render that button, or it would open and close the wrong sidebar.
 
+The app config gives every button `size: 'xl'`. The toolbar row is `h-12`, so it wraps its content
+in `UTheme :props="{ button: { size: 'md' } }"`: every `UButton` in it (the page buttons and the
+toolbar items of a layer) defaults to `md`. A button with its own `size` keeps it.
+
 Props: `title?: string`, `icon?: string`, `backTo?: string` (renders a back arrow button, with an `aria-label` and a tooltip "Back", before
 the title).
 
@@ -283,14 +287,15 @@ const form = usePlutoContentForm()
 form?.onSaved((saved) => refetchMedia(saved.id)) // after each save that worked
 ```
 
-| Key                       | Meaning                                                                                                              |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode                                                            |
-| `saving`, `dirty`         | a save runs, the item has unsaved changes                                                                            |
-| `errorsByField`           | the validation message of each field that failed the last save                                                       |
-| `layout`, `canvas`        | the layout, and true for 'canvas'                                                                                    |
-| `onSaved(callback)`       | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope. |
-| `openPanel(id)`           | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only)                                           |
+| Key                       | Meaning                                                                                                                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode                                                                                                                                       |
+| `saving`, `dirty`         | a save runs, the item has unsaved changes                                                                                                                                                       |
+| `errorsByField`           | the validation message of each field that failed the last save                                                                                                                                  |
+| `layout`, `canvas`        | the layout, and true for 'canvas'                                                                                                                                                               |
+| `onSaved(callback)`       | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope.                                                                            |
+| `openPanel(id)`           | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only)                                                                                                                      |
+| `panelToggles`            | `{ left, right }`: true while that panel is closed and its open button floats at the top of that side (desktop). A canvas widget keeps the corner free (the post editor adds `ps-12` / `pe-12`) |
 
 ## Skeletons and scroll
 
@@ -325,8 +330,11 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
 
 - The `canvasField` widget fills the main region (`PlutoViewAdminPanel` with `fill` and `width: 'full'`).
   Its root must fill its parent (`h-full`) and scroll its own content.
-- Every other field goes in the "Page" tab of the right panel, sorted by `order`. `region` does not
-  matter in this layout.
+- Every other field goes in a tab of the right panel, sorted by `order`. The tab takes the label of
+  the type ("Post", "Page"), else "Page" (`pluto.canvas.page`). `region` does not matter in this
+  layout.
+- The core post editor (`widget: 'post-canvas'`, see the github-cms skill) is a canvas widget: an
+  outline in the left panel, and a Visual mode or a Markdown mode with a preview of the site.
 - A widget adds panels with `PlutoContentCanvasPanel` (props `side: 'left' | 'right'`, `id`,
   `label?`, `icon?`; slot: the panel content):
   - `left`: the content stacks in the left panel. Put `PlutoViewLeftCollapse` in its header.

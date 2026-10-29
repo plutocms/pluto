@@ -241,7 +241,7 @@ export interface PlutoContentType {
   navOrder?: number
   i18n?: PlutoContentI18n
   /**
-   * The public URL of an item, for the "View" link in the form toolbar. Return
+   * The public URL of an item, for the "View <label>" link in the form toolbar. Return
    * `undefined` when the item has no public page (a draft, or a new item). The
    * link shows in edit mode only. The function must be pure and must not read
    * browser globals, because content type definitions are shared with the server.
