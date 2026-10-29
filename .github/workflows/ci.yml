@@ -50,7 +50,7 @@ jobs:
       # The packages Bun downloads, keyed by the lockfile. A repo without a
       # lockfile (a template) uses the latest cache of the same OS.
       - name: Cache Bun packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.bun/install/cache
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
