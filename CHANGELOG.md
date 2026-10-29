@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.34.2](https://github.com/plutocms/pluto/compare/v0.34.1...v0.34.2) (2026-10-29)
+
+
+### Bug Fixes
+
+* use the canonical bg-border class for separators and panel handles ([#259](https://github.com/plutocms/pluto/issues/259)) ([9a7cb8e](https://github.com/plutocms/pluto/commit/9a7cb8e77b1b5e9543b556f27e046c372e06b62b))
+
 ## [0.34.1](https://github.com/plutocms/pluto/compare/v0.34.0...v0.34.1) (2026-10-29)
 
 
