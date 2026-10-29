@@ -13,7 +13,7 @@
     <div class="flex w-full max-w-2xl flex-col gap-4">
       <USkeleton class="h-9 w-3/5" />
       <USkeleton class="h-5 w-4/5" />
-      <div class="my-2 h-px w-full bg-(--ui-border)" />
+      <div class="bg-border my-2 h-px w-full" />
       <USkeleton class="h-4 w-full" />
       <USkeleton class="h-4 w-11/12" />
       <USkeleton class="h-4 w-3/4" />
