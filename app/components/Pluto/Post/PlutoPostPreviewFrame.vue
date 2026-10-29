@@ -9,7 +9,7 @@ const props = defineProps<{
   item: Record<string, unknown>
   markdown: string
   /**
-   * Keep 48px free at the right of the page, for the open button of the closed right panel.
+   * Keep 40px free at the right of the page, for the open button of the closed right panel.
    * The page itself gets the space (the `inset` message), and the badge moves left.
    */
   gutterEnd?: boolean
@@ -52,7 +52,7 @@ function render() {
 const renderSoon = useDebounceFn(render, DEBOUNCE_MS)
 watch(() => [props.markdown, props.item], renderSoon, { deep: true })
 
-const GUTTER_PX = 48
+const GUTTER_PX = 40
 
 function sendInset() {
   if (ready.value) {
@@ -131,7 +131,7 @@ onBeforeUnmount(() => {
          preview, so it never hides the page. The iframe title names the frame for a screen reader. -->
     <div
       v-if="ready && !timedOut"
-      :class="gutterEnd ? 'inset-e-15' : 'inset-e-3'"
+      :class="gutterEnd ? 'inset-e-13' : 'inset-e-3'"
       class="bg-elevated/90 text-muted ring-default pointer-events-none absolute top-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm ring backdrop-blur transition-all duration-200 group-hover:opacity-0"
       aria-hidden="true"
     >
