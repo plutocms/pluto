@@ -97,11 +97,7 @@ function retry() {
       </div>
       <div class="flex min-w-0 flex-1 flex-col">
         <div class="flex flex-1 flex-col justify-between py-1.5">
-          <div
-            v-for="tick in 5"
-            :key="tick"
-            class="h-px w-full bg-(--ui-border)"
-          />
+          <div v-for="tick in 5" :key="tick" class="bg-border h-px w-full" />
         </div>
         <div class="flex h-6 items-end justify-between">
           <USkeleton v-for="tick in 6" :key="tick" class="h-3 w-9" />
