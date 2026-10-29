@@ -54,7 +54,7 @@
     "@lezer/highlight": "^1.2.5",
     "@nuxt/eslint": "^1.17.0",
     "@nuxt/ui": "^4.12.0",
-    "@plutocms/utils": "^0.3.0",
+    "@plutocms/utils": ">=0.3.0 <1.0.0",
     "@tanstack/charts": "^1.1.0",
     "@vueuse/nuxt": "^15.0.0",
     "marked": "^18.1.1",
