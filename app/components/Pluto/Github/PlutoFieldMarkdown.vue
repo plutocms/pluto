@@ -154,19 +154,28 @@ const items = usePlutoMarkdownToolbar({ link: true })
       class="border-default bg-default w-full rounded-md border"
       @update:model-value="emit('update:modelValue', $event as string)"
     >
-      <UEditorToolbar
-        :editor="editor"
-        :items="items"
-        :aria-label="t('pluto.github.editor.toolbar')"
-        :class="
-          canvas ? 'shrink-0 flex-wrap' : 'sticky top-0 z-10 overflow-x-auto'
-        "
-        class="border-default bg-default rounded-t-md border-b px-2 py-1.5"
+      <!-- The menus of the toolbar (Heading, the link popover) open on top of the editor box,
+           which has the same background in dark mode. A darker background sets them apart. -->
+      <UTheme
+        :ui="{
+          dropdownMenu: { content: 'dark:bg-neutral-950' },
+          popover: { content: 'dark:bg-neutral-950' },
+        }"
       >
-        <template #link>
-          <PlutoGithubEditorLink :editor="editor" />
-        </template>
-      </UEditorToolbar>
+        <UEditorToolbar
+          :editor="editor"
+          :items="items"
+          :aria-label="t('pluto.github.editor.toolbar')"
+          :class="
+            canvas ? 'shrink-0 flex-wrap' : 'sticky top-0 z-10 overflow-x-auto'
+          "
+          class="border-default bg-default rounded-t-md border-b px-2 py-1.5"
+        >
+          <template #link>
+            <PlutoGithubEditorLink :editor="editor" />
+          </template>
+        </UEditorToolbar>
+      </UTheme>
     </UEditor>
   </component>
 </template>
