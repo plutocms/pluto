@@ -11,8 +11,23 @@ const { t } = usePlutoI18n()
 useHead({
   title: () => t('pluto.post.previewTitle'),
   meta: [{ name: 'robots', content: 'noindex, nofollow' }],
-  // The preview is for reading the post, not for using the site: no link opens.
-  style: [{ textContent: 'a { pointer-events: none; }' }],
+  style: [
+    // The preview is for reading the post, not for using the site: no link opens.
+    { textContent: 'a { pointer-events: none; }' },
+    {
+      // A thin scrollbar that fits the editor, in both color modes: a gray thumb on no track.
+      // The same as the page preview of the nuxt-content layer.
+      textContent: [
+        'html { scrollbar-width: thin; scrollbar-color: rgb(128 128 128 / 0.45) transparent; }',
+        'html::-webkit-scrollbar { width: 10px; }',
+        'html::-webkit-scrollbar-track { background: transparent; }',
+        'html::-webkit-scrollbar-thumb { background: rgb(128 128 128 / 0.45); border: 3px solid transparent; border-radius: 9999px; background-clip: content-box; }',
+        'html::-webkit-scrollbar-thumb:hover { background-color: rgb(128 128 128 / 0.7); }',
+        // The `inset` message sets the padding. It moves smoothly.
+        'html { transition: padding-inline-end 200ms ease; }',
+      ].join('\n'),
+    },
+  ],
 })
 
 const contentType = ref('')
@@ -41,6 +56,11 @@ function onMessage(event: MessageEvent) {
     rendered.value = true
   } else if (message?.type === 'scroll-to') {
     scrollToHeading(message.heading)
+  } else if (message?.type === 'inset') {
+    // Space at the right of the page, for the open button of the closed right panel.
+    document.documentElement.style.paddingInlineEnd = message.end
+      ? `${message.end}px`
+      : ''
   }
 }
 

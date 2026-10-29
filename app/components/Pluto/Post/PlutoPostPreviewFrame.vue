@@ -8,7 +8,10 @@ const props = defineProps<{
   /** The fields of the item, without the body. */
   item: Record<string, unknown>
   markdown: string
-  /** Keep 48px free at the right, for the open button of the closed right panel. */
+  /**
+   * Keep 48px free at the right of the page, for the open button of the closed right panel.
+   * The page itself gets the space (the `inset` message), and the badge moves left.
+   */
   gutterEnd?: boolean
 }>()
 
@@ -49,6 +52,17 @@ function render() {
 const renderSoon = useDebounceFn(render, DEBOUNCE_MS)
 watch(() => [props.markdown, props.item], renderSoon, { deep: true })
 
+const GUTTER_PX = 48
+
+function sendInset() {
+  if (ready.value) {
+    send(
+      plutoPostPreviewMessage('inset', { end: props.gutterEnd ? GUTTER_PX : 0 })
+    )
+  }
+}
+watch(() => props.gutterEnd, sendInset)
+
 function onMessage(event: MessageEvent) {
   if (
     event.source !== frame.value?.contentWindow ||
@@ -61,6 +75,7 @@ function onMessage(event: MessageEvent) {
   ) {
     ready.value = true
     timedOut.value = false
+    sendInset()
     render()
   }
 }
@@ -102,12 +117,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- `gutterEnd`: the open button of the closed right panel floats at the top right, so the page
-       keeps 48px free at its right. -->
-  <div
-    :class="gutterEnd && 'pe-12'"
-    class="bg-muted group relative size-full min-h-0 transition-[padding] duration-200"
-  >
+  <div class="bg-muted group relative size-full min-h-0">
     <iframe
       ref="frame"
       :key="frameKey"

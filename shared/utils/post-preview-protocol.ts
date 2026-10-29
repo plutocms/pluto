@@ -30,8 +30,19 @@ export interface PlutoPostPreviewScrollTo extends Envelope<'scroll-to'> {
   heading: number
 }
 
+/** The largest `inset` the frame accepts, in px. */
+export const PLUTO_POST_PREVIEW_MAX_INSET = 200
+
+/**
+ * Keep space free at the right of the page, in px (0 for none). The editor sends it while the
+ * open button of the closed right panel floats over the preview.
+ */
+export interface PlutoPostPreviewInset extends Envelope<'inset'> {
+  end: number
+}
+
 export type PlutoPostPreviewToFrame =
-  PlutoPostPreviewRender | PlutoPostPreviewScrollTo
+  PlutoPostPreviewRender | PlutoPostPreviewScrollTo | PlutoPostPreviewInset
 
 // The frame to the editor
 
@@ -91,6 +102,13 @@ export function parsePlutoPostPreviewMessage(
   if (data.type === 'scroll-to') {
     return Number.isInteger(data.heading) && (data.heading as number) >= 0
       ? (data as unknown as PlutoPostPreviewScrollTo)
+      : undefined
+  }
+  if (data.type === 'inset') {
+    return Number.isInteger(data.end) &&
+      (data.end as number) >= 0 &&
+      (data.end as number) <= PLUTO_POST_PREVIEW_MAX_INSET
+      ? (data as unknown as PlutoPostPreviewInset)
       : undefined
   }
   return undefined

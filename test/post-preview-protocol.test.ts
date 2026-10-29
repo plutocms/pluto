@@ -30,6 +30,19 @@ describe('post preview protocol', () => {
     ).toBeUndefined()
   })
 
+  it('parses an inset message with a whole pixel value in range', () => {
+    const message = plutoPostPreviewMessage('inset', { end: 48 })
+    expect(parsePlutoPostPreviewMessage(message, 'to-frame')).toEqual(message)
+    expect(
+      parsePlutoPostPreviewMessage({ ...message, end: 0 }, 'to-frame')
+    ).toEqual({ ...message, end: 0 })
+    for (const end of [-1, 1.5, 201, '48']) {
+      expect(
+        parsePlutoPostPreviewMessage({ ...message, end }, 'to-frame')
+      ).toBeUndefined()
+    }
+  })
+
   it('rejects a wrong source, version, direction or field', () => {
     const ready = plutoPostPreviewMessage('ready', {})
     expect(parsePlutoPostPreviewMessage(ready, 'from-frame')).toEqual(ready)
