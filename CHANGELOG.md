@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.34.0](https://github.com/plutocms/pluto/compare/v0.33.0...v0.34.0) (2026-10-29)
+
+
+### Features
+
+* PlutoHtml, a core component for the sanitized html of any backend ([#253](https://github.com/plutocms/pluto/issues/253)) ([378f3d9](https://github.com/plutocms/pluto/commit/378f3d9ac23208c2dcc86c45ecf2e7529870e2a6))
+
 ## [0.33.0](https://github.com/plutocms/pluto/compare/v0.32.0...v0.33.0) (2026-10-29)
 
 
