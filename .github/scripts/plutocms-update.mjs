@@ -20,7 +20,9 @@ export function compareVersions(a, b) {
   const pa = a.split('.').map(Number)
   const pb = b.split('.').map(Number)
   for (let i = 0; i < 3; i++) {
-    if (pa[i] !== pb[i]) return pa[i] > pb[i] ? 1 : -1
+    if (pa[i] !== pb[i]) {
+      return pa[i] > pb[i] ? 1 : -1
+    }
   }
   return 0
 }
@@ -31,7 +33,9 @@ export function compareVersions(a, b) {
  */
 export function nextSpec(spec, latest) {
   const match = /^(\^|~)?(\d+\.\d+\.\d+)$/.exec(spec)
-  if (!match || compareVersions(latest, match[2]) <= 0) return null
+  if (!match || compareVersions(latest, match[2]) <= 0) {
+    return null
+  }
   return `${match[1] ?? ''}${latest}`
 }
 
@@ -48,7 +52,9 @@ export function lockVersions(lock, name) {
 
 async function latestVersion(name) {
   const response = await fetch(`https://registry.npmjs.org/${name}/latest`)
-  if (!response.ok) throw new Error(`npm answered ${response.status} for ${name}`)
+  if (!response.ok) {
+    throw new Error(`npm answered ${response.status} for ${name}`)
+  }
   return (await response.json()).version
 }
 
@@ -74,7 +80,9 @@ async function main() {
     const latest = await latestVersion(name)
     for (const section of SECTIONS) {
       const spec = pkg[section]?.[name]
-      if (!spec) continue
+      if (!spec) {
+        continue
+      }
       if (isWideRange(spec)) {
         wide.push(name)
         continue
@@ -111,7 +119,9 @@ async function main() {
     for (const name of wideNames) {
       const was = lockVersions(before, name).join(', ')
       const now = lockVersions(after, name).join(', ')
-      if (was !== now) moved.push(`${name} ${was} → ${now} (lockfile)`)
+      if (was !== now) {
+        moved.push(`${name} ${was} → ${now} (lockfile)`)
+      }
     }
   }
 
