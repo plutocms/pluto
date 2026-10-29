@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.34.3](https://github.com/plutocms/pluto/compare/v0.34.2...v0.34.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* no "- Untitled" in public page titles without WEBSITE_NAME ([#265](https://github.com/plutocms/pluto/issues/265)) ([84f70b9](https://github.com/plutocms/pluto/commit/84f70b972d5a9f3bea3d58b20273f950f1ed055f))
+
 ## [0.34.2](https://github.com/plutocms/pluto/compare/v0.34.1...v0.34.2) (2026-10-29)
 
 
