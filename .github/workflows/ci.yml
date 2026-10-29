@@ -2,12 +2,18 @@ name: CI
 
 on:
   pull_request:
+    # A change to the root Markdown files or to `.claude/` needs no CI run.
+    # The Release workflow calls this file with `workflow_call`, which this
+    # filter does not affect.
+    paths-ignore: ['*.md', '.claude/**']
   push:
     branches: [main]
+    paths-ignore: ['*.md', '.claude/**']
 
   # Lets the Release workflow re-run these exact checks against a release tag
-  # before anything is published to npm. Keeping the checks here means there is
-  # one definition of "green" shared by PRs, main, and releases.
+  # before anything is published to npm, and lets the @plutocms update
+  # workflow check its branch. Keeping the checks here means there is one
+  # definition of "green" shared by PRs, main, releases and updates.
   workflow_call:
     inputs:
       ref:
@@ -41,8 +47,40 @@ jobs:
         with:
           bun-version: latest
 
+      # The packages Bun downloads, keyed by the lockfile. A repo without a
+      # lockfile (a template) uses the latest cache of the same OS.
+      - name: Cache Bun packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      # Two copies of `@plutocms/pluto` or `@plutocms/supabase` break a Nuxt
+      # app (two layers with the same name). This fails when the lockfile
+      # resolves one of them to more than one version.
+      - name: Check for duplicate Pluto packages
+        run: |
+          node -e '
+            const fs = require("node:fs")
+            if (!fs.existsSync("bun.lock")) process.exit(0)
+            const lock = fs.readFileSync("bun.lock", "utf8")
+            let failed = false
+            for (const name of ["@plutocms/pluto", "@plutocms/supabase"]) {
+              const pattern = new RegExp(`"${name}@([0-9][^"]*)"`, "g")
+              const versions = new Set([...lock.matchAll(pattern)].map((m) => m[1]))
+              if (versions.size > 1) {
+                console.log(`::error::${name} resolves to ${versions.size} versions: ${[...versions].join(", ")}. Align the @plutocms ranges.`)
+                failed = true
+              } else if (versions.size === 1) {
+                console.log(`${name}: one copy (${[...versions][0]})`)
+              }
+            }
+            process.exit(failed ? 1 : 0)
+          '
 
       # Not every repo defines every script (create-pluto has no `typecheck`,
       # supabase-storage has no `build`). Running only what exists keeps this
