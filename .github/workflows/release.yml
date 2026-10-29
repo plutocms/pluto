@@ -47,6 +47,11 @@ jobs:
           app-id: ${{ vars.PLUTO_RELEASE_APP_ID }}
           private-key: ${{ secrets.PLUTO_RELEASE_APP_PRIVATE_KEY }}
 
+      # `continue-on-error` reports a failed step as passed, so say it here.
+      - name: Warn when the release App gave no token
+        if: ${{ steps.app-token.outcome == 'failure' }}
+        run: echo "::warning::The plutocms-release App gave no token (is it installed on this repo?). release-please uses github.token, so CI does not start on the release PR, and the fan-out cannot run."
+
       - name: Run release-please
         id: release
         uses: googleapis/release-please-action@v5
