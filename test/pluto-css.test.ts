@@ -5,6 +5,7 @@ import {
   findLayerCssFiles,
   parseCssImports,
   renderPlutoCss,
+  renderPlutoSiteCss,
 } from '../modules/pluto-css/css-entries'
 
 describe('findLayerCssFiles', () => {
@@ -139,5 +140,18 @@ describe('checkCssSetup', () => {
       /No CSS entry imports #build\/pluto\.css/
     )
     expect(report.warnings[1]).toMatch(/No CSS entry imports @nuxt\/ui/)
+  })
+})
+
+describe('renderPlutoSiteCss', () => {
+  it('imports the site theme of core relative to the build dir', () => {
+    const css = renderPlutoSiteCss(
+      '/work/pluto/app/assets/css/pluto-site-theme.css',
+      '/work/site/.nuxt'
+    )
+
+    expect(css).toContain(
+      '@import "../../pluto/app/assets/css/pluto-site-theme.css";'
+    )
   })
 })

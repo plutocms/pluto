@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import {
   addTemplate,
   defineNuxtModule,
@@ -12,6 +13,7 @@ import {
   findLayerCssFiles,
   renderPlutoCss,
   renderPlutoEntryCss,
+  renderPlutoSiteCss,
   resolveRelativeImport,
 } from './css-entries'
 
@@ -27,6 +29,8 @@ export interface PlutoCssOptions {
  *   @import '@nuxt/ui';
  *   @import '#build/pluto.css';
  *
+ * - `#build/pluto-site.css` (opt-in) imports the Pluto site theme of core
+ *   (app/assets/css/pluto-site-theme.css): the look of the Pluto docs for a site.
  * - `#build/pluto.css` imports each layer's app/assets/css/pluto-layer.css
  *   (tokens, the admin theme). Nuxt UI already adds `@source` for every
  *   layer's app/ dir, so this file adds no sources.
@@ -52,6 +56,17 @@ export default defineNuxtModule<PlutoCssOptions>({
       filename: 'pluto.css',
       write: true,
       getContents: () => renderPlutoCss(layerCssFiles, nuxt.options.buildDir),
+    })
+
+    // The opt-in site theme of core. An app that wants the look of the Pluto
+    // docs imports `#build/pluto-site.css` after `#build/pluto.css`.
+    const siteTheme = fileURLToPath(
+      new URL('../../app/assets/css/pluto-site-theme.css', import.meta.url)
+    )
+    addTemplate({
+      filename: 'pluto-site.css',
+      write: true,
+      getContents: () => renderPlutoSiteCss(siteTheme, nuxt.options.buildDir),
     })
 
     addTemplate({

@@ -1,0 +1,91 @@
+/*
+ * The Pluto site theme: the look of the Pluto docs and the official templates, for a public site.
+ * It is opt-in. An app imports it after the core CSS:
+ *
+ *   @import 'tailwindcss';
+ *   @import '@nuxt/ui';
+ *   @import '#build/pluto.css';
+ *   @import '#build/pluto-site.css';
+ *
+ * It does not choose the colors. Set them in app.config.ts, for example
+ * `ui.colors: { primary: 'tholin', secondary: 'haze', neutral: 'kuiper' }`. The rules below use
+ * the shades of those colors (`--ui-color-primary-600`), so they work with any palette.
+ *
+ * Every rule skips the admin (`data-pluto-admin`), which keeps its own theme.
+ */
+
+/* The fonts: Public Sans for text, Fredoka for titles (`font-display`). @nuxt/fonts loads them. */
+@theme static {
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    'Fredoka', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Light mode: primary 600 and secondary 700, which have 4.5:1 contrast on white. */
+:root:not([data-pluto-admin]) {
+  --ui-primary: var(--ui-color-primary-600);
+  --ui-secondary: var(--ui-color-secondary-700);
+}
+
+/* Dark mode is deep space: neutral 950, not the 900 of Nuxt UI. */
+:root:not([data-pluto-admin]).dark {
+  --ui-primary: var(--ui-color-primary-400);
+  --ui-secondary: var(--ui-color-secondary-400);
+  --ui-bg: var(--ui-color-neutral-950);
+  --ui-bg-muted: var(--ui-color-neutral-900);
+  --ui-bg-elevated: var(--ui-color-neutral-900);
+  --ui-bg-accented: var(--ui-color-neutral-800);
+  --ui-border: var(--ui-color-neutral-800);
+  --ui-border-muted: var(--ui-color-neutral-900);
+}
+
+:root:not([data-pluto-admin]) ::selection {
+  background-color: var(--color-heart-200);
+  color: var(--color-kuiper-950);
+}
+
+/* Page titles (h1) use the rounded face of the wordmark. */
+:root:not([data-pluto-admin]) h1 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/*
+ * `pluto-sky`: the sky behind the top of a page. The cream of Pluto's heart and the blue of its
+ * haze in light mode, faint glows in space in dark mode.
+ */
+.pluto-sky {
+  background:
+    radial-gradient(
+      60rem 40rem at 85% -10%,
+      var(--color-heart-100),
+      transparent 70%
+    ),
+    radial-gradient(
+      40rem 30rem at 0% 100%,
+      var(--color-haze-50),
+      transparent 70%
+    );
+}
+
+.dark .pluto-sky {
+  background:
+    radial-gradient(
+      60rem 40rem at 85% -10%,
+      color-mix(in oklab, var(--color-haze-900) 45%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40rem 30rem at 0% 100%,
+      color-mix(in oklab, var(--color-tholin-950) 60%, transparent),
+      transparent 70%
+    );
+}
+
+/*
+ * `pluto-site-header`: a sticky header that starts below the admin bar. Core sets
+ * `data-pluto-admin-bar` on <html> while a signed-in editor sees the bar.
+ */
+:root[data-pluto-admin-bar] .pluto-site-header {
+  top: var(--pluto-admin-bar-height);
+}
