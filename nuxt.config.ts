@@ -36,7 +36,10 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      titleTemplate: `%s - ${websiteName}`,
+      // The build-time site name. Without WEBSITE_NAME, public titles stay as
+      // the page sets them, not "Page - Untitled". The admin builds its own
+      // title from the runtime name (PlutoRoot).
+      titleTemplate: process.env.WEBSITE_NAME ? `%s - ${websiteName}` : '%s',
     },
   },
 
