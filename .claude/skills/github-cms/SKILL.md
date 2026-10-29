@@ -756,15 +756,20 @@ portal`. Any other element is unwrapped: the tag goes and the text stays.
 - Attribute values are escaped, so a quote cannot start a new attribute.
 - The original sanitizer adds no `rel` or `target` to a link, and this port does the same.
 
-### `PlutoMarkdown`
+### `PlutoHtml` (and `PlutoMarkdown`)
 
-`app/components/Pluto/Github/PlutoMarkdown.vue`. Props: `html: string` and `tag = 'article'`. It sets
-the server-sanitized HTML as `innerHTML`, with the same pattern as `PlutoProse` (a plain camelCase
-`innerHTML` prop, not `v-html`, so SSR keeps it). It never parses Markdown on the client. The
-typography is the base of the Nuxt UI editor theme (semantic tokens such as `text-highlighted` and
-`border-default`), plus table styles. The module registers it with `addComponent`, because the
-folder name would make the auto name `PlutoGithubPlutoMarkdown`. Pass only the `html` of a CMS item
-to it.
+`app/components/Pluto/PlutoHtml.vue`, a core component for every backend. Props: `html: string`,
+`tag = 'article'`, `class`. It sets the server-sanitized HTML of a public item as `innerHTML`, with
+the same pattern as `PlutoProse` (a plain camelCase `innerHTML` prop, not `v-html`, so SSR keeps
+it). It never parses or sanitizes on the client. The typography is the base of the Nuxt UI editor
+theme (semantic tokens such as `text-highlighted` and `border-default`), plus table styles. The
+GitHub CMS and `@plutocms/supabase-blog` both send sanitized `html`, so one site page works with
+either backend. Pass only the `html` of a public item to it.
+
+`PlutoMarkdown` (`app/components/Pluto/Github/PlutoMarkdown.vue`) is the older GitHub CMS name. It
+renders `PlutoHtml`, and attributes pass through. The module registers it with `addComponent`,
+because the folder name would make the auto name `PlutoGithubPlutoMarkdown`. New code uses
+`PlutoHtml`.
 
 Use on a site page:
 
@@ -776,7 +781,7 @@ const { data } = await usePlutoPublicItem<{ title: string; html: string }>(
   String(route.params.slug)
 )
 </script>
-<template><PlutoMarkdown v-if="data" :html="data.data.html" /></template>
+<template><PlutoHtml v-if="data" :html="data.data.html" /></template>
 ```
 
 For a list page:
