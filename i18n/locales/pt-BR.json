@@ -81,6 +81,7 @@
       "notFound": "Item não encontrado",
       "notFoundHint": "Ele pode ter sido removido.",
       "view": "Ver",
+      "viewItem": "Ver {label}",
       "unsaved": "Alterações não salvas",
       "saving": "Salvando…",
       "savedJustNow": "Salvo agora",

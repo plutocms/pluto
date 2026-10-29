@@ -27,7 +27,7 @@ export const plutoGithubPostType: PlutoContentType = {
       type: 'slug',
       label: 'Slug',
       from: 'title',
-      preview: '/post/',
+      preview: '/posts/',
       inList: true,
       region: 'side',
     },
@@ -42,6 +42,12 @@ export const plutoGithubPostType: PlutoContentType = {
     },
   ],
   slug: { field: 'slug' },
+  // The "View Post" link of the form: the post page of the core blog template
+  // (`pages/posts/[slug].vue`). A draft has no public page.
+  previewUrl: (item) =>
+    item.status === 'published' && typeof item.slug === 'string' && item.slug
+      ? `/posts/${item.slug}`
+      : undefined,
   status: {
     column: 'status',
     default: 'draft',

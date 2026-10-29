@@ -645,7 +645,8 @@ blocks get their own color (`mdcLineKinds`, `shared/utils/mdc-lines.ts`). A tool
 formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts`, tested in
 `test/markdown-format.test.ts`). It has search and history.
 
-- Props: `modelValue`, `disabled`, `placeholder`, `ariaLabel`, `fill`, `minLines` (18). Slots:
+- Props: `modelValue`, `disabled`, `placeholder`, `ariaLabel`, `fill`, `minLines` (18),
+  `monospace` (all the text in the monospace font at 14px; the post editor sets it). Slots:
   `toolbar` (slot props `insert`, `focus`) and `toolbar-end`. Exposed: `insert`, `focus`,
   `reveal(start, end)` and `goToLine(line)`.
 - It uses `markdownLanguage`, not `markdown()`, which would add the HTML, CSS and JavaScript
@@ -667,11 +668,20 @@ that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
   sanitizer), the same code as the public API. The render waits 150 ms after a change. A frame
   that does not answer in 12 s shows an error with a retry.
 - The protocol is in `shared/utils/post-preview-protocol.ts`. The parent sends `render`
-  (`contentType`, `item` without the body, `markdown`) and `scroll-to` (a heading index). The
-  frame sends `ready`. Both sides accept a message only from the same origin, and only from the
-  parent window or the frame.
-- A "Preview" badge (`pluto.post.previewBadge`) sits at the top right of the frame. It fades out
-  while the pointer is on the preview (`group-hover`), so it never hides the page.
+  (`contentType`, `item` without the body, `markdown`), `scroll-to` (a heading index) and `inset`
+  (`end`, 0 to 200 px). The frame sends `ready`. Both sides accept a message only from the same
+  origin, and only from the parent window or the frame.
+- While the right panel is closed (`panelToggles.right`), the editor sends `inset` `{ end: 48 }`:
+  the page sets `padding-inline-end` on `<html>`, so the open button floats over the margin of
+  the page, not over the post. The page has the thin scrollbar of the nuxt-content preview.
+- A "Preview" badge (`pluto.post.previewBadge`) sits at the top right of the frame (moved left
+  while the open button shows). It fades out while the pointer is on the preview
+  (`group-hover`), so it never hides the page.
+- The post types set `previewUrl` for a published post, so the form shows "View Post"
+  (`pluto.form.viewItem`): `/posts/<slug>` for the GitHub CMS (the core blog template),
+  `/post/<slug>` in `@plutocms/supabase-blog`.
+- The menus of the visual Markdown toolbar (Heading, the link popover) are
+  `dark:bg-neutral-950` through `UTheme`, so they stand apart from the editor box in dark mode.
 - The page shows `PlutoPostPreview` with the props `contentType`, `item` and `html`. The default
   (`app/components/Pluto/Post/PlutoPostPreview.vue`) shows the title, the date, the excerpt and
   the body. An app replaces it with its own `components/PlutoPostPreview.vue` with the same

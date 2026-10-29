@@ -899,6 +899,7 @@ const asideTitle = computed(() =>
         :save-state="saveState"
         :saved-text="savedText"
         :view-url="viewUrl"
+        :item-label="text.label"
         :toolbar-items="toolbarItems"
         :actions="headerActions"
         :buttons="headerButtons"
