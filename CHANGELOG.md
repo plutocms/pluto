@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.34.1](https://github.com/plutocms/pluto/compare/v0.34.0...v0.34.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **deps:** accept every 0.x version of the [@plutocms](https://github.com/plutocms) packages; shared CI and the update workflow ([#255](https://github.com/plutocms/pluto/issues/255)) ([ac87a6f](https://github.com/plutocms/pluto/commit/ac87a6fa6f9bf85f7c710b0fe890521102686e08))
+
 ## [0.34.0](https://github.com/plutocms/pluto/compare/v0.33.0...v0.34.0) (2026-10-29)
 
 
