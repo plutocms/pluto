@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PlutoMarkdown from '../Github/PlutoMarkdown.vue'
+import PlutoHtml from '../PlutoHtml.vue'
 
 // The default post preview of the post editor (`post-canvas`). The preview page
 // (`/_pluto/post-preview`) renders it with the site CSS, so it looks like the site.
@@ -46,7 +46,7 @@ const date = computed(() => {
         <p v-if="excerpt" class="text-muted text-lg">{{ excerpt }}</p>
       </header>
 
-      <PlutoMarkdown :html="html" data-pluto-post-body />
+      <PlutoHtml :html="html" data-pluto-post-body />
     </article>
   </UContainer>
 </template>

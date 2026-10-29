@@ -87,7 +87,7 @@ policies shared by every project here.
   (`files: { nested, exclude, frontmatter }`, ids that
   are paths, one-commit moves, `listTree` in all stores, `compareContentIds`), no commit for an
   unchanged file, push capabilities for every registered type, the public answer of a Markdown item
-  (`excerpt` in a list, `html` for one item, through `adapter.toPublic`), and `PlutoMarkdown`. The GitHub App is created from the site (App Manifest flow): the setup routes
+  (`excerpt` in a list, `html` for one item, through `adapter.toPublic`), and `PlutoMarkdown` (an alias of the core `PlutoHtml`, which shows the sanitized `html` of any backend). The GitHub App is created from the site (App Manifest flow): the setup routes
   under `/api/_pluto/github/setup/` (`status`, `github/start`, `github/callback`), a result page with the
   env block, a `.env` write in development, a setup check on `/admin/login`, a **GitHub** tab in Settings,
   and a private key in PEM, `\n` or base64 form. The edit form shows the build status of the head
