@@ -35,10 +35,13 @@ jobs:
     steps:
       # A token of the plutocms-release GitHub App. A release PR that the App
       # opens starts CI like any other PR; one that github.token opens does not.
-      # Without the App variable, the workflow uses github.token, as before.
+      # Without the App variable, or when the App cannot give a token (it is not
+      # installed on this repo, or the key is wrong), the workflow uses
+      # github.token, as before: a broken App must not stop a release.
       - name: Get a token of the release App
         id: app-token
         if: ${{ vars.PLUTO_RELEASE_APP_ID != '' }}
+        continue-on-error: true
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.PLUTO_RELEASE_APP_ID }}
