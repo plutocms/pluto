@@ -190,6 +190,7 @@ function onLayout(sizes: number[]) {
                 "
                 :aria-label="field.label"
                 fill
+                monospace
                 @update:model-value="emit('update:modelValue', $event)"
               />
             </div>

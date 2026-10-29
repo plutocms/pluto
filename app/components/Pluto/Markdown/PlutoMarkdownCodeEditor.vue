@@ -58,6 +58,8 @@ const props = withDefaults(
     fill?: boolean
     /** The minimum height in lines when it grows with the text. Default 18. */
     minLines?: number
+    /** Show all the text in the monospace font (14px), like a code editor. Default: the UI font. */
+    monospace?: boolean
   }>(),
   {
     minLines: 18,
@@ -194,10 +196,14 @@ const theme = EditorView.theme({
   '&': {
     color: 'var(--ui-text)',
     backgroundColor: 'transparent',
-    fontSize: '15px',
+    // The host element sets these two variables for the `monospace` prop.
+    fontSize: 'var(--pluto-cm-font-size, 15px)',
   },
   '&.cm-focused': { outline: 'none' },
-  '.cm-scroller': { fontFamily: 'inherit', lineHeight: '1.7' },
+  '.cm-scroller': {
+    fontFamily: 'var(--pluto-cm-font, inherit)',
+    lineHeight: '1.7',
+  },
   '.cm-content': { padding: '12px 16px', caretColor: 'var(--ui-primary)' },
   '.cm-cursor, .cm-dropCursor': {
     borderLeftColor: 'var(--ui-primary)',
@@ -461,7 +467,15 @@ onBeforeUnmount(() => {
     <div
       ref="host"
       :class="fill ? 'min-h-0 flex-1 [&_.cm-editor]:h-full' : undefined"
-      :style="fill ? undefined : { minHeight: `${minLines * 1.7 * 15 + 24}px` }"
+      :style="[
+        fill ? undefined : { minHeight: `${minLines * 1.7 * 15 + 24}px` },
+        monospace
+          ? {
+              '--pluto-cm-font': 'var(--font-mono, ui-monospace, monospace)',
+              '--pluto-cm-font-size': '14px',
+            }
+          : undefined,
+      ]"
       class="pluto-markdown-code-editor"
     />
   </div>
