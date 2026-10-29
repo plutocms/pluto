@@ -103,12 +103,14 @@ async function main() {
   if (bumped.length) {
     fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`)
   }
-  // `bun install` applies the new specs. `bun update <names>` moves the
-  // lockfile inside the wide ranges. Install scripts are not needed here.
+  // `bun install` applies the new specs. `bun update` of every @plutocms
+  // package then moves the lockfile inside the wide ranges, and drops an older
+  // copy nested under another @plutocms package (`bun install` keeps it).
+  // Install scripts are not needed here.
   execSync('bun install --ignore-scripts', { stdio: 'inherit' })
   const wideNames = [...new Set(wide)]
-  if (wideNames.length && fs.existsSync('bun.lock')) {
-    execSync(`bun update --ignore-scripts ${wideNames.join(' ')}`, {
+  if (names.length && fs.existsSync('bun.lock')) {
+    execSync(`bun update --ignore-scripts ${names.join(' ')}`, {
       stdio: 'inherit',
     })
   }
