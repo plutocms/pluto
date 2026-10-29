@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.33.0](https://github.com/plutocms/pluto/compare/v0.32.0...v0.33.0) (2026-10-29)
+
+
+### Features
+
+* **css:** an opt-in Pluto site theme, #build/pluto-site.css ([#251](https://github.com/plutocms/pluto/issues/251)) ([60dd659](https://github.com/plutocms/pluto/commit/60dd6598b78441c4eaf265cdde4d5d51cc4dc90f))
+
 ## [0.32.0](https://github.com/plutocms/pluto/compare/v0.31.0...v0.32.0) (2026-10-29)
 
 
