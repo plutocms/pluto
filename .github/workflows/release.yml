@@ -33,12 +33,22 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
+      # A token of the plutocms-release GitHub App. A release PR that the App
+      # opens starts CI like any other PR; one that github.token opens does not.
+      # Without the App variable, the workflow uses github.token, as before.
+      - name: Get a token of the release App
+        id: app-token
+        if: ${{ vars.PLUTO_RELEASE_APP_ID != '' }}
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.PLUTO_RELEASE_APP_ID }}
+          private-key: ${{ secrets.PLUTO_RELEASE_APP_PRIVATE_KEY }}
+
       - name: Run release-please
         id: release
         uses: googleapis/release-please-action@v5
         with:
-          # A PAT makes release-please's PRs trigger CI; github.token does not.
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          token: ${{ steps.app-token.outputs.token || secrets.RELEASE_PLEASE_TOKEN || github.token }}
 
   # Re-run lint/typecheck/build against the tagged tree. release-please's own
   # commit lands on main and is only covered by CI running in parallel with
@@ -115,3 +125,50 @@ jobs:
         # No token needed — OIDC trusted publishing handles auth automatically.
         # Provenance is also generated automatically; no --provenance flag required.
         run: npm publish --access public
+
+  # After the version is on npm: the two-wave update of every Pluto repo that
+  # uses @plutocms packages (.github/scripts/plutocms-fanout.sh). The layers
+  # refresh their lockfiles, then the templates and the docs site move to the
+  # new version; each one merges when its CI is green. It needs the release
+  # App, because github.token cannot start a workflow in another repo.
+  fanout:
+    name: Update the other repos
+    needs: [release-please, publish]
+    if: ${{ !cancelled() && needs.publish.result == 'success' && vars.PLUTO_RELEASE_APP_ID != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || needs.release-please.outputs.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # A token for every repo of the org that the App is installed on.
+      - name: Get a token of the release App
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.PLUTO_RELEASE_APP_ID }}
+          private-key: ${{ secrets.PLUTO_RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      # The update workflows read `latest` from npm, so wait until npm serves
+      # the new version.
+      - name: Wait for npm
+        run: |
+          set -euo pipefail
+          name=$(node -p "require('./package.json').name")
+          for _ in $(seq 1 30); do
+            latest=$(curl -fsS "https://registry.npmjs.org/$name/latest" | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version" || true)
+            [ "v$latest" = "$TAG" ] && { echo "npm serves $name@$latest"; exit 0; }
+            sleep 10
+          done
+          echo "::warning::npm does not serve $TAG yet; the update runs anyway"
+
+      - name: Run the fan-out
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: bash .github/scripts/plutocms-fanout.sh
