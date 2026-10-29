@@ -1,6 +1,5 @@
 import type { Component } from 'vue'
 import type { PlutoContentType } from '../shared/types/content'
-import type { PlutoMediaAdapter } from '../shared/types/media'
 import type { PlutoRegistry } from '../shared/types/registry'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
@@ -53,14 +52,6 @@ function contentType(
 }
 
 const FakeComponent = {} as Component
-
-const fakeAdapter: PlutoMediaAdapter = {
-  id: 'fake',
-  list: async () => ({ data: [] }),
-  upload: async () => ({ id: '1', name: 'file', url: '/file' }),
-  remove: async () => {},
-  getUrl: () => '/file',
-}
 
 describe('contentTypes bucket', () => {
   it('merges two owners and sorts by order', async () => {
@@ -241,47 +232,5 @@ describe('contentFieldWidgets bucket', () => {
     expect(
       registry.contentFieldWidgets.list.value.map((entry) => entry.id)
     ).toEqual(['owner-b:two'])
-  })
-})
-
-describe('mediaAdapters bucket', () => {
-  it('merges two owners and sorts by order', async () => {
-    const { usePlutoRegistry, definePlutoExtension } = await loadComposables()
-    const registry = usePlutoRegistry()
-
-    definePlutoExtension({
-      id: 'owner-a',
-      mediaAdapters: [{ id: 'b', order: 50, adapter: fakeAdapter }],
-    })
-    definePlutoExtension({
-      id: 'owner-b',
-      mediaAdapters: [{ id: 'a', order: 10, adapter: fakeAdapter }],
-    })
-
-    expect(registry.mediaAdapters.list.value.map((entry) => entry.id)).toEqual([
-      'owner-b:a',
-      'owner-a:b',
-    ])
-  })
-
-  it('replaces an owner contribution instead of appending to it', async () => {
-    const { usePlutoRegistry, definePlutoExtension } = await loadComposables()
-    const registry = usePlutoRegistry()
-
-    definePlutoExtension({
-      id: 'owner-a',
-      mediaAdapters: [{ id: 'one', adapter: fakeAdapter }],
-    })
-    definePlutoExtension({
-      id: 'owner-a',
-      mediaAdapters: [
-        { id: 'one', adapter: { ...fakeAdapter, id: 'fake-updated' } },
-      ],
-    })
-
-    expect(registry.mediaAdapters.list.value).toHaveLength(1)
-    expect(registry.mediaAdapters.list.value[0]?.adapter.id).toBe(
-      'fake-updated'
-    )
   })
 })

@@ -334,6 +334,8 @@ export function mapRepoPermission(permissions: RepoPermissions | undefined): {
       const { read, write, publish, delete: remove } = type.capabilities ?? {}
       return [read, write, publish, remove]
     })
+    // The media library: a user who can push can add and remove files too.
+    keys.push('media:manage', 'media:delete')
     return {
       permission: 'push',
       capabilities: [

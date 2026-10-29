@@ -8,6 +8,7 @@ import { getPlutoApiConfig } from './pluto-api-config'
 import { getContentType } from './pluto-content'
 import { requireContentAdapter } from './pluto-content-handlers'
 import { createPlutoError } from './pluto-error'
+import { expandPublicMedia } from './pluto-media-public'
 import { markPublicRead } from './pluto-public-read'
 
 /**
@@ -196,6 +197,9 @@ export async function toPublicData(
       data[name] = item[key]
     }
   }
+
+  // The ids of the `media` fields become the records of the files.
+  data = await expandPublicMedia(ctx.event, ctx.type, data, batch)
 
   const adapter = requireContentAdapter()
   if (adapter.toPublic) {

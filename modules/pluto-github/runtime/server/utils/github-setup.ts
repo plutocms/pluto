@@ -10,12 +10,16 @@ import {
   registerContentType,
 } from '../../../../../server/utils/pluto-content'
 import {
+  registerMediaDriver,
+} from '../../../../../server/utils/pluto-media-driver'
+import {
   isPublicRead,
   markPublicRead,
 } from '../../../../../server/utils/pluto-public-read'
 import { plutoGithubPostType } from '../../shared/post-type'
 import { createMarkdownContentAdapter } from '../adapter'
 import { createAppTokenProvider } from '../github/app-token'
+import { createGithubMediaDriver } from '../media'
 import { createFsStore } from '../store/fs'
 import { createGithubStore } from '../store/github'
 import { createGithubCache } from './github-cache'
@@ -85,6 +89,12 @@ export async function getGithubAccess(
 }
 
 let registeredCache: GithubCache | undefined
+let registeredStore: PlutoGithubStore | undefined
+
+/** The store that `registerGithubContent` made. The `/media/**` route reads from it. */
+export function getRegisteredGithubStore(): PlutoGithubStore | undefined {
+  return registeredStore
+}
 
 /** The cache that `registerGithubContent` got. A memory cache when none is set. */
 export function getRegisteredGithubCache(): GithubCache {
@@ -92,7 +102,7 @@ export function getRegisteredGithubCache(): GithubCache {
   return registeredCache
 }
 
-/** Registers the post type and the Markdown adapter with the core content registry. */
+/** Registers the post type, the Markdown adapter and the media driver with core. */
 export function registerGithubContent(
   config: GithubConfig,
   cache: GithubCache
@@ -101,13 +111,23 @@ export function registerGithubContent(
   if (config.postType) {
     registerContentType(plutoGithubPostType)
   }
+  const store = createContentStore(config, cache)
+  registeredStore = store
   registerContentAdapter(
     createMarkdownContentAdapter({
-      store: createContentStore(config, cache),
+      store,
       dir: config.dir,
       cache,
       commit: { skipDeploy: config.skipDeploy },
       getAccess: getGithubAccess,
+    })
+  )
+  registerMediaDriver(
+    createGithubMediaDriver({
+      store,
+      dir: config.dir,
+      getAccess: getGithubAccess,
+      skipDeploy: config.skipDeploy,
     })
   )
 }

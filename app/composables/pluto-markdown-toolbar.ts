@@ -13,6 +13,8 @@ import type { EditorToolbarItem } from '@nuxt/ui'
 export function usePlutoMarkdownToolbar(
   options: {
     link?: boolean
+    /** The image button: a `slot: 'image'` item (`PlutoMediaEditorButton`). */
+    image?: boolean
   } = {}
 ) {
   const { t } = usePlutoI18n()
@@ -96,6 +98,7 @@ export function usePlutoMarkdownToolbar(
         tooltip: { text: t('pluto.github.editor.code') },
       },
       ...(options.link ? [{ slot: 'link', icon: 'i-lucide-link' }] : []),
+      ...(options.image ? [{ slot: 'image', icon: 'i-lucide-image' }] : []),
     ],
   ])
 }

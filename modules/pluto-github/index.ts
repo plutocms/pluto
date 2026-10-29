@@ -119,6 +119,9 @@ export default defineNuxtModule<PlutoGithubOptions>({
       postType: resolved.postType,
       skipDeploy: resolved.commit.skipDeploy,
     }
+    // The media library of core uses the GitHub driver (runtime/server/media.ts).
+    const media = nuxt.options.runtimeConfig.public.plutoMedia as Record<string, unknown> | undefined
+    nuxt.options.runtimeConfig.public.plutoMedia = { ...media, driver: 'github' } as typeof nuxt.options.runtimeConfig.public.plutoMedia
 
     const resolver = createResolver(import.meta.url)
     const server = (file: string) => resolver.resolve('./runtime/server', file)
@@ -218,6 +221,13 @@ export default defineNuxtModule<PlutoGithubOptions>({
     })
 
     // The public reads of the posts go through the public API of core (`/api/pluto/v1/content/post`).
+
+    // The media files that are in the repo but not in a deploy yet. See the media skill.
+    addServerHandler({
+      route: '/media/**',
+      method: 'get',
+      handler: server('routes/media.get'),
+    })
 
     logger.info(
       `Standalone CMS on. Storage: ${resolved.storage}. Dir: ${resolved.dir}.`

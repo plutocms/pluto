@@ -308,6 +308,27 @@ export function createGithubStore(
       })
     },
 
+    async readRaw(path, auth) {
+      const token = await tokenOf(auth)
+      const encoded = path.split('/').map(encodeURIComponent).join('/')
+      try {
+        const result = await githubRest<ArrayBuffer>(
+          `/repos/${options.repo}/contents/${encoded}?ref=${encodeURIComponent(options.branch)}`,
+          {
+            token,
+            apiUrl: options.apiUrl,
+            fetch: options.fetch,
+            accept: 'application/vnd.github.raw',
+          }
+        )
+        return new Uint8Array(result.data)
+      } catch (error) {
+        if (error instanceof PlutoGithubStoreError && error.code === 'not-found') {
+          return null
+        }
+        throw error
+      }
+    },
     async commit(input, auth) {
       if (!auth?.token) {
         throw new PlutoGithubStoreError(
@@ -337,7 +358,10 @@ export function createGithubStore(
             fileChanges: {
               additions: input.additions.map((item) => ({
                 path: item.path,
-                contents: Buffer.from(item.contents, 'utf8').toString('base64'),
+                contents:
+                  item.encoding === 'base64'
+                    ? item.contents
+                    : Buffer.from(item.contents, 'utf8').toString('base64'),
               })),
               deletions: input.deletions.map((item) => ({ path: item.path })),
             },

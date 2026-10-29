@@ -72,6 +72,8 @@ export function createFakeGithub(options: FakeGithubOptions = {}) {
   const truncated = new Set(options.truncated ?? [])
   const snapshots = new Map<string, Map<string, string>>()
   let files = new Map<string, string>(Object.entries(options.files ?? {}))
+  // The bytes of each committed file, as base64, for the raw contents API.
+  const raw = new Map<string, string>()
   let headOid = snapshot()
   let failure: FailureStub | undefined
   let delayMs = 0
@@ -443,6 +445,19 @@ export function createFakeGithub(options: FakeGithubOptions = {}) {
       return respond(200, headOid, { ETag: etag })
     }
 
+    const contentsPrefix = `/repos/${repo}/contents/`
+    if (init.method === 'GET' && pathname.startsWith(contentsPrefix)) {
+      const path = decodeURIComponent(pathname.slice(contentsPrefix.length))
+      const base64 =
+        raw.get(path) ??
+        (files.has(path) ? Buffer.from(files.get(path)!, 'utf8').toString('base64') : undefined)
+      if (base64 === undefined || !header(init, 'Accept')?.includes('.raw')) {
+        return respond(404, { message: 'Not Found' })
+      }
+      const bytes = Buffer.from(base64, 'base64')
+      return respond(200, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length))
+    }
+
     if (init.method === 'POST' && pathname.endsWith('/graphql')) {
       calls.graphql++
       calls.graphqlTokens.push(bearer)
@@ -468,8 +483,10 @@ export function createFakeGithub(options: FakeGithubOptions = {}) {
         }
         for (const deletion of input.fileChanges.deletions ?? []) {
           files.delete(deletion.path)
+          raw.delete(deletion.path)
         }
         for (const addition of input.fileChanges.additions ?? []) {
+          raw.set(addition.path, addition.contents)
           files.set(
             addition.path,
             Buffer.from(addition.contents, 'base64').toString('utf8')

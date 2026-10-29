@@ -22,15 +22,13 @@ pattern as [permissions](../permissions/SKILL.md). Read both first. This feature
 
 - `shared/types/content.ts` — `PlutoField` and its eight concrete field types, and
   `PlutoContentType`, the content-type contract.
-- `shared/types/media.ts` — `PlutoMediaAdapter`, the media-backend contract.
 - `shared/utils/content.ts` — `defineContentType(type)`.
 - `shared/utils/content-validate.ts` — `validateContentPayload(type, payload, options)`.
 - `shared/utils/content-map.ts` — `fieldColumn`, `mapFieldsToColumns`, `mapColumnsToFields`.
-- Three new fields on `PlutoExtension`: `contentTypes`, `contentFieldWidgets`, `mediaAdapters`.
-- Three new registry buckets on `PlutoRegistry`, matching those fields.
+- Two new fields on `PlutoExtension`: `contentTypes`, `contentFieldWidgets`.
+- Two new registry buckets on `PlutoRegistry`, matching those fields.
 - `app/composables/pluto-content-types.ts` — `usePlutoContentTypes()`.
 - `app/composables/pluto-content-fields.ts` — `usePlutoContentFieldWidget(field)`.
-- `app/composables/pluto-media-adapter.ts` — `usePlutoMediaAdapter()`.
 - `test/content-registry.test.ts`, `test/content-define.test.ts`, `test/content-validate.test.ts`,
   `test/content-map.test.ts` — unit tests for everything above.
 
@@ -222,20 +220,12 @@ Resolution order: an exact `field.widget` name match first, then the last-regist
 adds no fallback placeholder component — deciding what to show when nothing resolves is later,
 UI-wave work.
 
-## `usePlutoMediaAdapter()`
+## Media
 
-The registered media adapter:
-
-```ts
-const { adapter } = usePlutoMediaAdapter() // ComputedRef<PlutoMediaAdapter | undefined>
-```
-
-Exactly one adapter is meaningful per app. When more than one layer registers one, **the
-last-registered entry wins** — the same "last wins" rule `usePlutoSettings()` and
-`usePlutoPermissions()` already use to resolve their driver. `PlutoMediaAdapter` itself is only a
-type in this wave: a storage layer has nothing to register against yet (no built-in media picker
-UI, no `media` field widget rendering). It exists now so the registry bucket, and a later wave's
-picker UI, have a stable contract to build against.
+The media library (the record, the driver of a backend, the routes, the `media` widget and the
+picker) is in the media skill. A `media` field stores one media id, or a list of ids
+(`multiple`). `accept` narrows the file types. The public API gives the records in place of the
+ids.
 
 ## The server-side registry
 
@@ -504,10 +494,9 @@ The GitHub CMS Markdown widget reads `PlutoTextField.editor` (`'auto' | 'visual'
 default `auto`) for a `richtext` field. It picks the first mode of the Visual/Source switch (see
 the github-cms skill). Other widgets ignore it.
 
-**`richtext` and `media` have no core widget, on purpose.** Core has no real rich-text editor and
-no real file picker to offer for either — a layer registers those (`supabase-blog` registers
-`richtext`, `supabase-storage` registers `media`), through its own `contentFieldWidgets` entries,
-the same registration mechanism core's own eight widgets use.
+**`richtext` has no core widget, on purpose.** A layer registers it (the GitHub CMS, `supabase-blog`),
+through its own `contentFieldWidgets` entry. `media` has the core widget, `PlutoFieldMedia`: the
+picker of the core media library (see the media skill).
 
 `PlutoFieldReference` only resolves `field.optionsUrl` in this wave. When it's set, the widget
 fetches it expecting `{ data: Array<Record<string, unknown>> }`, maps each row through
@@ -786,5 +775,3 @@ segment, `index` comes first, then a numeric prefix (`2.name`) as a number, then
   translating **stored content** (one row in many languages). That is a different concern from
   translating the admin UI text, which the i18n skill covers. Nothing reads or acts on it. Only
   `strategy: 'row'` will ever be valid, so declaring the shape now avoids a breaking rename later.
-- No built-in media adapter and no media picker UI. `PlutoMediaAdapter` is a contract only, and
-  the `media` field type still has no core widget (see above).

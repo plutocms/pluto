@@ -18,7 +18,7 @@ export interface GithubFetchResponse {
   headers: {
     get: (name: string) => string | null
   }
-  /** The parsed JSON body, or the text body for a `sha` accept. */
+  /** The parsed JSON body, the text body for a `sha` accept, an `ArrayBuffer` for a `raw` accept. */
   data: unknown
 }
 
@@ -30,13 +30,15 @@ export type GithubFetch = (
 
 /** The default transport. It never throws on an HTTP error status. */
 export const defaultGithubFetch: GithubFetch = async (url, init) => {
-  const wantsText = (init.headers.Accept ?? '').includes('.sha')
+  const accept = init.headers.Accept ?? ''
+  const wantsText = accept.includes('.sha')
+  const wantsBytes = accept.includes('.raw')
   const response = await ofetch.raw(url, {
     method: init.method as 'GET',
     headers: init.headers,
     body: init.body,
     ignoreResponseError: true,
-    responseType: wantsText ? 'text' : 'json',
+    responseType: wantsBytes ? 'arrayBuffer' : wantsText ? 'text' : 'json',
   })
   return {
     status: response.status,
