@@ -8,6 +8,8 @@ const props = defineProps<{
   /** The fields of the item, without the body. */
   item: Record<string, unknown>
   markdown: string
+  /** Keep 48px free at the right, for the open button of the closed right panel. */
+  gutterEnd?: boolean
 }>()
 
 const { t } = usePlutoI18n()
@@ -100,7 +102,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="bg-muted group relative size-full min-h-0">
+  <!-- `gutterEnd`: the open button of the closed right panel floats at the top right, so the page
+       keeps 48px free at its right. -->
+  <div
+    :class="gutterEnd && 'pe-12'"
+    class="bg-muted group relative size-full min-h-0 transition-[padding] duration-200"
+  >
     <iframe
       ref="frame"
       :key="frameKey"
@@ -114,7 +121,8 @@ onBeforeUnmount(() => {
          preview, so it never hides the page. The iframe title names the frame for a screen reader. -->
     <div
       v-if="ready && !timedOut"
-      class="bg-elevated/90 text-muted ring-default pointer-events-none absolute inset-e-3 top-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm ring backdrop-blur transition-opacity duration-200 group-hover:opacity-0"
+      :class="gutterEnd ? 'inset-e-15' : 'inset-e-3'"
+      class="bg-elevated/90 text-muted ring-default pointer-events-none absolute top-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm ring backdrop-blur transition-all duration-200 group-hover:opacity-0"
       aria-hidden="true"
     >
       <UIcon name="i-lucide-eye" class="size-3.5" />

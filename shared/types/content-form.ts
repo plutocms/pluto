@@ -31,6 +31,12 @@ export interface PlutoContentFormContext {
   /** True when the form uses the 'canvas' layout. */
   canvas: ComputedRef<boolean>
   /**
+   * True on a side while its panel is closed and a small "open" button floats at the top of that
+   * side of the canvas (desktop only). A canvas widget keeps that corner free: the left button
+   * covers the area from 12 to 40px, the right button from 16 to 44px, both from 10 to 38px down.
+   */
+  panelToggles: ComputedRef<{ left: boolean; right: boolean }>
+  /**
    * Runs `callback` after each save that worked, with the saved item. It
    * returns a function that stops the callback. Vue stops it too when the
    * calling component unmounts, if the call is inside `setup`.

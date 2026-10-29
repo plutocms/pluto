@@ -682,6 +682,14 @@ function toggleAside() {
 
 // --- Context for the widgets ------------------------------------------------------
 
+// The aside of the default and focus layouts shows when it has fields. The
+// canvas layout shows it when a panel or the "Page" tab exists.
+const asideSlot = computed(() =>
+  isCanvas.value
+    ? hasRight.value
+    : showAside.value && !inlineAside.value && !loadFailed.value
+)
+
 provide(plutoContentFormKey, {
   type: contentType,
   item,
@@ -698,6 +706,14 @@ provide(plutoContentFormKey, {
   ),
   layout,
   canvas: isCanvas,
+  // The same rule as the floating buttons of PlutoViewAdminPanel (`panel-toggles`).
+  panelToggles: computed(() => ({
+    left:
+      isDesktop.value &&
+      (hasLeft.value || Boolean(leftSkeleton.value)) &&
+      !leftOpen.value,
+    right: isDesktop.value && Boolean(asideSlot.value) && !asideModel.value,
+  })),
   onSaved,
   openPanel,
 })
@@ -855,13 +871,6 @@ const canShowDelete = computed(
   () => editing.value && canDelete.value && !loadFailed.value
 )
 
-// The aside of the default and focus layouts shows when it has fields. The
-// canvas layout shows it when a panel or the "Page" tab exists.
-const asideSlot = computed(() =>
-  isCanvas.value
-    ? hasRight.value
-    : showAside.value && !inlineAside.value && !loadFailed.value
-)
 const asideTitle = computed(() =>
   isCanvas.value && rightTabs.value.length === 1
     ? rightTabs.value[0]!.label

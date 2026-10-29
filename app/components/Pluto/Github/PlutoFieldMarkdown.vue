@@ -20,7 +20,8 @@ const props = defineProps<{
   /**
    * The post editor (`post-canvas`) shows this widget as its Visual mode. It fills the compose
    * panel: no label, no mode switch (the post editor has its own), a full-height box that
-   * scrolls its own text, like the Markdown mode.
+   * scrolls its own text, like the Markdown mode. No padding: the post editor sets the space
+   * around it.
    */
   canvas?: boolean
 }>()
@@ -61,7 +62,7 @@ const frame = computed(() =>
   props.canvas
     ? {
         is: 'div',
-        attrs: { class: 'flex h-full min-h-0 flex-col p-4' },
+        attrs: { class: 'flex h-full min-h-0 flex-col' },
       }
     : {
         is: UFormField,

@@ -77,6 +77,12 @@ const previewItem = computed(() => {
 })
 const contentType = computed(() => form?.type.value?.name ?? '')
 
+// The floating "open" buttons of the closed side panels. The editor and the preview keep their
+// corners free.
+const toggles = computed(
+  () => form?.panelToggles.value ?? { left: false, right: false }
+)
+
 const visualEl = useTemplateRef<HTMLElement>('visual')
 const source =
   useTemplateRef<InstanceType<typeof PlutoMarkdownCodeEditor>>('source')
@@ -152,24 +158,30 @@ function onLayout(sizes: number[]) {
       >
         <template #compose>
           <div class="flex size-full min-h-0 flex-col">
-            <!-- Visual: the rich text widget scrolls its own content. -->
+            <!-- The editor of the mode, 8px from the edges. While the left panel is closed, its
+                 open button floats at the top left, so the editor moves right to keep it free. -->
             <div
-              v-if="mode === 'visual' && visualWidget"
-              ref="visual"
-              class="min-h-0 flex-1 overflow-y-auto"
+              :class="toggles.left && 'ps-12'"
+              class="min-h-0 flex-1 p-2 transition-[padding] duration-200"
             >
-              <component
-                :is="visualWidget"
-                :field="visualField"
-                :model-value="value"
-                :disabled="disabled"
-                canvas
-                @update:model-value="emit('update:modelValue', $event)"
-              />
-            </div>
+              <!-- Visual: the rich text widget scrolls its own content. -->
+              <div
+                v-if="mode === 'visual' && visualWidget"
+                ref="visual"
+                class="size-full min-h-0 overflow-y-auto"
+              >
+                <component
+                  :is="visualWidget"
+                  :field="visualField"
+                  :model-value="value"
+                  :disabled="disabled"
+                  canvas
+                  @update:model-value="emit('update:modelValue', $event)"
+                />
+              </div>
 
-            <div v-else class="min-h-0 flex-1 p-4">
               <MarkdownEditor
+                v-else
                 ref="source"
                 :model-value="value"
                 :disabled="disabled"
@@ -201,6 +213,7 @@ function onLayout(sizes: number[]) {
             :content-type="contentType"
             :item="previewItem"
             :markdown="value"
+            :gutter-end="toggles.right"
             :class="{ 'pointer-events-none': dragging }"
           />
         </template>
