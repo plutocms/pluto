@@ -32,7 +32,7 @@ Both used to reach the admin:
 - `app/assets/css/pluto-tokens.css` — the Pluto UI tokens (see above).
 - `scripts/generate-admin-theme.cjs` — generates it from the Pluto tokens and, for the status
   colors, the installed Tailwind palette. Run
-  `node scripts/generate-admin-theme.cjs` from the repo root.
+  `node scripts/generate-admin-theme.cjs` from `packages/core`.
 - `app/composables/pluto-admin-theme.ts` — `usePlutoAdminTheme()`.
 - `app/layouts/admin.vue`, `app/layouts/auth.vue` — call `usePlutoAdminTheme()`.
 - `app/components/Pluto/Navbar/PlutoNavbarAdmin.vue` — carries `data-pluto-admin-scope`.
