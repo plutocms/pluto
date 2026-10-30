@@ -4,6 +4,7 @@
 // record shows while three.js and the model load. Rendering stops while the
 // viewer is off screen, and the GPU memory goes when it unmounts. The admin
 // (the details of a file) and a site use the same component. See the 3d skill.
+import { usePluto3dI18n } from '../composables/pluto-3d-i18n'
 
 const props = withDefaults(
   defineProps<{
