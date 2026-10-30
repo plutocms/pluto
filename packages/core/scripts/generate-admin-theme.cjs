@@ -1,6 +1,6 @@
 // Generates app/assets/css/admin-theme.css from the Pluto UI tokens
 // (app/assets/css/pluto-tokens.css) and the installed Tailwind palette (the
-// status colors). Run from the repo root: node scripts/generate-admin-theme.cjs
+// status colors). Run from packages/core: node scripts/generate-admin-theme.cjs
 // See the admin-theme skill for the palette choices and how they were
 // validated.
 const fs = require('node:fs')
@@ -200,7 +200,7 @@ const css = `/*
  * Chart colors are a validated categorical palette: lightness band, chroma
  * floor, colorblind separation, and 3:1 contrast pass on white (light) and
  * on the dark card surface (dark). This file is generated; keep the values in
- * sync with scripts/generate-admin-theme.cjs: run it from the repo root, never
+ * sync with scripts/generate-admin-theme.cjs: run it from packages/core, never
  * edit this file by hand.
  */
 :root[data-pluto-admin],

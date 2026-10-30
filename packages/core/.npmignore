@@ -25,3 +25,5 @@ logs
 # the repo, outside this package.
 test
 vitest.config.ts
+scripts
+tailwind.lint.css
