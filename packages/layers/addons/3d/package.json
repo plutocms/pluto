@@ -1,7 +1,7 @@
 {
   "name": "@plutocms/3d",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "An add-on layer for Pluto: upload 3D models (.glb) to the media library, and show them in the admin and on the site",
   "author": "Victor Ribeiro",
   "license": "MIT",
