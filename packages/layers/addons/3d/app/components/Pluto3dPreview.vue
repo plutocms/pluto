@@ -3,6 +3,7 @@
 // badge. With `interactive`, a click (or the button) starts the viewer in its
 // place, so a page loads three.js only when someone wants to turn the model.
 // See the 3d skill.
+import { usePluto3dI18n } from '../composables/pluto-3d-i18n'
 
 withDefaults(
   defineProps<{
@@ -22,7 +23,7 @@ withDefaults(
   }
 )
 
-const { t } = usePlutoI18n()
+const { t } = usePluto3dI18n()
 const live = ref(false)
 </script>
 

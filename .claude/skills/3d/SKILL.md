@@ -25,6 +25,8 @@ feature on top of core, for any backend. It lives in the core repo, a Bun monore
 - `app/components/Pluto3dPreview.vue`: the preview image with a 3D badge; with `interactive`, a
   click starts the viewer in its place.
 - `i18n/locales/*.json`: the `3d.*` texts. A key can start with a digit (`isMessageKey`).
+- `app/composables/pluto-3d-i18n.ts`: `usePluto3dI18n()`. The components follow the admin language
+  under `/admin`, and the site language (`usePlutoSiteI18n`) on a site page.
 - `.playground/`: core (`packages/core`, extended as `../../../../core`) and the add-on, for
   `nuxt dev` and the typecheck. Do not
   upload files in it with the GitHub CMS: the local Git commits go into the core repo.
