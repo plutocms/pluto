@@ -13,7 +13,7 @@ const ENV_NAMES = [
     'PLUTO',
     'SUPABASE',
     'SUPABASE_SHOP',
-    'SUPABASE_STORAGE',
+    'SUPABASE_BLOG',
     'SUPABASE_BLOG',
     'NUXT_CONTENT',
   ].map((name) => `PLUTO_${name}_PATH`),
@@ -65,8 +65,8 @@ describe('plutoLayer', () => {
 
   it('accepts install: false', () => {
     expect(
-      plutoLayer('@plutocms/supabase-storage', { install: false })
-    ).toEqual(['@plutocms/supabase-storage', { install: false }])
+      plutoLayer('@plutocms/supabase-blog', { install: false })
+    ).toEqual(['@plutocms/supabase-blog', { install: false }])
   })
 
   it('sets nothing when no root is set', () => {
@@ -93,7 +93,7 @@ describe('plutoLayer', () => {
       resolve(root, 'supabase-shop')
     )
     expect(process.env.PLUTO_UTILS_PATH).toBeUndefined()
-    expect(process.env.PLUTO_SUPABASE_STORAGE_PATH).toBeUndefined()
+    expect(process.env.PLUTO_SUPABASE_BLOG_PATH).toBeUndefined()
   })
 
   it('returns the package name when the checkout is missing', () => {
@@ -108,12 +108,12 @@ describe('plutoLayer', () => {
   })
 
   it('ignores a folder with no nuxt.config.ts', () => {
-    mkdirSync(join(root, 'supabase-storage'))
+    mkdirSync(join(root, 'supabase-blog'))
     process.env.PLUTO_LOCAL_ROOT = root
 
     plutoLayer('@plutocms/pluto')
 
-    expect(process.env.PLUTO_SUPABASE_STORAGE_PATH).toBeUndefined()
+    expect(process.env.PLUTO_SUPABASE_BLOG_PATH).toBeUndefined()
   })
 
   it('keeps an explicit PLUTO_<NAME>_PATH', () => {
@@ -133,10 +133,10 @@ describe('plutoLayer', () => {
   })
 
   it('uses an explicit PLUTO_<NAME>_PATH without a root', () => {
-    process.env.PLUTO_SUPABASE_STORAGE_PATH = '../supabase-storage'
+    process.env.PLUTO_SUPABASE_BLOG_PATH = '../supabase-blog'
 
-    expect(plutoLayer('@plutocms/supabase-storage')).toEqual([
-      '../supabase-storage',
+    expect(plutoLayer('@plutocms/supabase-blog')).toEqual([
+      '../supabase-blog',
       { install: true },
     ])
   })

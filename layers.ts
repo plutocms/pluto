@@ -29,9 +29,9 @@ export const PLUTO_LAYER_FOLDERS = [
   'pluto',
   'supabase',
   'supabase-shop',
-  'supabase-storage',
   'supabase-blog',
   'nuxt-content',
+  '3d',
 ] as const
 
 const SCOPE = '@plutocms/'

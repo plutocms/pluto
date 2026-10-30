@@ -631,7 +631,8 @@
         "all": "All files",
         "image": "Images",
         "model": "3D models",
-        "document": "PDFs"
+        "document": "PDFs",
+        "label": "File types"
       },
       "kinds": {
         "image": "Image",
@@ -671,13 +672,26 @@
         "name": "Name",
         "delete": "Delete the file",
         "deleteConfirm": "Delete \"{name}\"? Pages that use it lose it. You cannot undo this.",
-        "deleted": "File deleted"
+        "deleted": "File deleted",
+        "saved": "Saved",
+        "copy": "Copy",
+        "copyMarkdown": "Copy as Markdown",
+        "copyId": "Copy the id",
+        "download": "Download",
+        "preview": "Preview image",
+        "previewHint": "Sites show it as the thumbnail of this file.",
+        "noPreview": "No preview image yet. Sites show an icon.",
+        "makePreview": "Make a preview",
+        "remakePreview": "Make it again",
+        "previewMade": "Preview image saved",
+        "previewFailed": "Could not make the preview"
       },
       "picker": {
         "title": "Choose a file",
         "titleMultiple": "Choose files",
         "use": "Use this file",
-        "useCount": "Use {count} files"
+        "useCount": "Use {count} files",
+        "unselect": "Take out {name}"
       },
       "field": {
         "choose": "Choose a file",
@@ -699,7 +713,9 @@
         "notFound": "The file does not exist.",
         "saveFailed": "Could not save the file",
         "deleteFailed": "Could not delete the file",
-        "noPermission": "You do not have permission to change the media library."
+        "noPermission": "You do not have permission to change the media library.",
+        "previewTooLarge": "The preview image is too large. The limit is {limit}.",
+        "badPreview": "The preview must be a JPEG, PNG or WebP image."
       },
       "capabilities": {
         "manage": "Upload and change media files",
@@ -707,7 +723,29 @@
       },
       "editor": {
         "image": "Image"
-      }
+      },
+      "sort": {
+        "label": "Sort",
+        "newest": "Newest first",
+        "oldest": "Oldest first",
+        "name": "Name",
+        "size": "Largest first"
+      },
+      "view": {
+        "grid": "Grid",
+        "list": "List"
+      },
+      "bulk": {
+        "selected": "{count} selected",
+        "all": "Select all",
+        "copyUrls": "Copy the URLs",
+        "copied": "URLs copied: {count}",
+        "delete": "Delete the selected files",
+        "deleteConfirm": "Delete {count} files? Pages that use them lose them. You cannot undo this.",
+        "deleted": "Files deleted: {count}",
+        "clear": "Clear the selection"
+      },
+      "dropHint": "Drop files here, or upload them. Every layer of the site uses this library."
     }
   }
 }

@@ -21,6 +21,17 @@ export interface PlutoMedia {
   alt: string
   /** ISO timestamp. */
   createdAt: string
+  /**
+   * A static image of a file that is not an image (a 3D model), made in the
+   * browser at upload by the kind of the file. `null` when there is none.
+   */
+  preview: PlutoMediaPreview | null
+}
+
+export interface PlutoMediaPreview {
+  url: string
+  width: number
+  height: number
 }
 
 /** A file as the public API gives it, in place of the id of a `media` field. */
@@ -34,6 +45,19 @@ export interface PlutoMediaQuery {
   search?: string
   /** `image`, or a MIME type or prefix (`model/`, `application/pdf`). */
   type?: string
+  /** Default `newest`. */
+  sort?: PlutoMediaSort
+}
+
+export type PlutoMediaSort = 'newest' | 'oldest' | 'name' | 'size'
+
+/** A checked preview image, with its stored file name (`<stem>.preview.<ext>`). */
+export interface PlutoMediaPreviewUpload {
+  fileName: string
+  data: Uint8Array
+  mimeType: string
+  width: number
+  height: number
 }
 
 /** A complete new record, with the bytes. Core makes it; the driver stores it. */
@@ -48,9 +72,12 @@ export interface PlutoMediaUpload {
   height: number | null
   alt: string
   createdAt: string
+  preview?: PlutoMediaPreviewUpload | null
 }
 
 export interface PlutoMediaPatch {
+  /** The display name. The stored file keeps its name. */
+  name?: string
   alt?: string
   width?: number | null
   height?: number | null
@@ -83,12 +110,30 @@ export interface PlutoMediaDriver {
     id: string,
     patch: PlutoMediaPatch
   ) => Promise<PlutoMedia>
+  /** Sets or replaces the preview image of a file. */
+  setPreview: (
+    event: H3Event,
+    id: string,
+    preview: PlutoMediaPreviewUpload
+  ) => Promise<PlutoMedia>
+  /** Deletes the file, its preview and its record. */
   remove: (event: H3Event, id: string) => Promise<void>
 }
 
 /** The upload rules. `runtimeConfig.public.plutoMedia`. The server checks them on every upload. */
 export interface PlutoMediaLimits {
-  /** MIME types, or a family with `/*` (`image/*`). */
+  /** MIME types, or a family with `/*` (`image/*`). The defaults, or the list of the app, plus the `extraTypes` of the layers. */
   allowedTypes: string[]
   maxUploadBytes: number
+  /** The size limit of a type, in bytes, over `maxUploadBytes` (a layer sets it for its type). */
+  typeLimits: Record<string, number>
+}
+
+/** `runtimeConfig.public.plutoMedia` as the app and the layers set it. */
+export interface PlutoMediaConfig {
+  driver?: string
+  allowedTypes?: string[]
+  extraTypes?: string[]
+  maxUploadBytes?: number
+  typeLimits?: Record<string, number>
 }

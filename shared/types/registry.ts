@@ -1,6 +1,29 @@
 import type { Component, ComputedRef } from 'vue'
 import type { PlutoContentType, PlutoFieldType } from './content'
 
+/**
+ * A kind of file of the media library: images, PDFs, 3D models (the 3D
+ * add-on). The library, the tiles, the details and the picker use the first
+ * kind whose `accept` matches the type of a file. See the media skill.
+ */
+export interface PlutoMediaKind extends PlutoEntry {
+  /** MIME types or families: `['model/gltf-binary']`, `['image/*']`. */
+  accept: string[]
+  /** A translation key or literal: the name of the kind ("3D model"). */
+  label: string
+  icon: string
+  /** A short badge on a tile ("3D", "PDF"). None for images. */
+  badge?: string
+  /** Shows a file of this kind in the details and the picker. Props: `media`. */
+  viewer?: Component
+  /**
+   * Makes a static preview image of a file, in the browser (WebP, about 1024 px).
+   * Core sends it with the upload, and "Make a preview" runs it on a stored file.
+   * Returns `null` when it cannot.
+   */
+  createPreview?: (file: Blob) => Promise<Blob | null>
+}
+
 export interface PlutoEntry {
   /** Unique inside this extension. Stored as `<extensionId>:<id>`. */
   id: string
@@ -325,6 +348,7 @@ export interface PlutoExtension {
   contentFieldWidgets?: PlutoContentFieldWidget[]
   contentActions?: PlutoContentAction[]
   contentToolbarItems?: PlutoContentToolbarItem[]
+  mediaKinds?: PlutoMediaKind[]
 }
 
 /**
@@ -359,4 +383,5 @@ export interface PlutoRegistry {
   contentFieldWidgets: PlutoRegistryBucket<PlutoContentFieldWidget>
   contentActions: PlutoRegistryBucket<PlutoContentAction>
   contentToolbarItems: PlutoRegistryBucket<PlutoContentToolbarItem>
+  mediaKinds: PlutoRegistryBucket<PlutoMediaKind>
 }

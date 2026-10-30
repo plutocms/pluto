@@ -631,7 +631,8 @@
         "all": "Todos os arquivos",
         "image": "Imagens",
         "model": "Modelos 3D",
-        "document": "PDFs"
+        "document": "PDFs",
+        "label": "Tipos de arquivo"
       },
       "kinds": {
         "image": "Imagem",
@@ -671,13 +672,26 @@
         "name": "Nome",
         "delete": "Excluir o arquivo",
         "deleteConfirm": "Excluir \"{name}\"? As páginas que o usam vão perdê-lo. Não é possível desfazer.",
-        "deleted": "Arquivo excluído"
+        "deleted": "Arquivo excluído",
+        "saved": "Salvo",
+        "copy": "Copiar",
+        "copyMarkdown": "Copiar como Markdown",
+        "copyId": "Copiar o id",
+        "download": "Baixar",
+        "preview": "Imagem de prévia",
+        "previewHint": "Os sites a mostram como miniatura deste arquivo.",
+        "noPreview": "Ainda não há imagem de prévia. Os sites mostram um ícone.",
+        "makePreview": "Criar a prévia",
+        "remakePreview": "Criar de novo",
+        "previewMade": "Imagem de prévia salva",
+        "previewFailed": "Não foi possível criar a prévia"
       },
       "picker": {
         "title": "Escolher um arquivo",
         "titleMultiple": "Escolher arquivos",
         "use": "Usar este arquivo",
-        "useCount": "Usar {count} arquivos"
+        "useCount": "Usar {count} arquivos",
+        "unselect": "Tirar {name}"
       },
       "field": {
         "choose": "Escolher um arquivo",
@@ -699,7 +713,9 @@
         "notFound": "O arquivo não existe.",
         "saveFailed": "Não foi possível salvar o arquivo",
         "deleteFailed": "Não foi possível excluir o arquivo",
-        "noPermission": "Você não tem permissão para alterar a biblioteca de mídia."
+        "noPermission": "Você não tem permissão para alterar a biblioteca de mídia.",
+        "previewTooLarge": "A imagem de prévia é grande demais. O limite é {limit}.",
+        "badPreview": "A prévia precisa ser uma imagem JPEG, PNG ou WebP."
       },
       "capabilities": {
         "manage": "Enviar e alterar arquivos de mídia",
@@ -707,7 +723,29 @@
       },
       "editor": {
         "image": "Imagem"
-      }
+      },
+      "sort": {
+        "label": "Ordenar",
+        "newest": "Mais recentes",
+        "oldest": "Mais antigos",
+        "name": "Nome",
+        "size": "Maiores primeiro"
+      },
+      "view": {
+        "grid": "Grade",
+        "list": "Lista"
+      },
+      "bulk": {
+        "selected": "{count} selecionados",
+        "all": "Selecionar todos",
+        "copyUrls": "Copiar as URLs",
+        "copied": "URLs copiadas: {count}",
+        "delete": "Excluir os arquivos selecionados",
+        "deleteConfirm": "Excluir {count} arquivos? As páginas que os usam vão perdê-los. Não é possível desfazer.",
+        "deleted": "Arquivos excluídos: {count}",
+        "clear": "Limpar a seleção"
+      },
+      "dropHint": "Solte os arquivos aqui ou envie-os. Todas as camadas do site usam esta biblioteca."
     }
   }
 }
