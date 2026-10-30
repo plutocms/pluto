@@ -4,6 +4,18 @@
   "workspaces": {
     "": {
       "name": "plutocms",
+      "devDependencies": {
+        "@antfu/eslint-config": "^10.0.0",
+        "eslint": "^10.12.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-better-tailwindcss": "^4.10.0",
+        "prettier": "^3.9.10",
+        "prettier-plugin-tailwindcss": "^0.8.1",
+      },
+    },
+    "packages/core": {
+      "name": "@plutocms/core",
+      "version": "0.37.0",
       "dependencies": {
         "@codemirror/commands": "^6.11.1",
         "@codemirror/lang-markdown": "^6.5.2",
@@ -29,16 +41,10 @@
         "yaml": "^2.9.1",
       },
       "devDependencies": {
-        "@antfu/eslint-config": "^10.0.0",
         "@tailwindcss/vite": "^4.3.3",
         "@types/bun": "^1.4.4",
-        "eslint": "^10.12.0",
-        "eslint-config-prettier": "^10.1.8",
-        "eslint-plugin-better-tailwindcss": "^4.10.0",
         "mysql2": "^3.24.6",
         "nuxt": "^4.6.2",
-        "prettier": "^3.9.10",
-        "prettier-plugin-tailwindcss": "^0.8.1",
         "tailwindcss": "^4.3.3",
         "typescript": "6.0.3",
         "vitest": "^5.0.5",
@@ -57,10 +63,10 @@
         "@types/three": "^0.186.0",
       },
       "peerDependencies": {
-        "@plutocms/pluto": ">=0.37.0 <1.0.0",
+        "@plutocms/core": ">=0.38.0 <1.0.0",
       },
       "optionalPeers": [
-        "@plutocms/pluto",
+        "@plutocms/core",
       ],
     },
   },
@@ -474,6 +480,8 @@
     "@pkgr/core": ["@pkgr/core@0.3.6", "", {}, "sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA=="],
 
     "@plutocms/3d": ["@plutocms/3d@workspace:packages/layers/addons/3d"],
+
+    "@plutocms/core": ["@plutocms/core@workspace:packages/core"],
 
     "@plutocms/utils": ["@plutocms/utils@0.3.0", "", { "dependencies": { "@nuxt/eslint": "^1.17.0" } }, "sha512-O2lIWZxr7RUNy0Ady7EQ0EQXxJHsM67TmFMalgs7HJ1oO4C4I1rZTjNdU3PdhSMis2UPCrpAWhhTe8+prWbZgQ=="],
 

@@ -5,6 +5,8 @@
 // - A wide range (`>=0.34.0 <1.0.0`, used by the layers) keeps its text. Only
 //   the lockfile moves, so the repo tests against the new version.
 // - A caret range or an exact version (the apps) moves to the newest version.
+// - In a Bun workspace (a monorepo), it reads the package.json of the root and
+//   of each workspace package.
 //
 // It writes `changed` and `summary` to $GITHUB_OUTPUT when that is set.
 // Usage: node .github/scripts/plutocms-update.mjs [--dry-run]
@@ -58,61 +60,111 @@ async function latestVersion(name) {
   return (await response.json()).version
 }
 
+/**
+ * The folders with a package.json: the root, then each workspace package
+ * (`workspaces` entries `dir` or `dir/*`).
+ */
+export function packageDirs(root = '.') {
+  const pkg = JSON.parse(fs.readFileSync(`${root}/package.json`, 'utf8'))
+  const patterns = Array.isArray(pkg.workspaces)
+    ? pkg.workspaces
+    : (pkg.workspaces?.packages ?? [])
+  const dirs = ['.']
+  for (const pattern of patterns) {
+    if (pattern.endsWith('/*')) {
+      const base = pattern.slice(0, -2)
+      const names = fs.existsSync(`${root}/${base}`)
+        ? fs.readdirSync(`${root}/${base}`).sort()
+        : []
+      dirs.push(...names.map((name) => `${base}/${name}`))
+    } else {
+      dirs.push(pattern)
+    }
+  }
+  return dirs.filter((dir) => fs.existsSync(`${root}/${dir}/package.json`))
+}
+
 function readLock() {
   return fs.existsSync('bun.lock') ? fs.readFileSync('bun.lock', 'utf8') : ''
 }
 
 async function main() {
-  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
-  const names = [
-    ...new Set(
-      SECTIONS.flatMap((section) => Object.keys(pkg[section] ?? {})).filter(
-        (name) => name.startsWith('@plutocms/')
-      )
-    ),
-  ].sort()
+  const packages = packageDirs().map((dir) => {
+    const file = `${dir}/package.json`
+    const pkg = JSON.parse(fs.readFileSync(file, 'utf8'))
+    const names = [
+      ...new Set(
+        SECTIONS.flatMap((section) => Object.keys(pkg[section] ?? {})).filter(
+          (name) => name.startsWith('@plutocms/')
+        )
+      ),
+    ].sort()
+    return { dir, file, pkg, names, changed: false }
+  })
+  const names = [...new Set(packages.flatMap((entry) => entry.names))].sort()
 
   const before = readLock()
   const bumped = []
   const wide = []
+  const latest = {}
 
   for (const name of names) {
-    const latest = await latestVersion(name)
-    for (const section of SECTIONS) {
-      const spec = pkg[section]?.[name]
-      if (!spec) {
-        continue
-      }
-      if (isWideRange(spec)) {
-        wide.push(name)
-        continue
-      }
-      const next = nextSpec(spec, latest)
-      if (next) {
-        pkg[section][name] = next
-        bumped.push(`${name} ${spec} → ${next}`)
+    latest[name] = await latestVersion(name)
+  }
+  for (const entry of packages) {
+    for (const name of entry.names) {
+      for (const section of SECTIONS) {
+        const spec = entry.pkg[section]?.[name]
+        if (!spec) {
+          continue
+        }
+        if (isWideRange(spec)) {
+          wide.push(name)
+          continue
+        }
+        const next = nextSpec(spec, latest[name])
+        if (next) {
+          entry.pkg[section][name] = next
+          entry.changed = true
+          bumped.push(`${name} ${spec} → ${next}`)
+        }
       }
     }
   }
 
   if (dryRun) {
-    console.log(JSON.stringify({ names, bumped, wide }, null, 2))
+    console.log(
+      JSON.stringify(
+        { packages: packages.map((entry) => entry.dir), names, bumped, wide },
+        null,
+        2
+      )
+    )
     return
   }
 
-  if (bumped.length) {
-    fs.writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`)
+  for (const entry of packages.filter((item) => item.changed)) {
+    fs.writeFileSync(
+      entry.file,
+      `${JSON.stringify(entry.pkg, null, 2)}
+`
+    )
   }
   // `bun install` applies the new specs. `bun update` of every @plutocms
   // package then moves the lockfile inside the wide ranges, and drops an older
-  // copy nested under another @plutocms package (`bun install` keeps it).
-  // Install scripts are not needed here.
+  // copy nested under another @plutocms package (`bun install` keeps it). In a
+  // workspace package it runs in the folder of the package, so the root
+  // package.json does not get the dependency. Install scripts are not needed
+  // here.
   execSync('bun install --ignore-scripts', { stdio: 'inherit' })
   const wideNames = [...new Set(wide)]
-  if (names.length && fs.existsSync('bun.lock')) {
-    execSync(`bun update --ignore-scripts ${names.join(' ')}`, {
-      stdio: 'inherit',
-    })
+  if (fs.existsSync('bun.lock')) {
+    for (const entry of packages.filter((item) => item.names.length)) {
+      execSync(`bun update --ignore-scripts ${entry.names.join(' ')}`, {
+        cwd: entry.dir,
+        stdio: 'inherit',
+      })
+    }
   }
 
   const after = readLock()

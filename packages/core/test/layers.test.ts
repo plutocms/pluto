@@ -9,13 +9,12 @@ const ENV_NAMES = [
   'PLUTO_USE_LOCAL',
   ...[
     'UTILS',
-    'UI',
-    'PLUTO',
+    'CORE',
     'SUPABASE',
     'SUPABASE_SHOP',
     'SUPABASE_BLOG',
-    'SUPABASE_BLOG',
     'NUXT_CONTENT',
+    '3D',
   ].map((name) => `PLUTO_${name}_PATH`),
 ]
 
@@ -64,21 +63,22 @@ describe('plutoLayer', () => {
   })
 
   it('accepts install: false', () => {
-    expect(
-      plutoLayer('@plutocms/supabase-blog', { install: false })
-    ).toEqual(['@plutocms/supabase-blog', { install: false }])
+    expect(plutoLayer('@plutocms/supabase-blog', { install: false })).toEqual([
+      '@plutocms/supabase-blog',
+      { install: false },
+    ])
   })
 
   it('sets nothing when no root is set', () => {
-    checkout('pluto')
-    plutoLayer('@plutocms/pluto')
+    checkout('pluto/packages/core')
+    plutoLayer('@plutocms/core')
 
-    expect(process.env.PLUTO_PLUTO_PATH).toBeUndefined()
+    expect(process.env.PLUTO_CORE_PATH).toBeUndefined()
   })
 
   it('returns the local path and sets the path of every existing checkout', () => {
     checkout('nuxt-content')
-    checkout('pluto')
+    checkout('pluto/packages/core')
     checkout('supabase-shop')
     process.env.PLUTO_LOCAL_ROOT = root
 
@@ -88,7 +88,9 @@ describe('plutoLayer', () => {
     expect(process.env.PLUTO_NUXT_CONTENT_PATH).toBe(
       resolve(root, 'nuxt-content')
     )
-    expect(process.env.PLUTO_PLUTO_PATH).toBe(resolve(root, 'pluto'))
+    expect(process.env.PLUTO_CORE_PATH).toBe(
+      resolve(root, 'pluto/packages/core')
+    )
     expect(process.env.PLUTO_SUPABASE_SHOP_PATH).toBe(
       resolve(root, 'supabase-shop')
     )
@@ -96,37 +98,52 @@ describe('plutoLayer', () => {
     expect(process.env.PLUTO_SUPABASE_BLOG_PATH).toBeUndefined()
   })
 
+  it('finds the packages of the core repo in its packages folder', () => {
+    checkout('pluto/packages/core')
+    checkout('pluto/packages/layers/addons/3d')
+    process.env.PLUTO_LOCAL_ROOT = root
+
+    expect(plutoLayer('@plutocms/3d')[0]).toBe(
+      resolve(root, 'pluto/packages/layers/addons/3d')
+    )
+    expect(process.env.PLUTO_CORE_PATH).toBe(
+      resolve(root, 'pluto/packages/core')
+    )
+  })
+
   it('returns the package name when the checkout is missing', () => {
-    checkout('pluto')
+    checkout('pluto/packages/core')
     process.env.PLUTO_LOCAL_ROOT = root
 
     expect(plutoLayer('@plutocms/supabase')).toEqual([
       '@plutocms/supabase',
       { install: true },
     ])
-    expect(process.env.PLUTO_PLUTO_PATH).toBe(resolve(root, 'pluto'))
+    expect(process.env.PLUTO_CORE_PATH).toBe(
+      resolve(root, 'pluto/packages/core')
+    )
   })
 
   it('ignores a folder with no nuxt.config.ts', () => {
     mkdirSync(join(root, 'supabase-blog'))
     process.env.PLUTO_LOCAL_ROOT = root
 
-    plutoLayer('@plutocms/pluto')
+    plutoLayer('@plutocms/core')
 
     expect(process.env.PLUTO_SUPABASE_BLOG_PATH).toBeUndefined()
   })
 
   it('keeps an explicit PLUTO_<NAME>_PATH', () => {
-    checkout('pluto')
+    checkout('pluto/packages/core')
     checkout('nuxt-content')
     process.env.PLUTO_LOCAL_ROOT = root
-    process.env.PLUTO_PLUTO_PATH = '/custom/pluto'
+    process.env.PLUTO_CORE_PATH = '/custom/core'
 
-    expect(plutoLayer('@plutocms/pluto')).toEqual([
-      '/custom/pluto',
+    expect(plutoLayer('@plutocms/core')).toEqual([
+      '/custom/core',
       { install: true },
     ])
-    expect(process.env.PLUTO_PLUTO_PATH).toBe('/custom/pluto')
+    expect(process.env.PLUTO_CORE_PATH).toBe('/custom/core')
     expect(plutoLayer('@plutocms/nuxt-content')[0]).toBe(
       resolve(root, 'nuxt-content')
     )
@@ -142,31 +159,33 @@ describe('plutoLayer', () => {
   })
 
   it('does nothing when PLUTO_USE_LOCAL is false', () => {
-    checkout('pluto')
+    checkout('pluto/packages/core')
     process.env.PLUTO_LOCAL_ROOT = root
     process.env.PLUTO_USE_LOCAL = 'false'
 
-    expect(plutoLayer('@plutocms/pluto')).toEqual([
-      '@plutocms/pluto',
+    expect(plutoLayer('@plutocms/core')).toEqual([
+      '@plutocms/core',
       { install: true },
     ])
-    expect(process.env.PLUTO_PLUTO_PATH).toBeUndefined()
+    expect(process.env.PLUTO_CORE_PATH).toBeUndefined()
   })
 
   it('lets options.root win over PLUTO_LOCAL_ROOT', () => {
-    checkout('pluto')
+    checkout('pluto/packages/core')
     process.env.PLUTO_LOCAL_ROOT = join(root, 'nowhere')
 
-    expect(plutoLayer('@plutocms/pluto', { root })[0]).toBe(
-      resolve(root, 'pluto')
+    expect(plutoLayer('@plutocms/core', { root })[0]).toBe(
+      resolve(root, 'pluto/packages/core')
     )
   })
 
   it('resolves a relative root from the working directory', () => {
-    checkout('pluto')
+    checkout('pluto/packages/core')
     const relative = relativePath(process.cwd(), root)
     process.env.PLUTO_LOCAL_ROOT = relative
 
-    expect(plutoLayer('@plutocms/pluto')[0]).toBe(resolve(root, 'pluto'))
+    expect(plutoLayer('@plutocms/core')[0]).toBe(
+      resolve(root, 'pluto/packages/core')
+    )
   })
 })

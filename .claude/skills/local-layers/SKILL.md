@@ -7,7 +7,7 @@ development, and an app that needs local layers instead of npm. A normal app doe
 
 ```ts
 // nuxt.config.ts
-import { plutoLayer } from '@plutocms/pluto/layers'
+import { plutoLayer } from '@plutocms/core/layers'
 
 export default defineNuxtConfig({
   extends: [plutoLayer('@plutocms/nuxt-content')],
@@ -25,12 +25,12 @@ export default defineNuxtConfig({
 
 ## Import path
 
-The app imports `@plutocms/pluto/layers`. The package has `main: ./nuxt.config.ts` and no `exports`
+The app imports `@plutocms/core/layers`. The package has `main: ./nuxt.config.ts` and no `exports`
 field, so Node and jiti resolve a deep path to the file `layers.ts` in the package. An `exports`
 field would block the other deep imports that layers and tests use, so do not add one. `.npmignore`
 is a denylist, so `layers.ts` ships to npm.
 
-With a strict package manager (pnpm), the app must list `@plutocms/pluto` in its own dependencies
+With a strict package manager (pnpm), the app must list `@plutocms/core` in its own dependencies
 to import the helper. With npm and Bun, the copy that a layer brings is hoisted, and the import
 works.
 
@@ -38,9 +38,13 @@ works.
 
 - Local mode is on when `PLUTO_LOCAL_ROOT` (or `options.root`) is set, unless
   `PLUTO_USE_LOCAL=false`. A relative root resolves from the current working directory.
-- A checkout exists when `<root>/<folder>/nuxt.config.ts` exists. The folders are `utils`,
-  `pluto`, `supabase`, `supabase-shop`, `supabase-blog`, `nuxt-content`, `3d`.
-- The helper sets `PLUTO_<NAME>_PATH` (upper case, `-` to `_`) for each checkout that exists and
+- `PLUTO_LAYER_PATHS` maps each layer (the package name without the scope) to its checkout under
+  the root: `utils`, `supabase`, `supabase-shop`, `supabase-blog` and `nuxt-content` have a
+  folder of their name; `core` is `pluto/packages/core` and `3d` is
+  `pluto/packages/layers/addons/3d` (the core repo is a monorepo). A layer that is not in the map
+  has a folder of its name.
+- A checkout exists when its `nuxt.config.ts` exists.
+- The helper sets `PLUTO_<NAME>_PATH` (upper case, `-` to `_`; core is `PLUTO_CORE_PATH`) for each checkout that exists and
   is not set yet. The `nuxt.config.ts` of each layer reads that variable, so the upstream layers go
   local too.
 - An explicit `PLUTO_<NAME>_PATH` always wins, in local mode and in default mode.

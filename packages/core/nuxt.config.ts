@@ -1,6 +1,6 @@
 const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
-// Point PLUTO_UTILS_PATH at a local checkout (e.g. `../utils`) to test
+// Point PLUTO_UTILS_PATH at a local checkout (e.g. `../../../utils`) to test
 // unpublished changes; unset, it resolves to the published npm package.
 const utilsLayer = process.env.PLUTO_UTILS_PATH || '@plutocms/utils'
 

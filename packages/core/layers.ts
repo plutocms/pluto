@@ -1,7 +1,7 @@
 /**
  * The local layers helper. An app imports it in `nuxt.config.ts`:
  *
- *   import { plutoLayer } from '@plutocms/pluto/layers'
+ *   import { plutoLayer } from '@plutocms/core/layers'
  *
  * Nuxt loads `nuxt.config.ts` before any module runs, so this file has no
  * Nuxt runtime import. It uses Node built-ins only. See the local-layers skill.
@@ -23,16 +23,19 @@ export interface PlutoLayerEntryOptions {
 
 export type PlutoLayerEntry = [source: string, options: PlutoLayerEntryOptions]
 
-/** The folder names of the Pluto layer checkouts. The name is the package name without the scope. */
-export const PLUTO_LAYER_FOLDERS = [
-  'utils',
-  'pluto',
-  'supabase',
-  'supabase-shop',
-  'supabase-blog',
-  'nuxt-content',
-  '3d',
-] as const
+/**
+ * The checkout of each Pluto layer under the root. The key is the package name
+ * without the scope. A package of a monorepo is in a folder of its repo.
+ */
+export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
+  utils: 'utils',
+  core: 'pluto/packages/core',
+  supabase: 'supabase',
+  'supabase-shop': 'supabase-shop',
+  'supabase-blog': 'supabase-blog',
+  'nuxt-content': 'nuxt-content',
+  '3d': 'pluto/packages/layers/addons/3d',
+}
 
 const SCOPE = '@plutocms/'
 
@@ -46,8 +49,9 @@ export function plutoLayerEnvName(name: string): string {
   return `PLUTO_${folderOf(name).toUpperCase().replaceAll('-', '_')}_PATH`
 }
 
-function hasCheckout(root: string, folder: string): boolean {
-  return existsSync(resolve(root, folder, 'nuxt.config.ts'))
+/** The checkout of a layer under the root. A layer that is not in the map has a folder of its name. */
+function checkoutOf(root: string, folder: string): string {
+  return resolve(root, PLUTO_LAYER_PATHS[folder] ?? folder)
 }
 
 /**
@@ -74,11 +78,15 @@ export function plutoLayer(
     const root = isAbsolute(rootValue)
       ? rootValue
       : resolve(process.cwd(), rootValue)
-    const folders = new Set<string>([...PLUTO_LAYER_FOLDERS, folderOf(name)])
+    const folders = new Set([...Object.keys(PLUTO_LAYER_PATHS), folderOf(name)])
     for (const folder of folders) {
       const variable = plutoLayerEnvName(folder)
-      if (!process.env[variable] && hasCheckout(root, folder)) {
-        process.env[variable] = resolve(root, folder)
+      const checkout = checkoutOf(root, folder)
+      if (
+        !process.env[variable] &&
+        existsSync(resolve(checkout, 'nuxt.config.ts'))
+      ) {
+        process.env[variable] = checkout
       }
     }
   }

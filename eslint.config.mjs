@@ -3,7 +3,7 @@ import antfu from '@antfu/eslint-config'
 import prettier from 'eslint-config-prettier'
 import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import { getDefaultSelectors } from 'eslint-plugin-better-tailwindcss/defaults'
-import withNuxt from './.nuxt/eslint.config.mjs'
+import withNuxt from './packages/core/.nuxt/eslint.config.mjs'
 
 // See: https://eslint.vuejs.org/rules
 export default withNuxt(
@@ -72,13 +72,13 @@ export default withNuxt(
   }),
   // Canonical Tailwind classes (the same suggestion as Tailwind IntelliSense,
   // `suggestCanonicalClasses`): `w-px`, not `w-[1px]`. The design system is
-  // tailwind.lint.css. Nuxt UI `ui` objects (`:ui="{ root: '…' }"`) count too.
+  // packages/core/tailwind.lint.css. Nuxt UI `ui` objects (`:ui="{ root: '…' }"`) count too.
   {
     files: ['**/*.vue', '**/*.ts'],
     plugins: { 'better-tailwindcss': betterTailwindcss },
     settings: {
       'better-tailwindcss': {
-        entryPoint: 'tailwind.lint.css',
+        entryPoint: 'packages/core/tailwind.lint.css',
         // px arbitrary values become spacing steps (`h-[27px]` is `h-6.75`).
         rootFontSize: 16,
         selectors: [

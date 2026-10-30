@@ -1,0 +1,27 @@
+# .gitignore
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+node_modules
+.yalc
+yalc.lock
+
+logs
+*.log
+
+.DS_Store
+.fleet
+.idea
+
+.env
+.env.*
+!.env.example
+
+# Package tooling — never needed by consumers of the layer. The repo tooling is at the root of
+# the repo, outside this package.
+test
+vitest.config.ts

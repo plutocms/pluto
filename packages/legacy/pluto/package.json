@@ -1,0 +1,24 @@
+{
+  "name": "@plutocms/pluto",
+  "type": "module",
+  "version": "0.38.0",
+  "description": "Moved to @plutocms/core. This package only extends @plutocms/core.",
+  "author": "Victor Ribeiro",
+  "license": "MIT",
+  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/core#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutocms/pluto.git",
+    "directory": "packages/legacy/pluto"
+  },
+  "bugs": {
+    "url": "https://github.com/plutocms/pluto/issues"
+  },
+  "main": "./nuxt.config.ts",
+  "dependencies": {
+    "@plutocms/core": ">=0.38.0 <1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

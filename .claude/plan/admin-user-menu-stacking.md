@@ -32,7 +32,7 @@ Branch / PR: fix/admin-user-menu-stacking
 - [x] The user checks the fix in a consumer app (local layer).
 - [x] Commit and PR.
 - [ ] Merge the PR (the user), then the release PR (`fix:` gives a patch).
-- [ ] Bump `@plutocms/pluto` where needed so the consumer apps get it in production.
+- [ ] Bump `@plutocms/core` where needed so the consumer apps get it in production.
 
 ## Log
 
