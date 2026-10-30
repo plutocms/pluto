@@ -21,6 +21,9 @@ const PlutoFieldSlug = defineAsyncComponent(
 const PlutoFieldText = defineAsyncComponent(
   () => import('../components/Pluto/Content/fields/PlutoFieldText.vue')
 )
+const PlutoFieldMedia = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldMedia.vue')
+)
 // The post editor (canvas layout): by widget name only, so it never replaces the
 // `richtext` widget of a field that does not ask for it.
 const PlutoFieldPostCanvas = defineAsyncComponent(
@@ -54,13 +57,21 @@ const PlutoContentBarActions = defineAsyncComponent(
 // whole contribution on every call, not just the buckets that call passes,
 // so a second `id: 'pluto'` call elsewhere would silently wipe this one out.
 //
-// `richtext` and `media` have no core widget here on purpose — a layer
-// registers those (blog registers `richtext`, storage registers `media`),
-// because core has no real editor or file picker to offer for either. See
-// the content-model skill.
+// `richtext` has no core widget here on purpose — a layer registers it (the
+// GitHub CMS, the blog). `media` has the core widget: the picker of the core
+// media library, for every backend (see the media skill).
+//
+// The Media page and its menu item show only when a backend has a media
+// driver (`runtimeConfig.public.plutoMedia.driver`).
 export default defineNuxtPlugin(() => {
+  const mediaEnabled = usePlutoMedia().enabled
+
   definePlutoExtension({
     id: 'pluto',
+    capabilities: [
+      { id: 'media-manage', key: 'media:manage', label: 'pluto.media.capabilities.manage' },
+      { id: 'media-delete', key: 'media:delete', label: 'pluto.media.capabilities.delete' },
+    ],
     nav: [
       {
         id: 'home',
@@ -69,6 +80,17 @@ export default defineNuxtPlugin(() => {
         icon: 'lucide:house',
         to: '/admin/home',
       },
+      ...(mediaEnabled
+        ? [
+            {
+              id: 'media',
+              order: 900,
+              label: 'pluto.nav.media',
+              icon: 'lucide:images',
+              to: '/admin/media',
+            },
+          ]
+        : []),
       {
         id: 'settings',
         order: 1000,
@@ -83,6 +105,12 @@ export default defineNuxtPlugin(() => {
         path: '/admin/home',
         title: 'pluto.pages.dashboard',
         icon: 'lucide:house',
+      },
+      {
+        id: 'media',
+        path: '/admin/media',
+        title: 'pluto.pages.media',
+        icon: 'lucide:images',
       },
       {
         id: 'settings',
@@ -124,6 +152,7 @@ export default defineNuxtPlugin(() => {
         fieldType: 'reference',
         component: PlutoFieldReference,
       },
+      { id: 'media', fieldType: 'media', component: PlutoFieldMedia },
       {
         id: 'post-canvas',
         widget: 'post-canvas',

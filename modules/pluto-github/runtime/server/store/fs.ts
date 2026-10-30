@@ -1,4 +1,5 @@
 import type { PlutoGithubFile, PlutoGithubStore } from './types'
+import { Buffer } from 'node:buffer'
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { gitBlobSha, listingOid } from '../utils/blob-sha'
@@ -190,11 +191,24 @@ export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
       return files
     },
     readFile: async (path) => read(path),
+    readRaw: async (path) => {
+      try {
+        return new Uint8Array(await readFile(safePath(path)))
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          return null
+        }
+        throw error
+      }
+    },
     commit: async (input) => {
       // Check every path first, so a bad path changes nothing.
       const additions = input.additions.map((item) => ({
         full: safePath(item.path),
-        contents: item.contents,
+        contents:
+          item.encoding === 'base64'
+            ? Buffer.from(item.contents, 'base64')
+            : item.contents,
       }))
       const deletions = input.deletions.map((item) => safePath(item.path))
       if (input.expectedHeadOid !== (await currentHead())) {
@@ -205,7 +219,11 @@ export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
       }
       for (const item of additions) {
         await mkdir(dirname(item.full), { recursive: true })
-        await writeFile(item.full, item.contents, 'utf8')
+        await writeFile(
+          item.full,
+          item.contents,
+          typeof item.contents === 'string' ? 'utf8' : undefined
+        )
       }
       if (options.gitCommit) {
         const paths = [...input.additions, ...input.deletions].map(

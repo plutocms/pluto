@@ -1,6 +1,5 @@
 import type { Component, ComputedRef } from 'vue'
 import type { PlutoContentType, PlutoFieldType } from './content'
-import type { PlutoMediaAdapter } from './media'
 
 export interface PlutoEntry {
   /** Unique inside this extension. Stored as `<extensionId>:<id>`. */
@@ -162,10 +161,6 @@ export interface PlutoContentFieldWidget extends PlutoEntry {
   fieldType?: PlutoFieldType
   widget?: string
   component: Component
-}
-
-export interface PlutoMediaAdapterEntry extends PlutoEntry {
-  adapter: PlutoMediaAdapter
 }
 
 /** State passed to a `PlutoContentAction`'s `show` test and `onSelect` handler. */
@@ -330,7 +325,6 @@ export interface PlutoExtension {
   contentFieldWidgets?: PlutoContentFieldWidget[]
   contentActions?: PlutoContentAction[]
   contentToolbarItems?: PlutoContentToolbarItem[]
-  mediaAdapters?: PlutoMediaAdapterEntry[]
 }
 
 /**
@@ -365,5 +359,4 @@ export interface PlutoRegistry {
   contentFieldWidgets: PlutoRegistryBucket<PlutoContentFieldWidget>
   contentActions: PlutoRegistryBucket<PlutoContentAction>
   contentToolbarItems: PlutoRegistryBucket<PlutoContentToolbarItem>
-  mediaAdapters: PlutoRegistryBucket<PlutoMediaAdapterEntry>
 }

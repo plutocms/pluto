@@ -50,6 +50,8 @@ describe('mapRepoPermission for push', () => {
       'posts:read_drafts',
       'posts:publish',
       'posts:delete',
+      'media:manage',
+      'media:delete',
     ])
   })
 
@@ -72,6 +74,8 @@ describe('mapRepoPermission for push', () => {
       'docs:delete',
       'other:write',
       'other:publish',
+      'media:manage',
+      'media:delete',
     ])
   })
 

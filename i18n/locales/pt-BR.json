@@ -38,11 +38,13 @@
     },
     "nav": {
       "home": "Início",
-      "settings": "Configurações"
+      "settings": "Configurações",
+      "media": "Mídia"
     },
     "pages": {
       "dashboard": "Painel",
-      "settings": "Configurações"
+      "settings": "Configurações",
+      "media": "Mídia"
     },
     "palette": {
       "goTo": "Ir para",
@@ -621,6 +623,90 @@
         "number": "Lista numerada",
         "quote": "Citação",
         "codeblock": "Bloco de código"
+      }
+    },
+    "media": {
+      "search": "Buscar arquivos",
+      "types": {
+        "all": "Todos os arquivos",
+        "image": "Imagens",
+        "model": "Modelos 3D",
+        "document": "PDFs"
+      },
+      "kinds": {
+        "image": "Imagem",
+        "model": "Modelo 3D",
+        "document": "PDF",
+        "file": "Arquivo"
+      },
+      "upload": {
+        "button": "Enviar",
+        "drop": "Solte os arquivos aqui ou clique para escolher",
+        "hint": "As imagens viram WebP, com no máximo {edge} px no lado maior e sem dados de localização. No máximo {size} por arquivo.",
+        "working": "Enviando {name}",
+        "done": "Enviados: {count}",
+        "failed": "O envio falhou"
+      },
+      "empty": "Nenhum arquivo ainda",
+      "emptyHint": "Envie imagens, modelos 3D ou PDFs. Todas as camadas do site usam esta biblioteca.",
+      "noResults": "Nenhum arquivo encontrado",
+      "clear": "Limpar os filtros",
+      "loadMore": "Mostrar mais",
+      "count": "{shown} de {total}",
+      "loadFailed": "Não foi possível carregar os arquivos",
+      "fillSizes": "Preencher os tamanhos das imagens",
+      "sizesDone": "Tamanhos das imagens: {updated} preenchidos, {failed} com falha",
+      "details": {
+        "title": "Arquivo",
+        "alt": "Texto alternativo",
+        "altHint": "Descreva a imagem para quem não pode vê-la.",
+        "altSaved": "Texto alternativo salvo",
+        "copyUrl": "Copiar a URL",
+        "copied": "URL copiada",
+        "open": "Abrir o arquivo",
+        "type": "Tipo",
+        "size": "Tamanho",
+        "pixels": "Pixels",
+        "date": "Enviado em",
+        "name": "Nome",
+        "delete": "Excluir o arquivo",
+        "deleteConfirm": "Excluir \"{name}\"? As páginas que o usam vão perdê-lo. Não é possível desfazer.",
+        "deleted": "Arquivo excluído"
+      },
+      "picker": {
+        "title": "Escolher um arquivo",
+        "titleMultiple": "Escolher arquivos",
+        "use": "Usar este arquivo",
+        "useCount": "Usar {count} arquivos"
+      },
+      "field": {
+        "choose": "Escolher um arquivo",
+        "change": "Trocar",
+        "remove": "Remover",
+        "add": "Adicionar arquivos",
+        "moveLeft": "Mover para a esquerda",
+        "moveRight": "Mover para a direita",
+        "missing": "Arquivo excluído"
+      },
+      "errors": {
+        "noDriver": "Nenhum armazenamento de mídia está configurado.",
+        "empty": "\"{name}\" está vazio.",
+        "tooLarge": "\"{name}\" é grande demais. O limite é {limit}.",
+        "typeNotAllowed": "A biblioteca não aceita este tipo de arquivo (\"{name}\").",
+        "noFile": "Nenhum arquivo foi enviado.",
+        "badPatch": "Envie o texto alternativo.",
+        "decode": "O navegador não consegue ler \"{name}\". Salve como JPEG ou PNG e tente de novo.",
+        "notFound": "O arquivo não existe.",
+        "saveFailed": "Não foi possível salvar o arquivo",
+        "deleteFailed": "Não foi possível excluir o arquivo",
+        "noPermission": "Você não tem permissão para alterar a biblioteca de mídia."
+      },
+      "capabilities": {
+        "manage": "Enviar e alterar arquivos de mídia",
+        "delete": "Excluir arquivos de mídia"
+      },
+      "editor": {
+        "image": "Imagem"
       }
     }
   }

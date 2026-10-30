@@ -567,9 +567,11 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   string as the file body.
 - `UEditorToolbar` has the built-in items: undo, redo, headings 1 to 4, bulleted and numbered
   lists, quote, code block, bold, italic, strikethrough and inline code. The items come from
-  `usePlutoMarkdownToolbar({ link })` (`app/composables/pluto-markdown-toolbar.ts`), so another
-  editor can share them. The link button is a slot
-  (`PlutoGithubEditorLink.vue`, a popover with the URL). The image and mention extensions are off.
+  `usePlutoMarkdownToolbar({ link, image })` (`app/composables/pluto-markdown-toolbar.ts`), so
+  another editor can share them. The link button is a slot (`PlutoGithubEditorLink.vue`, a
+  popover with the URL). The image extension is on, so an image in the Markdown stays. The image
+  button (`PlutoMediaEditorButton`, the media picker) shows when the app has a media library. The
+  mention extension is off.
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
   a click anywhere in the box puts the cursor in the text. The post type shows the widget through
   the post editor (see below).
@@ -907,7 +909,11 @@ ignores the PKCE fields, `state` still guards the flow.
 
 The GitHub App can be created from the site (see "Setup from the site").
 
-Planned for v2: media uploads, revision history, settings stored in the repository, a password
+Media: the GitHub driver of the core media library stores each file and its record in the repo
+(`public/media/`, `<dir>/media/<id>.md`). The post type has a `cover` field. See the media
+skill.
+
+Planned for v2: revision history, settings stored in the repository, a password
 provider, scheduled posts, and configurable collections.
 
 ## Rules found in live testing

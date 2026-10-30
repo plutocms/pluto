@@ -74,8 +74,12 @@ const frame = computed(() =>
       }
 )
 
-// The toolbar items are shared: `usePlutoMarkdownToolbar`. The link button is a slot.
-const items = usePlutoMarkdownToolbar({ link: true })
+// The toolbar items are shared: `usePlutoMarkdownToolbar`. The link and image
+// buttons are slots. The image button shows when the app has a media library.
+const items = usePlutoMarkdownToolbar({
+  link: true,
+  image: usePlutoMedia().enabled,
+})
 </script>
 
 <template>
@@ -135,7 +139,7 @@ const items = usePlutoMarkdownToolbar({ link: true })
       :model-value="value"
       :editable="!disabled"
       :placeholder="placeholder"
-      :image="false"
+      :image="true"
       :mention="false"
       :ui="
         canvas
@@ -173,6 +177,9 @@ const items = usePlutoMarkdownToolbar({ link: true })
         >
           <template #link>
             <PlutoGithubEditorLink :editor="editor" />
+          </template>
+          <template #image>
+            <PlutoMediaEditorButton :editor="editor" />
           </template>
         </UEditorToolbar>
       </UTheme>

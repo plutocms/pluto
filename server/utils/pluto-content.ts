@@ -39,7 +39,7 @@ export function listContentTypes(): PlutoContentType[] {
   return [...contentTypes.values()]
 }
 
-/** Replaces whatever adapter was registered before. Last-registered wins, the same rule `mediaAdapters`/`settingsDrivers` use client-side. */
+/** Replaces whatever adapter was registered before. Last-registered wins, the same rule `registerMediaDriver` and the client `settingsDrivers` use. */
 export function registerContentAdapter(adapter: PlutoContentAdapter): void {
   contentAdapter = adapter
 }

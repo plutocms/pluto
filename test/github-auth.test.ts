@@ -26,7 +26,13 @@ vi.mock(
   }
 )
 
-const POST_CAPS = ['posts:read_drafts', 'posts:publish', 'posts:delete']
+const POST_CAPS = [
+  'posts:read_drafts',
+  'posts:publish',
+  'posts:delete',
+  'media:manage',
+  'media:delete',
+]
 
 function setup(
   patch: Parameters<typeof resetTestConfig>[1] = {},
@@ -148,6 +154,8 @@ describe('github oauth helpers', () => {
       read,
       write,
       remove,
+      'media:manage',
+      'media:delete',
     ])
   })
 })

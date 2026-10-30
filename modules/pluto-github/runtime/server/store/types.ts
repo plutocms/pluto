@@ -22,7 +22,9 @@ export interface PlutoGithubCommitInput {
   message: string
   additions: {
     path: string
+    /** UTF-8 text, or base64 for a binary file (`encoding: 'base64'`). */
     contents: string
+    encoding?: 'utf8' | 'base64'
   }[]
   deletions: {
     path: string
@@ -54,6 +56,8 @@ export interface PlutoGithubStore {
     headOid: string,
     auth?: PlutoGithubAuth
   ) => Promise<PlutoGithubFile | null>
+  /** The bytes of any file (a media file), at the branch head. `null` when it does not exist. */
+  readRaw: (path: string, auth?: PlutoGithubAuth) => Promise<Uint8Array | null>
   /** Throws a `PlutoGithubConflictError` when `expectedHeadOid` is stale. */
   commit: (
     input: PlutoGithubCommitInput,

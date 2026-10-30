@@ -57,7 +57,6 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.id,
     definition.contentToolbarItems ?? []
   )
-  registry.mediaAdapters.set(definition.id, definition.mediaAdapters ?? [])
 }
 
 // Dev only. The names already warned about, so each component warns once

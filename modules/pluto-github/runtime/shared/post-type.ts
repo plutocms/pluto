@@ -32,6 +32,15 @@ export const plutoGithubPostType: PlutoContentType = {
       region: 'side',
     },
     { name: 'excerpt', type: 'textarea', label: 'Excerpt', region: 'side' },
+    // The cover: a media id in the frontmatter (`cover: red-mug-k3j9a`). The public API gives
+    // the record (`url`, `width`, `height`, `alt`). See the media skill.
+    {
+      name: 'cover',
+      type: 'media',
+      label: 'Cover image',
+      accept: ['image/*'],
+      region: 'side',
+    },
     {
       name: 'content',
       type: 'richtext',

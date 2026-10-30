@@ -93,9 +93,16 @@ export interface PlutoReferenceField extends PlutoFieldBase {
   valueKey?: string
 }
 
+/**
+ * Files of the media library. The value is one media id, or a list of ids in
+ * order (`multiple`). The public API gives the records in place of the ids.
+ * See the media skill.
+ */
 export interface PlutoMediaField extends PlutoFieldBase {
   type: 'media'
   multiple?: boolean
+  /** The file types the picker shows and the upload takes: `['image/*']`, `['model/gltf-binary']`. All types when unset. */
+  accept?: string[]
 }
 
 export interface PlutoBooleanField extends PlutoFieldBase {
@@ -438,7 +445,7 @@ export interface PlutoContentContext {
 /**
  * Lets a backend layer (`@plutocms/supabase`, and so on) plug its own
  * storage into the generic content server routes, without core knowing
- * which backend is in use — the same role `PlutoMediaAdapter` plays for
+ * which backend is in use — the same role `PlutoMediaDriver` plays for
  * media. Exactly one adapter is meaningful per app, registered through
  * `registerContentAdapter` (see `server/utils/pluto-content.ts`).
  */

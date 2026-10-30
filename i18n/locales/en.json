@@ -38,11 +38,13 @@
     },
     "nav": {
       "home": "Home",
-      "settings": "Settings"
+      "settings": "Settings",
+      "media": "Media"
     },
     "pages": {
       "dashboard": "Dashboard",
-      "settings": "Settings"
+      "settings": "Settings",
+      "media": "Media"
     },
     "palette": {
       "goTo": "Go to",
@@ -621,6 +623,90 @@
         "number": "Numbered list",
         "quote": "Quote",
         "codeblock": "Code block"
+      }
+    },
+    "media": {
+      "search": "Search the files",
+      "types": {
+        "all": "All files",
+        "image": "Images",
+        "model": "3D models",
+        "document": "PDFs"
+      },
+      "kinds": {
+        "image": "Image",
+        "model": "3D model",
+        "document": "PDF",
+        "file": "File"
+      },
+      "upload": {
+        "button": "Upload",
+        "drop": "Drop files here, or select to choose them",
+        "hint": "Images become WebP, at most {edge} px on the long side, with no location data. At most {size} for each file.",
+        "working": "Uploading {name}",
+        "done": "Uploaded: {count}",
+        "failed": "Upload failed"
+      },
+      "empty": "No files yet",
+      "emptyHint": "Upload images, 3D models or PDFs. Every layer of the site uses this library.",
+      "noResults": "No files match",
+      "clear": "Clear the filters",
+      "loadMore": "Show more",
+      "count": "{shown} of {total}",
+      "loadFailed": "Could not load the files",
+      "fillSizes": "Fill in missing image sizes",
+      "sizesDone": "Image sizes: {updated} filled in, {failed} failed",
+      "details": {
+        "title": "File",
+        "alt": "Alt text",
+        "altHint": "Describe the image for people who cannot see it.",
+        "altSaved": "Alt text saved",
+        "copyUrl": "Copy the URL",
+        "copied": "URL copied",
+        "open": "Open the file",
+        "type": "Type",
+        "size": "Size",
+        "pixels": "Pixels",
+        "date": "Uploaded",
+        "name": "Name",
+        "delete": "Delete the file",
+        "deleteConfirm": "Delete \"{name}\"? Pages that use it lose it. You cannot undo this.",
+        "deleted": "File deleted"
+      },
+      "picker": {
+        "title": "Choose a file",
+        "titleMultiple": "Choose files",
+        "use": "Use this file",
+        "useCount": "Use {count} files"
+      },
+      "field": {
+        "choose": "Choose a file",
+        "change": "Change",
+        "remove": "Remove",
+        "add": "Add files",
+        "moveLeft": "Move left",
+        "moveRight": "Move right",
+        "missing": "Deleted file"
+      },
+      "errors": {
+        "noDriver": "No media storage is set up.",
+        "empty": "\"{name}\" is empty.",
+        "tooLarge": "\"{name}\" is too large. The limit is {limit}.",
+        "typeNotAllowed": "The library does not take this file type (\"{name}\").",
+        "noFile": "No file was sent.",
+        "badPatch": "Send the alt text.",
+        "decode": "The browser cannot read \"{name}\". Save it as JPEG or PNG, then try again.",
+        "notFound": "The file does not exist.",
+        "saveFailed": "Could not save the file",
+        "deleteFailed": "Could not delete the file",
+        "noPermission": "You do not have permission to change the media library."
+      },
+      "capabilities": {
+        "manage": "Upload and change media files",
+        "delete": "Delete media files"
+      },
+      "editor": {
+        "image": "Image"
       }
     }
   }

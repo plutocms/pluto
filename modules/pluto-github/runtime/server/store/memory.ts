@@ -1,4 +1,5 @@
 import type { PlutoGithubFile, PlutoGithubStore } from './types'
+import { Buffer } from 'node:buffer'
 import { gitBlobSha, listingOid } from '../utils/blob-sha'
 import { PlutoGithubConflictError } from './errors'
 
@@ -25,10 +26,12 @@ export function createMemoryStore(
   initial: Record<string, string> = {}
 ): MemoryStore {
   const files = new Map<string, string>(Object.entries(initial))
+  // Binary files (media), as base64. They count for the head id too.
+  const raw = new Map<string, string>()
 
   function currentHead(): string {
     return listingOid(
-      [...files].map(([path, text]) => ({ path, oid: gitBlobSha(text) }))
+      [...files, ...raw].map(([path, text]) => ({ path, oid: gitBlobSha(text) }))
     )
   }
 
@@ -73,15 +76,28 @@ export function createMemoryStore(
       const text = files.get(path)
       return text === undefined ? null : toFile(path, text)
     },
+    readRaw: async (path) => {
+      const base64 = raw.get(path)
+      if (base64 !== undefined) {
+        return new Uint8Array(Buffer.from(base64, 'base64'))
+      }
+      const text = files.get(path)
+      return text === undefined ? null : new TextEncoder().encode(text)
+    },
     commit: async (input) => {
       if (input.expectedHeadOid !== currentHead()) {
         throw new PlutoGithubConflictError()
       }
       for (const deletion of input.deletions) {
         files.delete(deletion.path)
+        raw.delete(deletion.path)
       }
       for (const addition of input.additions) {
-        files.set(addition.path, addition.contents)
+        if (addition.encoding === 'base64') {
+          raw.set(addition.path, addition.contents)
+        } else {
+          files.set(addition.path, addition.contents)
+        }
       }
       return { oid: currentHead() }
     },
