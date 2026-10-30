@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/plutocms/pluto/compare/3d-v0.2.0...3d-v0.2.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **3d:** the viewer follows the site language on a site page ([#291](https://github.com/plutocms/pluto/issues/291)) ([34887ae](https://github.com/plutocms/pluto/commit/34887aedf2d85496d2f1711b73157aabb653f6cf))
+
 ## [0.2.0](https://github.com/plutocms/pluto/compare/3d-v0.1.0...3d-v0.2.0) (2026-10-30)
 
 
