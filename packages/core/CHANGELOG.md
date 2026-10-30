@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.38.2](https://github.com/plutocms/pluto/compare/v0.38.1...v0.38.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* core no longer bundles the whole simple-icons collection in the server ([#287](https://github.com/plutocms/pluto/issues/287)) ([2322b43](https://github.com/plutocms/pluto/commit/2322b43e4371c34548fdf88124138439c4c7df00))
+* the docs links point to the new /docs URLs ([#289](https://github.com/plutocms/pluto/issues/289)) ([0982146](https://github.com/plutocms/pluto/commit/0982146d82d599c4e7e0f9d2beeec56cd7527be7))
+
 ## [0.38.1](https://github.com/plutocms/pluto/compare/v0.38.0...v0.38.1) (2026-10-30)
 
 
