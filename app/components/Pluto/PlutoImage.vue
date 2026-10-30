@@ -8,7 +8,6 @@
 // GitHub CMS that is in the repo but not in a deploy yet), it shows the file
 // as it is. A record that is not an image shows nothing. See the media skill.
 import type { PlutoPublicMedia } from '../../../shared/types/media'
-import { isMediaImage } from '../../../shared/utils/media'
 
 const props = withDefaults(
   defineProps<{

@@ -4,7 +4,6 @@
 // from the library. A deleted file shows as a "Deleted file" tile until
 // someone removes it. See the media skill.
 import type { PlutoMedia } from '../../../../../shared/types/media'
-import { mediaFieldIds } from '../../../../../shared/utils/media'
 
 const props = defineProps<{
   field: PlutoMediaField

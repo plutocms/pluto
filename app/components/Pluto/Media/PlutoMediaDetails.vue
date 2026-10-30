@@ -2,7 +2,6 @@
 // The details of one file, in the aside of the Media page: a preview, the
 // facts of the record, the alt text, copy the URL, delete.
 import type { PlutoMedia } from '../../../../shared/types/media'
-import { formatMediaSize, mediaKind } from '../../../../shared/utils/media'
 
 const props = defineProps<{ media: PlutoMedia }>()
 

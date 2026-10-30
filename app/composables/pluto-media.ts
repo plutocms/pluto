@@ -1,10 +1,4 @@
 import type { PlutoMedia, PlutoMediaLimits } from '../../shared/types/media'
-import {
-  formatMediaSize,
-  matchesMediaType,
-  mediaTypeFromName,
-  resolveMediaLimits,
-} from '../../shared/utils/media'
 import { processMediaImage } from '../utils/pluto-media-image'
 
 export interface PlutoMediaListQuery {

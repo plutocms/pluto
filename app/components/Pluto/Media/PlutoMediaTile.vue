@@ -2,7 +2,6 @@
 // One square of a media grid: the image, or an icon and the name for any
 // other file. The library, the picker and the `media` field use it.
 import type { PlutoMedia } from '../../../../shared/types/media'
-import { mediaKind } from '../../../../shared/utils/media'
 
 const props = defineProps<{
   media?: PlutoMedia

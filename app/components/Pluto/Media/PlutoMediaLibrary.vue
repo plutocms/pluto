@@ -5,12 +5,6 @@
 // - `select` (the picker): a click selects a file (`selected`), one or many.
 // See the media skill.
 import type { PlutoMedia } from '../../../../shared/types/media'
-import {
-  formatMediaSize,
-  matchesMediaType,
-  mediaAcceptAttribute,
-  PLUTO_MEDIA_MAX_IMAGE_EDGE,
-} from '../../../../shared/utils/media'
 import { PlutoMediaUploadProblem } from '../../../composables/pluto-media'
 import { PlutoMediaDecodeError } from '../../../utils/pluto-media-image'
 

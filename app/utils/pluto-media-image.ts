@@ -1,4 +1,3 @@
-import { PLUTO_MEDIA_MAX_IMAGE_EDGE } from '../../shared/utils/media'
 
 /** The image types the browser processes before an upload. GIF is not in it: it can move. */
 const PROCESSED_TYPES = new Set([
