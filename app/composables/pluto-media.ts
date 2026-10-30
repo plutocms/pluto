@@ -156,6 +156,15 @@ export function usePlutoMedia() {
     }
   }
 
+  /** The warning of the kind of a file (`kind.inspect`), or `null`. */
+  async function inspect(file: Blob, mimeType: string) {
+    try {
+      return (await kinds.kindOf(mimeType)?.inspect?.(file)) ?? null
+    } catch {
+      return null
+    }
+  }
+
   /**
    * Processes an image in the browser (see `processMediaImage`), makes the
    * preview of a file that has a kind with `createPreview`, then uploads.
@@ -167,6 +176,8 @@ export function usePlutoMedia() {
       alt?: string
       accept?: string[]
       onProgress?: (part: number) => void
+      /** A warning of the kind of the file (`kind.inspect`). The upload goes on. */
+      onWarning?: (warning: string) => void
     } = {}
   ): Promise<PlutoMedia> {
     check(file, options.accept)
@@ -184,6 +195,10 @@ export function usePlutoMedia() {
     body.append('file', ready, file.name)
     if (options.alt) {
       body.append('alt', options.alt)
+    }
+    const warning = await inspect(ready, type)
+    if (warning) {
+      options.onWarning?.(warning)
     }
     const preview = await makePreview(ready, type)
     if (preview) {

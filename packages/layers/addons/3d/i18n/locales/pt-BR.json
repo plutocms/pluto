@@ -1,0 +1,11 @@
+{
+  "3d": {
+    "kind": "Modelo 3D",
+    "model": "Modelo 3D",
+    "loading": "Carregando o modelo 3D",
+    "failed": "O modelo 3D não carregou",
+    "hint": "Arraste para girar",
+    "view": "Ver em 3D",
+    "externalFiles": "Este modelo aponta para arquivos que não estão nele, como texturas, então ele aparece sem eles. Exporte como .glb com as texturas dentro."
+  }
+}

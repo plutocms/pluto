@@ -1,0 +1,48 @@
+{
+  "name": "@plutocms/3d",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "An add-on layer for Pluto: upload 3D models (.glb) to the media library, and show them in the admin and on the site",
+  "author": "Victor Ribeiro",
+  "license": "MIT",
+  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/layers/addons/3d#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutocms/pluto.git",
+    "directory": "packages/layers/addons/3d"
+  },
+  "bugs": {
+    "url": "https://github.com/plutocms/pluto/issues"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt-layer",
+    "pluto",
+    "3d",
+    "three",
+    "gltf"
+  ],
+  "main": "./nuxt.config.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "nuxt dev .playground",
+    "typecheck": "nuxt prepare .playground && vue-tsc --noEmit -p .playground/.nuxt/tsconfig.app.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@plutocms/pluto": ">=0.36.0 <1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@plutocms/pluto": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0"
+  }
+}

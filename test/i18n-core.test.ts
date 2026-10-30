@@ -21,6 +21,7 @@ describe('isMessageKey', () => {
       'content.post.fields.title.label',
       'supabase-blog.posts.list-title',
       'site.nav.home',
+      '3d.kind',
     ]) {
       expect(isMessageKey(key)).toBe(true)
     }

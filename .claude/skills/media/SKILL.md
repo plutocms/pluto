@@ -35,12 +35,24 @@ The design and its trade-offs are in `.claude/plan/core-media.md` of the workspa
 - `modules/pluto-github/runtime/server/media.ts`: the GitHub driver.
 - `modules/pluto-github/runtime/server/routes/media.get.ts`: the `/media/**` route.
 
+## Kinds of files
+
+`mediaKinds` (`PlutoExtension.mediaKinds`, `usePlutoMediaKinds()`, `kindOf(mimeType)`): a kind is
+`{ accept, label, icon, badge?, viewer?, createPreview?, inspect? }`.
+
+- **Core's kinds:** images and PDFs. The 3D add-on adds 3D models (see the 3d skill).
+- **Where they show:** the type chips of the library, the icon and the badge of a tile, the viewer
+  in the details.
+- **`createPreview(file)`:** makes the preview image at upload, and for "Make a preview".
+- **`inspect(file)`:** returns a warning (a key or a text) that does not stop the upload.
+
 ## The record
 
 ```ts
 interface PlutoMedia {
   id: string; url: string; name: string; mimeType: string; size: number
   width: number | null; height: number | null; alt: string; createdAt: string
+  preview: { url: string; width: number; height: number } | null
 }
 ```
 
@@ -53,6 +65,12 @@ itself:
 - `name`: the original file name, for people. The stored file has a unique name:
   `mediaFileName` gives the slug of the name, five random characters and the extension of the
   real type (`pao-de-mel-k3j9a.webp`).
+
+`preview` is a static image of a file that is not an image (a 3D model). The browser makes it
+(`kind.createPreview`) and sends it as the multipart part `preview`. The server checks it like an
+image: JPEG, PNG or WebP, at most 2 MB, metadata removed. Its stored name is
+`<stem>.preview.<ext>`. `PUT /api/_pluto/media/:id/preview` sets it later. `PlutoImage` shows the
+preview of a file that is not an image.
 
 ## An upload
 
@@ -78,8 +96,13 @@ itself:
    - reads the pixels and makes the record;
    - then calls `driver.upload`.
 
-The rules are `runtimeConfig.public.plutoMedia`: `allowedTypes` (empty gives the defaults: JPEG,
-PNG, WebP, AVIF, GIF, `model/gltf-binary`, PDF; no SVG) and `maxUploadBytes` (`0` gives 10 MB).
+The rules are `runtimeConfig.public.plutoMedia`:
+
+- `allowedTypes`: the types of the app. Empty gives the defaults: JPEG, PNG, WebP, AVIF, GIF,
+  PDF. No SVG, and no 3D model (the 3D add-on adds it).
+- `extraTypes`: the types that layers add. The arrays of layers join.
+- `maxUploadBytes` (`0` gives 10 MB), and `typeLimits` (bytes for one type, over it).
+
 A `media` field can narrow the types with `accept`.
 
 ## The driver
@@ -92,9 +115,13 @@ interface PlutoMediaDriver {
   get(event, ids): Promise<PlutoMedia[]>
   upload(event, input: PlutoMediaUpload): Promise<PlutoMedia>
   update(event, id, patch): Promise<PlutoMedia>
-  remove(event, id): Promise<void>
+  setPreview(event, id, preview): Promise<PlutoMedia>
+  remove(event, id): Promise<void>  // the file, its preview and the record
 }
 ```
+
+`list` takes `sort` (`newest`, `oldest`, `name`, `size`). `update` takes `name` (the display
+name; the stored file keeps its name) and `alt`.
 
 - A backend registers one driver on the server (`registerMediaDriver`, the last one wins). It
   sets `runtimeConfig.public.plutoMedia.driver` (for example `'github'`). Without that value,
@@ -137,15 +164,20 @@ An id with no record (a deleted file) is dropped. A layer needs no `toPublic` ho
 
 ## The admin
 
-- **`/admin/media`:** a grid with search, a type filter, uploads (a button, or drop files on the
-  grid), "Show more", and an aside with the details (alt text, copy the URL, open, delete with a
-  confirmation). "Fill in missing image sizes" (`POST /api/_pluto/media/sizes`) reads the pixels
-  of older images through their URL.
+- **`/admin/media`:**
+  - the toolbar: search, sort, grid or list (cookies `pluto-media-sort`, `pluto-media-view`),
+    upload, and the type chips of the kinds;
+  - uploads: a button, or drop files anywhere on it; a queue with progress bars (XHR);
+  - check boxes for bulk actions: copy the URLs, delete with one confirmation;
+  - the aside with the details: the viewer of the kind, the name and the alt text, copy (URL,
+    Markdown, id), open, download, make a preview, delete;
+  - "Fill in missing image sizes" (`POST /api/_pluto/media/sizes`) reads the pixels of older
+    images through their URL.
 - **`PlutoFieldMedia`:** the core widget for `fieldType: 'media'`. One file: a tile with Change
   and Remove. `multiple`: a strip in order (move left, move right, remove) and an Add tile. The
   value is an id, or a list of ids. A deleted file shows as a "Deleted file" tile.
 - **`PlutoMediaPicker`:** a modal with the library in select mode, and uploads. It emits
-  `select` with the records.
+  `select` with the records. The chosen files show in the footer; a double-click picks one file.
 - **`PlutoMediaEditorButton`:** the image button of a rich text toolbar (the `slot: 'image'`
   item of `usePlutoMarkdownToolbar({ image: true })`). It inserts `![alt](url)`.
 

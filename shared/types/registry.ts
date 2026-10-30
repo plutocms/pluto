@@ -22,6 +22,12 @@ export interface PlutoMediaKind extends PlutoEntry {
    * Returns `null` when it cannot.
    */
   createPreview?: (file: Blob) => Promise<Blob | null>
+  /**
+   * Checks a file before the upload, and returns a warning (a translation key or
+   * literal) that does not stop the upload: for example a 3D model that links
+   * textures it does not hold. `null` when all is well.
+   */
+  inspect?: (file: Blob) => Promise<string | null>
 }
 
 export interface PlutoEntry {

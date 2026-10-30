@@ -15,11 +15,11 @@ export type FlatMessages = Record<string, string>
 export type MessageParams = Record<string, unknown>
 
 /**
- * A translation key: a lowercase namespace, then one or more dotted parts.
- * Example: `pluto.common.save`. A plain English label does not match, so
- * `tx()` can tell a key from a literal.
+ * A translation key: a lowercase namespace (a layer name, which can start with
+ * a digit: `3d`), then one or more dotted parts. Example: `pluto.common.save`.
+ * A plain English label does not match, so `tx()` can tell a key from a literal.
  */
-const MESSAGE_KEY = /^[a-z][a-z0-9-]*(?:\.[\w-]+)+$/
+const MESSAGE_KEY = /^[a-z0-9][a-z0-9-]*(?:\.[\w-]+)+$/
 
 export function isMessageKey(value: unknown): value is string {
   return typeof value === 'string' && MESSAGE_KEY.test(value)

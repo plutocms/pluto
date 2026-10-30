@@ -22,6 +22,8 @@ logs
 !.env.example
 
 # Repo tooling — never needed by consumers of the layer
+# The other packages of this repo (the add-on layers) publish on their own.
+packages
 .agents
 .claude
 .github
