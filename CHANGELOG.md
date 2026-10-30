@@ -1,6 +1,17 @@
 # Changelog
 
 
+## [0.35.0](https://github.com/plutocms/pluto/compare/v0.34.3...v0.35.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* PlutoMediaAdapter, the mediaAdapters registry and usePlutoMediaAdapter are removed. A backend registers a server-side PlutoMediaDriver (registerMediaDriver) and sets runtimeConfig.public.plutoMedia.driver. The media field has a core widget.
+
+### Features
+
+* the core media library, with a GitHub driver ([#268](https://github.com/plutocms/pluto/issues/268)) ([1749b5f](https://github.com/plutocms/pluto/commit/1749b5fc3fe693fb869f062426f0581d0409b99f))
+
 ## [0.34.3](https://github.com/plutocms/pluto/compare/v0.34.2...v0.34.3) (2026-10-29)
 
 
