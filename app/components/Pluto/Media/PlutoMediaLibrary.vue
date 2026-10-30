@@ -394,58 +394,56 @@ defineExpose({
     @dragleave="onDragLeave"
     @drop.prevent="onDrop"
   >
-    <!-- The toolbar: search, sort, view, upload. The admin buttons are `xl`; this row is `md`. -->
-    <UTheme :props="{ button: { size: 'md' } }">
-      <div class="flex flex-wrap items-center gap-2">
-        <UInput
-          v-model="search"
-          :placeholder="t('pluto.media.search')"
-          :aria-label="t('pluto.media.search')"
-          icon="lucide:search"
-          class="min-w-48 flex-1"
+    <!-- The toolbar: search, sort, view, upload. -->
+    <div class="flex flex-wrap items-center gap-2">
+      <UInput
+        v-model="search"
+        :placeholder="t('pluto.media.search')"
+        :aria-label="t('pluto.media.search')"
+        icon="lucide:search"
+        class="min-w-48 flex-1"
+      />
+      <USelect
+        v-model="sort"
+        :items="sortItems"
+        :aria-label="t('pluto.media.sort.label')"
+        icon="lucide:arrow-down-up"
+        class="w-40"
+      />
+      <UFieldGroup>
+        <UButton
+          :aria-label="t('pluto.media.view.grid')"
+          :aria-pressed="view === 'grid'"
+          :variant="view === 'grid' ? 'soft' : 'ghost'"
+          icon="lucide:layout-grid"
+          color="neutral"
+          @click="view = 'grid'"
         />
-        <USelect
-          v-model="sort"
-          :items="sortItems"
-          :aria-label="t('pluto.media.sort.label')"
-          icon="lucide:arrow-down-up"
-          class="w-40"
+        <UButton
+          :aria-label="t('pluto.media.view.list')"
+          :aria-pressed="view === 'list'"
+          :variant="view === 'list' ? 'soft' : 'ghost'"
+          icon="lucide:list"
+          color="neutral"
+          @click="view = 'list'"
         />
-        <UFieldGroup>
-          <UButton
-            :aria-label="t('pluto.media.view.grid')"
-            :aria-pressed="view === 'grid'"
-            :variant="view === 'grid' ? 'soft' : 'ghost'"
-            icon="lucide:layout-grid"
-            color="neutral"
-            @click="view = 'grid'"
-          />
-          <UButton
-            :aria-label="t('pluto.media.view.list')"
-            :aria-pressed="view === 'list'"
-            :variant="view === 'list' ? 'soft' : 'ghost'"
-            icon="lucide:list"
-            color="neutral"
-            @click="view = 'list'"
-          />
-        </UFieldGroup>
-        <template v-if="canUpload">
-          <UButton
-            :label="t('pluto.media.upload.button')"
-            icon="lucide:upload"
-            @click="input?.click()"
-          />
-          <input
-            ref="input"
-            :accept="acceptAttribute"
-            type="file"
-            class="hidden"
-            multiple
-            @change="onPick"
-          />
-        </template>
-      </div>
-    </UTheme>
+      </UFieldGroup>
+      <template v-if="canUpload">
+        <UButton
+          :label="t('pluto.media.upload.button')"
+          icon="lucide:upload"
+          @click="input?.click()"
+        />
+        <input
+          ref="input"
+          :accept="acceptAttribute"
+          type="file"
+          class="hidden"
+          multiple
+          @change="onPick"
+        />
+      </template>
+    </div>
 
     <!-- The kinds of files. -->
     <div

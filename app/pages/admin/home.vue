@@ -40,7 +40,6 @@ function run(item: { onSelect?: (event: Event) => void }) {
         v-if="createItems.length === 1"
         :label="createItems[0]!.label"
         icon="lucide:plus"
-        size="md"
         @click="run(createItems[0]!)"
       />
 
@@ -53,7 +52,6 @@ function run(item: { onSelect?: (event: Event) => void }) {
           :label="t('pluto.common.create')"
           icon="lucide:plus"
           trailing-icon="lucide:chevron-down"
-          size="md"
         />
       </UDropdownMenu>
     </header>

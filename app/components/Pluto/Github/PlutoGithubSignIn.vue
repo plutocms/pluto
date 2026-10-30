@@ -90,7 +90,6 @@ const installUrl = computed(() =>
       :disabled="notReady"
       :label="t('pluto.github.login.signIn')"
       icon="simple-icons:github"
-      size="lg"
       class="w-full justify-center"
       external
     />

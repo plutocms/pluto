@@ -182,170 +182,168 @@ async function remove() {
 </script>
 
 <template>
-  <UTheme :props="{ button: { size: 'md' } }">
-    <div class="flex flex-col gap-5">
-      <!-- The file: the image, the viewer of its kind, its preview, or an icon. -->
-      <div
-        class="bg-elevated ring-default relative flex aspect-square items-center justify-center overflow-hidden rounded-lg ring"
-      >
-        <img
-          v-if="image"
-          :src="media.url"
-          :alt="media.alt"
-          class="size-full object-contain"
-        />
-        <component :is="kind.viewer" v-else-if="kind?.viewer" :media="media" />
-        <img
-          v-else-if="media.preview"
-          :src="media.preview.url"
-          alt=""
-          class="size-full object-contain"
-        />
-        <UIcon
-          v-else
-          :name="kind?.icon ?? 'lucide:file'"
-          class="text-muted size-12"
-        />
-      </div>
-
-      <div class="flex flex-wrap gap-2">
-        <UDropdownMenu :items="copyItems">
-          <UButton
-            :label="t('pluto.media.details.copy')"
-            icon="lucide:copy"
-            trailing-icon="lucide:chevron-down"
-            color="neutral"
-            variant="outline"
-          />
-        </UDropdownMenu>
-        <UButton
-          :to="href"
-          :label="t('pluto.media.details.open')"
-          icon="lucide:external-link"
-          target="_blank"
-          color="neutral"
-          variant="ghost"
-        />
-        <UButton
-          :href="href"
-          :download="media.name"
-          :label="t('pluto.media.details.download')"
-          icon="lucide:download"
-          color="neutral"
-          variant="ghost"
-        />
-      </div>
-
-      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-        <template v-for="fact in facts" :key="fact.label">
-          <dt class="text-muted">{{ fact.label }}</dt>
-          <dd class="min-w-0 break-all">{{ fact.value }}</dd>
-        </template>
-      </dl>
-
-      <UFormField :label="t('pluto.media.details.name')">
-        <UInput
-          v-model="name"
-          :disabled="!canManage"
-          :maxlength="200"
-          class="w-full"
-        />
-      </UFormField>
-
-      <UFormField
+  <div class="flex flex-col gap-5">
+    <!-- The file: the image, the viewer of its kind, its preview, or an icon. -->
+    <div
+      class="bg-elevated ring-default relative flex aspect-square items-center justify-center overflow-hidden rounded-lg ring"
+    >
+      <img
         v-if="image"
-        :label="t('pluto.media.details.alt')"
-        :description="t('pluto.media.details.altHint')"
-      >
-        <UTextarea
-          v-model="alt"
-          :disabled="!canManage"
-          :rows="2"
-          :maxlength="500"
-          class="w-full"
-          autoresize
-        />
-      </UFormField>
-
-      <UButton
-        v-if="canManage"
-        :label="t('pluto.common.save')"
-        :loading="saving"
-        :disabled="!changed"
-        class="self-start"
-        @click="save"
+        :src="media.url"
+        :alt="media.alt"
+        class="size-full object-contain"
       />
+      <component :is="kind.viewer" v-else-if="kind?.viewer" :media="media" />
+      <img
+        v-else-if="media.preview"
+        :src="media.preview.url"
+        alt=""
+        class="size-full object-contain"
+      />
+      <UIcon
+        v-else
+        :name="kind?.icon ?? 'lucide:file'"
+        class="text-muted size-12"
+      />
+    </div>
 
-      <!-- A kind that can make a preview (a 3D model): make it for a file that has none, or again. -->
-      <div
-        v-if="kind?.createPreview && canManage"
-        class="bg-elevated/60 ring-default flex items-center gap-3 rounded-lg p-3 ring"
-      >
-        <img
-          v-if="media.preview"
-          :src="media.preview.url"
-          alt=""
-          class="size-14 shrink-0 rounded-md object-cover"
-        />
-        <div class="min-w-0 flex-1 text-sm">
-          <p class="font-medium">{{ t('pluto.media.details.preview') }}</p>
-          <p class="text-muted text-xs">
-            {{
-              media.preview
-                ? t('pluto.media.details.previewHint')
-                : t('pluto.media.details.noPreview')
-            }}
-          </p>
-        </div>
+    <div class="flex flex-wrap gap-2">
+      <UDropdownMenu :items="copyItems">
         <UButton
-          :label="
-            media.preview
-              ? t('pluto.media.details.remakePreview')
-              : t('pluto.media.details.makePreview')
-          "
-          :loading="previewing"
+          :label="t('pluto.media.details.copy')"
+          icon="lucide:copy"
+          trailing-icon="lucide:chevron-down"
           color="neutral"
           variant="outline"
-          size="sm"
-          @click="makePreview"
         />
-      </div>
-
-      <USeparator v-if="can('media:delete')" />
-
-      <UModal
-        v-if="can('media:delete')"
-        v-model:open="confirmOpen"
-        :title="t('pluto.media.details.delete')"
-        :description="
-          t('pluto.media.details.deleteConfirm', { name: media.name })
-        "
-      >
-        <UButton
-          :label="t('pluto.media.details.delete')"
-          icon="lucide:trash"
-          color="error"
-          variant="soft"
-          class="self-start"
-        />
-
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton
-              :label="t('pluto.common.cancel')"
-              color="neutral"
-              variant="ghost"
-              @click="confirmOpen = false"
-            />
-            <UButton
-              :label="t('pluto.common.delete')"
-              :loading="deleting"
-              color="error"
-              @click="remove"
-            />
-          </div>
-        </template>
-      </UModal>
+      </UDropdownMenu>
+      <UButton
+        :to="href"
+        :label="t('pluto.media.details.open')"
+        icon="lucide:external-link"
+        target="_blank"
+        color="neutral"
+        variant="ghost"
+      />
+      <UButton
+        :href="href"
+        :download="media.name"
+        :label="t('pluto.media.details.download')"
+        icon="lucide:download"
+        color="neutral"
+        variant="ghost"
+      />
     </div>
-  </UTheme>
+
+    <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+      <template v-for="fact in facts" :key="fact.label">
+        <dt class="text-muted">{{ fact.label }}</dt>
+        <dd class="min-w-0 break-all">{{ fact.value }}</dd>
+      </template>
+    </dl>
+
+    <UFormField :label="t('pluto.media.details.name')">
+      <UInput
+        v-model="name"
+        :disabled="!canManage"
+        :maxlength="200"
+        class="w-full"
+      />
+    </UFormField>
+
+    <UFormField
+      v-if="image"
+      :label="t('pluto.media.details.alt')"
+      :description="t('pluto.media.details.altHint')"
+    >
+      <UTextarea
+        v-model="alt"
+        :disabled="!canManage"
+        :rows="2"
+        :maxlength="500"
+        class="w-full"
+        autoresize
+      />
+    </UFormField>
+
+    <UButton
+      v-if="canManage"
+      :label="t('pluto.common.save')"
+      :loading="saving"
+      :disabled="!changed"
+      class="self-start"
+      @click="save"
+    />
+
+    <!-- A kind that can make a preview (a 3D model): make it for a file that has none, or again. -->
+    <div
+      v-if="kind?.createPreview && canManage"
+      class="bg-elevated/60 ring-default flex items-center gap-3 rounded-lg p-3 ring"
+    >
+      <img
+        v-if="media.preview"
+        :src="media.preview.url"
+        alt=""
+        class="size-14 shrink-0 rounded-md object-cover"
+      />
+      <div class="min-w-0 flex-1 text-sm">
+        <p class="font-medium">{{ t('pluto.media.details.preview') }}</p>
+        <p class="text-muted text-xs">
+          {{
+            media.preview
+              ? t('pluto.media.details.previewHint')
+              : t('pluto.media.details.noPreview')
+          }}
+        </p>
+      </div>
+      <UButton
+        :label="
+          media.preview
+            ? t('pluto.media.details.remakePreview')
+            : t('pluto.media.details.makePreview')
+        "
+        :loading="previewing"
+        color="neutral"
+        variant="outline"
+        size="sm"
+        @click="makePreview"
+      />
+    </div>
+
+    <USeparator v-if="can('media:delete')" />
+
+    <UModal
+      v-if="can('media:delete')"
+      v-model:open="confirmOpen"
+      :title="t('pluto.media.details.delete')"
+      :description="
+        t('pluto.media.details.deleteConfirm', { name: media.name })
+      "
+    >
+      <UButton
+        :label="t('pluto.media.details.delete')"
+        icon="lucide:trash"
+        color="error"
+        variant="soft"
+        class="self-start"
+      />
+
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton
+            :label="t('pluto.common.cancel')"
+            color="neutral"
+            variant="ghost"
+            @click="confirmOpen = false"
+          />
+          <UButton
+            :label="t('pluto.common.delete')"
+            :loading="deleting"
+            color="error"
+            @click="remove"
+          />
+        </div>
+      </template>
+    </UModal>
+  </div>
 </template>
