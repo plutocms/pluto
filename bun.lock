@@ -15,7 +15,7 @@
     },
     "packages/core": {
       "name": "@plutocms/core",
-      "version": "0.38.1",
+      "version": "0.38.2",
       "dependencies": {
         "@codemirror/commands": "^6.11.1",
         "@codemirror/lang-markdown": "^6.5.2",
