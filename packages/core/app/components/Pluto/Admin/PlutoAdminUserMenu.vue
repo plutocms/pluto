@@ -48,7 +48,7 @@ const linkItems = computed<DropdownMenuItem[]>(() => [
     ? [
         {
           label: t('pluto.navbar.github'),
-          icon: 'i-simple-icons-github',
+          icon: 'i-pluto-github',
           type: 'link' as const,
           to: 'https://github.com/plutocms/pluto',
           target: '_blank',
