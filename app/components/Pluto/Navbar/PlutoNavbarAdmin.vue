@@ -12,6 +12,8 @@
     data-pluto-admin-scope
     data-pluto-admin-dark
   >
-    <slot />
+    <PlutoAdminTheme>
+      <slot />
+    </PlutoAdminTheme>
   </nav>
 </template>
