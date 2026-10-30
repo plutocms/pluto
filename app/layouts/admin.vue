@@ -48,15 +48,12 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
       >
         <!--
           The search button must sit inside UDashboardGroup. Outside it, the
-          button has no dashboard context and its click does nothing. It is a
-          UButton, so it would take the `xl` of the admin buttons; the sidebar
-          keeps it compact (`md`), the same in every app.
+          button has no dashboard context and its click does nothing.
         -->
         <template #header="{ collapsed }">
           <UDashboardSearchButton
             :collapsed="collapsed"
             :class="collapsed ? undefined : 'w-full'"
-            size="md"
             variant="soft"
           />
         </template>

@@ -114,112 +114,110 @@ async function remove() {
 </script>
 
 <template>
-  <UTheme :props="{ button: { size: 'md' } }">
-    <div class="flex flex-col gap-5">
-      <div
-        class="bg-elevated ring-default flex aspect-square items-center justify-center overflow-hidden rounded-lg ring"
-      >
-        <img
-          v-if="kind === 'image'"
-          :src="media.url"
-          :alt="media.alt"
-          class="size-full object-contain"
-        />
-        <UIcon
-          v-else
-          :name="
-            kind === 'model'
-              ? 'lucide:box'
-              : kind === 'document'
-                ? 'lucide:file-text'
-                : 'lucide:file'
-          "
-          class="text-muted size-12"
-        />
-      </div>
-
-      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-        <template v-for="fact in facts" :key="fact.label">
-          <dt class="text-muted">{{ fact.label }}</dt>
-          <dd class="min-w-0 break-all">{{ fact.value }}</dd>
-        </template>
-      </dl>
-
-      <UFormField
+  <div class="flex flex-col gap-5">
+    <div
+      class="bg-elevated ring-default flex aspect-square items-center justify-center overflow-hidden rounded-lg ring"
+    >
+      <img
         v-if="kind === 'image'"
-        :label="t('pluto.media.details.alt')"
-        :description="t('pluto.media.details.altHint')"
-      >
-        <UTextarea
-          v-model="alt"
-          :disabled="!can('media:manage')"
-          :rows="2"
-          :maxlength="500"
-          class="w-full"
-          autoresize
-        />
-      </UFormField>
-
-      <div class="flex flex-wrap gap-2">
-        <UButton
-          v-if="kind === 'image' && can('media:manage')"
-          :label="t('pluto.common.save')"
-          :loading="saving"
-          :disabled="alt === media.alt"
-          @click="saveAlt"
-        />
-        <UButton
-          :label="t('pluto.media.details.copyUrl')"
-          icon="lucide:copy"
-          color="neutral"
-          variant="outline"
-          @click="copyUrl"
-        />
-        <UButton
-          :to="href"
-          :label="t('pluto.media.details.open')"
-          icon="lucide:external-link"
-          target="_blank"
-          color="neutral"
-          variant="ghost"
-        />
-      </div>
-
-      <USeparator v-if="can('media:delete')" />
-
-      <UModal
-        v-if="can('media:delete')"
-        v-model:open="confirmOpen"
-        :title="t('pluto.media.details.delete')"
-        :description="
-          t('pluto.media.details.deleteConfirm', { name: media.name })
+        :src="media.url"
+        :alt="media.alt"
+        class="size-full object-contain"
+      />
+      <UIcon
+        v-else
+        :name="
+          kind === 'model'
+            ? 'lucide:box'
+            : kind === 'document'
+              ? 'lucide:file-text'
+              : 'lucide:file'
         "
-      >
-        <UButton
-          :label="t('pluto.media.details.delete')"
-          icon="lucide:trash"
-          color="error"
-          variant="soft"
-          class="self-start"
-        />
-
-        <template #footer>
-          <div class="flex w-full justify-end gap-2">
-            <UButton
-              :label="t('pluto.common.cancel')"
-              color="neutral"
-              variant="ghost"
-              @click="confirmOpen = false"
-            />
-            <UButton
-              :label="t('pluto.common.delete')"
-              :loading="deleting"
-              color="error"
-              @click="remove"
-            />
-          </div>
-        </template>
-      </UModal>
+        class="text-muted size-12"
+      />
     </div>
-  </UTheme>
+
+    <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+      <template v-for="fact in facts" :key="fact.label">
+        <dt class="text-muted">{{ fact.label }}</dt>
+        <dd class="min-w-0 break-all">{{ fact.value }}</dd>
+      </template>
+    </dl>
+
+    <UFormField
+      v-if="kind === 'image'"
+      :label="t('pluto.media.details.alt')"
+      :description="t('pluto.media.details.altHint')"
+    >
+      <UTextarea
+        v-model="alt"
+        :disabled="!can('media:manage')"
+        :rows="2"
+        :maxlength="500"
+        class="w-full"
+        autoresize
+      />
+    </UFormField>
+
+    <div class="flex flex-wrap gap-2">
+      <UButton
+        v-if="kind === 'image' && can('media:manage')"
+        :label="t('pluto.common.save')"
+        :loading="saving"
+        :disabled="alt === media.alt"
+        @click="saveAlt"
+      />
+      <UButton
+        :label="t('pluto.media.details.copyUrl')"
+        icon="lucide:copy"
+        color="neutral"
+        variant="outline"
+        @click="copyUrl"
+      />
+      <UButton
+        :to="href"
+        :label="t('pluto.media.details.open')"
+        icon="lucide:external-link"
+        target="_blank"
+        color="neutral"
+        variant="ghost"
+      />
+    </div>
+
+    <USeparator v-if="can('media:delete')" />
+
+    <UModal
+      v-if="can('media:delete')"
+      v-model:open="confirmOpen"
+      :title="t('pluto.media.details.delete')"
+      :description="
+        t('pluto.media.details.deleteConfirm', { name: media.name })
+      "
+    >
+      <UButton
+        :label="t('pluto.media.details.delete')"
+        icon="lucide:trash"
+        color="error"
+        variant="soft"
+        class="self-start"
+      />
+
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton
+            :label="t('pluto.common.cancel')"
+            color="neutral"
+            variant="ghost"
+            @click="confirmOpen = false"
+          />
+          <UButton
+            :label="t('pluto.common.delete')"
+            :loading="deleting"
+            color="error"
+            @click="remove"
+          />
+        </div>
+      </template>
+    </UModal>
+  </div>
 </template>

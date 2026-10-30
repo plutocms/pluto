@@ -21,8 +21,8 @@ token, then run the generator.
 The consumer app styles its public site through its own `app.config` colors and `@theme`.
 Both used to reach the admin:
 
-- `app.config` `ui.colors` sets Nuxt UI's `--ui-color-*` scales on `:root`. Emi Biscuit set
-  `primary: 'emi'`, so every admin primary turned pink.
+- `app.config` `ui.colors` sets Nuxt UI's `--ui-color-*` scales on `:root`. A site that set
+  `primary: 'brand'` turned every admin primary to its brand color.
 - `@theme` can redefine a Tailwind color, such as `--color-red-400`, which feeds Nuxt UI's
   `error` color.
 
@@ -148,14 +148,16 @@ docs site set `md` for its pages, so its admin was `md` and other admins `xl`; a
 
 Now the admin defaults are in `app/composables/pluto-admin-theme.ts`:
 
-- `PLUTO_ADMIN_UI_PROPS`: the default sizes.
+- `PLUTO_ADMIN_UI_PROPS`: the default size of Nuxt UI (`md`) for every component that has a
+  size. The admin pins it, so a site's `defaultVariants.size` does not reach the admin. Do not
+  set `size="md"` on a component: it is the default. Set a size only for a component that must
+  be smaller or larger (an `xs` icon button in a toolbar).
 - `PLUTO_ADMIN_UI`: `font-sans` on the base of the form components (the admin font), after the
   classes of the site, so tailwind-merge drops a site font class.
 
 `PlutoAdminTheme` gives them with `UTheme` (no element, provide/inject, so overlays opened
 from inside get them too). The admin layout, the auth layout and the admin bar
-(`PlutoNavbarAdmin`) wrap their content in it. Core's `app.config` keeps only the padding of
-an `xl` button with a label.
+(`PlutoNavbarAdmin`) wrap their content in it. Core has no `app.config`.
 
 A site `app.config` slot class that is not a font (a radius, a shadow) can still reach the
 admin. Add its reset to `PLUTO_ADMIN_UI` when one shows up.

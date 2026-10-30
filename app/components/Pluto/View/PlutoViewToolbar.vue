@@ -24,55 +24,49 @@ const { t } = usePlutoI18n()
     controls the app-level LEFT sidebar from admin.vue. This is a SECOND,
     page-local navbar — its own toggle would open and close the wrong
     sidebar, so it must never render one.
-
-    The app config gives every button `size: 'xl'`. The toolbar is 48px high,
-    so its buttons default to `md`: the buttons of the page, and the buttons
-    that a layer adds (toolbar items). A button with its own `size` keeps it.
   -->
-  <UTheme :props="{ button: { size: 'md' } }">
-    <UDashboardNavbar
-      :title="title"
-      :icon="icon"
-      :toggle="false"
-      :ui="{ root: 'h-12 border-muted sm:px-3' }"
-    >
-      <template v-if="$slots.left" #left>
-        <slot name="left" />
-      </template>
+  <UDashboardNavbar
+    :title="title"
+    :icon="icon"
+    :toggle="false"
+    :ui="{ root: 'h-12 border-muted sm:px-3' }"
+  >
+    <template v-if="$slots.left" #left>
+      <slot name="left" />
+    </template>
 
-      <template v-if="backTo || icon" #leading>
-        <UTooltip v-if="backTo" :text="t('pluto.common.back')">
-          <UButton
-            :to="backTo"
-            :aria-label="t('pluto.common.back')"
-            icon="i-lucide-arrow-left"
-            color="neutral"
-            variant="ghost"
-            square
-          />
-        </UTooltip>
-        <UIcon
-          v-if="icon"
-          :name="icon"
-          class="me-1.5 size-5 shrink-0 self-center"
+    <template v-if="backTo || icon" #leading>
+      <UTooltip v-if="backTo" :text="t('pluto.common.back')">
+        <UButton
+          :to="backTo"
+          :aria-label="t('pluto.common.back')"
+          icon="i-lucide-arrow-left"
+          color="neutral"
+          variant="ghost"
+          square
         />
-      </template>
+      </UTooltip>
+      <UIcon
+        v-if="icon"
+        :name="icon"
+        class="me-1.5 size-5 shrink-0 self-center"
+      />
+    </template>
 
-      <template v-if="$slots.title" #title>
-        <slot name="title" />
-      </template>
+    <template v-if="$slots.title" #title>
+      <slot name="title" />
+    </template>
 
-      <template v-if="$slots.default" #default>
-        <slot />
-      </template>
+    <template v-if="$slots.default" #default>
+      <slot />
+    </template>
 
-      <template v-if="$slots.right" #right>
-        <slot name="right" />
-      </template>
+    <template v-if="$slots.right" #right>
+      <slot name="right" />
+    </template>
 
-      <template v-if="$slots.trailing" #trailing>
-        <slot name="trailing" />
-      </template>
-    </UDashboardNavbar>
-  </UTheme>
+    <template v-if="$slots.trailing" #trailing>
+      <slot name="trailing" />
+    </template>
+  </UDashboardNavbar>
 </template>

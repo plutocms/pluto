@@ -44,7 +44,6 @@ function run(item: { onSelect?: (event: Event) => void }) {
           icon="lucide:plus"
           color="neutral"
           variant="soft"
-          size="md"
           class="justify-start"
           block
           @click="run(item)"
@@ -66,7 +65,6 @@ function run(item: { onSelect?: (event: Event) => void }) {
           trailing-icon="lucide:chevron-right"
           color="neutral"
           variant="ghost"
-          size="md"
           class="justify-start"
           block
           @click="run(item)"
