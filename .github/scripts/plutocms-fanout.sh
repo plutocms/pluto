@@ -24,7 +24,6 @@ LAYERS=(
   plutocms/pluto
   plutocms/supabase
   plutocms/nuxt-content
-  plutocms/supabase-storage
   plutocms/supabase-shop
   plutocms/supabase-blog
 )
