@@ -75,7 +75,12 @@ export default defineNuxtConfig({
       plutoMedia: {
         driver: '',
         allowedTypes: [] as string[],
+        // Types that layers add (the 3D add-on adds `model/gltf-binary`). Arrays of
+        // layers join, so each layer adds its own.
+        extraTypes: [] as string[],
         maxUploadBytes: 0,
+        // The size limit of single types, in bytes: `{ 'model/gltf-binary': 26214400 }`.
+        typeLimits: {} as Record<string, number>,
       },
     },
   },

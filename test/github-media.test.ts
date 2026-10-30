@@ -67,6 +67,7 @@ describe('github media driver', () => {
       height: 1600,
       alt: 'A red mug',
       createdAt: '2026-10-29T12:00:00.000Z',
+      preview: null,
     })
     expect(commits).toEqual(['media: add red-mug-k3j9a.webp'])
     expect([
@@ -151,6 +152,96 @@ describe('github media driver', () => {
       await store.readRaw('public/media/2026/10/red-mug-k3j9a.webp')
     ).toBeNull()
     expect((await driver.list(event, { limit: 10, offset: 0 })).total).toBe(0)
+  })
+
+  it('stores a preview next to the file, in the same commit, and reads it back', async () => {
+    const { store, driver, commits } = setup()
+    const preview = {
+      fileName: 'mug-model-aaaaa.preview.webp',
+      data: new Uint8Array([1, 2, 3]),
+      mimeType: 'image/webp',
+      width: 1024,
+      height: 768,
+    }
+    const record = await driver.upload(
+      event,
+      upload({
+        fileName: 'mug-model-aaaaa.glb',
+        name: 'Mug.glb',
+        mimeType: 'model/gltf-binary',
+        width: null,
+        height: null,
+        preview,
+      })
+    )
+    expect(record.preview).toEqual({
+      url: '/media/2026/10/mug-model-aaaaa.preview.webp',
+      width: 1024,
+      height: 768,
+    })
+    expect(commits).toHaveLength(1)
+    expect([
+      ...(await store.readRaw(
+        'public/media/2026/10/mug-model-aaaaa.preview.webp'
+      ))!,
+    ]).toEqual([1, 2, 3])
+    expect((await driver.get(event, ['mug-model-aaaaa']))[0]?.preview).toEqual(
+      record.preview
+    )
+  })
+
+  it('setPreview replaces the old preview file, and remove deletes both files', async () => {
+    const { store, driver } = setup()
+    await driver.upload(
+      event,
+      upload({
+        fileName: 'mug-model-aaaaa.glb',
+        mimeType: 'model/gltf-binary',
+        width: null,
+        height: null,
+        preview: {
+          fileName: 'mug-model-aaaaa.preview.png',
+          data: new Uint8Array([9]),
+          mimeType: 'image/png',
+          width: 10,
+          height: 10,
+        },
+      })
+    )
+    const next = await driver.setPreview(event, 'mug-model-aaaaa', {
+      fileName: 'mug-model-aaaaa.preview.webp',
+      data: new Uint8Array([7]),
+      mimeType: 'image/webp',
+      width: 20,
+      height: 20,
+    })
+    expect(next.preview).toEqual({
+      url: '/media/2026/10/mug-model-aaaaa.preview.webp',
+      width: 20,
+      height: 20,
+    })
+    expect(
+      await store.readRaw('public/media/2026/10/mug-model-aaaaa.preview.png')
+    ).toBeNull()
+    await driver.remove(event, 'mug-model-aaaaa')
+    expect(
+      await store.readRaw('public/media/2026/10/mug-model-aaaaa.preview.webp')
+    ).toBeNull()
+    expect(
+      await store.readRaw('public/media/2026/10/mug-model-aaaaa.glb')
+    ).toBeNull()
+  })
+
+  it('renames the display name, and keeps the stored file', async () => {
+    const { driver } = setup()
+    await driver.upload(event, upload())
+    const next = await driver.update(event, 'red-mug-k3j9a', {
+      name: 'Mug, red',
+    })
+    expect(next).toMatchObject({
+      name: 'Mug, red',
+      url: '/media/2026/10/red-mug-k3j9a.webp',
+    })
   })
 
   it('refuses a bad id with 404, and a missing record with 404', async () => {

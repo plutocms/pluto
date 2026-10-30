@@ -139,6 +139,24 @@ export default defineNuxtPlugin(() => {
         capability: '*',
       },
     ],
+    // The kinds of files that core knows. A layer adds its own (the 3D add-on adds 3D models).
+    mediaKinds: [
+      {
+        id: 'image',
+        order: 0,
+        accept: ['image/*'],
+        label: 'pluto.media.kinds.image',
+        icon: 'lucide:image',
+      },
+      {
+        id: 'pdf',
+        order: 10,
+        accept: ['application/pdf'],
+        label: 'pluto.media.kinds.document',
+        icon: 'lucide:file-text',
+        badge: 'PDF',
+      },
+    ],
     contentFieldWidgets: [
       { id: 'text', fieldType: 'text', component: PlutoFieldText },
       { id: 'textarea', fieldType: 'textarea', component: PlutoFieldText },

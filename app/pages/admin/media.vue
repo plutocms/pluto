@@ -37,6 +37,12 @@ function onUpdated(record: PlutoMedia) {
   library.value?.replace(record)
 }
 
+function onBulkDeleted(ids: string[]) {
+  if (active.value && ids.includes(active.value.id)) {
+    active.value = null
+  }
+}
+
 function onDeleted(id: string) {
   active.value = null
   library.value?.drop(id)
@@ -83,7 +89,12 @@ async function fillSizes() {
     </template>
 
     <div class="py-6">
-      <PlutoMediaLibrary ref="library" v-model:active="active" mode="manage" />
+      <PlutoMediaLibrary
+        ref="library"
+        v-model:active="active"
+        mode="manage"
+        @deleted="onBulkDeleted"
+      />
     </div>
 
     <template #aside>
