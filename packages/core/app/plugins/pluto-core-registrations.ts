@@ -223,7 +223,7 @@ export default defineNuxtPlugin(() => {
         id: 'pages',
         order: 100,
         label: 'pluto.nav.pages',
-        icon: 'i-lucide-files',
+        icon: 'i-lucide-book-open',
       },
     ],
     // "New <type>" and "Edit <type>" for the content types that set `adminBar`.

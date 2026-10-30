@@ -68,7 +68,7 @@ The registry buckets for the last four are `authDrivers`, `accountMenu`, `adminB
 
 A `navGroups` entry is `{ id, label, icon?, order? }`. `label` is a translation key or text. The
 registry stores the id as `<extensionId>:<id>`. Core declares one group, `pluto:pages` (label
-`pluto.nav.pages`: "Pages" and "Páginas", icon `i-lucide-files`, order 100, with the content items).
+`pluto.nav.pages`: "Pages" and "Páginas", icon `i-lucide-book-open`, order 100, with the content items).
 
 A content type joins a group with `navGroup` (see the content-model skill). The id of the group
 or its bare id (`'pages'`) works. The bare id works when only one group has it.
