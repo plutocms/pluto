@@ -8,7 +8,7 @@ Branch / PR: fix/admin-user-menu-stacking
 ## Context
 
 - Goal: on a public page, the open admin user menu shows above the site's own navbar.
-- Why: the user reported it in Emi Biscuit. The menu opens behind the sticky site navbar.
+- Why: the user reported it in a consumer app. The menu opens behind the sticky site navbar.
 - Cause: `PlutoAdminUserMenu` portals the dropdown into `#pluto-admin-user-menu-portal`. That
   target is inside the admin `<nav>` (`PlutoNavbarAdmin`, `fixed z-50`). A fixed element with a
   z-index makes a stacking context, so the menu cannot rise above the nav's own level. Emi's
@@ -29,16 +29,16 @@ Branch / PR: fix/admin-user-menu-stacking
 - [x] Move the portal target to `<body>` with `<Teleport>`, client side only.
 - [x] Update the comment in the component.
 - [x] lint, typecheck, test pass (39 files, 607 tests).
-- [x] The user checks the fix in Emi Biscuit (local layer).
+- [x] The user checks the fix in a consumer app (local layer).
 - [x] Commit and PR.
 - [ ] Merge the PR (the user), then the release PR (`fix:` gives a patch).
-- [ ] Bump `@plutocms/pluto` where needed so Emi Biscuit gets it in production.
+- [ ] Bump `@plutocms/pluto` where needed so the consumer apps get it in production.
 
 ## Log
 
 - 2026-10-20: found the cause. Next: the fix.
 - 2026-10-20: fix made on `fix/admin-user-menu-stacking`, not committed. Checks pass. Next: the
-  user checks it in Emi Biscuit, then commit and PR.
+  user checks it in a consumer app, then commit and PR.
 - 2026-10-20: the first fix (a `<ClientOnly>` + `<Teleport to="body">` target) failed in Emi with
   "Cannot read properties of null (reading 'emitsOptions')" on open. Reka's portal looks for the
   target with Vue's deferred teleport, after the first render. The ClientOnly target appeared one

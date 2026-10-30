@@ -8,20 +8,17 @@ import type { ButtonProps } from '@nuxt/ui'
 // classes of this element. Use it for every control in the bar. It renders a
 // link when `to` is set, and a button when it is not. Extra attributes (an
 // `@click`, a class) go on that element.
-withDefaults(
-  defineProps<{
-    /** The accessible name. Required, because the pill can show only an icon. */
-    label: string
-    to?: string
-    target?: string
-    title?: string
-    icon?: string
-    disabled?: boolean
-    size?: ButtonProps['size']
-    square?: boolean
-  }>(),
-  { size: 'md' }
-)
+defineProps<{
+  /** The accessible name. Required, because the pill can show only an icon. */
+  label: string
+  to?: string
+  target?: string
+  title?: string
+  icon?: string
+  disabled?: boolean
+  size?: ButtonProps['size']
+  square?: boolean
+}>()
 </script>
 
 <template>

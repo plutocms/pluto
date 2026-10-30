@@ -8,7 +8,7 @@ layer registers a Tailwind entry of its own.
 Before this feature, each layer (`pluto`, `ui`, `supabase`, `supabase-shop`, ...) and the app
 each had a full Tailwind build. All builds declare the same cascade layers (`theme`, `base`,
 `components`, `utilities`). So a utility from a later stylesheet overrides the same-specificity
-utility of an earlier one, whatever its media query. On the Emi Biscuit admin, `.flex-col` and
+utility of an earlier one, whatever its media query. On the admin of a consumer app, `.flex-col` and
 `.sm:grid-cols-2` from the app's build (last in the page) beat pluto's `.sm:flex-row` and
 `.xl:grid-cols-3`. The admin's responsive layout broke.
 
