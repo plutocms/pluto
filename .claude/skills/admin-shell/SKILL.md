@@ -284,8 +284,11 @@ pointer events. It gets the hover, active and focus-visible look from the `group
 link, so the pill looks the same as before. Use `PlutoNavbarHit` for a new control. Do not put a
 plain `UButton` in the bar. `PlutoAdminUserMenu` uses the same pattern with its own pill.
 
-The user menu dropdown renders in a portal target (`#pluto-admin-user-menu-portal`) that has
-`data-pluto-admin-scope`. So the menu has the admin theme and the admin radius on a public page.
+A dropdown of the bar renders in a portal target that has `data-pluto-admin-scope`, so the menu has
+the admin theme and the admin radius on a public page. `usePlutoAdminPortal()` makes the target at
+the end of `<body>>`, not inside the navbar. The navbar is fixed with a z-index, so it makes a stacking
+context. A menu inside it cannot show above a site header with the same z-index. Pass
+`portalTarget ?? true` to the `portal` prop of `UDropdownMenu`. The user menu and the "New" menu use it.
 
 ## Tab title
 
@@ -312,7 +315,12 @@ Core registers one navbar action (`id: 'content'`, order 50): `PlutoContentBarAc
 type asks for its buttons with `adminBar` (`true`, or `{ new?, edit? }`; see the content-model
 skill). The `write` capability of the type decides; with no `write` capability, the button shows.
 
-- "New <type>" on every page where the bar shows. The link is `contentTypeNewPath(type)`.
+- "New <type>" on every page where the bar shows. The link is `contentTypeNewPath(type)`. With two
+  or more types that can show a New button, the bar shows one "New" button (`pluto.content.newMenu`,
+  the plus icon) that opens a `UDropdownMenu`. The menu has one link per type: its singular label,
+  its icon, `contentTypeNewPath(type)`. The types without a `navGroup` come first. Each group follows
+  with its label as a menu label (see "Nav groups" in the extension-registry skill). The button is an
+  `<li>` with a `PlutoNavbarHit` trigger, and the menu uses `usePlutoAdminPortal`.
 - "Edit <type>" on a public page that called `usePlutoEditLink(type, id)`. The link is
   `contentTypeEditPath(type, id)`. It does not show on `/admin/**`: the form has its own View link.
 

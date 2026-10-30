@@ -59,9 +59,28 @@ sets only what it has.
 | `adminBanners`        | `PlutoAdminBanner[]`        | Banner components for the admin. Registered now, rendered later.                                                                             |
 | `contentToolbarItems` | `PlutoContentToolbarItem[]` | Components in the toolbar of the generic content form, before the buttons. See the [admin view chrome](../admin-view-chrome/SKILL.md) skill. |
 | `site`                | `PlutoSiteInfo`             | `name()` and `url()` of the public site.                                                                                                     |
+| `navGroups`           | `PlutoNavGroup[]`           | Groups of content types in the sidebar and the admin bar. See "Nav groups" below.                                                            |
 
 The registry buckets for the last four are `authDrivers`, `accountMenu`, `adminBanners` and
 `siteInfo`. Core renders the navbar from them. See the [admin shell](../admin-shell/SKILL.md).
+
+### Nav groups
+
+A `navGroups` entry is `{ id, label, icon?, order? }`. `label` is a translation key or text. The
+registry stores the id as `<extensionId>:<id>`. Core declares one group, `pluto:pages` (label
+`pluto.nav.pages`: "Pages" and "Páginas", icon `i-lucide-files`, order 100, with the content items).
+
+A content type joins a group with `navGroup` (see the content-model skill). The id of the group
+or its bare id (`'pages'`) works. The bare id works when only one group has it.
+
+- Sidebar (`usePlutoAdminNav`): the visible types of a group (the `read` capability) become one item
+  with the label and the icon of the group. It has no link of its own. Its children are one link per
+  type: the plural label, the icon of the type, the list page. The item is active on the pages of its
+  types (the `match` paths hold the new and edit pages). A group with one visible type shows that type
+  as a normal item. A type with an unknown group is a normal item too, and dev mode logs one warning.
+- Admin bar (`PlutoContentBarActions`): see the admin-shell skill.
+
+The helpers `findNavGroup` and `splitByNavGroup` are in `app/composables/internal/nav-groups.ts`.
 
 ### The admin menu on small screens
 

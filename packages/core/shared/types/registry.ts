@@ -30,6 +30,18 @@ export interface PlutoMediaKind extends PlutoEntry {
   inspect?: (file: Blob) => Promise<string | null>
 }
 
+/**
+ * A group of content types in the admin menus. A content type names its group
+ * with `navGroup`. The sidebar shows the types of a group as one item with one
+ * link per type, and the admin bar lists them in one "New" menu. Core declares
+ * the group `pages`. See the extension-registry skill.
+ */
+export interface PlutoNavGroup extends PlutoEntry {
+  /** A translation key or literal: the name of the group ("Pages"). */
+  label: string
+  icon?: string
+}
+
 export interface PlutoEntry {
   /** Unique inside this extension. Stored as `<extensionId>:<id>`. */
   id: string
@@ -42,6 +54,7 @@ export interface PlutoEntry {
 export interface PlutoNavChild {
   label: string
   to: string
+  icon?: string
 }
 
 export interface PlutoNavItem extends PlutoEntry {
@@ -355,6 +368,7 @@ export interface PlutoExtension {
   contentActions?: PlutoContentAction[]
   contentToolbarItems?: PlutoContentToolbarItem[]
   mediaKinds?: PlutoMediaKind[]
+  navGroups?: PlutoNavGroup[]
 }
 
 /**
@@ -390,4 +404,5 @@ export interface PlutoRegistry {
   contentActions: PlutoRegistryBucket<PlutoContentAction>
   contentToolbarItems: PlutoRegistryBucket<PlutoContentToolbarItem>
   mediaKinds: PlutoRegistryBucket<PlutoMediaKind>
+  navGroups: PlutoRegistryBucket<PlutoNavGroup>
 }

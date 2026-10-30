@@ -39,7 +39,8 @@
     "nav": {
       "home": "Home",
       "settings": "Settings",
-      "media": "Media"
+      "media": "Media",
+      "pages": "Pages"
     },
     "pages": {
       "dashboard": "Dashboard",
@@ -53,6 +54,7 @@
     "content": {
       "new": "New {label}",
       "edit": "Edit {label}",
+      "newMenu": "New",
       "all": "All {labelPlural}",
       "createNew": "Create new {label}",
       "typeNotFound": "Content type not found",

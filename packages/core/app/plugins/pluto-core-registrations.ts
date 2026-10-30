@@ -69,8 +69,16 @@ export default defineNuxtPlugin(() => {
   definePlutoExtension({
     id: 'pluto',
     capabilities: [
-      { id: 'media-manage', key: 'media:manage', label: 'pluto.media.capabilities.manage' },
-      { id: 'media-delete', key: 'media:delete', label: 'pluto.media.capabilities.delete' },
+      {
+        id: 'media-manage',
+        key: 'media:manage',
+        label: 'pluto.media.capabilities.manage',
+      },
+      {
+        id: 'media-delete',
+        key: 'media:delete',
+        label: 'pluto.media.capabilities.delete',
+      },
     ],
     nav: [
       {
@@ -206,6 +214,16 @@ export default defineNuxtPlugin(() => {
         title: 'pluto.dashboard.quickActions.title',
         colSpan: 1,
         component: PlutoDashboardQuickActions,
+      },
+    ],
+    // The groups of content types in the sidebar and the admin bar. A type names one
+    // with `navGroup`. Order 100 puts the group with the content items.
+    navGroups: [
+      {
+        id: 'pages',
+        order: 100,
+        label: 'pluto.nav.pages',
+        icon: 'i-lucide-files',
       },
     ],
     // "New <type>" and "Edit <type>" for the content types that set `adminBar`.

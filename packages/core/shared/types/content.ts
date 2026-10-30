@@ -246,6 +246,15 @@ export interface PlutoContentType {
         edit?: boolean
       }
   navOrder?: number
+  /**
+   * The id of a nav group (the registry bucket `navGroups`), for example
+   * `'pluto:pages'`. The bare id of a group (`'pages'`) works when one group
+   * has it. The types of a group show as one sidebar item with one link per
+   * type, and in one "New" menu of the admin bar. A group with one visible type
+   * shows that type as a normal item. An unknown group is ignored. Unset: the
+   * type is its own item.
+   */
+  navGroup?: string
   i18n?: PlutoContentI18n
   /**
    * The public URL of an item, for the "View <label>" link in the form toolbar. Return

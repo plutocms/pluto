@@ -1,5 +1,7 @@
+import type { NavGroupBucket } from './internal/nav-groups'
 import { contentTypeMatches } from './internal/admin-menu'
 import { contentTextFor } from './internal/content-text'
+import { findNavGroup, splitByNavGroup } from './internal/nav-groups'
 
 // The id of core's Settings nav item (extension `pluto`, entry `settings`).
 const SETTINGS_NAV_ID = 'pluto:settings'
@@ -21,6 +23,12 @@ const SETTINGS_NAV_ID = 'pluto:settings'
  * labels come from `usePlutoContentText`, so the convention keys apply. The
  * `computed` reads the active locale, so a locale switch updates the labels.
  *
+ * A content type that names a group (`type.navGroup`, see the `navGroups`
+ * bucket) joins the group item when the group has two or more visible types.
+ * The item has the label and the icon of the group, and one child per type
+ * (its plural label, linked to its list page). It is active on the pages of its
+ * types. A group with one visible type shows that type as a normal item.
+ *
  * The Settings item (`pluto:settings`) gets one child per visible settings page
  * (`usePlutoSettingsPages`) when there are two or more. It opens by default
  * on `/admin/settings/**`.
@@ -36,11 +44,15 @@ const SETTINGS_NAV_ID = 'pluto:settings'
 export function usePlutoAdminNav() {
   const registry = usePlutoRegistry()
   const { items: contentTypes } = usePlutoContentTypes()
+  const navGroups = registry.navGroups.list
   const { can } = usePlutoPermissions()
   const { items: settingsPages, current: currentSettingsPage } =
     usePlutoSettingsPages()
   const i18n = usePlutoI18n()
   const { t, tx } = i18n
+
+  // Dev only. The groups already warned about, so each warns once.
+  const warnedGroups = new Set<string>()
 
   const items = computed<PlutoNavItem[]>(() => {
     const registered = registry.nav.list.value
@@ -53,33 +65,85 @@ export function usePlutoAdminNav() {
       })),
     })
 
-    const contentNav: PlutoNavItem[] = contentTypes.value
-      .filter((entry) => entry.type.autoRoutes !== false)
-      .map((entry) => {
-        const type = entry.type
-        const text = contentTextFor(type, i18n)
-        const basePath = type.basePath ?? `/admin/content/${type.name}`
+    const isVisible = (type: PlutoContentType): boolean =>
+      !type.capabilities?.read || can(type.capabilities.read)
 
-        return {
-          id: `content:${type.name}`,
-          order: type.navOrder ?? 100,
-          label: text.labelPlural,
+    function typeNav(type: PlutoContentType): PlutoNavItem {
+      const text = contentTextFor(type, i18n)
+      const basePath = type.basePath ?? `/admin/content/${type.name}`
+
+      return {
+        id: `content:${type.name}`,
+        order: type.navOrder ?? 100,
+        label: text.labelPlural,
+        icon: type.icon,
+        to: basePath,
+        enabled: () => isVisible(type),
+        children: [
+          {
+            label: t('pluto.content.all', { labelPlural: text.labelPlural }),
+            to: basePath,
+          },
+          {
+            label: t('pluto.content.createNew', { label: text.label }),
+            to: `${basePath}/new`,
+          },
+        ],
+      }
+    }
+
+    // One item for the visible types of a group. A child is the list page of a
+    // type. The `match` paths keep the item active on the new and edit pages.
+    function groupNav(bucket: NavGroupBucket<PlutoContentTypeEntry>) {
+      const types = bucket.items.map((entry) => entry.type)
+      const basePathOf = (type: PlutoContentType) =>
+        type.basePath ?? `/admin/content/${type.name}`
+      return {
+        id: `group:${bucket.group.id}`,
+        order: bucket.group.order ?? 100,
+        label: tx(bucket.group.label),
+        icon: bucket.group.icon,
+        children: types.map((type) => ({
+          label: contentTextFor(type, i18n).labelPlural,
+          to: basePathOf(type),
           icon: type.icon,
-          to: basePath,
-          enabled: () =>
-            !type.capabilities?.read || can(type.capabilities.read),
-          children: [
-            {
-              label: t('pluto.content.all', { labelPlural: text.labelPlural }),
-              to: basePath,
-            },
-            {
-              label: t('pluto.content.createNew', { label: text.label }),
-              to: `${basePath}/new`,
-            },
-          ],
-        }
-      })
+        })),
+        match: types.flatMap((type) =>
+          [type.newPath, type.editPath?.('').replace(/\/+$/, '')].filter(
+            (path): path is string => Boolean(path)
+          )
+        ),
+      } satisfies PlutoNavItem
+    }
+
+    const autoRouted = contentTypes.value.filter(
+      (entry) => entry.type.autoRoutes !== false && isVisible(entry.type)
+    )
+    const { ungrouped, grouped } = splitByNavGroup(autoRouted, navGroups.value)
+    for (const entry of autoRouted) {
+      const name = entry.type.navGroup
+      if (
+        import.meta.dev &&
+        name &&
+        !findNavGroup(navGroups.value, name) &&
+        !warnedGroups.has(name)
+      ) {
+        warnedGroups.add(name)
+        console.warn(
+          `[pluto] The content type "${entry.type.name}" names the nav group "${name}", but no extension declares it.`
+        )
+      }
+    }
+
+    // A group with one visible type shows that type as a normal item.
+    const contentNav: PlutoNavItem[] = [
+      ...ungrouped.map((entry) => typeNav(entry.type)),
+      ...grouped.flatMap((bucket) =>
+        bucket.items.length >= 2
+          ? [groupNav(bucket)]
+          : bucket.items.map((entry) => typeNav(entry.type))
+      ),
+    ]
 
     // The Settings item lists one child per visible settings page, when there
     // are two or more. With one page (General), the item stays a plain link.

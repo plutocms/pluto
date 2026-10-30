@@ -39,7 +39,8 @@
     "nav": {
       "home": "Início",
       "settings": "Configurações",
-      "media": "Mídia"
+      "media": "Mídia",
+      "pages": "Páginas"
     },
     "pages": {
       "dashboard": "Painel",
@@ -53,6 +54,7 @@
     "content": {
       "new": "Criar {label}",
       "edit": "Editar {label}",
+      "newMenu": "Novo",
       "all": "Ver {labelPlural}",
       "createNew": "Criar {label}",
       "typeNotFound": "Tipo de conteúdo não encontrado",

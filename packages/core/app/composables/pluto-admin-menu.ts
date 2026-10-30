@@ -22,6 +22,7 @@ function toMenuItem(item: PlutoNavItem, active: boolean): PlutoAdminMenuItem {
     onSelect: item.to ? () => navigateTo(item.to) : undefined,
     children: item.children?.map((child) => ({
       label: child.label,
+      icon: child.icon,
       href: child.to,
       // A child that points at its parent's own path (Settings > General)
       // must not stay active on the sibling pages below that path.

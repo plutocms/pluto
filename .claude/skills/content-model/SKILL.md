@@ -631,6 +631,10 @@ server-side rule already is above: when `type.capabilities.read` is unset, the n
 unconditionally; when it is set, `can(...)` decides. This is the same rule `PlutoContentList`'s
 and `PlutoContentForm`'s own `canWrite`/`canDelete` follow, applied to nav visibility instead.
 
+A type with `navGroup` joins a group item (see "Nav groups" in the extension-registry skill) when
+the group has two or more visible types. The item has no `to`, and its children are the list pages
+of the types. A group with one visible type, and a type with an unknown group, keep the item above.
+
 `PlutoEntry.enabled` applies to both sources: the registry filters its own entries, and
 `usePlutoAdminNav` filters the merged list again with `enabled?.() ?? true`.
 
@@ -691,7 +695,15 @@ them for a new link instead of building the path again.
 - `edit`: "Edit <type>" on a public page that calls `usePlutoEditLink(type, id)`.
 
 The `write` capability of the type decides, like the form. See "Content buttons" in the
-admin-shell skill.
+admin-shell skill. With two or more types, the "New" buttons become one "New" menu, grouped by
+`navGroup`.
+
+## `navGroup` — one sidebar item for related types
+
+`navGroup?: string` is the id of a group in the registry bucket `navGroups` (`'pluto:pages'`, or the bare
+`'pages'`). The sidebar shows the types of a group as one item, and the admin bar lists them in
+one "New" menu. Unset gives the type its own item. `navOrder` still sets the order of an ungrouped
+item. The group has its own `order`.
 
 ## `form`, `capabilities.publish`, and the publish workflow
 
