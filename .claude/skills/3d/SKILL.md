@@ -33,13 +33,13 @@ monorepo. It adds 3D models (`.glb`) to the media library of core (see the media
 - The root `package.json` has `workspaces`. `bunfig.toml` keeps the hoisted `node_modules`: with
   the isolated layout, the Nuxt module loader on Windows did not find the dependencies of a
   module (`@nuxt/image` lost `ufo`).
-- The peer dependency on `@plutocms/pluto` is optional, so Bun does not install a second core
+- The peer dependency on `@plutocms/core` is optional, so Bun does not install a second core
   from npm next to the root source.
 - Core's `.npmignore` has `packages`. Core's `typecheck` script runs the typecheck of the add-on
   (its playground). The root `vitest run` runs the tests of the add-on too.
 - release-please: `separate-pull-requests`, `.` excludes `packages`, the add-on has
   `component: '3d'` and its own tags (`3d-v0.1.0`). The shared `release.yml` publishes every
   path that release-please released. `scripts/release.sh pluto @plutocms/3d <ver>
-  packages/layers/addons/3d` releases it.
+packages/layers/addons/3d` releases it.
 - npm: a trusted publisher for each package (repo `plutocms/pluto`, `release.yml`). The first
   publish of a new package is by hand.

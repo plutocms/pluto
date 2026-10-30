@@ -1,40 +1,21 @@
 {
-  "name": "@plutocms/pluto",
+  "name": "pluto-monorepo",
   "type": "module",
+  "private": true,
+  "description": "The Pluto core and its add-on layers",
+  "license": "MIT",
   "workspaces": [
+    "packages/core",
     "packages/layers/addons/*"
   ],
-  "version": "0.37.0",
-  "description": "The layerable CMS",
-  "author": "Victor Ribeiro",
-  "license": "MIT",
-  "homepage": "https://github.com/plutocms/pluto#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/plutocms/pluto.git"
-  },
-  "bugs": {
-    "url": "https://github.com/plutocms/pluto/issues"
-  },
-  "keywords": [
-    "pluto",
-    "cms",
-    "nuxt",
-    "vue",
-    "wordpress"
-  ],
-  "main": "./nuxt.config.ts",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev --no-fork",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "dev": "bun run --cwd packages/core dev",
+    "build": "bun run --cwd packages/core build",
     "prettier": "prettier --write .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "nuxt prepare && vue-tsc -b --noEmit && bun run --cwd packages/layers/addons/3d typecheck",
-    "test": "vitest run"
+    "typecheck": "bun run --cwd packages/core typecheck && bun run --cwd packages/layers/addons/3d typecheck",
+    "test": "bun run --cwd packages/core test && bun run --cwd packages/layers/addons/3d test"
   },
   "trustedDependencies": [
     "@parcel/watcher",
@@ -44,52 +25,15 @@
     "unrs-resolver",
     "vue-demi"
   ],
-  "dependencies": {
-    "@codemirror/commands": "^6.11.1",
-    "@codemirror/lang-markdown": "^6.5.2",
-    "@codemirror/language": "^6.13.1",
-    "@codemirror/search": "^6.7.2",
-    "@codemirror/state": "^6.7.6",
-    "@codemirror/view": "^6.43.15",
-    "@iconify-json/lucide": "^1.2.144",
-    "@iconify-json/simple-icons": "^1.2.100",
-    "@internationalized/date": "^3.12.4",
-    "@lezer/highlight": "^1.2.5",
-    "@nuxt/eslint": "^1.17.0",
-    "@nuxt/image": "^2.1.0",
-    "@nuxt/ui": "^4.12.0",
-    "@plutocms/utils": ">=0.3.0 <1.0.0",
-    "@tanstack/charts": "^1.1.0",
-    "@vueuse/nuxt": "^15.0.0",
-    "image-meta": "^0.3.0",
-    "marked": "^18.1.1",
-    "reka-ui": "^2.11.0",
-    "tailwind-merge": "^3.7.0",
-    "ultrahtml": "^1.7.0",
-    "yaml": "^2.9.1"
-  },
   "devDependencies": {
     "@antfu/eslint-config": "^10.0.0",
-    "@tailwindcss/vite": "^4.3.3",
-    "@types/bun": "^1.4.4",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-better-tailwindcss": "^4.10.0",
-    "mysql2": "^3.24.6",
-    "nuxt": "^4.6.2",
     "prettier": "^3.9.10",
-    "prettier-plugin-tailwindcss": "^0.8.1",
-    "tailwindcss": "^4.3.3",
-    "typescript": "6.0.3",
-    "vitest": "^5.0.5",
-    "vue": "^3.5.44",
-    "vue-router": "^5.4.0",
-    "vue-tsc": "^3.3.13"
+    "prettier-plugin-tailwindcss": "^0.8.1"
   },
   "overrides": {
     "eslint-flat-config-utils": "^3.2.0"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

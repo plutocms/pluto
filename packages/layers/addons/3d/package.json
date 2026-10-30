@@ -32,10 +32,10 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@plutocms/pluto": ">=0.37.0 <1.0.0"
+    "@plutocms/core": ">=0.38.0 <1.0.0"
   },
   "peerDependenciesMeta": {
-    "@plutocms/pluto": {
+    "@plutocms/core": {
       "optional": true
     }
   },

@@ -59,9 +59,10 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Two copies of `@plutocms/pluto` or `@plutocms/supabase` break a Nuxt
+      # Two copies of `@plutocms/core` or `@plutocms/supabase` break a Nuxt
       # app (two layers with the same name). This fails when the lockfile
-      # resolves one of them to more than one version.
+      # resolves one of them to more than one version, or when it still has
+      # `@plutocms/pluto`, the old name of core.
       - name: Check for duplicate Pluto packages
         run: |
           node -e '
@@ -69,7 +70,11 @@ jobs:
             if (!fs.existsSync("bun.lock")) process.exit(0)
             const lock = fs.readFileSync("bun.lock", "utf8")
             let failed = false
-            for (const name of ["@plutocms/pluto", "@plutocms/supabase"]) {
+            if (lock.includes(`"@plutocms/pluto@`)) {
+              console.log("::error::The lockfile has @plutocms/pluto, the old name of @plutocms/core. Move every package to @plutocms/core.")
+              failed = true
+            }
+            for (const name of ["@plutocms/core", "@plutocms/supabase"]) {
               const pattern = new RegExp(`"${name}@([0-9][^"]*)"`, "g")
               const versions = new Set([...lock.matchAll(pattern)].map((m) => m[1]))
               if (versions.size > 1) {
