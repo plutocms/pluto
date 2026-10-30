@@ -34,7 +34,7 @@ export default defineNuxtConfig({
 
 Core is the base layer every Pluto app extends. With no other layer, Pluto is a Markdown CMS on
 Git: posts are files in your repository, and each save is a commit. It works out of the box with your local Git repo in development. Connect GitHub
-to publish from a deployed site. See [GitHub CMS](https://pluto.vulmix.dev/github-cms/quickstart).
+to publish from a deployed site. See [GitHub CMS](https://pluto.vulmix.dev/docs/github-cms/quickstart).
 
 ## Use it headless
 
@@ -44,7 +44,7 @@ A site in any framework reads the published content from the public API:
 curl https://your-site.dev/api/pluto/v1/content/post?limit=10
 ```
 
-See [Public API](https://pluto.vulmix.dev/core/public-api).
+See [Public API](https://pluto.vulmix.dev/docs/core/public-api).
 
 ## Layers
 
@@ -57,7 +57,7 @@ See [Public API](https://pluto.vulmix.dev/core/public-api).
 | `@plutocms/supabase-shop` | Products on Supabase.                                       |
 | `@plutocms/3d`            | 3D models in the media library, and a viewer.               |
 
-Read [Layers](https://pluto.vulmix.dev/core/layers) to see how they fit together.
+Read [Layers](https://pluto.vulmix.dev/docs/core/layers) to see how they fit together.
 
 ## This repository
 
@@ -68,9 +68,9 @@ Read [Layers](https://pluto.vulmix.dev/core/layers) to see how they fit together
 
 ## Links
 
-- [Create a project](https://pluto.vulmix.dev/getting-started/create-a-project)
-- [Why Pluto](https://pluto.vulmix.dev/getting-started/why-pluto)
-- [Contributing](https://pluto.vulmix.dev/contributing/workspace)
+- [Create a project](https://pluto.vulmix.dev/docs/getting-started/create-a-project)
+- [Why Pluto](https://pluto.vulmix.dev/docs/getting-started/why-pluto)
+- [Contributing](https://pluto.vulmix.dev/docs/contributing/workspace)
 
 ## License
 
