@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.36.0](https://github.com/plutocms/pluto/compare/v0.35.0...v0.36.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* model/gltf-binary is no longer an allowed type by default; a layer adds it with runtimeConfig.public.plutoMedia.extraTypes (the 3D add-on). A media record has a preview field, and a media driver needs setPreview.
+
+### Features
+
+* media kinds, preview images, and the redesigned library ([#271](https://github.com/plutocms/pluto/issues/271)) ([1a87836](https://github.com/plutocms/pluto/commit/1a8783645497b35c3e7502688b157179f353e8db))
+
+
+### Bug Fixes
+
+* the admin keeps its own component defaults (Nuxt UI sizes, admin font) ([#272](https://github.com/plutocms/pluto/issues/272)) ([f036af7](https://github.com/plutocms/pluto/commit/f036af7591b39625939d555b51c2dc1c07885e3d))
+
 ## [0.35.0](https://github.com/plutocms/pluto/compare/v0.34.3...v0.35.0) (2026-10-30)
 
 
