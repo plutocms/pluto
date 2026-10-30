@@ -138,6 +138,10 @@ The sidebar search button is the `soft` variant (no border).
   Raw colors do not follow the admin theme.
 - Call `usePlutoAdminTheme()` in every new admin layout.
 - Put `data-pluto-admin-scope` on admin chrome that renders outside an admin layout.
+- Use Lucide icons (`i-lucide-*`) for admin icons. Core does not install other Iconify collections,
+  because `@nuxt/icon` puts each installed collection in the server bundle. For a brand icon, add it
+  to the `pluto` custom collection in `nuxt.config.ts` (`pluto:github` is there). Do not add
+  `@iconify-json/*` packages to core.
 
 ## Component defaults: `PlutoAdminTheme`, not `app.config`
 

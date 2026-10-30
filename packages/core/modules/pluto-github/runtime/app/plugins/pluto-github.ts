@@ -112,7 +112,7 @@ export default defineNuxtPlugin(() => {
         id: 'github',
         order: 150,
         label: 'pluto.settings.tabs.github',
-        icon: 'simple-icons:github',
+        icon: 'pluto:github',
         to: '/admin/settings/github',
       },
     ],

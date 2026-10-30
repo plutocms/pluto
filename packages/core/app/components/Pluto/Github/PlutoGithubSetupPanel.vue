@@ -166,7 +166,7 @@ async function copyCallback() {
         :label="t('pluto.github.setup.create')"
         :color="current.ready ? 'neutral' : 'primary'"
         :variant="current.ready ? 'outline' : 'solid'"
-        icon="simple-icons:github"
+        icon="pluto:github"
         class="w-full justify-center"
         external
       />
