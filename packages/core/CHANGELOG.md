@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.38.1](https://github.com/plutocms/pluto/compare/v0.38.0...v0.38.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* the core package leaves out its dev scripts ([#284](https://github.com/plutocms/pluto/issues/284)) ([c62763f](https://github.com/plutocms/pluto/commit/c62763f42cd0976514b2de515ea3e52971eef65a))
+
 ## [0.38.0](https://github.com/plutocms/pluto/compare/v0.37.0...v0.38.0) (2026-10-30)
 
 
