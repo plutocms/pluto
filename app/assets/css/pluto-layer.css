@@ -129,3 +129,12 @@
   iframe {
   pointer-events: none;
 }
+
+/* A site can set its own `color-scheme` on <body> (a light-only site). The admin
+   follows its own color mode, so native controls and scrollbars match it. */
+:root[data-pluto-admin] body {
+  color-scheme: light;
+}
+:root[data-pluto-admin].dark body {
+  color-scheme: dark;
+}

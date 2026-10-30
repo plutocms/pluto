@@ -139,7 +139,27 @@ The sidebar search button is the `soft` variant (no border).
 - Call `usePlutoAdminTheme()` in every new admin layout.
 - Put `data-pluto-admin-scope` on admin chrome that renders outside an admin layout.
 
-## Limit
+## Component defaults: `PlutoAdminTheme`, not `app.config`
 
-`app.config` component themes (for example `ui.button.slots.base`) still merge across layers
-and reach the admin. Only colors, tokens, surfaces, and the font are isolated.
+`app.config` is global. When core put the admin sizes there (`xl` buttons, inputs and form
+fields), they reached every public site, and a site's own `app.config` reached the admin: the
+docs site set `md` for its pages, so its admin was `md` and other admins `xl`; a site's
+`ui.button.slots.base: 'font-outfit'` gave the admin buttons the font of the site.
+
+Now the admin defaults are in `app/composables/pluto-admin-theme.ts`:
+
+- `PLUTO_ADMIN_UI_PROPS`: the default sizes.
+- `PLUTO_ADMIN_UI`: `font-sans` on the base of the form components (the admin font), after the
+  classes of the site, so tailwind-merge drops a site font class.
+
+`PlutoAdminTheme` gives them with `UTheme` (no element, provide/inject, so overlays opened
+from inside get them too). The admin layout, the auth layout and the admin bar
+(`PlutoNavbarAdmin`) wrap their content in it. Core's `app.config` keeps only the padding of
+an `xl` button with a label.
+
+A site `app.config` slot class that is not a font (a radius, a shadow) can still reach the
+admin. Add its reset to `PLUTO_ADMIN_UI` when one shows up.
+
+The body: `admin-theme.css` sets the font and the color of `body` under `[data-pluto-admin]`,
+and `pluto-layer.css` sets its `color-scheme` (light, or dark with `.dark`), so a site's
+`body` rules do not reach the admin.
