@@ -4,6 +4,7 @@ import type {
   PlutoMediaCapability,
   PlutoMediaDriver,
   PlutoMediaPatch,
+  PlutoMediaPreviewUpload,
 } from '../../../../shared/types/media'
 import type { PlutoGithubAccess } from './adapter'
 import type {
@@ -46,6 +47,16 @@ interface MediaFrontmatter {
   height?: unknown
   alt?: unknown
   createdAt?: unknown
+  preview?: unknown
+  previewFile?: unknown
+  previewWidth?: unknown
+  previewHeight?: unknown
+}
+
+/** The repo paths of a stored file and of its preview. */
+interface StoredFiles {
+  file: string
+  previewFile: string
 }
 
 function numberOrNull(value: unknown): number | null {
@@ -59,7 +70,9 @@ function numberOrNull(value: unknown): number | null {
  * - the file: `public/media/<yyyy>/<mm>/<name>-<suffix>.<ext>`, served at
  *   `/media/<yyyy>/<mm>/...` (a static file after a deploy; before it, the
  *   `/media/**` route reads it from the repo);
- * - the record: `<dir>/media/<id>.md`, frontmatter only.
+ * - the record: `<dir>/media/<id>.md`, frontmatter only;
+ * - the preview image of a file that is not an image (a 3D model), when the
+ *   kind of the file makes one: `<name>-<suffix>.preview.webp` next to the file.
  *
  * Only one size of each image is stored: other sizes come at delivery
  * (`@nuxt/image`). See the media skill.
@@ -96,6 +109,8 @@ export function createGithubMediaDriver(
     if (typeof data.url !== 'string' || typeof data.mimeType !== 'string') {
       return null
     }
+    const previewWidth = numberOrNull(data.previewWidth)
+    const previewHeight = numberOrNull(data.previewHeight)
     return {
       id: file.name.replace(/\.md$/, ''),
       url: data.url,
@@ -106,14 +121,18 @@ export function createGithubMediaDriver(
       height: numberOrNull(data.height),
       alt: typeof data.alt === 'string' ? data.alt : '',
       createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
+      preview:
+        typeof data.preview === 'string' && previewWidth && previewHeight
+          ? { url: data.preview, width: previewWidth, height: previewHeight }
+          : null,
     }
   }
 
-  function serialize(record: PlutoMedia, file: string): string {
+  function serialize(record: PlutoMedia, stored: StoredFiles): string {
     return serializeMarkdownFile(
       {
         name: record.name,
-        file,
+        file: stored.file,
         url: record.url,
         mimeType: record.mimeType,
         size: record.size,
@@ -121,9 +140,32 @@ export function createGithubMediaDriver(
         height: record.height ?? undefined,
         alt: record.alt || undefined,
         createdAt: record.createdAt,
+        preview: record.preview?.url,
+        previewFile: record.preview ? stored.previewFile : undefined,
+        previewWidth: record.preview?.width,
+        previewHeight: record.preview?.height,
       },
       ''
     )
+  }
+
+  /** The repo path and the URL of a stored file, by its month and its name. */
+  function placeOf(createdAt: string, fileName: string) {
+    const date = new Date(createdAt)
+    const month = `${date.getUTCFullYear()}/${String(date.getUTCMonth() + 1).padStart(2, '0')}`
+    return {
+      path: `${publicDir}/media/${month}/${fileName}`,
+      url: `${GITHUB_MEDIA_URL_PREFIX}/${month}/${fileName}`,
+    }
+  }
+
+  /** A binary addition of a commit. */
+  function binary(path: string, data: Uint8Array) {
+    return {
+      path,
+      contents: Buffer.from(data).toString('base64'),
+      encoding: 'base64' as const,
+    }
   }
 
   async function requireAccess(event: H3Event): Promise<PlutoGithubAccess> {
@@ -151,7 +193,7 @@ export function createGithubMediaDriver(
     event: H3Event,
     id: string,
     access: PlutoGithubAccess
-  ): Promise<{ record: PlutoMedia; file: string }> {
+  ): Promise<{ record: PlutoMedia; stored: StoredFiles }> {
     const head = await store.head({ revalidate: true, auth: access.auth })
     const found = await store.readFile(
       recordPath(requireId(id)),
@@ -167,7 +209,14 @@ export function createGithubMediaDriver(
       })
     }
     const data = parseMarkdownFile(found.text).frontmatter as MediaFrontmatter
-    return { record, file: typeof data.file === 'string' ? data.file : '' }
+    return {
+      record,
+      stored: {
+        file: typeof data.file === 'string' ? data.file : '',
+        previewFile:
+          typeof data.previewFile === 'string' ? data.previewFile : '',
+      },
+    }
   }
 
   /** Commits on the newest head. A new head from an unrelated commit tries again. */
@@ -216,13 +265,17 @@ export function createGithubMediaDriver(
 
     async upload(event, input) {
       const access = await requireAccess(event)
-      const date = new Date(input.createdAt)
-      const month = `${date.getUTCFullYear()}/${String(date.getUTCMonth() + 1).padStart(2, '0')}`
       const id = input.fileName.replace(/\.[^.]+$/, '')
-      const file = `${publicDir}/media/${month}/${input.fileName}`
+      const main = placeOf(input.createdAt, input.fileName)
+      const preview = input.preview
+        ? {
+            ...placeOf(input.createdAt, input.preview.fileName),
+            upload: input.preview,
+          }
+        : null
       const record: PlutoMedia = {
         id: requireId(id),
-        url: `${GITHUB_MEDIA_URL_PREFIX}/${month}/${input.fileName}`,
+        url: main.url,
         name: input.name,
         mimeType: input.mimeType,
         size: input.size,
@@ -230,16 +283,21 @@ export function createGithubMediaDriver(
         height: input.height,
         alt: input.alt,
         createdAt: input.createdAt,
+        preview: preview
+          ? {
+              url: preview.url,
+              width: preview.upload.width,
+              height: preview.upload.height,
+            }
+          : null,
       }
+      const stored = { file: main.path, previewFile: preview?.path ?? '' }
       await commit(access, {
         message: `media: add ${input.fileName}${skipSuffix}`,
         additions: [
-          {
-            path: file,
-            contents: Buffer.from(input.data).toString('base64'),
-            encoding: 'base64',
-          },
-          { path: recordPath(id), contents: serialize(record, file) },
+          binary(main.path, input.data),
+          ...(preview ? [binary(preview.path, preview.upload.data)] : []),
+          { path: recordPath(id), contents: serialize(record, stored) },
         ],
         deletions: [],
       })
@@ -248,30 +306,65 @@ export function createGithubMediaDriver(
 
     async update(event, id, patch: PlutoMediaPatch) {
       const access = await requireAccess(event)
-      const { record, file } = await readOne(event, id, access)
+      const { record, stored } = await readOne(event, id, access)
       const next: PlutoMedia = {
         ...record,
+        ...(patch.name !== undefined ? { name: patch.name } : {}),
         ...(patch.alt !== undefined ? { alt: patch.alt } : {}),
         ...(patch.width !== undefined ? { width: patch.width } : {}),
         ...(patch.height !== undefined ? { height: patch.height } : {}),
       }
       await commit(access, {
         message: `media: update ${id}${skipSuffix}`,
-        additions: [{ path: recordPath(id), contents: serialize(next, file) }],
+        additions: [
+          { path: recordPath(id), contents: serialize(next, stored) },
+        ],
         deletions: [],
+      })
+      return next
+    },
+
+    async setPreview(event, id, preview: PlutoMediaPreviewUpload) {
+      const access = await requireAccess(event)
+      const { record, stored } = await readOne(event, id, access)
+      const place = placeOf(record.createdAt, preview.fileName)
+      const next: PlutoMedia = {
+        ...record,
+        preview: {
+          url: place.url,
+          width: preview.width,
+          height: preview.height,
+        },
+      }
+      const old = stored.previewFile
+      await commit(access, {
+        message: `media: preview of ${id}${skipSuffix}`,
+        additions: [
+          binary(place.path, preview.data),
+          {
+            path: recordPath(id),
+            contents: serialize(next, { ...stored, previewFile: place.path }),
+          },
+        ],
+        deletions:
+          old && old !== place.path && old.startsWith(`${publicDir}/media/`)
+            ? [{ path: old }]
+            : [],
       })
       return next
     },
 
     async remove(event, id) {
       const access = await requireAccess(event)
-      const { file } = await readOne(event, id, access)
+      const { stored } = await readOne(event, id, access)
       await commit(access, {
         message: `media: delete ${id}${skipSuffix}`,
         additions: [],
         deletions: [
           { path: recordPath(id) },
-          ...(file.startsWith(`${publicDir}/media/`) ? [{ path: file }] : []),
+          ...[stored.file, stored.previewFile]
+            .filter((path) => path.startsWith(`${publicDir}/media/`))
+            .map((path) => ({ path })),
         ],
       })
     },
@@ -294,7 +387,7 @@ export function githubMediaPath(path: string): string | null {
   return parts.length === 3 &&
     /^\d{4}$/.test(parts[0] ?? '') &&
     /^\d{2}$/.test(parts[1] ?? '') &&
-    /^[a-z0-9][a-z0-9-]*\.[a-z0-9]+$/.test(parts[2] ?? '')
+    /^[a-z0-9][a-z0-9-]*(?:\.preview)?\.[a-z0-9]+$/.test(parts[2] ?? '')
     ? path
     : null
 }

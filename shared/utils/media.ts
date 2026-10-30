@@ -1,19 +1,34 @@
 import type {
   PlutoMedia,
+  PlutoMediaConfig,
   PlutoMediaLimits,
   PlutoMediaQuery,
+  PlutoMediaSort,
 } from '../types/media'
 import { slugifyTitle } from './content-slug'
 
-/** The file types an upload can have, when the app sets none. SVG is not in it: it can hold scripts. */
+/**
+ * The file types an upload can have, when the app sets none. SVG is not in it:
+ * it can hold scripts. A layer adds its types with `extraTypes` (the 3D add-on
+ * adds `model/gltf-binary`).
+ */
 export const PLUTO_MEDIA_DEFAULT_TYPES = [
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/avif',
   'image/gif',
-  'model/gltf-binary',
   'application/pdf',
+]
+
+/** The largest preview image of a file, in bytes. */
+export const PLUTO_MEDIA_MAX_PREVIEW_BYTES = 2 * 1024 * 1024
+
+export const PLUTO_MEDIA_SORTS: readonly PlutoMediaSort[] = [
+  'newest',
+  'oldest',
+  'name',
+  'size',
 ]
 
 export const PLUTO_MEDIA_DEFAULT_MAX_BYTES = 10 * 1024 * 1024
@@ -34,19 +49,43 @@ const EXTENSIONS: Record<string, string> = {
   'application/pdf': 'pdf',
 }
 
-/** The upload rules of the app, with the defaults for a missing value. */
+/**
+ * The upload rules of the app: the types of the app (or the defaults) plus the
+ * `extraTypes` of the layers, the size limit, and the limits of single types.
+ */
 export function resolveMediaLimits(
-  config?: Partial<PlutoMediaLimits> | null
+  config?: PlutoMediaConfig | null
 ): PlutoMediaLimits {
+  const base = config?.allowedTypes?.length
+    ? config.allowedTypes
+    : PLUTO_MEDIA_DEFAULT_TYPES
+  const typeLimits: Record<string, number> = {}
+  for (const [type, bytes] of Object.entries(config?.typeLimits ?? {})) {
+    if (Number(bytes) > 0) {
+      typeLimits[type] = Number(bytes)
+    }
+  }
   return {
-    allowedTypes: config?.allowedTypes?.length
-      ? config.allowedTypes
-      : PLUTO_MEDIA_DEFAULT_TYPES,
+    allowedTypes: [...new Set([...base, ...(config?.extraTypes ?? [])])],
     maxUploadBytes:
       config?.maxUploadBytes && config.maxUploadBytes > 0
         ? config.maxUploadBytes
         : PLUTO_MEDIA_DEFAULT_MAX_BYTES,
+    typeLimits,
   }
+}
+
+/** The size limit of one type: its own limit, else `maxUploadBytes`. */
+export function mediaMaxBytes(
+  limits: PlutoMediaLimits,
+  mimeType: string
+): number {
+  return limits.typeLimits[mimeType] ?? limits.maxUploadBytes
+}
+
+/** The largest file of any allowed type. */
+export function mediaLargestLimit(limits: PlutoMediaLimits): number {
+  return Math.max(limits.maxUploadBytes, ...Object.values(limits.typeLimits))
 }
 
 /**
@@ -126,6 +165,14 @@ export function mediaExtension(mimeType: string): string {
   return EXTENSIONS[mimeType] ?? 'bin'
 }
 
+/** The file name of the preview of a stored file: `mug-k3j9a.glb` gives `mug-k3j9a.preview.webp`. */
+export function mediaPreviewFileName(
+  fileName: string,
+  mimeType: string
+): string {
+  return `${fileName.replace(/.[^.]+$/, '')}.preview.${mediaExtension(mimeType)}`
+}
+
 /**
  * The stored file name: the slug of the name (without its extension), the
  * suffix, and the extension of the real type. Example: "Pão de Mel.JPG",
@@ -161,10 +208,32 @@ export function filterMediaRecords(
           record.alt.toLowerCase().includes(search)) &&
         (!type || matchesMediaType(record.mimeType, [type]))
     )
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    .sort(mediaComparator(query.sort))
   return {
     data: matching.slice(query.offset, query.offset + query.limit),
     total: matching.length,
+  }
+}
+
+/** The order of `sort`, for a driver that sorts in memory. */
+export function mediaComparator(
+  sort: PlutoMediaSort = 'newest'
+): (a: PlutoMedia, b: PlutoMedia) => number {
+  switch (sort) {
+    case 'oldest':
+      return (a, b) =>
+        a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0
+    case 'name':
+      return (a, b) =>
+        a.name.localeCompare(b.name, undefined, {
+          sensitivity: 'base',
+          numeric: true,
+        })
+    case 'size':
+      return (a, b) => b.size - a.size
+    default:
+      return (a, b) =>
+        a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0
   }
 }
 

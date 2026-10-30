@@ -2,7 +2,10 @@ import type { H3Event } from 'h3'
 import type {
   PlutoMedia,
   PlutoMediaLimits,
+  PlutoMediaPatch,
+  PlutoMediaPreviewUpload,
   PlutoMediaQuery,
+  PlutoMediaSort,
   PlutoMediaUpload,
 } from '../../shared/types/media'
 import { getQuery, getRequestURL, readBody, readMultipartFormData } from 'h3'
@@ -10,7 +13,12 @@ import {
   formatMediaSize,
   matchesMediaType,
   mediaFileName,
+  mediaLargestLimit,
+  mediaMaxBytes,
+  mediaPreviewFileName,
   PLUTO_MEDIA_MAX_LIMIT,
+  PLUTO_MEDIA_MAX_PREVIEW_BYTES,
+  PLUTO_MEDIA_SORTS,
 } from '../../shared/utils/media'
 import { createPlutoError } from './pluto-error'
 import {
@@ -36,6 +44,8 @@ export interface MediaFileInput {
   name: string
   data: Uint8Array
   alt?: string
+  /** The bytes of a preview image, made in the browser. */
+  preview?: Uint8Array
 }
 
 /**
@@ -58,13 +68,16 @@ export function prepareMediaUpload(
       params: { name },
     })
   }
-  if (file.data.length > limits.maxUploadBytes) {
-    throw createPlutoError({
+  const tooLarge = (limit: number) =>
+    createPlutoError({
       statusCode: 413,
       message: 'The file is too large.',
       key: 'pluto.media.errors.tooLarge',
-      params: { name, limit: formatMediaSize(limits.maxUploadBytes) },
+      params: { name, limit: formatMediaSize(limit) },
     })
+  // A file over every limit stops before the type check reads it.
+  if (file.data.length > mediaLargestLimit(limits)) {
+    throw tooLarge(mediaLargestLimit(limits))
   }
   const mimeType = sniffMediaType(file.data)
   if (!mimeType || !matchesMediaType(mimeType, limits.allowedTypes)) {
@@ -75,10 +88,14 @@ export function prepareMediaUpload(
       params: { name },
     })
   }
+  if (file.data.length > mediaMaxBytes(limits, mimeType)) {
+    throw tooLarge(mediaMaxBytes(limits, mimeType))
+  }
   const data = stripImageMetadata(file.data, mimeType)
   const size = mimeType.startsWith('image/') ? readImageSize(data) : null
+  const fileName = mediaFileName(name, mimeType, suffix)
   return {
-    fileName: mediaFileName(name, mimeType, suffix),
+    fileName,
     name,
     data,
     mimeType,
@@ -87,6 +104,46 @@ export function prepareMediaUpload(
     height: size?.height ?? null,
     alt: (file.alt ?? '').trim().slice(0, 500),
     createdAt: now.toISOString(),
+    preview: file.preview ? prepareMediaPreview(file.preview, fileName) : null,
+  }
+}
+
+/**
+ * Checks the preview image of a file (made in the browser by the kind of the
+ * file): a JPEG, PNG or WebP image, at most 2 MB, with its pixel size. The
+ * metadata goes, like for any image. Throws 413 or 415.
+ */
+export function prepareMediaPreview(
+  data: Uint8Array,
+  fileName: string
+): PlutoMediaPreviewUpload {
+  if (data.length > PLUTO_MEDIA_MAX_PREVIEW_BYTES) {
+    throw createPlutoError({
+      statusCode: 413,
+      message: 'The preview is too large.',
+      key: 'pluto.media.errors.previewTooLarge',
+      params: { limit: formatMediaSize(PLUTO_MEDIA_MAX_PREVIEW_BYTES) },
+    })
+  }
+  const mimeType = sniffMediaType(data)
+  const clean =
+    mimeType && ['image/webp', 'image/jpeg', 'image/png'].includes(mimeType)
+      ? stripImageMetadata(data, mimeType)
+      : null
+  const size = clean ? readImageSize(clean) : null
+  if (!mimeType || !clean || !size) {
+    throw createPlutoError({
+      statusCode: 415,
+      message: 'The preview must be a JPEG, PNG or WebP image.',
+      key: 'pluto.media.errors.badPreview',
+    })
+  }
+  return {
+    fileName: mediaPreviewFileName(fileName, mimeType),
+    data: clean,
+    mimeType,
+    width: size.width,
+    height: size.height,
   }
 }
 
@@ -111,6 +168,8 @@ export function parseMediaQuery(raw: Record<string, unknown>): PlutoMediaQuery {
     offset: whole(raw.offset, 0),
     search: text(raw.search, 100),
     type: text(raw.type, 60),
+    sort: PLUTO_MEDIA_SORTS.find((sort) => sort === text(raw.sort, 10)) as
+      PlutoMediaSort | undefined,
   }
 }
 
@@ -135,14 +194,17 @@ export async function listMedia(event: H3Event): Promise<{
   return driver.list(event, parseMediaQuery(raw))
 }
 
-/** `POST /api/_pluto/media`: multipart, with a `file` part and an optional `alt` part. */
+/** `POST /api/_pluto/media`: multipart, with a `file` part, and optional `alt` and `preview` parts. */
 export async function uploadMedia(
   event: H3Event
 ): Promise<{ data: PlutoMedia }> {
   const driver = requireMediaDriver()
   await driver.authorize(event, 'media:manage')
   const parts = (await readMultipartFormData(event)) ?? []
-  const file = parts.find((part) => part.filename)
+  const file =
+    parts.find((part) => part.name === 'file' && part.filename) ??
+    parts.find((part) => part.filename && part.name !== 'preview')
+  const preview = parts.find((part) => part.name === 'preview')
   if (!file?.filename) {
     throw createPlutoError({
       statusCode: 400,
@@ -156,31 +218,75 @@ export async function uploadMedia(
       name: file.filename,
       data: new Uint8Array(file.data),
       alt: alt ? new TextDecoder().decode(alt.data) : undefined,
+      preview: preview?.data.length ? new Uint8Array(preview.data) : undefined,
     },
     getMediaLimits()
   )
   return { data: await driver.upload(event, upload) }
 }
 
-/** `PATCH /api/_pluto/media/:id`: `{ alt }`. */
+/** `PATCH /api/_pluto/media/:id`: `{ alt?, name? }`. */
 export async function updateMedia(
   event: H3Event,
   id: string
 ): Promise<{ data: PlutoMedia }> {
   const driver = requireMediaDriver()
   await driver.authorize(event, 'media:manage')
-  const body = (await readBody(event)) as { alt?: unknown } | null
-  if (typeof body?.alt !== 'string') {
+  const body = (await readBody(event)) as {
+    alt?: unknown
+    name?: unknown
+  } | null
+  const patch: PlutoMediaPatch = {}
+  if (typeof body?.alt === 'string') {
+    patch.alt = body.alt.trim().slice(0, 500)
+  }
+  if (typeof body?.name === 'string' && body.name.trim()) {
+    patch.name = body.name.trim().slice(0, 200)
+  }
+  if (patch.alt === undefined && patch.name === undefined) {
     throw createPlutoError({
       statusCode: 400,
-      message: 'Send the alt text.',
+      message: 'Send the alt text or the name.',
       key: 'pluto.media.errors.badPatch',
     })
   }
+  return { data: await driver.update(event, id, patch) }
+}
+
+/** `PUT /api/_pluto/media/:id/preview`: multipart, with a `preview` part. Sets or replaces the preview image. */
+export async function setMediaPreview(
+  event: H3Event,
+  id: string
+): Promise<{ data: PlutoMedia }> {
+  const driver = requireMediaDriver()
+  await driver.authorize(event, 'media:manage')
+  const parts = (await readMultipartFormData(event)) ?? []
+  const preview = parts.find((part) => part.name === 'preview')
+  if (!preview?.data.length) {
+    throw createPlutoError({
+      statusCode: 400,
+      message: 'No preview sent.',
+      key: 'pluto.media.errors.noFile',
+    })
+  }
+  const [record] = await driver.get(event, [id])
+  if (!record) {
+    throw createPlutoError({
+      statusCode: 404,
+      message: 'The file does not exist.',
+      key: 'pluto.media.errors.notFound',
+    })
+  }
+  // The preview is named after the stored file: `mug-k3j9a.glb` gives `mug-k3j9a.preview.webp`.
+  const stored = decodeURIComponent(
+    new URL(record.url, 'http://x').pathname.split('/').pop() ?? record.id
+  )
   return {
-    data: await driver.update(event, id, {
-      alt: body.alt.trim().slice(0, 500),
-    }),
+    data: await driver.setPreview(
+      event,
+      id,
+      prepareMediaPreview(new Uint8Array(preview.data), stored)
+    ),
   }
 }
 

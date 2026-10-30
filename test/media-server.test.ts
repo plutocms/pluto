@@ -10,8 +10,11 @@ import {
   filterMediaRecords,
   matchesMediaType,
   mediaAcceptAttribute,
+  mediaComparator,
   mediaFieldIds,
   mediaFileName,
+  mediaMaxBytes,
+  mediaPreviewFileName,
   mediaTypeFromName,
   resolveMediaLimits,
 } from '../shared/utils/media'
@@ -20,7 +23,11 @@ vi.mock('../server/utils/pluto-api-config', () => ({
   getPlutoApiConfig: () => ({ cors: true, maxAge: 60 }),
 }))
 vi.mock('../server/utils/pluto-media-config', () => ({
-  getMediaLimits: () => ({ allowedTypes: ['image/*'], maxUploadBytes: 100 }),
+  getMediaLimits: () => ({
+    allowedTypes: ['image/*'],
+    maxUploadBytes: 100,
+    typeLimits: {},
+  }),
 }))
 
 afterEach(() => {
@@ -43,6 +50,7 @@ function media(id: string, overrides: Partial<PlutoMedia> = {}): PlutoMedia {
     height: 50,
     alt: '',
     createdAt: `2026-10-0${id.length}T00:00:00.000Z`,
+    preview: null,
     ...overrides,
   }
 }
@@ -74,15 +82,50 @@ describe('shared media helpers', () => {
     expect(mediaTypeFromName('Mug Model.GLB')).toBe('model/gltf-binary')
     expect(mediaTypeFromName('photo.jpeg')).toBe('image/jpeg')
     expect(mediaTypeFromName('notes.txt')).toBe('')
-    expect(mediaAcceptAttribute(['model/gltf-binary'])).toBe('model/gltf-binary,.glb')
+    expect(mediaAcceptAttribute(['model/gltf-binary'])).toBe(
+      'model/gltf-binary,.glb'
+    )
     expect(mediaAcceptAttribute(['image/*'])).toContain('.webp')
   })
 
-  it('resolveMediaLimits: the defaults for missing values', () => {
+  it('resolveMediaLimits: the defaults for missing values, with no 3D model and no SVG', () => {
     const limits = resolveMediaLimits(undefined)
-    expect(limits.allowedTypes).toContain('model/gltf-binary')
+    expect(limits.allowedTypes).toContain('image/webp')
+    expect(limits.allowedTypes).not.toContain('model/gltf-binary')
     expect(limits.allowedTypes).not.toContain('image/svg+xml')
     expect(limits.maxUploadBytes).toBe(10 * 1024 * 1024)
+    expect(limits.typeLimits).toEqual({})
+  })
+
+  it('resolveMediaLimits: a layer adds its types and their limits', () => {
+    const limits = resolveMediaLimits({
+      extraTypes: ['model/gltf-binary', 'image/webp'],
+      typeLimits: { 'model/gltf-binary': 25 * 1024 * 1024, bad: 0 },
+    })
+    expect(
+      limits.allowedTypes.filter((type) => type === 'image/webp')
+    ).toHaveLength(1)
+    expect(limits.allowedTypes).toContain('model/gltf-binary')
+    expect(mediaMaxBytes(limits, 'model/gltf-binary')).toBe(25 * 1024 * 1024)
+    expect(mediaMaxBytes(limits, 'image/png')).toBe(10 * 1024 * 1024)
+    expect(limits.typeLimits).not.toHaveProperty('bad')
+  })
+
+  it('mediaComparator: newest, oldest, name, size', () => {
+    const records = [
+      media('a', { size: 5, name: 'b.jpg' }),
+      media('bb', { size: 9, name: 'a10.jpg' }),
+      media('ccc', { size: 1, name: 'a9.jpg' }),
+    ]
+    const order = (sort?: 'newest' | 'oldest' | 'name' | 'size') =>
+      [...records].sort(mediaComparator(sort)).map((r) => r.id)
+    expect(order()).toEqual(['ccc', 'bb', 'a'])
+    expect(order('oldest')).toEqual(['a', 'bb', 'ccc'])
+    expect(order('name')).toEqual(['ccc', 'bb', 'a'])
+    expect(order('size')).toEqual(['bb', 'a', 'ccc'])
+    expect(mediaPreviewFileName('mug-k3j9a.glb', 'image/webp')).toBe(
+      'mug-k3j9a.preview.webp'
+    )
   })
 
   it('mediaFieldIds: one id, a list, numbers as text, no empty values', () => {
@@ -127,7 +170,7 @@ describe('prepareMediaUpload', () => {
     const { prepareMediaUpload } = await import('../server/utils/pluto-media')
     const upload = prepareMediaUpload(
       { name: 'Photo.png', data: PNG, alt: '  A cat  ' },
-      { allowedTypes: ['image/*'], maxUploadBytes: 1000 },
+      { allowedTypes: ['image/*'], maxUploadBytes: 1000, typeLimits: {} },
       new Date('2026-10-29T12:00:00Z'),
       'abcde'
     )
@@ -160,13 +203,13 @@ describe('prepareMediaUpload', () => {
     expect(() =>
       prepareMediaUpload(
         { name: 'm.glb', data: model },
-        { allowedTypes: ['image/*'], maxUploadBytes: 1000 }
+        { allowedTypes: ['image/*'], maxUploadBytes: 1000, typeLimits: {} }
       )
     ).toThrowError(expect.objectContaining({ statusCode: 415 }))
     expect(() =>
       prepareMediaUpload(
         { name: 'p.png', data: PNG },
-        { allowedTypes: ['image/*'], maxUploadBytes: 10 }
+        { allowedTypes: ['image/*'], maxUploadBytes: 10, typeLimits: {} }
       )
     ).toThrowError(expect.objectContaining({ statusCode: 413 }))
     expect(() =>
@@ -182,7 +225,7 @@ describe('prepareMediaUpload', () => {
     const model = new TextEncoder().encode('glTF\x02\0\0\0')
     const upload = prepareMediaUpload(
       { name: 'Mug.glb', data: model },
-      resolveMediaLimits(undefined)
+      resolveMediaLimits({ extraTypes: ['model/gltf-binary'] })
     )
     expect(upload).toMatchObject({
       mimeType: 'model/gltf-binary',
@@ -190,6 +233,60 @@ describe('prepareMediaUpload', () => {
       height: null,
     })
     expect(upload.fileName).toMatch(/^mug-[a-z0-9]{5}\.glb$/)
+  })
+})
+
+describe('type limits and previews', () => {
+  const model = new TextEncoder().encode(`glTF\x02\0\0\0${  'x'.repeat(40)}`)
+
+  it('a type limit wins over maxUploadBytes, in both directions', async () => {
+    const { prepareMediaUpload } = await import('../server/utils/pluto-media')
+    const limits = resolveMediaLimits({
+      extraTypes: ['model/gltf-binary'],
+      maxUploadBytes: 10,
+      typeLimits: { 'model/gltf-binary': 100 },
+    })
+    expect(
+      prepareMediaUpload({ name: 'm.glb', data: model }, limits).mimeType
+    ).toBe('model/gltf-binary')
+    expect(() =>
+      prepareMediaUpload({ name: 'p.png', data: PNG }, limits)
+    ).toThrowError(expect.objectContaining({ statusCode: 413 }))
+    const small = resolveMediaLimits({
+      extraTypes: ['model/gltf-binary'],
+      maxUploadBytes: 1000,
+      typeLimits: { 'model/gltf-binary': 10 },
+    })
+    expect(() =>
+      prepareMediaUpload({ name: 'm.glb', data: model }, small)
+    ).toThrowError(expect.objectContaining({ statusCode: 413 }))
+  })
+
+  it('an upload with a preview: the preview is checked and named after the file', async () => {
+    const { prepareMediaUpload } = await import('../server/utils/pluto-media')
+    const limits = resolveMediaLimits({ extraTypes: ['model/gltf-binary'] })
+    const upload = prepareMediaUpload(
+      { name: 'Mug.glb', data: model, preview: PNG },
+      limits,
+      new Date(),
+      'abcde'
+    )
+    expect(upload.preview).toMatchObject({
+      fileName: 'mug-abcde.preview.png',
+      mimeType: 'image/png',
+      width: 10,
+      height: 20,
+    })
+  })
+
+  it('a preview that is not a JPEG, PNG or WebP image is refused (415)', async () => {
+    const { prepareMediaPreview } = await import('../server/utils/pluto-media')
+    expect(() => prepareMediaPreview(model, 'm.glb')).toThrowError(
+      expect.objectContaining({ statusCode: 415 })
+    )
+    expect(() =>
+      prepareMediaPreview(new TextEncoder().encode('<svg/>'), 'm.glb')
+    ).toThrowError(expect.objectContaining({ statusCode: 415 }))
   })
 })
 

@@ -6,7 +6,8 @@
 //
 // When the image service cannot read the file (for example a file of the
 // GitHub CMS that is in the repo but not in a deploy yet), it shows the file
-// as it is. A record that is not an image shows nothing. See the media skill.
+// as it is. A file that is not an image shows its preview image (the
+// thumbnail of a 3D model), or nothing when it has none. See the media skill.
 import type { PlutoPublicMedia } from '../../../shared/types/media'
 
 const props = withDefaults(
@@ -36,9 +37,16 @@ watch(
   }
 )
 
-const image = computed(() =>
-  props.media && isMediaImage(props.media) ? props.media : null
-)
+const image = computed(() => {
+  const media = props.media
+  if (!media) {
+    return null
+  }
+  if (isMediaImage(media)) {
+    return media
+  }
+  return media.preview ? { ...media.preview, alt: media.alt } : null
+})
 const text = computed(() => props.alt ?? image.value?.alt ?? '')
 </script>
 
