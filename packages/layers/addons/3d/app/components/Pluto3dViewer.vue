@@ -25,7 +25,7 @@ const props = withDefaults(
   }
 )
 
-const { t } = usePlutoI18n()
+const { t } = usePluto3dI18n()
 
 const url = computed(() => props.src ?? props.media?.url ?? '')
 const poster = computed(() => props.media?.preview?.url)

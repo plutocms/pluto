@@ -22,7 +22,7 @@ withDefaults(
   }
 )
 
-const { t } = usePlutoI18n()
+const { t } = usePluto3dI18n()
 const live = ref(false)
 </script>
 
