@@ -1,0 +1,11 @@
+{
+  "3d": {
+    "kind": "3D model",
+    "model": "3D model",
+    "loading": "Loading the 3D model",
+    "failed": "The 3D model did not load",
+    "hint": "Drag to turn",
+    "view": "View in 3D",
+    "externalFiles": "This model links files that are not inside it, such as textures, so it shows without them. Export it as a .glb with the textures inside."
+  }
+}

@@ -291,6 +291,13 @@ async function uploadFiles(files: File[]) {
         onProgress: (part) => {
           entry.progress = Math.round(part * 100)
         },
+        onWarning: (warning) =>
+          toast.add({
+            title: entry.name,
+            description: tx(warning),
+            color: 'warning',
+            icon: 'lucide:triangle-alert',
+          }),
       })
       items.value = [record, ...items.value]
       total.value++

@@ -1,6 +1,9 @@
 {
   "name": "@plutocms/pluto",
   "type": "module",
+  "workspaces": [
+    "packages/layers/addons/*"
+  ],
   "version": "0.36.0",
   "description": "The layerable CMS",
   "author": "Victor Ribeiro",
@@ -30,7 +33,7 @@
     "prettier": "prettier --write .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "nuxt prepare && vue-tsc -b --noEmit",
+    "typecheck": "nuxt prepare && vue-tsc -b --noEmit && bun run --cwd packages/layers/addons/3d typecheck",
     "test": "vitest run"
   },
   "trustedDependencies": [

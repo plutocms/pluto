@@ -1,0 +1,4 @@
+# A hoisted node_modules, like before the workspaces: the Nuxt module loader resolves the
+# dependencies of a module from its own folder, and the isolated layout of Bun breaks that.
+[install]
+linker = "hoisted"
