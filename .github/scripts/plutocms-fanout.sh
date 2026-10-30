@@ -29,6 +29,7 @@ LAYERS=(
 )
 # Wave 2: the Pluto org apps.
 PLUTO_APPS=(
+  plutocms/pluto-admin-template
   plutocms/pluto-blog-template
   plutocms/pluto-supabase-shop-template
   plutocms/plutocms
