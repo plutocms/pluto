@@ -5,14 +5,13 @@
   "include-component-in-tag": false,
   "packages": {
     ".": {
-      "exclude-paths": [
-        "packages"
-      ]
+      "exclude-paths": ["packages"]
     },
     "packages/layers/addons/3d": {
       "package-name": "@plutocms/3d",
       "component": "3d",
-      "include-component-in-tag": true
+      "include-component-in-tag": true,
+      "initial-version": "0.1.0"
     }
   },
   "separate-pull-requests": true
