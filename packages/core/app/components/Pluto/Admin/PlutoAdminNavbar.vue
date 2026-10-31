@@ -46,7 +46,10 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             to="/admin/home"
             class="group outline-inverted/40 flex h-full items-center gap-x-2 rounded-sm focus-visible:outline-2 focus-visible:-outline-offset-2"
           >
-            <!-- A brand logo (white label), else the Pluto logo. The mark only on a small screen. -->
+            <!--
+              A brand logo (white label), its mark only on a small screen. Else the Pluto
+              mark: the site chip next to it names the site.
+            -->
             <template v-if="brandLogo">
               <img
                 :src="brandMark"
@@ -59,17 +62,12 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
                 class="hidden h-7 w-auto max-w-40 object-contain sm:block"
               />
             </template>
-            <template v-else>
-              <PlutoLogo
-                aria-hidden="true"
-                class="block h-6.75 w-auto grayscale-100 group-hover:grayscale-0 sm:hidden"
-                mark
-              />
-              <PlutoLogo
-                aria-hidden="true"
-                class="text-highlighted hidden h-7.75 w-auto grayscale-100 group-hover:grayscale-0 sm:block"
-              />
-            </template>
+            <PlutoLogo
+              v-else
+              aria-hidden="true"
+              class="block h-6.75 w-auto grayscale-100 group-hover:grayscale-0"
+              mark
+            />
             <!-- The site that this admin edits, as a chip. -->
             <span
               v-if="siteName"
@@ -102,7 +100,11 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
                   <div
                     class="text-dimmed flex h-full items-center gap-x-2 rounded-sm px-2"
                   >
-                    <Icon name="svg-spinners:ring-resize" />
+                    <!-- Lucide: an app's icon bundle always has it. -->
+                    <Icon
+                      name="i-lucide-loader-circle"
+                      class="size-4 animate-spin"
+                    />
                   </div>
                 </li>
               </template>

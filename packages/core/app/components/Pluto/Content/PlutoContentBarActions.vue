@@ -33,6 +33,10 @@ const menuOpen = ref(false)
 // True while the menu is open because of a hover. A click on the button then
 // keeps it open, instead of toggling it closed. The pointer leaving closes it.
 let openedByHover = false
+// True when the last open was a hover. Then the close does not move the focus
+// back to the button: the focus ring would stay on it after the pointer left.
+// A menu opened by a click or the keyboard returns the focus, as before.
+let skipFocusReturn = false
 let openTimer: ReturnType<typeof setTimeout> | undefined
 let closeTimer: ReturnType<typeof setTimeout> | undefined
 // The time until which a close request is ignored (see onUpdateOpen).
@@ -52,6 +56,7 @@ function onHoverEnter(event: PointerEvent) {
     openTimer = setTimeout(() => {
       if (!menuOpen.value) {
         openedByHover = true
+        skipFocusReturn = true
         menuOpen.value = true
       }
     }, HOVER_OPEN_DELAY)
@@ -97,7 +102,16 @@ function onUpdateOpen(open: boolean) {
   if (!open && Date.now() < confirmUntil) {
     return
   }
+  if (open) {
+    skipFocusReturn = false
+  }
   menuOpen.value = open
+}
+
+function onCloseAutoFocus(event: Event) {
+  if (skipFocusReturn) {
+    event.preventDefault()
+  }
 }
 
 function onTriggerMouseDown(event: MouseEvent) {
@@ -200,7 +214,7 @@ const editButton = computed(() => {
     <UDropdownMenu
       :open="menuOpen"
       :items="newMenuItems"
-      :content="{ align: 'start' }"
+      :content="{ align: 'start', onCloseAutoFocus }"
       :modal="false"
       :portal="portalTarget ?? true"
       :ui="{ content: 'min-w-48' }"
