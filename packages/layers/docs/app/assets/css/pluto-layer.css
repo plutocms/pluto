@@ -1,0 +1,40 @@
+/*
+ * The docs layer's CSS. It is not a Tailwind entry.
+ *
+ * The app's CSS entry owns the one Tailwind build of the app. It imports this
+ * file through `#build/pluto.css`. This file imports no Tailwind, adds no
+ * @theme and no @source. See the single-tailwind-build skill in pluto.
+ *
+ * It offsets a Nuxt UI site (a docs site) under the Pluto admin bar. The bar
+ * is `position: fixed`, 40px high, and shows on public pages for signed-in
+ * staff. Pluto marks <html> with `data-pluto-admin-bar` while the bar shows.
+ *
+ * The site sets its header height in `--pluto-site-header-height` (default
+ * 4rem). Without the bar nothing changes. With the bar:
+ * - the page moves down by the bar height (`body` padding), so no content is
+ *   under the bar;
+ * - `--ui-header-height` grows by the bar height. The Nuxt UI parts that stick
+ *   below the header read it: the page aside, the table of contents, the
+ *   mobile menu. They then stick below the bar and the header;
+ * - `UHeader` (class `pluto-header-offset`) keeps its own height and sticks
+ *   below the bar.
+ * The admin pages (`data-pluto-admin` on <html>) never use these rules.
+ */
+:root:not([data-pluto-admin]) {
+  --pluto-site-header-height: 4rem;
+}
+
+:root[data-pluto-admin-bar]:not([data-pluto-admin]) {
+  --ui-header-height: calc(
+    var(--pluto-site-header-height) + var(--pluto-admin-bar-height)
+  );
+}
+
+:root[data-pluto-admin-bar]:not([data-pluto-admin]) body {
+  padding-top: var(--pluto-admin-bar-height);
+}
+
+:root[data-pluto-admin-bar]:not([data-pluto-admin]) .pluto-header-offset {
+  top: var(--pluto-admin-bar-height);
+  height: var(--pluto-site-header-height);
+}

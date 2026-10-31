@@ -1,0 +1,47 @@
+{
+  "props": [
+    {
+      "name": "icon",
+      "default": "undefined",
+      "description": "",
+      "required": false,
+      "type": "string",
+      "schema": "string"
+    },
+    {
+      "name": "center",
+      "default": "false",
+      "description": "",
+      "required": false,
+      "type": "boolean",
+      "schema": {
+        "kind": "enum",
+        "type": "boolean",
+        "schema": {
+          "0": "false",
+          "1": "true"
+        }
+      }
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "type": "{ mdcUnwrap: string; }",
+      "description": "",
+      "schema": {
+        "kind": "object",
+        "type": "{ mdcUnwrap: string; }",
+        "schema": {
+          "mdcUnwrap": {
+            "name": "mdcUnwrap",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "schema": "string"
+          }
+        }
+      }
+    }
+  ]
+}

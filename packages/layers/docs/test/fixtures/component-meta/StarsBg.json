@@ -1,0 +1,64 @@
+{
+  "props": [
+    {
+      "name": "starCount",
+      "default": "300",
+      "description": "",
+      "required": false,
+      "type": "number",
+      "schema": "number"
+    },
+    {
+      "name": "color",
+      "default": "\"var(--ui-primary)\"",
+      "description": "",
+      "required": false,
+      "type": "string",
+      "schema": "string"
+    },
+    {
+      "name": "speed",
+      "default": "\"normal\"",
+      "description": "",
+      "required": false,
+      "type": "\"normal\" | \"slow\" | \"fast\"",
+      "schema": {
+        "kind": "enum",
+        "type": "\"normal\" | \"slow\" | \"fast\"",
+        "schema": {
+          "0": "\"normal\"",
+          "1": "\"slow\"",
+          "2": "\"fast\""
+        }
+      }
+    },
+    {
+      "name": "size",
+      "default": "{\n    min: 1,\n    max: 2\n}",
+      "description": "",
+      "required": false,
+      "type": "{ min: number; max: number; }",
+      "schema": {
+        "kind": "object",
+        "type": "{ min: number; max: number; }",
+        "schema": {
+          "min": {
+            "name": "min",
+            "description": "",
+            "required": true,
+            "type": "number",
+            "schema": "number"
+          },
+          "max": {
+            "name": "max",
+            "description": "",
+            "required": true,
+            "type": "number",
+            "schema": "number"
+          }
+        }
+      }
+    }
+  ],
+  "slots": []
+}

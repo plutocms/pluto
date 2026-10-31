@@ -1,0 +1,289 @@
+{
+  "docs": {
+    "capabilities": {
+      "write": "Criar e editar páginas",
+      "delete": "Excluir páginas"
+    },
+    "mdc": {
+      "insert": "Inserir",
+      "placeholder": "Escreva a página em Markdown. Use o menu Inserir para os componentes MDC."
+    },
+    "snippets": {
+      "note": "Nota",
+      "tip": "Dica",
+      "warning": "Aviso",
+      "caution": "Atenção",
+      "callout": "Destaque",
+      "codeGroup": "Grupo de código",
+      "tabs": "Abas",
+      "steps": "Passos",
+      "cardGroup": "Grupo de cartões",
+      "accordion": "Acordeão",
+      "fieldGroup": "Grupo de campos",
+      "kbd": "Tecla",
+      "icon": "Ícone",
+      "codeFile": "Bloco de código com nome de arquivo"
+    },
+    "blocks": {
+      "kinds": {
+        "text": "Texto",
+        "code": "Código",
+        "raw": "Markdown",
+        "table": "Tabela",
+        "textDescription": "Um título e um texto.",
+        "tableDescription": "Linhas e colunas de texto.",
+        "codeDescription": "Um bloco de código com cores."
+      },
+      "groups": {
+        "text": "Texto",
+        "callouts": "Destaques",
+        "layout": "Layout",
+        "code": "Código",
+        "landing": "Página inicial",
+        "site": "Site"
+      },
+      "props": {
+        "icon": "Ícone",
+        "to": "Link",
+        "target": "Abrir o link em",
+        "title": "Título",
+        "color": "Cor",
+        "level": "Nível do título",
+        "accordionType": "Itens abertos",
+        "label": "Rótulo",
+        "description": "Descrição",
+        "sync": "Chave de sincronia",
+        "name": "Nome",
+        "openText": "Texto para abrir",
+        "closeText": "Texto para fechar",
+        "fieldType": "Tipo",
+        "required": "Obrigatório",
+        "value": "Valor",
+        "headline": "Sobretítulo",
+        "orientation": "Direção do layout",
+        "reverse": "Inverter a ordem",
+        "variant": "Estilo",
+        "size": "Tamanho",
+        "spotlight": "Efeito de destaque"
+      },
+      "slots": {
+        "default": "Conteúdo",
+        "headline": "Sobretítulo",
+        "title": "Título",
+        "description": "Texto",
+        "links": "Botões",
+        "features": "Recursos"
+      },
+      "note": {
+        "label": "Nota",
+        "description": "Uma caixa azul para informação extra."
+      },
+      "tip": {
+        "label": "Dica",
+        "description": "Uma caixa verde com uma dica útil."
+      },
+      "warning": {
+        "label": "Aviso",
+        "description": "Uma caixa laranja para algo que pede cuidado."
+      },
+      "caution": {
+        "label": "Atenção",
+        "description": "Uma caixa vermelha para um risco ou uma mudança que quebra."
+      },
+      "callout": {
+        "label": "Destaque",
+        "description": "Uma caixa com ícone e cor à sua escolha."
+      },
+      "card": {
+        "label": "Cartão",
+        "description": "Uma caixa com título, ícone e link."
+      },
+      "card-group": {
+        "label": "Grupo de cartões",
+        "description": "Cartões lado a lado em uma grade."
+      },
+      "steps": {
+        "label": "Passos",
+        "description": "Uma lista numerada de passos com títulos."
+      },
+      "accordion": {
+        "label": "Acordeão",
+        "description": "Perguntas que abrem e fecham."
+      },
+      "accordion-item": {
+        "label": "Item do acordeão",
+        "description": "Uma pergunta e a resposta."
+      },
+      "tabs": {
+        "label": "Abas",
+        "description": "Conteúdo em abas, uma aba por vez."
+      },
+      "tabs-item": {
+        "label": "Aba",
+        "description": "Uma aba de um grupo de abas."
+      },
+      "collapsible": {
+        "label": "Conteúdo recolhível",
+        "description": "Texto que o leitor abre com um clique."
+      },
+      "field-group": {
+        "label": "Grupo de campos",
+        "description": "Uma lista de campos, para uma API ou uma configuração."
+      },
+      "field": {
+        "label": "Campo",
+        "description": "Um campo com nome, tipo e texto."
+      },
+      "code-group": {
+        "label": "Grupo de código",
+        "description": "Blocos de código em abas, por exemplo um por gerenciador de pacotes."
+      },
+      "code-collapse": {
+        "label": "Código recolhível",
+        "description": "Um bloco de código longo que o leitor abre."
+      },
+      "badge": {
+        "label": "Selo",
+        "description": "Um rótulo pequeno dentro de um texto."
+      },
+      "kbd": {
+        "label": "Tecla",
+        "description": "Uma tecla do teclado dentro de um texto."
+      },
+      "icon": {
+        "label": "Ícone",
+        "description": "Um ícone dentro de um texto."
+      },
+      "u-page-hero": {
+        "label": "Destaque de abertura",
+        "description": "O título grande no topo de uma página inicial."
+      },
+      "u-page-section": {
+        "label": "Seção da página",
+        "description": "Uma seção com título, texto e recursos."
+      },
+      "u-page-feature": {
+        "label": "Recurso",
+        "description": "Um ícone, um título e um texto curto."
+      },
+      "u-page-card": {
+        "label": "Cartão da página",
+        "description": "Um cartão para a página inicial, com título e texto."
+      },
+      "u-page-grid": {
+        "label": "Grade de cartões",
+        "description": "Uma grade que reúne cartões da página."
+      },
+      "u-page-c-t-a": {
+        "label": "Chamada para ação",
+        "description": "Uma caixa que pede uma ação ao leitor."
+      },
+      "u-button": {
+        "label": "Botão",
+        "description": "Um botão que leva a uma página."
+      }
+    },
+    "preview": {
+      "title": "Prévia da página",
+      "parseError": "Não foi possível ler este bloco para a prévia.",
+      "blockError": "Este bloco não pôde aparecer na prévia.",
+      "notShown": "Este bloco não aparece na prévia. Ele continua funcionando na página."
+    },
+    "editor": {
+      "previewTitle": "Prévia da página",
+      "previewLoading": "Carregando a prévia…",
+      "previewFailedTitle": "A prévia não carregou",
+      "previewFailed": "A prévia da página não respondeu. Você ainda pode editar os blocos. Veja se o site tem a página de prévia e tente de novo.",
+      "previewRetry": "Tentar de novo",
+      "addBlock": "Adicionar um bloco",
+      "addBlockDescription": "Escolha um bloco para adicionar à página.",
+      "searchBlocks": "Buscar blocos…",
+      "noBlocks": "Nenhum bloco encontrado.",
+      "mode": "Editor",
+      "visual": "Visual",
+      "markdown": "Markdown",
+      "blocks": "Blocos",
+      "blockTab": "Bloco",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "add": "Adicionar",
+      "moveUp": "Mover para cima",
+      "moveDown": "Mover para baixo",
+      "addBelow": "Adicionar um bloco abaixo",
+      "duplicate": "Duplicar",
+      "delete": "Excluir",
+      "edited": "Alterado",
+      "expand": "Mostrar os blocos dentro de {name}",
+      "collapse": "Ocultar os blocos dentro de {name}",
+      "blockActions": "Ações de {name}",
+      "addTo": "Adicionar em {name}",
+      "emptyTitle": "Esta página ainda não tem blocos",
+      "emptyDescription": "Adicione um texto, uma nota ou um cartão para começar.",
+      "blockPanel": "Configurações do bloco",
+      "nothingSelectedTitle": "Nenhum bloco selecionado",
+      "nothingSelected": "Clique em um bloco na prévia ou na lista para alterá-lo.",
+      "selectParent": "Voltar para {name}",
+      "rawNote": "Este é o Markdown do bloco. Uma alteração aqui substitui o bloco.",
+      "rawLabel": "Markdown do bloco",
+      "textLabel": "Texto do bloco",
+      "textPlaceholder": "Escreva aqui…",
+      "language": "Linguagem",
+      "languageHelp": "Para as cores, por exemplo ts.",
+      "fileName": "Nome do arquivo",
+      "fileNameHelp": "Aparece acima do código.",
+      "code": "Código",
+      "tableNote": "Uma tabela é um bloco de Markdown. Edite as células na caixa. Um editor visual de tabela está nos planos.",
+      "rawBlockNote": "Este bloco tem Markdown que o editor visual não altera. Você pode editá-lo como Markdown.",
+      "content": "Conteúdo",
+      "settings": "Configurações",
+      "advanced": "Avançado",
+      "slotEmpty": "Nada aqui ainda.",
+      "editAsMarkdown": "Editar como Markdown",
+      "backToControls": "Voltar para os controles",
+      "applyMarkdown": "Aplicar",
+      "default": "Padrão",
+      "iconHelp": "O nome de um ícone, por exemplo i-lucide-rocket.",
+      "linkPlaceholder": "/pagina ou https://…",
+      "parseErrorTitle": "O editor visual não consegue abrir esta página",
+      "parseError": "O Markdown tem uma parte que o editor visual não consegue ler. Use o editor de Markdown para corrigir.",
+      "switchToMarkdown": "Abrir o editor de Markdown",
+      "addItem": "Adicionar {name}"
+    }
+  },
+  "content": {
+    "doc": {
+      "label": "Página",
+      "labelPlural": "Páginas",
+      "fields": {
+        "title": {
+          "label": "Título"
+        },
+        "slug": {
+          "label": "Caminho",
+          "description": "O caminho do arquivo sem .md, por exemplo 2.core/03.content-model. Um caminho novo move o arquivo."
+        },
+        "description": {
+          "label": "Descrição"
+        },
+        "body": {
+          "label": "Conteúdo"
+        },
+        "navigationTitle": {
+          "label": "Título na navegação"
+        },
+        "navigationIcon": {
+          "label": "Ícone na navegação"
+        },
+        "navigationHidden": {
+          "label": "Ocultar da navegação"
+        },
+        "seoTitle": {
+          "label": "Título para SEO"
+        },
+        "seoDescription": {
+          "label": "Descrição para SEO"
+        }
+      }
+    }
+  }
+}

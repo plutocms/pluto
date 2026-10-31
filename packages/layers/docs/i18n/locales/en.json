@@ -1,0 +1,253 @@
+{
+  "docs": {
+    "capabilities": {
+      "write": "Create and edit pages",
+      "delete": "Delete pages"
+    },
+    "mdc": {
+      "insert": "Insert",
+      "placeholder": "Write the page in Markdown. Use the Insert menu for MDC components."
+    },
+    "snippets": {
+      "note": "Note",
+      "tip": "Tip",
+      "warning": "Warning",
+      "caution": "Caution",
+      "callout": "Callout",
+      "codeGroup": "Code group",
+      "tabs": "Tabs",
+      "steps": "Steps",
+      "cardGroup": "Card group",
+      "accordion": "Accordion",
+      "fieldGroup": "Field group",
+      "kbd": "Keyboard key",
+      "icon": "Icon",
+      "codeFile": "Code block with file name"
+    },
+    "blocks": {
+      "kinds": {
+        "text": "Text",
+        "code": "Code",
+        "raw": "Markdown",
+        "table": "Table",
+        "textDescription": "A title and a text.",
+        "tableDescription": "Rows and columns of text.",
+        "codeDescription": "A block of code with colors."
+      },
+      "groups": {
+        "text": "Text",
+        "callouts": "Callouts",
+        "layout": "Layout",
+        "code": "Code",
+        "landing": "Landing page",
+        "site": "Site"
+      },
+      "props": {
+        "icon": "Icon",
+        "to": "Link",
+        "target": "Open the link in",
+        "title": "Title",
+        "color": "Color",
+        "level": "Heading level",
+        "accordionType": "Open items",
+        "label": "Label",
+        "description": "Description",
+        "sync": "Sync key",
+        "name": "Name",
+        "openText": "Text to open",
+        "closeText": "Text to close",
+        "fieldType": "Type",
+        "required": "Required",
+        "value": "Value",
+        "headline": "Headline",
+        "orientation": "Layout direction",
+        "reverse": "Reverse the order",
+        "variant": "Style",
+        "size": "Size",
+        "spotlight": "Spotlight effect"
+      },
+      "slots": {
+        "default": "Content",
+        "headline": "Headline",
+        "title": "Title",
+        "description": "Text",
+        "links": "Buttons",
+        "features": "Features"
+      },
+      "note": {
+        "label": "Note",
+        "description": "A blue box for extra information."
+      },
+      "tip": {
+        "label": "Tip",
+        "description": "A green box with a useful tip."
+      },
+      "warning": {
+        "label": "Warning",
+        "description": "An orange box for something to be careful about."
+      },
+      "caution": {
+        "label": "Caution",
+        "description": "A red box for a risk or a breaking change."
+      },
+      "callout": {
+        "label": "Callout",
+        "description": "A box with an icon and a color that you choose."
+      },
+      "card": {
+        "label": "Card",
+        "description": "A box with a title, an icon and a link."
+      },
+      "card-group": {
+        "label": "Card group",
+        "description": "Cards side by side in a grid."
+      },
+      "steps": {
+        "label": "Steps",
+        "description": "A numbered list of steps with headings."
+      },
+      "accordion": {
+        "label": "Accordion",
+        "description": "Questions that open and close."
+      },
+      "accordion-item": {
+        "label": "Accordion item",
+        "description": "One question and its answer."
+      },
+      "tabs": {
+        "label": "Tabs",
+        "description": "Content in tabs, one tab at a time."
+      },
+      "tabs-item": {
+        "label": "Tab",
+        "description": "One tab of a group of tabs."
+      },
+      "collapsible": {
+        "label": "Collapsible",
+        "description": "Text that the reader opens with a click."
+      },
+      "field-group": {
+        "label": "Field group",
+        "description": "A list of fields, for an API or a setting."
+      },
+      "field": {
+        "label": "Field",
+        "description": "One field with a name, a type and a text."
+      },
+      "code-group": {
+        "label": "Code group",
+        "description": "Code blocks in tabs, for example one per package manager."
+      },
+      "code-collapse": {
+        "label": "Code that collapses",
+        "description": "A long code block that the reader opens."
+      },
+      "badge": {
+        "label": "Badge",
+        "description": "A small label inside a text."
+      },
+      "kbd": {
+        "label": "Keyboard key",
+        "description": "A keyboard key inside a text."
+      },
+      "icon": {
+        "label": "Icon",
+        "description": "An icon inside a text."
+      },
+      "u-page-hero": {
+        "label": "Hero",
+        "description": "The big title at the top of a landing page."
+      },
+      "u-page-section": {
+        "label": "Page section",
+        "description": "A section with a title, a text and features."
+      },
+      "u-page-feature": {
+        "label": "Feature",
+        "description": "An icon, a title and a short text."
+      },
+      "u-page-card": {
+        "label": "Page card",
+        "description": "A card for a landing page, with a title and a text."
+      },
+      "u-page-grid": {
+        "label": "Card grid",
+        "description": "A grid that holds page cards."
+      },
+      "u-page-c-t-a": {
+        "label": "Call to action",
+        "description": "A box that asks the reader to do something."
+      },
+      "u-button": {
+        "label": "Button",
+        "description": "A button that links to a page."
+      }
+    },
+    "preview": {
+      "title": "Page preview",
+      "parseError": "This block could not be read for the preview.",
+      "blockError": "This block could not show in the preview.",
+      "notShown": "This block does not show in the preview. It still works on the page."
+    },
+    "editor": {
+      "previewTitle": "Preview of the page",
+      "previewLoading": "Loading the preview…",
+      "previewFailedTitle": "The preview did not load",
+      "previewFailed": "The page preview did not answer. You can still edit the blocks. Check that the site has the preview page, then try again.",
+      "previewRetry": "Try again",
+      "addBlock": "Add a block",
+      "addBlockDescription": "Pick a block to add to the page.",
+      "searchBlocks": "Search blocks…",
+      "noBlocks": "No block found.",
+      "mode": "Editor",
+      "visual": "Visual",
+      "markdown": "Markdown",
+      "blocks": "Blocks",
+      "blockTab": "Block",
+      "undo": "Undo",
+      "redo": "Redo",
+      "add": "Add",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "addBelow": "Add a block below",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "edited": "Changed",
+      "expand": "Show the blocks inside {name}",
+      "collapse": "Hide the blocks inside {name}",
+      "blockActions": "Actions for {name}",
+      "addTo": "Add to {name}",
+      "emptyTitle": "This page has no blocks yet",
+      "emptyDescription": "Add a text, a note or a card to start.",
+      "blockPanel": "Block settings",
+      "nothingSelectedTitle": "No block selected",
+      "nothingSelected": "Click a block in the preview or in the list to change it.",
+      "selectParent": "Back to {name}",
+      "rawNote": "This is the Markdown of the block. A change here replaces the block.",
+      "rawLabel": "Markdown of the block",
+      "textLabel": "Text of the block",
+      "textPlaceholder": "Write here…",
+      "language": "Language",
+      "languageHelp": "For the colors, for example ts.",
+      "fileName": "File name",
+      "fileNameHelp": "Shows above the code.",
+      "code": "Code",
+      "tableNote": "A table is a Markdown block. Edit the cells in the box. A visual table editor is planned.",
+      "rawBlockNote": "This block has Markdown that the visual editor does not change. You can edit it as Markdown.",
+      "content": "Content",
+      "settings": "Settings",
+      "advanced": "Advanced",
+      "slotEmpty": "Nothing here yet.",
+      "editAsMarkdown": "Edit as Markdown",
+      "backToControls": "Back to the controls",
+      "applyMarkdown": "Apply",
+      "default": "Default",
+      "iconHelp": "An icon name, for example i-lucide-rocket.",
+      "linkPlaceholder": "/page or https://…",
+      "parseErrorTitle": "The visual editor cannot open this page",
+      "parseError": "The Markdown has a part that the visual editor cannot read. Use the Markdown editor to fix it.",
+      "switchToMarkdown": "Open the Markdown editor",
+      "addItem": "Add {name}"
+    }
+  }
+}

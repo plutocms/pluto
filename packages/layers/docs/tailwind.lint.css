@@ -1,0 +1,10 @@
+/*
+ * The Tailwind design system for ESLint (better-tailwindcss) and the editor
+ * (Tailwind IntelliSense). It is not part of the build: a Pluto layer has no
+ * Tailwind entry, the app owns it (see the single-tailwind-build skill in pluto). This file gives the
+ * lint the theme of an app: Tailwind, Nuxt UI and the Pluto layer CSS.
+ */
+@import 'tailwindcss';
+@import '@nuxt/ui';
+@import '@plutocms/core/app/assets/css/pluto-layer.css';
+@import './app/assets/css/pluto-layer.css';
