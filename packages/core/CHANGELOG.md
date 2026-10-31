@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.39.1](https://github.com/plutocms/pluto/compare/v0.39.0...v0.39.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **admin:** navbar spinner icon, no focus ring after a hover menu, Pluto mark only ([#299](https://github.com/plutocms/pluto/issues/299)) ([6c87c62](https://github.com/plutocms/pluto/commit/6c87c62e73b633607f3ab13e478aa9711709b446))
+
 ## [0.39.0](https://github.com/plutocms/pluto/compare/v0.38.2...v0.39.0) (2026-10-31)
 
 
