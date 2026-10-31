@@ -5,7 +5,7 @@ import PlutoPostOutline from './PlutoPostOutline.vue'
 import PlutoPostPreviewFrame from './PlutoPostPreviewFrame.vue'
 
 // The `post-canvas` widget: the body of a post (a Markdown `richtext` field) in the
-// canvas layout of the content form, like the page editor of the nuxt-content layer.
+// canvas layout of the content form, like the page editor of the docs layer.
 //
 // The canvas is a split: the compose panel on the left, the live preview of the site
 // on the right. The compose panel shows one of two editors, and the switch in its

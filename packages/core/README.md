@@ -51,7 +51,7 @@ See [Public API](https://pluto.vulmix.dev/docs/core/public-api).
 | Package                   | What it adds                                                |
 | ------------------------- | ----------------------------------------------------------- |
 | `@plutocms/core`          | The core: the admin, the content model, and the GitHub CMS. |
-| `@plutocms/nuxt-content`  | A visual editor for the pages of a Nuxt Content site.       |
+| `@plutocms/docs`          | A visual editor for the pages of a Nuxt Content site.       |
 | `@plutocms/supabase`      | A Supabase backend: database, auth, users, and roles.       |
 | `@plutocms/supabase-blog` | Blog posts on Supabase.                                     |
 | `@plutocms/supabase-shop` | Products on Supabase.                                       |

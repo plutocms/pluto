@@ -3,7 +3,7 @@ export const PLUTO_PREVIEW_PATH = '/_pluto/preview'
 
 /**
  * The path of the post preview that the post editor (`post-canvas`) shows in an iframe. It is not
- * below `PLUTO_PREVIEW_PATH`: the nuxt-content layer has a page there, and a page below it would
+ * below `PLUTO_PREVIEW_PATH`: the docs layer has a page there, and a page below it would
  * be a child route of that page.
  */
 export const PLUTO_POST_PREVIEW_PATH = '/_pluto/post-preview'

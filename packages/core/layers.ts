@@ -33,7 +33,7 @@ export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
   supabase: 'supabase',
   'supabase-shop': 'supabase-shop',
   'supabase-blog': 'supabase-blog',
-  'nuxt-content': 'nuxt-content',
+  docs: 'docs',
   '3d': 'pluto/packages/layers/addons/3d',
 }
 

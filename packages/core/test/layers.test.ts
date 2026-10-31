@@ -13,7 +13,7 @@ const ENV_NAMES = [
     'SUPABASE',
     'SUPABASE_SHOP',
     'SUPABASE_BLOG',
-    'NUXT_CONTENT',
+    'DOCS',
     '3D',
   ].map((name) => `PLUTO_${name}_PATH`),
 ]
@@ -47,17 +47,15 @@ afterEach(() => {
 
 describe('plutoLayerEnvName', () => {
   it('upper-cases the name and changes "-" to "_"', () => {
-    expect(plutoLayerEnvName('@plutocms/nuxt-content')).toBe(
-      'PLUTO_NUXT_CONTENT_PATH'
-    )
+    expect(plutoLayerEnvName('@plutocms/docs')).toBe('PLUTO_DOCS_PATH')
     expect(plutoLayerEnvName('supabase-shop')).toBe('PLUTO_SUPABASE_SHOP_PATH')
   })
 })
 
 describe('plutoLayer', () => {
   it('returns the package with install on by default', () => {
-    expect(plutoLayer('@plutocms/nuxt-content')).toEqual([
-      '@plutocms/nuxt-content',
+    expect(plutoLayer('@plutocms/docs')).toEqual([
+      '@plutocms/docs',
       { install: true },
     ])
   })
@@ -77,17 +75,15 @@ describe('plutoLayer', () => {
   })
 
   it('returns the local path and sets the path of every existing checkout', () => {
-    checkout('nuxt-content')
+    checkout('docs')
     checkout('pluto/packages/core')
     checkout('supabase-shop')
     process.env.PLUTO_LOCAL_ROOT = root
 
-    const entry = plutoLayer('@plutocms/nuxt-content')
+    const entry = plutoLayer('@plutocms/docs')
 
-    expect(entry).toEqual([resolve(root, 'nuxt-content'), { install: true }])
-    expect(process.env.PLUTO_NUXT_CONTENT_PATH).toBe(
-      resolve(root, 'nuxt-content')
-    )
+    expect(entry).toEqual([resolve(root, 'docs'), { install: true }])
+    expect(process.env.PLUTO_DOCS_PATH).toBe(resolve(root, 'docs'))
     expect(process.env.PLUTO_CORE_PATH).toBe(
       resolve(root, 'pluto/packages/core')
     )
@@ -135,7 +131,7 @@ describe('plutoLayer', () => {
 
   it('keeps an explicit PLUTO_<NAME>_PATH', () => {
     checkout('pluto/packages/core')
-    checkout('nuxt-content')
+    checkout('docs')
     process.env.PLUTO_LOCAL_ROOT = root
     process.env.PLUTO_CORE_PATH = '/custom/core'
 
@@ -144,9 +140,7 @@ describe('plutoLayer', () => {
       { install: true },
     ])
     expect(process.env.PLUTO_CORE_PATH).toBe('/custom/core')
-    expect(plutoLayer('@plutocms/nuxt-content')[0]).toBe(
-      resolve(root, 'nuxt-content')
-    )
+    expect(plutoLayer('@plutocms/docs')[0]).toBe(resolve(root, 'docs'))
   })
 
   it('uses an explicit PLUTO_<NAME>_PATH without a root', () => {
