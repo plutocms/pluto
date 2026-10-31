@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.39.2](https://github.com/plutocms/pluto/compare/v0.39.1...v0.39.2) (2026-10-31)
+
+
+### Bug Fixes
+
+* plutoLayer finds the checkout of @plutocms/docs (the renamed nuxt-content layer) ([#306](https://github.com/plutocms/pluto/issues/306)) ([ef9707e](https://github.com/plutocms/pluto/commit/ef9707e551176973c00acd4102fe55a2e5d07c87))
+
 ## [0.39.1](https://github.com/plutocms/pluto/compare/v0.39.0...v0.39.1) (2026-10-31)
 
 
