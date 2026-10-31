@@ -23,7 +23,7 @@ set -u
 LAYERS=(
   plutocms/pluto
   plutocms/supabase
-  plutocms/nuxt-content
+  plutocms/docs
   plutocms/supabase-shop
   plutocms/supabase-blog
 )
