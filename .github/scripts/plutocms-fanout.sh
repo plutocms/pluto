@@ -23,8 +23,6 @@ set -u
 LAYERS=(
   plutocms/pluto
   plutocms/supabase
-  plutocms/supabase-shop
-  plutocms/supabase-blog
 )
 # Wave 2: the Pluto org apps.
 PLUTO_APPS=(

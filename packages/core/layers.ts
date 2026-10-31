@@ -29,9 +29,9 @@ export type PlutoLayerEntry = [source: string, options: PlutoLayerEntryOptions]
  */
 export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
   core: 'pluto/packages/core',
-  supabase: 'supabase',
-  'supabase-shop': 'supabase-shop',
-  'supabase-blog': 'supabase-blog',
+  supabase: 'supabase/packages/supabase',
+  'supabase-shop': 'supabase/packages/supabase-shop',
+  'supabase-blog': 'supabase/packages/supabase-blog',
   docs: 'pluto/packages/layers/docs',
   '3d': 'pluto/packages/layers/addons/3d',
 }
