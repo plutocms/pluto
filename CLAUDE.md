@@ -1,7 +1,11 @@
 # pluto
 
-This repo holds the core layer of Pluto, `@plutocms/core` (`packages/core`), and the add-on
-layers (`packages/layers/addons/*`, for example `@plutocms/3d`). It is a Bun workspace. The
+This repo holds the core layer of Pluto, `@plutocms/core` (`packages/core`), the feature layers
+(`packages/layers/<name>`: `@plutocms/docs`), and the add-on layers (`packages/layers/addons/*`,
+for example `@plutocms/3d`). The other layers move here one by one (see
+`.claude/plan/monorepo-layers.md` in the workspace). Each layer keeps its own skills
+(`packages/layers/<name>/.claude/skills/`), its own ESLint config (ESLint finds the nearest one)
+and its own tests and typecheck; the root scripts run them all. It is a Bun workspace. The
 workspace `CLAUDE.md` (one directory up) has the shared policy. `packages/core/FEATURES.md` lists
 every feature of core, and each feature has its detail in
 `.claude/skills/<feature-slug>/SKILL.md`. Read the skill of a feature before you change it. A

@@ -1,4 +1,5 @@
 // @ts-check
+import { fileURLToPath } from 'node:url'
 import antfu from '@antfu/eslint-config'
 import { createConfigForNuxt } from '@nuxt/eslint-config/flat'
 import prettier from 'eslint-config-prettier'
@@ -82,7 +83,10 @@ export default createConfigForNuxt({
     plugins: { 'better-tailwindcss': betterTailwindcss },
     settings: {
       'better-tailwindcss': {
-        entryPoint: 'tailwind.lint.css',
+        // Next to this file: ESLint also runs from the monorepo root.
+        entryPoint: fileURLToPath(
+          new URL('./tailwind.lint.css', import.meta.url)
+        ),
         // px arbitrary values become spacing steps (`h-[27px]` is `h-6.75`).
         rootFontSize: 16,
         selectors: [

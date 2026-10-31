@@ -100,7 +100,8 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-08-15',
 
   typescript: {
-    includeWorkspace: true,
+    // No `includeWorkspace`: in the monorepo it would read every package. Each package has its own typecheck.
+    includeWorkspace: false,
     typeCheck: false,
   },
 

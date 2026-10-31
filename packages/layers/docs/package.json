@@ -15,7 +15,7 @@
   },
   "main": "./nuxt.config.ts",
   "scripts": {
-    "prepare": "nuxt prepare",
+    "dev:prepare": "nuxt prepare",
     "prettier": "prettier --write .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
