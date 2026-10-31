@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.42.0](https://github.com/plutocms/pluto/compare/v0.41.0...v0.42.0) (2026-10-31)
+
+
+### Features
+
+* @plutocms/docs moves into the monorepo ([f409bdf](https://github.com/plutocms/pluto/commit/f409bdf3f1ded0a1c146e9ad2724ac5222c30c1d))
+* @plutocms/docs moves into the monorepo (packages/layers/docs) ([5117e4e](https://github.com/plutocms/pluto/commit/5117e4e507559bd3b8859401665a176e2749cbc5))
+
 ## [0.41.0](https://github.com/plutocms/pluto/compare/v0.40.0...v0.41.0) (2026-10-31)
 
 
