@@ -42,10 +42,21 @@ jobs:
           ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false
 
+      # A fixed Bun version: a new release can change the lockfile or the
+      # install, and `--frozen-lockfile` would fail in every repo at once. Bump
+      # it on purpose, in the shared copy of every repo. The templates keep no
+      # `packageManager` field: their users choose the package manager.
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.4
+
+      # The tools (Nuxt, ESLint, Vitest) run on Node. Pluto needs Node 22 or
+      # newer; CI uses the same version as the release.
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
 
       # The packages Bun downloads, keyed by the lockfile. A repo without a
       # lockfile (a template) uses the latest cache of the same OS.
