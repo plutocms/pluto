@@ -168,13 +168,7 @@ async function main() {
   // here.
   execSync('bun install --ignore-scripts', { stdio: 'inherit' })
   const wideNames = [...new Set(wide)]
-  // The @plutocms packages that only the lockfile has: a layer brings them (an
-  // app that lists `@plutocms/supabase-shop` gets `@plutocms/supabase` and
-  // `@plutocms/utils` through it). `bun update` at the root moves them in the
-  // lockfile and does not add them to package.json.
-  const transitive = lockPlutoNames(before).filter(
-    (name) => !names.includes(name)
-  )
+  let transitive = []
   if (fs.existsSync('bun.lock')) {
     for (const entry of packages.filter((item) => item.names.length)) {
       execSync(`bun update --ignore-scripts ${entry.names.join(' ')}`, {
@@ -182,6 +176,15 @@ async function main() {
         stdio: 'inherit',
       })
     }
+    // The @plutocms packages that only the lockfile has: a layer brings them
+    // (an app that lists `@plutocms/supabase-shop` gets `@plutocms/supabase`
+    // through it). `bun update` at the root moves them in the lockfile and does
+    // not add them to package.json. Read the lockfile after the updates above:
+    // a new version of a layer can drop a package, and `bun update` of a name
+    // that is not in the lockfile fails.
+    transitive = lockPlutoNames(readLock()).filter(
+      (name) => !names.includes(name)
+    )
     if (transitive.length) {
       execSync(`bun update --ignore-scripts ${transitive.join(' ')}`, {
         stdio: 'inherit',
