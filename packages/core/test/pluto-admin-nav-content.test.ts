@@ -156,6 +156,62 @@ describe('usePlutoAdminNavTabs', () => {
     expect(tabs.value).toEqual([])
     expect(label.value).toBe('')
   })
+
+  it('makes a "new" child the action, not a tab', async () => {
+    const { definePlutoExtension, usePlutoAdminNavTabs } =
+      await loadComposables()
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [
+        {
+          id: 'shop',
+          label: 'Shop',
+          to: '/admin/products',
+          children: [
+            { label: 'New product', to: '/admin/product/new' },
+            { label: 'Products', to: '/admin/products' },
+            { label: 'Categories', to: '/admin/categories' },
+          ],
+        },
+      ],
+    })
+    routePath.value = '/admin/categories'
+    const { tabs, action } = usePlutoAdminNavTabs()
+
+    expect(tabs.value.map((tab) => tab.label)).toEqual([
+      'Products',
+      'Categories',
+    ])
+    expect(action.value).toEqual({
+      label: 'New product',
+      to: '/admin/product/new',
+    })
+  })
+
+  it('shows no tabs for one list and its "new" page', async () => {
+    const { definePlutoExtension, usePlutoAdminNavTabs } =
+      await loadComposables()
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [
+        {
+          id: 'posts',
+          label: 'Posts',
+          to: '/admin/posts',
+          newTo: '/admin/post/create',
+          children: [
+            { label: 'All posts', to: '/admin/posts' },
+            { label: 'New post', to: '/admin/post/create' },
+          ],
+        },
+      ],
+    })
+    routePath.value = '/admin/posts'
+    const { tabs, action } = usePlutoAdminNavTabs()
+
+    expect(tabs.value).toEqual([])
+    expect(action.value).toBeUndefined()
+  })
 })
 
 describe('usePlutoAdminNav — registry', () => {
