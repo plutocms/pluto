@@ -611,7 +611,7 @@ grows with the text, with `spellcheck="false"`. It never parses or rewrites the 
 
 ### Post editor (`post-canvas`)
 
-The `post` type edits its body in the post editor, like the page editor of the nuxt-content
+The `post` type edits its body in the post editor, like the page editor of the docs
 layer. The type sets `widget: 'post-canvas'` on the `content` field and `form: { layout:
 'canvas', canvasField: 'content', leftPanel: { label: 'pluto.post.outline', … } }`. Core owns the
 editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` body can use it.
@@ -641,7 +641,7 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 #### Markdown code editor
 
 `app/components/Pluto/Markdown/PlutoMarkdownCodeEditor.vue` is the Markdown editor on CodeMirror 6
-(it came from the nuxt-content layer, which uses it too). The text shows its format as the author
+(it came from the docs layer, which uses it too). The text shows its format as the author
 types, and the marks stay visible, dimmed. MDC lines (components, slots, YAML props) and code
 blocks get their own color (`mdcLineKinds`, `shared/utils/mdc-lines.ts`). A toolbar has the quick
 formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts`, tested in
@@ -660,7 +660,7 @@ formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts
 #### Preview
 
 The preview is an iframe of `/_pluto/post-preview` (`PLUTO_POST_PREVIEW_PATH`), so the post shows
-with the CSS of the site. It is not under `/_pluto/preview`, because the nuxt-content layer owns
+with the CSS of the site. It is not under `/_pluto/preview`, because the docs layer owns
 that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
 
 - `PlutoPostPreviewFrame.vue` sends the text to the frame with `postMessage`. The frame renders it
@@ -675,7 +675,7 @@ that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
   origin, and only from the parent window or the frame.
 - While the right panel is closed (`panelToggles.right`), the editor sends `inset` `{ end: 40 }`:
   the page sets `padding-inline-end` on `<html>`, so the open button floats over the margin of
-  the page, not over the post. The page has the thin scrollbar of the nuxt-content preview.
+  the page, not over the post. The page has the thin scrollbar of the docs layer preview.
 - A "Preview" badge (`pluto.post.previewBadge`) sits at the top right of the frame (moved left
   while the open button shows). It fades out while the pointer is on the preview
   (`group-hover`), so it never hides the page.

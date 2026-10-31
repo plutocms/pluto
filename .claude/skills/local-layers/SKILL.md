@@ -10,7 +10,7 @@ development, and an app that needs local layers instead of npm. A normal app doe
 import { plutoLayer } from '@plutocms/core/layers'
 
 export default defineNuxtConfig({
-  extends: [plutoLayer('@plutocms/nuxt-content')],
+  extends: [plutoLayer('@plutocms/docs')],
 })
 ```
 
@@ -39,7 +39,7 @@ works.
 - Local mode is on when `PLUTO_LOCAL_ROOT` (or `options.root`) is set, unless
   `PLUTO_USE_LOCAL=false`. A relative root resolves from the current working directory.
 - `PLUTO_LAYER_PATHS` maps each layer (the package name without the scope) to its checkout under
-  the root: `utils`, `supabase`, `supabase-shop`, `supabase-blog` and `nuxt-content` have a
+  the root: `utils`, `supabase`, `supabase-shop`, `supabase-blog` and `docs` have a
   folder of their name; `core` is `pluto/packages/core` and `3d` is
   `pluto/packages/layers/addons/3d` (the core repo is a monorepo). A layer that is not in the map
   has a folder of its name.

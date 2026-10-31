@@ -16,7 +16,7 @@ useHead({
     { textContent: 'a { pointer-events: none; }' },
     {
       // A thin scrollbar that fits the editor, in both color modes: a gray thumb on no track.
-      // The same as the page preview of the nuxt-content layer.
+      // The same as the page preview of the docs layer.
       textContent: [
         'html { scrollbar-width: thin; scrollbar-color: rgb(128 128 128 / 0.45) transparent; }',
         'html::-webkit-scrollbar { width: 10px; }',

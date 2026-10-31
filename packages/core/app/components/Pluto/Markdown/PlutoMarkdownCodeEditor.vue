@@ -5,7 +5,7 @@ import type { Extension, Range } from '@codemirror/state'
 // headings, links and code. The marks (`**`, `#`, `[`) stay, a little dimmed.
 // The MDC lines get a color: the components (`::name`), the slots (`#title`)
 // and the YAML props. A toolbar has the quick formats, with their shortcuts.
-// The post editor and the page editor of the nuxt-content layer use it.
+// The post editor and the page editor of the docs layer use it.
 //
 // The model value is the Markdown text, as it is: the editor changes only what
 // the author types. `insert`, `focus`, `reveal` and `goToLine` are exposed, and
