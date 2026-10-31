@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/plutocms/pluto/compare/docs-v0.17.0...docs-v0.17.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **docs:** the repository fields point to the monorepo (npm provenance checks them) ([#325](https://github.com/plutocms/pluto/issues/325)) ([f673859](https://github.com/plutocms/pluto/commit/f673859708ea8a024d5b6f01e966c00e84726004))
+
 ## [0.17.0](https://github.com/plutocms/pluto/compare/docs-v0.16.0...docs-v0.17.0) (2026-10-31)
 
 
