@@ -127,21 +127,8 @@ const items = computed<DropdownMenuItem[][]>(() => [
 
 defineShortcuts(computed(() => extractShortcuts(items.value)))
 
-// The default portal is the end of <body>, outside the admin scope. This
-// target carries `data-pluto-admin-scope`, so the menu gets the admin theme and
-// the admin radius on a public page too. The target is at the end of <body>,
-// not in the navbar: the navbar is fixed with a z-index, so it makes a
-// stacking context, and a menu inside it cannot show above a site header with
-// the same z-index. The component makes the element itself. A target that Vue
-// renders can appear after the portal looks for it.
-const portalTarget = shallowRef<HTMLElement>()
-onMounted(() => {
-  const el = document.createElement('div')
-  el.setAttribute('data-pluto-admin-scope', '')
-  document.body.append(el)
-  portalTarget.value = el
-})
-onUnmounted(() => portalTarget.value?.remove())
+// The portal target gives the menu the admin theme on a public page too.
+const portalTarget = usePlutoAdminPortal()
 </script>
 
 <template>
@@ -151,6 +138,7 @@ onUnmounted(() => portalTarget.value?.remove())
       :ui="{ content: 'w-64' }"
       :modal="false"
       :portal="portalTarget ?? true"
+      :arrow="{ width: 14, height: 7 }"
     >
       <!--
         The button fills the height of the bar. The pill inside it keeps the
@@ -162,7 +150,7 @@ onUnmounted(() => portalTarget.value?.remove())
         type="button"
       >
         <div
-          class="outline-inverted/25 group-hover:bg-elevated group-focus-visible:bg-elevated flex h-8 items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 group-focus-visible:outline-3"
+          class="outline-inverted/25 group-hover:bg-elevated group-focus-visible:bg-elevated group-data-[state=open]:bg-elevated flex h-8 items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 group-focus-visible:outline-3"
         >
           <UAvatar
             :src="avatar"

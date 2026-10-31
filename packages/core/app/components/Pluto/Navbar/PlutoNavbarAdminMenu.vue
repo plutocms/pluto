@@ -37,10 +37,9 @@ const { t } = usePlutoI18n()
         </div>
 
         <div class="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
-          <UNavigationMenu
+          <PlutoAdminNavMenu
             v-model="openGroups"
             :items="menu"
-            :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-4.5' }"
             orientation="vertical"
             variant="pill"
             class="data-[orientation=vertical]:w-full"

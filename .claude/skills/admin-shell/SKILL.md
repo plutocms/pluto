@@ -284,8 +284,11 @@ pointer events. It gets the hover, active and focus-visible look from the `group
 link, so the pill looks the same as before. Use `PlutoNavbarHit` for a new control. Do not put a
 plain `UButton` in the bar. `PlutoAdminUserMenu` uses the same pattern with its own pill.
 
-The user menu dropdown renders in a portal target (`#pluto-admin-user-menu-portal`) that has
-`data-pluto-admin-scope`. So the menu has the admin theme and the admin radius on a public page.
+A dropdown of the bar renders in a portal target that has `data-pluto-admin-scope`, so the menu has
+the admin theme and the admin radius on a public page. `usePlutoAdminPortal()` makes the target at
+the end of `<body>>`, not inside the navbar. The navbar is fixed with a z-index, so it makes a stacking
+context. A menu inside it cannot show above a site header with the same z-index. Pass
+`portalTarget ?? true` to the `portal` prop of `UDropdownMenu`. The user menu and the "New" menu use it.
 
 ## Tab title
 
@@ -312,7 +315,21 @@ Core registers one navbar action (`id: 'content'`, order 50): `PlutoContentBarAc
 type asks for its buttons with `adminBar` (`true`, or `{ new?, edit? }`; see the content-model
 skill). The `write` capability of the type decides; with no `write` capability, the button shows.
 
-- "New <type>" on every page where the bar shows. The link is `contentTypeNewPath(type)`.
+- "New <type>" on every page where the bar shows. The link is `contentTypeNewPath(type)`. With one
+  type that can show a New button, the bar shows "New <type>". With two or more types, it shows one
+  "New" button (`pluto.content.newMenu`, the plus icon) that opens a `UDropdownMenu`
+  (`buildNewMenu` in `internal/new-menu.ts`). The types without a `navGroup` are direct items first
+  (singular label, type icon, new page). A group with two or more types is a submenu after them (the
+  label and icon of the group, one link per type). A group with one type shows that type as a direct
+  item. When the only entry is one group (every type is in it), the menu lists its types directly. The groups follow the order of the group. The menu opens aligned to the start of the button,
+  has an arrow, and the trigger keeps the pressed background while the menu is open
+  (`group-data-[state=open]:bg-elevated` in `PlutoNavbarHit`). The button is an `<li>` with a
+  `PlutoNavbarHit` trigger, and the menu uses `usePlutoAdminPortal`. The user menu has an arrow too.
+  The New menu also opens on hover: after 120 ms on the button, and it closes 200 ms after the pointer
+  leaves the button and the portal target (the menu and its submenus render there, so a move into
+  the menu or a submenu keeps it open). It is a controlled `open`. Touch has no hover, so a tap
+  opens it. A click on a menu that the hover opened keeps it open (the dropdown would close it, as
+  the button counts as outside). Keyboard works as before. The user menu does not open on hover.
 - "Edit <type>" on a public page that called `usePlutoEditLink(type, id)`. The link is
   `contentTypeEditPath(type, id)`. It does not show on `/admin/**`: the form has its own View link.
 
@@ -397,3 +414,31 @@ use it with `aria-hidden="true"`, because the site name is next to it.
 Static files for a site: `/img/pluto.svg` (the logo, black wordmark), `/img/pluto.png` (white
 wordmark, for dark backgrounds), `/img/pluto-icon.svg` and `/img/pluto-icon.png` (the planet,
 96 px, for a favicon). A site that extends Pluto serves them from the layer's `public/` folder.
+
+## The "+" in the sidebar
+
+`PlutoAdminNavMenu` wraps `UNavigationMenu` (the sidebar and the small-screen slideover use it). Each
+content type item (a top-level type item, and each child of a group item) carries `newTo` and
+`newLabel` ("New <type>") from `usePlutoAdminNav`, only when the user may write the type. The item
+has a small "+" `UButton` (`square`, `xs`, ghost, neutral, `aria-label` and title "New <type>") at the
+right end. It goes to the new page with `navigateTo`. The collapsed rail shows no "+".
+
+A menu item is a link or an accordion button. A link cannot hold a button (invalid HTML), and Nuxt UI
+has no slot outside the link. So `PlutoAdminNavNew` renders in the `item-trailing` slot only an empty
+spacer (it keeps room at the right end of the row). On mount it adds a host `<div>` right after the
+item link, in the same `<li>`, and teleports the button there. The button is a sibling of the link,
+after it in the tab order, and a click on it does not reach the link. The `item` and `childItem`
+classes are `relative` for this. The host is positioned on the first row of the item (34 px high),
+and left of the chevron when the item has children.
+
+The button is always in the tab order and shows on hover of the link or the button, and on focus of
+either (`focus-visible` of the link, `focus-within` of the host). It is not hidden with `tabindex`,
+because a changing tab order is hard to follow. Focus reveals it. The slot replaces the default
+trailing content, so the component draws the chevron of a group again.
+
+## Focus rings in the bar
+
+The ring of a bar control must not be clipped. The list of actions sits in a wrapper with
+`overflow-hidden`. The wrapper has `px-1 -mx-1`, so the ring of the first and the last action has
+room. The logo link has its own inset ring (`focus-visible:-outline-offset-2`), because it fills the
+full height of the bar.

@@ -404,3 +404,165 @@ describe('usePlutoAdminNav — Settings children', () => {
     expect(usePlutoAdminNav().items.value[0]?.children).toBeUndefined()
   })
 })
+
+describe('usePlutoAdminNav — nav groups', () => {
+  function layer(
+    definePlutoExtension: (definition: PlutoExtension) => void,
+    types: PlutoContentType[]
+  ) {
+    definePlutoExtension({
+      id: 'pluto',
+      navGroups: [
+        { id: 'pages', order: 100, label: 'pluto.nav.pages', icon: 'i-g' },
+      ],
+    })
+    definePlutoExtension({
+      id: 'test-layer',
+      contentTypes: types.map((type) => ({ id: type.name, type })),
+    })
+  }
+
+  const doc = contentType('doc', {
+    label: 'Doc',
+    labelPlural: 'Docs',
+    icon: 'i-doc',
+    navGroup: 'pages',
+  })
+  const layout = contentType('layout', {
+    label: 'Layout',
+    labelPlural: 'Layouts',
+    navGroup: 'pluto:pages',
+  })
+  const post = contentType('post', { label: 'Post', labelPlural: 'Posts' })
+
+  it('makes one item for the types of a group, with one link per type', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    layer(definePlutoExtension, [doc, layout, post])
+
+    const items = usePlutoAdminNav().items.value
+    const group = items.find((item) => item.id === 'group:pluto:pages')
+
+    expect(items.map((item) => item.label)).toEqual(['Posts', 'Pages'])
+    expect(group?.icon).toBe('i-g')
+    expect(group?.to).toBeUndefined()
+    expect(group?.children).toEqual([
+      {
+        label: 'Docs',
+        to: '/admin/content/doc',
+        icon: 'i-doc',
+        newTo: '/admin/content/doc/new',
+        newLabel: 'New Doc',
+      },
+      {
+        label: 'Layouts',
+        to: '/admin/content/layout',
+        icon: undefined,
+        newTo: '/admin/content/layout/new',
+        newLabel: 'New Layout',
+      },
+    ])
+    expect(items.find((item) => item.id === 'content:doc')).toBeUndefined()
+  })
+
+  it('gives a type item the new page, unless the user may not write it', async () => {
+    const { definePlutoExtension, usePlutoPermissions, usePlutoAdminNav } =
+      await loadComposables()
+    definePlutoExtension({
+      id: 'test-permissions',
+      permissionsDriver: { id: 'driver', load: async () => [] },
+    })
+    layer(definePlutoExtension, [
+      post,
+      { ...contentType('note'), capabilities: { write: 'note:write' } },
+    ])
+    await usePlutoPermissions().load()
+
+    const items = usePlutoAdminNav().items.value
+    const byId = (id: string) => items.find((item) => item.id === id)
+
+    expect(byId('content:post')?.newTo).toBe('/admin/content/post/new')
+    expect(byId('content:post')?.newLabel).toBe('New Post')
+    expect(byId('content:note')?.newTo).toBeUndefined()
+  })
+
+  it('shows a group with one visible type as a normal item', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    layer(definePlutoExtension, [doc, post])
+
+    const ids = usePlutoAdminNav().items.value.map((item) => item.id)
+
+    expect(ids.toSorted()).toEqual(['content:doc', 'content:post'])
+  })
+
+  it('counts only the types the user may read', async () => {
+    const { definePlutoExtension, usePlutoPermissions, usePlutoAdminNav } =
+      await loadComposables()
+    definePlutoExtension({
+      id: 'test-permissions',
+      permissionsDriver: { id: 'driver', load: async () => [] },
+    })
+    layer(definePlutoExtension, [
+      doc,
+      { ...layout, capabilities: { read: 'layout:read' } },
+    ])
+    await usePlutoPermissions().load()
+
+    const ids = usePlutoAdminNav().items.value.map((item) => item.id)
+
+    expect(ids).toEqual(['content:doc'])
+  })
+
+  it('shows a type with an unknown group as a normal item', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    layer(definePlutoExtension, [
+      { ...doc, navGroup: 'nope' },
+      { ...layout, navGroup: 'nope' },
+    ])
+
+    const ids = usePlutoAdminNav().items.value.map((item) => item.id)
+
+    expect(ids).toEqual(['content:doc', 'content:layout'])
+  })
+
+  it('keeps the group item active on the new and edit pages of its types', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    layer(definePlutoExtension, [
+      {
+        ...doc,
+        newPath: '/admin/doc/new',
+        editPath: (id) => `/admin/doc/${id}`,
+      },
+      layout,
+    ])
+
+    const group = usePlutoAdminNav().items.value[0]
+
+    expect(group?.match).toEqual(['/admin/doc/new', '/admin/doc'])
+  })
+})
+
+describe('definePlutoExtension — navGroups bucket', () => {
+  it('registers the groups of an extension, sorted by order, and replaces them on a second call', async () => {
+    const { definePlutoExtension, usePlutoRegistry } = await loadComposables()
+
+    definePlutoExtension({
+      id: 'a',
+      navGroups: [{ id: 'late', order: 50, label: 'Late' }],
+    })
+    definePlutoExtension({
+      id: 'b',
+      navGroups: [{ id: 'early', order: 10, label: 'Early' }],
+    })
+
+    expect(usePlutoRegistry().navGroups.list.value.map((g) => g.id)).toEqual([
+      'b:early',
+      'a:late',
+    ])
+
+    definePlutoExtension({ id: 'a' })
+
+    expect(usePlutoRegistry().navGroups.list.value.map((g) => g.id)).toEqual([
+      'b:early',
+    ])
+  })
+})

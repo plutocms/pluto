@@ -60,7 +60,7 @@ export function usePlutoCommandPalette() {
       ...(item.children ?? []).flatMap((child) =>
         child.to
           ? command(tx(child.label), child.to, {
-              icon: item.icon,
+              icon: child.icon ?? item.icon,
               suffix: tx(item.label),
             })
           : []
