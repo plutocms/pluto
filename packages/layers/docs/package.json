@@ -1,0 +1,58 @@
+{
+  "name": "@plutocms/docs",
+  "type": "module",
+  "version": "0.16.0",
+  "description": "Docs layer for Pluto: edit the Markdown pages of a Nuxt Content site in the Pluto admin",
+  "author": "Victor Ribeiro",
+  "license": "MIT",
+  "homepage": "https://github.com/plutocms/docs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutocms/docs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/plutocms/docs/issues"
+  },
+  "main": "./nuxt.config.ts",
+  "scripts": {
+    "dev:prepare": "nuxt prepare",
+    "prettier": "prettier --write .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxi typecheck",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nuxt/content": "^3.16.2",
+    "@nuxtjs/mdc": "^0.23.2",
+    "@plutocms/core": ">=0.40.0 <1.0.0",
+    "@types/sortablejs": "^1.15.9",
+    "nuxt-component-meta": "0.18.0",
+    "reka-ui": "^2.11.0",
+    "remark-gfm": "4.0.1",
+    "remark-mdc": "3.11.1",
+    "remark-parse": "11.0.0",
+    "sortablejs": "^1.15.7",
+    "unified": "11.0.5",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^9.5.1",
+    "@nuxt/eslint-config": "^1.17.0",
+    "@nuxt/ui": "^4.12.0",
+    "@types/node": "^26.6.5",
+    "@vueuse/nuxt": "^15.0.0",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-better-tailwindcss": "^4.10.0",
+    "nuxt": "^4.6.1",
+    "prettier": "^3.9.10",
+    "vitest": "^5.0.5",
+    "vue": "3.5.44",
+    "vue-router": "5.4.0",
+    "vue-tsc": "^3.3.13"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

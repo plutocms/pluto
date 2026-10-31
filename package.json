@@ -6,18 +6,19 @@
   "license": "MIT",
   "workspaces": [
     "packages/core",
+    "packages/layers/docs",
     "packages/layers/addons/*",
     "playground"
   ],
   "scripts": {
-    "postinstall": "bun run --cwd packages/core dev:prepare",
+    "postinstall": "bun run --cwd packages/core dev:prepare && bun run --cwd packages/layers/docs dev:prepare",
     "dev": "bun run --cwd playground dev",
     "build": "bun run --cwd packages/core build",
     "prettier": "prettier --write .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "bun run --cwd packages/core typecheck && bun run --cwd packages/layers/addons/3d typecheck",
-    "test": "bun run --cwd packages/core test && bun run --cwd packages/layers/addons/3d test"
+    "typecheck": "bun run --cwd packages/core typecheck && bun run --cwd packages/layers/docs typecheck && bun run --cwd packages/layers/addons/3d typecheck",
+    "test": "bun run --cwd packages/core test && bun run --cwd packages/layers/docs test && bun run --cwd packages/layers/addons/3d test"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^10.0.0",

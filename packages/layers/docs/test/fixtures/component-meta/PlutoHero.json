@@ -1,0 +1,97 @@
+{
+  "props": [],
+  "slots": [
+    {
+      "name": "headline",
+      "type": "{ mdcUnwrap: string; }",
+      "description": "",
+      "schema": {
+        "kind": "object",
+        "type": "{ mdcUnwrap: string; }",
+        "schema": {
+          "mdcUnwrap": {
+            "name": "mdcUnwrap",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "schema": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "title",
+      "type": "{ mdcUnwrap: string; }",
+      "description": "",
+      "schema": {
+        "kind": "object",
+        "type": "{ mdcUnwrap: string; }",
+        "schema": {
+          "mdcUnwrap": {
+            "name": "mdcUnwrap",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "schema": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "description",
+      "type": "{ mdcUnwrap: string; }",
+      "description": "",
+      "schema": {
+        "kind": "object",
+        "type": "{ mdcUnwrap: string; }",
+        "schema": {
+          "mdcUnwrap": {
+            "name": "mdcUnwrap",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "schema": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "links",
+      "type": "{}",
+      "description": "",
+      "schema": {
+        "kind": "object",
+        "type": "{}",
+        "schema": {}
+      }
+    },
+    {
+      "name": "default",
+      "type": "{}",
+      "description": "",
+      "schema": {
+        "kind": "object",
+        "type": "{}",
+        "schema": {}
+      }
+    },
+    {
+      "name": "notice",
+      "type": "{ mdcUnwrap: string; }",
+      "description": "",
+      "schema": {
+        "kind": "object",
+        "type": "{ mdcUnwrap: string; }",
+        "schema": {
+          "mdcUnwrap": {
+            "name": "mdcUnwrap",
+            "description": "",
+            "required": true,
+            "type": "string",
+            "schema": "string"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -13,6 +13,11 @@
       "component": "3d",
       "include-component-in-tag": true,
       "initial-version": "0.1.0"
+    },
+    "packages/layers/docs": {
+      "package-name": "@plutocms/docs",
+      "component": "docs",
+      "include-component-in-tag": true
     }
   }
 }

@@ -1,4 +1,5 @@
 {
   "packages/core": "0.41.0",
-  "packages/layers/addons/3d": "0.2.1"
+  "packages/layers/addons/3d": "0.2.1",
+  "packages/layers/docs": "0.16.0"
 }
