@@ -178,6 +178,7 @@ export function usePlutoAdminNav() {
             children: settingsPages.value.map((page) => ({
               label: page.label,
               to: page.to,
+              icon: page.icon,
             })),
           }
         : item
@@ -206,4 +207,97 @@ export function usePlutoAdminNav() {
   })
 
   return { items }
+}
+
+/** One tab of the section of the current page. See usePlutoAdminNavTabs. */
+export interface PlutoAdminNavTab {
+  label: string
+  icon?: string
+  to: string
+  active: boolean
+}
+
+/** The "new" link of a section: a button at the end of its tabs. */
+export interface PlutoAdminNavAction {
+  label: string
+  to: string
+}
+
+// Trailing slashes off, so `/admin/users/` matches `/admin/users`.
+function trimPath(path: string): string {
+  return path.replace(/\/+$/, '') || '/'
+}
+
+/**
+ * The tabs of the section of the current page: the children of the menu item
+ * whose submenu holds the page. Settings, the Users item of a backend layer and
+ * a group of content types (Pages) all get them.
+ *
+ * - A child matches the path exactly, or as a prefix (`/admin/users` matches
+ *   `/admin/users/5`). The longest match wins, so General (`/admin/settings`)
+ *   is not active on `/admin/settings/email`.
+ * - A "new" child (its `to` is the `newTo` of the item, or ends with `/new`)
+ *   is not a tab: it is `action`, a button at the end of the tabs.
+ * - The tabs show only with two or more of them. A section of one list and its
+ *   "new" page (a content type: All posts, New post) shows none: the list page
+ *   has its own New button.
+ *
+ * `label` is the label of the section (for `aria-label`). A page shows the
+ * tabs with `PlutoAdminNavTabs`.
+ */
+export function usePlutoAdminNavTabs() {
+  const { items } = usePlutoAdminNav()
+  const route = useRoute()
+
+  const isNewChild = (item: PlutoNavItem, child: PlutoNavChild): boolean =>
+    (item.newTo !== undefined && trimPath(child.to) === trimPath(item.newTo)) ||
+    trimPath(child.to).endsWith('/new')
+
+  const section = computed(() => {
+    const path = trimPath(route.path)
+    let best: { item: PlutoNavItem; to: string } | undefined
+    for (const item of items.value) {
+      const pages = (item.children ?? []).filter(
+        (child) => !isNewChild(item, child)
+      )
+      if (pages.length < 2) {
+        continue
+      }
+      for (const child of pages) {
+        const to = trimPath(child.to)
+        const matches = path === to || path.startsWith(`${to}/`)
+        if (matches && (!best || to.length > best.to.length)) {
+          best = { item, to }
+        }
+      }
+    }
+    return best
+  })
+
+  const tabs = computed<PlutoAdminNavTab[]>(() => {
+    const current = section.value
+    if (!current) {
+      return []
+    }
+    return (current.item.children ?? [])
+      .filter((child) => !isNewChild(current.item, child))
+      .map((child) => ({
+        label: child.label,
+        icon: child.icon,
+        to: child.to,
+        active: trimPath(child.to) === current.to,
+      }))
+  })
+
+  const action = computed<PlutoAdminNavAction | undefined>(() => {
+    const item = section.value?.item
+    const child = item?.children?.find((entry) => isNewChild(item, entry))
+    return child ? { label: child.label, to: child.to } : undefined
+  })
+
+  return {
+    tabs,
+    action,
+    label: computed(() => section.value?.item.label ?? ''),
+  }
 }

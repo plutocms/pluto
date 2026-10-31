@@ -167,7 +167,6 @@
         "saveFailedDescription": "O idioma mudou apenas neste dispositivo. {reason}"
       },
       "tabs": {
-        "label": "Seções das configurações",
         "general": "Geral",
         "email": "E-mail",
         "github": "GitHub"

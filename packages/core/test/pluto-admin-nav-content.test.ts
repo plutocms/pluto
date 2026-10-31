@@ -73,7 +73,7 @@ async function loadComposables() {
     await import('../app/composables/pluto-settings')
   vi.stubGlobal('usePlutoSettingsPages', usePlutoSettingsPages)
 
-  const { usePlutoAdminNav } =
+  const { usePlutoAdminNav, usePlutoAdminNavTabs } =
     await import('../app/composables/pluto-admin-nav')
 
   return {
@@ -81,8 +81,138 @@ async function loadComposables() {
     definePlutoExtension,
     usePlutoPermissions,
     usePlutoAdminNav,
+    usePlutoAdminNavTabs,
   }
 }
+
+describe('usePlutoAdminNavTabs', () => {
+  async function setup() {
+    const loaded = await loadComposables()
+    loaded.definePlutoExtension({
+      id: 'test-layer',
+      nav: [
+        {
+          id: 'users',
+          label: 'Users',
+          to: '/admin/users',
+          match: ['/admin/roles'],
+          children: [
+            { label: 'Users', to: '/admin/users', icon: 'lucide:users' },
+            { label: 'Roles', to: '/admin/roles' },
+          ],
+        },
+        {
+          id: 'section',
+          label: 'Section',
+          to: '/admin/section',
+          children: [
+            { label: 'General', to: '/admin/section' },
+            { label: 'Email', to: '/admin/section/email' },
+          ],
+        },
+        { id: 'media', label: 'Media', to: '/admin/media' },
+      ],
+    })
+    return loaded.usePlutoAdminNavTabs()
+  }
+
+  it('gives the children of the item whose submenu holds the page', async () => {
+    routePath.value = '/admin/roles'
+    const { tabs, label } = await setup()
+
+    expect(label.value).toBe('Users')
+    expect(tabs.value).toEqual([
+      {
+        label: 'Users',
+        icon: 'lucide:users',
+        to: '/admin/users',
+        active: false,
+      },
+      { label: 'Roles', icon: undefined, to: '/admin/roles', active: true },
+    ])
+  })
+
+  it('makes the longest match active, so a parent path is not active below it', async () => {
+    routePath.value = '/admin/section/email'
+    const { tabs } = await setup()
+
+    expect(tabs.value.map((tab) => [tab.label, tab.active])).toEqual([
+      ['General', false],
+      ['Email', true],
+    ])
+  })
+
+  it('matches a page below a child', async () => {
+    routePath.value = '/admin/users/5/'
+    const { tabs } = await setup()
+
+    expect(tabs.value.find((tab) => tab.active)?.label).toBe('Users')
+  })
+
+  it('gives no tabs on a page that is in no submenu', async () => {
+    routePath.value = '/admin/media'
+    const { tabs, label } = await setup()
+
+    expect(tabs.value).toEqual([])
+    expect(label.value).toBe('')
+  })
+
+  it('makes a "new" child the action, not a tab', async () => {
+    const { definePlutoExtension, usePlutoAdminNavTabs } =
+      await loadComposables()
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [
+        {
+          id: 'shop',
+          label: 'Shop',
+          to: '/admin/products',
+          children: [
+            { label: 'New product', to: '/admin/product/new' },
+            { label: 'Products', to: '/admin/products' },
+            { label: 'Categories', to: '/admin/categories' },
+          ],
+        },
+      ],
+    })
+    routePath.value = '/admin/categories'
+    const { tabs, action } = usePlutoAdminNavTabs()
+
+    expect(tabs.value.map((tab) => tab.label)).toEqual([
+      'Products',
+      'Categories',
+    ])
+    expect(action.value).toEqual({
+      label: 'New product',
+      to: '/admin/product/new',
+    })
+  })
+
+  it('shows no tabs for one list and its "new" page', async () => {
+    const { definePlutoExtension, usePlutoAdminNavTabs } =
+      await loadComposables()
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [
+        {
+          id: 'posts',
+          label: 'Posts',
+          to: '/admin/posts',
+          newTo: '/admin/post/create',
+          children: [
+            { label: 'All posts', to: '/admin/posts' },
+            { label: 'New post', to: '/admin/post/create' },
+          ],
+        },
+      ],
+    })
+    routePath.value = '/admin/posts'
+    const { tabs, action } = usePlutoAdminNavTabs()
+
+    expect(tabs.value).toEqual([])
+    expect(action.value).toBeUndefined()
+  })
+})
 
 describe('usePlutoAdminNav — registry', () => {
   it('sorts the registered nav items by order', async () => {
