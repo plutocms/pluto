@@ -1,13 +1,9 @@
 const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
-// Point PLUTO_UTILS_PATH at a local checkout (e.g. `../../../utils`) to test
-// unpublished changes; unset, it resolves to the published npm package.
-const utilsLayer = process.env.PLUTO_UTILS_PATH || '@plutocms/utils'
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
+// Core extends no other layer. The helpers of the retired `@plutocms/utils` that
+// core uses are in shared/utils (`domainFromUrl`).
 export default defineNuxtConfig({
-  extends: [utilsLayer],
-
   // No @nuxt/eslint: a module of a layer runs in every app that extends it. The
   // repo lints with @nuxt/eslint-config (eslint.config.mjs at the root).
   modules: [

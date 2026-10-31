@@ -578,8 +578,7 @@ shows the raw value as text.
 
 `slugifyTitle(value)` (`shared/utils/content-slug.ts`, auto-imported) makes a slug from a title:
 it strips accents ("Pão de Mel" becomes `pao-de-mel`), lowercases, joins words with single
-dashes, and cuts at 100 characters. The form and the GitHub CMS both use it. Do not name a helper
-`slugify`: `@plutocms/utils` already auto-imports that name.
+dashes, and cuts at 100 characters. The form and the GitHub CMS both use it.
 
 Both components gate write/delete visibility with the same rule:
 

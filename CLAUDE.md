@@ -29,8 +29,8 @@ CI runs `lint`, `typecheck`, `test` and `build`. Run all four before you open a 
 ## Local layers
 
 - `packages/core/layers.ts` is the `plutoLayer` helper for apps (see the `local-layers` skill).
-- `PLUTO_UTILS_PATH=../../../utils` (in `packages/core/.env`) makes core extend a local `utils`
-  checkout instead of the npm package.
+- Core extends no other layer. `@plutocms/utils` is retired (2026-10-31): its helpers that core
+  uses are in `packages/core/shared/utils/` (`domainFromUrl` in `url.ts`).
 - A consumer app can extend this checkout in dev (the workspace `CLAUDE.md` names it). Use it to
   try a change in a real app. Its production build uses the npm package, so a change must be released
   first.

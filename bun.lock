@@ -29,7 +29,6 @@
         "@lezer/highlight": "^1.2.5",
         "@nuxt/image": "^2.1.0",
         "@nuxt/ui": "^4.12.0",
-        "@plutocms/utils": ">=0.3.0 <1.0.0",
         "@tanstack/charts": "^1.1.0",
         "@vueuse/nuxt": "^15.0.0",
         "image-meta": "^0.3.0",
@@ -465,8 +464,6 @@
     "@plutocms/3d": ["@plutocms/3d@workspace:packages/layers/addons/3d"],
 
     "@plutocms/core": ["@plutocms/core@workspace:packages/core"],
-
-    "@plutocms/utils": ["@plutocms/utils@0.3.1", "", {}, "sha512-FeuFbo6Wn88k5wkPCYkwIpGAMDArsLHeDwu3vULJ35nSOkDdTOTSyM9C6xdIAVV3pkN9l+GMcRYVE5EhsAo35w=="],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 
