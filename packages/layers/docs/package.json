@@ -5,13 +5,14 @@
   "description": "Docs layer for Pluto: edit the Markdown pages of a Nuxt Content site in the Pluto admin",
   "author": "Victor Ribeiro",
   "license": "MIT",
-  "homepage": "https://github.com/plutocms/docs#readme",
+  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/layers/docs#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/plutocms/docs.git"
+    "url": "git+https://github.com/plutocms/pluto.git",
+    "directory": "packages/layers/docs"
   },
   "bugs": {
-    "url": "https://github.com/plutocms/docs/issues"
+    "url": "https://github.com/plutocms/pluto/issues"
   },
   "main": "./nuxt.config.ts",
   "scripts": {
