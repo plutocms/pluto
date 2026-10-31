@@ -71,18 +71,23 @@ describe('plutoLayer', () => {
   it('returns the local path and sets the path of every existing checkout', () => {
     checkout('pluto/packages/layers/docs')
     checkout('pluto/packages/core')
-    checkout('supabase-shop')
+    checkout('supabase/packages/supabase-shop')
     process.env.PLUTO_LOCAL_ROOT = root
 
     const entry = plutoLayer('@plutocms/docs')
 
-    expect(entry).toEqual([resolve(root, 'pluto/packages/layers/docs'), { install: true }])
-    expect(process.env.PLUTO_DOCS_PATH).toBe(resolve(root, 'pluto/packages/layers/docs'))
+    expect(entry).toEqual([
+      resolve(root, 'pluto/packages/layers/docs'),
+      { install: true },
+    ])
+    expect(process.env.PLUTO_DOCS_PATH).toBe(
+      resolve(root, 'pluto/packages/layers/docs')
+    )
     expect(process.env.PLUTO_CORE_PATH).toBe(
       resolve(root, 'pluto/packages/core')
     )
     expect(process.env.PLUTO_SUPABASE_SHOP_PATH).toBe(
-      resolve(root, 'supabase-shop')
+      resolve(root, 'supabase/packages/supabase-shop')
     )
     expect(process.env.PLUTO_SUPABASE_BLOG_PATH).toBeUndefined()
   })
@@ -133,7 +138,9 @@ describe('plutoLayer', () => {
       { install: true },
     ])
     expect(process.env.PLUTO_CORE_PATH).toBe('/custom/core')
-    expect(plutoLayer('@plutocms/docs')[0]).toBe(resolve(root, 'pluto/packages/layers/docs'))
+    expect(plutoLayer('@plutocms/docs')[0]).toBe(
+      resolve(root, 'pluto/packages/layers/docs')
+    )
   })
 
   it('uses an explicit PLUTO_<NAME>_PATH without a root', () => {
