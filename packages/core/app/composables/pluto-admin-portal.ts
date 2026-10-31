@@ -8,12 +8,17 @@
  * The composable makes the element itself. A target that Vue renders can
  * appear after the portal looks for it. Pass `portalTarget ?? true` to the
  * `portal` prop of `UDropdownMenu`.
+ *
+ * The menus look like the bar: the target also carries `data-pluto-admin-dark`
+ * (the dark tokens in both color modes), and a menu sets the bar color
+ * (`bg-(--pluto-admin-navbar)`, also on its arrow) and `sideOffset: 2`.
  */
 export function usePlutoAdminPortal() {
   const portalTarget = shallowRef<HTMLElement>()
   onMounted(() => {
     const el = document.createElement('div')
     el.setAttribute('data-pluto-admin-scope', '')
+    el.setAttribute('data-pluto-admin-dark', '')
     document.body.append(el)
     portalTarget.value = el
   })

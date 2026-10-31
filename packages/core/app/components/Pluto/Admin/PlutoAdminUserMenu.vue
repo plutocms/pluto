@@ -135,7 +135,11 @@ const portalTarget = usePlutoAdminPortal()
   <div class="h-full">
     <UDropdownMenu
       :items="items"
-      :ui="{ content: 'w-64' }"
+      :content="{ sideOffset: 2 }"
+      :ui="{
+        content: 'w-64 bg-(--pluto-admin-navbar)',
+        arrow: 'fill-(--pluto-admin-navbar)',
+      }"
       :modal="false"
       :portal="portalTarget ?? true"
       :arrow="{ width: 14, height: 7 }"

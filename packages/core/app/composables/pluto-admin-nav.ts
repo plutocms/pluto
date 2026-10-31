@@ -57,14 +57,23 @@ export function usePlutoAdminNav() {
 
   const items = computed<PlutoNavItem[]>(() => {
     const registered = registry.nav.list.value
-    const resolveLabels = (item: PlutoNavItem): PlutoNavItem => ({
-      ...item,
-      label: tx(item.label),
-      children: item.children?.map((child) => ({
-        ...child,
-        label: tx(child.label),
-      })),
-    })
+    // A child with `enabled` shows only when the test passes (for example a
+    // child for admins only). An item with its own `to` and one visible child
+    // stays a plain link, like Settings with one page.
+    const resolveLabels = (item: PlutoNavItem): PlutoNavItem => {
+      const children = item.children
+        ?.filter((child) => child.enabled?.() ?? true)
+        .map((child) => ({
+          ...child,
+          label: tx(child.label),
+        }))
+      return {
+        ...item,
+        label: tx(item.label),
+        children:
+          item.to && children && children.length < 2 ? undefined : children,
+      }
+    }
 
     const isVisible = (type: PlutoContentType): boolean =>
       !type.capabilities?.read || can(type.capabilities.read)

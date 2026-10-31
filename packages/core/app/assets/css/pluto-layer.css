@@ -69,12 +69,15 @@
 }
 
 /*
- * The overlay of the admin search (Cmd/Ctrl+K) is darker than the Nuxt UI
- * default and blurs the page under it. The overlay is the sibling just before
- * the modal content, which carries `pluto-admin-search` (app/layouts/admin.vue).
- * Other modals keep the Nuxt UI overlay.
+ * The overlay of a palette (the admin search, Cmd/Ctrl+K, and the palettes of
+ * the layers, such as the block palette) is darker than the Nuxt UI default and
+ * blurs the page under it. The overlay is the sibling just before the modal
+ * content. The content carries `pluto-admin-search` (app/layouts/admin.vue) or
+ * `pluto-palette`: a layer sets `:ui="{ content: 'pluto-palette' }"` on the
+ * `UModal` of its palette. Other modals keep the Nuxt UI overlay.
  */
-:root[data-pluto-admin] [data-slot='overlay']:has(+ .pluto-admin-search) {
+:root[data-pluto-admin]
+  [data-slot='overlay']:has(+ :is(.pluto-admin-search, .pluto-palette)) {
   background-color: oklch(13% 0.03 273 / 0.6);
   backdrop-filter: blur(6px);
 }
