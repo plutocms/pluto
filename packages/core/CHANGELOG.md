@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.40.0](https://github.com/plutocms/pluto/compare/v0.39.2...v0.40.0) (2026-10-31)
+
+
+### Features
+
+* **admin:** navbar menus in the bar color, palette overlay class, nav children with enabled ([#310](https://github.com/plutocms/pluto/issues/310)) ([cec92ac](https://github.com/plutocms/pluto/commit/cec92ac7061fdb8a209d832344328fae8838f826))
+
 ## [0.39.2](https://github.com/plutocms/pluto/compare/v0.39.1...v0.39.2) (2026-10-31)
 
 
