@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.41.0](https://github.com/plutocms/pluto/compare/v0.40.0...v0.41.0) (2026-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* @plutocms/core does not extend @plutocms/utils anymore. Its auto-imports (formatCurrency, slugify, fileNameToKebabCase) are gone from apps that relied on core to bring them. domainFromUrl is now in core.
+
+### Features
+
+* **admin:** section tabs for every menu item with a submenu ([#315](https://github.com/plutocms/pluto/issues/315)) ([98afbe4](https://github.com/plutocms/pluto/commit/98afbe45833caa6f834aa70703611970eadd5ccb))
+* core no longer extends @plutocms/utils (retired); domainFromUrl is in core ([#314](https://github.com/plutocms/pluto/issues/314)) ([5fe3947](https://github.com/plutocms/pluto/commit/5fe394707c009d4686e6e7fe6f72af900dfe4035))
+
 ## [0.40.0](https://github.com/plutocms/pluto/compare/v0.39.2...v0.40.0) (2026-10-31)
 
 
