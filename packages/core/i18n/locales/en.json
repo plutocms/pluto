@@ -167,7 +167,6 @@
         "saveFailedDescription": "The language changed on this device only. {reason}"
       },
       "tabs": {
-        "label": "Settings sections",
         "general": "General",
         "email": "Email",
         "github": "GitHub"

@@ -178,6 +178,7 @@ export function usePlutoAdminNav() {
             children: settingsPages.value.map((page) => ({
               label: page.label,
               to: page.to,
+              icon: page.icon,
             })),
           }
         : item
@@ -206,4 +207,60 @@ export function usePlutoAdminNav() {
   })
 
   return { items }
+}
+
+/** One tab of the section of the current page. See usePlutoAdminNavTabs. */
+export interface PlutoAdminNavTab {
+  label: string
+  icon?: string
+  to: string
+  active: boolean
+}
+
+/**
+ * The tabs of the section of the current page: the children of the menu item
+ * whose submenu holds the page, when the item has two or more. Settings, the
+ * Users item of a backend layer and a group of content types (Pages) all get
+ * them. A child matches the path exactly, or as a prefix (`/admin/users`
+ * matches `/admin/users/5`). The longest match wins, so General
+ * (`/admin/settings`) is not active on `/admin/settings/email`. `label` is the
+ * label of the section (for `aria-label`). Empty when the page is in no
+ * submenu. A page shows the tabs with `PlutoAdminNavTabs`.
+ */
+export function usePlutoAdminNavTabs() {
+  const { items } = usePlutoAdminNav()
+  const route = useRoute()
+
+  const section = computed(() => {
+    const path = route.path.replace(/\/+$/, '') || '/'
+    let best: { item: PlutoNavItem; to: string } | undefined
+    for (const item of items.value) {
+      if ((item.children?.length ?? 0) < 2) {
+        continue
+      }
+      for (const child of item.children ?? []) {
+        const to = child.to.replace(/\/+$/, '') || '/'
+        const matches = path === to || path.startsWith(`${to}/`)
+        if (matches && (!best || to.length > best.to.length)) {
+          best = { item, to }
+        }
+      }
+    }
+    return best
+  })
+
+  const tabs = computed<PlutoAdminNavTab[]>(() => {
+    const current = section.value
+    return (current?.item.children ?? []).map((child) => ({
+      label: child.label,
+      icon: child.icon,
+      to: child.to,
+      active: (child.to.replace(/\/+$/, '') || '/') === current?.to,
+    }))
+  })
+
+  return {
+    tabs,
+    label: computed(() => section.value?.item.label ?? ''),
+  }
 }

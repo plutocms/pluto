@@ -266,6 +266,8 @@ const footer = computed(() => {
           </UButton>
         </template>
       </PlutoViewToolbar>
+      <!-- The tabs of the menu item that holds this list (for example Pages). -->
+      <PlutoAdminNavTabs variant="toolbar" />
     </template>
 
     <PlutoSkeletonList
