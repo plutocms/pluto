@@ -8,8 +8,9 @@ const utilsLayer = process.env.PLUTO_UTILS_PATH || '@plutocms/utils'
 export default defineNuxtConfig({
   extends: [utilsLayer],
 
+  // No @nuxt/eslint: a module of a layer runs in every app that extends it. The
+  // repo lints with @nuxt/eslint-config (eslint.config.mjs at the root).
   modules: [
-    '@nuxt/eslint',
     '@nuxt/image',
     '@nuxt/ui',
     '@vueuse/nuxt',
@@ -105,15 +106,6 @@ export default defineNuxtConfig({
   typescript: {
     includeWorkspace: true,
     typeCheck: false,
-  },
-
-  eslint: {
-    config: {
-      nuxt: {
-        sortConfigKeys: true,
-      },
-      standalone: false,
-    },
   },
 
   // Modules configurations

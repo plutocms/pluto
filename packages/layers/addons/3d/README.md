@@ -22,7 +22,7 @@ Add it next to the backend layer of your app. It does not bring Pluto: the backe
 
 ```ts [nuxt.config.ts]
 export default defineNuxtConfig({
-  extends: [plutoLayer('@plutocms/supabase-shop'), '@plutocms/3d'],
+  extends: ['@plutocms/supabase-shop', '@plutocms/3d'],
 })
 ```
 

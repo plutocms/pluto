@@ -1,0 +1,14 @@
+{
+  "name": "pluto-playground",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview"
+  },
+  "dependencies": {
+    "@plutocms/3d": "workspace:*",
+    "@plutocms/core": "workspace:*"
+  }
+}

@@ -27,18 +27,10 @@
     "dev": "nuxt dev --no-fork",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "dev:prepare": "nuxt prepare",
     "typecheck": "nuxt prepare && vue-tsc -b --noEmit",
     "test": "vitest run"
   },
-  "trustedDependencies": [
-    "@parcel/watcher",
-    "@plutocms/utils",
-    "@tailwindcss/oxide",
-    "esbuild",
-    "unrs-resolver",
-    "vue-demi"
-  ],
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
     "@codemirror/lang-markdown": "^6.5.2",
@@ -49,7 +41,6 @@
     "@iconify-json/lucide": "^1.2.144",
     "@internationalized/date": "^3.12.4",
     "@lezer/highlight": "^1.2.5",
-    "@nuxt/eslint": "^1.17.0",
     "@nuxt/image": "^2.1.0",
     "@nuxt/ui": "^4.12.0",
     "@plutocms/utils": ">=0.3.0 <1.0.0",
