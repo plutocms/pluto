@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.39.0](https://github.com/plutocms/pluto/compare/v0.38.2...v0.39.0) (2026-10-31)
+
+
+### Features
+
+* **core:** one New menu in the admin bar and nav groups for content types ([#295](https://github.com/plutocms/pluto/issues/295)) ([ca60438](https://github.com/plutocms/pluto/commit/ca60438c8d3675f6f667f5bc177573ac9700ccfa))
+
 ## [0.38.2](https://github.com/plutocms/pluto/compare/v0.38.1...v0.38.2) (2026-10-30)
 
 
