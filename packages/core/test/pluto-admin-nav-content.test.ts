@@ -115,7 +115,10 @@ describe('usePlutoAdminNav — labels', () => {
           order: 10,
           label: 'Posts',
           to: '/admin/posts',
-          children: [{ label: 'pluto.nav.settings', to: '/x' }],
+          children: [
+            { label: 'pluto.nav.settings', to: '/x' },
+            { label: 'Plain', to: '/y' },
+          ],
         },
       ],
     })
@@ -124,6 +127,65 @@ describe('usePlutoAdminNav — labels', () => {
 
     expect(items.value.map((item) => item.label)).toEqual(['Home', 'Posts'])
     expect(items.value[1]?.children?.[0]?.label).toBe('Settings')
+  })
+})
+
+describe('usePlutoAdminNav — children', () => {
+  it('hides a child whose enabled test fails', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+    const admin = ref(true)
+
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [
+        {
+          id: 'access',
+          label: 'Users',
+          to: '/admin/users',
+          children: [
+            { label: 'Users', to: '/admin/users' },
+            { label: 'Roles', to: '/admin/roles', enabled: () => admin.value },
+            { label: 'Logs', to: '/admin/logs' },
+          ],
+        },
+      ],
+    })
+
+    const { items } = usePlutoAdminNav()
+    expect(items.value[0]?.children?.map((child) => child.label)).toEqual([
+      'Users',
+      'Roles',
+      'Logs',
+    ])
+
+    admin.value = false
+    expect(items.value[0]?.children?.map((child) => child.label)).toEqual([
+      'Users',
+      'Logs',
+    ])
+  })
+
+  it('makes an item with a link and one visible child a plain link', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+
+    definePlutoExtension({
+      id: 'test-layer',
+      nav: [
+        {
+          id: 'access',
+          label: 'Users',
+          to: '/admin/users',
+          children: [
+            { label: 'Users', to: '/admin/users' },
+            { label: 'Roles', to: '/admin/roles', enabled: () => false },
+          ],
+        },
+      ],
+    })
+
+    const { items } = usePlutoAdminNav()
+    expect(items.value[0]?.to).toBe('/admin/users')
+    expect(items.value[0]?.children).toBeUndefined()
   })
 
   it('translates the labels again when the locale changes', async () => {

@@ -214,10 +214,13 @@ const editButton = computed(() => {
     <UDropdownMenu
       :open="menuOpen"
       :items="newMenuItems"
-      :content="{ align: 'start', onCloseAutoFocus }"
+      :content="{ align: 'start', sideOffset: 2, onCloseAutoFocus }"
       :modal="false"
       :portal="portalTarget ?? true"
-      :ui="{ content: 'min-w-48' }"
+      :ui="{
+        content: 'min-w-48 bg-(--pluto-admin-navbar)',
+        arrow: 'fill-(--pluto-admin-navbar)',
+      }"
       :arrow="{ width: 14, height: 7 }"
       @update:open="onUpdateOpen"
     >

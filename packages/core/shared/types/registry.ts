@@ -59,6 +59,8 @@ export interface PlutoNavChild {
   newTo?: string
   /** The text of that "+" (`New <type>`). */
   newLabel?: string
+  /** Reactive visibility test, like `PlutoEntry.enabled`. A child without it shows. */
+  enabled?: () => boolean
 }
 
 export interface PlutoNavItem extends PlutoEntry {
