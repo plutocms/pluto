@@ -98,10 +98,14 @@ jobs:
           ref: ${{ env.REF }}
           persist-credentials: false
 
+      # A fixed Bun version: a new release can change the lockfile or the
+      # install, and `--frozen-lockfile` would fail in every repo at once. Bump
+      # it on purpose, in the shared copy of every repo. The templates keep no
+      # `packageManager` field: their users choose the package manager.
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.4
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
