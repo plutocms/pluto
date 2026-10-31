@@ -52,6 +52,16 @@ export function lockVersions(lock, name) {
   return [...new Set([...lock.matchAll(pattern)].map((m) => m[1]))]
 }
 
+/**
+ * The @plutocms packages that the lockfile resolves from npm (a version, not a
+ * workspace link). It also finds the packages that only a layer brings, such
+ * as `@plutocms/supabase` under `@plutocms/supabase-shop`.
+ */
+export function lockPlutoNames(lock) {
+  const pattern = /"(@plutocms\/[a-z0-9-]+)@[0-9][^"]*"/g
+  return [...new Set([...lock.matchAll(pattern)].map((m) => m[1]))].sort()
+}
+
 async function latestVersion(name) {
   const response = await fetch(`https://registry.npmjs.org/${name}/latest`)
   if (!response.ok) {
@@ -158,10 +168,22 @@ async function main() {
   // here.
   execSync('bun install --ignore-scripts', { stdio: 'inherit' })
   const wideNames = [...new Set(wide)]
+  // The @plutocms packages that only the lockfile has: a layer brings them (an
+  // app that lists `@plutocms/supabase-shop` gets `@plutocms/supabase` and
+  // `@plutocms/utils` through it). `bun update` at the root moves them in the
+  // lockfile and does not add them to package.json.
+  const transitive = lockPlutoNames(before).filter(
+    (name) => !names.includes(name)
+  )
   if (fs.existsSync('bun.lock')) {
     for (const entry of packages.filter((item) => item.names.length)) {
       execSync(`bun update --ignore-scripts ${entry.names.join(' ')}`, {
         cwd: entry.dir,
+        stdio: 'inherit',
+      })
+    }
+    if (transitive.length) {
+      execSync(`bun update --ignore-scripts ${transitive.join(' ')}`, {
         stdio: 'inherit',
       })
     }
@@ -170,7 +192,7 @@ async function main() {
   const after = readLock()
   const moved = []
   if (before) {
-    for (const name of wideNames) {
+    for (const name of [...wideNames, ...transitive]) {
       const was = lockVersions(before, name).join(', ')
       const now = lockVersions(after, name).join(', ')
       if (was !== now) {
