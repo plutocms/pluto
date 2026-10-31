@@ -1,12 +1,27 @@
 // @ts-check
 import antfu from '@antfu/eslint-config'
+import { createConfigForNuxt } from '@nuxt/eslint-config/flat'
 import prettier from 'eslint-config-prettier'
 import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import { getDefaultSelectors } from 'eslint-plugin-better-tailwindcss/defaults'
-import withNuxt from './packages/core/.nuxt/eslint.config.mjs'
 
+// The Nuxt rules come from @nuxt/eslint-config, not from the @nuxt/eslint module. A module in a
+// layer runs in every app that extends the layer, so the layers do not register it.
+// `dirs.src` lists the app folders of the layers and the playground.
 // See: https://eslint.vuejs.org/rules
-export default withNuxt(
+export default createConfigForNuxt({
+  features: {
+    standalone: false,
+    nuxt: { sortConfigKeys: true },
+  },
+  dirs: {
+    src: [
+      'packages/core/app',
+      'packages/layers/addons/3d/app',
+      'playground/app',
+    ],
+  },
+}).append(
   { ignores: ['**/*.md', '.agents/**/*'] },
   antfu({
     // Prettier formats the code (format on save, `bun run prettier`). ESLint checks the code,

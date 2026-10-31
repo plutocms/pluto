@@ -27,20 +27,20 @@ feature on top of core, for any backend. It lives in the core repo, a Bun monore
 - `i18n/locales/*.json`: the `3d.*` texts. A key can start with a digit (`isMessageKey`).
 - `app/composables/pluto-3d-i18n.ts`: `usePluto3dI18n()`. The components follow the admin language
   under `/admin`, and the site language (`usePlutoSiteI18n`) on a site page.
-- `.playground/`: core (`packages/core`, extended as `../../../../core`) and the add-on, for
-  `nuxt dev` and the typecheck. Do not
-  upload files in it with the GitHub CMS: the local Git commits go into the core repo.
+- The repo playground (`playground/` at the root) extends core and the add-on. `bun run dev` at the
+  root runs it, and the typecheck of the add-on uses it. Do not upload files in it with the GitHub
+  CMS: the local Git commits go into the core repo.
 
 ## The monorepo setup
 
-- The root `package.json` has `workspaces`: `packages/core` and `packages/layers/addons/*`. The
+- The root `package.json` has `workspaces`: `packages/core`, `packages/layers/addons/*` and `playground`. The
   root scripts (`dev`, `build`, `typecheck`, `test`) call the packages. `typecheck` and `test`
   run core first and then the add-on. `bunfig.toml` keeps the hoisted `node_modules`: with
   the isolated layout, the Nuxt module loader on Windows did not find the dependencies of a
   module (`@nuxt/image` lost `ufo`).
 - The peer dependency on `@plutocms/core` (`>=0.38.0 <1.0.0`) is optional, so Bun does not
   install a second core from npm next to the workspace source.
-- The add-on has its own `typecheck` (`nuxt prepare .playground` and `vue-tsc`) and `test`
+- The add-on has its own `typecheck` (`nuxt prepare` of the playground and `vue-tsc`) and `test`
   (`vitest run`) scripts.
 - release-please (`release-please-config.json`): `separate-pull-requests`. The package
   `packages/core` (`@plutocms/core`) has `include-component-in-tag: false`, so its tags have no
@@ -48,7 +48,7 @@ feature on top of core, for any backend. It lives in the core repo, a Bun monore
   `include-component-in-tag: true`, `initial-version: '0.1.0'` and its own tags (`3d-v0.1.0`).
   `.release-please-manifest.json` holds one version for each path. The shared `release.yml`
   publishes every path that release-please released. `scripts/release.sh pluto @plutocms/3d <ver>
-  packages/layers/addons/3d` releases it. The script is in the workspace, one folder above this
+packages/layers/addons/3d` releases it. The script is in the workspace, one folder above this
   repo.
 - npm: a trusted publisher for each package (repo `plutocms/pluto`, `release.yml`). The first
   publish of a new package is by hand.

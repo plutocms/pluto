@@ -27,8 +27,7 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "nuxt dev .playground",
-    "typecheck": "nuxt prepare .playground && vue-tsc --noEmit -p .playground/.nuxt/tsconfig.app.json",
+    "typecheck": "nuxt prepare ../../../../playground && vue-tsc --noEmit -p ../../../../playground/.nuxt/tsconfig.app.json",
     "test": "vitest run"
   },
   "peerDependencies": {

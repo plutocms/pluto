@@ -6,10 +6,12 @@
   "license": "MIT",
   "workspaces": [
     "packages/core",
-    "packages/layers/addons/*"
+    "packages/layers/addons/*",
+    "playground"
   ],
   "scripts": {
-    "dev": "bun run --cwd packages/core dev",
+    "postinstall": "bun run --cwd packages/core dev:prepare",
+    "dev": "bun run --cwd playground dev",
     "build": "bun run --cwd packages/core build",
     "prettier": "prettier --write .",
     "lint": "eslint .",
@@ -17,16 +19,9 @@
     "typecheck": "bun run --cwd packages/core typecheck && bun run --cwd packages/layers/addons/3d typecheck",
     "test": "bun run --cwd packages/core test && bun run --cwd packages/layers/addons/3d test"
   },
-  "trustedDependencies": [
-    "@parcel/watcher",
-    "@plutocms/utils",
-    "@tailwindcss/oxide",
-    "esbuild",
-    "unrs-resolver",
-    "vue-demi"
-  ],
   "devDependencies": {
     "@antfu/eslint-config": "^10.0.0",
+    "@nuxt/eslint-config": "^1.17.0",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-better-tailwindcss": "^4.10.0",

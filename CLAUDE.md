@@ -11,11 +11,17 @@ path in a skill of core is relative to `packages/core`.
 
 Run them at the root. The root scripts call the packages.
 
-- `bun install`: install. The `postinstall` hook runs `nuxt prepare` in `packages/core`.
-- `bun run dev`: run core as an app (`nuxt dev --no-fork` in `packages/core`).
+- `bun install`: install. The `postinstall` hook of the root package runs `dev:prepare` (`nuxt prepare`) in
+  `packages/core`. The published packages have no install script.
+- `bun run dev`: run the playground (`playground/`), an app that extends `@plutocms/core` and
+  `@plutocms/3d` by name. The workspace links the names to `packages/`. Do not save content or
+  upload files in it with the GitHub CMS: the local Git commits go into this repo.
 - `bun run test`: run the Vitest suites of core (`packages/core/test/`) and of the add-ons. The tests are plain Vitest, with no Nuxt
   environment. Mock the Nuxt imports (see `test/fixtures/`).
 - `bun run lint`, `bun run typecheck`, `bun run build`.
+
+ESLint uses `@nuxt/eslint-config` in the root `eslint.config.mjs`. The layers do not register the
+`@nuxt/eslint` module, because a module of a layer runs in every app that extends it.
 
 CI runs `lint`, `typecheck`, `test` and `build`. Run all four before you open a PR. Do not run
 `typecheck` or `build` while the dev server runs, because both write `packages/core/.nuxt/`.
