@@ -7,15 +7,9 @@ import { plutoLayer, plutoLayerEnvName } from '../layers'
 const ENV_NAMES = [
   'PLUTO_LOCAL_ROOT',
   'PLUTO_USE_LOCAL',
-  ...[
-    'UTILS',
-    'CORE',
-    'SUPABASE',
-    'SUPABASE_SHOP',
-    'SUPABASE_BLOG',
-    'DOCS',
-    '3D',
-  ].map((name) => `PLUTO_${name}_PATH`),
+  ...['CORE', 'SUPABASE', 'SUPABASE_SHOP', 'SUPABASE_BLOG', 'DOCS', '3D'].map(
+    (name) => `PLUTO_${name}_PATH`
+  ),
 ]
 
 let root = ''
@@ -90,7 +84,6 @@ describe('plutoLayer', () => {
     expect(process.env.PLUTO_SUPABASE_SHOP_PATH).toBe(
       resolve(root, 'supabase-shop')
     )
-    expect(process.env.PLUTO_UTILS_PATH).toBeUndefined()
     expect(process.env.PLUTO_SUPABASE_BLOG_PATH).toBeUndefined()
   })
 

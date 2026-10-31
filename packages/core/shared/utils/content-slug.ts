@@ -6,8 +6,7 @@ export const SLUG_MAX_LENGTH = 100
  * "pao-de-mel". The result is lowercase ASCII, with single dashes. It can
  * be an empty string.
  *
- * The form and the GitHub CMS both use this function. Do not name it
- * `slugify`: `@plutocms/utils` already auto-imports that name.
+ * The form and the GitHub CMS both use this function.
  */
 export function slugifyTitle(value: string): string {
   return value

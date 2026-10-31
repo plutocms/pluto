@@ -43,7 +43,6 @@
     "@lezer/highlight": "^1.2.5",
     "@nuxt/image": "^2.1.0",
     "@nuxt/ui": "^4.12.0",
-    "@plutocms/utils": ">=0.3.0 <1.0.0",
     "@tanstack/charts": "^1.1.0",
     "@vueuse/nuxt": "^15.0.0",
     "image-meta": "^0.3.0",

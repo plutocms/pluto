@@ -254,9 +254,9 @@ In dev, `definePlutoExtension` logs a `console.warn` once per component that is 
 checks `__asyncLoader`; see `app/composables/internal/async-component.ts`). The check is
 `import.meta.dev` only, so production has no cost. Test: `test/async-component.test.ts`.
 
-## No bridge to `@plutocms/utils`
+## No bridge to the old navbar composables
 
-The old composables of `@plutocms/utils` (`useNavbarAdmin()`, `useNavbarAdminActions()`,
+The old composables of the retired `@plutocms/utils` layer (`useNavbarAdmin()`, `useNavbarAdminActions()`,
 `useSidebarAdminActions()`) and the registry `navbar` field are gone. Core always renders its own
 navbar (`PlutoAdminNavbarProvider`). A layer adds to it with `navbarActions`, `accountMenu` and
 `nav`.

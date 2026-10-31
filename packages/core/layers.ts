@@ -28,7 +28,6 @@ export type PlutoLayerEntry = [source: string, options: PlutoLayerEntryOptions]
  * without the scope. A package of a monorepo is in a folder of its repo.
  */
 export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
-  utils: 'utils',
   core: 'pluto/packages/core',
   supabase: 'supabase',
   'supabase-shop': 'supabase-shop',
