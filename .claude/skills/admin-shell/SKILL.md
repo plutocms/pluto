@@ -321,7 +321,7 @@ skill). The `write` capability of the type decides; with no `write` capability, 
   (`buildNewMenu` in `internal/new-menu.ts`). The types without a `navGroup` are direct items first
   (singular label, type icon, new page). A group with two or more types is a submenu after them (the
   label and icon of the group, one link per type). A group with one type shows that type as a direct
-  item. The groups follow the order of the group. The menu opens aligned to the start of the button,
+  item. When the only entry is one group (every type is in it), the menu lists its types directly. The groups follow the order of the group. The menu opens aligned to the start of the button,
   has an arrow, and the trigger keeps the pressed background while the menu is open
   (`group-data-[state=open]:bg-elevated` in `PlutoNavbarHit`). The button is an `<li>` with a
   `PlutoNavbarHit` trigger, and the menu uses `usePlutoAdminPortal`. The user menu has an arrow too.
@@ -420,13 +420,21 @@ wordmark, for dark backgrounds), `/img/pluto-icon.svg` and `/img/pluto-icon.png`
 `PlutoAdminNavMenu` wraps `UNavigationMenu` (the sidebar and the small-screen slideover use it). Each
 content type item (a top-level type item, and each child of a group item) carries `newTo` and
 `newLabel` ("New <type>") from `usePlutoAdminNav`, only when the user may write the type. The item
-shows a small "+" at its right end on hover and on keyboard focus. It goes to the new page.
+has a small "+" `UButton` (`square`, `xs`, ghost, neutral, `aria-label` and title "New <type>") at the
+right end. It goes to the new page with `navigateTo`. The collapsed rail shows no "+".
 
-A menu item is a link or an accordion button. A link cannot hold a link or a button (invalid HTML).
-So the "+" is an `aria-hidden` `<span>` in the `item-trailing` slot. Its click handler calls
-`preventDefault` and `stopPropagation`, so the item does not navigate, then calls `navigateTo`. A
-keyboard user presses Shift+Enter on the focused item. The slot replaces the default trailing
-content, so the component draws the chevron of a group again. The collapsed rail shows no "+".
+A menu item is a link or an accordion button. A link cannot hold a button (invalid HTML), and Nuxt UI
+has no slot outside the link. So `PlutoAdminNavNew` renders in the `item-trailing` slot only an empty
+spacer (it keeps room at the right end of the row). On mount it adds a host `<div>` right after the
+item link, in the same `<li>`, and teleports the button there. The button is a sibling of the link,
+after it in the tab order, and a click on it does not reach the link. The `item` and `childItem`
+classes are `relative` for this. The host is positioned on the first row of the item (34 px high),
+and left of the chevron when the item has children.
+
+The button is always in the tab order and shows on hover of the link or the button, and on focus of
+either (`focus-visible` of the link, `focus-within` of the host). It is not hidden with `tabindex`,
+because a changing tab order is hard to follow. Focus reveals it. The slot replaces the default
+trailing content, so the component draws the chevron of a group again.
 
 ## Focus rings in the bar
 

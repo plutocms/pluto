@@ -26,13 +26,26 @@ describe('buildNewMenu', () => {
     ])
   })
 
-  it('makes a submenu of a group with two or more types', () => {
+  it('shows the types of a lone group directly, without a submenu', () => {
     const items = buildNewMenu(
       [entry('a', 'pages'), entry('b', 'pages')],
       groups,
       options
     )
     expect(items).toEqual([
+      { label: 'A', icon: 'i-a', type: 'link', to: '/new/a' },
+      { label: 'B', icon: 'i-b', type: 'link', to: '/new/b' },
+    ])
+  })
+
+  it('keeps a group with two or more types a submenu next to other entries', () => {
+    const items = buildNewMenu(
+      [entry('a', 'pages'), entry('b', 'pages'), entry('c')],
+      groups,
+      options
+    )
+    expect(items).toEqual([
+      { label: 'C', icon: 'i-c', type: 'link', to: '/new/c' },
       {
         label: 'Pages',
         icon: 'i-pages',
@@ -42,6 +55,20 @@ describe('buildNewMenu', () => {
         ],
       },
     ])
+  })
+
+  it('keeps two groups as two submenus', () => {
+    const items = buildNewMenu(
+      [
+        entry('a', 'pages'),
+        entry('b', 'pages'),
+        entry('s1', 'shop:catalog'),
+        entry('s2', 'shop:catalog'),
+      ],
+      groups,
+      options
+    )
+    expect(items.map((item) => item.label)).toEqual(['Pages', 'Catalog'])
   })
 
   it('shows the type of a group with one type as a direct link', () => {

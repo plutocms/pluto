@@ -67,7 +67,6 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
             v-model="openGroups"
             :items="menu"
             :collapsed="collapsed"
-            :ui="{ link: 'gap-x-2.5 py-2', linkLeadingIcon: 'size-4.5' }"
             orientation="vertical"
             variant="pill"
             class="data-[orientation=vertical]:w-full"

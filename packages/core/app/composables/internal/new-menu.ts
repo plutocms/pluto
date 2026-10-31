@@ -17,7 +17,8 @@ export interface NewMenuOptions {
  * New button. The types without a group come first, as direct links. Each group
  * follows, in the order of `groups`. A group with two or more types is a
  * submenu (label and icon of the group, one link per type). A group with one
- * type shows that type as a direct link. The caller shows a plain button, not
+ * type shows that type as a direct link. When the only entry is one group, the
+ * menu shows the types of the group directly, without the submenu. The caller shows a plain button, not
  * this menu, when there is one type in total.
  */
 export function buildNewMenu(
@@ -32,7 +33,7 @@ export function buildNewMenu(
     to: options.to(type),
   })
   const { ungrouped, grouped } = splitByNavGroup(entries, groups)
-  return [
+  const items: DropdownMenuItem[] = [
     ...ungrouped.map(link),
     ...grouped.flatMap(({ group, items }): DropdownMenuItem[] =>
       items.length >= 2
@@ -46,4 +47,6 @@ export function buildNewMenu(
         : items.map(link)
     ),
   ]
+  const only = items.length === 1 ? items[0] : undefined
+  return only?.children ? (only.children as DropdownMenuItem[]) : items
 }
