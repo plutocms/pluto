@@ -17,7 +17,8 @@
     "packages/layers/docs": {
       "package-name": "@plutocms/docs",
       "component": "docs",
-      "include-component-in-tag": true
+      "include-component-in-tag": true,
+      "release-as": "0.17.0"
     }
   }
 }
