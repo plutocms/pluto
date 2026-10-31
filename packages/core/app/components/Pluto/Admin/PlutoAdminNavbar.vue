@@ -44,7 +44,7 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
           <NuxtLink
             :title="t('pluto.navbar.goHome')"
             to="/admin/home"
-            class="group flex h-full items-center gap-x-2"
+            class="group outline-inverted/40 flex h-full items-center gap-x-2 rounded-sm focus-visible:outline-2 focus-visible:-outline-offset-2"
           >
             <!-- A brand logo (white label), else the Pluto logo. The mark only on a small screen. -->
             <template v-if="brandLogo">
@@ -80,7 +80,12 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
           </NuxtLink>
         </div>
 
-        <div class="h-full min-w-0 overflow-hidden">
+        <!--
+          The overflow clip keeps a long list of actions from pushing the bar. The
+          padding and the negative margin give the focus ring of the first and the last
+          action room inside the clip, without moving them.
+        -->
+        <div class="-mx-1 h-full min-w-0 overflow-hidden px-1">
           <ul class="flex h-full min-w-0 items-center gap-x-1 text-sm">
             <PlutoNavbarButton
               v-if="isAdmin"

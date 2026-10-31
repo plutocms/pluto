@@ -4,7 +4,11 @@ import { activeNavGroups, nextOpenGroups } from './internal/admin-menu'
 // `to` is typed per-app via Nuxt's typed pages, so it differs across every
 // app that extends this layer. This menu only ever uses `href`, so drop `to`
 // here to avoid a cross-app type mismatch on that field.
-export type PlutoAdminMenuItem = Omit<NavigationMenuItem, 'to'>
+export type PlutoAdminMenuItem = Omit<NavigationMenuItem, 'to'> & {
+  /** The new page of a content type. PlutoAdminNavMenu shows a "+" for it. */
+  newTo?: string
+  newLabel?: string
+}
 
 function toMenuItem(item: PlutoNavItem, active: boolean): PlutoAdminMenuItem {
   return {
@@ -17,6 +21,8 @@ function toMenuItem(item: PlutoNavItem, active: boolean): PlutoAdminMenuItem {
     label: item.label,
     icon: item.icon,
     href: item.to,
+    newTo: item.newTo,
+    newLabel: item.newLabel,
     // Top-level items SPA-navigate instead of doing a full page load.
     // Children stay href-only.
     onSelect: item.to ? () => navigateTo(item.to) : undefined,
@@ -24,6 +30,8 @@ function toMenuItem(item: PlutoNavItem, active: boolean): PlutoAdminMenuItem {
       label: child.label,
       icon: child.icon,
       href: child.to,
+      newTo: child.newTo,
+      newLabel: child.newLabel,
       // A child that points at its parent's own path (Settings > General)
       // must not stay active on the sibling pages below that path.
       exact: child.to === item.to ? true : undefined,

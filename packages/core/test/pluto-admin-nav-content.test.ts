@@ -446,10 +446,43 @@ describe('usePlutoAdminNav — nav groups', () => {
     expect(group?.icon).toBe('i-g')
     expect(group?.to).toBeUndefined()
     expect(group?.children).toEqual([
-      { label: 'Docs', to: '/admin/content/doc', icon: 'i-doc' },
-      { label: 'Layouts', to: '/admin/content/layout', icon: undefined },
+      {
+        label: 'Docs',
+        to: '/admin/content/doc',
+        icon: 'i-doc',
+        newTo: '/admin/content/doc/new',
+        newLabel: 'New Doc',
+      },
+      {
+        label: 'Layouts',
+        to: '/admin/content/layout',
+        icon: undefined,
+        newTo: '/admin/content/layout/new',
+        newLabel: 'New Layout',
+      },
     ])
     expect(items.find((item) => item.id === 'content:doc')).toBeUndefined()
+  })
+
+  it('gives a type item the new page, unless the user may not write it', async () => {
+    const { definePlutoExtension, usePlutoPermissions, usePlutoAdminNav } =
+      await loadComposables()
+    definePlutoExtension({
+      id: 'test-permissions',
+      permissionsDriver: { id: 'driver', load: async () => [] },
+    })
+    layer(definePlutoExtension, [
+      post,
+      { ...contentType('note'), capabilities: { write: 'note:write' } },
+    ])
+    await usePlutoPermissions().load()
+
+    const items = usePlutoAdminNav().items.value
+    const byId = (id: string) => items.find((item) => item.id === id)
+
+    expect(byId('content:post')?.newTo).toBe('/admin/content/post/new')
+    expect(byId('content:post')?.newLabel).toBe('New Post')
+    expect(byId('content:note')?.newTo).toBeUndefined()
   })
 
   it('shows a group with one visible type as a normal item', async () => {

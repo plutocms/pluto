@@ -1,4 +1,5 @@
 import type { NavGroupBucket } from './internal/nav-groups'
+import { contentTypeNewPath } from '../../shared/utils/content-admin-paths'
 import { contentTypeMatches } from './internal/admin-menu'
 import { contentTextFor } from './internal/content-text'
 import { findNavGroup, splitByNavGroup } from './internal/nav-groups'
@@ -68,6 +69,17 @@ export function usePlutoAdminNav() {
     const isVisible = (type: PlutoContentType): boolean =>
       !type.capabilities?.read || can(type.capabilities.read)
 
+    // The "+" of the sidebar: the new page of a type the user may write.
+    const canWrite = (type: PlutoContentType): boolean =>
+      !type.capabilities?.write || can(type.capabilities.write)
+    const newLink = (type: PlutoContentType) =>
+      canWrite(type)
+        ? {
+            newTo: contentTypeNewPath(type),
+            newLabel: contentTextFor(type, i18n).newLabel,
+          }
+        : {}
+
     function typeNav(type: PlutoContentType): PlutoNavItem {
       const text = contentTextFor(type, i18n)
       const basePath = type.basePath ?? `/admin/content/${type.name}`
@@ -78,6 +90,7 @@ export function usePlutoAdminNav() {
         label: text.labelPlural,
         icon: type.icon,
         to: basePath,
+        ...newLink(type),
         enabled: () => isVisible(type),
         children: [
           {
@@ -107,6 +120,7 @@ export function usePlutoAdminNav() {
           label: contentTextFor(type, i18n).labelPlural,
           to: basePathOf(type),
           icon: type.icon,
+          ...newLink(type),
         })),
         match: types.flatMap((type) =>
           [type.newPath, type.editPath?.('').replace(/\/+$/, '')].filter(

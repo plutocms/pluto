@@ -55,6 +55,10 @@ export interface PlutoNavChild {
   label: string
   to: string
   icon?: string
+  /** The new page of a content type. The sidebar shows a "+" on hover. */
+  newTo?: string
+  /** The text of that "+" (`New <type>`). */
+  newLabel?: string
 }
 
 export interface PlutoNavItem extends PlutoEntry {
@@ -69,6 +73,10 @@ export interface PlutoNavItem extends PlutoEntry {
   match?: string[]
   children?: PlutoNavChild[]
   defaultOpen?: boolean
+  /** The new page of a content type, when the user may write it. The sidebar shows a "+" on hover. */
+  newTo?: string
+  /** The text of that "+" (`New <type>`). */
+  newLabel?: string
 }
 
 /** A navbar action that renders its own component. */

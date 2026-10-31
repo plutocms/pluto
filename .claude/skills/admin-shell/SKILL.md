@@ -315,12 +315,21 @@ Core registers one navbar action (`id: 'content'`, order 50): `PlutoContentBarAc
 type asks for its buttons with `adminBar` (`true`, or `{ new?, edit? }`; see the content-model
 skill). The `write` capability of the type decides; with no `write` capability, the button shows.
 
-- "New <type>" on every page where the bar shows. The link is `contentTypeNewPath(type)`. With two
-  or more types that can show a New button, the bar shows one "New" button (`pluto.content.newMenu`,
-  the plus icon) that opens a `UDropdownMenu`. The menu has one link per type: its singular label,
-  its icon, `contentTypeNewPath(type)`. The types without a `navGroup` come first. Each group follows
-  with its label as a menu label (see "Nav groups" in the extension-registry skill). The button is an
-  `<li>` with a `PlutoNavbarHit` trigger, and the menu uses `usePlutoAdminPortal`.
+- "New <type>" on every page where the bar shows. The link is `contentTypeNewPath(type)`. With one
+  type that can show a New button, the bar shows "New <type>". With two or more types, it shows one
+  "New" button (`pluto.content.newMenu`, the plus icon) that opens a `UDropdownMenu`
+  (`buildNewMenu` in `internal/new-menu.ts`). The types without a `navGroup` are direct items first
+  (singular label, type icon, new page). A group with two or more types is a submenu after them (the
+  label and icon of the group, one link per type). A group with one type shows that type as a direct
+  item. The groups follow the order of the group. The menu opens aligned to the start of the button,
+  has an arrow, and the trigger keeps the pressed background while the menu is open
+  (`group-data-[state=open]:bg-elevated` in `PlutoNavbarHit`). The button is an `<li>` with a
+  `PlutoNavbarHit` trigger, and the menu uses `usePlutoAdminPortal`. The user menu has an arrow too.
+  The New menu also opens on hover: after 120 ms on the button, and it closes 200 ms after the pointer
+  leaves the button and the portal target (the menu and its submenus render there, so a move into
+  the menu or a submenu keeps it open). It is a controlled `open`. Touch has no hover, so a tap
+  opens it. A click on a menu that the hover opened keeps it open (the dropdown would close it, as
+  the button counts as outside). Keyboard works as before. The user menu does not open on hover.
 - "Edit <type>" on a public page that called `usePlutoEditLink(type, id)`. The link is
   `contentTypeEditPath(type, id)`. It does not show on `/admin/**`: the form has its own View link.
 
@@ -405,3 +414,23 @@ use it with `aria-hidden="true"`, because the site name is next to it.
 Static files for a site: `/img/pluto.svg` (the logo, black wordmark), `/img/pluto.png` (white
 wordmark, for dark backgrounds), `/img/pluto-icon.svg` and `/img/pluto-icon.png` (the planet,
 96 px, for a favicon). A site that extends Pluto serves them from the layer's `public/` folder.
+
+## The "+" in the sidebar
+
+`PlutoAdminNavMenu` wraps `UNavigationMenu` (the sidebar and the small-screen slideover use it). Each
+content type item (a top-level type item, and each child of a group item) carries `newTo` and
+`newLabel` ("New <type>") from `usePlutoAdminNav`, only when the user may write the type. The item
+shows a small "+" at its right end on hover and on keyboard focus. It goes to the new page.
+
+A menu item is a link or an accordion button. A link cannot hold a link or a button (invalid HTML).
+So the "+" is an `aria-hidden` `<span>` in the `item-trailing` slot. Its click handler calls
+`preventDefault` and `stopPropagation`, so the item does not navigate, then calls `navigateTo`. A
+keyboard user presses Shift+Enter on the focused item. The slot replaces the default trailing
+content, so the component draws the chevron of a group again. The collapsed rail shows no "+".
+
+## Focus rings in the bar
+
+The ring of a bar control must not be clipped. The list of actions sits in a wrapper with
+`overflow-hidden`. The wrapper has `px-1 -mx-1`, so the ring of the first and the last action has
+room. The logo link has its own inset ring (`focus-visible:-outline-offset-2`), because it fills the
+full height of the bar.

@@ -138,6 +138,7 @@ const portalTarget = usePlutoAdminPortal()
       :ui="{ content: 'w-64' }"
       :modal="false"
       :portal="portalTarget ?? true"
+      :arrow="{ width: 14, height: 7 }"
     >
       <!--
         The button fills the height of the bar. The pill inside it keeps the
@@ -149,7 +150,7 @@ const portalTarget = usePlutoAdminPortal()
         type="button"
       >
         <div
-          class="outline-inverted/25 group-hover:bg-elevated group-focus-visible:bg-elevated flex h-8 items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 group-focus-visible:outline-3"
+          class="outline-inverted/25 group-hover:bg-elevated group-focus-visible:bg-elevated group-data-[state=open]:bg-elevated flex h-8 items-center gap-x-2 rounded-sm rounded-l-xl pr-2 pl-0.5 group-focus-visible:outline-3"
         >
           <UAvatar
             :src="avatar"

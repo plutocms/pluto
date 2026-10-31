@@ -63,7 +63,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           popover lists the children of a group. Nuxt UI keeps the state in the group cookie.
         -->
         <template #default="{ collapsed }">
-          <UNavigationMenu
+          <PlutoAdminNavMenu
             v-model="openGroups"
             :items="menu"
             :collapsed="collapsed"
