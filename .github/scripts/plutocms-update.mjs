@@ -58,7 +58,7 @@ export function lockVersions(lock, name) {
  * as `@plutocms/supabase` under `@plutocms/supabase-shop`.
  */
 export function lockPlutoNames(lock) {
-  const pattern = /"(@plutocms\/[a-z0-9-]+)@[0-9][^"]*"/g
+  const pattern = /"(@plutocms\/[a-z\d-]+)@\d[^"]*"/g
   return [...new Set([...lock.matchAll(pattern)].map((m) => m[1]))].sort()
 }
 
