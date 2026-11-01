@@ -163,6 +163,29 @@ describe('checkCssSetup', () => {
     expect(report.warnings.join('\n')).toMatch(/Found 2 Tailwind builds/)
   })
 
+  it('with the isolated build: no fallback, and the app entry is free', () => {
+    expect(checkCssSetup([], [], { isolated: true })).toEqual({
+      injectFallback: false,
+      warnings: [],
+    })
+    expect(
+      checkCssSetup([app({ plutoCss: false, nuxtUi: false })], [], {
+        isolated: true,
+      })
+    ).toEqual({ injectFallback: false, warnings: [] })
+  })
+
+  it('with the isolated build: still warns about a layer build', () => {
+    const report = checkCssSetup(
+      [app(), app({ file: '/layers/shop/app/assets/css/tailwind.css' })],
+      ['/layers/shop/'],
+      { isolated: true }
+    )
+    expect(report.warnings.join('\n')).toMatch(
+      /registers its own Tailwind build/
+    )
+  })
+
   it('warns when the app misses @plutocms/css or @nuxt/ui', () => {
     const report = checkCssSetup([app({ plutoCss: false, nuxtUi: false })], [])
 

@@ -90,6 +90,30 @@ A layer may ship `app/assets/css/pluto-layer.css`. Rules:
 - One import covers every layer: the generated file imports each layer's `pluto-layer.css`.
   A layer has no import name of its own.
 
+## The isolated build (experimental)
+
+`plutoCss: { isolated: true }` (default false) gives the admin a Tailwind build of its own. A site
+then needs no Tailwind, and a Tailwind site cannot clash with the admin.
+
+- The module writes `#build/pluto-admin.css` (`tailwindcss`, `@nuxt/ui`, `@plutocms/css`) and
+  adds it to `css`, last. Tailwind compiles it at the app's build, so the Nuxt UI classes of
+  `app.config` are in it.
+- The Vite plugin `pluto-css:scope-admin` runs `scopeCss` (`modules/pluto-css/scope.ts`) on the
+  output. Every rule matches only inside `[data-pluto-admin]` (<html> on an admin page) or
+  `[data-pluto-admin-scope]` (the admin bar and its portals): `:root`, `:host`, and `html`
+  become those roots, any other selector gets `:is(<root>, <root> *)` on its subject. The scope
+  adds (0,1,0), so the admin's utilities win over the app's in the admin, in any order.
+- The id of the file in a build is a Nuxt virtual id (`virtual:nuxt:…%2Fpluto-admin.css`).
+- No fallback entry, and no warning about the app's entry: the app's CSS is its own.
+- Measured (2026-11-01): the admin and the bar are right on a site with no Tailwind and on a
+  Tailwind site with a clashing theme; the public page gets no reset and no utility; an in-app
+  move from the admin to the site leaves the site as it was. Build time: no change. CSS: +4 KB
+  gzip on a site with no Tailwind; on a Tailwind site about twice the CSS (the app build still
+  has the admin classes, because Nuxt UI adds `@source` for every layer).
+- Open: load the admin build only for staff (now every visitor gets it); drop the admin sources
+  from the app build in this mode; theme variables on <html> of an admin page tie with the app's
+  (the admin wins because its build is last); `PlutoRoot` wrappers use Tailwind classes.
+
 ## Reliance on Nuxt UI
 
 The module adds no `@source`. Nuxt UI's `#build/ui.css` has an `@source "<layer>/app/**/*"`

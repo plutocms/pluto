@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   addTemplate,
+  addVitePlugin,
   defineNuxtModule,
   getLayerDirectories,
   resolvePath,
@@ -14,15 +15,23 @@ import {
   findLayerCssFiles,
   PLUTO_CSS_IMPORT,
   PLUTO_SITE_CSS_IMPORT,
+  renderPlutoAdminCss,
   renderPlutoCss,
   renderPlutoEntryCss,
   renderPlutoSiteCss,
   resolveRelativeImport,
 } from './css-entries'
+import { scopeCss } from './scope'
 
 export interface PlutoCssOptions {
   /** Warn at build time about a CSS setup that breaks the single build. Default true. */
   check?: boolean
+  /**
+   * Experimental. Style the admin and the admin bar with a build of their own,
+   * scoped to the admin, so the site needs no Tailwind and cannot clash with
+   * the admin. Default false.
+   */
+  isolated?: boolean
 }
 
 /**
@@ -50,7 +59,7 @@ export interface PlutoCssOptions {
  */
 export default defineNuxtModule<PlutoCssOptions>({
   meta: { name: 'pluto-css', configKey: 'plutoCss' },
-  defaults: { check: true },
+  defaults: { check: true, isolated: false },
   async setup(options, nuxt) {
     const logger = useLogger('pluto-css')
     const layers = getLayerDirectories(nuxt)
@@ -112,7 +121,30 @@ export default defineNuxtModule<PlutoCssOptions>({
     const layerRoots = layers
       .map((layer) => layer.root.replaceAll('\\', '/'))
       .filter((root) => root !== appRoot)
-    const report = checkCssSetup(entries, layerRoots)
+    const report = checkCssSetup(entries, layerRoots, {
+      isolated: options.isolated,
+    })
+
+    // The isolated admin build: Tailwind, Nuxt UI, and the Pluto layers in a
+    // build of their own. Tailwind compiles it as usual (so the Nuxt UI classes
+    // of app.config are in it), then this plugin scopes every rule to the admin.
+    if (options.isolated) {
+      addTemplate({
+        filename: 'pluto-admin.css',
+        write: true,
+        getContents: renderPlutoAdminCss,
+      })
+      nuxt.options.css.push('#build/pluto-admin.css')
+      addVitePlugin({
+        name: 'pluto-css:scope-admin',
+        transform(code, id) {
+          // A file path, or a Nuxt virtual id (`virtual:nuxt:…%2Fpluto-admin.css`).
+          if (/(?:[\\/]|%2F)pluto-admin\.css(?:\?|$)/.test(id)) {
+            return { code: scopeCss(code), map: null }
+          }
+        },
+      })
+    }
 
     // Only an app with no Tailwind entry gets the fallback file. In an app with
     // its own entry, the file would be a second Tailwind entry on disk, and
