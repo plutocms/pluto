@@ -51,7 +51,7 @@ policies shared by every project here.
 - Pluto UI tokens: the official palette (tholin, haze, heart, kuiper) and fonts (Public Sans,
   Fredoka) in `@theme`, for every app. The admin theme is generated from them.
   @.claude/skills/admin-theme/SKILL.md
-- Pluto site theme: the opt-in `#build/pluto-site.css` gives a public site the look of the Pluto
+- Pluto site theme: the opt-in `@import '@plutocms/css/site'` gives a public site the look of the Pluto
   docs (the fonts, the shades of the app colors, a deep-space dark mode, `pluto-sky`,
   `pluto-site-header`). The official templates use it.
   @.claude/skills/single-tailwind-build/SKILL.md
@@ -67,7 +67,7 @@ policies shared by every project here.
 - Settings pages: `/admin/settings` is a section with tabs. A layer adds a tab with a `settingsPages` entry and a page file at `pages/admin/settings/<x>.vue`. The tabs show with 2 or more pages, the sidebar and the command palette list them, and a tab can need a capability (`'*'` is admin only). The capability picker groups by layer. @.claude/skills/extension-registry/SKILL.md
 - Mail: a mail driver contract (`sendPlutoMail`, `registerMailDriver`) with Resend, dev (console and Mailpit) and none drivers, plain-TypeScript email templates (test, invite) translated by a server translator, and a guided `Settings > Email` page (admin only) that checks the key, adds and verifies a domain, and tests the setup. Secrets stay in the environment. @.claude/skills/mail/SKILL.md
 - Single Tailwind build: the app owns the only Tailwind build. The pluto-css module generates
-  `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
+  `#build/pluto.css` from each layer's `pluto-layer.css` (the app imports it as `@plutocms/css`), adds a fallback entry, and warns
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md
 - Git CMS: a standalone CMS with Markdown posts in a Git repo. Out of the box it publishes to the
   local Git repo (dev only: each save is a local commit, `commit.local`); a GitHub App publishes

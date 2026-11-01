@@ -2,7 +2,7 @@
  * The docs layer's CSS. It is not a Tailwind entry.
  *
  * The app's CSS entry owns the one Tailwind build of the app. It imports this
- * file through `#build/pluto.css`. This file imports no Tailwind, adds no
+ * file through `@plutocms/css`. This file imports no Tailwind, adds no
  * @theme and no @source. See the single-tailwind-build skill in pluto.
  *
  * It offsets a Nuxt UI site (a docs site) under the Pluto admin bar. The bar

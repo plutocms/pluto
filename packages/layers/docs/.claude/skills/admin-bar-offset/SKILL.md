@@ -11,7 +11,7 @@ apply to them.
 ## Files
 
 - `app/assets/css/pluto-layer.css` — the rules. It is not a Tailwind entry: it imports no
-  Tailwind and adds no `@theme` and no `@source`. The app reads it through `#build/pluto.css`.
+  Tailwind and adds no `@theme` and no `@source`. The app reads it through `@plutocms/css`.
 
 ## The rules
 
@@ -30,7 +30,7 @@ apply to them.
 ## In the app
 
 - The CSS entry of the app sets `:root:not([data-pluto-admin]) { --ui-header-height: 4rem }`, after
-  `@import '#build/pluto.css'`. Pluto sets `--ui-header-height: 2.5rem` for the admin.
+  `@import '@plutocms/css'`. Pluto sets `--ui-header-height: 2.5rem` for the admin.
 - The header gets the class: `<AppHeader class="pluto-header-offset" />`. If the app lints
   Tailwind class names, add `pluto-header-offset` to the ignore list of the rule.
 

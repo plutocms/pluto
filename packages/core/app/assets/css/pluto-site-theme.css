@@ -4,8 +4,8 @@
  *
  *   @import 'tailwindcss';
  *   @import '@nuxt/ui';
- *   @import '#build/pluto.css';
- *   @import '#build/pluto-site.css';
+ *   @import '@plutocms/css';
+ *   @import '@plutocms/css/site';
  *
  * It does not choose the colors. Set them in app.config.ts, for example
  * `ui.colors: { primary: 'tholin', secondary: 'haze', neutral: 'kuiper' }`. The rules below use

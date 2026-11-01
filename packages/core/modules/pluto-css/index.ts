@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   addTemplate,
@@ -11,6 +12,8 @@ import {
   analyzeCssEntry,
   checkCssSetup,
   findLayerCssFiles,
+  PLUTO_CSS_IMPORT,
+  PLUTO_SITE_CSS_IMPORT,
   renderPlutoCss,
   renderPlutoEntryCss,
   renderPlutoSiteCss,
@@ -27,13 +30,17 @@ export interface PlutoCssOptions {
  *
  *   @import 'tailwindcss';
  *   @import '@nuxt/ui';
- *   @import '#build/pluto.css';
+ *   @import '@plutocms/css';
  *
- * - `#build/pluto-site.css` (opt-in) imports the Pluto site theme of core
- *   (app/assets/css/pluto-site-theme.css): the look of the Pluto docs for a site.
- * - `#build/pluto.css` imports each layer's app/assets/css/pluto-layer.css
- *   (tokens, the admin theme). Nuxt UI already adds `@source` for every
- *   layer's app/ dir, so this file adds no sources.
+ * - `@plutocms/css` is an alias of the generated `#build/pluto.css`. It imports
+ *   each layer's app/assets/css/pluto-layer.css (tokens, the admin theme), so one
+ *   import covers every layer of the app. Nuxt UI already adds `@source` for
+ *   every layer's app/ dir, so this file adds no sources.
+ * - `@plutocms/css/site` (opt-in) is an alias of `#build/pluto-site.css`: the
+ *   Pluto site theme of core (app/assets/css/pluto-site-theme.css), the look of
+ *   the Pluto docs for a site.
+ * - The names are aliases, not npm packages, so they resolve with every package
+ *   manager, also when the app installs only an outer layer.
  * - An app with no Tailwind entry (a layer repo run on its own, or an app
  *   with no CSS) gets the fallback entry `#build/pluto-entry.css`.
  * - The module warns about a layer that registers its own Tailwind build,
@@ -59,7 +66,7 @@ export default defineNuxtModule<PlutoCssOptions>({
     })
 
     // The opt-in site theme of core. An app that wants the look of the Pluto
-    // docs imports `#build/pluto-site.css` after `#build/pluto.css`.
+    // docs imports `@plutocms/css/site` after `@plutocms/css`.
     const siteTheme = fileURLToPath(
       new URL('../../app/assets/css/pluto-site-theme.css', import.meta.url)
     )
@@ -68,6 +75,18 @@ export default defineNuxtModule<PlutoCssOptions>({
       write: true,
       getContents: () => renderPlutoSiteCss(siteTheme, nuxt.options.buildDir),
     })
+
+    // The names that an app's CSS entry imports. Tailwind resolves `@import`
+    // through the Vite aliases. `/site` comes first: an alias also matches the
+    // paths under its name, so `@plutocms/css` would take `@plutocms/css/site`.
+    nuxt.options.alias[PLUTO_SITE_CSS_IMPORT] = join(
+      nuxt.options.buildDir,
+      'pluto-site.css'
+    )
+    nuxt.options.alias[PLUTO_CSS_IMPORT] = join(
+      nuxt.options.buildDir,
+      'pluto.css'
+    )
 
     addTemplate({
       filename: 'pluto-entry.css',
