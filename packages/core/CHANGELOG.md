@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.44.1](https://github.com/plutocms/pluto/compare/v0.44.0...v0.44.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* write the fallback CSS entry only when the app has no Tailwind entry ([#342](https://github.com/plutocms/pluto/issues/342)) ([52e5916](https://github.com/plutocms/pluto/commit/52e59160b496ad6bf64a833cb51b6867723a22d6))
+
 ## [0.44.0](https://github.com/plutocms/pluto/compare/v0.43.0...v0.44.0) (2026-11-01)
 
 
