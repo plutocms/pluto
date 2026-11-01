@@ -28,13 +28,13 @@ npm install @plutocms/core
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
-  extends: [['@plutocms/core', { install: true }]],
+  extends: ['@plutocms/core'],
 })
 ```
 
 Core is the base layer every Pluto app extends. With no other layer, Pluto is a Markdown CMS on
 Git: posts are files in your repository, and each save is a commit. It works out of the box with your local Git repo in development. Connect GitHub
-to publish from a deployed site. See [GitHub CMS](https://pluto.vulmix.dev/docs/github-cms/quickstart).
+to publish from a deployed site. See [Git CMS](https://pluto.vulmix.dev/docs/git-cms/quickstart).
 
 ## Use it headless
 
@@ -48,14 +48,14 @@ See [Public API](https://pluto.vulmix.dev/docs/core/public-api).
 
 ## Layers
 
-| Package                   | What it adds                                                |
-| ------------------------- | ----------------------------------------------------------- |
-| `@plutocms/core`          | The core: the admin, the content model, and the GitHub CMS. |
-| `@plutocms/docs`          | A visual editor for the pages of a Nuxt Content site.       |
-| `@plutocms/supabase`      | A Supabase backend: database, auth, users, and roles.       |
-| `@plutocms/supabase-blog` | Blog posts on Supabase.                                     |
-| `@plutocms/supabase-shop` | Products on Supabase.                                       |
-| `@plutocms/3d`            | 3D models in the media library, and a viewer.               |
+| Package                   | What it adds                                             |
+| ------------------------- | -------------------------------------------------------- |
+| `@plutocms/core`          | The core: the admin, the content model, and the Git CMS. |
+| `@plutocms/docs`          | A visual editor for the pages of a Nuxt Content site.    |
+| `@plutocms/supabase`      | A Supabase backend: database, auth, users, and roles.    |
+| `@plutocms/supabase-blog` | Blog posts on Supabase.                                  |
+| `@plutocms/supabase-shop` | Products on Supabase.                                    |
+| `@plutocms/3d`            | 3D models in the media library, and a viewer.            |
 
 Read [Layers](https://pluto.vulmix.dev/docs/core/layers) to see how they fit together.
 

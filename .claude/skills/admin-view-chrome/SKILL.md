@@ -332,7 +332,7 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
 - Every other field goes in a tab of the right panel, sorted by `order`. The tab takes the label of
   the type ("Post", "Page"), else "Page" (`pluto.canvas.page`). `region` does not matter in this
   layout.
-- The core post editor (`widget: 'post-canvas'`, see the github-cms skill) is a canvas widget: an
+- The core post editor (`widget: 'post-canvas'`, see the git-cms skill) is a canvas widget: an
   outline in the left panel, and a Visual mode or a Markdown mode with a preview of the site.
 - A widget adds panels with `PlutoContentCanvasPanel` (props `side: 'left' | 'right'`, `id`,
   `label?`, `icon?`; slot: the panel content):
@@ -493,8 +493,8 @@ definePlutoExtension({
 `usePlutoContentToolbarItems(typeName)` returns the matching entries as a computed (the same match
 rule as `usePlutoContentActions`; the registry sorts by `order`). `PlutoContentForm` passes the list
 to `PlutoContentFormHeader` in the `toolbarItems` prop. The component must show nothing when it has
-nothing to say, because the item has no `show` test. The GitHub CMS uses this for its build status
-(see the github-cms skill). Tests: `test/content-toolbar-items.test.ts`.
+nothing to say, because the item has no `show` test. The Git CMS uses this for its build status
+(see the git-cms skill). Tests: `test/content-toolbar-items.test.ts`.
 
 ## Known limits, out of scope for this pass
 

@@ -82,7 +82,7 @@ Typing in one block, or in one setting, joins in one undo step (600 ms).
 
 ## Byte for byte
 
-Open and save with no edit changes nothing, so the GitHub CMS makes no commit.
+Open and save with no edit changes nothing, so the Git CMS makes no commit.
 
 - The state never emits at the start. `test/block-editor-state.test.ts` checks the 48 pages.
 - Tiptap writes the Markdown in its own form when it loads a text. `PlutoBlockTextEditor` ignores

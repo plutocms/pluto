@@ -24,7 +24,7 @@ see the [block editor](../block-editor/SKILL.md) skill) and **Markdown** (raw Ma
 ## The Markdown editor (`PlutoMarkdownCodeEditor` of core)
 
 The Markdown editor is `PlutoMarkdownCodeEditor` of `@plutocms/core` (CodeMirror 6). It came from
-this layer; the post editor of core uses it too. The github-cms skill of pluto ("Markdown code
+this layer; the post editor of core uses it too. The git-cms skill of pluto ("Markdown code
 editor") describes it: the format shown as the author types, the MDC line colors
 (`mdcLineKinds`), the quick formats (`formatMarkdown`) and their shortcuts, search and history.
 

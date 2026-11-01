@@ -18,7 +18,7 @@ import {
   signIn,
 } from './fixtures/github-auth-harness'
 
-// The posts of the GitHub CMS through the public API of core (`/api/pluto/v1/content/post`).
+// The posts of the Git CMS through the public API of core (`/api/pluto/v1/content/post`).
 
 vi.mock(
   '../modules/pluto-github/runtime/server/utils/github-config',

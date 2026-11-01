@@ -16,7 +16,7 @@ npm install @plutocms/docs
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
-  extends: [['@plutocms/docs', { install: true }]],
+  extends: ['@plutocms/docs'],
 
   plutoDocs: {
     types: [{ preset: 'docs', name: 'doc', source: '' }],

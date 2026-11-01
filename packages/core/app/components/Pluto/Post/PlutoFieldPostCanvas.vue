@@ -11,7 +11,7 @@ import PlutoPostPreviewFrame from './PlutoPostPreviewFrame.vue'
 // on the right. The compose panel shows one of two editors, and the switch in its
 // footer picks it:
 //
-// - Visual: the rich text widget that the app has for `richtext` (the GitHub CMS
+// - Visual: the rich text widget that the app has for `richtext` (the Git CMS
 //   Markdown editor, or the editor of a layer), with `canvas`, so it fills the
 //   height and has no label.
 // - Markdown: `PlutoMarkdownCodeEditor` (CodeMirror, with syntax colors). It loads

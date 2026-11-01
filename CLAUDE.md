@@ -19,7 +19,7 @@ Run them at the root. The root scripts call the packages.
   `packages/core`. The published packages have no install script.
 - `bun run dev`: run the playground (`playground/`), an app that extends `@plutocms/core` and
   `@plutocms/3d` by name. The workspace links the names to `packages/`. Do not save content or
-  upload files in it with the GitHub CMS: the local Git commits go into this repo.
+  upload files in it with the Git CMS: the local Git commits go into this repo.
 - `bun run test`: run the Vitest suites of core (`packages/core/test/`) and of the add-ons. The tests are plain Vitest, with no Nuxt
   environment. Mock the Nuxt imports (see `test/fixtures/`).
 - `bun run lint`, `bun run typecheck`, `bun run build`.
@@ -43,6 +43,6 @@ CI runs `lint`, `typecheck`, `test` and `build`. Run all four before you open a 
 
 - Put every user-facing string in `packages/core/i18n/locales/en.json` and `pt-BR.json`.
 - Admin code uses Nuxt UI semantic classes, not raw Tailwind colors (see the `admin-theme` skill).
-- The GitHub CMS (`modules/pluto-github`) is `'auto'` by default: on, unless a backend layer is present. When it is off, it
+- The Git CMS (`modules/pluto-github`) is `'auto'` by default: on, unless a backend layer is present. When it is off, it
   must add nothing to the app. Keep its runtime files on explicit imports.
 - A new content adapter must pass `packages/core/test/contracts/content-adapter.contract.ts`.

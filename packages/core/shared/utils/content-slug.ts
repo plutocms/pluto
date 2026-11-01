@@ -6,7 +6,7 @@ export const SLUG_MAX_LENGTH = 100
  * "pao-de-mel". The result is lowercase ASCII, with single dashes. It can
  * be an empty string.
  *
- * The form and the GitHub CMS both use this function.
+ * The form and the Git CMS both use this function.
  */
 export function slugifyTitle(value: string): string {
   return value

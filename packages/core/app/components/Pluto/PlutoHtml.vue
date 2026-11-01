@@ -3,7 +3,7 @@ import { tv } from '@nuxt/ui/utils/tv'
 import theme from '#build/ui/editor'
 
 // Shows the `html` of a public item (the public API of Pluto), with readable prose styles. It
-// works with every backend: the GitHub CMS and `@plutocms/supabase-blog` both send the body as
+// works with every backend: the Git CMS and `@plutocms/supabase-blog` both send the body as
 // sanitized HTML, so the string is safe to set as `innerHTML`. This component never parses or
 // sanitizes. Do not pass any other HTML to it.
 const props = withDefaults(

@@ -64,7 +64,7 @@ function numberOrNull(value: unknown): number | null {
 }
 
 /**
- * The media driver of the GitHub CMS. A file and its record go into the repo
+ * The media driver of the Git CMS. A file and its record go into the repo
  * in one commit:
  *
  * - the file: `public/media/<yyyy>/<mm>/<name>-<suffix>.<ext>`, served at

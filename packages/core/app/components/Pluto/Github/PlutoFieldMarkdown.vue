@@ -12,7 +12,7 @@ import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 // when it saves. So the widget has a Source mode (`PlutoMarkdownSource`). The
 // `editor` option of the field picks the first mode: `auto` (default) opens
 // Source when the text has such syntax. Visual is off while the text has it.
-// See the github-cms skill.
+// See the git-cms skill.
 const props = defineProps<{
   field: PlutoTextField
   modelValue: unknown

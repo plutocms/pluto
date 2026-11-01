@@ -2,7 +2,7 @@
 // core, so an app or a layer that still names it keeps working, with one copy of core. It
 // prints a warning when Nuxt loads it.
 export default defineNuxtConfig({
-  extends: [['@plutocms/core', { install: true }]],
+  extends: ['@plutocms/core'],
 
   hooks: {
     'modules:done': () => {

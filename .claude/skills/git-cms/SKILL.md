@@ -1,4 +1,4 @@
-# GitHub CMS
+# Git CMS
 
 Pluto core gets an optional standalone CMS. Blog posts are Markdown files with YAML frontmatter in
 a GitHub repo. Editors change them in the Pluto admin. The public site reads them live through the
@@ -765,10 +765,10 @@ portal`. Any other element is unwrapped: the tag goes and the text stays.
 the same pattern as `PlutoProse` (a plain camelCase `innerHTML` prop, not `v-html`, so SSR keeps
 it). It never parses or sanitizes on the client. The typography is the base of the Nuxt UI editor
 theme (semantic tokens such as `text-highlighted` and `border-default`), plus table styles. The
-GitHub CMS and `@plutocms/supabase-blog` both send sanitized `html`, so one site page works with
+Git CMS and `@plutocms/supabase-blog` both send sanitized `html`, so one site page works with
 either backend. Pass only the `html` of a public item to it.
 
-`PlutoMarkdown` (`app/components/Pluto/Github/PlutoMarkdown.vue`) is the older GitHub CMS name. It
+`PlutoMarkdown` (`app/components/Pluto/Github/PlutoMarkdown.vue`) is the older Git CMS name. It
 renders `PlutoHtml`, and attributes pass through. The module registers it with `addComponent`,
 because the folder name would make the auto name `PlutoGithubPlutoMarkdown`. New code uses
 `PlutoHtml`.

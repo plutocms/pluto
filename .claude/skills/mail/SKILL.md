@@ -47,7 +47,7 @@ build environment.
 | `NUXT_PLUTO_MAIL_MAILPIT_URL`    | The URL of a Mailpit server, for example `http://localhost:8025`. Optional.       |
 
 v1 keeps every secret in the environment. Nothing stores a key in the database, in the settings
-table, or in the GitHub CMS repo. A later version can add a store (`registerMailStore`) that keeps
+table, or in the Git CMS repo. A later version can add a store (`registerMailStore`) that keeps
 the key in a vault. The environment always wins over a store.
 
 ## Choosing the driver

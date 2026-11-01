@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   // The pages are Markdown files, so the fixed blog post type is off. A docs
   // edit must redeploy the site, so the commit message has no `[skip ci]`
   // marker by default. An app can change both. The other `plutoGithub` options
-  // have defaults in core (see the github-cms skill in pluto).
+  // have defaults in core (see the git-cms skill in pluto).
   plutoGithub: {
     postType: false,
     commit: {

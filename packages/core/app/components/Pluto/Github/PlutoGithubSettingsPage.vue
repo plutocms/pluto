@@ -3,7 +3,7 @@
 // `/admin/settings/github` with `extendPages`, only when the CMS is on. The tab
 // is the `settingsPages` entry of the CMS client plugin. The panel is the same
 // checklist as the login card. In development, the Create button writes `.env`.
-// The file lives under `app/` so Tailwind scans it. See the github-cms skill.
+// The file lives under `app/` so Tailwind scans it. See the git-cms skill.
 const { t } = usePlutoI18n()
 
 useHead({

@@ -18,7 +18,7 @@ policies shared by every project here.
   delete routes backed by a `PlutoContentAdapter` a backend layer implements, and a generated
   admin UI (list/form components, eight built-in field widgets, generated
   `/admin/content/**` pages with catch-all id routes, `contentIdPath`, `listContentTypes`, and nav/pages
-  derivation). Real adapters exist: the supabase layer (PostgREST) and the GitHub CMS (Markdown files) each provide a `PlutoContentAdapter`.
+  derivation). Real adapters exist: the supabase layer (PostgREST) and the Git CMS (Markdown files) each provide a `PlutoContentAdapter`.
   @.claude/skills/content-model/SKILL.md
 - Public API (headless): a versioned, read-only API for any framework or stack.
   `GET /api/pluto/v1/content/<type>` and `/<type>/<id>` serve the published items of a type that sets
@@ -69,7 +69,7 @@ policies shared by every project here.
 - Single Tailwind build: the app owns the only Tailwind build. The pluto-css module generates
   `#build/pluto.css` from each layer's `pluto-layer.css`, adds a fallback entry, and warns
   about a wrong CSS setup. @.claude/skills/single-tailwind-build/SKILL.md
-- GitHub CMS: a standalone CMS with Markdown posts in a Git repo. Out of the box it publishes to the
+- Git CMS: a standalone CMS with Markdown posts in a Git repo. Out of the box it publishes to the
   local Git repo (dev only: each save is a local commit, `commit.local`); a GitHub App publishes
   from a deployed site. The module is `pluto-github` (config
   `plutoGithub`, env `NUXT_PLUTO_GITHUB_*` and `PLUTO_GITHUB_*`, routes `/api/_pluto/github/*`, names
@@ -96,7 +96,7 @@ policies shared by every project here.
   and an Info popover with links to the Action or the build. A content type with `liveOnSave` shows
   "Live" at once after a save and the static build as a small spinner. The file adapter has
   `readFile` (safe relative paths) and `_frontmatter` on `get`, and core has the auto-imported
-  `markPublicRead(event)` for layers. @.claude/skills/github-cms/SKILL.md
+  `markPublicRead(event)` for layers. @.claude/skills/git-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

@@ -58,7 +58,7 @@ pattern as [permissions](../permissions/SKILL.md). Read both first. This feature
 - `app/plugins/pluto-core-registrations.ts` (extended) — registers the eight built-in widgets,
   alongside core's existing Home/Settings nav anchors. It also registers the `post-canvas` widget
   by name only (`widget: 'post-canvas'`): the post editor of a Markdown `richtext` body (see the
-  github-cms skill). A `richtext` widget that the post editor shows must accept the `canvas`
+  git-cms skill). A `richtext` widget that the post editor shows must accept the `canvas`
   prop.
 - `app/composables/pluto-admin-nav.ts`, `pluto-admin-pages.ts` (extended) — a third nav source,
   and two page-metadata entries, synthesized per auto-routed content type.
@@ -490,11 +490,11 @@ Core ships eight widgets, under `app/components/Pluto/Content/fields/`:
 | `select`           | `PlutoFieldSelect`    | `USelect`, mapping `field.options` to `{ label, value }`                                                                                                                       |
 | `reference`        | `PlutoFieldReference` | `UInputMenu`, populated from `field.optionsUrl` when set                                                                                                                       |
 
-The GitHub CMS Markdown widget reads `PlutoTextField.editor` (`'auto' | 'visual' | 'source'`,
+The Git CMS Markdown widget reads `PlutoTextField.editor` (`'auto' | 'visual' | 'source'`,
 default `auto`) for a `richtext` field. It picks the first mode of the Visual/Source switch (see
-the github-cms skill). Other widgets ignore it.
+the git-cms skill). Other widgets ignore it.
 
-**`richtext` has no core widget, on purpose.** A layer registers it (the GitHub CMS, `supabase-blog`),
+**`richtext` has no core widget, on purpose.** A layer registers it (the Git CMS, `supabase-blog`),
 through its own `contentFieldWidgets` entry. `media` has the core widget, `PlutoFieldMedia`: the
 picker of the core media library (see the media skill).
 
@@ -578,7 +578,7 @@ shows the raw value as text.
 
 `slugifyTitle(value)` (`shared/utils/content-slug.ts`, auto-imported) makes a slug from a title:
 it strips accents ("Pão de Mel" becomes `pao-de-mel`), lowercases, joins words with single
-dashes, and cuts at 100 characters. The form and the GitHub CMS both use it.
+dashes, and cuts at 100 characters. The form and the Git CMS both use it.
 
 Both components gate write/delete visibility with the same rule:
 
@@ -716,7 +716,7 @@ optional fields to `PlutoContentType`, and one more field to `PlutoContentTypeCa
   "View" link when it returns a value.
 - `liveOnSave?: boolean` — the public site shows a save at once, because it reads this type at run
   time (a layer that serves from the content store). A deploy may still run. The build indicator of the
-  edit form (GitHub CMS) then shows "Live" right after a save, a small spinner by the Info button while
+  edit form (Git CMS) then shows "Live" right after a save, a small spinner by the Info button while
   the static build runs, and a warning in the popover when that build fails. Default false: the indicator
   shows "Publishing…" until the build passes.
 - `capabilities.publish?: string` — the capability required to publish. Falls back to
@@ -763,7 +763,7 @@ skill, "The form context" and "The canvas layout".
 ## Nested ids and `compareContentIds`
 
 `PlutoContentType.files` (`nested`, `exclude`, `frontmatter.read|write`) is read by the file
-adapters only (see the github-cms skill). A nested type has ids with slashes.
+adapters only (see the git-cms skill). A nested type has ids with slashes.
 `compareContentIds(a, b)` (shared util) is an `Array.sort` comparator for such ids. In each
 segment, `index` comes first, then a numeric prefix (`2.name`) as a number, then the name.
 

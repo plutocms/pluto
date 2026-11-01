@@ -30,7 +30,7 @@ interface LayerConfigMeta {
  * Pluto admin. `plutoGithub.enabled` is `'auto'` by default: the CMS is on unless
  * a backend layer is present or the app sets `false`. An explicit `true` with a
  * backend layer logs an error. When the CMS is off, the module adds nothing to
- * the app. See the github-cms skill.
+ * the app. See the git-cms skill.
  */
 export default defineNuxtModule<PlutoGithubOptions>({
   meta: { name: 'pluto-github', configKey: 'plutoGithub' },
@@ -120,8 +120,12 @@ export default defineNuxtModule<PlutoGithubOptions>({
       skipDeploy: resolved.commit.skipDeploy,
     }
     // The media library of core uses the GitHub driver (runtime/server/media.ts).
-    const media = nuxt.options.runtimeConfig.public.plutoMedia as Record<string, unknown> | undefined
-    nuxt.options.runtimeConfig.public.plutoMedia = { ...media, driver: 'github' } as typeof nuxt.options.runtimeConfig.public.plutoMedia
+    const media = nuxt.options.runtimeConfig.public.plutoMedia as
+      Record<string, unknown> | undefined
+    nuxt.options.runtimeConfig.public.plutoMedia = {
+      ...media,
+      driver: 'github',
+    } as typeof nuxt.options.runtimeConfig.public.plutoMedia
 
     const resolver = createResolver(import.meta.url)
     const server = (file: string) => resolver.resolve('./runtime/server', file)
@@ -195,7 +199,7 @@ export default defineNuxtModule<PlutoGithubOptions>({
       }
     })
 
-    // Setup routes: the checks and the App Manifest flow. See the github-cms skill.
+    // Setup routes: the checks and the App Manifest flow. See the git-cms skill.
     // They are static, so they win over the `:type/:slug` route below.
     addServerHandler({
       route: '/api/_pluto/github/setup/status',
