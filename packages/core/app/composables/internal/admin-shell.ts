@@ -9,6 +9,7 @@ import type {
 export const ADMIN_LOGIN_PATH = '/admin/login'
 export const ADMIN_HOME_PATH = '/admin/home'
 export const ADMIN_NO_ACCESS_PATH = '/admin/no-access'
+export const ADMIN_NOT_CONFIGURED_PATH = '/admin/not-configured'
 
 const FAKE_ORIGIN = 'http://pluto.invalid'
 
@@ -109,6 +110,40 @@ export interface GuardInput {
 
 function firstString(value: unknown): unknown {
   return Array.isArray(value) ? value[0] : value
+}
+
+export interface DriverInput {
+  path: string
+  /** An auth driver is registered. */
+  hasDriver: boolean
+  /** The app runs in dev (`import.meta.dev`). */
+  dev: boolean
+}
+
+/**
+ * Decides what the route guard does about the auth driver, before the sign-in
+ * rules. It returns `undefined` when a driver is registered and the sign-in
+ * rules apply. It never touches a path outside `/admin`.
+ *
+ * - No driver in production: the backend is missing or did not load (both
+ *   backends register a driver). Every admin path goes to the not-configured
+ *   page, so the admin pages do not show to everyone.
+ * - No driver in dev: allow, so admin pages can be built with no backend.
+ * - A driver, on the not-configured page: go to the admin home.
+ */
+export function driverDecision(input: DriverInput): GuardDecision | undefined {
+  const { path, hasDriver, dev } = input
+  if (!isAdminPath(path)) {
+    return { action: 'allow' }
+  }
+  const onPage = trimSlash(path) === ADMIN_NOT_CONFIGURED_PATH
+  if (hasDriver) {
+    return onPage ? { action: 'redirect', to: ADMIN_HOME_PATH } : undefined
+  }
+  if (dev || onPage) {
+    return { action: 'allow' }
+  }
+  return { action: 'redirect', to: ADMIN_NOT_CONFIGURED_PATH }
 }
 
 /**

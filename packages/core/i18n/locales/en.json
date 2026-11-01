@@ -597,6 +597,10 @@
       "goToSite": "Go to the site",
       "signOut": "Sign out"
     },
+    "notConfigured": {
+      "title": "The admin is not set up",
+      "description": "This site has no sign-in for the admin. If you run this site, make sure that the server can load its content backend, and check the environment variables of the server."
+    },
     "post": {
       "previewTitle": "Post preview",
       "previewBadge": "Preview",
