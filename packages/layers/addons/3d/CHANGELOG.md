@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/plutocms/pluto/compare/3d-v0.2.1...3d-v0.3.0) (2026-11-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* the GitHub CMS is the Git CMS, and plutoLayer returns the source only ([#330](https://github.com/plutocms/pluto/issues/330))
+
+### Features
+
+* the GitHub CMS is the Git CMS, and plutoLayer returns the source only ([#330](https://github.com/plutocms/pluto/issues/330)) ([2aaedfe](https://github.com/plutocms/pluto/commit/2aaedfe32ad25e5e246994a998b0bfab32b63285))
+
 ## [0.2.1](https://github.com/plutocms/pluto/compare/3d-v0.2.0...3d-v0.2.1) (2026-10-30)
 
 
