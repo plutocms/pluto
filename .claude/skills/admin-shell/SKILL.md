@@ -50,11 +50,12 @@ Core adds no `ClientOnly` around the whole bar and uses no top-level await in it
 
 ## Routes
 
-| File                               | Route              | Purpose                                                                                            |
-| ---------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------- |
-| `app/pages/admin.vue`              | `/admin` (parent)  | `definePageMeta({ layout: 'admin' })` and `<NuxtPage />`. Every `/admin/**` page is a child.       |
-| `app/pages/admin/(auth)/login.vue` | `/admin/login`     | The login page. It sets the `auth` layout and renders `PlutoAdminAuthCard`.                        |
-| `app/pages/admin/no-access.vue`    | `/admin/no-access` | The page for a signed-in user with no capability. It uses the `auth` layout. See "The staff step". |
+| File                                 | Route                   | Purpose                                                                                                     |
+| ------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `app/pages/admin.vue`                | `/admin` (parent)       | `definePageMeta({ layout: 'admin' })` and `<NuxtPage />`. Every `/admin/**` page is a child.                |
+| `app/pages/admin/(auth)/login.vue`   | `/admin/login`          | The login page. It sets the `auth` layout and renders `PlutoAdminAuthCard`.                                 |
+| `app/pages/admin/no-access.vue`      | `/admin/no-access`      | The page for a signed-in user with no capability. It uses the `auth` layout. See "The staff step".          |
+| `app/pages/admin/not-configured.vue` | `/admin/not-configured` | The page for an admin with no auth driver, in production. It uses the `auth` layout. See "The route guard". |
 
 A child that must not use the admin layout (the auth pages) sets its own layout in
 `definePageMeta`. The `(auth)` folder is a route group: it adds no path segment.
@@ -71,9 +72,13 @@ these paths.
 
 `app/middleware/pluto-admin-auth.global.ts` is a global route middleware.
 
-1. With no auth driver, it does nothing. A backend with its own guard (supabase 0.10, with its own
-   `auth` middleware) is not affected.
-2. It never touches a path outside `/admin`.
+1. It never touches a path outside `/admin`.
+2. With no auth driver, `driverDecision` decides. In production, every admin path goes to
+   `/admin/not-configured`: both backends register a driver, so no driver means the backend is
+   missing or did not load (the Git CMS turns off with no repo), and the admin pages must not show
+   to everyone. In dev, the admin opens, so admin pages can be built with no backend. With a
+   driver, `/admin/not-configured` goes to the admin home. The server routes refuse every call
+   with no driver in both cases; this step only decides what the browser shows.
 3. It awaits `driver.ready()`. A rejection counts as signed out.
 4. It calls `driver.guard(to)` when the driver has one. A returned local path that is not the
    current path is a redirect. Nothing returned, or a rejection, goes on to the next step. Supabase
