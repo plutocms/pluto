@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.43.0](https://github.com/plutocms/pluto/compare/v0.42.0...v0.43.0) (2026-11-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* the GitHub CMS is the Git CMS, and plutoLayer returns the source only ([#330](https://github.com/plutocms/pluto/issues/330))
+
+### Features
+
+* the GitHub CMS is the Git CMS, and plutoLayer returns the source only ([#330](https://github.com/plutocms/pluto/issues/330)) ([2aaedfe](https://github.com/plutocms/pluto/commit/2aaedfe32ad25e5e246994a998b0bfab32b63285))
+
+
+### Bug Fixes
+
+* plutoLayer finds the Supabase layers in the supabase monorepo ([#328](https://github.com/plutocms/pluto/issues/328)) ([62f79e7](https://github.com/plutocms/pluto/commit/62f79e789caf829981b8ac6a59f9475b50cfb9ca))
+
 ## [0.42.0](https://github.com/plutocms/pluto/compare/v0.41.0...v0.42.0) (2026-10-31)
 
 
