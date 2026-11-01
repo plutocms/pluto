@@ -125,7 +125,7 @@ useHead({
         Public pages have no admin sidebar. The admin navbar menu button
         opens this slideover there instead.
       -->
-      <PlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
+      <LazyPlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
 
       <div class="min-h-0 w-full min-w-0 grow">
         <NuxtLayout>

@@ -128,19 +128,58 @@ export default defineNuxtModule<PlutoCssOptions>({
     // The isolated admin build: Tailwind, Nuxt UI, and the Pluto layers in a
     // build of their own. Tailwind compiles it as usual (so the Nuxt UI classes
     // of app.config are in it), then this plugin scopes every rule to the admin.
+    // It is not in `css`: PlutoAdminTheme imports it, so it loads with the
+    // admin UI only. Without the flag the file is empty, and the import does
+    // nothing.
+    addTemplate({
+      filename: 'pluto-admin.css',
+      write: true,
+      getContents: () => renderPlutoAdminCss(Boolean(options.isolated)),
+    })
     if (options.isolated) {
-      addTemplate({
-        filename: 'pluto-admin.css',
-        write: true,
-        getContents: renderPlutoAdminCss,
+      // Server HTML links the admin build, not inlines it: inline, every page
+      // view of a staff user would carry the full build, which no cache keeps.
+      const inline = nuxt.options.features.inlineStyles
+      if (inline) {
+        nuxt.options.features.inlineStyles = (id) =>
+          !id?.includes('PlutoAdminTheme.vue') &&
+          (inline === true || inline(id))
+      }
+      // Nuxt prefetches the CSS of every async chunk, so each visitor would
+      // download the admin build after the page loads. The plugin below finds
+      // the CSS files of the client chunk with the build, and this hook turns
+      // off their prefetch. The chunks that render admin UI still load them.
+      // The file names, without the assets dir: the manifest keys have none.
+      const adminCssFiles = new Set<string>()
+      nuxt.hook('build:manifest', (manifest) => {
+        for (const file of adminCssFiles) {
+          if (manifest[file]) {
+            manifest[file].prefetch = false
+          }
+        }
       })
-      nuxt.options.css.push('#build/pluto-admin.css')
+      // A file path, or a Nuxt virtual id (`virtual:nuxt:…%2Fpluto-admin.css`).
+      const adminCssId = /(?:[\\/]|%2F)pluto-admin\.css(?:\?|$)/
       addVitePlugin({
         name: 'pluto-css:scope-admin',
         transform(code, id) {
-          // A file path, or a Nuxt virtual id (`virtual:nuxt:…%2Fpluto-admin.css`).
-          if (/(?:[\\/]|%2F)pluto-admin\.css(?:\?|$)/.test(id)) {
+          if (adminCssId.test(id)) {
             return { code: scopeCss(code), map: null }
+          }
+        },
+        generateBundle(_options, bundle) {
+          if (this.environment?.name !== 'client') {
+            return
+          }
+          for (const chunk of Object.values(bundle)) {
+            if (
+              chunk.type === 'chunk' &&
+              chunk.moduleIds.some((id) => adminCssId.test(id))
+            ) {
+              for (const file of chunk.viteMetadata?.importedCss ?? []) {
+                adminCssFiles.add(file.slice(file.lastIndexOf('/') + 1))
+              }
+            }
           }
         },
       })

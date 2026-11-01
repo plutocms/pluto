@@ -95,9 +95,18 @@ A layer may ship `app/assets/css/pluto-layer.css`. Rules:
 `plutoCss: { isolated: true }` (default false) gives the admin a Tailwind build of its own. A site
 then needs no Tailwind, and a Tailwind site cannot clash with the admin.
 
-- The module writes `#build/pluto-admin.css` (`tailwindcss`, `@nuxt/ui`, `@plutocms/css`) and
-  adds it to `css`, last. Tailwind compiles it at the app's build, so the Nuxt UI classes of
-  `app.config` are in it.
+- The module writes `#build/pluto-admin.css` (`tailwindcss`, `@nuxt/ui`, `@plutocms/css`).
+  Tailwind compiles it at the app's build, so the Nuxt UI classes of `app.config` are in it.
+  Without the flag the file is empty.
+- The file is not in `css`. `PlutoAdminTheme` imports it, and only async chunks render that
+  component: the admin and auth layouts, and the bar (`LazyPlutoAdminNavbar` in the provider,
+  `LazyPlutoNavbarAdminMenu` in `PlutoRoot`). Keep these lazy: a static import from the entry
+  puts the admin build in every visitor's page.
+- Two build changes keep it off a visitor's page. In `features.inlineStyles`, `PlutoAdminTheme.vue`
+  is never inlined: the server HTML links the file, which the browser caches. In the
+  `build:manifest` hook, the CSS files of the client chunk with the build get `prefetch: false`
+  (Nuxt prefetches the CSS of every async chunk). The Vite plugin finds those files in
+  `generateBundle` from the chunk's module ids.
 - The Vite plugin `pluto-css:scope-admin` runs `scopeCss` (`modules/pluto-css/scope.ts`) on the
   output. Every rule matches only inside `[data-pluto-admin]` (<html> on an admin page) or
   `[data-pluto-admin-scope]` (the admin bar and its portals): `:root`, `:host`, and `html`
@@ -110,9 +119,13 @@ then needs no Tailwind, and a Tailwind site cannot clash with the admin.
   move from the admin to the site leaves the site as it was. Build time: no change. CSS: +4 KB
   gzip on a site with no Tailwind; on a Tailwind site about twice the CSS (the app build still
   has the admin classes, because Nuxt UI adds `@source` for every layer).
-- Open: load the admin build only for staff (now every visitor gets it); drop the admin sources
-  from the app build in this mode; theme variables on <html> of an admin page tie with the app's
-  (the admin wins because its build is last); `PlutoRoot` wrappers use Tailwind classes.
+- Measured with the build loaded on demand (2026-11-01): a visitor's CSS is 139 B gzip on a site
+  with no Tailwind (was 37 KB) and the app's own 29 KB on a Tailwind site (was 62 KB). The admin
+  build (38 KB gzip) loads for the admin, for the bar, and in the server HTML when the hint cookie
+  renders the bar (styled in the first paint, with no client code).
+- Open: drop the admin sources from the app build in this mode; theme variables on <html> of an
+  admin page tie with the app's (the admin wins because its file loads after the entry CSS);
+  `PlutoRoot` wrappers use Tailwind classes.
 
 ## Reliance on Nuxt UI
 

@@ -4,6 +4,7 @@ import {
   checkCssSetup,
   findLayerCssFiles,
   parseCssImports,
+  renderPlutoAdminCss,
   renderPlutoCss,
   renderPlutoEntryCss,
   renderPlutoSiteCss,
@@ -112,6 +113,17 @@ describe('renderPlutoEntryCss', () => {
       '@nuxt/ui',
       '@plutocms/css',
     ])
+  })
+})
+
+describe('renderPlutoAdminCss', () => {
+  it('imports the full build with the isolated option, and nothing without it', () => {
+    expect(parseCssImports(renderPlutoAdminCss(true))).toEqual([
+      'tailwindcss',
+      '@nuxt/ui',
+      '@plutocms/css',
+    ])
+    expect(parseCssImports(renderPlutoAdminCss(false))).toEqual([])
   })
 })
 
