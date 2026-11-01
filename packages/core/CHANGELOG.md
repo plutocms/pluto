@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.44.0](https://github.com/plutocms/pluto/compare/v0.43.0...v0.44.0) (2026-11-01)
+
+
+### Features
+
+* import the Pluto CSS by name: @plutocms/css and @plutocms/css/site ([#336](https://github.com/plutocms/pluto/issues/336)) ([4d4b404](https://github.com/plutocms/pluto/commit/4d4b404070f186167e020bdcadf4e4df5d0948ef))
+
 ## [0.43.0](https://github.com/plutocms/pluto/compare/v0.42.0...v0.43.0) (2026-11-01)
 
 
