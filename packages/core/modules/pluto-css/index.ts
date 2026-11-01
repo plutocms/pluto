@@ -88,12 +88,6 @@ export default defineNuxtModule<PlutoCssOptions>({
       'pluto.css'
     )
 
-    addTemplate({
-      filename: 'pluto-entry.css',
-      write: true,
-      getContents: renderPlutoEntryCss,
-    })
-
     const entries = []
     for (const entry of nuxt.options.css) {
       const file =
@@ -120,7 +114,15 @@ export default defineNuxtModule<PlutoCssOptions>({
       .filter((root) => root !== appRoot)
     const report = checkCssSetup(entries, layerRoots)
 
+    // Only an app with no Tailwind entry gets the fallback file. In an app with
+    // its own entry, the file would be a second Tailwind entry on disk, and
+    // Tailwind IntelliSense could take it for the app's design system.
     if (report.injectFallback) {
+      addTemplate({
+        filename: 'pluto-entry.css',
+        write: true,
+        getContents: renderPlutoEntryCss,
+      })
       nuxt.options.css.push('#build/pluto-entry.css')
       if (!nuxt.options._prepare) {
         logger.info(

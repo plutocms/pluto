@@ -59,11 +59,13 @@ A layer may ship `app/assets/css/pluto-layer.css`. Rules:
    mode, the `heart` selection, the `pluto-sky` background and the `pluto-site-header` offset
    under the admin bar. It does not choose the colors (`app.config` does), and every rule skips
    `data-pluto-admin`. `@plutocms/css` never changes the site, so this file is separate.
-4. It writes `#build/pluto-entry.css`, the fallback entry:
-   `@import "tailwindcss"; @import "@nuxt/ui"; @import "@plutocms/css";`
-5. It reads every `nuxt.options.css` entry and follows its local `@import`s (depth 3).
-   - If no entry imports `tailwindcss`, it adds the fallback entry. This keeps a layer repo
-     that runs on its own (`nuxt dev`, `nuxt build` in CI) styled.
+4. It reads every `nuxt.options.css` entry and follows its local `@import`s (depth 3).
+   - If no entry imports `tailwindcss`, it writes the fallback entry `#build/pluto-entry.css`
+     (`@import "tailwindcss"; @import "@nuxt/ui"; @import "@plutocms/css";`) and adds it.
+     This keeps a layer repo that runs on its own (`nuxt dev`, `nuxt build` in CI) styled.
+     An app with its own entry gets no such file: Tailwind IntelliSense makes a project of every
+     CSS file that imports Tailwind, `.nuxt/` too, and could take the fallback for the app's
+     design system (it did, and the app's `@theme` colors lost their swatches).
    - Otherwise it warns, once per problem:
      - a layer registers its own Tailwind build;
      - more than one Tailwind build;
@@ -71,7 +73,7 @@ A layer may ship `app/assets/css/pluto-layer.css`. Rules:
      - no entry imports `@nuxt/ui` (Nuxt UI styles and the `light:` variant are then
        missing).
    - It does not inject a second build when the app forgot the import. One build is the rule.
-6. It prints nothing during `nuxt prepare`.
+5. It prints nothing during `nuxt prepare`.
 
 ## The import names
 
