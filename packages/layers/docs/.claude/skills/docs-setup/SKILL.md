@@ -9,7 +9,7 @@ The layer edits the pages of a Nuxt Content site in the Pluto admin. The app tur
   `@nuxt/content` module, sets `$meta.name: 'docs'`, the native SQLite connector, and the
   layer defaults `plutoGithub.postType: false` and `plutoGithub.commit.skipDeploy: false`. It has no `css`
   entry. The other `plutoGithub` options use the core defaults (`enabled: 'auto'`, `storage` by mode,
-  the repo from the env or the git remote). See the `github-cms` skill in pluto.
+  the repo from the env or the git remote). See the `git-cms` skill in pluto.
 - `modules/pluto-docs/index.ts` — the Nuxt module. Config key `plutoDocs`.
 - `modules/pluto-docs/manifest.ts` — the build manifest of the hybrid mode (Node).
 - `modules/pluto-docs/blocks.ts` — the discovery of the block components (Node, no Nuxt import). See the

@@ -11,17 +11,9 @@ import { isAbsolute, resolve } from 'node:path'
 import process from 'node:process'
 
 export interface PlutoLayerOptions {
-  /** Pass `install: true` to Nuxt, so it installs the layer dependencies. Default `true`. */
-  install?: boolean
   /** The folder with the Pluto checkouts. It wins over `PLUTO_LOCAL_ROOT`. */
   root?: string
 }
-
-export interface PlutoLayerEntryOptions {
-  install: boolean
-}
-
-export type PlutoLayerEntry = [source: string, options: PlutoLayerEntryOptions]
 
 /**
  * The checkout of each Pluto layer under the root. The key is the package name
@@ -68,8 +60,7 @@ function checkoutOf(root: string, folder: string): string {
 export function plutoLayer(
   name: string,
   options: PlutoLayerOptions = {}
-): PlutoLayerEntry {
-  const install = options.install ?? true
+): string {
   const envName = plutoLayerEnvName(name)
 
   const rootValue = options.root || process.env.PLUTO_LOCAL_ROOT
@@ -90,5 +81,5 @@ export function plutoLayer(
     }
   }
 
-  return [process.env[envName] || name, { install }]
+  return process.env[envName] || name
 }

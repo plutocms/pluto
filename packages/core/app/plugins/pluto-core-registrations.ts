@@ -58,7 +58,7 @@ const PlutoContentBarActions = defineAsyncComponent(
 // so a second `id: 'pluto'` call elsewhere would silently wipe this one out.
 //
 // `richtext` has no core widget here on purpose — a layer registers it (the
-// GitHub CMS, the blog). `media` has the core widget: the picker of the core
+// Git CMS, the blog). `media` has the core widget: the picker of the core
 // media library, for every backend (see the media skill).
 //
 // The Media page and its menu item show only when a backend has a media

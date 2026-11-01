@@ -2,7 +2,7 @@
   "name": "@plutocms/core",
   "type": "module",
   "version": "0.42.0",
-  "description": "The base layer every Pluto app extends: the admin, the content model, and the GitHub CMS",
+  "description": "The base layer every Pluto app extends: the admin, the content model, and the Git CMS",
   "author": "Victor Ribeiro",
   "license": "MIT",
   "homepage": "https://github.com/plutocms/pluto/tree/main/packages/core#readme",

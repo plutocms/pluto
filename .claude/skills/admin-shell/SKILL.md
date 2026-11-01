@@ -105,7 +105,7 @@ After `guardDecision` allows a signed-in user, the middleware awaits
   is not staff stays. This keeps the guard free of a redirect loop.
 
 The auth sync plugin and the middleware both ask for the same list. `ensureLoaded` shares one
-request between them, so there is no race. A GitHub CMS app is not affected: every CMS user has
+request between them, so there is no race. A Git CMS app is not affected: every CMS user has
 capabilities.
 
 `navbarVisible` hides the bar on `/admin/**` when the capabilities are known and the user is not
@@ -160,7 +160,7 @@ It decides for itself if it shows.
 ## The CMS as the reference driver
 
 The standalone CMS (`modules/pluto-github`) is the first backend on the driver. Its client plugin
-registers `authDriver` and nothing else for the shell. See the [github-cms](../github-cms/SKILL.md)
+registers `authDriver` and nothing else for the shell. See the [git-cms](../git-cms/SKILL.md)
 skill.
 
 - `user()` maps the session: GitHub login to `username`, plus `name` and `avatarUrl`.
@@ -337,7 +337,7 @@ skill). The `write` capability of the type decides; with no `write` capability, 
 only, cleared on unmount, the owner check keeps the next page's value). It returns the edit path
 for a confirmed staff user with the capability, else `null`, so a page can show its own link too.
 
-The GitHub CMS post type sets `adminBar: true`. The core blog template calls
+The Git CMS post type sets `adminBar: true`. The core blog template calls
 `usePlutoEditLink('post', slug)` on the post page.
 
 `PlutoRoot` shows the public-page admin menu (`PlutoNavbarAdminMenu`) whenever the bar shows on a

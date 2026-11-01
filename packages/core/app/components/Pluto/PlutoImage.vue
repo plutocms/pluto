@@ -5,7 +5,7 @@
 // height of the record stop the layout from moving while the image loads.
 //
 // When the image service cannot read the file (for example a file of the
-// GitHub CMS that is in the repo but not in a deploy yet), it shows the file
+// Git CMS that is in the repo but not in a deploy yet), it shows the file
 // as it is. A file that is not an image shows its preview image (the
 // thumbnail of a 3D model), or nothing when it has none. See the media skill.
 import type { PlutoPublicMedia } from '../../../shared/types/media'

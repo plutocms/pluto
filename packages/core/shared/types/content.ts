@@ -54,7 +54,7 @@ export interface PlutoTextField extends PlutoFieldBase {
   /** Only for `textarea`. The box grows with the text up to this many rows, then it scrolls. Default 14. */
   maxRows?: number
   /**
-   * Only for `richtext` in the GitHub CMS (the Markdown widget). `'visual'` opens the rich editor. `'source'` opens the
+   * Only for `richtext` in the Git CMS (the Markdown widget). `'visual'` opens the rich editor. `'source'` opens the
    * raw Markdown text. `'auto'` (default) opens the source when the text has syntax that the rich editor
    * cannot keep (MDC, HTML, tables, task lists, footnotes). The widget has a Visual/Source switch, and it
    * disables Visual while the text has such syntax.
@@ -265,7 +265,7 @@ export interface PlutoContentType {
   previewUrl?: (item: PlutoContentItem) => string | undefined
   /**
    * The public site shows a save at once, because it reads this type at run time. A deploy may
-   * still run. The build indicator of the edit form (GitHub CMS) then shows "Live" right after a
+   * still run. The build indicator of the edit form (Git CMS) then shows "Live" right after a
    * save, and shows the static build by a small spinner on the Info button. Default false: the
    * indicator waits for the build and shows "Publishing…".
    */
@@ -303,7 +303,7 @@ export interface PlutoContentType {
     width?: 'container' | 'full'
   }
   /**
-   * Options for the file adapters (the GitHub CMS). Other adapters ignore them. Every member is
+   * Options for the file adapters (the Git CMS). Other adapters ignore them. Every member is
    * plain data or a pure function, so the definition is safe on the server and on the client.
    */
   files?: PlutoContentFiles

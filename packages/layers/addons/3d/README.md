@@ -1,7 +1,7 @@
 # @plutocms/3d
 
 An add-on layer for [Pluto](https://pluto.vulmix.dev). It adds 3D models (`.glb`) to the media
-library of Pluto, for every backend (GitHub CMS or Supabase):
+library of Pluto, for every backend (Git CMS or Supabase):
 
 - **Upload:** the media library takes `.glb` files, up to 25 MB each.
 - **Preview image:** at upload, the browser renders a static preview of the model (1024 px, WebP).

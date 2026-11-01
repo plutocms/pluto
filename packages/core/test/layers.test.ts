@@ -47,18 +47,8 @@ describe('plutoLayerEnvName', () => {
 })
 
 describe('plutoLayer', () => {
-  it('returns the package with install on by default', () => {
-    expect(plutoLayer('@plutocms/docs')).toEqual([
-      '@plutocms/docs',
-      { install: true },
-    ])
-  })
-
-  it('accepts install: false', () => {
-    expect(plutoLayer('@plutocms/supabase-blog', { install: false })).toEqual([
-      '@plutocms/supabase-blog',
-      { install: false },
-    ])
+  it('returns the package name by default', () => {
+    expect(plutoLayer('@plutocms/docs')).toBe('@plutocms/docs')
   })
 
   it('sets nothing when no root is set', () => {
@@ -76,10 +66,7 @@ describe('plutoLayer', () => {
 
     const entry = plutoLayer('@plutocms/docs')
 
-    expect(entry).toEqual([
-      resolve(root, 'pluto/packages/layers/docs'),
-      { install: true },
-    ])
+    expect(entry).toBe(resolve(root, 'pluto/packages/layers/docs'))
     expect(process.env.PLUTO_DOCS_PATH).toBe(
       resolve(root, 'pluto/packages/layers/docs')
     )
@@ -97,7 +84,7 @@ describe('plutoLayer', () => {
     checkout('pluto/packages/layers/addons/3d')
     process.env.PLUTO_LOCAL_ROOT = root
 
-    expect(plutoLayer('@plutocms/3d')[0]).toBe(
+    expect(plutoLayer('@plutocms/3d')).toBe(
       resolve(root, 'pluto/packages/layers/addons/3d')
     )
     expect(process.env.PLUTO_CORE_PATH).toBe(
@@ -109,10 +96,7 @@ describe('plutoLayer', () => {
     checkout('pluto/packages/core')
     process.env.PLUTO_LOCAL_ROOT = root
 
-    expect(plutoLayer('@plutocms/supabase')).toEqual([
-      '@plutocms/supabase',
-      { install: true },
-    ])
+    expect(plutoLayer('@plutocms/supabase')).toBe('@plutocms/supabase')
     expect(process.env.PLUTO_CORE_PATH).toBe(
       resolve(root, 'pluto/packages/core')
     )
@@ -133,12 +117,9 @@ describe('plutoLayer', () => {
     process.env.PLUTO_LOCAL_ROOT = root
     process.env.PLUTO_CORE_PATH = '/custom/core'
 
-    expect(plutoLayer('@plutocms/core')).toEqual([
-      '/custom/core',
-      { install: true },
-    ])
+    expect(plutoLayer('@plutocms/core')).toBe('/custom/core')
     expect(process.env.PLUTO_CORE_PATH).toBe('/custom/core')
-    expect(plutoLayer('@plutocms/docs')[0]).toBe(
+    expect(plutoLayer('@plutocms/docs')).toBe(
       resolve(root, 'pluto/packages/layers/docs')
     )
   })
@@ -146,10 +127,7 @@ describe('plutoLayer', () => {
   it('uses an explicit PLUTO_<NAME>_PATH without a root', () => {
     process.env.PLUTO_SUPABASE_BLOG_PATH = '../supabase-blog'
 
-    expect(plutoLayer('@plutocms/supabase-blog')).toEqual([
-      '../supabase-blog',
-      { install: true },
-    ])
+    expect(plutoLayer('@plutocms/supabase-blog')).toBe('../supabase-blog')
   })
 
   it('does nothing when PLUTO_USE_LOCAL is false', () => {
@@ -157,10 +135,7 @@ describe('plutoLayer', () => {
     process.env.PLUTO_LOCAL_ROOT = root
     process.env.PLUTO_USE_LOCAL = 'false'
 
-    expect(plutoLayer('@plutocms/core')).toEqual([
-      '@plutocms/core',
-      { install: true },
-    ])
+    expect(plutoLayer('@plutocms/core')).toBe('@plutocms/core')
     expect(process.env.PLUTO_CORE_PATH).toBeUndefined()
   })
 
@@ -168,7 +143,7 @@ describe('plutoLayer', () => {
     checkout('pluto/packages/core')
     process.env.PLUTO_LOCAL_ROOT = join(root, 'nowhere')
 
-    expect(plutoLayer('@plutocms/core', { root })[0]).toBe(
+    expect(plutoLayer('@plutocms/core', { root })).toBe(
       resolve(root, 'pluto/packages/core')
     )
   })
@@ -178,7 +153,7 @@ describe('plutoLayer', () => {
     const relative = relativePath(process.cwd(), root)
     process.env.PLUTO_LOCAL_ROOT = relative
 
-    expect(plutoLayer('@plutocms/core')[0]).toBe(
+    expect(plutoLayer('@plutocms/core')).toBe(
       resolve(root, 'pluto/packages/core')
     )
   })

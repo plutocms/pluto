@@ -3,7 +3,7 @@
 // Install link and the docs link. The login card (`variant="login"`) and the
 // GitHub settings page (`variant="settings"`) both use it. The file lives
 // under `app/` so Tailwind scans it. The panel holds no secret: the status
-// route answers booleans and public names only. See the github-cms skill.
+// route answers booleans and public names only. See the git-cms skill.
 import type { PlutoGithubSetupStatus } from '../../../../modules/pluto-github/runtime/app/composables/pluto-github-setup'
 import {
   CMS_SETUP_START_URL,
@@ -22,7 +22,7 @@ const props = withDefaults(
   }
 )
 
-const DOCS_URL = 'https://pluto.vulmix.dev/docs/github-cms/quickstart'
+const DOCS_URL = 'https://pluto.vulmix.dev/docs/git-cms/quickstart'
 
 const { t } = usePlutoI18n()
 const setup = usePlutoGithubSetup()

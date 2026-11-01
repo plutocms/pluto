@@ -14,8 +14,10 @@ export default defineNuxtConfig({
 })
 ```
 
-`plutoLayer(name, options?)` returns `[source, { install }]`. Options: `install` (default `true`),
-`root` (the folder with the checkouts; it wins over `PLUTO_LOCAL_ROOT`).
+`plutoLayer(name, options?)` returns the source: the local path or the package name. It has no
+`install` option: Nuxt uses `install` only for a layer that it downloads from Git, and an npm
+layer comes with its dependencies. Option: `root` (the folder with the checkouts; it wins over
+`PLUTO_LOCAL_ROOT`).
 
 ## Files
 

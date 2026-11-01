@@ -11,7 +11,7 @@ import {
 } from '../utils/github-setup'
 
 /**
- * Route: GET /media/**. A media file of the GitHub CMS, read from the repo.
+ * Route: GET /media/**. A media file of the Git CMS, read from the repo.
  * After a deploy, the host sends the static file first, so this route only
  * answers for a file that is in the repo but not in a deploy yet (a content
  * commit can skip the deploy). A stored file name never changes, so the
