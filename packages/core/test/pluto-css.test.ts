@@ -5,6 +5,7 @@ import {
   findLayerCssFiles,
   parseCssImports,
   renderPlutoCss,
+  renderPlutoEntryCss,
   renderPlutoSiteCss,
 } from '../modules/pluto-css/css-entries'
 
@@ -69,7 +70,7 @@ describe('analyzeCssEntry', () => {
   it('follows local imports and reports what the entry imports', () => {
     const files: Record<string, string> = {
       '/site/main.css': `@import 'tailwindcss';\n@import './parts/ui.css';`,
-      '/site/parts/ui.css': `@import '@nuxt/ui';\n@import '#build/pluto.css';`,
+      '/site/parts/ui.css': `@import '@nuxt/ui';\n@import '@plutocms/css';`,
     }
     const info = analyzeCssEntry(
       '/site/main.css',
@@ -81,6 +82,36 @@ describe('analyzeCssEntry', () => {
     )
 
     expect(info).toMatchObject({ tailwind: true, nuxtUi: true, plutoCss: true })
+  })
+
+  const pluto = (css: string) =>
+    analyzeCssEntry(
+      '/site/main.css',
+      () => css,
+      () => undefined
+    ).plutoCss
+
+  it('accepts @plutocms/css and the generated file as the Pluto import', () => {
+    expect(pluto(`@import 'tailwindcss';\n@import '@plutocms/css';`)).toBe(true)
+    expect(pluto(`@import 'tailwindcss';\n@import '#build/pluto.css';`)).toBe(
+      true
+    )
+  })
+
+  it('does not take the site theme for the Pluto import', () => {
+    expect(pluto(`@import 'tailwindcss';\n@import '@plutocms/css/site';`)).toBe(
+      false
+    )
+  })
+})
+
+describe('renderPlutoEntryCss', () => {
+  it('imports Tailwind, Nuxt UI, and @plutocms/css, in that order', () => {
+    expect(parseCssImports(renderPlutoEntryCss())).toEqual([
+      'tailwindcss',
+      '@nuxt/ui',
+      '@plutocms/css',
+    ])
   })
 })
 
@@ -132,13 +163,11 @@ describe('checkCssSetup', () => {
     expect(report.warnings.join('\n')).toMatch(/Found 2 Tailwind builds/)
   })
 
-  it('warns when the app misses #build/pluto.css or @nuxt/ui', () => {
+  it('warns when the app misses @plutocms/css or @nuxt/ui', () => {
     const report = checkCssSetup([app({ plutoCss: false, nuxtUi: false })], [])
 
     expect(report.warnings).toHaveLength(2)
-    expect(report.warnings[0]).toMatch(
-      /No CSS entry imports #build\/pluto\.css/
-    )
+    expect(report.warnings[0]).toMatch(/No CSS entry imports @plutocms\/css/)
     expect(report.warnings[1]).toMatch(/No CSS entry imports @nuxt\/ui/)
   })
 })

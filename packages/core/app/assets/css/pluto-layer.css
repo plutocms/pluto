@@ -5,9 +5,9 @@
  *
  *   @import 'tailwindcss';
  *   @import '@nuxt/ui';
- *   @import '#build/pluto.css';
+ *   @import '@plutocms/css';
  *
- * `#build/pluto.css` imports this file (and the same file of every other
+ * `@plutocms/css` (core generates it) imports this file (and the same file of every other
  * Pluto layer). Rules for this file:
  * - Do not import tailwindcss or @nuxt/ui here.
  * - Use only @theme, @custom-variant, @utility, unlayered rules, and

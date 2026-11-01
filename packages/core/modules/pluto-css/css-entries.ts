@@ -5,6 +5,12 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 /** A layer's own CSS file, by convention. See the single-tailwind-build skill. */
 export const LAYER_CSS_FILE = 'assets/css/pluto-layer.css'
 
+/** The name that an app's CSS entry imports: an alias of `#build/pluto.css`. */
+export const PLUTO_CSS_IMPORT = '@plutocms/css'
+
+/** The opt-in Pluto site theme: an alias of `#build/pluto-site.css`. */
+export const PLUTO_SITE_CSS_IMPORT = '@plutocms/css/site'
+
 function toPosix(path: string): string {
   return path.replaceAll('\\', '/')
 }
@@ -41,7 +47,8 @@ export function renderPlutoCss(files: string[], buildDir: string): string {
 
 /**
  * Renders `#build/pluto-site.css`: the opt-in Pluto site theme of core
- * (app/assets/css/pluto-site-theme.css). An app imports it after `#build/pluto.css`.
+ * (app/assets/css/pluto-site-theme.css). An app imports it (`@plutocms/css/site`)
+ * after `@plutocms/css`.
  */
 export function renderPlutoSiteCss(file: string, buildDir: string): string {
   return [
@@ -70,7 +77,7 @@ export function renderPlutoEntryCss(): string {
     '/* Fallback Tailwind entry: the app has no CSS entry that imports Tailwind. */',
     '@import "tailwindcss";',
     '@import "@nuxt/ui";',
-    '@import "#build/pluto.css";',
+    `@import "${PLUTO_CSS_IMPORT}";`,
     '',
   ].join('\n')
 }
@@ -106,7 +113,7 @@ export interface CssEntryInfo {
   tailwind: boolean
   /** It imports `@nuxt/ui`. */
   nuxtUi: boolean
-  /** It imports `#build/pluto.css`. */
+  /** It imports `@plutocms/css` (or the generated `#build/pluto.css` itself). */
   plutoCss: boolean
 }
 
@@ -145,8 +152,8 @@ export function analyzeCssEntry(
       } else if (specifier === '@nuxt/ui') {
         info.nuxtUi = true
       } else if (
-        /(?:^|\/)pluto\.css$/.test(specifier) &&
-        specifier.includes('#build')
+        specifier === PLUTO_CSS_IMPORT ||
+        (/(?:^|\/)pluto\.css$/.test(specifier) && specifier.includes('#build'))
       ) {
         info.plutoCss = true
       } else {
@@ -188,8 +195,7 @@ export function checkCssSetup(
 ): CssSetupReport {
   const warnings: string[] = []
   const tailwindEntries = entries.filter((entry) => entry.tailwind)
-  const snippet =
-    "  @import 'tailwindcss';\n  @import '@nuxt/ui';\n  @import '#build/pluto.css';"
+  const snippet = `  @import 'tailwindcss';\n  @import '@nuxt/ui';\n  @import '${PLUTO_CSS_IMPORT}';`
 
   if (tailwindEntries.length === 0) {
     return { injectFallback: true, warnings }
@@ -214,7 +220,7 @@ export function checkCssSetup(
 
   if (!tailwindEntries.some((entry) => entry.plutoCss)) {
     warnings.push(
-      `No CSS entry imports #build/pluto.css. The admin theme and layer tokens are missing. Start the app's CSS entry with:\n${snippet}`
+      `No CSS entry imports ${PLUTO_CSS_IMPORT}. The admin theme and layer tokens are missing. Start the app's CSS entry with:\n${snippet}`
     )
   }
 

@@ -43,7 +43,7 @@ export default defineNuxtConfig({
 
   // No `css` entry: the app's CSS entry owns the one Tailwind build, and
   // modules/pluto-css adds this layer's pluto-layer.css to it through
-  // #build/pluto.css. See the single-tailwind-build skill.
+  // @plutocms/css (#build/pluto.css). See the single-tailwind-build skill.
 
   runtimeConfig: {
     // Private mail settings. Empty defaults on purpose: Nuxt reads
