@@ -36,7 +36,9 @@ function scopeSelectorList(selector: string, roots: readonly string[]): string {
         return
       }
       if (ROOT_SELECTORS.has(text)) {
-        out.push(...roots)
+        // A doubled root, (0,2,0): on <html> of an admin page it beats the
+        // app's own `:root` (0,1,0), whatever order the two files load in.
+        out.push(...roots.map((root) => `${root}${root}`))
         return
       }
       // The subject is the last compound: `.a .b::before` becomes
@@ -93,8 +95,9 @@ function keepAsIs(rule: Rule): boolean {
 /**
  * Returns `css` with every top-level rule scoped to `roots`:
  *
- * - `:root`, `:host`, and `html` become the roots, so the theme variables and
- *   the base of the document apply from each root down.
+ * - `:root`, `:host`, and `html` become the roots, doubled for (0,2,0), so the
+ *   theme variables and the base of the document apply from each root down,
+ *   over the app's own `:root` rules.
  * - Any other selector gets `:is(<root>, <root> *)` on its subject. It then
  *   matches only in the scope, with (0,1,0) more specificity.
  * - A selector that names a root already stays.

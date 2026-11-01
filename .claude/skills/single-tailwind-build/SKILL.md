@@ -112,6 +112,12 @@ then needs no Tailwind, and a Tailwind site cannot clash with the admin.
   `[data-pluto-admin-scope]` (the admin bar and its portals): `:root`, `:host`, and `html`
   become those roots, any other selector gets `:is(<root>, <root> *)` on its subject. The scope
   adds (0,1,0), so the admin's utilities win over the app's in the admin, in any order.
+- The roots are doubled (`[data-pluto-admin][data-pluto-admin]`, (0,2,0)). On <html> of an admin
+  page, the admin's theme variables (Tailwind's and Nuxt UI's, in `@layer theme`) then beat the
+  app's `:root` (0,1,0), in any load order. admin-theme.css is not in a layer, so it still beats
+  the Nuxt UI defaults of the admin build.
+- `PlutoRoot` styles its wrappers with plain CSS (`.pluto-root`, `.pluto-root-page`), not
+  Tailwind classes: a site with no Tailwind has none of them.
 - The id of the file in a build is a Nuxt virtual id (`virtual:nuxt:…%2Fpluto-admin.css`).
 - No fallback entry, and no warning about the app's entry: the app's CSS is its own.
 - Measured (2026-11-01): the admin and the bar are right on a site with no Tailwind and on a
@@ -123,9 +129,11 @@ then needs no Tailwind, and a Tailwind site cannot clash with the admin.
   with no Tailwind (was 37 KB) and the app's own 29 KB on a Tailwind site (was 62 KB). The admin
   build (38 KB gzip) loads for the admin, for the bar, and in the server HTML when the hint cookie
   renders the bar (styled in the first paint, with no client code).
-- Open: drop the admin sources from the app build in this mode; theme variables on <html> of an
-  admin page tie with the app's (the admin wins because its file loads after the entry CSS);
-  `PlutoRoot` wrappers use Tailwind classes.
+- Not done: keeping core's admin files out of the app's own build. Tried with `@source not` lines
+  for a list of admin-only paths in the app's entry: 29.1 KB to 27.2 KB gzip on a Tailwind site
+  (26.5 KB with all of core out, the floor). Core's public components (`PlutoHtml`,
+  `PlutoMarkdown`, `PlutoLogo`, `PlutoRoot`) must stay in that build, so the list would need
+  upkeep, and a public file on it would lose its styles. Not worth 2 KB.
 
 ## Reliance on Nuxt UI
 

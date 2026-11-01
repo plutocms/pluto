@@ -24,12 +24,13 @@ describe('scopeCss', () => {
     )
   })
 
-  it('turns :root, :host, and html into the roots', () => {
+  it('turns :root, :host, and html into doubled roots', () => {
+    const doubled = '[data-a][data-a], [data-s][data-s]'
     expect(scope(':root, :host { --x: 1 }')).toBe(
-      '[data-a], [data-s], [data-a], [data-s] { --x: 1 }'
+      `${doubled}, ${doubled} { --x: 1 }`
     )
     expect(scope('html { line-height: 1.5 }')).toBe(
-      '[data-a], [data-s] { line-height: 1.5 }'
+      `${doubled} { line-height: 1.5 }`
     )
   })
 

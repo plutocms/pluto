@@ -114,8 +114,8 @@ useHead({
 </script>
 
 <template>
-  <div class="flex min-h-0 w-full min-w-0 grow flex-col">
-    <UApp :locale="uiLocale" class="flex min-h-0 w-full min-w-0 grow flex-col">
+  <div class="pluto-root">
+    <UApp :locale="uiLocale">
       <NuxtRouteAnnouncer />
       <NuxtLoadingIndicator />
 
@@ -127,7 +127,7 @@ useHead({
       -->
       <LazyPlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
 
-      <div class="min-h-0 w-full min-w-0 grow">
+      <div class="pluto-root-page">
         <NuxtLayout>
           <slot />
         </NuxtLayout>
@@ -147,6 +147,26 @@ useHead({
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+/*
+ * The wrappers grow to fill #__nuxt. Plain CSS, not Tailwind classes: with
+ * the isolated admin build (`plutoCss.isolated`) a site may have no Tailwind.
+ */
+.pluto-root {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.pluto-root-page {
+  flex-grow: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 :root[data-pluto-admin],
