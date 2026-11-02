@@ -97,8 +97,9 @@ policies shared by every project here.
   (`excerpt` in a list, `html` for one item, through `adapter.toPublic`), and `PlutoMarkdown` (an alias of the core `PlutoHtml`, which shows the sanitized `html` of any backend). The GitHub App is created from the site (App Manifest flow): the setup routes
   under `/api/_pluto/github/setup/` (`status`, `github/start`, `github/callback`), a result page with the
   env block, a `.env` write in development, a setup check on `/admin/login`, a **GitHub** tab in Settings,
-  and a private key in PEM, `\n` or base64 form. The edit form shows the build status of the head
-  commit (check runs, commit statuses, deployments) next to Save, for GitHub storage with
+  and a private key in PEM, `\n` or base64 form. With `commit.skipDeploy` off, a draft save gets
+  `[skip ci]`, so only a change of published content deploys. The edit form shows the build status of the
+  newest commit that did not skip CI (check runs, commit statuses, deployments) next to Save, for GitHub storage with
   `commit.skipDeploy` off: the route `GET /api/_pluto/github/build-status`, a pure reducer, a polling loop,
   and an Info popover with links to the Action or the build. A content type with `liveOnSave` shows
   "Live" at once after a save and the static build as a small spinner. The file adapter has

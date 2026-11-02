@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   isPostTypeOn,
+  isPublicItem,
   showPublicRepoWarning,
 } from '../modules/pluto-github/runtime/shared/client-rules'
 import { plutoGithubPostType } from '../modules/pluto-github/runtime/shared/post-type'
@@ -32,5 +33,21 @@ describe('showPublicRepoWarning', () => {
   it('hides for a private or unknown repo', () => {
     expect(showPublicRepoWarning(true, [plutoGithubPostType])).toBe(false)
     expect(showPublicRepoWarning(undefined, [plutoGithubPostType])).toBe(false)
+  })
+})
+
+describe('isPublicItem', () => {
+  it('reads the status of the item, with the default of the type', () => {
+    expect(isPublicItem(plutoGithubPostType, { status: 'published' })).toBe(
+      true
+    )
+    expect(isPublicItem(plutoGithubPostType, { status: 'draft' })).toBe(false)
+    // The post type defaults to draft.
+    expect(isPublicItem(plutoGithubPostType, {})).toBe(false)
+  })
+
+  it('counts every item of a type with no status as public', () => {
+    expect(isPublicItem({ status: false }, {})).toBe(true)
+    expect(isPublicItem(undefined, {})).toBe(true)
   })
 })

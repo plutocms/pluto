@@ -5,6 +5,8 @@ import {
   commitHeadline,
   commitStatusState,
   deploymentState,
+  hasSkipMarker,
+  pickDeployCommit,
   reduceBuildState,
   reduceBuildStatus,
   safeHttpUrl,
@@ -300,6 +302,30 @@ describe('safeHttpUrl', () => {
     expect(safeHttpUrl('/relative')).toBeUndefined()
     expect(safeHttpUrl(null)).toBeUndefined()
     expect(safeHttpUrl('')).toBeUndefined()
+  })
+})
+
+describe('hasSkipMarker and pickDeployCommit', () => {
+  it('finds every marker that GitHub Actions reads, in any case', () => {
+    for (const marker of [
+      '[skip ci]',
+      '[ci skip]',
+      '[no ci]',
+      '[skip actions]',
+      '[Actions Skip]',
+    ]) {
+      expect(hasSkipMarker(`content(post): update "a" ${marker}`)).toBe(true)
+    }
+    expect(hasSkipMarker('skip ci without brackets')).toBe(false)
+    expect(hasSkipMarker(undefined)).toBe(false)
+  })
+
+  it('picks the newest commit that does not skip CI, else the newest', () => {
+    const draft = { sha: 'b', commit: { message: 'update [skip ci]' } }
+    const real = { sha: 'a', commit: { message: 'publish' } }
+    expect(pickDeployCommit([draft, real])).toBe(real)
+    expect(pickDeployCommit([draft])).toBe(draft)
+    expect(pickDeployCommit([])).toBeUndefined()
   })
 })
 

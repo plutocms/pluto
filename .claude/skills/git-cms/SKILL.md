@@ -74,20 +74,20 @@ no shell command. Tests: `test/github-git-remote.test.ts`, `test/pluto-github-op
 
 ## Options
 
-| Option              | Default                                 | Rule                                                                                                                                                    |
-| ------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `enabled`           | `'auto'`                                | `'auto'`, `true` or `false`. See "On unless a backend layer is present".                                                                                |
-| `storage`           | `'fs'` in dev, `'github'` in production | `'github'` or `'fs'`. `'fs'` is valid in dev only.                                                                                                      |
-| `github.repo`       | found (see "Defaults")                  | `owner/name`. Required when storage is `github`.                                                                                                        |
-| `github.branch`     | `'main'`                                | The branch to read and commit to.                                                                                                                       |
-| `github.appSlug`    | the env var, else `''`                  | The slug of the GitHub App.                                                                                                                             |
-| `github.apiUrl`     | `'https://api.github.com'`              | The API base URL.                                                                                                                                       |
-| `dir`               | `'content'`                             | Relative path. No `..`, no leading `/`, no drive letter. The module changes `\` to `/` and removes a trailing `/`.                                      |
-| `commit.skipDeploy` | `true`                                  | Add `[skip ci]` to commit messages. A site that must redeploy on each edit (for example a docs site) sets it to `false`. See "Skip a deploy on Vercel". |
-| `commit.local`      | `true`                                  | Local mode (`fs`, dev only): commit each save to the local Git repo of the project. No repo: Pluto only writes the files.                               |
-| `cache.headTtl`     | `60`                                    | Seconds. Zero or more.                                                                                                                                  |
-| `cache.storage`     | `'cache'`                               | The Nitro storage mount for the cache.                                                                                                                  |
-| `postType`          | `true`                                  | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`.                            |
+| Option              | Default                                 | Rule                                                                                                                                                                                                                                                                                              |
+| ------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`           | `'auto'`                                | `'auto'`, `true` or `false`. See "On unless a backend layer is present".                                                                                                                                                                                                                          |
+| `storage`           | `'fs'` in dev, `'github'` in production | `'github'` or `'fs'`. `'fs'` is valid in dev only.                                                                                                                                                                                                                                                |
+| `github.repo`       | found (see "Defaults")                  | `owner/name`. Required when storage is `github`.                                                                                                                                                                                                                                                  |
+| `github.branch`     | `'main'`                                | The branch to read and commit to.                                                                                                                                                                                                                                                                 |
+| `github.appSlug`    | the env var, else `''`                  | The slug of the GitHub App.                                                                                                                                                                                                                                                                       |
+| `github.apiUrl`     | `'https://api.github.com'`              | The API base URL.                                                                                                                                                                                                                                                                                 |
+| `dir`               | `'content'`                             | Relative path. No `..`, no leading `/`, no drive letter. The module changes `\` to `/` and removes a trailing `/`.                                                                                                                                                                                |
+| `commit.skipDeploy` | `true`                                  | `true`: add `[skip ci]` to every commit message (the site reads the content at run time). `false`: a site that redeploys on each edit (a docs site, a static site); only a commit that changes no published content (a draft that stays a draft) gets `[skip ci]`. See "Skip a deploy on Vercel". |
+| `commit.local`      | `true`                                  | Local mode (`fs`, dev only): commit each save to the local Git repo of the project. No repo: Pluto only writes the files.                                                                                                                                                                         |
+| `cache.headTtl`     | `60`                                    | Seconds. Zero or more.                                                                                                                                                                                                                                                                            |
+| `cache.storage`     | `'cache'`                               | The Nitro storage mount for the cache.                                                                                                                                                                                                                                                            |
+| `postType`          | `true`                                  | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`.                                                                                                                                                                      |
 
 A bad option turns the CMS off and logs an error. The module does not throw.
 
@@ -201,7 +201,11 @@ Conflict handling:
 - A commit uses a fresh head as `expectedHeadOid`. When the head is stale, the adapter retries up
   to 2 times, but only if the target file did not change. Otherwise it gives 409.
 - Commit messages: `content(post): create "slug"`, `update`, `publish`, `unpublish`,
-  `rename "a" -> "b"`, `delete`. `[skip ci]` is added when `skipDeploy` is on.
+  `rename "a" -> "b"`, `delete`. `[skip ci]` is added to every commit when `skipDeploy` is on. When it
+  is off, `[skip ci]` is added only to a commit that changes no published content: a create, update,
+  rename or delete of an item that is a draft before and after (`messageOf(type, verb, publicChange)`).
+  A publish, an unpublish, and any change of a published item deploy. A type with no status is always
+  public. Tests: `test/github-adapter.test.ts` ("skip marker").
 
 Store errors map to HTTP errors with `pluto.github.errors.*` keys: conflict 409, auth 401, forbidden
 403, rate limit 503 with a `Retry-After` header, not found 404, GitHub failure 502.
@@ -451,7 +455,8 @@ pages use `https://<host>`. Any other API URL uses `https://github.com`.
 that marker. Vercel does not read `[skip ci]` in a commit message. This is not confirmed by Vercel
 docs: treat it as a rule of thumb and test it on your project. To skip a Vercel build, use an
 Ignored Build Step script. It is a command that decides, from the project settings, whether
-to build. A site that must deploy on each edit sets `commit.skipDeploy: false` and needs no script.
+to build. A site that must deploy on each edit sets `commit.skipDeploy: false`. Its draft saves still
+carry `[skip ci]`: a Vercel Ignored Build Step can read the commit message to skip them too.
 
 ## Setup from the site
 
@@ -809,8 +814,11 @@ paging, sort, filters, 400 and 404, the cache header, no cookie, anonymous with 
 
 ## Build status
 
-After a save, the site can take some minutes to change. The edit form shows the build of the head
-commit of the content branch, next to the Save button. It shows only for GitHub storage with
+After a save, the site can take some minutes to change. The edit form shows the build of the newest
+commit of the content branch that did not skip CI, next to the Save button. A draft save skips the
+deploy, so that commit has the builds that serve the site. A draft that was never public in the page
+(`isPublicItem` of `client-rules.ts`, read when the page opens and after each save) shows no status and
+calls nothing. It shows only for GitHub storage with
 `commit.skipDeploy` false (a save then starts a deploy). With the `fs` store, or with
 `skipDeploy` on, nothing shows. The module copies `skipDeploy` to `runtimeConfig.public.plutoGithub`,
 and `showBuildStatus` (`runtime/shared/client-rules.ts`) is the test.
@@ -821,8 +829,10 @@ and `showBuildStatus` (`runtime/shared/client-rules.ts`) is the test.
 and reads with the token of that user. The answer has `Cache-Control: no-store`. The `fs` store
 answers `none` with no GitHub call.
 
-It reads the commit (`GET /repos/{repo}/commits/{branch}`: sha, message, date). Then, for that sha,
-three sources at the same time:
+It reads the 20 newest commits of the branch (`GET /repos/{repo}/commits?sha={branch}&per_page=20`)
+and picks the newest one with no skip marker (`pickDeployCommit`; `hasSkipMarker` reads `[skip ci]`,
+`[ci skip]`, `[no ci]`, `[skip actions]` and `[actions skip]`, in any case, like GitHub Actions). With
+no such commit, the newest one. Then, for that sha, three sources at the same time:
 
 - check runs (`/commits/{sha}/check-runs`): GitHub Actions and apps. `html_url` is the Action run.
 - commit statuses (`/commits/{sha}/status`): for example Vercel. `target_url` is the build page.
