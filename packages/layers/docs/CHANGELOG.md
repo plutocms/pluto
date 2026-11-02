@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.20.0](https://github.com/plutocms/pluto/compare/docs-v0.19.0...docs-v0.20.0) (2026-11-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* an app with no Tailwind entry no longer gets one from Pluto. A site whose pages use Tailwind or Nuxt UI adds its own entry.
+
+### Features
+
+* the admin has its own Tailwind build, and a site needs no Tailwind ([#343](https://github.com/plutocms/pluto/issues/343)) ([6d6ae4a](https://github.com/plutocms/pluto/commit/6d6ae4a59f14289abf2da421d028dba920cacd76))
+
 ## [0.19.0](https://github.com/plutocms/pluto/compare/docs-v0.18.0...docs-v0.19.0) (2026-11-01)
 
 
