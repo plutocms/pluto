@@ -371,6 +371,47 @@
             "retry": "Start again"
           }
         }
+      },
+      "users": {
+        "title": "Users",
+        "description": "The people with write access to {repo} on GitHub can sign in to the admin. GitHub controls the access: add or remove people there.",
+        "manage": "Manage access on GitHub",
+        "restricted": "NUXT_PLUTO_GITHUB_ALLOWED_USERS is set: only the users in that list can sign in.",
+        "error": "Could not load the users",
+        "empty": "No user has write access to the repo.",
+        "you": "You",
+        "columns": {
+          "user": "User",
+          "role": "GitHub role",
+          "access": "In Pluto"
+        },
+        "roles": {
+          "admin": "Admin",
+          "maintain": "Maintain",
+          "write": "Write"
+        },
+        "access": {
+          "admin": "Administrator: everything",
+          "editor": "Editor: write, publish and delete content"
+        },
+        "blocked": "Cannot sign in: not in ALLOWED_USERS",
+        "footnote": "People with the Triage or Read role on GitHub cannot sign in.",
+        "reason": {
+          "noApp": {
+            "title": "The list needs the GitHub App",
+            "description": "In local mode you are the only user. To see the people of the GitHub repo here, set up the GitHub App.",
+            "action": "Set up the GitHub App"
+          },
+          "noRepo": {
+            "title": "No GitHub repo",
+            "description": "Pluto does not know the GitHub repo of this site. Set PLUTO_GITHUB_REPO, or add a GitHub remote named origin."
+          },
+          "appError": {
+            "title": "The GitHub App cannot read the repo",
+            "description": "The App gave no token. Check that it is installed on the repo, and that its private key is right.",
+            "action": "Check the GitHub App"
+          }
+        }
       }
     },
     "validation": {

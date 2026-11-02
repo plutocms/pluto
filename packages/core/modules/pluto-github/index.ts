@@ -183,10 +183,23 @@ export default defineNuxtModule<PlutoGithubOptions>({
     const settingsFile = resolver.resolve(
       '../../app/components/Pluto/Github/PlutoGithubSettingsPage.vue'
     )
+    // The Users page (`/admin/users`): the people with write access to the repo, read only.
+    const usersFile = resolver.resolve(
+      '../../app/components/Pluto/Github/PlutoGithubUsersPage.vue'
+    )
     extendPages((pages) => {
-      const settings = pages
-        .find((page) => page.path === '/admin')
-        ?.children?.find((page) => page.path === 'settings')
+      const admin = pages.find((page) => page.path === '/admin')
+      if (admin) {
+        admin.children ||= []
+        admin.children.push({
+          name: 'admin-users',
+          path: 'users',
+          file: usersFile,
+        })
+      } else {
+        logger.warn('Could not find the admin page. The Users page is off.')
+      }
+      const settings = admin?.children?.find((page) => page.path === 'settings')
       if (settings) {
         settings.children ||= []
         settings.children.push({
@@ -222,6 +235,13 @@ export default defineNuxtModule<PlutoGithubOptions>({
       route: '/api/_pluto/github/build-status',
       method: 'get',
       handler: server('api/build-status.get'),
+    })
+
+    // The people with write access to the repo, for the Users page. It needs a signed-in user.
+    addServerHandler({
+      route: '/api/_pluto/github/users',
+      method: 'get',
+      handler: server('api/users.get'),
     })
 
     // The public reads of the posts go through the public API of core (`/api/pluto/v1/content/post`).

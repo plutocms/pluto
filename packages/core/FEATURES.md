@@ -103,7 +103,9 @@ policies shared by every project here.
   and an Info popover with links to the Action or the build. A content type with `liveOnSave` shows
   "Live" at once after a save and the static build as a small spinner. The file adapter has
   `readFile` (safe relative paths) and `_frontmatter` on `get`, and core has the auto-imported
-  `markPublicRead(event)` for layers. @.claude/skills/git-cms/SKILL.md
+  `markPublicRead(event)` for layers. A read-only **Users** page (`/admin/users`) lists the people
+  with write access to the repo (`GET /api/_pluto/github/users`), their GitHub role, what it gives in
+  Pluto, and who `ALLOWED_USERS` blocks. @.claude/skills/git-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

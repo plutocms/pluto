@@ -159,8 +159,8 @@ async function loadSources(
   return { checkRuns, statuses, deployments, unavailable }
 }
 
-/** Maps an error of the GitHub call to an HTTP error, like the content adapter does. */
-function toHttpError(error: unknown, event: H3Event): unknown {
+/** Maps an error of a GitHub call to an HTTP error, like the content adapter does. The users route uses it too. */
+export function toHttpError(error: unknown, event: H3Event): unknown {
   if (!(error instanceof PlutoGithubStoreError)) {
     return error
   }

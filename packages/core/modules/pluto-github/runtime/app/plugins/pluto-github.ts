@@ -105,6 +105,17 @@ export default defineNuxtPlugin(() => {
       signInTitle: 'pluto.github.login.title',
       signInDescription: 'pluto.github.login.description',
     },
+    // The Users item of the menu, between Media (900) and Settings (1000). The page
+    // (`/admin/users`, added by the module) lists the people with write access to the repo.
+    nav: [
+      {
+        id: 'users',
+        order: 950,
+        label: 'pluto.github.users.title',
+        icon: 'i-lucide-users',
+        to: '/admin/users',
+      },
+    ],
     // The GitHub tab of Settings: the setup check and the Create button. The module
     // adds its route (`/admin/settings/github`) with `extendPages`.
     settingsPages: [
