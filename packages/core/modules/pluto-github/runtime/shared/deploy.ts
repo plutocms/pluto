@@ -1,28 +1,29 @@
 import type { PlutoDeployHost } from './domain'
 import type { PackageManager } from './pages-workflow'
 
-/** The state of GitHub Pages for the repo, read with the GitHub CLI of this computer. */
-export interface PlutoPagesState {
-  /** `on`: Pages is on. `off`: GitHub answered 404. `unknown`: the CLI could not tell. */
-  state: 'on' | 'off' | 'unknown'
+/**
+ * The last deploy to GitHub Pages: the newest deployment of the `github-pages` environment and its
+ * newest status. Pluto reads it with the GitHub API, with no CLI and, for a public repo, no token.
+ */
+export interface PlutoPagesDeploy {
+  /**
+   * `none`: no deploy yet. `success`, `failure`, `pending`: the state of the newest deploy.
+   * `unknown`: GitHub did not answer, for example a private repo and no token.
+   */
+  state: 'none' | 'success' | 'failure' | 'pending' | 'unknown'
+  /** The address of the site, a custom domain included. */
   url?: string
-  /** `workflow`: the site comes from an Action. `legacy`: from a branch. */
-  source?: 'workflow' | 'legacy'
-  /** Why the state is unknown: no `gh`, `gh` not signed in, or another failure. */
-  reason?: 'no-gh' | 'signed-out' | 'error'
-  /** The custom domain, or an empty string. */
-  cname?: string
-  /** The state of the HTTPS certificate of the custom domain, as GitHub gives it (`issued`, …). */
-  certificate?: string
-  /** The site redirects HTTP to HTTPS. */
-  httpsEnforced?: boolean
+  /** The page of the run on GitHub, with the log. */
+  logUrl?: string
+  /** ISO time of the newest status. */
+  at?: string
 }
 
 /** The answer of `GET /api/_pluto/github/deploy/status`. */
 export interface PlutoDeployStatus {
   repo: string
   branch: string
-  /** True for local mode on this computer: the page can write the workflow and run `gh`. */
+  /** True for local mode on this computer: the page can write and commit the workflow. */
   local: boolean
   packageManager: PackageManager
   workflow: {
@@ -34,8 +35,8 @@ export interface PlutoDeployStatus {
     /** The workflow to copy, for a setup by hand. */
     text: string
   }
-  /** Local mode only. */
-  pages?: PlutoPagesState
+  /** The last deploy to GitHub Pages. */
+  deploy: PlutoPagesDeploy
   /** The default address of the Pages site. */
   pagesUrl: string
   /** The host that built the app. Empty in local mode. */
@@ -49,20 +50,16 @@ export interface PlutoPagesSetupResult {
   status: PlutoDeployStatus
   /** The workflow was written and committed. */
   committed: boolean
-  /** Pages was turned on (or was on already) with the Actions source. */
-  pagesOn: boolean
 }
 
-/** The body of `POST /api/_pluto/github/deploy/domain`. Send one of the two keys. */
-export interface PlutoPagesDomainBody {
-  /** The custom domain. An empty string removes it. */
-  domain?: string
-  httpsEnforced?: boolean
-}
-
-/** The answer of `POST /api/_pluto/github/deploy/domain`. */
-export interface PlutoPagesDomainResult {
-  status: PlutoDeployStatus
-  /** The domain changed and Pluto started the workflow, so the site builds for the new address. */
-  rebuilt: boolean
+/** The answer of `GET /api/_pluto/github/deploy/dns?domain=<domain>`. */
+export interface PlutoDomainCheck {
+  domain: string
+  /**
+   * `ok`: every address of the domain is a GitHub Pages address. `missing`: no address yet.
+   * `other`: the domain points somewhere else (`found` lists the addresses).
+   */
+  state: 'ok' | 'missing' | 'other'
+  /** The CNAME targets and the addresses that the DNS gave. */
+  found: string[]
 }

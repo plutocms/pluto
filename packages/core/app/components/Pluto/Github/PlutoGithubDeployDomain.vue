@@ -1,22 +1,27 @@
 <script setup lang="ts">
 // The Domain section of the Deploy tab. A full-site host (Vercel, Netlify)
 // serves the domain: the section links to its domain settings. For GitHub
-// Pages, in local mode, the section sets the custom domain with the GitHub CLI
-// (the Pages API). GitHub ignores a `CNAME` file when an Action builds the
-// site, so Pluto writes none. See the git-cms skill.
+// Pages, the domain lives in the Pages settings of the repo (GitHub ignores a
+// `CNAME` file when an Action builds the site). The section links there, shows
+// the DNS records, checks the DNS from the server, and links to the workflow to
+// build the site again. It needs no CLI. See the git-cms skill.
 import type {
   PlutoDeployStatus,
-  PlutoPagesDomainResult,
+  PlutoDomainCheck,
 } from '../../../../modules/pluto-github/runtime/shared/deploy'
 import {
   GITHUB_PAGES_A,
   GITHUB_PAGES_AAAA,
   hostDomainSettingsUrl,
   isApexDomain,
+  normalizeDomain,
 } from '../../../../modules/pluto-github/runtime/shared/domain'
 
-const props = defineProps<{ status: PlutoDeployStatus }>()
-const emit = defineEmits<{ status: [status: PlutoDeployStatus] }>()
+const props = defineProps<{
+  status: PlutoDeployStatus
+  pagesSettingsUrl: string
+  runsUrl: string
+}>()
 
 const { t } = usePlutoI18n()
 const errorText = usePlutoErrorText()
@@ -33,58 +38,39 @@ const otherHosts = computed(() =>
 
 // --- GitHub Pages ------------------------------------------------------------
 
-const pages = computed(() => props.status.pages)
-const pagesOn = computed(() => pages.value?.state === 'on')
-const cname = computed(() => pages.value?.cname ?? '')
-const pagesSettingsUrl = computed(() =>
-  props.status.repo
-    ? `https://github.com/${props.status.repo}/settings/pages`
-    : ''
+/** The custom domain of the live Pages site, from the address of its last deploy. */
+const currentDomain = computed(() => {
+  const url = props.status.deploy.url
+  if (!url) {
+    return ''
+  }
+  try {
+    const host = new URL(url).hostname
+    return host.endsWith('.github.io') ? '' : host
+  } catch {
+    return ''
+  }
+})
+
+const domainInput = ref(currentDomain.value)
+watch(currentDomain, (value) => {
+  if (value && !domainInput.value) {
+    domainInput.value = value
+  }
+})
+const domain = computed(() => normalizeDomain(domainInput.value) ?? '')
+const invalid = computed(
+  () => Boolean(domainInput.value.trim()) && !normalizeDomain(domainInput.value)
 )
 
-const domainInput = ref(cname.value)
-watch(cname, (value) => {
-  domainInput.value = value
-})
-
-const saving = ref(false)
-const error = ref('')
-const notice = ref('')
-
-async function send(body: { domain?: string; httpsEnforced?: boolean }) {
-  saving.value = true
-  error.value = ''
-  notice.value = ''
-  try {
-    const result = await $fetch<PlutoPagesDomainResult>(
-      '/api/_pluto/github/deploy/domain',
-      { method: 'POST', body }
-    )
-    emit('status', result.status)
-    if (body.domain !== undefined) {
-      notice.value = result.rebuilt
-        ? t('pluto.github.deploy.domain.pages.rebuilt')
-        : t('pluto.github.deploy.domain.pages.push')
-    }
-  } catch (caught) {
-    error.value = errorText(caught)
-  } finally {
-    saving.value = false
-  }
-}
-
-const removeOpen = ref(false)
-async function removeDomain() {
-  removeOpen.value = false
-  await send({ domain: '' })
-}
-
-// --- DNS and HTTPS -----------------------------------------------------------
-
-const apex = ref(isApexDomain(cname.value))
-watch(cname, (value) => {
-  apex.value = isApexDomain(value)
-})
+const apex = ref(false)
+watch(
+  domain,
+  (value) => {
+    apex.value = isApexDomain(value)
+  },
+  { immediate: true }
+)
 
 const records = computed(() => {
   if (apex.value) {
@@ -94,13 +80,38 @@ const records = computed(() => {
     ]
   }
   const owner = props.status.repo.split('/')[0]?.toLowerCase() ?? ''
-  const name = cname.value.split('.').slice(0, -2).join('.') || cname.value
+  const name = domain.value.split('.').slice(0, -2).join('.') || domain.value
   return [{ type: 'CNAME', name, value: `${owner}.github.io` }]
 })
 
-const certificateReady = computed(() =>
-  ['issued', 'uploaded', 'approved'].includes(pages.value?.certificate ?? '')
-)
+const checking = ref(false)
+const check = ref<PlutoDomainCheck | null>(null)
+const checkError = ref('')
+watch(domain, () => {
+  check.value = null
+  checkError.value = ''
+})
+
+async function checkDns() {
+  checking.value = true
+  checkError.value = ''
+  try {
+    check.value = await $fetch<PlutoDomainCheck>(
+      '/api/_pluto/github/deploy/dns',
+      { query: { domain: domain.value } }
+    )
+  } catch (error) {
+    checkError.value = errorText(error)
+  } finally {
+    checking.value = false
+  }
+}
+
+const CHECK_ICONS = {
+  ok: ['i-lucide-circle-check', 'text-success'],
+  missing: ['i-lucide-circle-dashed', 'text-muted'],
+  other: ['i-lucide-triangle-alert', 'text-warning'],
+} as const
 </script>
 
 <template>
@@ -155,7 +166,7 @@ const certificateReady = computed(() =>
       </div>
     </UCard>
 
-    <!-- GitHub Pages: the custom domain of the repo. -->
+    <!-- GitHub Pages: the steps, with the DNS records and a DNS check. -->
     <UCard>
       <div class="flex flex-col gap-y-4">
         <div>
@@ -168,179 +179,165 @@ const certificateReady = computed(() =>
           <p class="text-muted text-sm">
             {{ t('pluto.github.deploy.domain.pages.description') }}
           </p>
+          <p v-if="currentDomain" class="mt-1 text-sm">
+            {{
+              t('pluto.github.deploy.domain.pages.current', {
+                domain: currentDomain,
+              })
+            }}
+          </p>
         </div>
 
-        <template v-if="status.local && pagesOn">
-          <form
-            class="flex flex-wrap items-end gap-2"
-            @submit.prevent="send({ domain: domainInput })"
-          >
-            <UFormField
-              :label="t('pluto.github.deploy.domain.pages.label')"
-              class="min-w-0 grow sm:max-w-sm"
-            >
-              <UInput
-                v-model="domainInput"
-                :placeholder="t('pluto.github.deploy.domain.pages.placeholder')"
-                autocapitalize="off"
-                autocomplete="off"
-                class="w-full"
-                spellcheck="false"
-              />
-            </UFormField>
-            <UButton
-              :label="t('pluto.github.deploy.domain.pages.save')"
-              :loading="saving"
-              :disabled="!domainInput.trim() || domainInput.trim() === cname"
-              type="submit"
-            />
-            <UButton
-              v-if="cname"
-              :label="t('pluto.github.deploy.domain.pages.remove')"
-              :disabled="saving"
-              color="error"
-              variant="ghost"
-              @click="removeOpen = true"
-            />
-          </form>
-
-          <UAlert
-            v-if="error"
-            :description="error"
-            color="error"
-            icon="i-lucide-circle-x"
-            variant="subtle"
+        <UFormField
+          :label="t('pluto.github.deploy.domain.pages.label')"
+          :error="invalid ? t('pluto.github.deploy.domain.errors.invalid') : false"
+          class="sm:max-w-sm"
+        >
+          <UInput
+            v-model="domainInput"
+            :placeholder="t('pluto.github.deploy.domain.pages.placeholder')"
+            autocapitalize="off"
+            autocomplete="off"
+            class="w-full"
+            spellcheck="false"
           />
-          <UAlert
-            v-else-if="notice"
-            :description="notice"
-            color="success"
-            icon="i-lucide-circle-check"
-            variant="subtle"
-          />
+        </UFormField>
 
-          <template v-if="cname">
-            <div class="flex flex-col gap-y-2">
-              <span class="text-sm font-medium">
-                {{ t('pluto.github.deploy.domain.pages.dns.title') }}
-              </span>
-              <div class="flex flex-wrap gap-1">
-                <UButton
-                  :label="t('pluto.github.deploy.domain.pages.dns.subdomain')"
-                  :variant="apex ? 'ghost' : 'soft'"
-                  color="neutral"
-                  size="xs"
-                  @click="apex = false"
-                />
-                <UButton
-                  :label="t('pluto.github.deploy.domain.pages.dns.apex')"
-                  :variant="apex ? 'soft' : 'ghost'"
-                  color="neutral"
-                  size="xs"
-                  @click="apex = true"
-                />
-              </div>
-              <div class="overflow-x-auto">
-                <table class="text-sm">
-                  <thead class="text-muted text-left">
-                    <tr>
-                      <th class="pr-6 font-normal">
-                        {{ t('pluto.github.deploy.domain.pages.dns.type') }}
-                      </th>
-                      <th class="pr-6 font-normal">
-                        {{ t('pluto.github.deploy.domain.pages.dns.name') }}
-                      </th>
-                      <th class="font-normal">
-                        {{ t('pluto.github.deploy.domain.pages.dns.value') }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="record in records"
-                      :key="`${record.type}-${record.value}`"
-                    >
-                      <td class="pr-6">
-                        <code>{{ record.type }}</code>
-                      </td>
-                      <td class="pr-6">
-                        <code>{{ record.name }}</code>
-                      </td>
-                      <td>
-                        <code>{{ record.value }}</code>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div
-              v-if="certificateReady"
-              class="flex flex-wrap items-center justify-between gap-3"
-            >
-              <span class="flex items-center gap-2 text-sm">
-                <UIcon name="i-lucide-lock" class="text-success size-4" />
-                {{
-                  t('pluto.github.deploy.domain.pages.https.issued', {
-                    domain: cname,
-                  })
-                }}
-              </span>
-              <USwitch
-                :model-value="Boolean(pages?.httpsEnforced)"
-                :label="t('pluto.github.deploy.domain.pages.https.enforce')"
-                :disabled="saving"
-                @update:model-value="send({ httpsEnforced: $event })"
+        <ol class="flex list-decimal flex-col gap-y-4 pl-5 text-sm">
+          <li>
+            <div class="flex flex-col items-start gap-2">
+              <span>{{
+                t('pluto.github.deploy.domain.pages.steps.settings')
+              }}</span>
+              <UButton
+                :label="t('pluto.github.deploy.pages.settings')"
+                :to="pagesSettingsUrl"
+                :disabled="!pagesSettingsUrl"
+                color="neutral"
+                size="sm"
+                target="_blank"
+                trailing-icon="i-lucide-external-link"
+                variant="outline"
               />
             </div>
-            <p v-else class="text-muted flex items-start gap-2 text-sm">
-              <UIcon name="i-lucide-clock" class="mt-0.5 size-4 shrink-0" />
-              {{ t('pluto.github.deploy.domain.pages.https.pending') }}
-            </p>
-          </template>
-        </template>
+          </li>
 
-        <p v-else-if="status.local" class="text-muted text-sm">
-          {{ t('pluto.github.deploy.domain.pages.notReady') }}
-        </p>
+          <li>
+            <div class="flex flex-col items-start gap-2">
+              <span>{{ t('pluto.github.deploy.domain.pages.dns.title') }}</span>
+              <p v-if="!domain" class="text-muted">
+                {{ t('pluto.github.deploy.domain.pages.dns.typeFirst') }}
+              </p>
+              <template v-else>
+                <div class="flex flex-wrap gap-1">
+                  <UButton
+                    :label="t('pluto.github.deploy.domain.pages.dns.subdomain')"
+                    :variant="apex ? 'ghost' : 'soft'"
+                    color="neutral"
+                    size="xs"
+                    @click="apex = false"
+                  />
+                  <UButton
+                    :label="t('pluto.github.deploy.domain.pages.dns.apex')"
+                    :variant="apex ? 'soft' : 'ghost'"
+                    color="neutral"
+                    size="xs"
+                    @click="apex = true"
+                  />
+                </div>
+                <div class="max-w-full overflow-x-auto">
+                  <table>
+                    <thead class="text-muted text-left">
+                      <tr>
+                        <th class="pr-6 font-normal">
+                          {{ t('pluto.github.deploy.domain.pages.dns.type') }}
+                        </th>
+                        <th class="pr-6 font-normal">
+                          {{ t('pluto.github.deploy.domain.pages.dns.name') }}
+                        </th>
+                        <th class="font-normal">
+                          {{ t('pluto.github.deploy.domain.pages.dns.value') }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="record in records"
+                        :key="`${record.type}-${record.value}`"
+                      >
+                        <td class="pr-6">
+                          <code>{{ record.type }}</code>
+                        </td>
+                        <td class="pr-6">
+                          <code>{{ record.name }}</code>
+                        </td>
+                        <td>
+                          <code>{{ record.value }}</code>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <UButton
+                  :label="t('pluto.github.deploy.domain.pages.dns.check')"
+                  :loading="checking"
+                  color="neutral"
+                  icon="i-lucide-search-check"
+                  size="sm"
+                  variant="outline"
+                  @click="checkDns"
+                />
+                <p
+                  v-if="check"
+                  :class="check.state === 'ok' ? '' : 'text-muted'"
+                  class="flex items-start gap-2"
+                >
+                  <UIcon
+                    :name="CHECK_ICONS[check.state][0]"
+                    :class="CHECK_ICONS[check.state][1]"
+                    class="mt-0.5 size-4 shrink-0"
+                  />
+                  <span>
+                    {{
+                      t(`pluto.github.deploy.domain.pages.dns.${check.state}`, {
+                        domain: check.domain,
+                        found: check.found.join(', '),
+                      })
+                    }}
+                  </span>
+                </p>
+                <p v-else-if="checkError" class="text-error">
+                  {{ checkError }}
+                </p>
+              </template>
+            </div>
+          </li>
 
-        <p v-else class="text-sm">
-          {{ t('pluto.github.deploy.domain.pages.manual') }}
-          <ULink
-            v-if="pagesSettingsUrl"
-            :to="pagesSettingsUrl"
-            class="text-primary"
-            target="_blank"
-          >
-            {{ t('pluto.github.deploy.pages.settings') }}
-          </ULink>
+          <li>
+            <div class="flex flex-col items-start gap-2">
+              <span>{{
+                t('pluto.github.deploy.domain.pages.steps.build')
+              }}</span>
+              <UButton
+                :label="t('pluto.github.deploy.domain.pages.openWorkflow')"
+                :to="runsUrl"
+                :disabled="!runsUrl"
+                color="neutral"
+                size="sm"
+                target="_blank"
+                trailing-icon="i-lucide-external-link"
+                variant="outline"
+              />
+            </div>
+          </li>
+
+          <li>{{ t('pluto.github.deploy.domain.pages.steps.https') }}</li>
+        </ol>
+
+        <p class="text-muted text-xs">
+          {{ t('pluto.github.deploy.domain.pages.remove') }}
         </p>
       </div>
     </UCard>
-
-    <UModal
-      v-model:open="removeOpen"
-      :title="t('pluto.github.deploy.domain.pages.removeConfirm.title')"
-      :description="
-        t('pluto.github.deploy.domain.pages.removeConfirm.description')
-      "
-    >
-      <template #footer>
-        <div class="flex w-full justify-end gap-2">
-          <UButton
-            :label="t('pluto.common.cancel')"
-            color="neutral"
-            variant="ghost"
-            @click="removeOpen = false"
-          />
-          <UButton
-            :label="t('pluto.github.deploy.domain.pages.remove')"
-            color="error"
-            @click="removeDomain"
-          />
-        </div>
-      </template>
-    </UModal>
   </section>
 </template>

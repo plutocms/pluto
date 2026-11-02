@@ -6,9 +6,10 @@
 // - The whole app (the site and the admin): Vercel, Netlify, a Node host. A
 //   card opens the import page of the host for this repo.
 // - A static site (the admin stays on the computer): GitHub Pages and
-//   Cloudflare Pages. In local mode, "Set up GitHub Pages" writes the
-//   workflow, commits it, and turns Pages on with the GitHub CLI. It changes
-//   a real repo, so a dialog names the repo first.
+//   Cloudflare Pages. In local mode, "Add the workflow" writes and commits the
+//   workflow, after a dialog. The author turns Pages on in the settings of the
+//   repo (a link), and pushes. The page needs no CLI: it reads the last deploy
+//   of the `github-pages` environment with the GitHub API.
 // - The domain: see PlutoGithubDeployDomain.
 //
 // The file lives under `app/` so Tailwind scans it. See the git-cms skill.
@@ -75,42 +76,53 @@ const hosts = computed(() => [
 
 // --- GitHub Pages ------------------------------------------------------------
 
-const settingUp = ref(false)
-const setupError = ref('')
-const setupResult = ref<PlutoPagesSetupResult | null>(null)
-
-const pages = computed(() => status.value?.pages)
-const pagesReady = computed(
-  () =>
-    Boolean(status.value?.workflow.current) &&
-    pages.value?.state === 'on' &&
-    pages.value.source === 'workflow'
-)
-const pagesUrl = computed(
-  () => pages.value?.url || status.value?.pagesUrl || ''
+const deploy = computed(() => status.value?.deploy)
+const online = computed(() => deploy.value?.state === 'success')
+const siteUrl = computed(
+  () => deploy.value?.url || status.value?.pagesUrl || ''
 )
 const pagesSettingsUrl = computed(() =>
   repoUrl.value ? `${repoUrl.value}/settings/pages` : ''
 )
+/** The page of the workflow on GitHub: its runs, and the "Run workflow" button. */
+const runsUrl = computed(() => {
+  const file = status.value?.workflow.path.split('/').at(-1)
+  return repoUrl.value && file
+    ? `${repoUrl.value}/actions/workflows/${file}`
+    : ''
+})
 
-/** One line for the state of Pages on GitHub. */
-const pagesLine = computed(() => {
-  const current = pages.value
+const pushed = computed(
+  () =>
+    Boolean(status.value?.local && status.value.workflow.current) &&
+    !localGit.ahead.value
+)
+
+/** One line for the last deploy. */
+const deployLine = computed(() => {
+  const current = deploy.value
   if (!current) {
     return ''
   }
-  if (current.state === 'on') {
-    return current.source === 'workflow'
-      ? t('pluto.github.deploy.pages.state.on')
-      : t('pluto.github.deploy.pages.state.legacy')
-  }
-  if (current.state === 'off') {
-    return t('pluto.github.deploy.pages.state.off')
-  }
-  return t(`pluto.github.deploy.pages.reason.${current.reason ?? 'error'}`)
+  return current.state === 'success'
+    ? t('pluto.github.deploy.pages.deploy.success', { url: siteUrl.value })
+    : t(`pluto.github.deploy.pages.deploy.${current.state}`)
 })
 
+const DEPLOY_ICONS = {
+  success: ['i-lucide-circle-check', 'text-success'],
+  failure: ['i-lucide-circle-x', 'text-error'],
+  pending: ['i-lucide-loader-circle', 'text-primary animate-spin'],
+  none: ['i-lucide-circle-dashed', 'text-muted'],
+  unknown: ['i-lucide-circle-help', 'text-muted'],
+} as const
+const deployIcon = computed(
+  () => DEPLOY_ICONS[deploy.value?.state ?? 'unknown']
+)
+
 const confirmOpen = ref(false)
+const settingUp = ref(false)
+const setupError = ref('')
 
 async function setupPages() {
   confirmOpen.value = false
@@ -121,7 +133,6 @@ async function setupPages() {
       '/api/_pluto/github/deploy/pages',
       { method: 'POST' }
     )
-    setupResult.value = result
     status.value = result.status
     // The workflow commit is a new commit to push: the Git badge counts it.
     localGit.refresh()
@@ -129,6 +140,16 @@ async function setupPages() {
     setupError.value = errorText(error)
   } finally {
     settingUp.value = false
+  }
+}
+
+const pushError = ref('')
+async function push() {
+  pushError.value = ''
+  try {
+    await localGit.push()
+  } catch (error) {
+    pushError.value = errorText(error)
   }
 }
 
@@ -240,16 +261,16 @@ const cloudflare = {
                 {{ t('pluto.github.deploy.pages.name') }}
               </span>
               <UBadge
-                v-if="pagesReady"
-                :label="t('pluto.github.deploy.pages.ready')"
+                v-if="online"
+                :label="t('pluto.github.deploy.pages.online')"
                 color="success"
                 variant="subtle"
               />
             </div>
             <UButton
-              v-if="pagesReady && pagesUrl"
+              v-if="online && siteUrl"
               :label="t('pluto.github.deploy.pages.open')"
-              :to="pagesUrl"
+              :to="siteUrl"
               color="neutral"
               target="_blank"
               trailing-icon="i-lucide-external-link"
@@ -263,9 +284,9 @@ const cloudflare = {
 
           <USkeleton v-if="loading && !status" class="h-16 w-full" />
 
-          <!-- Local mode: the checks and the Set up button. -->
-          <template v-else-if="status?.local">
-            <ul class="flex flex-col gap-y-2 text-sm">
+          <template v-else-if="status">
+            <ol class="flex flex-col gap-y-4 text-sm">
+              <!-- 1. The workflow file. -->
               <li class="flex items-start gap-2">
                 <UIcon
                   :name="
@@ -278,139 +299,170 @@ const cloudflare = {
                   "
                   class="mt-0.5 size-4 shrink-0"
                 />
-                <span>
-                  {{
-                    status.workflow.current
-                      ? t('pluto.github.deploy.pages.workflow.done')
-                      : status.workflow.exists
-                        ? t('pluto.github.deploy.pages.workflow.old')
-                        : t('pluto.github.deploy.pages.workflow.missing')
-                  }}
-                  <code class="text-xs">{{ status.workflow.path }}</code>
-                </span>
+                <div class="flex min-w-0 flex-col items-start gap-2">
+                  <span v-if="status.local">
+                    {{
+                      status.workflow.current
+                        ? t('pluto.github.deploy.pages.workflow.done')
+                        : status.workflow.exists
+                          ? t('pluto.github.deploy.pages.workflow.old')
+                          : t('pluto.github.deploy.pages.workflow.missing')
+                    }}
+                    <code class="text-xs">{{ status.workflow.path }}</code>
+                  </span>
+                  <span v-else>
+                    {{ t('pluto.github.deploy.pages.workflow.manual') }}
+                    <code class="text-xs">{{ status.workflow.path }}</code>
+                  </span>
+                  <div v-if="status.local" class="flex flex-wrap gap-2">
+                    <UButton
+                      v-if="!status.workflow.current"
+                      :label="t('pluto.github.deploy.pages.setup')"
+                      :loading="settingUp"
+                      icon="i-lucide-file-plus"
+                      size="sm"
+                      @click="confirmOpen = true"
+                    />
+                    <UButton
+                      :label="
+                        showWorkflow
+                          ? t('pluto.github.deploy.pages.hideWorkflow')
+                          : t('pluto.github.deploy.pages.showWorkflow')
+                      "
+                      color="neutral"
+                      size="sm"
+                      variant="ghost"
+                      @click="showWorkflow = !showWorkflow"
+                    />
+                  </div>
+                  <UAlert
+                    v-if="setupError"
+                    :description="setupError"
+                    class="w-full"
+                    color="error"
+                    icon="i-lucide-circle-x"
+                    variant="subtle"
+                  />
+                </div>
               </li>
+
+              <!-- 2. The source of Pages, in the settings of the repo. -->
               <li class="flex items-start gap-2">
                 <UIcon
                   :name="
-                    pages?.state === 'on' && pages.source === 'workflow'
-                      ? 'i-lucide-circle-check'
-                      : 'i-lucide-circle-dashed'
+                    online ? 'i-lucide-circle-check' : 'i-lucide-circle-dashed'
                   "
-                  :class="
-                    pages?.state === 'on' && pages.source === 'workflow'
-                      ? 'text-success'
-                      : 'text-muted'
-                  "
+                  :class="online ? 'text-success' : 'text-muted'"
                   class="mt-0.5 size-4 shrink-0"
                 />
-                <span>{{ pagesLine }}</span>
+                <div class="flex flex-col items-start gap-2">
+                  <span>{{ t('pluto.github.deploy.pages.source') }}</span>
+                  <UButton
+                    :label="t('pluto.github.deploy.pages.settings')"
+                    :to="pagesSettingsUrl"
+                    :disabled="!pagesSettingsUrl"
+                    color="neutral"
+                    size="sm"
+                    target="_blank"
+                    trailing-icon="i-lucide-external-link"
+                    variant="outline"
+                  />
+                </div>
               </li>
-            </ul>
 
-            <div class="flex flex-wrap items-center gap-2">
-              <UButton
-                v-if="!pagesReady"
-                :label="t('pluto.github.deploy.pages.setup')"
-                :loading="settingUp"
-                :disabled="!status.repo"
-                icon="i-lucide-wand-sparkles"
-                @click="confirmOpen = true"
-              />
-              <UButton
-                v-if="pages?.state !== 'on' || pages.source !== 'workflow'"
-                :label="t('pluto.github.deploy.pages.settings')"
-                :to="pagesSettingsUrl"
-                :disabled="!pagesSettingsUrl"
-                color="neutral"
-                target="_blank"
-                trailing-icon="i-lucide-external-link"
-                variant="outline"
-              />
-              <UButton
-                :label="
-                  showWorkflow
-                    ? t('pluto.github.deploy.pages.hideWorkflow')
-                    : t('pluto.github.deploy.pages.showWorkflow')
-                "
-                color="neutral"
-                variant="ghost"
-                @click="showWorkflow = !showWorkflow"
-              />
-            </div>
-
-            <UAlert
-              v-if="setupError"
-              :description="setupError"
-              color="error"
-              icon="i-lucide-circle-x"
-              variant="subtle"
-            />
-            <UAlert
-              v-else-if="setupResult"
-              :title="
-                setupResult.pagesOn
-                  ? t('pluto.github.deploy.pages.done.title')
-                  : t('pluto.github.deploy.pages.partial.title')
-              "
-              :description="
-                setupResult.pagesOn
-                  ? t('pluto.github.deploy.pages.done.description')
-                  : t('pluto.github.deploy.pages.partial.description')
-              "
-              :color="setupResult.pagesOn ? 'success' : 'warning'"
-              :icon="
-                setupResult.pagesOn
-                  ? 'i-lucide-circle-check'
-                  : 'i-lucide-triangle-alert'
-              "
-              variant="subtle"
-            />
-          </template>
-
-          <!-- Not local: the setup by hand. -->
-          <template v-else-if="status">
-            <ol class="list-decimal space-y-1 pl-5 text-sm">
-              <li>{{ t('pluto.github.deploy.pages.manual.step1') }}</li>
-              <li>
-                {{ t('pluto.github.deploy.pages.manual.step2') }}
-                <ULink
-                  v-if="pagesSettingsUrl"
-                  :to="pagesSettingsUrl"
-                  class="text-primary"
-                  target="_blank"
-                >
-                  {{ t('pluto.github.deploy.pages.settings') }}
-                </ULink>
+              <!-- 3. The push. -->
+              <li class="flex items-start gap-2">
+                <UIcon
+                  :name="
+                    pushed ? 'i-lucide-circle-check' : 'i-lucide-circle-dashed'
+                  "
+                  :class="pushed ? 'text-success' : 'text-muted'"
+                  class="mt-0.5 size-4 shrink-0"
+                />
+                <div class="flex flex-col items-start gap-2">
+                  <span>{{ t('pluto.github.deploy.pages.push') }}</span>
+                  <template v-if="status.local && localGit.ahead.value">
+                    <UButton
+                      :label="`${t('pluto.github.local.push')} · ${t('pluto.github.local.ahead', localGit.ahead.value)}`"
+                      :loading="localGit.pushing.value"
+                      icon="i-lucide-upload"
+                      size="sm"
+                      @click="push"
+                    />
+                    <UAlert
+                      v-if="pushError"
+                      :description="pushError"
+                      class="w-full"
+                      color="error"
+                      icon="i-lucide-circle-x"
+                      variant="subtle"
+                    />
+                  </template>
+                </div>
               </li>
-              <li>{{ t('pluto.github.deploy.pages.manual.step3') }}</li>
+
+              <!-- 4. The last deploy, read with the GitHub API. -->
+              <li class="flex items-start gap-2">
+                <UIcon
+                  :name="deployIcon[0]"
+                  :class="deployIcon[1]"
+                  class="mt-0.5 size-4 shrink-0"
+                />
+                <div class="flex flex-col items-start gap-2">
+                  <span>{{ deployLine }}</span>
+                  <div class="flex flex-wrap gap-2">
+                    <UButton
+                      :label="t('pluto.github.deploy.pages.check')"
+                      :loading="loading"
+                      color="neutral"
+                      icon="i-lucide-refresh-cw"
+                      size="sm"
+                      variant="outline"
+                      @click="load"
+                    />
+                    <UButton
+                      v-if="deploy?.logUrl || runsUrl"
+                      :label="t('pluto.github.deploy.pages.runs')"
+                      :to="deploy?.logUrl || runsUrl"
+                      color="neutral"
+                      size="sm"
+                      target="_blank"
+                      trailing-icon="i-lucide-external-link"
+                      variant="ghost"
+                    />
+                  </div>
+                </div>
+              </li>
             </ol>
-          </template>
 
-          <div
-            v-if="status && (showWorkflow || !status.local)"
-            class="flex flex-col gap-y-2"
-          >
-            <div class="flex items-center justify-between gap-2">
-              <code class="text-muted text-xs">{{ status.workflow.path }}</code>
-              <UButton
-                :label="
-                  copied === 'workflow'
-                    ? t('pluto.common.copied')
-                    : t('pluto.common.copy')
-                "
-                :icon="
-                  copied === 'workflow' ? 'i-lucide-check' : 'i-lucide-copy'
-                "
-                color="neutral"
-                size="xs"
-                variant="outline"
-                @click="copy('workflow', status.workflow.text)"
-              />
+            <div
+              v-if="showWorkflow || !status.local"
+              class="flex flex-col gap-y-2"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <code class="text-muted text-xs">
+                  {{ status.workflow.path }}
+                </code>
+                <UButton
+                  :label="
+                    copied === 'workflow'
+                      ? t('pluto.common.copied')
+                      : t('pluto.common.copy')
+                  "
+                  :icon="
+                    copied === 'workflow' ? 'i-lucide-check' : 'i-lucide-copy'
+                  "
+                  color="neutral"
+                  size="xs"
+                  variant="outline"
+                  @click="copy('workflow', status.workflow.text)"
+                />
+              </div>
+              <pre
+                class="bg-elevated max-h-80 overflow-auto rounded-md p-3 text-xs"
+                >{{ status.workflow.text }}</pre>
             </div>
-            <pre
-              class="bg-elevated max-h-80 overflow-auto rounded-md p-3 text-xs"
-              >{{ status.workflow.text }}</pre>
-          </div>
+          </template>
 
           <p class="text-muted text-xs">
             {{ t('pluto.github.deploy.pages.nodeAdmin') }}
@@ -477,16 +529,15 @@ const cloudflare = {
     <PlutoGithubDeployDomain
       v-if="status"
       :status="status"
-      @status="status = $event"
+      :pages-settings-url="pagesSettingsUrl"
+      :runs-url="runsUrl"
     />
 
     <UModal
       v-if="status"
       v-model:open="confirmOpen"
       :title="t('pluto.github.deploy.confirm.title')"
-      :description="
-        t('pluto.github.deploy.confirm.description', { repo: status.repo })
-      "
+      :description="t('pluto.github.deploy.confirm.description')"
     >
       <template #body>
         <ul class="flex list-disc flex-col gap-y-1 pl-5 text-sm">
@@ -497,9 +548,7 @@ const cloudflare = {
               })
             }}
           </li>
-          <li>
-            {{ t('pluto.github.deploy.confirm.pages', { repo: status.repo }) }}
-          </li>
+          <li>{{ t('pluto.github.deploy.confirm.github') }}</li>
           <li>{{ t('pluto.github.deploy.confirm.push') }}</li>
         </ul>
       </template>
@@ -513,7 +562,7 @@ const cloudflare = {
           />
           <UButton
             :label="t('pluto.github.deploy.confirm.action')"
-            icon="i-lucide-wand-sparkles"
+            icon="i-lucide-file-plus"
             @click="setupPages"
           />
         </div>

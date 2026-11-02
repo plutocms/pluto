@@ -1,3 +1,4 @@
+import type { GithubFetch } from '../modules/pluto-github/runtime/server/github/client'
 import { execFileSync } from 'node:child_process'
 import {
   existsSync,
@@ -10,9 +11,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parse } from 'yaml'
-import domainRoute from '../modules/pluto-github/runtime/server/api/deploy/domain.post'
+import dnsRoute from '../modules/pluto-github/runtime/server/api/deploy/dns.get'
 import pagesRoute from '../modules/pluto-github/runtime/server/api/deploy/pages.post'
 import statusRoute from '../modules/pluto-github/runtime/server/api/deploy/status.get'
+import { clearGithubUsersCache } from '../modules/pluto-github/runtime/server/utils/github-users'
 import {
   detectDeployHost,
   hostDomainSettingsUrl,
@@ -25,7 +27,12 @@ import {
   PAGES_WORKFLOW_PATH,
   renderPagesWorkflow,
 } from '../modules/pluto-github/runtime/shared/pages-workflow'
-import { createAuthApp, resetTestConfig } from './fixtures/github-auth-harness'
+import { createFakeGithub } from './fixtures/fake-github'
+import {
+  createAuthApp,
+  resetTestConfig,
+  signIn,
+} from './fixtures/github-auth-harness'
 
 vi.mock(
   '../modules/pluto-github/runtime/server/utils/github-config',
@@ -35,91 +42,73 @@ vi.mock(
   }
 )
 
-// The GitHub CLI is faked: a test sets the answer of each `gh api` call. Git runs for real.
-interface FakePages {
-  build_type: string
-  html_url: string
-  cname?: string | null
-  https_enforced?: boolean
-  https_certificate?: { state: string }
-}
-const gh = vi.hoisted(() => ({
-  pages: null as null | FakePages,
-  installed: true,
-  signedIn: true,
-  /** The workflow is on GitHub, so `gh workflow run` works. */
-  workflowOnGithub: true,
-  /** A domain that another Pages site uses. */
-  takenDomain: '',
-  calls: [] as string[][],
+// The DNS is faked: a test sets the records of each name. A missing record throws, like Node.
+const dns = vi.hoisted(() => ({
+  records: {} as Record<
+    string,
+    { cname?: string[]; a?: string[]; aaaa?: string[] }
+  >,
 }))
-vi.mock('node:child_process', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('node:child_process')>()
-  const { promisify } = await import('node:util')
-  type Callback = (error: unknown, stdout?: string, stderr?: string) => void
-  const execFile = ((
-    file: string,
-    args: string[],
-    options: unknown,
-    callback: Callback
-  ) => {
-    if (file !== 'gh') {
-      return actual.execFile(file, args, options as never, callback as never)
+vi.mock('node:dns/promises', () => {
+  const lookup = (kind: 'cname' | 'a' | 'aaaa') => async (name: string) => {
+    const found = dns.records[name]?.[kind]
+    if (!found?.length) {
+      throw Object.assign(new Error(`queryX ENODATA ${name}`), {
+        code: 'ENODATA',
+      })
     }
-    gh.calls.push(args)
-    const fail = (message: string, code?: string) =>
-      callback(Object.assign(new Error(message), { code }), '', message)
-    if (!gh.installed) {
-      return fail('spawn gh ENOENT', 'ENOENT')
-    }
-    if (!gh.signedIn) {
-      return fail('To get started with GitHub CLI, please run:  gh auth login')
-    }
-    if (args[0] === 'workflow') {
-      return gh.workflowOnGithub
-        ? callback(null, '', '')
-        : fail('could not find any workflows named pluto-pages.yml')
-    }
-    const field = args[args.indexOf('-F') + 1]
-    if (args.includes('-X') && args.includes('-F') && field) {
-      const [key, value] = field.split('=')
-      if (key === 'cname' && value === gh.takenDomain) {
-        return fail(`gh: The CNAME ${value} is already taken. (HTTP 400)`)
-      }
-      gh.pages =
-        key === 'cname'
-          ? { ...gh.pages!, cname: value === 'null' ? null : value }
-          : { ...gh.pages!, https_enforced: value === 'true' }
-      return callback(null, '{}', '')
-    }
-    if (args.includes('-X')) {
-      gh.pages = {
-        build_type: 'workflow',
-        html_url: 'https://acme.github.io/site/',
-      }
-      return callback(null, '{}', '')
-    }
-    return gh.pages
-      ? callback(null, JSON.stringify(gh.pages), '')
-      : fail('gh: Not Found (HTTP 404)')
-  }) as unknown as typeof actual.execFile
-  // `promisify(execFile)` gives `{ stdout, stderr }`, and the error holds them too, like Node.
-  Object.assign(execFile, {
-    [promisify.custom]: (file: string, args: string[], options: unknown) =>
-      new Promise((resolve, reject) => {
-        ;(execFile as unknown as (...rest: unknown[]) => void)(
-          file,
-          args,
-          options,
-          (error: unknown, stdout = '', stderr = '') =>
-            error
-              ? reject(Object.assign(error as object, { stdout, stderr }))
-              : resolve({ stdout, stderr })
-        )
-      }),
-  })
-  return { ...actual, execFile }
+    return found
+  }
+  return {
+    resolveCname: lookup('cname'),
+    resolve4: lookup('a'),
+    resolve6: lookup('aaaa'),
+  }
 })
+
+// The deployments of the `github-pages` environment. A private repo answers 404 with no token.
+const api = vi.hoisted(() => ({
+  deployments: [] as Array<{
+    id: number
+    statuses: Array<Record<string, string>>
+  }>,
+  private: false,
+  calls: [] as Array<{ method: string; path: string; token: string }>,
+}))
+
+function githubFetch(fallback?: GithubFetch): GithubFetch {
+  return async (url, init) => {
+    const { pathname, searchParams } = new URL(url)
+    const deployments = pathname === '/repos/acme/site/deployments'
+    const statuses = /^\/repos\/acme\/site\/deployments\/(\d+)\/statuses$/.exec(
+      pathname
+    )
+    if (!deployments && !statuses && fallback) {
+      return fallback(url, init)
+    }
+    const token = (init.headers.Authorization ?? '').replace(/^Bearer /, '')
+    api.calls.push({ method: init.method, path: pathname, token })
+    const answer = (status: number, data: unknown) => ({
+      status,
+      headers: { get: () => null },
+      data,
+    })
+    if (api.private && !token) {
+      return answer(404, { message: 'Not Found' })
+    }
+    if (deployments) {
+      expect(searchParams.get('environment')).toBe('github-pages')
+      return answer(
+        200,
+        api.deployments.map(({ id }) => ({ id }))
+      )
+    }
+    const found = api.deployments.find(
+      (deployment) => deployment.id === Number(statuses![1])
+    )
+    return answer(200, found?.statuses ?? [])
+  }
+}
 
 const LOCAL = { ip: '127.0.0.1', headers: { host: 'localhost:3000' } }
 const POST_LOCAL = {
@@ -227,8 +216,14 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     return createAuthApp((router) => {
       router.get('/api/_pluto/github/deploy/status', statusRoute)
       router.post('/api/_pluto/github/deploy/pages', pagesRoute)
-      router.post('/api/_pluto/github/deploy/domain', domainRoute)
+      router.get('/api/_pluto/github/deploy/dns', dnsRoute)
     })
+  }
+
+  async function localStatus() {
+    return (
+      await app().request('/api/_pluto/github/deploy/status', LOCAL)
+    ).json()
   }
 
   beforeEach(() => {
@@ -242,13 +237,17 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     writeFileSync(join(root, 'bun.lock'), '')
     git('add', '-A')
     git('commit', '-q', '-m', 'init')
-    resetTestConfig(undefined, { dev: true, storage: 'fs', fsRoot: root })
-    gh.pages = null
-    gh.installed = true
-    gh.signedIn = true
-    gh.workflowOnGithub = true
-    gh.takenDomain = ''
-    gh.calls = []
+    resetTestConfig(undefined, {
+      dev: true,
+      storage: 'fs',
+      fsRoot: root,
+      fetch: githubFetch(),
+    })
+    clearGithubUsersCache()
+    api.deployments = []
+    api.private = false
+    api.calls = []
+    dns.records = {}
   })
 
   afterEach(() => {
@@ -261,35 +260,110 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     expect(response.status).toBe(401)
   })
 
-  it('reads the workflow and Pages in local mode', async () => {
-    const body = await (
-      await app().request('/api/_pluto/github/deploy/status', LOCAL)
-    ).json()
+  it('reads the workflow and the host in local mode', async () => {
+    resetTestConfig(undefined, {
+      dev: true,
+      storage: 'fs',
+      fsRoot: root,
+      fetch: githubFetch(),
+      host: 'netlify',
+      hostSite: 'acme',
+    })
+    const body = await localStatus()
     expect(body).toMatchObject({
       repo: 'acme/site',
       local: true,
       packageManager: 'bun',
       workflow: { path: PAGES_WORKFLOW_PATH, exists: false, current: false },
-      pages: { state: 'off' },
+      deploy: { state: 'none' },
       pagesUrl: 'https://acme.github.io/site/',
+      host: { id: 'netlify', site: 'acme' },
     })
     expect(body.workflow.text).toContain('bunx nuxt build')
   })
 
-  it('writes and commits the workflow, then turns Pages on', async () => {
+  it('reads the last deploy with no token for a public repo', async () => {
+    api.deployments = [
+      {
+        id: 9,
+        statuses: [
+          {
+            state: 'success',
+            environment_url: 'https://blog.acme.com/',
+            log_url: 'https://github.com/acme/site/actions/runs/1',
+            created_at: '2026-11-02T10:00:00Z',
+          },
+        ],
+      },
+    ]
+    const body = await localStatus()
+    expect(body.deploy).toEqual({
+      state: 'success',
+      url: 'https://blog.acme.com/',
+      logUrl: 'https://github.com/acme/site/actions/runs/1',
+      at: '2026-11-02T10:00:00Z',
+    })
+    expect(api.calls.every((call) => call.token === '')).toBe(true)
+  })
+
+  it('maps a failed and a running deploy', async () => {
+    api.deployments = [{ id: 1, statuses: [{ state: 'error' }] }]
+    expect((await localStatus()).deploy.state).toBe('failure')
+    api.deployments = [{ id: 1, statuses: [{ state: 'in_progress' }] }]
+    expect((await localStatus()).deploy.state).toBe('pending')
+    api.deployments = [{ id: 1, statuses: [] }]
+    expect((await localStatus()).deploy.state).toBe('pending')
+  })
+
+  it('reads a private repo with the read token of .env', async () => {
+    api.private = true
+    api.deployments = [{ id: 1, statuses: [{ state: 'success' }] }]
+    expect((await localStatus()).deploy).toEqual({ state: 'unknown' })
+
+    resetTestConfig(undefined, {
+      dev: true,
+      storage: 'fs',
+      fsRoot: root,
+      fetch: githubFetch(),
+      readToken: 'read-token',
+    })
+    expect((await localStatus()).deploy.state).toBe('success')
+    expect(api.calls.at(-1)!.token).toBe('read-token')
+  })
+
+  it('reads with the token of the signed-in user on a live admin', async () => {
+    const fake = createFakeGithub({
+      users: { ada: { id: 7, permission: 'push' } },
+    })
+    resetTestConfig(fake, {
+      fetch: githubFetch(fake.fetch),
+      allowedUsers: ['ada'],
+    })
+    api.private = true
+    api.deployments = [{ id: 1, statuses: [{ state: 'success' }] }]
+    const live = app()
+    await signIn(live, fake, 'ada')
+    const body = await (
+      await live.request('/api/_pluto/github/deploy/status')
+    ).json()
+    expect(body).toMatchObject({
+      local: false,
+      siteHost: 'cms.test',
+      deploy: { state: 'success' },
+    })
+    expect(body.workflow.exists).toBeUndefined()
+    expect(api.calls.at(-1)!.token).not.toBe('')
+  })
+
+  it('writes and commits the workflow, and changes nothing on GitHub', async () => {
     const response = await app().request(
       '/api/_pluto/github/deploy/pages',
       POST_LOCAL
     )
     expect(response.status).toBe(200)
     const body = await response.json()
-    expect(body).toMatchObject({ committed: true, pagesOn: true })
+    expect(body.committed).toBe(true)
     expect(body.status.workflow).toMatchObject({ exists: true, current: true })
-    expect(body.status.pages).toMatchObject({
-      state: 'on',
-      source: 'workflow',
-      url: 'https://acme.github.io/site/',
-    })
     expect(readFileSync(join(root, PAGES_WORKFLOW_PATH), 'utf8')).toBe(
       body.status.workflow.text
     )
@@ -298,48 +372,13 @@ describe('the deploy routes', { timeout: 30000 }, () => {
         .toString()
         .trim()
     ).toBe('ci: deploy the site to GitHub Pages')
-    expect(gh.calls).toContainEqual([
-      'api',
-      '-X',
-      'POST',
-      'repos/acme/site/pages',
-      '-f',
-      'build_type=workflow',
-    ])
+    expect(api.calls.every((call) => call.method === 'GET')).toBe(true)
 
     // A second run changes nothing.
     const again = await (
       await app().request('/api/_pluto/github/deploy/pages', POST_LOCAL)
     ).json()
     expect(again.committed).toBe(false)
-    expect(again.pagesOn).toBe(true)
-  })
-
-  it('moves a branch site to GitHub Actions', async () => {
-    gh.pages = {
-      build_type: 'legacy',
-      html_url: 'https://acme.github.io/site/',
-    }
-    await app().request('/api/_pluto/github/deploy/pages', POST_LOCAL)
-    expect(gh.calls.some((args) => args.includes('PUT'))).toBe(true)
-  })
-
-  it('still writes the workflow when gh is missing', async () => {
-    gh.installed = false
-    const body = await (
-      await app().request('/api/_pluto/github/deploy/pages', POST_LOCAL)
-    ).json()
-    expect(body).toMatchObject({ committed: true, pagesOn: false })
-    expect(body.status.pages).toEqual({ state: 'unknown', reason: 'no-gh' })
-    expect(existsSync(join(root, PAGES_WORKFLOW_PATH))).toBe(true)
-  })
-
-  it('tells when gh is not signed in', async () => {
-    gh.signedIn = false
-    const body = await (
-      await app().request('/api/_pluto/github/deploy/status', LOCAL)
-    ).json()
-    expect(body.pages).toEqual({ state: 'unknown', reason: 'signed-out' })
   })
 
   it('refuses the setup outside local mode', async () => {
@@ -352,128 +391,66 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     expect(existsSync(join(root, PAGES_WORKFLOW_PATH))).toBe(false)
   })
 
-  describe('the custom domain', () => {
-    function postDomain(body: object) {
-      return app().request('/api/_pluto/github/deploy/domain', {
-        ...POST_LOCAL,
-        body,
-      })
+  describe('the DNS check', () => {
+    async function checkDns(domain: string) {
+      return app().request(
+        `/api/_pluto/github/deploy/dns?domain=${encodeURIComponent(domain)}`,
+        LOCAL
+      )
     }
 
-    beforeEach(() => {
-      gh.pages = {
-        build_type: 'workflow',
-        html_url: 'https://acme.github.io/site/',
-        cname: null,
+    it('finds the A records of GitHub Pages on an apex domain', async () => {
+      dns.records['acme.com'] = {
+        a: ['185.199.108.153', '185.199.109.153'],
+        aaaa: ['2606:50c0:8000::153'],
       }
-    })
-
-    it('gives the host and the domain in the status', async () => {
-      resetTestConfig(undefined, {
-        dev: true,
-        storage: 'fs',
-        fsRoot: root,
-        host: 'netlify',
-        hostSite: 'acme',
-      })
-      gh.pages!.cname = 'blog.acme.com'
-      gh.pages!.https_certificate = { state: 'issued' }
-      const body = await (
-        await app().request('/api/_pluto/github/deploy/status', LOCAL)
-      ).json()
-      expect(body.host).toEqual({ id: 'netlify', site: 'acme' })
-      expect(body.pages).toMatchObject({
-        cname: 'blog.acme.com',
-        certificate: 'issued',
-        httpsEnforced: false,
+      const body = await (await checkDns('https://Acme.com/')).json()
+      expect(body).toEqual({
+        domain: 'acme.com',
+        state: 'ok',
+        found: ['185.199.108.153', '185.199.109.153', '2606:50c0:8000::153'],
       })
     })
 
-    it('sets the domain, then builds the site again', async () => {
-      const response = await postDomain({ domain: 'https://Blog.Acme.com/' })
-      expect(response.status).toBe(200)
-      const body = await response.json()
-      expect(body.rebuilt).toBe(true)
-      expect(body.status.pages.cname).toBe('blog.acme.com')
-      expect(gh.calls).toContainEqual([
-        'api',
-        '-X',
-        'PUT',
-        'repos/acme/site/pages',
-        '-F',
-        'cname=blog.acme.com',
-      ])
-      expect(gh.calls).toContainEqual([
-        'workflow',
-        'run',
-        'pluto-pages.yml',
-        '-R',
-        'acme/site',
-        '--ref',
-        'main',
-      ])
+    it('follows the CNAME of a subdomain to the addresses of GitHub Pages', async () => {
+      dns.records['blog.acme.com'] = {
+        cname: ['acme.github.io.'],
+        a: ['185.199.110.153'],
+      }
+      const body = await (await checkDns('blog.acme.com')).json()
+      expect(body).toMatchObject({
+        state: 'ok',
+        found: ['acme.github.io', '185.199.110.153'],
+      })
     })
 
-    it('tells to push when the workflow is not on GitHub yet', async () => {
-      gh.workflowOnGithub = false
-      const body = await (await postDomain({ domain: 'blog.acme.com' })).json()
-      expect(body.rebuilt).toBe(false)
-      expect(body.status.pages.cname).toBe('blog.acme.com')
+    it('tells when the domain points somewhere else', async () => {
+      dns.records['acme.com'] = { a: ['185.199.108.153', '76.76.21.21'] }
+      expect((await (await checkDns('acme.com')).json()).state).toBe('other')
     })
 
-    it('removes the domain with null', async () => {
-      gh.pages!.cname = 'blog.acme.com'
-      const body = await (await postDomain({ domain: '' })).json()
-      expect(body.status.pages.cname).toBe('')
-      expect(gh.calls).toContainEqual([
-        'api',
-        '-X',
-        'PUT',
-        'repos/acme/site/pages',
-        '-F',
-        'cname=null',
-      ])
-    })
-
-    it('turns Enforce HTTPS on, and builds nothing', async () => {
-      gh.pages!.cname = 'blog.acme.com'
-      const body = await (await postDomain({ httpsEnforced: true })).json()
-      expect(body.rebuilt).toBe(false)
-      expect(body.status.pages.httpsEnforced).toBe(true)
-      expect(gh.calls.some((args) => args[0] === 'workflow')).toBe(false)
+    it('tells when the domain has no records yet', async () => {
+      expect(await (await checkDns('acme.com')).json()).toEqual({
+        domain: 'acme.com',
+        state: 'missing',
+        found: [],
+      })
     })
 
     it('refuses a value that is not a domain', async () => {
-      const response = await postDomain({ domain: 'not a domain' })
+      const response = await checkDns('not a domain')
       expect(response.status).toBe(400)
       expect((await response.json()).data.i18n.key).toBe(
         'pluto.github.deploy.domain.errors.invalid'
       )
-      expect(gh.calls.some((args) => args.includes('PUT'))).toBe(false)
     })
 
-    it('tells when another site uses the domain', async () => {
-      gh.takenDomain = 'blog.acme.com'
-      const response = await postDomain({ domain: 'blog.acme.com' })
-      expect(response.status).toBe(409)
-      expect((await response.json()).data.i18n.key).toBe(
-        'pluto.github.deploy.domain.errors.taken'
-      )
-    })
-
-    it('needs GitHub Pages on', async () => {
-      gh.pages = null
-      const response = await postDomain({ domain: 'blog.acme.com' })
-      expect(response.status).toBe(409)
-      expect((await response.json()).data.i18n.key).toBe(
-        'pluto.github.deploy.domain.errors.pagesOff'
-      )
-    })
-
-    it('is a local mode route', async () => {
-      resetTestConfig(undefined, { dev: false, storage: 'fs', fsRoot: root })
-      const response = await postDomain({ domain: 'blog.acme.com' })
-      expect(response.status).toBe(404)
+    it('needs a signed-in user', async () => {
+      resetTestConfig(undefined, { dev: false, storage: 'github' })
+      expect(
+        (await app().request('/api/_pluto/github/deploy/dns?domain=acme.com'))
+          .status
+      ).toBe(401)
     })
   })
 })

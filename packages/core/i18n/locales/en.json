@@ -480,40 +480,29 @@
         },
         "pages": {
           "name": "GitHub Pages",
-          "description": "A GitHub Action builds the site on each push and puts it on GitHub Pages. The build needs no secret.",
-          "ready": "Ready",
+          "description": "A GitHub Action builds the site on each push and puts it on GitHub Pages. The build needs no secret, and you need no tool other than Git.",
+          "online": "Online",
           "open": "Open the site",
-          "setup": "Set up GitHub Pages",
+          "setup": "Add the workflow",
           "settings": "Pages settings on GitHub",
           "showWorkflow": "Show the workflow",
           "hideWorkflow": "Hide the workflow",
           "workflow": {
             "done": "The workflow is in the project:",
             "old": "The workflow is in the project, but Pluto has a new version:",
-            "missing": "The workflow is not in the project yet:"
+            "missing": "The workflow is not in the project yet:",
+            "manual": "Add this workflow to the repo:"
           },
-          "state": {
-            "on": "GitHub Pages is on, with GitHub Actions as the source.",
-            "legacy": "GitHub Pages is on, but it builds from a branch. Set up moves it to GitHub Actions.",
-            "off": "GitHub Pages is off for the repo."
-          },
-          "reason": {
-            "no-gh": "Pluto cannot see GitHub Pages: the GitHub CLI (gh) is not installed. Set up still writes the workflow. Then turn Pages on in the settings of the repo.",
-            "signed-out": "Pluto cannot see GitHub Pages: the GitHub CLI is not signed in. Run gh auth login, or turn Pages on in the settings of the repo.",
-            "error": "Pluto cannot see GitHub Pages for the repo."
-          },
-          "done": {
-            "title": "GitHub Pages is set up",
-            "description": "Push your commits to deploy: use the Git badge in the bar, or run git push. The first build takes a few minutes."
-          },
-          "partial": {
-            "title": "The workflow is ready",
-            "description": "Pluto could not turn GitHub Pages on. Open the Pages settings of the repo, and set the source to GitHub Actions. Then push your commits."
-          },
-          "manual": {
-            "step1": "Add the workflow below to the repo, at the path that it shows.",
-            "step2": "In the Pages settings of the repo, set the source to GitHub Actions.",
-            "step3": "Push. The Action builds and deploys the site."
+          "source": "In the Pages settings of the repo, set Source to GitHub Actions. You do this one time.",
+          "push": "Push your commits. Each push builds the site again.",
+          "check": "Check again",
+          "runs": "Open the build log",
+          "deploy": {
+            "success": "The site is online at {url}.",
+            "failure": "The last build failed. Make sure that Source is GitHub Actions in the Pages settings. Then open the build log.",
+            "pending": "GitHub is building the site. This takes a few minutes.",
+            "none": "No deploy yet. Do the steps above.",
+            "unknown": "Pluto cannot read the deploys of this repo. For a private repo, set the GitHub App or a read token in .env."
           },
           "nodeAdmin": "An admin on a Node host can use the same site: set commit.skipDeploy to false, so that each save of published content starts a build."
         },
@@ -525,16 +514,16 @@
           "action": "Open Cloudflare"
         },
         "confirm": {
-          "title": "Set up GitHub Pages?",
-          "description": "This changes the repo {repo} on GitHub.",
+          "title": "Add the GitHub Pages workflow?",
+          "description": "Pluto changes your project. It changes nothing on GitHub.",
           "write": "Pluto writes {path} and commits it to the local repo.",
-          "pages": "Pluto turns GitHub Pages on for {repo}, with GitHub Actions as the source.",
+          "github": "Then you set the source of GitHub Pages in the settings of the repo.",
           "push": "Nothing goes online before you push.",
-          "action": "Set up"
+          "action": "Add the workflow"
         },
         "domain": {
           "title": "Domain",
-          "description": "Use your own domain, such as blog.example.com. Add the domain at the host of the site. Then add the DNS records that the host shows at your domain registrar.",
+          "description": "Use your own domain, such as blog.example.com. Add the domain at the host of the site. Then add the DNS records at your domain registrar.",
           "hosts": {
             "title": "At the host of the app",
             "description": "The host serves the domain and gets the HTTPS certificate.",
@@ -546,41 +535,33 @@
           },
           "pages": {
             "name": "GitHub Pages",
-            "description": "Pluto sets the domain in the Pages settings of the repo. A CNAME file has no effect: GitHub ignores it when an Action builds the site.",
-            "notReady": "Set up GitHub Pages first. Then add a domain here.",
-            "manual": "Open the Pages settings of the repo, and type the domain under Custom domain. Then build the site again.",
-            "label": "Custom domain",
+            "description": "The domain is in the Pages settings of the repo. A CNAME file has no effect: GitHub ignores it when an Action builds the site.",
+            "current": "The site uses the domain {domain}.",
+            "label": "Your domain",
             "placeholder": "blog.example.com",
-            "save": "Save the domain",
-            "remove": "Remove the domain",
-            "removeConfirm": {
-              "title": "Remove the domain?",
-              "description": "The site goes back to the address of GitHub Pages. Pluto builds the site again."
+            "steps": {
+              "settings": "In the Pages settings of the repo, type the domain under Custom domain, and save.",
+              "build": "Build the site again, so that it uses the new address. Open the workflow and select Run workflow, or push a commit.",
+              "https": "When GitHub has the HTTPS certificate, turn on Enforce HTTPS in the Pages settings. This can take up to an hour."
             },
-            "rebuilt": "Saved. Pluto started the workflow, so the site builds for the new address. This takes a few minutes.",
-            "push": "Saved. Push your commits, so that the site builds for the new address.",
+            "openWorkflow": "Open the workflow",
             "dns": {
-              "title": "Add these DNS records at your domain registrar",
+              "title": "At your domain registrar, add these DNS records:",
+              "typeFirst": "Type your domain above to see the records.",
               "apex": "An apex domain, such as example.com",
               "subdomain": "A subdomain, such as blog.example.com",
               "type": "Type",
               "name": "Name",
-              "value": "Value"
+              "value": "Value",
+              "check": "Check the DNS",
+              "ok": "The DNS records of {domain} point to GitHub Pages.",
+              "missing": "Pluto finds no DNS records for {domain} yet. New records can take a few hours to work.",
+              "other": "{domain} points to a different place: {found}. Change the records as the table shows."
             },
-            "https": {
-              "issued": "HTTPS works for {domain}.",
-              "pending": "GitHub gets an HTTPS certificate after the DNS records work. This can take up to an hour.",
-              "enforce": "Enforce HTTPS"
-            }
+            "remove": "To remove the domain, clear it in the Pages settings. Then build the site again."
           },
           "errors": {
-            "invalid": "This is not a domain. Type a domain, such as blog.example.com.",
-            "pagesOff": "GitHub Pages is not on for the repo. Set it up first.",
-            "taken": "Another GitHub Pages site uses this domain.",
-            "certificate": "The HTTPS certificate is not ready. Try again later.",
-            "noGh": "The GitHub CLI (gh) is not installed. Set the domain in the Pages settings of the repo.",
-            "signedOut": "The GitHub CLI is not signed in. Run gh auth login, then try again.",
-            "failed": "GitHub did not change the Pages site."
+            "invalid": "This is not a domain. Type a domain, such as blog.example.com."
           }
         }
       }
