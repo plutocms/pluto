@@ -916,6 +916,36 @@ skill.
 Planned for v2: revision history, settings stored in the repository, a password
 provider, scheduled posts, and configurable collections.
 
+## Users page
+
+The CMS lists the people with write access to the content repo, read only. GitHub owns the access,
+so the page links to `https://github.com/<repo>/settings/access` (**Manage access on GitHub**).
+
+- Nav: the client plugin adds the `users` nav item (order 950, between Media and Settings, label
+  `pluto.github.users.title`, `i-lucide-users`). No capability: every user who can sign in has push
+  access, and can see the collaborators on GitHub too.
+- Page: `/admin/users` (route name `admin-users`), a child of `/admin` that the module adds with
+  `extendPages`, from `app/components/Pluto/Github/PlutoGithubUsersPage.vue`. Columns: the user
+  (avatar, login, a "You" badge), the GitHub role (Admin, Maintain, Write), and what it gives in
+  Pluto (Administrator for admin and maintain, Editor for write). A user that `ALLOWED_USERS` blocks
+  gets a "Cannot sign in" badge, and an info alert says that the list is set.
+- Route: `GET /api/_pluto/github/users` (`utils/github-users.ts`). It needs a signed-in user (401),
+  and answers `Cache-Control: no-store`. It reads
+  `GET /repos/{repo}/collaborators?affiliation=all&permission=push&per_page=100`, page by page (at
+  most 10 pages), with the token of the user. The call needs Metadata read, which every App has.
+  The answer is `PlutoGithubUsersResponse` (`runtime/shared/repo-users.ts`):
+  `{ repo, users, restricted, reason? }`. The list stays in memory for 30 seconds per repo. GitHub
+  errors map like the build status (`toHttpError` of `utils/build-status.ts`).
+- Local mode (`fs` store, or the dev local user): the dev user has no GitHub token, so the route
+  reads with the read token or an App installation token (`createAppTokenProvider`). `reason`:
+  `no-repo` (no repo known), `no-app` (no App and no read token; no call), `app-error` (the App gave
+  no token: not installed on the repo, or a wrong key). The page shows an alert for each, with a
+  link to the GitHub tab of Settings for the App.
+- Pure helpers: `repoRoleOf` (the highest of admin, maintain, push; `null` below push) and
+  `toRepoUsers` (drops the users who cannot push, sorts admin, maintain, write, then by login, and
+  sets `canSignIn` from `allowedUsers`).
+- Text: `pluto.github.users.*`. Test: `test/github-users.test.ts`.
+
 ## Backend badge
 
 The CMS client plugin registers the `backend` entry of the navbar badge (see the admin-shell

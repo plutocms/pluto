@@ -404,6 +404,47 @@
           "timeout": "O envio demorou demais. Rode git push em um terminal para ver o motivo.",
           "failed": "O Git não conseguiu enviar. Rode git push em um terminal para ver o motivo."
         }
+      },
+      "users": {
+        "title": "Usuários",
+        "description": "As pessoas com acesso de escrita a {repo} no GitHub podem entrar no admin. O GitHub controla o acesso: adicione ou remova pessoas lá.",
+        "manage": "Gerenciar o acesso no GitHub",
+        "restricted": "NUXT_PLUTO_GITHUB_ALLOWED_USERS está definido: só os usuários dessa lista podem entrar.",
+        "error": "Não foi possível carregar os usuários",
+        "empty": "Ninguém tem acesso de escrita ao repositório.",
+        "you": "Você",
+        "columns": {
+          "user": "Usuário",
+          "role": "Papel no GitHub",
+          "access": "No Pluto"
+        },
+        "roles": {
+          "admin": "Admin",
+          "maintain": "Maintain",
+          "write": "Write"
+        },
+        "access": {
+          "admin": "Administrador: tudo",
+          "editor": "Editor: escrever, publicar e excluir conteúdo"
+        },
+        "blocked": "Não pode entrar: fora de ALLOWED_USERS",
+        "footnote": "Pessoas com o papel Triage ou Read no GitHub não podem entrar.",
+        "reason": {
+          "noApp": {
+            "title": "A lista precisa do GitHub App",
+            "description": "No modo local você é o único usuário. Para ver aqui as pessoas do repositório no GitHub, configure o GitHub App.",
+            "action": "Configurar o GitHub App"
+          },
+          "noRepo": {
+            "title": "Nenhum repositório do GitHub",
+            "description": "O Pluto não sabe qual é o repositório do GitHub deste site. Defina PLUTO_GITHUB_REPO ou adicione um remote do GitHub chamado origin."
+          },
+          "appError": {
+            "title": "O GitHub App não consegue ler o repositório",
+            "description": "O App não deu um token. Confira se ele está instalado no repositório e se a chave privada está certa.",
+            "action": "Conferir o GitHub App"
+          }
+        }
       }
     },
     "validation": {

@@ -126,6 +126,18 @@ export default defineNuxtPlugin(() => {
       signInTitle: 'pluto.github.login.title',
       signInDescription: 'pluto.github.login.description',
     },
+    // The Users item of the menu, between Media (900) and Settings (1000). The page
+    // (`/admin/users`, added by the module) lists the people with write access to the repo.
+    nav: [
+      {
+        id: 'users',
+        order: 950,
+        label: 'pluto.github.users.title',
+        icon: 'i-lucide-users',
+        to: '/admin/users',
+      },
+    ],
+
     // The backend badge of the navbar: local files with Git, or a GitHub repo.
     backend: {
       id: 'git',
