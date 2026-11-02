@@ -1,14 +1,15 @@
 /*
  * The pluto layer's CSS. It is not a Tailwind entry.
  *
- * The app's CSS entry owns the one Tailwind build of the app:
+ * `@plutocms/css` (core generates it) imports this file (and the same file of every other
+ * Pluto layer). Two builds import `@plutocms/css`: the admin build of core
+ * (scoped to the admin), and the app's own CSS entry of a Tailwind site:
  *
  *   @import 'tailwindcss';
  *   @import '@nuxt/ui';
  *   @import '@plutocms/css';
  *
- * `@plutocms/css` (core generates it) imports this file (and the same file of every other
- * Pluto layer). Rules for this file:
+ * Rules for this file:
  * - Do not import tailwindcss or @nuxt/ui here.
  * - Use only @theme, @custom-variant, @utility, unlayered rules, and
  *   imports of plain CSS files next to this one.
@@ -26,12 +27,8 @@
 }
 
 /*
- * `--pluto-admin-bar-height` is the height of the admin navbar: 2.5rem (40px)
- * at every width. The admin navbar and the admin layout read it. A public site
- * that shows the admin navbar to a logged-in admin offsets its own header by
- * the same value. Core sets `data-pluto-admin-bar` on <html> while the bar
- * shows, so a site can offset its header only then:
- * `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
+ * `--pluto-admin-bar-height` (the admin navbar height) is in PlutoRoot, in
+ * plain CSS, so a site with no Tailwind has it too.
  *
  * `--ui-header-height` stays 2.5rem for existing apps. Set it outside a layer.
  * This overrides Nuxt UI's own `@layer theme` value for the same variable. A
@@ -39,7 +36,6 @@
  * `--ui-header-height`, and the admin keeps `--pluto-admin-bar-height`.
  */
 :root {
-  --pluto-admin-bar-height: 2.5rem;
   --ui-header-height: 2.5rem;
 }
 

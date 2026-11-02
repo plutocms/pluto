@@ -8,11 +8,21 @@ const css = readFileSync(
 )
 
 describe('pluto-layer.css header tokens', () => {
-  it('sets the admin bar height and keeps the Nuxt UI header height on :root', () => {
+  it('keeps the Nuxt UI header height on :root', () => {
     const root = /:root\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
 
-    expect(root).toContain('--pluto-admin-bar-height: 2.5rem;')
     expect(root).toContain('--ui-header-height: 2.5rem;')
+  })
+
+  it('sets the admin bar height on :root in plain CSS, so a site with no Tailwind has it', () => {
+    const plutoRoot = readFileSync(
+      join(__dirname, '..', 'app', 'components', 'Pluto', 'PlutoRoot.vue'),
+      'utf8'
+    )
+    const style = /<style>([\s\S]*)<\/style>/.exec(plutoRoot)?.[1] ?? ''
+    const root = /:root\s*\{([^}]*)\}/.exec(style)?.[1] ?? ''
+
+    expect(root).toContain('--pluto-admin-bar-height: 2.5rem;')
   })
 
   it('has the admin navbar and the admin layout read the bar token', () => {

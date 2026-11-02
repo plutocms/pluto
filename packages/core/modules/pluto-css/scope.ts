@@ -1,6 +1,6 @@
 // Scopes a compiled stylesheet to the Pluto admin: every rule matches only
 // inside a scope root. Pure (no `nuxt/kit`), so the unit tests call it directly.
-// See the single-tailwind-build skill, "The isolated build".
+// See the single-tailwind-build skill, "The admin build".
 import type { AtRule, Rule } from 'postcss'
 import postcss from 'postcss'
 import selectorParser from 'postcss-selector-parser'

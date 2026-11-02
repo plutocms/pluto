@@ -150,8 +150,21 @@ useHead({
 }
 
 /*
- * The wrappers grow to fill #__nuxt. Plain CSS, not Tailwind classes: with
- * the isolated admin build (`plutoCss.isolated`) a site may have no Tailwind.
+ * `--pluto-admin-bar-height` is the height of the admin navbar: 2.5rem (40px)
+ * at every width. The admin navbar and the admin layout read it. A public site
+ * that shows the bar to a logged-in admin offsets its own header by the same
+ * value. Core sets `data-pluto-admin-bar` on <html> while the bar shows, so a
+ * site can offset its header only then:
+ * `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
+ * It is here, in plain CSS, so a site with no Tailwind has it too.
+ */
+:root {
+  --pluto-admin-bar-height: 2.5rem;
+}
+
+/*
+ * The wrappers grow to fill #__nuxt. Plain CSS, not Tailwind classes: a site
+ * may have no Tailwind (the admin has a build of its own).
  */
 .pluto-root {
   display: flex;

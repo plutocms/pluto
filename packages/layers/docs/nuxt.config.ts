@@ -19,8 +19,8 @@ export default defineNuxtConfig({
     },
   },
 
-  // No `css` entry: the app owns the one Tailwind build, and Nuxt UI scans
-  // this layer's app/ dir. The tokens of this layer are in
+  // No `css` entry: core builds the admin CSS, the app owns the site's build,
+  // and Nuxt UI scans this layer's app/ dir. The tokens of this layer are in
   // app/assets/css/pluto-layer.css. See the single-tailwind-build skill in pluto.
 
   // The pages are Markdown files, so the fixed blog post type is off. A docs
