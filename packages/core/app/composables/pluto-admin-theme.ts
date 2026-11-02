@@ -8,9 +8,30 @@
  *
  * Call it from every admin layout. `useHead` removes the attribute when the
  * layout unmounts, so the public site never gets it.
+ *
+ * `useHead` puts the attribute in the server HTML, but in the browser it
+ * writes <html> after the render, a frame late. The admin build is scoped to
+ * the attribute, so a client navigation from the public site showed one frame
+ * of the admin with no styles. `onMounted` runs in the same task as the DOM
+ * change, before the paint, so the attribute is set there too. A count keeps
+ * it while another admin layout is mounted.
  */
+let mountedAdminLayouts = 0
+
 export function usePlutoAdminTheme() {
   useHead({ htmlAttrs: { 'data-pluto-admin': '' } })
+  if (import.meta.client) {
+    onMounted(() => {
+      mountedAdminLayouts++
+      document.documentElement.setAttribute('data-pluto-admin', '')
+    })
+    onUnmounted(() => {
+      mountedAdminLayouts--
+      if (mountedAdminLayouts === 0) {
+        document.documentElement.removeAttribute('data-pluto-admin')
+      }
+    })
+  }
 }
 
 /**

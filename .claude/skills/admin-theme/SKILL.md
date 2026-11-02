@@ -45,6 +45,11 @@ Two selectors carry the theme:
   an admin layout is mounted, and `useHead` removes it after. The theme then also covers
   overlays (modals, slideovers, menus, toasts, the command palette) that render at the end of
   `<body>`, outside the layout.
+  In the browser, `useHead` writes `<html>` a frame after the render, and the admin build only
+  matches under the attribute. So the composable also sets the attribute in `onMounted` (the same
+  task as the DOM change, before the paint) and removes it in `onUnmounted` when no admin layout
+  is left (a count). Without it, a client navigation from the public site shows one frame of the
+  admin with no styles.
 - `[data-pluto-admin-scope]`, for admin chrome that also shows on the public site, such as
   the admin navbar for a logged-in admin.
 
