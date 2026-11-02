@@ -311,6 +311,35 @@ describe('resolvePlutoGithubOptions defaults', () => {
     ).toBe('')
   })
 
+  it('reads the repo from the Netlify build after the Vercel env vars', () => {
+    const netlify = { REPOSITORY_URL: 'https://github.com/acme/site' }
+
+    expect(
+      resolvePlutoGithubOptions({}, { ...ctx, env: netlify }).resolved.github
+        .repo
+    ).toBe('acme/site')
+    expect(
+      resolvePlutoGithubOptions(
+        {},
+        {
+          ...ctx,
+          env: {
+            ...netlify,
+            VERCEL_GIT_REPO_OWNER: 'b',
+            VERCEL_GIT_REPO_SLUG: 'two',
+          },
+        }
+      ).resolved.github.repo
+    ).toBe('b/two')
+    // Another Git host is not a GitHub repo.
+    expect(
+      resolvePlutoGithubOptions(
+        {},
+        { ...ctx, env: { REPOSITORY_URL: 'https://gitlab.com/acme/site' } }
+      ).resolved.github.repo
+    ).toBe('')
+  })
+
   it('reads the repo from the git remote in dev only', () => {
     const gitOrigin = 'git@github.com:acme/site.git'
 

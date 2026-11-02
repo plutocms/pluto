@@ -39,8 +39,8 @@ An explicit option always wins. `resolvePlutoGithubOptions(options, ctx)` is pur
 
 - `storage`: the env var `PLUTO_GITHUB_STORAGE`, else `fs` in dev and `github` in production.
 - `github.repo`: the env var `NUXT_PLUTO_GITHUB_REPO`, then `PLUTO_GITHUB_REPO`, then Vercel's
-  `VERCEL_GIT_REPO_OWNER` + `VERCEL_GIT_REPO_SLUG`, then (dev only) the `origin` remote of the
-  git repo that holds `rootDir`.
+  `VERCEL_GIT_REPO_OWNER` + `VERCEL_GIT_REPO_SLUG`, then Netlify's `REPOSITORY_URL` (a GitHub URL
+  only), then (dev only) the `origin` remote of the git repo that holds `rootDir`.
 - `github.appSlug`: `NUXT_PLUTO_GITHUB_APP_SLUG`, then `PLUTO_GITHUB_APP_SLUG`.
 - `github.branch`: `main`.
 - With the `github` storage and no repo, the module logs one error ("The standalone CMS needs a
