@@ -47,6 +47,10 @@ export function definePlutoExtension(definition: PlutoExtension): void {
   registry.accountMenu.set(definition.id, definition.accountMenu ?? [])
   registry.adminBanners.set(definition.id, definition.adminBanners ?? [])
   registry.siteInfo.set(definition.id, definition.site ? [definition.site] : [])
+  registry.backend.set(
+    definition.id,
+    definition.backend ? [definition.backend] : []
+  )
   registry.contentTypes.set(definition.id, definition.contentTypes ?? [])
   registry.contentFieldWidgets.set(
     definition.id,

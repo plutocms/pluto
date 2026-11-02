@@ -100,12 +100,13 @@ async function load() {
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)
   const { definePlutoExtension } =
     await import('../app/composables/pluto-extension')
-  const { usePlutoAccountMenu, usePlutoSiteInfo } =
+  const { usePlutoAccountMenu, usePlutoBackend, usePlutoSiteInfo } =
     await import('../app/composables/pluto-navbar')
   return {
     usePlutoRegistry,
     definePlutoExtension,
     usePlutoAccountMenu,
+    usePlutoBackend,
     usePlutoSiteInfo,
   }
 }
@@ -175,5 +176,50 @@ describe('site info', () => {
   it('gives undefined with no site', async () => {
     const { usePlutoSiteInfo } = await load()
     expect(usePlutoSiteInfo().url.value).toBeUndefined()
+  })
+})
+
+describe('backend', () => {
+  it('uses the last registered backend and resolves its texts', async () => {
+    const { definePlutoExtension, usePlutoBackend } = await load()
+    const ahead = ref(3)
+    definePlutoExtension({
+      id: 'a',
+      backend: { id: 'db', kind: 'database', label: 'Supabase' },
+    })
+    definePlutoExtension({
+      id: 'b',
+      backend: {
+        id: 'git',
+        kind: 'git',
+        label: 'pluto.github.backend.local',
+        count: () => ahead.value,
+        countLabel: 'pluto.github.local.aheadShort',
+      },
+    })
+
+    const { backend } = usePlutoBackend()
+    expect(backend.value).toMatchObject({
+      kind: 'git',
+      label: 'Local',
+      count: 3,
+      countLabel: '3 to push',
+    })
+    ahead.value = 0
+    expect(backend.value).toMatchObject({ count: 0, countLabel: '' })
+  })
+
+  it('cleans a bad count', async () => {
+    const { definePlutoExtension, usePlutoBackend } = await load()
+    definePlutoExtension({
+      id: 'a',
+      backend: { id: 'git', kind: 'git', label: 'Git', count: () => -2 },
+    })
+    expect(usePlutoBackend().backend.value?.count).toBe(0)
+  })
+
+  it('is null with no backend', async () => {
+    const { usePlutoBackend } = await load()
+    expect(usePlutoBackend().backend.value).toBeNull()
   })
 })

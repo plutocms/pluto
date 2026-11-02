@@ -59,10 +59,11 @@ sets only what it has.
 | `adminBanners`        | `PlutoAdminBanner[]`        | Banner components for the admin. Registered now, rendered later.                                                                             |
 | `contentToolbarItems` | `PlutoContentToolbarItem[]` | Components in the toolbar of the generic content form, before the buttons. See the [admin view chrome](../admin-view-chrome/SKILL.md) skill. |
 | `site`                | `PlutoSiteInfo`             | `name()` and `url()` of the public site.                                                                                                     |
+| `backend`             | `PlutoBackendInfo`          | The backend badge of the navbar (Git or a database). The last one wins. See the admin-shell skill.                                           |
 | `navGroups`           | `PlutoNavGroup[]`           | Groups of content types in the sidebar and the admin bar. See "Nav groups" below.                                                            |
 
-The registry buckets for the last four are `authDrivers`, `accountMenu`, `adminBanners` and
-`siteInfo`. Core renders the navbar from them. See the [admin shell](../admin-shell/SKILL.md).
+The registry buckets for these are `authDrivers`, `accountMenu`, `adminBanners`, `siteInfo` and
+`backend`. Core renders the navbar from them. See the [admin shell](../admin-shell/SKILL.md).
 
 ### Nav groups
 

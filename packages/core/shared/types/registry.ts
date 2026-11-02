@@ -355,6 +355,26 @@ export interface PlutoSiteInfo extends PlutoEntry {
   url?: () => string | null | undefined
 }
 
+/**
+ * The backend that stores the content: a Git repo or a database. The admin navbar shows the
+ * last registered one as a badge, with a popover. See the admin-shell skill.
+ */
+export interface PlutoBackendInfo extends PlutoEntry {
+  /** `git`: Markdown files in a Git repo. `database`: rows in a database. */
+  kind: 'git' | 'database'
+  /** A translation key or literal: the name in the badge ("GitHub", "Supabase"). */
+  label: string
+  icon?: string
+  /** A number on the badge, for example the commits that are not pushed. 0 shows none. */
+  count?: () => number | null | undefined
+  /** A translation key or literal: the text next to the count ("{count} to push"). */
+  countLabel?: string
+  /** The body of the popover. Use an async component. */
+  details?: Component
+  /** Called when the popover opens, for example to read the state again. */
+  onOpen?: () => void
+}
+
 export interface PlutoExtension {
   /** Layer name. Use the package's $meta.name, e.g. 'supabase-blog'. */
   id: string
@@ -373,6 +393,7 @@ export interface PlutoExtension {
   accountMenu?: PlutoAccountMenuItem[]
   adminBanners?: PlutoAdminBanner[]
   site?: PlutoSiteInfo
+  backend?: PlutoBackendInfo
   contentTypes?: PlutoContentTypeEntry[]
   contentFieldWidgets?: PlutoContentFieldWidget[]
   contentActions?: PlutoContentAction[]
@@ -409,6 +430,7 @@ export interface PlutoRegistry {
   accountMenu: PlutoRegistryBucket<PlutoAccountMenuItem>
   adminBanners: PlutoRegistryBucket<PlutoAdminBanner>
   siteInfo: PlutoRegistryBucket<PlutoSiteInfo>
+  backend: PlutoRegistryBucket<PlutoBackendInfo>
   contentTypes: PlutoRegistryBucket<PlutoContentTypeEntry>
   contentFieldWidgets: PlutoRegistryBucket<PlutoContentFieldWidget>
   contentActions: PlutoRegistryBucket<PlutoContentAction>

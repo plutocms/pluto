@@ -371,6 +371,39 @@
             "retry": "Começar de novo"
           }
         }
+      },
+      "backend": {
+        "local": "Local",
+        "github": "GitHub",
+        "description": "Cada salvamento é um commit neste repositório, feito com a sua conta do GitHub.",
+        "repo": "Repositório",
+        "branch": "Branch",
+        "private": "Privado",
+        "public": "Público",
+        "openRepo": "Abrir o repositório",
+        "commits": "Commits"
+      },
+      "local": {
+        "description": "Cada salvamento grava um arquivo Markdown neste projeto e faz um commit no seu repositório Git local. O site no ar muda depois do push.",
+        "ahead": "Nenhum commit para enviar | 1 commit não enviado | {count} commits não enviados",
+        "aheadShort": "{count} para enviar",
+        "upToDate": "Todos os commits foram enviados.",
+        "noGit": "O Git não está instalado. Os salvamentos só gravam os arquivos.",
+        "notARepo": "Este projeto não é um repositório Git. Os salvamentos só gravam os arquivos.",
+        "detached": "O Git não está em uma branch. Faça checkout de uma branch para enviar.",
+        "noRemote": "O repositório não tem remote. Adicione um para enviar, por exemplo com git remote add origin <url>.",
+        "push": "Enviar",
+        "pushed": "Enviado.",
+        "pushHint": "Enviar roda git push neste computador.",
+        "errors": {
+          "notARepo": "Este projeto não é um repositório Git.",
+          "detached": "O Git não está em uma branch.",
+          "noRemote": "O repositório não tem remote.",
+          "rejected": "O remote tem commits que este repositório não tem. Rode git pull e envie de novo.",
+          "auth": "O Git não conseguiu entrar no remote. Rode git push em um terminal para entrar.",
+          "timeout": "O envio demorou demais. Rode git push em um terminal para ver o motivo.",
+          "failed": "O Git não conseguiu enviar. Rode git push em um terminal para ver o motivo."
+        }
       }
     },
     "validation": {
@@ -751,6 +784,15 @@
         "clear": "Limpar a seleção"
       },
       "dropHint": "Solte os arquivos aqui ou envie-os. Todas as camadas do site usam esta biblioteca."
+    },
+    "backend": {
+      "kind": {
+        "git": "Git",
+        "database": "Banco de dados"
+      },
+      "open": "Onde o conteúdo fica: {name}",
+      "gitMode": "Modo Git: o conteúdo são arquivos Markdown em um repositório Git.",
+      "databaseMode": "Modo banco de dados: o conteúdo fica em um banco de dados."
     }
   }
 }
