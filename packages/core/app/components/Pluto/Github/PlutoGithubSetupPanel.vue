@@ -22,7 +22,7 @@ const props = withDefaults(
   }
 )
 
-const DOCS_URL = 'https://pluto.vulmix.dev/docs/git-cms/quickstart'
+const DOCS_URL = 'https://pluto.vulmix.dev/docs/start-here/deploy'
 
 const { t } = usePlutoI18n()
 const setup = usePlutoGithubSetup()
