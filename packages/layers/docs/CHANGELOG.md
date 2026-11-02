@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/plutocms/pluto/compare/docs-v0.21.0...docs-v0.21.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* link to the new docs pages ([#362](https://github.com/plutocms/pluto/issues/362)) ([5926c7c](https://github.com/plutocms/pluto/commit/5926c7c30ea90d28cc785e6eb7c2dbd65c1ec58f))
+
 ## [0.21.0](https://github.com/plutocms/pluto/compare/docs-v0.20.0...docs-v0.21.0) (2026-11-02)
 
 
