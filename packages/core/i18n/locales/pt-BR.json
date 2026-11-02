@@ -597,6 +597,10 @@
       "goToSite": "Ir para o site",
       "signOut": "Sair"
     },
+    "notConfigured": {
+      "title": "O painel não está configurado",
+      "description": "Este site não tem login para o painel. Se você administra este site, confira se o servidor consegue carregar o backend de conteúdo e verifique as variáveis de ambiente do servidor."
+    },
     "post": {
       "previewTitle": "Prévia do post",
       "previewBadge": "Prévia",

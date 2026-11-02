@@ -1,8 +1,11 @@
 import type { PlutoAuthPublicPath } from '../shared/types/registry'
 import { describe, expect, it } from 'vitest'
 import {
+  ADMIN_HOME_PATH,
   ADMIN_NO_ACCESS_PATH,
+  ADMIN_NOT_CONFIGURED_PATH,
   displayName,
+  driverDecision,
   guardDecision,
   isAdminPath,
   isStaff,
@@ -79,6 +82,39 @@ describe('safeRedirect', () => {
     expect(safeRedirect(undefined)).toBe('')
     expect(safeRedirect(['/admin'])).toBe('')
     expect(safeRedirect(42)).toBe('')
+  })
+})
+
+describe('driverDecision', () => {
+  const decide = (path: string, hasDriver: boolean, dev = false) =>
+    driverDecision({ path, hasDriver, dev })
+
+  it('never touches a path outside /admin', () => {
+    expect(decide('/', false)).toEqual({ action: 'allow' })
+    expect(decide('/blog', true)).toEqual({ action: 'allow' })
+  })
+
+  it('in production, sends every admin path to the not-configured page with no driver', () => {
+    for (const path of ['/admin', '/admin/home', '/admin/login']) {
+      expect(decide(path, false)).toEqual({
+        action: 'redirect',
+        to: ADMIN_NOT_CONFIGURED_PATH,
+      })
+    }
+    expect(decide('/admin/not-configured', false)).toEqual({ action: 'allow' })
+    expect(decide('/admin/not-configured/', false)).toEqual({ action: 'allow' })
+  })
+
+  it('in dev, opens the admin with no driver', () => {
+    expect(decide('/admin/home', false, true)).toEqual({ action: 'allow' })
+  })
+
+  it('with a driver, leaves the admin to the sign-in rules', () => {
+    expect(decide('/admin/home', true)).toBeUndefined()
+    expect(decide('/admin/not-configured', true)).toEqual({
+      action: 'redirect',
+      to: ADMIN_HOME_PATH,
+    })
   })
 })
 
