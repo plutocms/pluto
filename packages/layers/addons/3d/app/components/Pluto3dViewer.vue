@@ -126,55 +126,128 @@ onBeforeUnmount(() => cleanup?.())
 </script>
 
 <template>
+  <!-- No Tailwind class: the component works on a site with no Tailwind. The
+       layout is in the <style> below and always loads. The look of the badges
+       is in app/assets/css/pluto-base.css (`@plutocms/css/base`). -->
   <div
     ref="root"
     :aria-label="label"
     :aria-busy="state === 'loading'"
     role="img"
-    class="relative size-full min-h-40 touch-none overflow-hidden"
+    class="pluto-3d-viewer"
   >
     <img
       v-if="poster && state !== 'ready'"
       :src="poster"
       alt=""
-      class="absolute inset-0 size-full object-contain"
+      class="pluto-3d-viewer__poster"
     />
 
     <canvas
       ref="canvas"
-      :class="state === 'ready' ? 'opacity-100' : 'opacity-0'"
-      :style="{ cursor: interactive ? 'grab' : 'default' }"
-      class="absolute inset-0 size-full transition-opacity duration-300"
+      :style="{
+        cursor: interactive ? 'grab' : 'default',
+        opacity: state === 'ready' ? 1 : 0,
+      }"
+      class="pluto-3d-viewer__canvas"
     />
 
     <div
       v-if="state === 'loading'"
-      class="pointer-events-none absolute inset-0 flex items-center justify-center"
+      class="pluto-3d-viewer__status pluto-3d-viewer__status--loading"
     >
-      <span
-        class="bg-default/80 text-muted flex items-center gap-2 rounded-full px-3 py-1.5 text-xs shadow-sm backdrop-blur"
-      >
-        <UIcon name="lucide:loader-circle" class="size-4 animate-spin" />
+      <span class="pluto-3d-badge">
+        <UIcon
+          name="lucide:loader-circle"
+          class="pluto-3d-icon pluto-3d-viewer__spin"
+        />
         {{ t('3d.loading') }}
       </span>
     </div>
 
     <div
       v-else-if="state === 'error'"
-      class="text-muted absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center text-sm"
+      class="pluto-3d-viewer__status pluto-3d-muted"
     >
-      <UIcon v-if="!poster" name="lucide:box" class="size-10" />
-      <span class="bg-default/80 rounded-full px-3 py-1 text-xs">
+      <UIcon v-if="!poster" name="lucide:box" class="pluto-3d-icon-lg" />
+      <span class="pluto-3d-badge pluto-3d-badge--error">
         {{ t('3d.failed') }}
       </span>
     </div>
 
     <span
       v-else-if="interactive"
-      class="bg-default/70 text-muted pointer-events-none absolute right-2 bottom-2 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] backdrop-blur"
+      class="pluto-3d-viewer__hint pluto-3d-badge pluto-3d-badge--hint"
     >
-      <UIcon name="lucide:rotate-3d" class="size-3.5" />
+      <UIcon name="lucide:rotate-3d" class="pluto-3d-icon-sm" />
       {{ t('3d.hint') }}
     </span>
   </div>
 </template>
+
+<style>
+/* The layout of the 3D components. It loads with the component, also without
+   `@plutocms/css/base`. Zero specificity in the `components` layer, so a class
+   of the site wins. The look is in app/assets/css/pluto-base.css. */
+@layer theme, base, components, utilities;
+
+@layer components {
+  :where(.pluto-3d-viewer) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 10rem;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  :where(.pluto-3d-viewer__poster, .pluto-3d-viewer__canvas) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  :where(.pluto-3d-viewer__poster) {
+    object-fit: contain;
+  }
+
+  :where(.pluto-3d-viewer__canvas) {
+    transition: opacity 0.3s;
+  }
+
+  :where(.pluto-3d-viewer__status) {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  :where(.pluto-3d-viewer__status--loading) {
+    pointer-events: none;
+  }
+
+  :where(.pluto-3d-viewer__hint) {
+    position: absolute;
+    inset-inline-end: 0.5rem;
+    inset-block-end: 0.5rem;
+    pointer-events: none;
+  }
+
+  :where(.pluto-3d-viewer__spin) {
+    animation: pluto-3d-spin 1s linear infinite;
+  }
+}
+
+@keyframes pluto-3d-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

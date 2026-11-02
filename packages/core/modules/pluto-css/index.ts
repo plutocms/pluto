@@ -13,9 +13,12 @@ import {
   analyzeCssEntry,
   checkCssSetup,
   findLayerCssFiles,
+  LAYER_BASE_CSS_FILE,
+  PLUTO_BASE_CSS_IMPORT,
   PLUTO_CSS_IMPORT,
   PLUTO_SITE_CSS_IMPORT,
   renderPlutoAdminCss,
+  renderPlutoBaseCss,
   renderPlutoCss,
   renderPlutoSiteCss,
   resolveRelativeImport,
@@ -49,6 +52,9 @@ export interface PlutoCssOptions {
  * - `@plutocms/css/site` (opt-in) is an alias of `#build/pluto-site.css`: the
  *   Pluto site theme of core (app/assets/css/pluto-site-theme.css), the look of
  *   the Pluto docs for a site.
+ * - `@plutocms/css/base` (opt-in) is an alias of `#build/pluto-base.css`: each
+ *   layer's app/assets/css/pluto-base.css, the plain CSS look of its public
+ *   components. It needs no Tailwind. The admin build imports it too.
  * - The names are aliases, not npm packages, so they resolve with every package
  *   manager, also when the app installs only an outer layer.
  * - The module warns about a layer that registers its own Tailwind build, and
@@ -84,12 +90,30 @@ export default defineNuxtModule<PlutoCssOptions>({
       getContents: () => renderPlutoSiteCss(siteTheme, nuxt.options.buildDir),
     })
 
-    // The names that an app's CSS entry imports. Tailwind resolves `@import`
-    // through the Vite aliases. `/site` comes first: an alias also matches the
-    // paths under its name, so `@plutocms/css` would take `@plutocms/css/site`.
+    // The opt-in plain CSS of the public components, from every layer. An
+    // app imports `@plutocms/css/base`, with or without Tailwind.
+    const layerBaseCssFiles = findLayerCssFiles(
+      layers.map((layer) => layer.app),
+      existsSync,
+      LAYER_BASE_CSS_FILE
+    )
+    addTemplate({
+      filename: 'pluto-base.css',
+      write: true,
+      getContents: () =>
+        renderPlutoBaseCss(layerBaseCssFiles, nuxt.options.buildDir),
+    })
+
+    // The names that an app's CSS entry imports. Tailwind and Vite resolve
+    // `@import` through the aliases. `/site` and `/base` come first: an alias
+    // also matches the paths under its name, so `@plutocms/css` would take them.
     nuxt.options.alias[PLUTO_SITE_CSS_IMPORT] = join(
       nuxt.options.buildDir,
       'pluto-site.css'
+    )
+    nuxt.options.alias[PLUTO_BASE_CSS_IMPORT] = join(
+      nuxt.options.buildDir,
+      'pluto-base.css'
     )
     nuxt.options.alias[PLUTO_CSS_IMPORT] = join(
       nuxt.options.buildDir,

@@ -28,12 +28,14 @@ const live = ref(false)
 </script>
 
 <template>
-  <div class="relative size-full">
+  <!-- No Tailwind class, as in Pluto3dViewer. The layout is in the <style>
+       below; the look of the badges is in app/assets/css/pluto-base.css. -->
+  <div class="pluto-3d-preview">
     <Pluto3dViewer
       v-if="live"
       :media="media"
       :auto-rotate="autoRotate"
-      class="absolute inset-0"
+      class="pluto-3d-preview__fill"
     />
 
     <template v-else>
@@ -41,32 +43,78 @@ const live = ref(false)
         v-if="media?.preview"
         :media="media"
         :sizes="sizes"
-        class="size-full object-contain"
+        class="pluto-3d-preview__image"
       />
-      <div v-else class="text-muted flex size-full items-center justify-center">
-        <UIcon name="lucide:box" class="size-12" />
+      <div v-else class="pluto-3d-preview__empty pluto-3d-muted">
+        <UIcon name="lucide:box" class="pluto-3d-icon-xl" />
       </div>
 
       <button
         v-if="interactive && media"
         :aria-label="t('3d.view')"
         type="button"
-        class="absolute inset-0 flex items-end justify-center pb-4"
+        class="pluto-3d-preview__fill pluto-3d-preview__button"
         @click="live = true"
       >
-        <span
-          class="bg-default/85 text-highlighted ring-default flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium shadow-sm ring backdrop-blur"
-        >
-          <UIcon name="lucide:rotate-3d" class="size-4" />
+        <span class="pluto-3d-badge pluto-3d-badge--action">
+          <UIcon name="lucide:rotate-3d" class="pluto-3d-icon" />
           {{ t('3d.view') }}
         </span>
       </button>
-      <span
-        v-else
-        class="bg-inverted/80 text-inverted absolute bottom-2 left-2 rounded px-1.5 py-0.5 text-[0.625rem] font-semibold tracking-wide"
-      >
-        3D
-      </span>
+      <span v-else class="pluto-3d-preview__label">3D</span>
     </template>
   </div>
 </template>
+
+<style>
+/* The layout of the preview. It loads with the component, also without
+   `@plutocms/css/base`. See Pluto3dViewer.vue. */
+@layer theme, base, components, utilities;
+
+@layer components {
+  :where(.pluto-3d-preview) {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Not in `:where()`: it must win over the root rule of Pluto3dViewer. */
+  .pluto-3d-preview__fill {
+    position: absolute;
+    inset: 0;
+  }
+
+  :where(.pluto-3d-preview__image) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  :where(.pluto-3d-preview__empty) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  :where(.pluto-3d-preview__button) {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 0 1rem;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  :where(.pluto-3d-preview__label) {
+    position: absolute;
+    inset-inline-start: 0.5rem;
+    inset-block-end: 0.5rem;
+  }
+}
+</style>

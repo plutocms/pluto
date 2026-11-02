@@ -177,9 +177,10 @@ skill.
   login URL from `redirect` and shows the sign-in error alert.
 - The module adds no page, no route middleware and no navbar.
 
-A public layout that offsets its own header for the bar should use `usePlutoAdminBar().visible`,
-or the `data-pluto-admin-bar` marker on `<html>`. Both are in the server HTML when the hint puts the
-bar there, so the offset is in the first paint too.
+Core moves a public page down under the bar (see "The height token and the `<html>` marker"). A
+public layout with a sticky or fixed header offsets that header with `usePlutoAdminBar().visible`
+or the `data-pluto-admin-bar` marker on `<html>`. Both are in the server HTML when the hint puts
+the bar there, so the offset is in the first paint too.
 
 ## Who sees the navbar
 
@@ -252,6 +253,12 @@ later page load has it in the first paint. If the capabilities load fails, the b
   `usePlutoAdminBar().visible` is `true`. It follows the bar, so it is in the server HTML when
   the hint puts the bar there. A site can write
   `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
+- The page offset is in core. While the marker is on `<html>` of a public page (not
+  `data-pluto-admin`), the plain `<style>` of `PlutoRoot` gives `body` a `padding-top` of the bar
+  height, `<html>` a `scroll-padding-top` of the same value, and `#__nuxt` a `min-height` of
+  `100dvh` less the bar, so a short page does not scroll. The selectors are in `:where()`, so a
+  rule of the site wins. A site adds no offset of its own for the page; a sticky or fixed header
+  still needs `top: var(--pluto-admin-bar-height)` (`pluto-site-header` of the site theme does it).
 
 ## What the navbar has
 

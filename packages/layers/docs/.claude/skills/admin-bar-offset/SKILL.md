@@ -21,8 +21,8 @@ apply to them.
    reads `--ui-header-height` for the page aside (`UPageAside`), the table of contents
    (`UContentToc`), the mobile menu and the anchor scroll margin. They stick under the bar and the
    header.
-3. With the bar, `body` gets `padding-top` of the bar height. Without it the first 40px of the page
-   would sit under the bar.
+3. Core (PlutoRoot) gives `body` a `padding-top` of the bar height while the bar shows, on every
+   public page. This layer adds no offset of its own.
 4. The class `pluto-header-offset` on `UHeader` sets `top: var(--pluto-admin-bar-height)` and keeps
    the header height at `--pluto-site-header-height`. Without this class, `UHeader` would grow to
    the new `--ui-header-height`.

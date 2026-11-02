@@ -11,7 +11,7 @@
  *
  * The site sets its header height in `--pluto-site-header-height` (default
  * 4rem). Without the bar nothing changes. With the bar:
- * - the page moves down by the bar height (`body` padding), so no content is
+ * - core moves the page down by the bar height (PlutoRoot), so no content is
  *   under the bar;
  * - `--ui-header-height` grows by the bar height. The Nuxt UI parts that stick
  *   below the header read it: the page aside, the table of contents, the
@@ -28,10 +28,6 @@
   --ui-header-height: calc(
     var(--pluto-site-header-height) + var(--pluto-admin-bar-height)
   );
-}
-
-:root[data-pluto-admin-bar]:not([data-pluto-admin]) body {
-  padding-top: var(--pluto-admin-bar-height);
 }
 
 :root[data-pluto-admin-bar]:not([data-pluto-admin]) .pluto-header-offset {

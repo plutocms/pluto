@@ -163,6 +163,25 @@ useHead({
 }
 
 /*
+ * The bar is fixed at the top, so a public page moves down by its height while
+ * it shows: the top of the page is never under the bar. A sticky or fixed
+ * header of the site still needs `top: var(--pluto-admin-bar-height)`. The
+ * admin pages (`data-pluto-admin`) have their own layout. Zero specificity
+ * (`:where`), so a rule of the site wins.
+ */
+:where(:root[data-pluto-admin-bar]:not([data-pluto-admin])) body {
+  padding-top: var(--pluto-admin-bar-height);
+}
+
+:where(:root[data-pluto-admin-bar]:not([data-pluto-admin])) {
+  scroll-padding-top: var(--pluto-admin-bar-height);
+}
+
+:where(:root[data-pluto-admin-bar]:not([data-pluto-admin])) #__nuxt {
+  min-height: calc(100dvh - var(--pluto-admin-bar-height));
+}
+
+/*
  * The wrappers grow to fill #__nuxt. Plain CSS, not Tailwind classes: a site
  * may have no Tailwind (the admin has a build of its own).
  */

@@ -72,6 +72,10 @@ policies shared by every project here.
   layer's `pluto-layer.css` (imported as `@plutocms/css` by the admin build and by a Tailwind
   site), and warns about a Tailwind build in a layer or more than one.
   @.claude/skills/single-tailwind-build/SKILL.md
+- Public components: the components for a public site (`PlutoHtml`, `PlutoImage`, `PlutoLogo`,
+  `PlutoRoot`, and those of the layers) use only `pluto-*` classes and work with no Tailwind. Their
+  look is plain CSS in each layer's `pluto-base.css`, which a site imports with the opt-in
+  `@import '@plutocms/css/base'`. @.claude/skills/public-components/SKILL.md
 - Git CMS: a standalone CMS with Markdown posts in a Git repo. Out of the box it publishes to the
   local Git repo (dev only: each save is a local commit, `commit.local`); a GitHub App publishes
   from a deployed site. The module is `pluto-github` (config
