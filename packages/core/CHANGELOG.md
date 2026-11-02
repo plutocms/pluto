@@ -1,6 +1,17 @@
 # Changelog
 
 
+## [0.48.0](https://github.com/plutocms/pluto/compare/v0.47.1...v0.48.0) (2026-11-02)
+
+
+### Features
+
+* a Deploy tab in Settings puts the Git CMS site on Vercel, Netlify, a Node host, Cloudflare or GitHub Pages ([#373](https://github.com/plutocms/pluto/issues/373)) ([f8a7a27](https://github.com/plutocms/pluto/commit/f8a7a276e3019f0dc5aff933cb4e703ad85c343f))
+* a draft save of the Git CMS skips the deploy, and the build status follows the last deploy ([#371](https://github.com/plutocms/pluto/issues/371)) ([800b2a5](https://github.com/plutocms/pluto/commit/800b2a557ad7b7678133a5f04fe000c86aaa9e19))
+* a read-only Users page for the Git CMS lists the people with write access to the repo ([#369](https://github.com/plutocms/pluto/issues/369)) ([0412158](https://github.com/plutocms/pluto/commit/0412158ff698074ccff505c3e0630bc4721e0cf4))
+* the admin navbar shows the backend (Git or a database), and local mode counts the commits to push ([#368](https://github.com/plutocms/pluto/issues/368)) ([b71c4b5](https://github.com/plutocms/pluto/commit/b71c4b5cbbc728ddf6214fa35cbbe8190f64e164))
+* the Git CMS builds a static site (nuxt generate, GitHub Pages) from the files of the checkout ([#372](https://github.com/plutocms/pluto/issues/372)) ([f5de17e](https://github.com/plutocms/pluto/commit/f5de17e85a5ec6e54d15eb40e8d12719caf94ee1))
+
 ## [0.47.1](https://github.com/plutocms/pluto/compare/v0.47.0...v0.47.1) (2026-11-02)
 
 
