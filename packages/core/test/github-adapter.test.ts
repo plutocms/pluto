@@ -191,7 +191,7 @@ describe('markdown adapter', () => {
     ])
   })
 
-  it('leaves out the skip marker by default', async () => {
+  it('adds the skip marker only to a commit that changes no published content', async () => {
     const messages: string[] = []
     const memory = createMemoryStore()
     const store: PlutoGithubStore = {
@@ -201,12 +201,51 @@ describe('markdown adapter', () => {
         return memory.commit(input, auth)
       },
     }
+    const { adapter } = harnessFor(store, createContractClock())
 
-    await harnessFor(store, createContractClock()).adapter.create(ctx, {
-      title: 'Hello',
-    })
+    await adapter.create(ctx, { title: 'Hello' })
+    await adapter.update(ctx, 'hello', { title: 'Hello 2' })
+    await adapter.update(ctx, 'hello', { status: 'published' })
+    await adapter.update(ctx, 'hello', { title: 'Hello 3' })
+    await adapter.update(ctx, 'hello', { status: 'draft' })
+    await adapter.update(ctx, 'hello', { slug: 'bye' })
+    await adapter.remove(ctx, 'bye')
+    await adapter.create(ctx, { title: 'Live', status: 'published' })
+    await adapter.remove(ctx, 'live')
 
-    expect(messages).toEqual(['content(post): create "hello"'])
+    expect(messages).toEqual([
+      'content(post): create "hello" [skip ci]',
+      'content(post): update "hello" [skip ci]',
+      'content(post): publish "hello"',
+      'content(post): update "hello"',
+      'content(post): unpublish "hello"',
+      'content(post): rename "hello" -> "bye" [skip ci]',
+      'content(post): delete "bye" [skip ci]',
+      'content(post): create "live"',
+      'content(post): delete "live"',
+    ])
+  })
+
+  it('never adds the skip marker for a type with no status', async () => {
+    const messages: string[] = []
+    const memory = createMemoryStore()
+    const store: PlutoGithubStore = {
+      ...memory,
+      commit: async (input, auth) => {
+        messages.push(input.message)
+        return memory.commit(input, auth)
+      },
+    }
+    const { adapter } = harnessFor(store, createContractClock())
+    const noStatus = { event, type: { ...type, status: false as const } }
+
+    await adapter.create(noStatus, { title: 'Page' })
+    await adapter.remove(noStatus, 'page')
+
+    expect(messages).toEqual([
+      'content(post): create "page"',
+      'content(post): delete "page"',
+    ])
   })
 
   it('skips a file with invalid frontmatter and keeps the rest', async () => {

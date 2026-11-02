@@ -43,3 +43,19 @@ export function showBuildStatus(
 ): boolean {
   return config?.storage === 'github' && config.skipDeploy === false
 }
+
+/**
+ * Whether an item is on the public site: a type with no status, or an item with the published
+ * value. A missing status counts as the default. The edit form hides the build status for a draft
+ * that was never public in the page: its saves skip the deploy.
+ */
+export function isPublicItem(
+  type: Pick<PlutoContentType, 'status'> | undefined,
+  item: Record<string, unknown>
+): boolean {
+  if (!type?.status) {
+    return true
+  }
+  const value = item[type.status.column ?? 'status'] ?? type.status.default
+  return value === (type.status.publishedValue || 'published')
+}

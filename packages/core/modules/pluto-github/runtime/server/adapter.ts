@@ -52,6 +52,10 @@ export interface MarkdownContentAdapterOptions {
   /** Reads the caller of a request. `null` means anonymous. */
   getAccess: (event: H3Event) => Promise<PlutoGithubAccess | null>
   commit?: {
+    /**
+     * `true`: every commit gets `[skip ci]`. `false`: only a commit that changes no published
+     * content gets it (a draft that stays a draft), so a draft save starts no deploy.
+     */
     skipDeploy?: boolean
   }
   /** The cache that holds parsed files by blob id. A memory cache by default. */
@@ -183,7 +187,7 @@ export function createMarkdownContentAdapter(
   const cache = options.cache ?? createGithubCache({ headTtl: 0 })
   const retries = options.retries ?? 2
   const now = options.now ?? (() => new Date())
-  const skipSuffix = options.commit?.skipDeploy ? ' [skip ci]' : ''
+  const skipAll = options.commit?.skipDeploy === true
 
   // --- Errors ---------------------------------------------------------------
 
@@ -469,7 +473,7 @@ export function createMarkdownContentAdapter(
   function isPublished(
     type: PlutoContentType,
     layout: Layout,
-    entry: Entry
+    entry: Pick<Entry, 'frontmatter'>
   ): boolean {
     if (!layout.statusColumn) {
       return true
@@ -535,8 +539,17 @@ export function createMarkdownContentAdapter(
 
   // --- Writes ---------------------------------------------------------------
 
-  function messageOf(type: PlutoContentType, verb: string): string {
-    return `content(${type.name}): ${verb}${skipSuffix}`
+  /**
+   * The commit message. `publicChange` is false when the commit changes no published content:
+   * the item is a draft before and after. Such a commit gets `[skip ci]`, so it starts no deploy.
+   */
+  function messageOf(
+    type: PlutoContentType,
+    verb: string,
+    publicChange: boolean
+  ): string {
+    const skip = skipAll || !publicChange ? ' [skip ci]' : ''
+    return `content(${type.name}): ${verb}${skip}`
   }
 
   /** Runs a plan against a fresh head. Retries when only unrelated files changed. */
@@ -859,6 +872,8 @@ export function createMarkdownContentAdapter(
 
       const frontmatter: Record<string, unknown> = {}
       applyValues(type, layout, frontmatter, values, 'create')
+      // A published item (or a type with no status) is public: its commit starts a deploy.
+      const published = isPublished(type, layout, { frontmatter })
       if (
         layout.statusColumn &&
         frontmatter[layout.statusColumn] === layout.publishedValue
@@ -874,7 +889,7 @@ export function createMarkdownContentAdapter(
           throw slugTakenError(slug)
         }
         return {
-          message: messageOf(type, `create "${slug}"`),
+          message: messageOf(type, `create "${slug}"`, published),
           additions: [{ path, contents: text }],
           deletions: [],
           targets: [{ path, oid: null }],
@@ -982,7 +997,7 @@ export function createMarkdownContentAdapter(
           verb = `${nowPublished ? 'publish' : 'unpublish'} "${oldSlug}"`
         }
         return {
-          message: messageOf(type, verb),
+          message: messageOf(type, verb, wasPublished || nowPublished),
           additions: [{ path: newPath, contents: text }],
           deletions: newPath === oldPath ? [] : [{ path: oldPath }],
           targets,
@@ -1018,7 +1033,11 @@ export function createMarkdownContentAdapter(
           throw notFoundError()
         }
         return {
-          message: messageOf(type, `delete "${slug}"`),
+          message: messageOf(
+            type,
+            `delete "${slug}"`,
+            isPublished(type, layout, current)
+          ),
           additions: [],
           deletions: [{ path }],
           targets: [{ path, oid: current.oid }],

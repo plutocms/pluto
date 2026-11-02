@@ -245,6 +245,32 @@ export function reduceBuildStatus(sources: BuildStatusSources): {
   return { state: reduceBuildState(items), items }
 }
 
+/**
+ * True when a commit message asks CI not to run: `[skip ci]`, `[ci skip]`, `[no ci]`,
+ * `[skip actions]` or `[actions skip]`, in any case. GitHub Actions reads the same markers. A draft
+ * save of the Git CMS gets `[skip ci]`.
+ */
+export function hasSkipMarker(message: unknown): boolean {
+  return (
+    typeof message === 'string' &&
+    /\[(?:skip ci|ci skip|no ci|skip actions|actions skip)\]/i.test(message)
+  )
+}
+
+/**
+ * The commit whose builds the edit form shows: the newest commit that does not skip CI, from a
+ * list of commits, newest first. A draft save skips the deploy, so the build of the last real
+ * change still tells the state of the site. With no such commit, the newest one.
+ */
+export function pickDeployCommit<
+  T extends { commit?: { message?: string } | null },
+>(commits: readonly T[]): T | undefined {
+  return (
+    commits.find((commit) => !hasSkipMarker(commit.commit?.message)) ??
+    commits[0]
+  )
+}
+
 /** The first line of a commit message, cut to 200 characters. */
 export function commitHeadline(message: unknown): string {
   const first =

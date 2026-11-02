@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { useFetch, useRequestFetch } from '#imports'
+import { useFetch, useRequestFetch, useRuntimeConfig } from '#imports'
 
 export const CMS_SESSION_URL = '/api/_pluto/auth/session'
 export const CMS_LOGOUT_URL = '/api/_pluto/auth/logout'
@@ -26,11 +26,18 @@ export interface PlutoGithubSessionResponse {
  * The browser fetches it after hydration (`server: false`). The server never
  * reads it, so a public page that a CDN caches never holds a user. The admin
  * is client-only, so it loses nothing. The response has no token.
+ *
+ * A static build (`public.plutoGithub.static`) has no server, so it never asks: nobody is
+ * signed in there.
  */
 export function usePlutoGithubSession() {
+  const isStatic =
+    (useRuntimeConfig().public.plutoGithub as { static?: boolean } | undefined)
+      ?.static === true
   const asyncData = useFetch<PlutoGithubSessionResponse>(CMS_SESSION_URL, {
     key: 'pluto-github-session',
     server: false,
+    immediate: !isStatic,
     $fetch: useRequestFetch(),
     default: () => ({ user: null }),
   })

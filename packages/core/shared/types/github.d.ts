@@ -40,6 +40,8 @@ declare module '@nuxt/schema' {
       postType: boolean
       /** True when a save adds `[skip ci]`. The build status item shows only when this is false. */
       skipDeploy: boolean
+      /** A static build (`nuxt generate`, `github_pages`): no server, so no session request. */
+      static: boolean
     }
   }
 }

@@ -55,6 +55,16 @@ export default defineNuxtModule<PlutoGithubOptions>({
         return meta?.name === 'supabase' || meta?.plutoBackend === true
       }) || modules.includes('@nuxtjs/supabase')
 
+    // A static build (`nuxt generate`, or a static Nitro preset such as `github_pages`): the pages
+    // are prerendered from the files of the checkout. The output has no server, so the module adds
+    // no sign-in, admin or write route.
+    // `_generate` is the internal flag of `nuxt generate`. It is not in the public types.
+    const generate = (nuxt.options as { _generate?: boolean })._generate
+    const isStatic =
+      !nuxt.options.dev &&
+      (Boolean(generate || nuxt.options.nitro?.static) ||
+        isStaticPreset(nuxt.options.nitro?.preset ?? process.env.NITRO_PRESET))
+
     const { enabled, resolved, warnings, errors } = resolvePlutoGithubOptions(
       options,
       {
@@ -65,6 +75,7 @@ export default defineNuxtModule<PlutoGithubOptions>({
         gitOrigin: nuxt.options.dev
           ? readGitOrigin(nuxt.options.rootDir)
           : undefined,
+        static: isStatic,
       }
     )
 
@@ -98,7 +109,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
     Object.assign(secrets, {
       apiUrl: resolved.github.apiUrl,
       skipDeploy: resolved.commit.skipDeploy,
-      localCommit: resolved.commit.local,
+      // A static build only reads.
+      localCommit: resolved.commit.local && !isStatic,
       headTtl: resolved.cache.headTtl,
       cacheStorage: resolved.cache.storage,
       postType: resolved.postType,
@@ -118,6 +130,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
       dir: resolved.dir,
       postType: resolved.postType,
       skipDeploy: resolved.commit.skipDeploy,
+      // A static build has no server: the client asks for no session.
+      static: isStatic,
     }
     // The media library of core uses the GitHub driver (runtime/server/media.ts).
     const media = nuxt.options.runtimeConfig.public.plutoMedia as
@@ -129,30 +143,54 @@ export default defineNuxtModule<PlutoGithubOptions>({
 
     const resolver = createResolver(import.meta.url)
     const server = (file: string) => resolver.resolve('./runtime/server', file)
+    // A route of the server build. A static build has no server, so it adds none.
+    const addRoute = (route: string, method: 'get' | 'post', file: string) => {
+      if (!isStatic) {
+        addServerHandler({ route, method, handler: server(file) })
+      }
+    }
 
-    // Server: the sign-in routes, and the Nitro plugin that
-    // registers the store, the adapter and the post type.
-    addServerHandler({
-      route: '/api/_pluto/auth/github/login',
-      method: 'get',
-      handler: server('api/auth/github/login.get'),
-    })
-    addServerHandler({
-      route: '/api/_pluto/auth/github/callback',
-      method: 'get',
-      handler: server('api/auth/github/callback.get'),
-    })
-    addServerHandler({
-      route: '/api/_pluto/auth/logout',
-      method: 'post',
-      handler: server('api/auth/logout.post'),
-    })
-    addServerHandler({
-      route: '/api/_pluto/auth/session',
-      method: 'get',
-      handler: server('api/auth/session.get'),
-    })
+    // The Nitro plugin registers the store, the adapter and the post type. A static build needs
+    // it too: the public API reads the files while the pages prerender.
     addServerPlugin(server('plugins/pluto-github'))
+
+    if (isStatic) {
+      // A project site of GitHub Pages lives under `/<repo>/`. The workflow gives the path in
+      // `PLUTO_BASE_URL`, and the module writes it in the build config and the app config.
+      // `NUXT_APP_BASE_URL` does not work here: the prerenderer reads it at run time too, the
+      // paths then do not match, and every page answers a redirect.
+      const basePath = process.env.PLUTO_BASE_URL?.trim()
+      if (basePath) {
+        const baseURL = normalizeBasePath(basePath)
+        nuxt.options.app.baseURL = baseURL
+        nuxt.options.runtimeConfig.app = {
+          ...nuxt.options.runtimeConfig.app,
+          baseURL,
+        }
+      }
+      // The admin, the API routes of the admin and the preview pages stay out of the output.
+      nuxt.options.nitro.prerender ||= {}
+      nuxt.options.nitro.prerender.ignore = [
+        ...(nuxt.options.nitro.prerender.ignore ?? []),
+        '/admin',
+        '/api/_pluto',
+        '/_pluto',
+      ]
+    }
+
+    // Server: the sign-in routes.
+    addRoute(
+      '/api/_pluto/auth/github/login',
+      'get',
+      'api/auth/github/login.get'
+    )
+    addRoute(
+      '/api/_pluto/auth/github/callback',
+      'get',
+      'api/auth/github/callback.get'
+    )
+    addRoute('/api/_pluto/auth/logout', 'post', 'api/auth/logout.post')
+    addRoute('/api/_pluto/auth/session', 'get', 'api/auth/session.get')
 
     // Client: the extension plugin and the session composable. Core owns the
     // admin routes, the login page and the route guard.
@@ -223,72 +261,36 @@ export default defineNuxtModule<PlutoGithubOptions>({
 
     // Setup routes: the checks and the App Manifest flow. See the git-cms skill.
     // They are static, so they win over the `:type/:slug` route below.
-    addServerHandler({
-      route: '/api/_pluto/github/setup/status',
-      method: 'get',
-      handler: server('api/setup/status.get'),
-    })
-    addServerHandler({
-      route: '/api/_pluto/github/setup/start',
-      method: 'get',
-      handler: server('api/setup/start.get'),
-    })
-    addServerHandler({
-      route: '/api/_pluto/github/setup/callback',
-      method: 'get',
-      handler: server('api/setup/callback.get'),
-    })
+    addRoute('/api/_pluto/github/setup/status', 'get', 'api/setup/status.get')
+    addRoute('/api/_pluto/github/setup/start', 'get', 'api/setup/start.get')
+    addRoute(
+      '/api/_pluto/github/setup/callback',
+      'get',
+      'api/setup/callback.get'
+    )
 
     // The build status of the head commit. It needs a signed-in user.
-    addServerHandler({
-      route: '/api/_pluto/github/build-status',
-      method: 'get',
-      handler: server('api/build-status.get'),
-    })
+    addRoute('/api/_pluto/github/build-status', 'get', 'api/build-status.get')
 
     // The Deploy tab: the facts of the hosts (signed-in user), and the GitHub Pages setup (local
     // mode on this computer only; the handler checks it).
-    addServerHandler({
-      route: '/api/_pluto/github/deploy/status',
-      method: 'get',
-      handler: server('api/deploy/status.get'),
-    })
-    addServerHandler({
-      route: '/api/_pluto/github/deploy/pages',
-      method: 'post',
-      handler: server('api/deploy/pages.post'),
-    })
+    addRoute('/api/_pluto/github/deploy/status', 'get', 'api/deploy/status.get')
+    addRoute('/api/_pluto/github/deploy/pages', 'post', 'api/deploy/pages.post')
 
     // The people with write access to the repo, for the Users page. It needs a signed-in user.
-    addServerHandler({
-      route: '/api/_pluto/github/users',
-      method: 'get',
-      handler: server('api/users.get'),
-    })
+    addRoute('/api/_pluto/github/users', 'get', 'api/users.get')
 
     // Local mode: the Git state of the project and the Push button of the backend badge.
     // A dev build with the `fs` store only. The handlers also check the request.
     if (nuxt.options.dev && resolved.storage === 'fs') {
-      addServerHandler({
-        route: '/api/_pluto/github/local/status',
-        method: 'get',
-        handler: server('api/local/status.get'),
-      })
-      addServerHandler({
-        route: '/api/_pluto/github/local/push',
-        method: 'post',
-        handler: server('api/local/push.post'),
-      })
+      addRoute('/api/_pluto/github/local/status', 'get', 'api/local/status.get')
+      addRoute('/api/_pluto/github/local/push', 'post', 'api/local/push.post')
     }
 
     // The public reads of the posts go through the public API of core (`/api/pluto/v1/content/post`).
 
     // The media files that are in the repo but not in a deploy yet. See the media skill.
-    addServerHandler({
-      route: '/media/**',
-      method: 'get',
-      handler: server('routes/media.get'),
-    })
+    addRoute('/media/**', 'get', 'routes/media.get')
 
     logger.info(
       `Standalone CMS on. Storage: ${resolved.storage}. Dir: ${resolved.dir}.`
@@ -301,4 +303,21 @@ function toCamelCase(name: string): string {
   return name
     .toLowerCase()
     .replace(/_([a-z])/g, (_match, char: string) => char.toUpperCase())
+}
+
+/** The Nitro presets that write only static files: `static`, `github_pages`, `*_static`. */
+export function isStaticPreset(preset: unknown): boolean {
+  if (typeof preset !== 'string') {
+    return false
+  }
+  const name = preset.toLowerCase().replaceAll('-', '_')
+  return (
+    name === 'static' || name === 'github_pages' || name.endsWith('_static')
+  )
+}
+
+/** `repo`, `/repo` and `/repo/` become `/repo/`. An empty path becomes `/`. */
+export function normalizeBasePath(path: string): string {
+  const segments = path.split('/').filter(Boolean)
+  return segments.length > 0 ? `/${segments.join('/')}/` : '/'
 }

@@ -7,14 +7,14 @@ Tailwind.
 
 ## The list
 
-| Component | Layer | Notes |
-| --- | --- | --- |
-| `PlutoRoot` | core | Plain CSS in its `<style>` (`--pluto-admin-bar-height`, the wrappers). |
-| `PlutoHtml` | core | The `html` of a public item, with the `pluto-prose` class. |
-| `PlutoImage` | core | An `<img>` (NuxtImg) with no class. |
-| `PlutoLogo` | core | An SVG with no class. |
-| `PlutoProse` | supabase-blog | A rich text value, with the `pluto-prose` class. |
-| `Pluto3dViewer`, `Pluto3dPreview` | 3d | Layout in the component, look in the base file. |
+| Component                         | Layer         | Notes                                                                                                                                                                          |
+| --------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PlutoRoot`                       | core          | Plain CSS in its `<style>` (`--pluto-admin-bar-height`, the wrappers).                                                                                                         |
+| `PlutoHtml`                       | core          | The `html` of a public item, with the `pluto-prose` class. Under a sub path (`app.baseURL` not `/`), `withBaseInHtml` puts the base before each site path of `src` and `href`. |
+| `PlutoImage`                      | core          | An `<img>` (NuxtImg) with no class.                                                                                                                                            |
+| `PlutoLogo`                       | core          | An SVG with no class.                                                                                                                                                          |
+| `PlutoProse`                      | supabase-blog | A rich text value, with the `pluto-prose` class.                                                                                                                               |
+| `Pluto3dViewer`, `Pluto3dPreview` | 3d            | Layout in the component, look in the base file.                                                                                                                                |
 
 `PlutoMarkdown` is the old Git CMS name of `PlutoHtml`. The docs layer is a full docs site on
 Nuxt UI and Nuxt Content: a site that uses it needs Tailwind and Nuxt UI.
@@ -47,7 +47,7 @@ Both the `<style>` of a component and `pluto-base.css`:
   exception is a rule that must win over another component's `:where()` rule
   (`.pluto-3d-preview__fill` over the root of `Pluto3dViewer`).
 - Read the Nuxt UI variables with a plain fallback: `var(--ui-text-muted, color-mix(in oklab,
-  currentColor 65%, transparent))`. A Nuxt UI site gets its own theme, a plain site gets readable
+currentColor 65%, transparent))`. A Nuxt UI site gets its own theme, a plain site gets readable
   defaults. Use system colors (`Canvas`, `CanvasText`, `LinkText`) as fallbacks for surfaces.
 - `pluto-base.css` has no Tailwind directive (`@import`, `@apply`, `@theme`, `@utility`).
 
