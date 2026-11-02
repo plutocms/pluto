@@ -21,6 +21,8 @@ const SHA = 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678'
 const URL_PATH = '/api/_pluto/github/build-status'
 
 interface Answers {
+  /** The commits of the branch, newest first. Default: one commit, SHA. */
+  commits?: unknown[]
   checks?: unknown
   status?: unknown
   deployments?: unknown
@@ -76,19 +78,25 @@ function setup(answers: Answers = {}) {
     }
 
     if (
-      pathname === `${prefix}/commits/main` &&
+      pathname === `${prefix}/commits` &&
+      search === `?sha=main&per_page=20` &&
       init.headers.Accept === 'application/vnd.github+json'
     ) {
       calls.push({ path: pathname, token })
       return (
         fail('commit') ??
-        respond(200, {
-          sha: SHA,
-          commit: {
-            message: 'content(post): update "a"\n\nbody',
-            committer: { date: '2026-10-26T10:00:00Z' },
-          },
-        })
+        respond(
+          200,
+          answers.commits ?? [
+            {
+              sha: SHA,
+              commit: {
+                message: 'content(post): update "a"\n\nbody',
+                committer: { date: '2026-10-26T10:00:00Z' },
+              },
+            },
+          ]
+        )
       )
     }
     if (pathname === `${prefix}/commits/${SHA}/check-runs`) {
@@ -159,6 +167,32 @@ describe('gET /api/_pluto/github/build-status', () => {
       state: 'none',
       items: [],
     })
+  })
+
+  it('skips the newest commits that skipped CI (draft saves)', async () => {
+    const { app, calls } = await signedIn({
+      commits: [
+        {
+          sha: 'f'.repeat(40),
+          commit: { message: 'content(post): update "b" [skip ci]' },
+        },
+        {
+          sha: 'e'.repeat(40),
+          commit: { message: 'content(post): create "c" [SKIP CI]' },
+        },
+        {
+          sha: SHA,
+          commit: {
+            message: 'content(post): publish "a"',
+            committer: { date: '2026-10-26T10:00:00Z' },
+          },
+        },
+      ],
+    })
+    const body = await (await app.request(URL_PATH)).json()
+    expect(body.sha).toBe(SHA)
+    expect(body.message).toBe('content(post): publish "a"')
+    expect(calls.some((call) => call.path.includes('f'.repeat(40)))).toBe(false)
   })
 
   it('answers pending with a running Action', async () => {

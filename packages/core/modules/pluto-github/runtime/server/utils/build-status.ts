@@ -8,7 +8,11 @@ import type {
 } from '../../shared/build-status'
 import { setResponseHeader } from 'h3'
 import { createPlutoError } from '../../../../../server/utils/pluto-error'
-import { commitHeadline, reduceBuildStatus } from '../../shared/build-status'
+import {
+  commitHeadline,
+  pickDeployCommit,
+  reduceBuildStatus,
+} from '../../shared/build-status'
 import { githubRest } from '../github/client'
 import { PlutoGithubStoreError } from '../store/errors'
 import { getGithubConfig } from './github-config'
@@ -17,6 +21,8 @@ import { requireGithubSession } from './session'
 /** Milliseconds that the sources of one commit stay in memory, for each user. */
 const SOURCES_TTL_MS = 3_000
 const MAX_ENTRIES = 200
+/** The newest commits that the route reads to find the last one that did not skip CI. */
+const COMMITS_TO_SCAN = 20
 /** The most environments that the route reads. Each one costs one GitHub call. */
 const MAX_DEPLOYMENTS = 5
 
@@ -203,8 +209,8 @@ export function toHttpError(error: unknown, event: H3Event): unknown {
 }
 
 /**
- * Route: GET /api/_pluto/github/build-status. The state of the builds of the head
- * commit of the content branch: check runs, commit statuses and deployments.
+ * Route: GET /api/_pluto/github/build-status. The state of the builds of the newest commit of the
+ * content branch that did not skip CI: check runs, commit statuses and deployments.
  * It needs a signed-in user and reads with the token of that user. The `fs`
  * store has no builds, so it answers `none`.
  */
@@ -225,10 +231,13 @@ export async function handleBuildStatus(
     fetch: config.fetch,
   }
   try {
-    const { data: commit } = await githubRest<RawCommit>(
-      `/repos/${config.repo}/commits/${encodeURIComponent(config.branch)}`,
+    // A draft save skips the deploy (`[skip ci]`), so the newest commit that did not skip it has
+    // the builds of the site.
+    const { data: commits } = await githubRest<RawCommit[]>(
+      `/repos/${config.repo}/commits?sha=${encodeURIComponent(config.branch)}&per_page=${COMMITS_TO_SCAN}`,
       request
     )
+    const commit = pickDeployCommit(Array.isArray(commits) ? commits : [])
     const sha = String(commit?.sha ?? '')
     if (!/^[0-9a-f]{7,64}$/i.test(sha)) {
       throw new PlutoGithubStoreError(

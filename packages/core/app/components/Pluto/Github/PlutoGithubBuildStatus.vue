@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // A toolbar item of the edit form (`contentToolbarItems`). It shows the build
-// of the head commit of the content branch: a spinner while the site builds,
+// of the newest commit of the content branch that did not skip CI (a draft
+// save skips it), so a draft that was never public in this page shows nothing:
+// a spinner while the site builds,
 // a check mark when it is live, and an error icon when the build failed. The
 // Info button opens the details, with a link to each Action or build.
 // The CMS plugin registers it only for GitHub storage with `skipDeploy` off.
@@ -12,22 +14,33 @@ import type {
   PlutoBuildState,
 } from '../../../../modules/pluto-github/runtime/shared/build-status'
 import { usePlutoGithubBuildStatus } from '../../../../modules/pluto-github/runtime/app/composables/pluto-github-build-status'
+import { isPublicItem } from '../../../../modules/pluto-github/runtime/shared/client-rules'
 import { savedAgo } from '../../../composables/internal/content-dirty'
 
 const { t, locale } = usePlutoI18n()
 const form = usePlutoContentForm()
 const { status, check, afterSave } = usePlutoGithubBuildStatus()
 
+// True when the item was public in this page: published when the page opened, or after a save.
+// A draft save skips the deploy, so a draft that was never public has no build to show.
+const everPublic = ref(
+  form ? isPublicItem(form.type.value, form.item.value) : true
+)
+
 // Read when the edit page opens, and after each save. A new item has no commit yet:
 // the form goes to the edit page after the first save, and this item mounts again there.
 onMounted(() => {
-  if (form?.editing.value) {
+  if (form?.editing.value && everPublic.value) {
     check()
   }
 })
 // True after a save in this page. With `liveOnSave` the change is live from then on.
 const savedHere = ref(false)
-form?.onSaved(() => {
+form?.onSaved((saved) => {
+  everPublic.value ||= isPublicItem(form.type.value, saved)
+  if (!everPublic.value) {
+    return
+  }
   savedHere.value = true
   afterSave()
 })
@@ -130,7 +143,7 @@ const commitTime = computed(() => ago(status.value?.committedAt))
 </script>
 
 <template>
-  <div v-if="summary" class="flex items-center gap-1">
+  <div v-if="summary && everPublic" class="flex items-center gap-1">
     <!-- A live region: a screen reader hears the change. -->
     <div
       role="status"
