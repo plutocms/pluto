@@ -107,7 +107,10 @@ policies shared by every project here.
   mode it counts the commits that are not pushed and has a Push button (`/api/_pluto/github/local/status`
   and `push`, dev local request only). A read-only **Users** page (`/admin/users`) lists the people
   with write access to the repo (`GET /api/_pluto/github/users`), their GitHub role, what it gives in
-  Pluto, and who `ALLOWED_USERS` blocks. @.claude/skills/git-cms/SKILL.md
+  Pluto, and who `ALLOWED_USERS` blocks. A **Deploy** tab in Settings (`/admin/settings/deploy`)
+  puts the site on a host: import links for Vercel and Netlify, a Node host guide, Cloudflare Pages
+  build settings, and GitHub Pages (in local mode it writes and commits the workflow and turns Pages
+  on with the GitHub CLI). @.claude/skills/git-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

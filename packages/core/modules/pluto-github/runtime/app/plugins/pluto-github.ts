@@ -165,6 +165,14 @@ export default defineNuxtPlugin(() => {
         icon: 'pluto:github',
         to: '/admin/settings/github',
       },
+      // The Deploy tab: put the site on a host. The module adds its route too.
+      {
+        id: 'deploy',
+        order: 160,
+        label: 'pluto.settings.tabs.deploy',
+        icon: 'i-lucide-rocket',
+        to: '/admin/settings/deploy',
+      },
     ],
     // The content type gives the Posts nav item, the list and the form.
     contentTypes: postType ? [{ id: 'post', type: plutoGithubPostType }] : [],

@@ -9,9 +9,7 @@ import {
   registerContentAdapter,
   registerContentType,
 } from '../../../../../server/utils/pluto-content'
-import {
-  registerMediaDriver,
-} from '../../../../../server/utils/pluto-media-driver'
+import { registerMediaDriver } from '../../../../../server/utils/pluto-media-driver'
 import {
   isPublicRead,
   markPublicRead,

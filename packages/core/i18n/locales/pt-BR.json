@@ -20,7 +20,9 @@
       "create": "Criar",
       "error": "Erro",
       "switchToLightMode": "Mudar para o tema claro",
-      "switchToDarkMode": "Mudar para o tema escuro"
+      "switchToDarkMode": "Mudar para o tema escuro",
+      "copy": "Copiar",
+      "copied": "Copiado"
     },
     "navbar": {
       "openNavigation": "Abrir a navegação",
@@ -169,7 +171,8 @@
       "tabs": {
         "general": "Geral",
         "email": "E-mail",
-        "github": "GitHub"
+        "github": "GitHub",
+        "deploy": "Publicar"
       },
       "noPermission": {
         "title": "Você não pode abrir esta página",
@@ -444,6 +447,82 @@
             "description": "O App não deu um token. Confira se ele está instalado no repositório e se a chave privada está certa.",
             "action": "Conferir o GitHub App"
           }
+        }
+      },
+      "deploy": {
+        "intro": "Coloque o site no ar. Escolha um host.",
+        "error": "Não foi possível carregar as configurações de publicação",
+        "full": {
+          "title": "O site e o admin",
+          "description": "Estes hosts rodam o app inteiro. Os editores entram no site no ar com o GitHub, e um salvamento fica no ar em segundos.",
+          "after": "Depois da primeira publicação, abra /admin no site no ar. Ele mostra como criar o GitHub App que os editores usam para entrar."
+        },
+        "hosts": {
+          "vercel": {
+            "name": "Vercel",
+            "description": "Importe este repositório. A Vercel encontra o Nuxt e o repositório sozinha.",
+            "action": "Publicar na Vercel"
+          },
+          "netlify": {
+            "name": "Netlify",
+            "description": "Importe este repositório da sua conta do GitHub. A Netlify encontra o Nuxt sozinha.",
+            "action": "Publicar na Netlify"
+          },
+          "node": {
+            "name": "Um host Node",
+            "description": "Qualquer host que rode Node.js. Compile com nuxt build e inicie .output/server/index.mjs.",
+            "action": "Ler o guia"
+          }
+        },
+        "static": {
+          "title": "Um site estático",
+          "description": "O site são arquivos simples, então o host é simples e gratuito. O admin fica no seu computador: salve, faça o push, e o host compila o site de novo."
+        },
+        "pages": {
+          "name": "GitHub Pages",
+          "description": "Uma GitHub Action compila o site a cada push e o coloca no GitHub Pages. A compilação não precisa de segredo.",
+          "ready": "Pronto",
+          "open": "Abrir o site",
+          "setup": "Configurar o GitHub Pages",
+          "settings": "Configurações do Pages no GitHub",
+          "showWorkflow": "Mostrar o workflow",
+          "hideWorkflow": "Esconder o workflow",
+          "workflow": {
+            "done": "O workflow está no projeto:",
+            "old": "O workflow está no projeto, mas o Pluto tem uma versão nova:",
+            "missing": "O workflow ainda não está no projeto:"
+          },
+          "state": {
+            "on": "O GitHub Pages está ligado, com o GitHub Actions como fonte.",
+            "legacy": "O GitHub Pages está ligado, mas compila de uma branch. Configurar o passa para o GitHub Actions.",
+            "off": "O GitHub Pages está desligado no repositório."
+          },
+          "reason": {
+            "no-gh": "O Pluto não consegue ver o GitHub Pages: o GitHub CLI (gh) não está instalado. Configurar ainda grava o workflow. Depois ligue o Pages nas configurações do repositório.",
+            "signed-out": "O Pluto não consegue ver o GitHub Pages: o GitHub CLI não está conectado. Rode gh auth login, ou ligue o Pages nas configurações do repositório.",
+            "error": "O Pluto não consegue ver o GitHub Pages do repositório."
+          },
+          "done": {
+            "title": "O GitHub Pages está configurado",
+            "description": "Envie seus commits para publicar: use o selo do Git na barra, ou rode git push. A primeira compilação leva alguns minutos."
+          },
+          "partial": {
+            "title": "O workflow está pronto",
+            "description": "O Pluto não conseguiu ligar o GitHub Pages. Abra as configurações do Pages do repositório e escolha GitHub Actions como fonte. Depois envie seus commits."
+          },
+          "manual": {
+            "step1": "Adicione o workflow abaixo ao repositório, no caminho que ele mostra.",
+            "step2": "Nas configurações do Pages do repositório, escolha GitHub Actions como fonte.",
+            "step3": "Faça o push. A Action compila e publica o site."
+          },
+          "nodeAdmin": "Um admin em um host Node pode usar o mesmo site: defina commit.skipDeploy como false, para que cada salvamento de conteúdo publicado inicie uma compilação."
+        },
+        "cloudflare": {
+          "name": "Cloudflare Pages",
+          "description": "Conecte o repositório na Cloudflare e use estas configurações de compilação.",
+          "command": "Comando de compilação",
+          "output": "Pasta de saída",
+          "action": "Abrir a Cloudflare"
         }
       }
     },

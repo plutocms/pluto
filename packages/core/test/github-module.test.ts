@@ -162,7 +162,12 @@ describe('pluto-github module wiring', () => {
     kitCalls.pageExtenders[0]!(pages as never)
 
     const children = pages[0]!.children![0]!.children!
-    expect(children.map((page) => page.path)).toEqual(['', 'email', 'github'])
+    expect(children.map((page) => page.path)).toEqual([
+      '',
+      'email',
+      'github',
+      'deploy',
+    ])
     expect(String(children[2]!.file).replaceAll('\\', '/')).toMatch(
       /\/app\/components\/Pluto\/Github\/PlutoGithubSettingsPage\.vue$/
     )

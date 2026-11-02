@@ -31,7 +31,10 @@ export function createMemoryStore(
 
   function currentHead(): string {
     return listingOid(
-      [...files, ...raw].map(([path, text]) => ({ path, oid: gitBlobSha(text) }))
+      [...files, ...raw].map(([path, text]) => ({
+        path,
+        oid: gitBlobSha(text),
+      }))
     )
   }
 

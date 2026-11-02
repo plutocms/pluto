@@ -323,7 +323,10 @@ export function createGithubStore(
         )
         return new Uint8Array(result.data)
       } catch (error) {
-        if (error instanceof PlutoGithubStoreError && error.code === 'not-found') {
+        if (
+          error instanceof PlutoGithubStoreError &&
+          error.code === 'not-found'
+        ) {
           return null
         }
         throw error
