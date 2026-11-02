@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.45.0](https://github.com/plutocms/pluto/compare/v0.44.1...v0.45.0) (2026-11-01)
+
+
+### Features
+
+* in production, the admin shows a not-configured page when no auth driver is registered ([#346](https://github.com/plutocms/pluto/issues/346)) ([6f49cb8](https://github.com/plutocms/pluto/commit/6f49cb814d1d3614d8b3b7b92722081ba82549ae))
+
 ## [0.44.1](https://github.com/plutocms/pluto/compare/v0.44.0...v0.44.1) (2026-11-01)
 
 
