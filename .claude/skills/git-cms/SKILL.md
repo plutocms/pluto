@@ -997,6 +997,38 @@ Tests: `test/github-local-git.test.ts` (status, push to a bare remote, a rejecte
 HEAD, `pushErrorReason`) and `test/github-local-git-routes.test.ts` (local only, 404 otherwise, the
 origin check, the error key).
 
+## Static build
+
+A site can be a set of static files, for example on GitHub Pages. The admin then stays on the
+author's machine (local mode) or on a Node host, and each push of content rebuilds the site.
+
+- The module sees a static build when it is not dev and `nuxt.options._generate` (`nuxt generate`)
+  or `nitro.static` is set, or the Nitro preset (`nitro.preset`, else `NITRO_PRESET`) is static:
+  `static`, `github_pages` (or `github-pages`), or a name that ends with `_static`
+  (`isStaticPreset`).
+- The options take `ctx.static`: the `fs` store is the default and is valid, and no repo is needed.
+  The store reads the files of the checkout (`fsRoot` is the project dir), so the build needs no
+  token and no secret. `localCommit` is off.
+- The module adds the Nitro plugin (the public API reads the files while the pages prerender), the
+  client plugin and the pages, but no server route: every `addRoute` call (sign-in, setup, users,
+  build status, local Git, `/media/**`) does nothing in a static build. The admin is client-only and
+  is never crawled.
+- `nitro.prerender.ignore` gets `/admin`, `/api/_pluto` and `/_pluto` (the preview pages).
+- `public.plutoGithub.static` is true, and `usePlutoGithubSession` then asks for no session
+  (`immediate: false`): nobody signs in on a static site, and the request would get a 404.
+- Base path: a project site of GitHub Pages lives under `/<repo>/`. The workflow gives the path in
+  `PLUTO_BASE_URL`, and the module writes it (`normalizeBasePath`) in `app.baseURL` and
+  `runtimeConfig.app.baseURL`. Do not use `NUXT_APP_BASE_URL` for this: the prerenderer then reads
+  the base at run time too, the paths do not match, and every page is a 16-byte "Redirecting..."
+  file. `@nuxt/image` adds the base to `PlutoImage` and prerenders the sizes (`/_ipx/...`).
+  `PlutoHtml` adds it to the site paths of a post body (`withBaseInHtml` of
+  `shared/utils/html-base.ts`).
+- Drafts are not public, so they are never in the output.
+- Checked live: `nuxt build --preset github_pages` with `PLUTO_BASE_URL`, served under the sub path:
+  the home page, a post, the cover, an inline image and the links work, and no request fails.
+- Tests: `test/github-module.test.ts` ("a static build"), `test/pluto-github-options.test.ts`,
+  `test/html-base.test.ts`.
+
 ## Rules found in live testing
 
 - **Admin layout.** Core's `app/pages/admin.vue` parent route sets `layout: 'admin'` for every

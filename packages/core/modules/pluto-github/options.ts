@@ -7,7 +7,10 @@ export interface PlutoGithubOptions {
    * `false` turns it off.
    */
   enabled?: boolean | 'auto'
-  /** Where the posts live. `fs` is valid in dev only. Default `fs` in dev, `github` in production. */
+  /**
+   * Where the posts live. `fs` is valid in dev and in a static build only. Default `fs` in dev and
+   * in a static build (`nuxt generate`), `github` in a server build.
+   */
   storage?: 'github' | 'fs'
   github?: {
     /**
@@ -72,6 +75,11 @@ export interface PlutoGithubResolveContext {
   env?: Record<string, string | undefined>
   /** The URL of the `origin` git remote. The module reads it in dev only. */
   gitOrigin?: string
+  /**
+   * A static build (`nuxt generate`): the site reads the content from the files of the checkout
+   * while it prerenders. The `fs` store is the default and is valid. No sign-in, no admin.
+   */
+  static?: boolean
 }
 
 export interface PlutoGithubResolveResult {
@@ -137,7 +145,7 @@ export function resolvePlutoGithubOptions(
       options.storage ??
       (fromEnv('PLUTO_GITHUB_STORAGE') as
         ResolvedPlutoGithubOptions['storage'] | undefined) ??
-      (ctx.dev ? 'fs' : 'github'),
+      (ctx.dev || ctx.static ? 'fs' : 'github'),
     github: {
       repo: options.github?.repo || detectRepo(ctx, fromEnv),
       branch: options.github?.branch ?? 'main',
@@ -185,9 +193,9 @@ export function resolvePlutoGithubOptions(
     errors.push(
       `plutoGithub.storage must be "github" or "fs". Got "${String(resolved.storage)}".`
     )
-  } else if (resolved.storage === 'fs' && !ctx.dev) {
+  } else if (resolved.storage === 'fs' && !ctx.dev && !ctx.static) {
     errors.push(
-      'plutoGithub.storage "fs" works in dev only. Use "github" for a build.'
+      'plutoGithub.storage "fs" works in dev and in a static build (nuxt generate) only. Use "github" for a server build.'
     )
   } else if (resolved.storage === 'github' && !resolved.github.repo) {
     errors.push(

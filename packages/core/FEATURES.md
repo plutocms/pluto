@@ -108,7 +108,10 @@ policies shared by every project here.
   mode it counts the commits that are not pushed and has a Push button (`/api/_pluto/github/local/status`
   and `push`, dev local request only). A read-only **Users** page (`/admin/users`) lists the people
   with write access to the repo (`GET /api/_pluto/github/users`), their GitHub role, what it gives in
-  Pluto, and who `ALLOWED_USERS` blocks. @.claude/skills/git-cms/SKILL.md
+  Pluto, and who `ALLOWED_USERS` blocks. A static build (`nuxt generate`, or the `github_pages`
+  preset) prerenders the site from the files of the checkout with no token, adds no server route,
+  keeps the admin out, and takes a sub path from `PLUTO_BASE_URL` (`PlutoHtml` puts it before the
+  site paths of a post body). @.claude/skills/git-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

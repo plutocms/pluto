@@ -170,6 +170,17 @@ describe('resolvePlutoGithubOptions', () => {
     expect(result.enabled).toBe(true)
   })
 
+  it('uses the fs store in a static build by default, with no repo', () => {
+    const result = resolvePlutoGithubOptions(
+      { enabled: true },
+      { ...ctx, static: true }
+    )
+
+    expect(result.errors).toEqual([])
+    expect(result.enabled).toBe(true)
+    expect(result.resolved.storage).toBe('fs')
+  })
+
   it('rejects a negative or invalid headTtl', () => {
     for (const bad of [-1, Number.NaN]) {
       const result = resolvePlutoGithubOptions(
