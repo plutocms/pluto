@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import githubModule from '../modules/pluto-github'
+import githubModule, {
+  isStaticPreset,
+  normalizeBasePath,
+} from '../modules/pluto-github'
 import { countKitCalls, kitCalls, resetKitCalls } from './fixtures/kit-mock'
 
 vi.mock('@nuxt/kit', async (importOriginal) =>
@@ -249,8 +252,70 @@ describe('pluto-github module wiring', () => {
       'postType',
       'repo',
       'skipDeploy',
+      'static',
       'storage',
     ])
+  })
+
+  describe('a static build', () => {
+    const generate = (extra: Record<string, unknown> = {}) => ({
+      _generate: true,
+      app: { baseURL: '/' },
+      nitro: {},
+      ...extra,
+    })
+
+    it('reads the files of the checkout and adds no server route', async () => {
+      const nuxt = await run({ enabled: true }, generate())
+
+      expect(nuxt.options.runtimeConfig.public.plutoGithub).toMatchObject({
+        storage: 'fs',
+        static: true,
+      })
+      expect(nuxt.options.runtimeConfig.plutoGithub).toMatchObject({
+        fsRoot: '/work/site',
+        localCommit: false,
+      })
+      expect(kitCalls.serverHandlers).toEqual([])
+      expect(kitCalls.serverPlugins).toHaveLength(1)
+      expect(nuxt.options.nitro.prerender.ignore).toEqual([
+        '/admin',
+        '/api/_pluto',
+        '/_pluto',
+      ])
+    })
+
+    it('knows a static Nitro preset', async () => {
+      const nuxt = await run(
+        { enabled: true },
+        { app: { baseURL: '/' }, nitro: { preset: 'github_pages' } }
+      )
+      expect(nuxt.options.runtimeConfig.public.plutoGithub.static).toBe(true)
+      expect(kitCalls.serverHandlers).toEqual([])
+    })
+
+    it('takes the base path from PLUTO_BASE_URL', async () => {
+      vi.stubEnv('PLUTO_BASE_URL', 'my-site')
+      try {
+        const nuxt = await run({ enabled: true }, generate())
+        expect(nuxt.options.app.baseURL).toBe('/my-site/')
+        expect(nuxt.options.runtimeConfig.app.baseURL).toBe('/my-site/')
+      } finally {
+        vi.unstubAllEnvs()
+      }
+    })
+  })
+
+  it('isStaticPreset and normalizeBasePath', () => {
+    expect(isStaticPreset('github_pages')).toBe(true)
+    expect(isStaticPreset('github-pages')).toBe(true)
+    expect(isStaticPreset('static')).toBe(true)
+    expect(isStaticPreset('netlify_static')).toBe(true)
+    expect(isStaticPreset('vercel')).toBe(false)
+    expect(isStaticPreset(undefined)).toBe(false)
+    expect(normalizeBasePath('repo')).toBe('/repo/')
+    expect(normalizeBasePath('/a/b/')).toBe('/a/b/')
+    expect(normalizeBasePath('')).toBe('/')
   })
 
   it('gives the project root to the dev fs store only', async () => {
