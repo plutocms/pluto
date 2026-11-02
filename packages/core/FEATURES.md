@@ -111,7 +111,10 @@ policies shared by every project here.
   Pluto, and who `ALLOWED_USERS` blocks. A static build (`nuxt generate`, or the `github_pages`
   preset) prerenders the site from the files of the checkout with no token, adds no server route,
   keeps the admin out, and takes a sub path from `PLUTO_BASE_URL` (`PlutoHtml` puts it before the
-  site paths of a post body). @.claude/skills/git-cms/SKILL.md
+  site paths of a post body). A **Deploy** tab in Settings (`/admin/settings/deploy`) puts the site
+  on a host: import links for Vercel and Netlify, a Node host guide, Cloudflare Pages build settings,
+  and GitHub Pages (in local mode it writes and commits the workflow and turns Pages on with the
+  GitHub CLI). @.claude/skills/git-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

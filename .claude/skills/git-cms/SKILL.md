@@ -39,8 +39,8 @@ An explicit option always wins. `resolvePlutoGithubOptions(options, ctx)` is pur
 
 - `storage`: the env var `PLUTO_GITHUB_STORAGE`, else `fs` in dev and `github` in production.
 - `github.repo`: the env var `NUXT_PLUTO_GITHUB_REPO`, then `PLUTO_GITHUB_REPO`, then Vercel's
-  `VERCEL_GIT_REPO_OWNER` + `VERCEL_GIT_REPO_SLUG`, then (dev only) the `origin` remote of the
-  git repo that holds `rootDir`.
+  `VERCEL_GIT_REPO_OWNER` + `VERCEL_GIT_REPO_SLUG`, then Netlify's `REPOSITORY_URL` (a GitHub URL
+  only), then (dev only) the `origin` remote of the git repo that holds `rootDir`.
 - `github.appSlug`: `NUXT_PLUTO_GITHUB_APP_SLUG`, then `PLUTO_GITHUB_APP_SLUG`.
 - `github.branch`: `main`.
 - With the `github` storage and no repo, the module logs one error ("The standalone CMS needs a
@@ -996,6 +996,56 @@ when the popover opens. A save commits on the server, so the count follows withi
 Tests: `test/github-local-git.test.ts` (status, push to a bare remote, a rejected push, a detached
 HEAD, `pushErrorReason`) and `test/github-local-git-routes.test.ts` (local only, 404 otherwise, the
 origin check, the error key).
+
+## Deploy tab
+
+The **Deploy** tab of Settings puts the site on a host. The `settingsPages` entry (id `deploy`,
+order 160, `i-lucide-rocket`) is in the CMS client plugin. The module adds the route
+`/admin/settings/deploy` (`admin-settings-deploy`) with `extendPages`, from
+`app/components/Pluto/Github/PlutoGithubDeployPage.vue`.
+
+- **The site and the admin** (the whole app on a host): Vercel
+  (`https://vercel.com/new/import?s=<repo URL>`, else `vercel.com/new`), Netlify
+  (`app.netlify.com/start`; Netlify has no import link for one repo) and a Node host (the docs).
+  After the first deploy, the setup of the login page creates the GitHub App.
+- **A static site** (the admin stays local, see "Static build"): GitHub Pages and Cloudflare Pages
+  (the build command `npx nuxt generate` and the output `.output/public`, with Copy buttons).
+- GitHub Pages in local mode: the checklist (the workflow file, the Pages state), **Set up GitHub
+  Pages**, a link to the Pages settings of the repo, and the workflow text. Outside local mode: the
+  steps by hand and the workflow to copy.
+
+### The workflow
+
+`runtime/shared/pages-workflow.ts` (pure): `renderPagesWorkflow({ branch, packageManager })`,
+`detectPackageManager(files)` (the lock file: `bun.lock`/`bun.lockb`, `pnpm-lock.yaml`, `yarn.lock`,
+else npm), `defaultPagesUrl(repo)` and `PAGES_WORKFLOW_PATH` (`.github/workflows/pluto-pages.yml`).
+The workflow runs on a push to the branch and by hand: checkout, `configure-pages@v5`, the setup and
+install of the package manager, `nuxt build --preset github_pages` with
+`PLUTO_BASE_URL: ${{ steps.pages.outputs.base_path }}`, `upload-pages-artifact@v3` (`.output/public`),
+then `deploy-pages@v4`. Permissions: `contents: read`, `pages: write`, `id-token: write`. It needs no
+secret.
+
+### Routes
+
+- `GET /api/_pluto/github/deploy/status` (signed-in user): `PlutoDeployStatus`
+  (`runtime/shared/deploy.ts`): `repo`, `branch`, `local`, `packageManager`, `workflow` (`path`,
+  `text`; in local mode also `exists` and `current`), `pagesUrl`, and in local mode `pages`.
+- `POST /api/_pluto/github/deploy/pages`: local mode on this computer only (a dev build, the `fs`
+  store, `isLocalRequest`), else 404. It writes the workflow when it is missing or old, commits it
+  (`ci: deploy the site to GitHub Pages`, with `commitLocalFiles`; a failed commit only logs), and
+  calls `enablePages`. The answer: `{ status, committed, pagesOn }`. The author pushes to deploy (the
+  Git badge counts the new commit).
+- `readPagesState(repo)` runs `gh api repos/<repo>/pages` (30 s timeout, `GH_PROMPT_DISABLED`):
+  `on` with `url` and `source` (`workflow` or `legacy`), `off` on a 404, or `unknown` with a reason
+  (`no-gh`, `signed-out`, `error`). `enablePages` sends `POST` (Pages off) or `PUT` (a branch site)
+  with `build_type=workflow`. The repo name must match `owner/name` before it goes in a `gh` path.
+
+Text: `pluto.github.deploy.*`, `pluto.settings.tabs.deploy`, `pluto.common.copy` and `copied`. Tests:
+`test/github-deploy.test.ts` (the workflow as YAML for each package manager, the status, the setup
+with a fake `gh`, a branch site, no `gh`, `gh` signed out, 404 outside local mode).
+
+Not checked live yet: a real push that runs the workflow on GitHub. It needs a core release with the
+static build.
 
 ## Static build
 

@@ -20,7 +20,9 @@
       "create": "Create",
       "error": "Error",
       "switchToLightMode": "Switch to light mode",
-      "switchToDarkMode": "Switch to dark mode"
+      "switchToDarkMode": "Switch to dark mode",
+      "copy": "Copy",
+      "copied": "Copied"
     },
     "navbar": {
       "openNavigation": "Open navigation",
@@ -169,7 +171,8 @@
       "tabs": {
         "general": "General",
         "email": "Email",
-        "github": "GitHub"
+        "github": "GitHub",
+        "deploy": "Deploy"
       },
       "noPermission": {
         "title": "You cannot open this page",
@@ -444,6 +447,82 @@
             "description": "The App gave no token. Check that it is installed on the repo, and that its private key is right.",
             "action": "Check the GitHub App"
           }
+        }
+      },
+      "deploy": {
+        "intro": "Put the site online. Pick a host.",
+        "error": "Could not load the deploy settings",
+        "full": {
+          "title": "The site and the admin",
+          "description": "These hosts run the whole app. Editors sign in on the live site with GitHub, and a save is live in seconds.",
+          "after": "After the first deploy, open /admin on the live site. It shows how to create the GitHub App that editors use to sign in."
+        },
+        "hosts": {
+          "vercel": {
+            "name": "Vercel",
+            "description": "Import this repo. Vercel finds Nuxt and the repo by itself.",
+            "action": "Deploy to Vercel"
+          },
+          "netlify": {
+            "name": "Netlify",
+            "description": "Import this repo from your GitHub account. Netlify finds Nuxt by itself.",
+            "action": "Deploy to Netlify"
+          },
+          "node": {
+            "name": "A Node host",
+            "description": "Any host that runs Node.js. Build with nuxt build, then start .output/server/index.mjs.",
+            "action": "Read the guide"
+          }
+        },
+        "static": {
+          "title": "A static site",
+          "description": "The site is plain files, so the host is simple and free. The admin stays on your computer: save, push, and the host builds the site again."
+        },
+        "pages": {
+          "name": "GitHub Pages",
+          "description": "A GitHub Action builds the site on each push and puts it on GitHub Pages. The build needs no secret.",
+          "ready": "Ready",
+          "open": "Open the site",
+          "setup": "Set up GitHub Pages",
+          "settings": "Pages settings on GitHub",
+          "showWorkflow": "Show the workflow",
+          "hideWorkflow": "Hide the workflow",
+          "workflow": {
+            "done": "The workflow is in the project:",
+            "old": "The workflow is in the project, but Pluto has a new version:",
+            "missing": "The workflow is not in the project yet:"
+          },
+          "state": {
+            "on": "GitHub Pages is on, with GitHub Actions as the source.",
+            "legacy": "GitHub Pages is on, but it builds from a branch. Set up moves it to GitHub Actions.",
+            "off": "GitHub Pages is off for the repo."
+          },
+          "reason": {
+            "no-gh": "Pluto cannot see GitHub Pages: the GitHub CLI (gh) is not installed. Set up still writes the workflow. Then turn Pages on in the settings of the repo.",
+            "signed-out": "Pluto cannot see GitHub Pages: the GitHub CLI is not signed in. Run gh auth login, or turn Pages on in the settings of the repo.",
+            "error": "Pluto cannot see GitHub Pages for the repo."
+          },
+          "done": {
+            "title": "GitHub Pages is set up",
+            "description": "Push your commits to deploy: use the Git badge in the bar, or run git push. The first build takes a few minutes."
+          },
+          "partial": {
+            "title": "The workflow is ready",
+            "description": "Pluto could not turn GitHub Pages on. Open the Pages settings of the repo, and set the source to GitHub Actions. Then push your commits."
+          },
+          "manual": {
+            "step1": "Add the workflow below to the repo, at the path that it shows.",
+            "step2": "In the Pages settings of the repo, set the source to GitHub Actions.",
+            "step3": "Push. The Action builds and deploys the site."
+          },
+          "nodeAdmin": "An admin on a Node host can use the same site: set commit.skipDeploy to false, so that each save of published content starts a build."
+        },
+        "cloudflare": {
+          "name": "Cloudflare Pages",
+          "description": "Connect the repo in Cloudflare, and use these build settings.",
+          "command": "Build command",
+          "output": "Output directory",
+          "action": "Open Cloudflare"
         }
       }
     },

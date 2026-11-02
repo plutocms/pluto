@@ -15,7 +15,7 @@ export interface PlutoGithubOptions {
   github?: {
     /**
      * The repo as `owner/name`. Required when storage is `github`. Default: the env var
-     * `NUXT_PLUTO_GITHUB_REPO` or `PLUTO_GITHUB_REPO`, then Vercel's repo, then (dev only)
+     * `NUXT_PLUTO_GITHUB_REPO` or `PLUTO_GITHUB_REPO`, then Vercel's repo, then Netlify's repo, then (dev only)
      * the `origin` remote of the local git repo.
      */
     repo?: string
@@ -245,6 +245,11 @@ function detectRepo(
   const slug = fromEnv('VERCEL_GIT_REPO_SLUG')
   if (owner && slug) {
     return `${owner}/${slug}`
+  }
+  // Netlify gives the URL of the repo to the build.
+  const netlify = parseGithubRepoUrl(fromEnv('REPOSITORY_URL') ?? '')
+  if (netlify) {
+    return netlify
   }
   return ctx.dev && ctx.gitOrigin
     ? (parseGithubRepoUrl(ctx.gitOrigin) ?? '')

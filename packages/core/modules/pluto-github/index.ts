@@ -221,6 +221,10 @@ export default defineNuxtModule<PlutoGithubOptions>({
     const settingsFile = resolver.resolve(
       '../../app/components/Pluto/Github/PlutoGithubSettingsPage.vue'
     )
+    // The Deploy tab of Settings (`/admin/settings/deploy`): the hosts, and GitHub Pages.
+    const deployFile = resolver.resolve(
+      '../../app/components/Pluto/Github/PlutoGithubDeployPage.vue'
+    )
     // The Users page (`/admin/users`): the people with write access to the repo, read only.
     const usersFile = resolver.resolve(
       '../../app/components/Pluto/Github/PlutoGithubUsersPage.vue'
@@ -245,6 +249,11 @@ export default defineNuxtModule<PlutoGithubOptions>({
           path: 'github',
           file: settingsFile,
         })
+        settings.children.push({
+          name: 'admin-settings-deploy',
+          path: 'deploy',
+          file: deployFile,
+        })
       } else {
         logger.warn('Could not find the Settings page. The GitHub tab is off.')
       }
@@ -262,6 +271,11 @@ export default defineNuxtModule<PlutoGithubOptions>({
 
     // The build status of the head commit. It needs a signed-in user.
     addRoute('/api/_pluto/github/build-status', 'get', 'api/build-status.get')
+
+    // The Deploy tab: the facts of the hosts (signed-in user), and the GitHub Pages setup (local
+    // mode on this computer only; the handler checks it).
+    addRoute('/api/_pluto/github/deploy/status', 'get', 'api/deploy/status.get')
+    addRoute('/api/_pluto/github/deploy/pages', 'post', 'api/deploy/pages.post')
 
     // The people with write access to the repo, for the Users page. It needs a signed-in user.
     addRoute('/api/_pluto/github/users', 'get', 'api/users.get')
