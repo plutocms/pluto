@@ -5,5 +5,7 @@
 export default defineNuxtConfig({
   extends: ['@plutocms/core', '@plutocms/3d'],
 
+  css: ['~/assets/css/main.css'],
+
   compatibilityDate: '2025-07-15',
 })

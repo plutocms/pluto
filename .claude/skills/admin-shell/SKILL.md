@@ -241,7 +241,8 @@ later page load has it in the first paint. If the capabilities load fails, the b
 
 ### The height token and the `<html>` marker
 
-- `--pluto-admin-bar-height: 2.5rem` is on `:root` in `pluto-layer.css`. `PlutoNavbarAdmin` (`h-(--pluto-admin-bar-height)`)
+- `--pluto-admin-bar-height: 2.5rem` is on `:root` in the plain `<style>` of `PlutoRoot`, so a
+  site with no Tailwind has it too. `PlutoNavbarAdmin` (`h-(--pluto-admin-bar-height)`)
   and the admin layout (the dashboard group `top`) read it. A site that offsets its own header
   under the bar reads it too.
 - `--ui-header-height: 2.5rem` stays on `:root`, so an existing app does not change. A site with a

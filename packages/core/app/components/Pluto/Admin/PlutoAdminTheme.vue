@@ -8,6 +8,10 @@ import {
   PLUTO_ADMIN_UI,
   PLUTO_ADMIN_UI_PROPS,
 } from '../../../composables/pluto-admin-theme'
+// The admin's own Tailwind build, scoped to the admin. Only the async chunks of
+// the admin UI import this component, so a visitor who sees no admin UI does
+// not load the build. See the pluto-css module.
+import '#build/pluto-admin.css'
 </script>
 
 <template>

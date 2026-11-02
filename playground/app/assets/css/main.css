@@ -1,0 +1,7 @@
+/*
+ * The site's Tailwind build. The admin has a build of its own, so this file
+ * is for the playground's own pages.
+ */
+@import 'tailwindcss';
+@import '@nuxt/ui';
+@import '@plutocms/css';

@@ -114,8 +114,8 @@ useHead({
 </script>
 
 <template>
-  <div class="flex min-h-0 w-full min-w-0 grow flex-col">
-    <UApp :locale="uiLocale" class="flex min-h-0 w-full min-w-0 grow flex-col">
+  <div class="pluto-root">
+    <UApp :locale="uiLocale">
       <NuxtRouteAnnouncer />
       <NuxtLoadingIndicator />
 
@@ -125,9 +125,9 @@ useHead({
         Public pages have no admin sidebar. The admin navbar menu button
         opens this slideover there instead.
       -->
-      <PlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
+      <LazyPlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
 
-      <div class="min-h-0 w-full min-w-0 grow">
+      <div class="pluto-root-page">
         <NuxtLayout>
           <slot />
         </NuxtLayout>
@@ -147,6 +147,39 @@ useHead({
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+}
+
+/*
+ * `--pluto-admin-bar-height` is the height of the admin navbar: 2.5rem (40px)
+ * at every width. The admin navbar and the admin layout read it. A public site
+ * that shows the bar to a logged-in admin offsets its own header by the same
+ * value. Core sets `data-pluto-admin-bar` on <html> while the bar shows, so a
+ * site can offset its header only then:
+ * `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
+ * It is here, in plain CSS, so a site with no Tailwind has it too.
+ */
+:root {
+  --pluto-admin-bar-height: 2.5rem;
+}
+
+/*
+ * The wrappers grow to fill #__nuxt. Plain CSS, not Tailwind classes: a site
+ * may have no Tailwind (the admin has a build of its own).
+ */
+.pluto-root {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.pluto-root-page {
+  flex-grow: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 :root[data-pluto-admin],
