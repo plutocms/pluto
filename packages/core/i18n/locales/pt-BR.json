@@ -523,6 +523,65 @@
           "command": "Comando de compilação",
           "output": "Pasta de saída",
           "action": "Abrir a Cloudflare"
+        },
+        "confirm": {
+          "title": "Configurar o GitHub Pages?",
+          "description": "Isto altera o repositório {repo} no GitHub.",
+          "write": "O Pluto escreve {path} e faz o commit no repositório local.",
+          "pages": "O Pluto ativa o GitHub Pages em {repo}, com o GitHub Actions como fonte.",
+          "push": "Nada vai ao ar antes do seu push.",
+          "action": "Configurar"
+        },
+        "domain": {
+          "title": "Domínio",
+          "description": "Use o seu próprio domínio, como blog.exemplo.com. Adicione o domínio no host do site. Depois adicione os registros DNS que o host mostra no seu registrador de domínio.",
+          "hosts": {
+            "title": "No host do app",
+            "description": "O host serve o domínio e obtém o certificado HTTPS.",
+            "current": "Este app roda em {host}, no endereço {domain}.",
+            "open": "Abrir as configurações de domínio",
+            "vercel": "Domínios na Vercel",
+            "netlify": "Domínios na Netlify",
+            "cloudflare": "Domínios no Cloudflare Pages"
+          },
+          "pages": {
+            "name": "GitHub Pages",
+            "description": "O Pluto define o domínio nas configurações do Pages do repositório. Um arquivo CNAME não tem efeito: o GitHub o ignora quando uma Action gera o site.",
+            "notReady": "Configure o GitHub Pages primeiro. Depois adicione um domínio aqui.",
+            "manual": "Abra as configurações do Pages do repositório e digite o domínio em Custom domain. Depois gere o site de novo.",
+            "label": "Domínio personalizado",
+            "placeholder": "blog.exemplo.com",
+            "save": "Salvar o domínio",
+            "remove": "Remover o domínio",
+            "removeConfirm": {
+              "title": "Remover o domínio?",
+              "description": "O site volta ao endereço do GitHub Pages. O Pluto gera o site de novo."
+            },
+            "rebuilt": "Salvo. O Pluto iniciou o workflow, e o site é gerado para o novo endereço. Isto leva alguns minutos.",
+            "push": "Salvo. Faça o push dos seus commits, para o site ser gerado para o novo endereço.",
+            "dns": {
+              "title": "Adicione estes registros DNS no seu registrador de domínio",
+              "apex": "Um domínio raiz, como exemplo.com",
+              "subdomain": "Um subdomínio, como blog.exemplo.com",
+              "type": "Tipo",
+              "name": "Nome",
+              "value": "Valor"
+            },
+            "https": {
+              "issued": "O HTTPS funciona para {domain}.",
+              "pending": "O GitHub obtém um certificado HTTPS depois que os registros DNS funcionam. Isto pode levar até uma hora.",
+              "enforce": "Forçar HTTPS"
+            }
+          },
+          "errors": {
+            "invalid": "Isto não é um domínio. Digite um domínio, como blog.exemplo.com.",
+            "pagesOff": "O GitHub Pages não está ativo no repositório. Configure-o primeiro.",
+            "taken": "Outro site do GitHub Pages usa este domínio.",
+            "certificate": "O certificado HTTPS não está pronto. Tente de novo mais tarde.",
+            "noGh": "A GitHub CLI (gh) não está instalada. Defina o domínio nas configurações do Pages do repositório.",
+            "signedOut": "A GitHub CLI não está conectada. Rode gh auth login e tente de novo.",
+            "failed": "O GitHub não alterou o site do Pages."
+          }
         }
       }
     },

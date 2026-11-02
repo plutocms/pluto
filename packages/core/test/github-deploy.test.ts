@@ -10,8 +10,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parse } from 'yaml'
+import domainRoute from '../modules/pluto-github/runtime/server/api/deploy/domain.post'
 import pagesRoute from '../modules/pluto-github/runtime/server/api/deploy/pages.post'
 import statusRoute from '../modules/pluto-github/runtime/server/api/deploy/status.get'
+import {
+  detectDeployHost,
+  hostDomainSettingsUrl,
+  isApexDomain,
+  normalizeDomain,
+} from '../modules/pluto-github/runtime/shared/domain'
 import {
   defaultPagesUrl,
   detectPackageManager,
@@ -29,10 +36,21 @@ vi.mock(
 )
 
 // The GitHub CLI is faked: a test sets the answer of each `gh api` call. Git runs for real.
+interface FakePages {
+  build_type: string
+  html_url: string
+  cname?: string | null
+  https_enforced?: boolean
+  https_certificate?: { state: string }
+}
 const gh = vi.hoisted(() => ({
-  pages: null as null | { build_type: string; html_url: string },
+  pages: null as null | FakePages,
   installed: true,
   signedIn: true,
+  /** The workflow is on GitHub, so `gh workflow run` works. */
+  workflowOnGithub: true,
+  /** A domain that another Pages site uses. */
+  takenDomain: '',
   calls: [] as string[][],
 }))
 vi.mock('node:child_process', async (importOriginal) => {
@@ -56,6 +74,23 @@ vi.mock('node:child_process', async (importOriginal) => {
     }
     if (!gh.signedIn) {
       return fail('To get started with GitHub CLI, please run:  gh auth login')
+    }
+    if (args[0] === 'workflow') {
+      return gh.workflowOnGithub
+        ? callback(null, '', '')
+        : fail('could not find any workflows named pluto-pages.yml')
+    }
+    const field = args[args.indexOf('-F') + 1]
+    if (args.includes('-X') && args.includes('-F') && field) {
+      const [key, value] = field.split('=')
+      if (key === 'cname' && value === gh.takenDomain) {
+        return fail(`gh: The CNAME ${value} is already taken. (HTTP 400)`)
+      }
+      gh.pages =
+        key === 'cname'
+          ? { ...gh.pages!, cname: value === 'null' ? null : value }
+          : { ...gh.pages!, https_enforced: value === 'true' }
+      return callback(null, '{}', '')
     }
     if (args.includes('-X')) {
       gh.pages = {
@@ -136,6 +171,55 @@ describe('the Pages workflow', () => {
   })
 })
 
+describe('the domain helpers', () => {
+  it('takes a domain, and removes a scheme and a trailing slash', () => {
+    expect(normalizeDomain(' Blog.Example.com ')).toBe('blog.example.com')
+    expect(normalizeDomain('https://example.com/')).toBe('example.com')
+    expect(normalizeDomain('example.co.uk.')).toBe('example.co.uk')
+    expect(normalizeDomain('')).toBe('')
+  })
+
+  it('refuses a value that is not a domain', () => {
+    for (const value of [
+      'localhost',
+      'example.com/blog',
+      'example.com:8080',
+      '-a.example.com',
+      'a_b.example.com',
+      '185.199.108.153',
+      'exa mple.com',
+    ]) {
+      expect(normalizeDomain(value), value).toBeNull()
+    }
+  })
+
+  it('guesses an apex domain from the labels', () => {
+    expect(isApexDomain('example.com')).toBe(true)
+    expect(isApexDomain('blog.example.com')).toBe(false)
+  })
+
+  it('finds the host from its env vars', () => {
+    expect(
+      detectDeployHost({
+        VERCEL: '1',
+        VERCEL_PROJECT_PRODUCTION_URL: 'blog.vercel.app',
+      })
+    ).toEqual({ id: 'vercel', site: 'blog.vercel.app' })
+    expect(detectDeployHost({ NETLIFY: 'true', SITE_NAME: 'blog' })).toEqual({
+      id: 'netlify',
+      site: 'blog',
+    })
+    expect(detectDeployHost({})).toEqual({ id: '', site: '' })
+  })
+
+  it('links to the domain settings of a host', () => {
+    expect(hostDomainSettingsUrl('netlify', 'blog')).toBe(
+      'https://app.netlify.com/projects/blog/domain-management'
+    )
+    expect(hostDomainSettingsUrl('vercel')).toContain('settings%2Fdomains')
+  })
+})
+
 describe('the deploy routes', { timeout: 30000 }, () => {
   let root: string
 
@@ -143,6 +227,7 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     return createAuthApp((router) => {
       router.get('/api/_pluto/github/deploy/status', statusRoute)
       router.post('/api/_pluto/github/deploy/pages', pagesRoute)
+      router.post('/api/_pluto/github/deploy/domain', domainRoute)
     })
   }
 
@@ -161,6 +246,8 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     gh.pages = null
     gh.installed = true
     gh.signedIn = true
+    gh.workflowOnGithub = true
+    gh.takenDomain = ''
     gh.calls = []
   })
 
@@ -263,5 +350,130 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     )
     expect(response.status).toBe(404)
     expect(existsSync(join(root, PAGES_WORKFLOW_PATH))).toBe(false)
+  })
+
+  describe('the custom domain', () => {
+    function postDomain(body: object) {
+      return app().request('/api/_pluto/github/deploy/domain', {
+        ...POST_LOCAL,
+        body,
+      })
+    }
+
+    beforeEach(() => {
+      gh.pages = {
+        build_type: 'workflow',
+        html_url: 'https://acme.github.io/site/',
+        cname: null,
+      }
+    })
+
+    it('gives the host and the domain in the status', async () => {
+      resetTestConfig(undefined, {
+        dev: true,
+        storage: 'fs',
+        fsRoot: root,
+        host: 'netlify',
+        hostSite: 'acme',
+      })
+      gh.pages!.cname = 'blog.acme.com'
+      gh.pages!.https_certificate = { state: 'issued' }
+      const body = await (
+        await app().request('/api/_pluto/github/deploy/status', LOCAL)
+      ).json()
+      expect(body.host).toEqual({ id: 'netlify', site: 'acme' })
+      expect(body.pages).toMatchObject({
+        cname: 'blog.acme.com',
+        certificate: 'issued',
+        httpsEnforced: false,
+      })
+    })
+
+    it('sets the domain, then builds the site again', async () => {
+      const response = await postDomain({ domain: 'https://Blog.Acme.com/' })
+      expect(response.status).toBe(200)
+      const body = await response.json()
+      expect(body.rebuilt).toBe(true)
+      expect(body.status.pages.cname).toBe('blog.acme.com')
+      expect(gh.calls).toContainEqual([
+        'api',
+        '-X',
+        'PUT',
+        'repos/acme/site/pages',
+        '-F',
+        'cname=blog.acme.com',
+      ])
+      expect(gh.calls).toContainEqual([
+        'workflow',
+        'run',
+        'pluto-pages.yml',
+        '-R',
+        'acme/site',
+        '--ref',
+        'main',
+      ])
+    })
+
+    it('tells to push when the workflow is not on GitHub yet', async () => {
+      gh.workflowOnGithub = false
+      const body = await (await postDomain({ domain: 'blog.acme.com' })).json()
+      expect(body.rebuilt).toBe(false)
+      expect(body.status.pages.cname).toBe('blog.acme.com')
+    })
+
+    it('removes the domain with null', async () => {
+      gh.pages!.cname = 'blog.acme.com'
+      const body = await (await postDomain({ domain: '' })).json()
+      expect(body.status.pages.cname).toBe('')
+      expect(gh.calls).toContainEqual([
+        'api',
+        '-X',
+        'PUT',
+        'repos/acme/site/pages',
+        '-F',
+        'cname=null',
+      ])
+    })
+
+    it('turns Enforce HTTPS on, and builds nothing', async () => {
+      gh.pages!.cname = 'blog.acme.com'
+      const body = await (await postDomain({ httpsEnforced: true })).json()
+      expect(body.rebuilt).toBe(false)
+      expect(body.status.pages.httpsEnforced).toBe(true)
+      expect(gh.calls.some((args) => args[0] === 'workflow')).toBe(false)
+    })
+
+    it('refuses a value that is not a domain', async () => {
+      const response = await postDomain({ domain: 'not a domain' })
+      expect(response.status).toBe(400)
+      expect((await response.json()).data.i18n.key).toBe(
+        'pluto.github.deploy.domain.errors.invalid'
+      )
+      expect(gh.calls.some((args) => args.includes('PUT'))).toBe(false)
+    })
+
+    it('tells when another site uses the domain', async () => {
+      gh.takenDomain = 'blog.acme.com'
+      const response = await postDomain({ domain: 'blog.acme.com' })
+      expect(response.status).toBe(409)
+      expect((await response.json()).data.i18n.key).toBe(
+        'pluto.github.deploy.domain.errors.taken'
+      )
+    })
+
+    it('needs GitHub Pages on', async () => {
+      gh.pages = null
+      const response = await postDomain({ domain: 'blog.acme.com' })
+      expect(response.status).toBe(409)
+      expect((await response.json()).data.i18n.key).toBe(
+        'pluto.github.deploy.domain.errors.pagesOff'
+      )
+    })
+
+    it('is a local mode route', async () => {
+      resetTestConfig(undefined, { dev: false, storage: 'fs', fsRoot: root })
+      const response = await postDomain({ domain: 'blog.acme.com' })
+      expect(response.status).toBe(404)
+    })
   })
 })

@@ -1040,9 +1040,45 @@ secret.
   (`no-gh`, `signed-out`, `error`). `enablePages` sends `POST` (Pages off) or `PUT` (a branch site)
   with `build_type=workflow`. The repo name must match `owner/name` before it goes in a `gh` path.
 
-Text: `pluto.github.deploy.*`, `pluto.settings.tabs.deploy`, `pluto.common.copy` and `copied`. Tests:
-`test/github-deploy.test.ts` (the workflow as YAML for each package manager, the status, the setup
-with a fake `gh`, a branch site, no `gh`, `gh` signed out, 404 outside local mode).
+**Set up GitHub Pages** changes a real repo, so it opens a dialog first. The dialog names the repo
+and lists the steps (write and commit the workflow, turn Pages on, nothing is online before a push).
+
+### Domain
+
+The **Domain** section of the tab is `PlutoGithubDeployDomain.vue`. Pure helpers are in
+`runtime/shared/domain.ts`.
+
+- A full-site host serves its own domain. The module reads the host at build time
+  (`detectDeployHost(process.env)`: `VERCEL` with `VERCEL_PROJECT_PRODUCTION_URL`, `NETLIFY=true` with
+  `SITE_NAME`) into the private config (`host`, `hostSite`). The status gives `host` and, outside
+  local mode, `siteHost` (the request host). On a known host, the section shows "This app runs on
+  <host> at <domain>" and one link. Else it links to all three hosts. `hostDomainSettingsUrl`:
+  Vercel `vercel.com/d?to=/[team]/[project]/settings/domains` (Vercel asks for the team and the
+  project), Netlify `app.netlify.com/projects/<site>/domain-management`, Cloudflare the Workers and
+  Pages list.
+- GitHub Pages: GitHub ignores a `CNAME` file when an Action builds the site, so Pluto writes
+  none. In local mode, with Pages on, a form sets the custom domain through the Pages API.
+  `POST /api/_pluto/github/deploy/domain` (local mode only, else 404) takes `{ domain }` (`''`
+  removes it) or `{ httpsEnforced }`. It checks the domain with `normalizeDomain` (lowercase; it
+  removes a scheme and a trailing `/`; it refuses an IP address, a path, a port or one label: 400,
+  `pluto.github.deploy.domain.errors.invalid`). It needs Pages on (409 `pagesOff`), then runs
+  `gh api -X PUT repos/<repo>/pages -F cname=<domain>` (`cname=null` removes it, and
+  `https_enforced=<bool>` turns Enforce HTTPS on or off). A new domain changes the base path of the
+  site, so the route runs `gh workflow run pluto-pages.yml --ref <branch>`. When the workflow is not
+  on GitHub yet, `rebuilt` is false and the page says to push. `gh` errors: `taken` (the domain is
+  already taken), `certificate`, `noGh`, `signedOut`, `failed` (502).
+- `readPagesState` also gives `cname`, `certificate` (`https_certificate.state`) and
+  `httpsEnforced`. With a domain, the form shows the DNS records (a CNAME to `<owner>.github.io`
+  for a subdomain; the four A and four AAAA records of GitHub Pages for an apex domain;
+  `isApexDomain` guesses, and a toggle switches). It also shows the HTTPS state, and an Enforce
+  HTTPS switch once the certificate is `issued`, `uploaded` or `approved`. Remove opens a dialog.
+  Outside local mode: the steps by hand and the Pages settings link.
+
+Text: `pluto.github.deploy.*` (with `confirm.*` and `domain.*`), `pluto.settings.tabs.deploy`,
+`pluto.common.copy` and `copied`. Tests: `test/github-deploy.test.ts` (the workflow as YAML for each
+package manager, the status, the setup with a fake `gh`, a branch site, no `gh`, `gh` signed out,
+404 outside local mode, the domain helpers, and the domain route: set, rebuild or push, remove,
+Enforce HTTPS, an invalid or taken domain, Pages off).
 
 Not checked live yet: a real push that runs the workflow on GitHub. It needs a core release with the
 static build.

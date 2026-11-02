@@ -12,6 +12,7 @@ import {
 } from '@nuxt/kit'
 import { readGitOrigin } from './git-remote'
 import { PLUTO_GITHUB_SECRET_ENV, resolvePlutoGithubOptions } from './options'
+import { detectDeployHost } from './runtime/shared/domain'
 
 export type { PlutoGithubOptions } from './options'
 
@@ -104,6 +105,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
       secrets[toCamelCase(name)] = ''
     }
 
+    const deployHost = detectDeployHost(process.env)
+
     // Non-secret settings for the server code. They stay out of the public
     // config. `fsRoot` is set for the dev `fs` store only.
     Object.assign(secrets, {
@@ -117,6 +120,9 @@ export default defineNuxtModule<PlutoGithubOptions>({
       fsRoot: resolved.storage === 'fs' ? nuxt.options.rootDir : '',
       // Development only: the setup writes the `.env` file there.
       rootDir: nuxt.options.dev ? nuxt.options.rootDir : '',
+      // The host that builds the app (Vercel, Netlify). The Deploy tab links to its domain settings.
+      host: deployHost.id,
+      hostSite: deployHost.site,
     })
 
     nuxt.options.runtimeConfig.plutoGithub =
@@ -276,6 +282,11 @@ export default defineNuxtModule<PlutoGithubOptions>({
     // mode on this computer only; the handler checks it).
     addRoute('/api/_pluto/github/deploy/status', 'get', 'api/deploy/status.get')
     addRoute('/api/_pluto/github/deploy/pages', 'post', 'api/deploy/pages.post')
+    addRoute(
+      '/api/_pluto/github/deploy/domain',
+      'post',
+      'api/deploy/domain.post'
+    )
 
     // The people with write access to the repo, for the Users page. It needs a signed-in user.
     addRoute('/api/_pluto/github/users', 'get', 'api/users.get')

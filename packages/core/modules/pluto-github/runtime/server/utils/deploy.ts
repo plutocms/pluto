@@ -1,6 +1,8 @@
 import type { H3Event } from 'h3'
 import type {
   PlutoDeployStatus,
+  PlutoPagesDomainBody,
+  PlutoPagesDomainResult,
   PlutoPagesSetupResult,
   PlutoPagesState,
 } from '../../shared/deploy'
@@ -9,7 +11,9 @@ import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { promisify } from 'node:util'
-import { createError, setResponseHeader } from 'h3'
+import { createError, getRequestHost, readBody, setResponseHeader } from 'h3'
+import { createPlutoError } from '../../../../../server/utils/pluto-error'
+import { normalizeDomain } from '../../shared/domain'
 import {
   defaultPagesUrl,
   detectPackageManager,
@@ -59,11 +63,17 @@ export async function readPagesState(repo: string): Promise<PlutoPagesState> {
     const site = JSON.parse(await gh(['api', `repos/${repo}/pages`])) as {
       html_url?: string
       build_type?: string
+      cname?: string | null
+      https_certificate?: { state?: string } | null
+      https_enforced?: boolean
     }
     return {
       state: 'on',
       url: site.html_url,
       source: site.build_type === 'workflow' ? 'workflow' : 'legacy',
+      cname: site.cname ?? '',
+      certificate: site.https_certificate?.state ?? '',
+      httpsEnforced: Boolean(site.https_enforced),
     }
   } catch (error) {
     return ghFailure(error)
@@ -117,7 +127,10 @@ async function rootFiles(root: string): Promise<string[]> {
   }
 }
 
-async function buildStatus(local: boolean): Promise<PlutoDeployStatus> {
+async function buildStatus(
+  local: boolean,
+  event?: H3Event
+): Promise<PlutoDeployStatus> {
   const config = getGithubConfig()
   const root = config.fsRoot
   const packageManager = detectPackageManager(
@@ -131,6 +144,10 @@ async function buildStatus(local: boolean): Promise<PlutoDeployStatus> {
     packageManager,
     workflow: { path: PAGES_WORKFLOW_PATH, text },
     pagesUrl: config.repo ? defaultPagesUrl(config.repo) : '',
+    host: { id: config.host, site: config.hostSite },
+  }
+  if (!local && event) {
+    status.siteHost = getRequestHost(event, { xForwardedHost: true })
   }
   if (local) {
     const file = join(root, PAGES_WORKFLOW_PATH)
@@ -155,7 +172,7 @@ export async function handleDeployStatus(
 ): Promise<PlutoDeployStatus> {
   setResponseHeader(event, 'Cache-Control', 'no-store')
   await requireGithubSession(event)
-  return buildStatus(isLocalMode(event))
+  return buildStatus(isLocalMode(event), event)
 }
 
 /**
@@ -201,4 +218,106 @@ export async function handleSetupPages(
     committed,
     pagesOn: pages.state === 'on' && pages.source === 'workflow',
   }
+}
+
+/** Sorts a failed change of the Pages site into an error with an i18n key. */
+function domainError(error: unknown): Error {
+  const failure = error as NodeJS.ErrnoException & { stderr?: string }
+  const text = String(failure.stderr ?? failure.message ?? '')
+  const pages = ghFailure(error)
+  const reason =
+    failure.code === 'ENOENT'
+      ? 'noGh'
+      : pages.reason === 'signed-out'
+        ? 'signedOut'
+        : /already taken/i.test(text)
+          ? 'taken'
+          : /certificate/i.test(text)
+            ? 'certificate'
+            : 'failed'
+  return createPlutoError({
+    statusCode: reason === 'failed' ? 502 : 409,
+    message: 'Could not change the GitHub Pages site.',
+    key: `pluto.github.deploy.domain.errors.${reason}`,
+  })
+}
+
+/**
+ * Route: POST /api/_pluto/github/deploy/domain. Local mode on this computer only (404 otherwise).
+ * It sets or removes the custom domain of the GitHub Pages site, or turns "Enforce HTTPS" on or
+ * off, with `gh api`. GitHub ignores a `CNAME` file when an Action builds the site, so the domain
+ * lives in the Pages settings only. A new domain changes the base path of the site, so Pluto starts
+ * the workflow again.
+ */
+export async function handlePagesDomain(
+  event: H3Event
+): Promise<PlutoPagesDomainResult> {
+  setResponseHeader(event, 'Cache-Control', 'no-store')
+  if (!isLocalMode(event)) {
+    throw createError({ statusCode: 404 })
+  }
+  const config = getGithubConfig()
+  const body: PlutoPagesDomainBody =
+    (await readBody<PlutoPagesDomainBody | null>(event)) ?? {}
+  if (!config.repo || !REPO_NAME.test(config.repo)) {
+    throw createError({ statusCode: 409, statusMessage: 'No repo.' })
+  }
+  const current = await readPagesState(config.repo)
+  if (current.state !== 'on') {
+    throw createPlutoError({
+      statusCode: 409,
+      message: 'GitHub Pages is not on for the repo.',
+      key: 'pluto.github.deploy.domain.errors.pagesOff',
+    })
+  }
+
+  let field: string
+  let changedDomain = false
+  if (typeof body.domain === 'string') {
+    const domain = normalizeDomain(body.domain)
+    if (domain === null) {
+      throw createPlutoError({
+        statusCode: 400,
+        message: 'This is not a domain.',
+        key: 'pluto.github.deploy.domain.errors.invalid',
+      })
+    }
+    // `-F` sends `null` as JSON null: GitHub removes the domain.
+    field = domain ? `cname=${domain}` : 'cname=null'
+    changedDomain = domain !== (current.cname ?? '')
+  } else if (typeof body.httpsEnforced === 'boolean') {
+    field = `https_enforced=${body.httpsEnforced}`
+  } else {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Send domain or httpsEnforced.',
+    })
+  }
+
+  try {
+    await gh(['api', '-X', 'PUT', `repos/${config.repo}/pages`, '-F', field])
+  } catch (error) {
+    throw domainError(error)
+  }
+
+  let rebuilt = false
+  if (changedDomain && current.source === 'workflow') {
+    try {
+      await gh([
+        'workflow',
+        'run',
+        PAGES_WORKFLOW_PATH.split('/').at(-1)!,
+        '-R',
+        config.repo,
+        '--ref',
+        config.branch,
+      ])
+      rebuilt = true
+    } catch {
+      // The workflow is not on GitHub yet: the next push builds the site.
+    }
+  }
+
+  const status = await buildStatus(true)
+  return { status, rebuilt }
 }

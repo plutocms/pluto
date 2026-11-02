@@ -523,6 +523,65 @@
           "command": "Build command",
           "output": "Output directory",
           "action": "Open Cloudflare"
+        },
+        "confirm": {
+          "title": "Set up GitHub Pages?",
+          "description": "This changes the repo {repo} on GitHub.",
+          "write": "Pluto writes {path} and commits it to the local repo.",
+          "pages": "Pluto turns GitHub Pages on for {repo}, with GitHub Actions as the source.",
+          "push": "Nothing goes online before you push.",
+          "action": "Set up"
+        },
+        "domain": {
+          "title": "Domain",
+          "description": "Use your own domain, such as blog.example.com. Add the domain at the host of the site. Then add the DNS records that the host shows at your domain registrar.",
+          "hosts": {
+            "title": "At the host of the app",
+            "description": "The host serves the domain and gets the HTTPS certificate.",
+            "current": "This app runs on {host} at {domain}.",
+            "open": "Open the domain settings",
+            "vercel": "Domains on Vercel",
+            "netlify": "Domains on Netlify",
+            "cloudflare": "Domains on Cloudflare Pages"
+          },
+          "pages": {
+            "name": "GitHub Pages",
+            "description": "Pluto sets the domain in the Pages settings of the repo. A CNAME file has no effect: GitHub ignores it when an Action builds the site.",
+            "notReady": "Set up GitHub Pages first. Then add a domain here.",
+            "manual": "Open the Pages settings of the repo, and type the domain under Custom domain. Then build the site again.",
+            "label": "Custom domain",
+            "placeholder": "blog.example.com",
+            "save": "Save the domain",
+            "remove": "Remove the domain",
+            "removeConfirm": {
+              "title": "Remove the domain?",
+              "description": "The site goes back to the address of GitHub Pages. Pluto builds the site again."
+            },
+            "rebuilt": "Saved. Pluto started the workflow, so the site builds for the new address. This takes a few minutes.",
+            "push": "Saved. Push your commits, so that the site builds for the new address.",
+            "dns": {
+              "title": "Add these DNS records at your domain registrar",
+              "apex": "An apex domain, such as example.com",
+              "subdomain": "A subdomain, such as blog.example.com",
+              "type": "Type",
+              "name": "Name",
+              "value": "Value"
+            },
+            "https": {
+              "issued": "HTTPS works for {domain}.",
+              "pending": "GitHub gets an HTTPS certificate after the DNS records work. This can take up to an hour.",
+              "enforce": "Enforce HTTPS"
+            }
+          },
+          "errors": {
+            "invalid": "This is not a domain. Type a domain, such as blog.example.com.",
+            "pagesOff": "GitHub Pages is not on for the repo. Set it up first.",
+            "taken": "Another GitHub Pages site uses this domain.",
+            "certificate": "The HTTPS certificate is not ready. Try again later.",
+            "noGh": "The GitHub CLI (gh) is not installed. Set the domain in the Pages settings of the repo.",
+            "signedOut": "The GitHub CLI is not signed in. Run gh auth login, then try again.",
+            "failed": "GitHub did not change the Pages site."
+          }
         }
       }
     },

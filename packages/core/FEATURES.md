@@ -114,7 +114,10 @@ policies shared by every project here.
   site paths of a post body). A **Deploy** tab in Settings (`/admin/settings/deploy`) puts the site
   on a host: import links for Vercel and Netlify, a Node host guide, Cloudflare Pages build settings,
   and GitHub Pages (in local mode it writes and commits the workflow and turns Pages on with the
-  GitHub CLI). @.claude/skills/git-cms/SKILL.md
+  GitHub CLI, after a dialog that names the repo). Its Domain section links to the domain settings
+  of the host (the host is found at build time), and sets the custom domain of GitHub Pages through
+  the Pages API with the GitHub CLI: the DNS records, the HTTPS state and Enforce HTTPS, and a new
+  build for the new address. @.claude/skills/git-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

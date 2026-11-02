@@ -1,3 +1,4 @@
+import type { PlutoDeployHost } from './domain'
 import type { PackageManager } from './pages-workflow'
 
 /** The state of GitHub Pages for the repo, read with the GitHub CLI of this computer. */
@@ -9,6 +10,12 @@ export interface PlutoPagesState {
   source?: 'workflow' | 'legacy'
   /** Why the state is unknown: no `gh`, `gh` not signed in, or another failure. */
   reason?: 'no-gh' | 'signed-out' | 'error'
+  /** The custom domain, or an empty string. */
+  cname?: string
+  /** The state of the HTTPS certificate of the custom domain, as GitHub gives it (`issued`, …). */
+  certificate?: string
+  /** The site redirects HTTP to HTTPS. */
+  httpsEnforced?: boolean
 }
 
 /** The answer of `GET /api/_pluto/github/deploy/status`. */
@@ -31,6 +38,10 @@ export interface PlutoDeployStatus {
   pages?: PlutoPagesState
   /** The default address of the Pages site. */
   pagesUrl: string
+  /** The host that built the app. Empty in local mode. */
+  host: PlutoDeployHost
+  /** Not in local mode: the domain of this request, so the address of the live admin. */
+  siteHost?: string
 }
 
 /** The answer of `POST /api/_pluto/github/deploy/pages`. */
@@ -40,4 +51,18 @@ export interface PlutoPagesSetupResult {
   committed: boolean
   /** Pages was turned on (or was on already) with the Actions source. */
   pagesOn: boolean
+}
+
+/** The body of `POST /api/_pluto/github/deploy/domain`. Send one of the two keys. */
+export interface PlutoPagesDomainBody {
+  /** The custom domain. An empty string removes it. */
+  domain?: string
+  httpsEnforced?: boolean
+}
+
+/** The answer of `POST /api/_pluto/github/deploy/domain`. */
+export interface PlutoPagesDomainResult {
+  status: PlutoDeployStatus
+  /** The domain changed and Pluto started the workflow, so the site builds for the new address. */
+  rebuilt: boolean
 }

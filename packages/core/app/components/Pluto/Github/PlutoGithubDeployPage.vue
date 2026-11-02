@@ -7,7 +7,9 @@
 //   card opens the import page of the host for this repo.
 // - A static site (the admin stays on the computer): GitHub Pages and
 //   Cloudflare Pages. In local mode, "Set up GitHub Pages" writes the
-//   workflow, commits it, and turns Pages on with the GitHub CLI.
+//   workflow, commits it, and turns Pages on with the GitHub CLI. It changes
+//   a real repo, so a dialog names the repo first.
+// - The domain: see PlutoGithubDeployDomain.
 //
 // The file lives under `app/` so Tailwind scans it. See the git-cms skill.
 import type {
@@ -108,7 +110,10 @@ const pagesLine = computed(() => {
   return t(`pluto.github.deploy.pages.reason.${current.reason ?? 'error'}`)
 })
 
+const confirmOpen = ref(false)
+
 async function setupPages() {
+  confirmOpen.value = false
   settingUp.value = true
   setupError.value = ''
   try {
@@ -309,7 +314,7 @@ const cloudflare = {
                 :loading="settingUp"
                 :disabled="!status.repo"
                 icon="i-lucide-wand-sparkles"
-                @click="setupPages"
+                @click="confirmOpen = true"
               />
               <UButton
                 v-if="pages?.state !== 'on' || pages.source !== 'workflow'"
@@ -468,5 +473,51 @@ const cloudflare = {
         </div>
       </UCard>
     </section>
+
+    <PlutoGithubDeployDomain
+      v-if="status"
+      :status="status"
+      @status="status = $event"
+    />
+
+    <UModal
+      v-if="status"
+      v-model:open="confirmOpen"
+      :title="t('pluto.github.deploy.confirm.title')"
+      :description="
+        t('pluto.github.deploy.confirm.description', { repo: status.repo })
+      "
+    >
+      <template #body>
+        <ul class="flex list-disc flex-col gap-y-1 pl-5 text-sm">
+          <li>
+            {{
+              t('pluto.github.deploy.confirm.write', {
+                path: status.workflow.path,
+              })
+            }}
+          </li>
+          <li>
+            {{ t('pluto.github.deploy.confirm.pages', { repo: status.repo }) }}
+          </li>
+          <li>{{ t('pluto.github.deploy.confirm.push') }}</li>
+        </ul>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton
+            :label="t('pluto.common.cancel')"
+            color="neutral"
+            variant="ghost"
+            @click="confirmOpen = false"
+          />
+          <UButton
+            :label="t('pluto.github.deploy.confirm.action')"
+            icon="i-lucide-wand-sparkles"
+            @click="setupPages"
+          />
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
