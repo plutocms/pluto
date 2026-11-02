@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.47.0](https://github.com/plutocms/pluto/compare/v0.46.0...v0.47.0) (2026-11-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* PlutoHtml has no Tailwind prose classes. A site imports `@plutocms/css/base` for the prose look. A site that adds its own page offset for the admin bar removes it, or the page moves down twice.
+
+### Features
+
+* the public components use plain CSS, with an optional @plutocms/css/base ([#353](https://github.com/plutocms/pluto/issues/353)) ([d0fa541](https://github.com/plutocms/pluto/commit/d0fa541b34a672370ebf2d95372a967a1aebde10))
+
+
+### Bug Fixes
+
+* the admin has its styles in the first frame of a client navigation ([#354](https://github.com/plutocms/pluto/issues/354)) ([f7a4226](https://github.com/plutocms/pluto/commit/f7a4226966e73bf2a91ae599303c35a8daac61a2))
+
 ## [0.46.0](https://github.com/plutocms/pluto/compare/v0.45.0...v0.46.0) (2026-11-02)
 
 

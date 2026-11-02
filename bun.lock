@@ -16,7 +16,7 @@
     },
     "packages/core": {
       "name": "@plutocms/core",
-      "version": "0.46.0",
+      "version": "0.47.0",
       "dependencies": {
         "@codemirror/commands": "^6.11.1",
         "@codemirror/lang-markdown": "^6.5.2",
@@ -71,7 +71,7 @@
     },
     "packages/layers/docs": {
       "name": "@plutocms/docs",
-      "version": "0.20.0",
+      "version": "0.21.0",
       "dependencies": {
         "@nuxt/content": "^3.16.2",
         "@nuxtjs/mdc": "^0.23.2",
