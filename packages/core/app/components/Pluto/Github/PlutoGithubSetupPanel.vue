@@ -1,6 +1,7 @@
 <script setup lang="ts">
-// The setup check of the GitHub sign-in: the checklist, the Create button, the
-// Install link and the docs link. The login card (`variant="login"`) and the
+// The setup check of the GitHub sign-in: the Create button, the Install link
+// and the docs link first, then the checklist, folded. The checklist opens by
+// itself only when the panel has no button to show. The login card (`variant="login"`) and the
 // GitHub settings page (`variant="settings"`) both use it. The file lives
 // under `app/` so Tailwind scans it. The panel holds no secret: the status
 // route answers booleans and public names only. See the git-cms skill.
@@ -49,6 +50,25 @@ const installUrl = computed(() =>
 )
 const isDev = import.meta.dev
 
+const doneCount = computed(
+  () => checks.value.filter((check) => check.ok).length
+)
+const hasAction = computed(() =>
+  Boolean(
+    current.value?.canCreateApp ||
+    (installCheck.value && !installCheck.value.ok && installUrl.value)
+  )
+)
+// The settings page reads the status after the mount, so follow it.
+const checklistOpen = ref(false)
+watch(
+  hasAction,
+  (value) => {
+    checklistOpen.value = !value
+  },
+  { immediate: true }
+)
+
 const copied = ref(false)
 async function copyCallback() {
   const url = current.value?.callbackUrl
@@ -86,71 +106,6 @@ async function copyCallback() {
       variant="subtle"
       icon="lucide:triangle-alert"
     />
-
-    <ul
-      v-if="checks.length > 0"
-      :aria-label="t('pluto.github.setup.checklist')"
-      class="flex flex-col gap-y-3"
-    >
-      <li
-        v-for="check in checks"
-        :key="check.id"
-        class="flex items-start gap-x-2"
-      >
-        <UIcon
-          :name="check.ok ? 'lucide:circle-check' : 'lucide:circle-x'"
-          :class="check.ok ? 'text-success' : 'text-error'"
-          class="mt-0.5 size-5 shrink-0"
-        />
-        <div class="min-w-0">
-          <p class="text-sm font-medium">
-            {{ t(`pluto.github.setup.checks.${check.id}.title`) }}
-            <span class="sr-only">{{
-              check.ok
-                ? t('pluto.github.setup.done')
-                : t('pluto.github.setup.missing')
-            }}</span>
-          </p>
-          <p v-if="!check.ok" class="text-muted text-sm">
-            {{ t(`pluto.github.setup.checks.${check.id}.fix`) }}
-          </p>
-        </div>
-      </li>
-    </ul>
-
-    <div
-      v-if="variant === 'settings' && current.callbackUrl"
-      class="flex flex-col gap-y-1.5"
-    >
-      <label for="pluto-github-callback-url" class="text-sm font-medium">{{
-        t('pluto.github.setup.callbackUrl')
-      }}</label>
-      <div class="flex gap-x-2">
-        <UInput
-          id="pluto-github-callback-url"
-          :model-value="current.callbackUrl"
-          class="min-w-0 flex-1"
-          readonly
-        />
-        <UButton
-          :icon="copied ? 'lucide:check' : 'lucide:copy'"
-          :aria-label="t('pluto.github.setup.copy')"
-          color="neutral"
-          variant="outline"
-          @click="copyCallback"
-        />
-      </div>
-      <p class="text-muted text-sm">
-        {{ t('pluto.github.setup.callbackHint') }}
-      </p>
-    </div>
-
-    <p
-      v-if="variant === 'settings' && current.canCreateApp && isDev"
-      class="text-muted text-sm"
-    >
-      {{ t('pluto.github.setup.devNote') }}
-    </p>
 
     <div
       v-if="
@@ -192,6 +147,95 @@ async function copyCallback() {
         variant="link"
         class="justify-center"
       />
+    </div>
+
+    <p
+      v-if="variant === 'settings' && current.canCreateApp && isDev"
+      class="text-muted text-sm"
+    >
+      {{ t('pluto.github.setup.devNote') }}
+    </p>
+
+    <UCollapsible v-if="checks.length > 0" v-model:open="checklistOpen">
+      <UButton
+        :label="t('pluto.github.setup.checklist')"
+        color="neutral"
+        variant="ghost"
+        class="w-full justify-between"
+      >
+        <template #trailing>
+          <span class="text-muted ml-auto text-xs font-normal">
+            {{
+              t('pluto.github.setup.progress', {
+                done: doneCount,
+                total: checks.length,
+              })
+            }}
+          </span>
+          <UIcon
+            :name="checklistOpen ? 'lucide:chevron-up' : 'lucide:chevron-down'"
+            class="size-4"
+          />
+        </template>
+      </UButton>
+      <template #content>
+        <ul
+          :aria-label="t('pluto.github.setup.checklist')"
+          class="flex flex-col gap-y-3 pt-3"
+        >
+          <li
+            v-for="check in checks"
+            :key="check.id"
+            class="flex items-start gap-x-2"
+          >
+            <UIcon
+              :name="check.ok ? 'lucide:circle-check' : 'lucide:circle-x'"
+              :class="check.ok ? 'text-success' : 'text-error'"
+              class="mt-0.5 size-5 shrink-0"
+            />
+            <div class="min-w-0">
+              <p class="text-sm font-medium">
+                {{ t(`pluto.github.setup.checks.${check.id}.title`) }}
+                <span class="sr-only">{{
+                  check.ok
+                    ? t('pluto.github.setup.done')
+                    : t('pluto.github.setup.missing')
+                }}</span>
+              </p>
+              <p v-if="!check.ok" class="text-muted text-sm">
+                {{ t(`pluto.github.setup.checks.${check.id}.fix`) }}
+              </p>
+            </div>
+          </li>
+        </ul>
+      </template>
+    </UCollapsible>
+
+    <div
+      v-if="variant === 'settings' && current.callbackUrl"
+      class="flex flex-col gap-y-1.5"
+    >
+      <label for="pluto-github-callback-url" class="text-sm font-medium">{{
+        t('pluto.github.setup.callbackUrl')
+      }}</label>
+      <div class="flex gap-x-2">
+        <UInput
+          id="pluto-github-callback-url"
+          :model-value="current.callbackUrl"
+          class="min-w-0 flex-1"
+          readonly
+        />
+        <UButton
+          :icon="copied ? 'lucide:check' : 'lucide:copy'"
+          :aria-label="t('pluto.github.setup.copy')"
+          color="neutral"
+          variant="outline"
+          @click="copyCallback"
+        />
+      </div>
+      <p class="text-muted text-sm">
+        {{ t('pluto.github.setup.callbackHint') }}
+      </p>
     </div>
   </div>
   <USkeleton
