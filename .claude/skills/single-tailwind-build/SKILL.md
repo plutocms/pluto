@@ -70,8 +70,12 @@ A layer may ship `app/assets/css/pluto-layer.css`. Two builds import it, through
    the `h1`), the light and dark shades of the app colors, a deep-space dark mode, the `heart`
    selection, the `pluto-sky` background and the `pluto-site-header` offset under the admin bar.
    It does not choose the colors (`app.config` does), and every rule skips `data-pluto-admin`.
-4. It adds the admin build (see "The admin build").
-5. It reads every `nuxt.options.css` entry, follows its local `@import`s (depth 3), and warns
+4. It writes `#build/pluto-base.css`, the opt-in look of the public components: one `@import`
+   of each layer's `app/assets/css/pluto-base.css`, base layer first. Its import name is
+   `@plutocms/css/base`. Plain CSS, so a site with no Tailwind can import it. See the
+   public-components skill.
+5. It adds the admin build (see "The admin build").
+6. It reads every `nuxt.options.css` entry, follows its local `@import`s (depth 3), and warns
    when a layer registers its own Tailwind build, or when the app has more than one. It prints
    nothing during `nuxt prepare`.
 
@@ -79,7 +83,8 @@ There is no fallback entry: an app with no Tailwind entry gets no Tailwind on it
 
 ## The admin build
 
-- `#build/pluto-admin.css` imports `tailwindcss`, `@nuxt/ui`, and `@plutocms/css`. Tailwind
+- `#build/pluto-admin.css` imports `tailwindcss`, `@nuxt/ui`, `@plutocms/css`, and
+  `@plutocms/css/base` (the admin shows public components: the post preview, the 3D preview). Tailwind
   compiles it at the app's build, so the Nuxt UI classes of `app.config` are in it.
 - It is not written to disk. On disk, it would be a Tailwind entry in `.nuxt/`, and Tailwind
   IntelliSense makes a project of every such file and can take it for the app's design system (it
@@ -126,15 +131,18 @@ The Vite plugin `pluto-css:scope-admin` runs `scopeCss` on the compiled admin bu
 
 ## The import names
 
-`@plutocms/css` and `@plutocms/css/site` are Nuxt aliases (`nuxt.options.alias`) of
-`<buildDir>/pluto.css` and `<buildDir>/pluto-site.css`. They are not npm packages.
+`@plutocms/css`, `@plutocms/css/site`, and `@plutocms/css/base` are Nuxt aliases
+(`nuxt.options.alias`) of `<buildDir>/pluto.css`, `<buildDir>/pluto-site.css`, and
+`<buildDir>/pluto-base.css`. They are not npm packages.
 
 - Tailwind's Vite plugin resolves `@import` through the Vite aliases, so the names work in a CSS
   entry. The ESLint Tailwind plugin finds them through the `paths` of the generated tsconfig.
 - An alias resolves with every package manager. A `style` field in the core package would not:
   under Yarn PnP, an app that installs only an outer layer cannot resolve core.
-- `/site` is set first. An alias also matches the paths under its name, so `@plutocms/css`
-  first would send `@plutocms/css/site` to `pluto.css/site`.
+- `/site` and `/base` are set first. An alias also matches the paths under its name, so
+  `@plutocms/css` first would send `@plutocms/css/site` to `pluto.css/site`.
+- Vite resolves `@import` through the aliases too, so `@plutocms/css/base` works in a plain CSS
+  entry with no Tailwind.
 - One import covers every layer: the generated file imports each layer's `pluto-layer.css`.
   A layer has no import name of its own.
 

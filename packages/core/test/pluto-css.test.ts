@@ -3,8 +3,10 @@ import {
   analyzeCssEntry,
   checkCssSetup,
   findLayerCssFiles,
+  LAYER_BASE_CSS_FILE,
   parseCssImports,
   renderPlutoAdminCss,
+  renderPlutoBaseCss,
   renderPlutoCss,
   renderPlutoSiteCss,
 } from '../modules/pluto-css/css-entries'
@@ -29,6 +31,26 @@ describe('findLayerCssFiles', () => {
       '/layers/shop/app/assets/css/pluto-layer.css',
     ])
   })
+
+  it('finds another file name, such as pluto-base.css', () => {
+    const appDirs = ['/site/app/', '/layers/3d/app/', '/layers/pluto/app/']
+    const existing = new Set([
+      '/layers/3d/app/assets/css/pluto-base.css',
+      '/layers/pluto/app/assets/css/pluto-base.css',
+      '/layers/pluto/app/assets/css/pluto-layer.css',
+    ])
+
+    expect(
+      findLayerCssFiles(
+        appDirs,
+        (path) => existing.has(path),
+        LAYER_BASE_CSS_FILE
+      )
+    ).toEqual([
+      '/layers/pluto/app/assets/css/pluto-base.css',
+      '/layers/3d/app/assets/css/pluto-base.css',
+    ])
+  })
 })
 
 describe('renderPlutoCss', () => {
@@ -42,6 +64,23 @@ describe('renderPlutoCss', () => {
       '@import "../../pluto/app/assets/css/pluto-layer.css";'
     )
     expect(css).not.toContain('tailwindcss')
+  })
+})
+
+describe('renderPlutoBaseCss', () => {
+  it('imports each layer base file relative to the build dir, with no Tailwind', () => {
+    const css = renderPlutoBaseCss(
+      [
+        '/work/pluto/app/assets/css/pluto-base.css',
+        '/work/3d/app/assets/css/pluto-base.css',
+      ],
+      '/work/site/.nuxt'
+    )
+
+    expect(parseCssImports(css)).toEqual([
+      '../../pluto/app/assets/css/pluto-base.css',
+      '../../3d/app/assets/css/pluto-base.css',
+    ])
   })
 })
 
@@ -98,11 +137,12 @@ describe('analyzeCssEntry', () => {
 })
 
 describe('renderPlutoAdminCss', () => {
-  it('imports Tailwind, Nuxt UI, and @plutocms/css, in that order', () => {
+  it('imports Tailwind, Nuxt UI, @plutocms/css, and the base, in that order', () => {
     expect(parseCssImports(renderPlutoAdminCss())).toEqual([
       'tailwindcss',
       '@nuxt/ui',
       '@plutocms/css',
+      '@plutocms/css/base',
     ])
   })
 })

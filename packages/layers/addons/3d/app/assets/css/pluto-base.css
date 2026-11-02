@@ -1,0 +1,104 @@
+/*
+ * The look of the 3D components (Pluto3dViewer, Pluto3dPreview): the badges,
+ * the icons, the muted text. Opt-in: a site imports it with
+ * `@import '@plutocms/css/base'`. The layout is in the components and always
+ * loads. Plain CSS only, zero specificity, in the `components` layer: see
+ * app/assets/css/pluto-base.css of core.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  :where(.pluto-3d-badge) {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    background-color: color-mix(
+      in oklab,
+      var(--ui-bg, Canvas) 80%,
+      transparent
+    );
+    color: var(
+      --ui-text-muted,
+      color-mix(in oklab, CanvasText 65%, transparent)
+    );
+    font-size: 0.75rem;
+    line-height: 1rem;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    backdrop-filter: blur(8px);
+  }
+
+  :where(.pluto-3d-badge--error) {
+    padding: 0.25rem 0.75rem;
+    box-shadow: none;
+  }
+
+  :where(.pluto-3d-badge--hint) {
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    background-color: color-mix(
+      in oklab,
+      var(--ui-bg, Canvas) 70%,
+      transparent
+    );
+    font-size: 0.6875rem;
+    box-shadow: none;
+  }
+
+  :where(.pluto-3d-badge--action) {
+    gap: 0.375rem;
+    background-color: color-mix(
+      in oklab,
+      var(--ui-bg, Canvas) 85%,
+      transparent
+    );
+    color: var(--ui-text-highlighted, CanvasText);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    box-shadow:
+      0 0 0 1px
+        var(--ui-border, color-mix(in oklab, CanvasText 15%, transparent)),
+      0 1px 2px rgb(0 0 0 / 0.05);
+  }
+
+  :where(.pluto-3d-muted) {
+    color: var(
+      --ui-text-muted,
+      color-mix(in oklab, currentColor 65%, transparent)
+    );
+    font-size: 0.875rem;
+  }
+
+  /* An icon is 1em square, so the font size sets its size. */
+  :where(.pluto-3d-icon) {
+    font-size: 1rem;
+  }
+
+  :where(.pluto-3d-icon-sm) {
+    font-size: 0.875rem;
+  }
+
+  :where(.pluto-3d-icon-lg) {
+    font-size: 2.5rem;
+  }
+
+  :where(.pluto-3d-icon-xl) {
+    font-size: 3rem;
+  }
+
+  :where(.pluto-3d-preview__label) {
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    background-color: color-mix(
+      in oklab,
+      var(--ui-bg-inverted, CanvasText) 80%,
+      transparent
+    );
+    color: var(--ui-text-inverted, Canvas);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
+}

@@ -25,6 +25,20 @@ describe('pluto-layer.css header tokens', () => {
     expect(root).toContain('--pluto-admin-bar-height: 2.5rem;')
   })
 
+  it('moves a public page down by the bar height while the bar shows', () => {
+    const plutoRoot = readFileSync(
+      join(__dirname, '..', 'app', 'components', 'Pluto', 'PlutoRoot.vue'),
+      'utf8'
+    )
+    const style = /<style>([\s\S]*)<\/style>/.exec(plutoRoot)?.[1] ?? ''
+    const marker = ':where(:root[data-pluto-admin-bar]:not([data-pluto-admin]))'
+    const body = new RegExp(
+      `${marker.replace(/[()[\]:]/g, '\\$&')} body\\s*\\{([^}]*)\\}`
+    ).exec(style)?.[1]
+
+    expect(body).toContain('padding-top: var(--pluto-admin-bar-height);')
+  })
+
   it('has the admin navbar and the admin layout read the bar token', () => {
     const navbar = readFileSync(
       join(
