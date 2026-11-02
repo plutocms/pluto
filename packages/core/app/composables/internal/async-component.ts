@@ -42,6 +42,10 @@ interface ExtensionComponents {
     id: string
     component: Component
   }[]
+  backend?: {
+    id: string
+    details?: Component
+  }
 }
 
 /**
@@ -66,6 +70,11 @@ export function findSyncComponents(definition: ExtensionComponents): string[] {
         found.push(`${definition.id}:${bucket}:${entry.id}`)
       }
     }
+  }
+
+  const details = definition.backend?.details
+  if (details && !isAsyncComponent(details)) {
+    found.push(`${definition.id}:backend:${definition.backend!.id}`)
   }
 
   return found

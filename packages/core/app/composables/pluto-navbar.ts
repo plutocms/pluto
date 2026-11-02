@@ -131,3 +131,28 @@ export function usePlutoSiteInfo() {
     url: computed(() => pick('url')),
   }
 }
+
+/**
+ * The backend that stores the content, for the badge of the admin navbar. The last registered
+ * entry wins. `null` when no backend gives one.
+ */
+export function usePlutoBackend() {
+  const registry = usePlutoRegistry()
+  const { tx } = usePlutoI18n()
+
+  const backend = computed(() => {
+    const entry = registry.backend.list.value.at(-1)
+    if (!entry) {
+      return null
+    }
+    const count = Math.max(0, Math.trunc(Number(entry.count?.() ?? 0)) || 0)
+    return {
+      ...entry,
+      label: tx(entry.label),
+      count,
+      countLabel: count && entry.countLabel ? tx(entry.countLabel, count) : '',
+    }
+  })
+
+  return { backend }
+}
