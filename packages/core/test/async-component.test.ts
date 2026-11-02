@@ -45,6 +45,21 @@ describe('findSyncComponents', () => {
     ])
   })
 
+  it('checks the details of the backend', () => {
+    expect(
+      findSyncComponents({
+        id: 'layer',
+        backend: { id: 'git', details: syncComponent },
+      })
+    ).toEqual(['layer:backend:git'])
+    expect(
+      findSyncComponents({
+        id: 'layer',
+        backend: { id: 'git', details: asyncComponent },
+      })
+    ).toEqual([])
+  })
+
   it('returns an empty list when the extension has no component bucket', () => {
     expect(findSyncComponents({ id: 'layer' })).toEqual([])
   })

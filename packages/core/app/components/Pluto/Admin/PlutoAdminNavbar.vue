@@ -85,6 +85,13 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
         -->
         <div class="-mx-1 h-full min-w-0 overflow-hidden px-1">
           <ul class="flex h-full min-w-0 items-center gap-x-1 text-sm">
+            <!-- Where the content goes: Git or a database. Admin pages only. -->
+            <ClientOnly>
+              <li v-if="isAdmin" class="h-full shrink-0">
+                <PlutoAdminBackendBadge />
+              </li>
+            </ClientOnly>
+
             <PlutoNavbarButton
               v-if="isAdmin"
               :label="t('pluto.navbar.viewSite')"

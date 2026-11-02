@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.47.1](https://github.com/plutocms/pluto/compare/v0.47.0...v0.47.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* link to the new docs pages ([#362](https://github.com/plutocms/pluto/issues/362)) ([5926c7c](https://github.com/plutocms/pluto/commit/5926c7c30ea90d28cc785e6eb7c2dbd65c1ec58f))
+
 ## [0.47.0](https://github.com/plutocms/pluto/compare/v0.46.0...v0.47.0) (2026-11-02)
 
 

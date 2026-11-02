@@ -29,6 +29,7 @@ export function usePlutoRegistry(): PlutoRegistry {
       accountMenu: createOwnedRegistry<PlutoAccountMenuItem>(),
       adminBanners: createOwnedRegistry<PlutoAdminBanner>(),
       siteInfo: createOwnedRegistry<PlutoSiteInfo>(),
+      backend: createOwnedRegistry<PlutoBackendInfo>(),
       contentTypes: createOwnedRegistry<PlutoContentTypeEntry>(),
       contentFieldWidgets: createOwnedRegistry<PlutoContentFieldWidget>(),
       contentActions: createOwnedRegistry<PlutoContentAction>(),

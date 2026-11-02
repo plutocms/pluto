@@ -372,6 +372,39 @@
           }
         }
       },
+      "backend": {
+        "local": "Local",
+        "github": "GitHub",
+        "description": "Each save is a commit in this repo, made with your GitHub account.",
+        "repo": "Repo",
+        "branch": "Branch",
+        "private": "Private",
+        "public": "Public",
+        "openRepo": "Open the repo",
+        "commits": "Commits"
+      },
+      "local": {
+        "description": "Each save writes a Markdown file in this project and makes a commit in your local Git repo. The live site changes after you push.",
+        "ahead": "No commits to push | 1 commit not pushed | {count} commits not pushed",
+        "aheadShort": "{count} to push",
+        "upToDate": "All commits are pushed.",
+        "noGit": "Git is not installed. Saves only write the files.",
+        "notARepo": "This project is not a Git repo. Saves only write the files.",
+        "detached": "Git is not on a branch. Check out a branch to push.",
+        "noRemote": "The repo has no remote. Add one to push, for example with git remote add origin <url>.",
+        "push": "Push",
+        "pushed": "Pushed.",
+        "pushHint": "Push runs git push on this computer.",
+        "errors": {
+          "notARepo": "This project is not a Git repo.",
+          "detached": "Git is not on a branch.",
+          "noRemote": "The repo has no remote.",
+          "rejected": "The remote has commits that this repo does not have. Run git pull, then push again.",
+          "auth": "Git could not sign in to the remote. Run git push in a terminal to sign in.",
+          "timeout": "The push took too long. Run git push in a terminal to see why.",
+          "failed": "Git could not push. Run git push in a terminal to see why."
+        }
+      },
       "users": {
         "title": "Users",
         "description": "The people with write access to {repo} on GitHub can sign in to the admin. GitHub controls the access: add or remove people there.",
@@ -792,6 +825,15 @@
         "clear": "Clear the selection"
       },
       "dropHint": "Drop files here, or upload them. Every layer of the site uses this library."
+    },
+    "backend": {
+      "kind": {
+        "git": "Git",
+        "database": "Database"
+      },
+      "open": "Where the content is: {name}",
+      "gitMode": "Git mode: the content is Markdown files in a Git repo.",
+      "databaseMode": "Database mode: the content is in a database."
     }
   }
 }

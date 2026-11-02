@@ -946,6 +946,47 @@ so the page links to `https://github.com/<repo>/settings/access` (**Manage acces
   sets `canSignIn` from `allowedUsers`).
 - Text: `pluto.github.users.*`. Test: `test/github-users.test.ts`.
 
+## Backend badge
+
+The CMS client plugin registers the `backend` entry of the navbar badge (see the admin-shell
+skill): `kind: 'git'`, label "Local" (`fs` store) or "GitHub", and the popover
+`PlutoGithubBackendDetails` (`app/components/Pluto/Github/`).
+
+- GitHub mode: the repo (with a Private or Public badge from the session), the branch, and links to
+  the repo and its commits on github.com.
+- Local mode: the branch, the repo (when `github.repo` is known), the commits that are not pushed
+  and a **Push** button. A push that fails shows the reason (`pluto.github.local.errors.*`).
+
+### Local Git routes
+
+The module adds them in a dev build with the `fs` store only. Each handler also checks
+`config.dev`, the `fs` store and `isLocalRequest` (the rule of the dev local user), else 404. They
+answer `Cache-Control: no-store`. The POST route is under `/api/_pluto/`, so core's origin check
+(CSRF) applies.
+
+- `GET /api/_pluto/github/local/status`: `readLocalGitStatus(root)` (`store/local-git.ts`). It runs no
+  network call. The answer is `{ repo: false, reason: 'not-a-repo' | 'no-git' }` or
+  `{ repo: true, branch, upstream, remote, ahead }`. `ahead` counts `@{u}..HEAD` with an upstream, and
+  the commits on no remote branch (`HEAD --not --remotes`) without one. `remote` is the remote of the
+  upstream, else `origin`, else the first remote.
+- `POST /api/_pluto/github/local/push`: `pushLocalGit(root)`. `git push`, or
+  `git push --set-upstream -- <remote> <branch>` for a branch with no upstream. It runs with
+  `GIT_TERMINAL_PROMPT=0` (Git never waits for a password in the terminal; a credential helper of
+  the system can still open a window) and a 120 s timeout. It answers the new status. A failure is
+  a `LocalPushFailure` with a reason, sent as a Pluto error with the key
+  `pluto.github.local.errors.<reason>`: `notARepo`, `detached`, `noRemote` (409), `rejected` (409;
+  pull first), `auth` (502), `timeout` (504), `failed` (502). `pushErrorReason(stderr)` sorts the
+  text of Git.
+
+`usePlutoGithubLocalGit()` (`runtime/app/composables/pluto-github-local-git.ts`) holds the shared
+state (`status`, `pushing`, `ahead`, `refresh()`, `push()`). In local mode the plugin reads it on
+each admin navigation, when the tab shows again, every 15 seconds while an admin page shows, and
+when the popover opens. A save commits on the server, so the count follows within that time.
+
+Tests: `test/github-local-git.test.ts` (status, push to a bare remote, a rejected push, a detached
+HEAD, `pushErrorReason`) and `test/github-local-git-routes.test.ts` (local only, 404 otherwise, the
+origin check, the error key).
+
 ## Rules found in live testing
 
 - **Admin layout.** Core's `app/pages/admin.vue` parent route sets `layout: 'admin'` for every

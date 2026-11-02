@@ -244,6 +244,21 @@ export default defineNuxtModule<PlutoGithubOptions>({
       handler: server('api/users.get'),
     })
 
+    // Local mode: the Git state of the project and the Push button of the backend badge.
+    // A dev build with the `fs` store only. The handlers also check the request.
+    if (nuxt.options.dev && resolved.storage === 'fs') {
+      addServerHandler({
+        route: '/api/_pluto/github/local/status',
+        method: 'get',
+        handler: server('api/local/status.get'),
+      })
+      addServerHandler({
+        route: '/api/_pluto/github/local/push',
+        method: 'post',
+        handler: server('api/local/push.post'),
+      })
+    }
+
     // The public reads of the posts go through the public API of core (`/api/pluto/v1/content/post`).
 
     // The media files that are in the repo but not in a deploy yet. See the media skill.

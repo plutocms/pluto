@@ -42,11 +42,12 @@ Core adds no `ClientOnly` around the whole bar and uses no top-level await in it
 
 ## Other buckets
 
-| Field          | Type                     | Purpose                                                                              |
-| -------------- | ------------------------ | ------------------------------------------------------------------------------------ |
-| `accountMenu`  | `PlutoAccountMenuItem[]` | Items in the user menu. `label` is key-or-literal. Sorted by `order`.                |
-| `adminBanners` | `PlutoAdminBanner[]`     | Banner components for the admin. The admin layout renders them. See "Admin banners". |
-| `site`         | `PlutoSiteInfo`          | `name()` and `url()` of the public site. For each field, the last value wins.        |
+| Field          | Type                     | Purpose                                                                                 |
+| -------------- | ------------------------ | --------------------------------------------------------------------------------------- |
+| `accountMenu`  | `PlutoAccountMenuItem[]` | Items in the user menu. `label` is key-or-literal. Sorted by `order`.                   |
+| `adminBanners` | `PlutoAdminBanner[]`     | Banner components for the admin. The admin layout renders them. See "Admin banners".    |
+| `site`         | `PlutoSiteInfo`          | `name()` and `url()` of the public site. For each field, the last value wins.           |
+| `backend`      | `PlutoBackendInfo`       | The backend badge of the navbar. The last registered one wins. See "The backend badge". |
 
 ## Routes
 
@@ -270,12 +271,13 @@ order:
    and the chip is hidden. From `sm` the logo has the wordmark, and the site name shows as a
    rounded chip. The name is `site.name()`, else `runtimeConfig.public.websiteName`. The chip is
    hidden when the name is empty or `Untitled`.
-3. "View site", on `/admin/**` only. It opens `site.url()`, else `/`. The title is
+3. The backend badge, on `/admin/**` only, in `ClientOnly`. See "The backend badge".
+4. "View site", on `/admin/**` only. It opens `site.url()`, else `/`. The title is
    "Visit {domain}".
-4. The navbar actions, inside `ClientOnly` with a spinner fallback. Core adds one: the content
+5. The navbar actions, inside `ClientOnly` with a spinner fallback. Core adds one: the content
    bar actions (see "Content buttons").
-5. The color mode button.
-6. `PlutoAdminUserMenu`, only when a driver is registered. It is `ClientOnly`, with an avatar
+6. The color mode button.
+7. `PlutoAdminUserMenu`, only when a driver is registered. It is `ClientOnly`, with an avatar
    skeleton as the fallback.
 
 The user menu has the avatar and the short name. An administrator (`usePlutoPermissions().isAdmin`:
@@ -287,6 +289,32 @@ admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)
 Settings (`meta+,`), the `accountMenu` items, the brand links ("Help" from `brand.helpUrl`, the agency from `brand.url`), "Pluto on GitHub" (`plutocms/pluto`, hidden with `brand.plutoLinks: false`) and Sign out
 (`meta+shift+q`). Shortcuts use `defineShortcuts(extractShortcuts(items))`.
 `PlutoAdminNavbarProvider` shows the bar when `usePlutoAdminBar().visible` is true.
+
+## The backend badge
+
+The badge tells the editor where the content goes: "Git · Local", "Git · GitHub" or
+"Database · Supabase". The backend registers it with the `backend` field of
+`definePlutoExtension` (registry bucket `backend`). `usePlutoBackend()` gives the last registered
+entry, with `label` and `countLabel` translated, and `count` cleaned to a whole number of 0 or more.
+It is `null` with no backend, and then no badge shows.
+
+`PlutoBackendInfo`:
+
+- `kind`: `git` or `database`. It picks the first word ("Git", "Database",
+  `pluto.backend.kind.*`) and the icon (`i-lucide-git-branch`, `i-lucide-database`).
+- `label`: key-or-literal, the name after the kind.
+- `icon`: the icon of the popover header. Default: the icon of the kind.
+- `count()` and `countLabel`: a number on the badge as a warning pill, for example the commits that
+  are not pushed. `countLabel` is a plural key-or-literal with `{count}`, used as the title of the
+  pill and in the accessible name. 0 shows nothing.
+- `details`: the popover body. Use an async component (the dev warning checks it).
+- `onOpen()`: called when the popover opens, for example to read the state again.
+
+`PlutoAdminBackendBadge` (`app/components/Pluto/Admin/`) is a `PlutoNavbarHit` in a `UPopover`.
+Below `md` only the kind icon and the count show. The popover has the label, one line for the
+mode (`pluto.backend.gitMode`, `databaseMode`) and the `details` component. The Git CMS and the
+supabase layer register one each. Tests: `test/auth-driver.test.ts` ("backend"),
+`test/async-component.test.ts`.
 
 ### Full-height click area
 
