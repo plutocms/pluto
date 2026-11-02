@@ -5,7 +5,7 @@ with a visual block editor and a live preview. The pages stay Markdown files in 
 repository, and each save is a commit.
 
 **Docs:** [Docs layer](https://pluto.vulmix.dev/docs/layers/docs) ·
-[Edit pages visually](https://pluto.vulmix.dev/docs/guides/edit-pages-visually)
+[Edit pages visually](https://pluto.vulmix.dev/docs/extend/edit-pages-visually)
 
 ## Install
 
