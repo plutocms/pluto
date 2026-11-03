@@ -556,7 +556,7 @@ export interface PlutoContentAdapter {
  * it with its own fields: `PlutoPreviewItem<{ title: string }>`.
  */
 export type PlutoPreviewItem<
-  T extends Record<string, unknown> = Record<string, unknown>,
+  T extends object = Record<string, unknown>,
 > = T & {
   html: string
   createdAt?: string
