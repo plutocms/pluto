@@ -46,7 +46,7 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
 </script>
 
 <template>
-  <div class="grid min-h-dvh place-items-center p-4">
+  <div class="flex min-h-dvh flex-col items-center justify-center gap-y-4 p-4">
     <UCard class="w-full max-w-100">
       <div class="flex flex-col gap-y-6">
         <div class="flex items-center gap-x-2">
@@ -129,5 +129,8 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
         />
       </div>
     </UCard>
+
+    <!-- The admin language, before sign-in. -->
+    <PlutoAdminLanguageSelect />
   </div>
 </template>

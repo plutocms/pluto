@@ -143,6 +143,10 @@ page. The name follows the folder rule of Nuxt: a file `PlutoAuthCard.vue` in `A
   `safeRedirect(route.query.redirect)`: a local path or an empty string.
 - The footer links `links.signUp` and `links.forgotPassword`, when the driver gives them.
 - A "Back to the site" link.
+- Below the card, `PlutoAdminLanguageSelect`: the admin language (Automatic and each admin locale,
+  named in its own language). It switches on this device only (`setLocale(code, { save: false })`),
+  and the next sign-in saves it to the user. It hides when the admin has one language. Every page
+  that uses the card gets it (login, no access, and the auth pages of a backend).
 
 The card also frames the other auth pages of a backend (sign up, password reset). Give it a
 default slot, and the slot replaces the driver's form and links. The props `title` and

@@ -93,10 +93,14 @@ message always uses the first form. This matters in pt-BR, where `PluralRules` g
 - `setLocale(code | null)` switches at once. `null` is Automatic: the browser language is
   detected again. The cookie `pluto-admin-locale` keeps the explicit code, and is cleared for
   Automatic. Then `driver.save(code | null)` runs if a locale driver is registered. A driver
-  error rejects the promise, and the switch stays.
+  error rejects the promise, and the switch stays. `setLocale(code, { save: false })` skips the
+  driver: the language select of the auth pages (`PlutoAdminLanguageSelect`) uses it, because no
+  user is signed in yet.
 - `syncUserLocale()` calls the locale driver's `load()`. A stored code switches the admin and
-  sets the cookie. `null` clears the cookie and uses the browser language. No driver, or an
-  error: nothing changes.
+  sets the cookie. `null` with an explicit code in the cookie (a choice made on the login page)
+  keeps that code and saves it with the driver (a save error is ignored: the choice stays on the
+  device). `null` and no cookie: the browser language. No driver, or a load error: nothing
+  changes.
 
 ### Site only
 
