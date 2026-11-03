@@ -323,6 +323,32 @@ describe('pluto-github module wiring', () => {
     expect(normalizeBasePath('')).toBe('/')
   })
 
+  it('bundles the Markdown of the content dir for a site that reads from GitHub', async () => {
+    const nuxt = await run({ enabled: true, github: repo }, { nitro: {} })
+
+    expect(nuxt.options.nitro.serverAssets).toEqual([
+      {
+        baseName: 'pluto-content',
+        dir: expect.stringMatching(/[\\/]work[\\/]site[\\/]content$/),
+        pattern: '**/*.md',
+      },
+    ])
+  })
+
+  it('bundles no snapshot for the dev fs store or a static build', async () => {
+    const dev = await run(
+      { enabled: true, storage: 'fs' },
+      { dev: true, nitro: {} }
+    )
+    expect(dev.options.nitro.serverAssets).toBeUndefined()
+
+    const built = await run(
+      { enabled: true },
+      { _generate: true, app: { baseURL: '/' }, nitro: {} }
+    )
+    expect(built.options.nitro.serverAssets).toBeUndefined()
+  })
+
   it('gives the project root to the dev fs store only', async () => {
     const nuxt = await run({ enabled: true, storage: 'fs' }, { dev: true })
 

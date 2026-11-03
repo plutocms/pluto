@@ -85,12 +85,19 @@ export function createAppJwt(options: {
   return `${header}.${payload}.${signature}`
 }
 
-function unavailable() {
-  return createPlutoError({
-    statusCode: 503,
-    message: 'GitHub did not answer as expected. Try again.',
-    key: 'pluto.github.errors.githubUnavailable',
-  })
+function unavailable(notConfigured = false) {
+  return notConfigured
+    ? createPlutoError({
+        statusCode: 503,
+        message:
+          'This site cannot read its content from GitHub yet. Set up the GitHub App in /admin.',
+        key: 'pluto.github.errors.notConfigured',
+      })
+    : createPlutoError({
+        statusCode: 503,
+        message: 'GitHub did not answer as expected. Try again.',
+        key: 'pluto.github.errors.githubUnavailable',
+      })
 }
 
 /**
@@ -116,7 +123,7 @@ export function createAppTokenProvider(
   let inFlight: Promise<string> | undefined
   let warned = false
 
-  function fail(reason: string, error?: unknown): never {
+  function fail(reason: string, error?: unknown, notConfigured = false): never {
     if (!warned) {
       warned = true
       console.error(
@@ -124,7 +131,7 @@ export function createAppTokenProvider(
         error ?? ''
       )
     }
-    throw unavailable()
+    throw unavailable(notConfigured)
   }
 
   async function mint(): Promise<string> {
@@ -182,7 +189,9 @@ export function createAppTokenProvider(
       }
       if (!options.appId || !options.privateKey) {
         return fail(
-          'set NUXT_PLUTO_GITHUB_APP_ID and NUXT_PLUTO_GITHUB_PRIVATE_KEY, or NUXT_PLUTO_GITHUB_READ_TOKEN.'
+          'set NUXT_PLUTO_GITHUB_APP_ID and NUXT_PLUTO_GITHUB_PRIVATE_KEY, or NUXT_PLUTO_GITHUB_READ_TOKEN.',
+          undefined,
+          true
         )
       }
       if (cached && cached.expiresAt - RENEW_MARGIN > now()) {

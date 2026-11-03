@@ -223,7 +223,8 @@
         "rateLimited": "O GitHub está limitando as requisições. Tente novamente em instantes.",
         "githubUnavailable": "O GitHub não respondeu como esperado. Tente novamente.",
         "authNotConfigured": "O login do CMS não está configurado. Peça ao responsável pelo site para verificar as configurações do servidor.",
-        "tooManyRequests": "Muitas tentativas de login. Tente novamente em instantes."
+        "tooManyRequests": "Muitas tentativas de login. Tente novamente em instantes.",
+        "notConfigured": "Este site ainda não consegue ler o conteúdo no GitHub. Configure o GitHub App em /admin."
       },
       "login": {
         "title": "Entrar",

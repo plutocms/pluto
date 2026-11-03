@@ -230,7 +230,7 @@ describe('createAppTokenProvider', () => {
     expect(await provider.getReadToken()).toBe('pat')
   })
 
-  it('answers 503 and logs when there are no credentials, and does not throw when built', async () => {
+  it('answers 503 "not set up" and logs when there are no credentials, and does not throw when built', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const provider = createAppTokenProvider({
       repo: 'acme/site',
@@ -240,7 +240,7 @@ describe('createAppTokenProvider', () => {
 
     await expect(provider.getReadToken()).rejects.toMatchObject({
       statusCode: 503,
-      data: { i18n: { key: 'pluto.github.errors.githubUnavailable' } },
+      data: { i18n: { key: 'pluto.github.errors.notConfigured' } },
     })
     await expect(provider.getReadToken()).rejects.toMatchObject({
       statusCode: 503,

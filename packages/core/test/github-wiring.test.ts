@@ -191,14 +191,14 @@ describe('anonymous callers', () => {
     expect(fake.appCalls.lookups).toBe(0)
   })
 
-  it('get a 503 when no read credentials are set', async () => {
+  it('get a 503 "not set up" when no read credentials are set and the build bundled nothing', async () => {
     const { app } = setup({ appId: '', privateKey: '' })
 
     const response = await app.request('/api/_pluto/content/post')
 
     expect(response.status).toBe(503)
     expect((await response.json()).data.i18n.key).toBe(
-      'pluto.github.errors.githubUnavailable'
+      'pluto.github.errors.notConfigured'
     )
   })
 })

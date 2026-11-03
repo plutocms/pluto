@@ -267,6 +267,17 @@ When the CMS is on (see "On unless a backend layer is present"), and only then, 
   rooted at the project dir in dev), registers the `post` type when `postType` is on, and registers
   the Markdown adapter. `getAccess(event)` gives the signed-in user (their GitHub token and
   capabilities) or `null`.
+- A build snapshot, for a site that reads from GitHub (not dev, not static): the module bundles
+  every `.md` file of the content dir as Nitro server assets (`pluto-content`,
+  `runtime/shared/snapshot.ts`). The host builds from a checkout, so the files are there. When the
+  server has no read token and no App credentials (a first deploy, before the setup), the store is
+  `withBuildSnapshot` (`store/snapshot.ts`): an anonymous read goes to the snapshot (read only), a
+  call with a user token goes to GitHub. It warns once. With credentials it is the plain GitHub
+  store. With no snapshot either, the token provider answers 503 `pluto.github.errors.notConfigured`
+  ("Set up the GitHub App in /admin"), not the generic `githubUnavailable`. Media files are not in
+  the snapshot: they are in `public/`, so the host serves them. GraphQL needs a token even for a
+  public repo, so without the snapshot a fresh deploy reads nothing, public or private.
+  Tests: `test/github-snapshot.test.ts`, `test/github-module.test.ts`.
 - A client plugin, `runtime/app/plugins/pluto-github.ts`. It calls `definePlutoExtension` with the
   auth driver, the post content type, the post capabilities, the permissions driver and the
   public-repo dashboard widget. The post type and the post capabilities are registered only when

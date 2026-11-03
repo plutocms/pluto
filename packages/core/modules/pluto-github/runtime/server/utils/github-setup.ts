@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import type { PlutoGithubAccess } from '../adapter'
+import type { SnapshotLoader } from '../store/snapshot'
 import type { PlutoGithubStore } from '../store/types'
 import type { GithubCache } from './github-cache'
 import type { GithubConfig } from './github-config'
@@ -20,17 +21,20 @@ import { createAppTokenProvider } from '../github/app-token'
 import { createGithubMediaDriver } from '../media'
 import { createFsStore } from '../store/fs'
 import { createGithubStore } from '../store/github'
+import { createSnapshotStore, withBuildSnapshot } from '../store/snapshot'
 import { createGithubCache } from './github-cache'
 import { getGithubSession } from './session'
 
 /**
  * Picks the store: the local files in dev with `fs`, otherwise GitHub. The
  * GitHub store reads for anonymous callers with the read token, or with an
- * installation token of the App. See `createAppTokenProvider`.
+ * installation token of the App. See `createAppTokenProvider`. With neither (a first deploy,
+ * before the App), anonymous reads go to the snapshot of the build that `loadSnapshot` gives.
  */
 export function createContentStore(
   config: GithubConfig,
-  cache: GithubCache
+  cache: GithubCache,
+  loadSnapshot?: SnapshotLoader
 ): PlutoGithubStore {
   if (config.storage === 'fs') {
     // Only the content dir makes the head id. The root is the project dir.
@@ -48,13 +52,28 @@ export function createContentStore(
     readToken: config.readToken,
     fetch: config.fetch,
   })
-  return createGithubStore({
+  const github = createGithubStore({
     repo: config.repo,
     branch: config.branch,
     apiUrl: config.apiUrl,
     cache,
     fetch: config.fetch,
     readToken: () => tokens.getReadToken(),
+  })
+  const canRead = Boolean(
+    config.readToken || (config.appId && config.privateKey)
+  )
+  if (canRead || !loadSnapshot) {
+    return github
+  }
+  let told = false
+  return withBuildSnapshot(github, createSnapshotStore(loadSnapshot), () => {
+    if (!told) {
+      told = true
+      console.warn(
+        '[pluto-github] No GitHub read token or App yet: the public pages show the content of the last build. Set up the GitHub App in /admin to read the repo live.'
+      )
+    }
   })
 }
 
@@ -103,13 +122,14 @@ export function getRegisteredGithubCache(): GithubCache {
 /** Registers the post type, the Markdown adapter and the media driver with core. */
 export function registerGithubContent(
   config: GithubConfig,
-  cache: GithubCache
+  cache: GithubCache,
+  loadSnapshot?: SnapshotLoader
 ): void {
   registeredCache = cache
   if (config.postType) {
     registerContentType(plutoGithubPostType)
   }
-  const store = createContentStore(config, cache)
+  const store = createContentStore(config, cache, loadSnapshot)
   registeredStore = store
   registerContentAdapter(
     createMarkdownContentAdapter({
