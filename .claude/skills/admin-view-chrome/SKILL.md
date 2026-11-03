@@ -289,6 +289,7 @@ form?.onSaved((saved) => refetchMedia(saved.id)) // after each save that worked
 | Key                       | Meaning                                                                                                                                                                                         |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode                                                                                                                                       |
+| `loading`                 | true while the item of an edit page loads. The form and its toolbar items mount before the item is there: code that reads the saved item waits for `editing && !loading`                         |
 | `saving`, `dirty`         | a save runs, the item has unsaved changes                                                                                                                                                       |
 | `errorsByField`           | the validation message of each field that failed the last save                                                                                                                                  |
 | `layout`, `canvas`        | the layout, and true for 'canvas'                                                                                                                                                               |
@@ -472,7 +473,8 @@ worth adding while `PlutoContentForm` is the only consumer; revisit if a second 
 A layer adds a component (a status, an indicator) to the toolbar of the generic content form. The
 toolbar renders it before the buttons, after the "View" link. The component gets no props. It
 renders inside the form, so it calls `usePlutoContentForm()` to read the item and to run code
-after a save (`onSaved`). The entry follows the rules of the other component buckets: register it
+after a save (`onSaved`). It mounts before the item of an edit page loads: watch `editing && !loading`
+(History and the build status do), not `onMounted` alone, or the item is still empty. The entry follows the rules of the other component buckets: register it
 with `defineAsyncComponent` (dev warns about a sync component).
 
 ```ts

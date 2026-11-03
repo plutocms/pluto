@@ -21,6 +21,11 @@ export interface PlutoContentFormContext {
   item: Ref<Record<string, unknown>>
   /** True when the form edits a saved item. False on a new item. */
   editing: ComputedRef<boolean>
+  /**
+   * True while the item of an edit page loads. The form, and its toolbar items, mount before
+   * the item is there: a widget that reads the saved item waits for this to be false.
+   */
+  loading: Readonly<Ref<boolean>>
   /** True while a save runs. */
   saving: Ref<boolean>
   /** True when the item differs from the last saved (or loaded) version. */

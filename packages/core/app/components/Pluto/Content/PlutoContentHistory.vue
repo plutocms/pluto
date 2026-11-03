@@ -96,9 +96,22 @@ async function select(revision: PlutoContentRevision) {
   }
 }
 
-// The first page loads when the edit page opens, so the button shows only when there is a
-// history. A save adds a version: read the list again.
-onMounted(() => load())
+// The first page loads once the item of the edit page is there (the form mounts before it), so
+// the button shows only when there is a history. A save adds a version: read the list again.
+const loadedId = computed(() =>
+  form?.editing.value && !form.loading.value ? itemId.value : undefined
+)
+onMounted(() => {
+  watch(
+    loadedId,
+    (id) => {
+      if (id) {
+        load()
+      }
+    },
+    { immediate: true }
+  )
+})
 form?.onSaved(() => {
   selectedId.value = undefined
   load()

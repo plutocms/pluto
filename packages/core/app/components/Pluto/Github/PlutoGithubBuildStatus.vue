@@ -21,18 +21,30 @@ const { t, locale } = usePlutoI18n()
 const form = usePlutoContentForm()
 const { status, check, afterSave } = usePlutoGithubBuildStatus()
 
-// True when the item was public in this page: published when the page opened, or after a save.
+// True when the item was public in this page: published when it loaded, or after a save.
 // A draft save skips the deploy, so a draft that was never public has no build to show.
-const everPublic = ref(
-  form ? isPublicItem(form.type.value, form.item.value) : true
-)
+const everPublic = ref(!form)
 
-// Read when the edit page opens, and after each save. A new item has no commit yet:
-// the form goes to the edit page after the first save, and this item mounts again there.
+// Read once the item of the edit page is there (the form mounts before it), and after each
+// save. A new item has no commit yet: the form goes to the edit page after the first save,
+// and this item mounts again there.
+const loaded = computed(() =>
+  Boolean(form?.editing.value && !form.loading.value)
+)
 onMounted(() => {
-  if (form?.editing.value && everPublic.value) {
-    check()
-  }
+  watch(
+    loaded,
+    (value) => {
+      if (!value || !form) {
+        return
+      }
+      everPublic.value ||= isPublicItem(form.type.value, form.item.value)
+      if (everPublic.value) {
+        check()
+      }
+    },
+    { immediate: true }
+  )
 })
 // True after a save in this page. With `liveOnSave` the change is live from then on.
 const savedHere = ref(false)
