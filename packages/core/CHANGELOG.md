@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.53.0](https://github.com/plutocms/pluto/compare/v0.52.0...v0.53.0) (2026-11-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* the post preview gets the item in the shape of the public API, and PlutoRoot sets --pluto-page-height ([#395](https://github.com/plutocms/pluto/issues/395))
+
+### Features
+
+* the post preview gets the item in the shape of the public API, and PlutoRoot sets --pluto-page-height ([#395](https://github.com/plutocms/pluto/issues/395)) ([5ecf8e6](https://github.com/plutocms/pluto/commit/5ecf8e6e1ce7906f577f2f4c18a469345d14ef1b))
+
+
+### Bug Fixes
+
+* History and the build status show once the item of the edit page loads, not only after a save ([#394](https://github.com/plutocms/pluto/issues/394)) ([048bef8](https://github.com/plutocms/pluto/commit/048bef873038929e1f25dd6b889aedcb3a3b044b))
+
 ## [0.52.0](https://github.com/plutocms/pluto/compare/v0.51.0...v0.52.0) (2026-11-03)
 
 
