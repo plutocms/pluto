@@ -539,14 +539,17 @@ and the base64 of the PEM (no `-----BEGIN` in the value: it decodes, and uses th
 ### In the admin
 
 - The login card (`PlutoGithubSignIn`): when the status says `ready: false`, it shows
-  `PlutoGithubSetupPanel` (a warning, the checklist with a short fix for each missing item, the
-  **Create the GitHub App** button when `canCreateApp`, an **Install the App** link when the
-  installation check fails and the slug is known, and a link to the quickstart). The Sign in button
-  is disabled while `ready` is false. A failed status read keeps it on.
+  `PlutoGithubSetupPanel`: a warning, then the actions first (the **Create the GitHub App** button
+  when `canCreateApp`, an **Install the App** link when the installation check fails and the slug
+  is known, and a link to the quickstart), then the checklist with a short fix for each missing
+  item. The checklist is folded (`UCollapsible`, the trigger shows "2 of 6 done",
+  `pluto.github.setup.progress`). It opens by itself only when the panel has no action button. The
+  Sign in button is disabled while `ready` is false. A failed status read keeps it on.
 - The **GitHub** tab of Settings: `/admin/settings/github`. The `settingsPages` entry (id `github`,
   order 150, no capability) is in the CMS client plugin. The module adds the route with
   `extendPages`, as a child of `settings`, from `app/components/Pluto/Github/PlutoGithubSettingsPage.vue`.
-  It shows the same checklist, the callback URL to use (with a Copy button) and the Create button.
+  It shows the same panel (the Create button, then the folded checklist) and the callback URL to use
+  (with a Copy button).
 - `usePlutoGithubSetup()` (`runtime/app/composables/pluto-github-setup.ts`) reads the status after
   hydration (`server: false`, key `pluto-github-setup`).
 

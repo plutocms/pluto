@@ -291,7 +291,7 @@
       },
       "setup": {
         "title": "Set up the GitHub sign-in",
-        "intro": "The CMS needs a GitHub App to sign editors in. Check the list below, then create the App.",
+        "intro": "The CMS needs a GitHub App to sign editors in. Create it with the button below. The checklist shows what is missing.",
         "checklist": "Setup checklist",
         "done": "Done",
         "missing": "Missing",
@@ -373,7 +373,8 @@
             "github": "GitHub did not accept the setup. Start again.",
             "retry": "Start again"
           }
-        }
+        },
+        "progress": "{done} of {total} done"
       },
       "backend": {
         "local": "Local",
