@@ -550,7 +550,8 @@ the version before the current one, or the current one when the form has unsaved
 `shared/utils/content-revision.ts` (test: `test/content-revision.test.ts`). The texts are under
 `pluto.history.*`.
 
-The Git CMS implements both methods (see the git-cms skill, "Revisions"). Supabase: not yet.
+The Git CMS implements both methods (see the git-cms skill, "Revisions"). `@plutocms/supabase` keeps them in
+the table `pluto_content_revisions` (its content-adapter skill, "Revisions").
 
 ## The `_version` token and id changes: for adapter authors
 
