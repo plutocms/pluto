@@ -743,10 +743,16 @@ that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
   CMS and `@plutocms/supabase-blog` use the same path).
 - The menus of the visual Markdown toolbar (Heading, the link popover) are
   `dark:bg-neutral-950` through `UTheme`, so they stand apart from the editor box in dark mode.
-- The page shows `PlutoPostPreview` with the props `contentType`, `item` and `html`. The default
-  (`app/components/Pluto/Post/PlutoPostPreview.vue`) shows the title, the date, the excerpt and
-  the body. An app replaces it with its own `components/PlutoPostPreview.vue` with the same
-  props, to use the layout of its post page. Put `data-pluto-post-body` on the element of the
+- The page shows `PlutoPostPreview` with the props `contentType` and `item`. `item` is a
+  `PlutoPreviewItem` (`toPreviewItem`, `shared/utils/content-preview.ts`): the form item in the
+  shape of the public API. It has `html` (the rendered body), the dates as `createdAt`,
+  `updatedAt` and `publishedAt` (from `type.timestamps` and `status.publishedAtColumn`, else
+  `<key>At`, else `<key>_at`), and each media field holds its record (an array for `multiple`,
+  else one record or `null`). The page reads the records with `usePlutoMedia().get`, once per id
+  (`previewMediaIds`). So the post component of a site renders the preview item as it is. The
+  default (`app/components/Pluto/Post/PlutoPostPreview.vue`) shows the title, the date, the
+  excerpt and the body. An app replaces it with its own `components/PlutoPostPreview.vue` with the
+  same props, to use the layout of its post page. Test: `test/content-preview.test.ts`. Put `data-pluto-post-body` on the element of the
   body: `scroll-to` finds the headings in it. The blog templates have one.
 - i18n keys: `pluto.post.*` (`outline`, `outlineEmpty`, `outlineEmptyHint`, `mode`, `visual`,
   `markdown`, `visualBlocked`, `previewTitle`, `previewBadge`, `previewLoading`, `previewFailedTitle`,

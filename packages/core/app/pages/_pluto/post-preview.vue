@@ -1,9 +1,12 @@
 <script setup lang="ts">
 // The post preview: the post editor (`post-canvas`) shows this page in an iframe. It is
-// a page of the app, outside the admin, so the site CSS and fonts apply. It fetches
-// nothing. The editor sends the item and the Markdown; the page renders the Markdown
-// to sanitized HTML in the browser and shows `PlutoPostPreview` (an app can override
-// that component). Only a message from the same origin and from the parent window counts.
+// a page of the app, outside the admin, so the site CSS and fonts apply. The editor sends
+// the item and the Markdown; the page renders the Markdown to sanitized HTML in the
+// browser and shows `PlutoPostPreview` (an app can override that component) with the
+// item in the shape of the public API (`toPreviewItem`): the records of its media fields
+// (read from the media library, the preview runs for a signed-in editor), and the dates
+// as `createdAt` and `publishedAt`. Only a message from the same origin and from the
+// parent window counts.
 definePageMeta({ layout: false, plutoAdminBar: false })
 
 const { t } = usePlutoI18n()
@@ -34,6 +37,35 @@ const contentType = ref('')
 const item = ref<Record<string, unknown>>({})
 const html = ref('')
 const rendered = ref(false)
+
+const { byName } = usePlutoContentTypes()
+const type = computed(() => byName(contentType.value))
+
+// The media records, by id. A record never changes, so each id is read once.
+const media = usePlutoMedia()
+const mediaRecords = shallowRef(new Map<string, PlutoMedia>())
+watch(
+  () => previewMediaIds(type.value, item.value),
+  async (ids) => {
+    const missing = ids.filter((id) => !mediaRecords.value.has(id))
+    if (missing.length === 0 || !media.enabled) {
+      return
+    }
+    try {
+      const next = new Map(mediaRecords.value)
+      for (const record of await media.get(missing)) {
+        next.set(record.id, record)
+      }
+      mediaRecords.value = next
+    } catch {
+      // The preview shows the item without these files.
+    }
+  }
+)
+
+const preview = computed(() =>
+  toPreviewItem(type.value, item.value, html.value, mediaRecords.value)
+)
 
 function scrollToHeading(index: number) {
   const body = document.querySelector('[data-pluto-post-body]') ?? document.body
@@ -76,10 +108,5 @@ onBeforeUnmount(() => window.removeEventListener('message', onMessage))
 </script>
 
 <template>
-  <PlutoPostPreview
-    v-if="rendered"
-    :content-type="contentType"
-    :item="item"
-    :html="html"
-  />
+  <PlutoPostPreview v-if="rendered" :content-type="contentType" :item="preview" />
 </template>

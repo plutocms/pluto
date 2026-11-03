@@ -163,6 +163,19 @@ useHead({
 }
 
 /*
+ * `--pluto-page-height` is the height that a public page has for itself: the
+ * viewport, less the admin bar while it shows. A layout with a footer at the
+ * bottom of a short page sets `min-height: var(--pluto-page-height)`.
+ */
+:where(:root) {
+  --pluto-page-height: 100dvh;
+}
+
+:where(:root[data-pluto-admin-bar]:not([data-pluto-admin])) {
+  --pluto-page-height: calc(100dvh - var(--pluto-admin-bar-height));
+}
+
+/*
  * The bar is fixed at the top, so a public page moves down by its height while
  * it shows: the top of the page is never under the bar. A sticky or fixed
  * header of the site still needs `top: var(--pluto-admin-bar-height)`. The
@@ -178,7 +191,7 @@ useHead({
 }
 
 :where(:root[data-pluto-admin-bar]:not([data-pluto-admin])) #__nuxt {
-  min-height: calc(100dvh - var(--pluto-admin-bar-height));
+  min-height: var(--pluto-page-height);
 }
 
 /*

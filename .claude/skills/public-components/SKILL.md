@@ -9,7 +9,7 @@ Tailwind.
 
 | Component                         | Layer         | Notes                                                                                                                                                                          |
 | --------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PlutoRoot`                       | core          | Plain CSS in its `<style>` (`--pluto-admin-bar-height`, the wrappers).                                                                                                         |
+| `PlutoRoot`                       | core          | Plain CSS in its `<style>` (`--pluto-admin-bar-height`, `--pluto-page-height`, the wrappers).                                                                                                         |
 | `PlutoHtml`                       | core          | The `html` of a public item, with the `pluto-prose` class. Under a sub path (`app.baseURL` not `/`), `withBaseInHtml` puts the base before each site path of `src` and `href`. |
 | `PlutoImage`                      | core          | An `<img>` (NuxtImg) with no class.                                                                                                                                            |
 | `PlutoLogo`                       | core          | An SVG with no class.                                                                                                                                                          |

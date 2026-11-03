@@ -549,6 +549,21 @@ export interface PlutoContentAdapter {
   toPublic?: PlutoContentToPublic
 }
 
+/**
+ * An item in a preview, in the shape of the public API: the field values (a media field holds
+ * its record, or an array of records for `multiple`), `html` (the body), and the dates as
+ * `createdAt`, `updatedAt` and `publishedAt`. See `toPreviewItem`. A preview component can type
+ * it with its own fields: `PlutoPreviewItem<{ title: string }>`.
+ */
+export type PlutoPreviewItem<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> = T & {
+  html: string
+  createdAt?: string
+  updatedAt?: string
+  publishedAt?: string
+}
+
 /** What a revision did, when the backend knows it. */
 export type PlutoContentRevisionAction =
   | 'create'

@@ -101,7 +101,8 @@ policies shared by every project here.
   the `editor` field option), the post editor (`widget: 'post-canvas'`: the canvas layout, an outline
   of the headings, a compose panel with a Visual mode and a Markdown mode (`PlutoMarkdownCodeEditor`,
   CodeMirror with syntax colors), next to a preview of the site at `/_pluto/post-preview` with a
-  "Preview" badge, which an app replaces with `components/PlutoPostPreview.vue`), nested content types
+  "Preview" badge, which an app replaces with `components/PlutoPostPreview.vue`; its `item` has the shape of the
+  public API, `toPreviewItem`), nested content types
   (`files: { nested, exclude, frontmatter }`, ids that
   are paths, one-commit moves, `listTree` in all stores, `compareContentIds`), no commit for an
   unchanged file, push capabilities for every registered type, the public answer of a Markdown item
