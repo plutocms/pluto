@@ -32,6 +32,7 @@ the storage. This PR: core + the Git CMS. Supabase follows in its own PR (a revi
 - [x] Git CMS: store `history`/`readAt` (github, fs, memory, wrappers), adapter methods, tests.
 - [x] Diff utils and tests.
 - [x] `PlutoContentHistory` + registration + i18n (en, pt-BR).
-- [x] Live check (post editor and docs block editor take the restored body), screenshots.
+- [x] Live check: the post editor takes the restored body (local Git), screenshots.
+- [ ] Live check of the docs block editor after a restore (not done).
 - [x] Docs: content-model, git-cms, admin-view-chrome skills, FEATURES.md, plutocms docs, ROADMAP.md.
 - [ ] Next PR: Supabase revisions.
