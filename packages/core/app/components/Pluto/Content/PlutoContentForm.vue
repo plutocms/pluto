@@ -694,6 +694,7 @@ provide(plutoContentFormKey, {
   type: contentType,
   item,
   editing,
+  loading: itemPending,
   saving,
   dirty,
   errorsByField: computed(() =>

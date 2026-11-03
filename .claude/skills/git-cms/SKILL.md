@@ -871,7 +871,7 @@ paging, sort, filters, 400 and 404, the cache header, no cookie, anonymous with 
 After a save, the site can take some minutes to change. The edit form shows the build of the newest
 commit of the content branch that did not skip CI, next to the Save button. A draft save skips the
 deploy, so that commit has the builds that serve the site. A draft that was never public in the page
-(`isPublicItem` of `client-rules.ts`, read when the page opens and after each save) shows no status and
+(`isPublicItem` of `client-rules.ts`, read when the item of the page has loaded and after each save) shows no status and
 calls nothing. It shows only for GitHub storage with
 `commit.skipDeploy` false (the default: a save then starts a deploy). With the `fs` store, or with
 `skipDeploy` on, nothing shows. The module copies `skipDeploy` to `runtimeConfig.public.plutoGithub`,
@@ -940,7 +940,7 @@ registers it, lazy, only when `showBuildStatus` is true.
   "View the build" for a status or a deployment). `unavailable` adds a hint about the App
   permissions.
 - Polling (`createBuildPoller`, `runtime/shared/build-poller.ts`, with the rules in `shouldPoll`):
-  one read when the edit page opens and after each save (`usePlutoContentForm().onSaved`, which
+  one read when the item of the edit page has loaded (`editing && !loading` of the form) and after each save (`usePlutoContentForm().onSaved`, which
   forgets the old answer first). Then every 5 seconds while the state is `pending`. It stops when
   the state is final, after 15 minutes, and while the page is hidden (it reads again when the page
   shows). After a save, `none` is not final for 60 seconds, because GitHub needs some seconds to
