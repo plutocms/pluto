@@ -143,13 +143,13 @@ Core declares the capabilities `media:manage` and `media:delete`.
 - **The record:** `<content dir>/media/<id>.md`, frontmatter only (`name`, `file`, `url`,
   `mimeType`, `size`, `width`, `height`, `alt`, `createdAt`). The id is the stored file name
   without the extension.
-- **One commit** (`media: add <file>`) holds both. A delete removes both in one commit. A
+- **One commit** (`media: add <file> [skip ci]`) holds both. A media commit always has
+  `[skip ci]`: the route below serves the new file, and the next published save deploys it. A delete removes both in one commit. A
   conflict with an unrelated commit tries again (two times).
 - **The store:** an addition can be binary (`encoding: 'base64'`). `readRaw(path)` gives the
   bytes (GitHub: the raw contents API).
 - **The `/media/**` route** reads a file from the repo. After a deploy the host sends the
-  static file first, so the route answers only for a file that is not in a deploy yet. A content
-  commit can skip the deploy. The stored name never changes, so the answer is `immutable`. The
+  static file first, so the route answers only for a file that is not in a deploy yet. The stored name never changes, so the answer is `immutable`. The
   route takes only `<yyyy>/<mm>/<safe name>`.
 - **Capabilities:** a user with push access gets `media:manage` and `media:delete`. Admin and
   maintain have `*`.

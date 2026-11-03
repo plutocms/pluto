@@ -11,7 +11,7 @@ export type SnapshotLoader = () => Promise<Record<string, string>>
 
 /**
  * A read-only store over the snapshot of the build. A commit throws `forbidden`: the snapshot is
- * only for public reads before GitHub can answer.
+ * only for public reads when GitHub cannot answer (no credentials yet, or a GitHub failure).
  */
 export function createSnapshotStore(load: SnapshotLoader): PlutoGithubStore & {
   /** Whether the build bundled any file. */
@@ -69,6 +69,75 @@ export function withBuildSnapshot(
     readFile: async (path, head, auth) =>
       (await pick(auth)).readFile(path, head, auth),
     readRaw: async (path, auth) => (await pick(auth)).readRaw(path, auth),
+    commit: (input, auth) => github.commit(input, auth),
+  }
+}
+
+/**
+ * The store of a deployed site that reads GitHub (hybrid): an anonymous read goes to GitHub, and
+ * when GitHub fails (an outage, a rate limit, a bad App key), the same read goes to the snapshot
+ * of the build. So the public pages stay up. The snapshot ignores the head id, so a GitHub head
+ * can come before a snapshot read. A call with the token of a signed-in user never falls back:
+ * the admin must not edit old content. A conflict is not a failure. With no snapshot, the error
+ * stays. `onFallback` gets the GitHub error.
+ */
+export function withSnapshotFallback(
+  github: PlutoGithubStore,
+  snapshot: ReturnType<typeof createSnapshotStore>,
+  onFallback: (error: unknown) => void = () => {}
+): PlutoGithubStore {
+  async function read<T>(
+    auth: PlutoGithubAuth | undefined,
+    fromGithub: () => Promise<T>,
+    fromSnapshot: () => Promise<T>
+  ): Promise<T> {
+    if (auth?.token) {
+      return fromGithub()
+    }
+    try {
+      return await fromGithub()
+    } catch (error) {
+      if (
+        (error instanceof PlutoGithubStoreError && error.code === 'conflict') ||
+        !(await snapshot.hasFiles())
+      ) {
+        throw error
+      }
+      onFallback(error)
+      return fromSnapshot()
+    }
+  }
+  return {
+    head: (opts) =>
+      read(
+        opts?.auth,
+        () => github.head(opts),
+        () => snapshot.head()
+      ),
+    listDir: (dir, head, auth) =>
+      read(
+        auth,
+        () => github.listDir(dir, head, auth),
+        () => snapshot.listDir(dir, head)
+      ),
+    listTree: (dir, head, auth) =>
+      read(
+        auth,
+        () => github.listTree(dir, head, auth),
+        () => snapshot.listTree(dir, head)
+      ),
+    readFile: (path, head, auth) =>
+      read(
+        auth,
+        () => github.readFile(path, head, auth),
+        () => snapshot.readFile(path, head)
+      ),
+    readRaw: (path, auth) =>
+      read(
+        auth,
+        () => github.readRaw(path, auth),
+        () => snapshot.readRaw(path)
+      ),
     commit: (input, auth) => github.commit(input, auth),
   }
 }

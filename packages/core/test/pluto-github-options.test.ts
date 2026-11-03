@@ -84,7 +84,7 @@ describe('resolvePlutoGithubOptions', () => {
         apiUrl: 'https://api.github.com',
       },
       dir: 'content',
-      commit: { skipDeploy: true, local: true },
+      commit: { skipDeploy: false, local: true },
       cache: { headTtl: 60, storage: 'cache' },
       postType: true,
     })
@@ -101,7 +101,7 @@ describe('resolvePlutoGithubOptions', () => {
           apiUrl: 'https://ghe.example.com/api/v3/',
         },
         dir: 'posts\\blog/',
-        commit: { skipDeploy: false },
+        commit: { skipDeploy: true },
         cache: { headTtl: 0, storage: 'redis' },
         postType: false,
       },
@@ -111,7 +111,7 @@ describe('resolvePlutoGithubOptions', () => {
     expect(result.enabled).toBe(true)
     expect(result.resolved.github.apiUrl).toBe('https://ghe.example.com/api/v3')
     expect(result.resolved.dir).toBe('posts/blog')
-    expect(result.resolved.commit.skipDeploy).toBe(false)
+    expect(result.resolved.commit.skipDeploy).toBe(true)
     expect(result.resolved.cache).toEqual({ headTtl: 0, storage: 'redis' })
     expect(result.resolved.postType).toBe(false)
   })

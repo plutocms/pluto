@@ -35,7 +35,7 @@ function upload(overrides: Partial<PlutoMediaUpload> = {}): PlutoMediaUpload {
   }
 }
 
-function setup(access: PlutoGithubAccess | null = editor, skipDeploy = false) {
+function setup(access: PlutoGithubAccess | null = editor) {
   const store = createMemoryStore()
   const commits: string[] = []
   const commit = store.commit
@@ -47,7 +47,6 @@ function setup(access: PlutoGithubAccess | null = editor, skipDeploy = false) {
     store,
     dir: 'content',
     getAccess: async () => access,
-    skipDeploy,
   })
   return { store, driver, commits }
 }
@@ -69,7 +68,7 @@ describe('github media driver', () => {
       createdAt: '2026-10-29T12:00:00.000Z',
       preview: null,
     })
-    expect(commits).toEqual(['media: add red-mug-k3j9a.webp'])
+    expect(commits).toEqual(['media: add red-mug-k3j9a.webp [skip ci]'])
     expect([
       ...(await store.readRaw('public/media/2026/10/red-mug-k3j9a.webp'))!,
     ]).toEqual([0x52, 0x49, 0x46, 0x46, 0, 0xff, 0x10])
@@ -144,7 +143,7 @@ describe('github media driver', () => {
   })
 
   it('deletes the file and the record in one commit', async () => {
-    const { store, driver, commits } = setup(editor, true)
+    const { store, driver, commits } = setup(editor)
     await driver.upload(event, upload())
     await driver.remove(event, 'red-mug-k3j9a')
     expect(commits.at(-1)).toBe('media: delete red-mug-k3j9a [skip ci]')

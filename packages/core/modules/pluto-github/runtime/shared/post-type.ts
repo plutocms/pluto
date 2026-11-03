@@ -76,6 +76,9 @@ export const plutoGithubPostType: PlutoContentType = {
   defaultSort: { field: 'createdAt', direction: 'desc' },
   // "New Post" in the admin bar, and "Edit Post" on a page that calls `usePlutoEditLink('post', slug)`.
   adminBar: true,
+  // The site reads the posts at run time, so a save shows at once. The form shows "Live" right
+  // after the save, while the build that refreshes the bundled content runs (hybrid).
+  liveOnSave: true,
   // Served by the public API: /api/pluto/v1/content/post.
   api: { public: true },
   // The canvas layout, like the page editor: the body fills the page, the outline is at the

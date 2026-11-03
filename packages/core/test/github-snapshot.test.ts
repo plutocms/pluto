@@ -1,9 +1,14 @@
 import type { PlutoGithubStore } from '../modules/pluto-github/runtime/server/store/types'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  PlutoGithubConflictError,
+  PlutoGithubStoreError,
+} from '../modules/pluto-github/runtime/server/store/errors'
 import { createMemoryStore } from '../modules/pluto-github/runtime/server/store/memory'
 import {
   createSnapshotStore,
   withBuildSnapshot,
+  withSnapshotFallback,
 } from '../modules/pluto-github/runtime/server/store/snapshot'
 import { createGithubCache } from '../modules/pluto-github/runtime/server/utils/github-cache'
 import { createContentStore } from '../modules/pluto-github/runtime/server/utils/github-setup'
@@ -104,6 +109,97 @@ describe('withBuildSnapshot', () => {
   })
 })
 
+describe('withSnapshotFallback', () => {
+  /** A GitHub store whose reads throw `error`, or answer when `error` is undefined. */
+  function github(error?: Error): PlutoGithubStore {
+    const store = createMemoryStore({ 'content/posts/live.md': POST })
+    if (!error) {
+      return store
+    }
+    const fail = async () => {
+      throw error
+    }
+    return {
+      ...store,
+      head: fail,
+      listDir: fail,
+      listTree: fail,
+      readFile: fail,
+      readRaw: fail,
+    }
+  }
+  const snapshot = (bundled: Record<string, string> = files) =>
+    createSnapshotStore(async () => bundled)
+  const names = (list: { name: string }[]) => list.map((file) => file.name)
+
+  it('reads GitHub while GitHub answers', async () => {
+    const onFallback = vi.fn()
+    const store = withSnapshotFallback(github(), snapshot(), onFallback)
+    expect(
+      names(await store.listDir('content/posts', await store.head()))
+    ).toEqual(['live.md'])
+    expect(onFallback).not.toHaveBeenCalled()
+  })
+
+  it('reads the snapshot for an anonymous caller when GitHub fails', async () => {
+    const onFallback = vi.fn()
+    const outage = new PlutoGithubStoreError('github', 'Bad gateway')
+    const store = withSnapshotFallback(github(outage), snapshot(), onFallback)
+    const head = await store.head()
+    expect(names(await store.listTree('content', head))).toEqual([
+      'draft.md',
+      'hello.md',
+    ])
+    expect((await store.readFile('content/posts/hello.md', head))?.text).toBe(
+      POST
+    )
+    expect(onFallback).toHaveBeenCalledWith(outage)
+  })
+
+  it('also falls back on an error that is not a store error (the network)', async () => {
+    const store = withSnapshotFallback(
+      github(new TypeError('fetch failed')),
+      snapshot()
+    )
+    expect(
+      names(await store.listDir('content/posts', await store.head()))
+    ).toEqual(['draft.md', 'hello.md'])
+  })
+
+  it('keeps the error for a signed-in caller, a conflict, or an empty snapshot', async () => {
+    const outage = new PlutoGithubStoreError('rate-limit', 'Slow down')
+    const auth = { token: 'user' }
+    await expect(
+      withSnapshotFallback(github(outage), snapshot()).head({ auth })
+    ).rejects.toBe(outage)
+
+    const conflict = new PlutoGithubConflictError()
+    await expect(
+      withSnapshotFallback(github(conflict), snapshot()).head()
+    ).rejects.toBe(conflict)
+
+    await expect(
+      withSnapshotFallback(github(outage), snapshot({})).head()
+    ).rejects.toBe(outage)
+  })
+
+  it('commits to GitHub', async () => {
+    const store = withSnapshotFallback(github(), snapshot())
+    await store.commit(
+      {
+        message: 'x',
+        expectedHeadOid: await store.head(),
+        additions: [{ path: 'content/posts/new.md', contents: POST }],
+        deletions: [],
+      },
+      { token: 'user' }
+    )
+    expect(
+      names(await store.listDir('content/posts', await store.head()))
+    ).toEqual(['live.md', 'new.md'])
+  })
+})
+
 describe('createContentStore', () => {
   const cache = () => createGithubCache({ headTtl: 0 })
 
@@ -137,5 +233,23 @@ describe('createContentStore', () => {
     const store = createContentStore(testConfig, cache(), async () => files)
     await store.head()
     expect(fetch).toHaveBeenCalled()
+  })
+
+  it('reads the snapshot when GitHub fails, and warns once', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const fetch = vi.fn(async () => {
+      throw new TypeError('fetch failed')
+    })
+    resetTestConfig(undefined, {
+      storage: 'github',
+      readToken: 'pat',
+      fetch,
+    })
+    const store = createContentStore(testConfig, cache(), async () => files)
+    const list = await store.listDir('content/posts', await store.head())
+    expect(list.map((file) => file.name)).toEqual(['draft.md', 'hello.md'])
+    expect(fetch).toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('content of the last build')
   })
 })

@@ -506,7 +506,7 @@
             "none": "No deploy yet. Do the steps above.",
             "unknown": "Pluto cannot read the deploys of this repo. For a private repo, set the GitHub App or a read token in .env."
           },
-          "nodeAdmin": "An admin on a Node host can use the same site: set commit.skipDeploy to false, so that each save of published content starts a build."
+          "nodeAdmin": "An admin on a Node host can use the same site: each save of published content starts the build, and a draft save does not."
         },
         "cloudflare": {
           "name": "Cloudflare Pages",

@@ -237,7 +237,7 @@ describe('pluto-github module wiring', () => {
 
     expect(plutoGithub).toMatchObject({
       apiUrl: 'https://ghe.example.com/api/v3',
-      skipDeploy: true,
+      skipDeploy: false,
       headTtl: 30,
       cacheStorage: 'cache',
       postType: true,
