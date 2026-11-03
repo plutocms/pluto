@@ -237,7 +237,7 @@ describe('prepareMediaUpload', () => {
 })
 
 describe('type limits and previews', () => {
-  const model = new TextEncoder().encode(`glTF\x02\0\0\0${  'x'.repeat(40)}`)
+  const model = new TextEncoder().encode(`glTF\x02\0\0\0${'x'.repeat(40)}`)
 
   it('a type limit wins over maxUploadBytes, in both directions', async () => {
     const { prepareMediaUpload } = await import('../server/utils/pluto-media')

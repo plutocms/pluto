@@ -86,6 +86,8 @@ policies shared by every project here.
   `$meta.plutoBackend`). It has defaults for the storage (`fs` in dev), and for the repo (env vars,
   Vercel, the git remote). When on, it has GitHub App sign-in, a sealed
   session, the auth driver for the core admin shell, and the stores, adapter and post type (public on the public API).
+  A deployed site bundles the Markdown of its content dir at build time: before the GitHub App or a
+  read token exists (a first deploy), the public pages read that snapshot, and then GitHub live.
   It also has a Markdown editor with a Visual/Source switch (`PlutoMarkdownSource`, `findUnsafeMarkdown`,
   the `editor` field option), the post editor (`widget: 'post-canvas'`: the canvas layout, an outline
   of the headings, a compose panel with a Visual mode and a Markdown mode (`PlutoMarkdownCodeEditor`,

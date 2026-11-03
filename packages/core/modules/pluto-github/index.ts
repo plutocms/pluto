@@ -1,4 +1,5 @@
 import type { PlutoGithubOptions } from './options'
+import { resolve } from 'node:path'
 import {
   addComponent,
   addImportsDir,
@@ -13,6 +14,7 @@ import {
 import { readGitOrigin } from './git-remote'
 import { PLUTO_GITHUB_SECRET_ENV, resolvePlutoGithubOptions } from './options'
 import { detectDeployHost } from './runtime/shared/domain'
+import { SNAPSHOT_ASSETS } from './runtime/shared/snapshot'
 
 export type { PlutoGithubOptions } from './options'
 
@@ -163,6 +165,19 @@ export default defineNuxtModule<PlutoGithubOptions>({
     // The Nitro plugin registers the store, the adapter and the post type. A static build needs
     // it too: the public API reads the files while the pages prerender.
     addServerPlugin(server('plugins/pluto-github'))
+
+    // A site that reads from GitHub bundles the Markdown of its content dir as it was at build
+    // time (the host builds from a checkout). Until the server has a read token or the GitHub
+    // App, the public pages read this snapshot instead of failing. See `withBuildSnapshot`.
+    if (resolved.storage === 'github' && !isStatic) {
+      nuxt.options.nitro ||= {}
+      nuxt.options.nitro.serverAssets ||= []
+      nuxt.options.nitro.serverAssets.push({
+        baseName: SNAPSHOT_ASSETS,
+        dir: resolve(nuxt.options.rootDir ?? '', resolved.dir),
+        pattern: '**/*.md',
+      })
+    }
 
     if (isStatic) {
       // A project site of GitHub Pages lives under `/<repo>/`. The workflow gives the path in

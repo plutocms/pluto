@@ -450,12 +450,17 @@ export function createFakeGithub(options: FakeGithubOptions = {}) {
       const path = decodeURIComponent(pathname.slice(contentsPrefix.length))
       const base64 =
         raw.get(path) ??
-        (files.has(path) ? Buffer.from(files.get(path)!, 'utf8').toString('base64') : undefined)
+        (files.has(path)
+          ? Buffer.from(files.get(path)!, 'utf8').toString('base64')
+          : undefined)
       if (base64 === undefined || !header(init, 'Accept')?.includes('.raw')) {
         return respond(404, { message: 'Not Found' })
       }
       const bytes = Buffer.from(base64, 'base64')
-      return respond(200, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length))
+      return respond(
+        200,
+        bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length)
+      )
     }
 
     if (init.method === 'POST' && pathname.endsWith('/graphql')) {

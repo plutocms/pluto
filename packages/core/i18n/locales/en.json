@@ -223,7 +223,8 @@
         "rateLimited": "GitHub is limiting requests. Try again soon.",
         "githubUnavailable": "GitHub did not answer as expected. Try again.",
         "authNotConfigured": "Sign-in for the CMS is not set up. Ask the site owner to check the server settings.",
-        "tooManyRequests": "Too many sign-in requests. Try again soon."
+        "tooManyRequests": "Too many sign-in requests. Try again soon.",
+        "notConfigured": "This site cannot read its content from GitHub yet. Set up the GitHub App in /admin."
       },
       "login": {
         "title": "Sign in",
