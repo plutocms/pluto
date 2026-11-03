@@ -14,4 +14,6 @@ tags too (agreed).
 - [x] `useProducts`, `useProduct`, `useProductCategories` in `@plutocms/supabase-shop` (own PR, after
       the core release).
 - [x] Skills, FEATURES.md, docs (public API, Git CMS reading, shop layer).
-- [ ] Live check in the blog template; the shop template moves later.
+- [x] Live check in the blog template (test app on local core): list, search, post with SEO tags and
+      Edit Post, 404 (server status 404). Found and fixed: Nuxt's own `then` on the `useFetch`
+      result must not be copied (`withRefsOf`). The shop template moves later.

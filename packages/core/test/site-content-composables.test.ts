@@ -14,7 +14,14 @@ let itemError: unknown = null
 // Like useFetch: a promise that resolves to its own refs, with the refs on it.
 function asyncData(data: unknown, error: unknown = null) {
   const refs = { data: ref(data), error: ref(error), pending: ref(false) }
-  return Object.assign(Promise.resolve(refs), refs)
+  const promise = Object.assign(Promise.resolve(refs), refs)
+  // Nuxt puts its own then, catch and finally on the result, as own enumerable keys.
+  Object.defineProperties(promise, {
+    then: { enumerable: true, value: promise.then.bind(promise) },
+    catch: { enumerable: true, value: promise.catch.bind(promise) },
+    finally: { enumerable: true, value: promise.finally.bind(promise) },
+  })
+  return promise
 }
 
 vi.mock('../app/composables/pluto-public', () => ({

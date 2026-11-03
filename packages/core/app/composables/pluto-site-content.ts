@@ -28,11 +28,34 @@ export function extendPlutoAsyncData<R extends object, E extends object>(
   result: Promise<R> & R,
   extra: E
 ): Promise<R & E> & R & E {
-  return Object.assign(
+  return withRefsOf(
     result.then((value) => Object.assign(value, extra)),
     result,
     extra
   )
+}
+
+/**
+ * Copies the keys of `source` and `extra` onto the promise `target`, but not `then`, `catch` and
+ * `finally`: Nuxt puts them on the `useFetch` result as own keys, bound to its own promise. A
+ * copy would make an await of `target` wait for that promise and skip `target` itself.
+ */
+function withRefsOf<T extends Promise<unknown>, S extends object, E extends object>(
+  target: T,
+  source: S,
+  extra: E = {} as E
+): T & S & E {
+  for (const [key, value] of Object.entries(source)) {
+    if (key !== 'then' && key !== 'catch' && key !== 'finally') {
+      Object.defineProperty(target, key, {
+        value,
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      })
+    }
+  }
+  return Object.assign(target, extra) as T & S & E
 }
 
 /**
@@ -157,7 +180,7 @@ export function definePlutoContent<
     }
 
     const result = extendPlutoAsyncData(fetch, { item })
-    return Object.assign(
+    return withRefsOf(
       result.then((value) => {
         const error = fetch.error.value
         if (error && options.notFound !== 'null') {
