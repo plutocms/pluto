@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.52.0](https://github.com/plutocms/pluto/compare/v0.51.0...v0.52.0) (2026-11-03)
+
+
+### Features
+
+* History in the edit form: the saved versions of an item, a diff, and a restore that the user saves (Git CMS: commits) ([#389](https://github.com/plutocms/pluto/issues/389)) ([8ed08bd](https://github.com/plutocms/pluto/commit/8ed08bdf7bcce08c1e72ec1f87f94acb1ead2391))
+
 ## [0.51.0](https://github.com/plutocms/pluto/compare/v0.50.0...v0.51.0) (2026-11-03)
 
 
