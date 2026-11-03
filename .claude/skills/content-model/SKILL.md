@@ -352,7 +352,34 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
   `server/api/pluto/v1/content/[type]/*`, `shared/types/public-api.ts`, `shared/utils/public-api.ts`
   (`PLUTO_API_PREFIX`, `plutoContentApiPath`, `plutoPublicQueryParams`), `app/composables/pluto-public.ts`.
 - Composables: `usePlutoPublicList<T>(type, query)` and `usePlutoPublicItem<T>(type, id)`, `useFetch`
-  wrappers that run on the server. `data.value` is the answer above.
+  wrappers that run on the server. `data.value` is the answer above. The site composables below
+  wrap them.
+
+## Site composables
+
+`app/composables/pluto-site-content.ts`, inspired by Nuxt: one call gives a page what it needs.
+
+- `definePlutoContent<TItem, TSummary = TItem>(type, { list?, ogType? })` returns `useList` and
+  `useItem` for one public type. Core and the layers define their ready-made composables with it;
+  an app defines its own (`export const { useList: useEvents, useItem: useEvent } = ...`).
+- `useList(options)` (`PlutoContentListOptions`): `limit` (default 20, clamped 1..100), `search`,
+  `sort` and `filter` (values or getters), and `page`. `page` defaults to `?page=` of the URL;
+  setting the returned `page` pushes it (no key for page 1); a number or a getter fixes it;
+  `false` keeps page 1. A new search goes back to page 1. It returns the `useFetch` refs plus
+  `items`, `total`, `page`, `pages`.
+- `useItem(id, options)` (`PlutoContentItemOptions`): the `useFetch` refs plus `item`. Awaited,
+  a failure throws `createError` (404 for a missing item or a draft, else the status of the error)
+  unless `notFound: 'null'`. It calls `usePlutoEditLink` (`editLink: false` skips it) and
+  `useSeoMeta` (`seo: false` skips it): the title field, `excerpt` or `description`, `og:image`
+  from the first media field (absolute, with `useRequestURL().origin`), `og:type` from `ogType`.
+  Every composable call happens before the first `await`, so the Nuxt context is still there.
+- `extendPlutoAsyncData(result, keys)` adds named keys to the thenable result and to what it
+  resolves to. `usePosts` and `usePost` (core, type `post`, both backends, sorted by
+  `-publishedAt`, `og:type` article) add `posts` and `post`. `@plutocms/supabase-shop` adds
+  `useProducts`, `useProduct` and `useProductCategories` the same way.
+- Types (`shared/types/public-api.ts`): `PlutoPost`, `PlutoPostSummary`, the option interfaces.
+- Test: `test/site-content-composables.test.ts` (`usePlutoPublicList` / `usePlutoPublicItem`
+  mocked, the Nuxt auto-imports stubbed).
 - Tests: `test/public-api.test.ts` and `test/github-public.test.ts`.
 
 ## Capability enforcement: read is never checked here
