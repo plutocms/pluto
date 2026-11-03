@@ -31,8 +31,6 @@ export interface GithubMediaDriverOptions {
   /** The public dir of the site, relative to the repo root. Default `public`. */
   publicDir?: string
   getAccess: (event: H3Event) => Promise<PlutoGithubAccess | null>
-  /** Adds `[skip ci]` to the commit message, like the content commits. */
-  skipDeploy?: boolean
   /** How many times a commit tries again after an unrelated commit. Default 2. */
   retries?: number
 }
@@ -83,7 +81,9 @@ export function createGithubMediaDriver(
   const { store } = options
   const recordDir = `${options.dir.replace(/\/+$/, '')}/media`
   const publicDir = (options.publicDir ?? 'public').replace(/\/+$/, '')
-  const skipSuffix = options.skipDeploy ? ' [skip ci]' : ''
+  // A media commit never starts a deploy: the `/media/**` route serves a new file at run time,
+  // and the next save of published content deploys it.
+  const skipSuffix = ' [skip ci]'
   const retries = options.retries ?? 2
 
   const recordPath = (id: string) => `${recordDir}/${id}.md`

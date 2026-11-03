@@ -83,7 +83,7 @@ no shell command. Tests: `test/github-git-remote.test.ts`, `test/pluto-github-op
 | `github.appSlug`    | the env var, else `''`                  | The slug of the GitHub App.                                                                                                                                                                                                                                                                       |
 | `github.apiUrl`     | `'https://api.github.com'`              | The API base URL.                                                                                                                                                                                                                                                                                 |
 | `dir`               | `'content'`                             | Relative path. No `..`, no leading `/`, no drive letter. The module changes `\` to `/` and removes a trailing `/`.                                                                                                                                                                                |
-| `commit.skipDeploy` | `true`                                  | `true`: add `[skip ci]` to every commit message (the site reads the content at run time). `false`: a site that redeploys on each edit (a docs site, a static site); only a commit that changes no published content (a draft that stays a draft) gets `[skip ci]`. See "Skip a deploy on Vercel". |
+| `commit.skipDeploy` | `false`                                 | `false` (hybrid): only a commit that changes no published content (a draft that stays a draft) gets `[skip ci]`, so a published change deploys and refreshes the build snapshot. `true`: add `[skip ci]` to every commit message (no build after a save; the snapshot gets old). See "Hybrid" and "Skip a deploy on Vercel". |
 | `commit.local`      | `true`                                  | Local mode (`fs`, dev only): commit each save to the local Git repo of the project. No repo: Pluto only writes the files.                                                                                                                                                                         |
 | `cache.headTtl`     | `60`                                    | Seconds. Zero or more.                                                                                                                                                                                                                                                                            |
 | `cache.storage`     | `'cache'`                               | The Nitro storage mount for the cache.                                                                                                                                                                                                                                                            |
@@ -202,7 +202,7 @@ Conflict handling:
   to 2 times, but only if the target file did not change. Otherwise it gives 409.
 - Commit messages: `content(post): create "slug"`, `update`, `publish`, `unpublish`,
   `rename "a" -> "b"`, `delete`. `[skip ci]` is added to every commit when `skipDeploy` is on. When it
-  is off, `[skip ci]` is added only to a commit that changes no published content: a create, update,
+  is off (the default), `[skip ci]` is added only to a commit that changes no published content: a create, update,
   rename or delete of an item that is a draft before and after (`messageOf(type, verb, publicChange)`).
   A publish, an unpublish, and any change of a published item deploy. A type with no status is always
   public. Tests: `test/github-adapter.test.ts` ("skip marker").
@@ -272,8 +272,12 @@ When the CMS is on (see "On unless a backend layer is present"), and only then, 
   `runtime/shared/snapshot.ts`). The host builds from a checkout, so the files are there. When the
   server has no read token and no App credentials (a first deploy, before the setup), the store is
   `withBuildSnapshot` (`store/snapshot.ts`): an anonymous read goes to the snapshot (read only), a
-  call with a user token goes to GitHub. It warns once. With credentials it is the plain GitHub
-  store. With no snapshot either, the token provider answers 503 `pluto.github.errors.notConfigured`
+  call with a user token goes to GitHub. It warns once. With credentials it is
+  `withSnapshotFallback` (hybrid): an anonymous read goes to GitHub, and when GitHub fails (any error
+  but a conflict: an outage, a rate limit, a bad App key, the network) the same read goes to the
+  snapshot, so the public pages stay up. The snapshot ignores the head id, so a GitHub head can come
+  before a snapshot read. A call with a user token never falls back (the admin must not edit old
+  content). It warns at most once in 5 minutes. With no snapshot either, the token provider answers 503 `pluto.github.errors.notConfigured`
   ("Set up the GitHub App in /admin"), not the generic `githubUnavailable`. Media files are not in
   the snapshot: they are in `public/`, so the host serves them. GraphQL needs a token even for a
   public repo, so without the snapshot a fresh deploy reads nothing, public or private.
@@ -460,14 +464,24 @@ this only when a registered content type has a status (a type with no status has
 For GitHub Enterprise Server, set `plutoGithub.github.apiUrl` to `https://<host>/api/v3`. The OAuth
 pages use `https://<host>`. Any other API URL uses `https://github.com`.
 
+### Hybrid
+
+The default. A save is live at once: the server reads GitHub at run time, with the cache. A save of
+published content also starts a build (no `[skip ci]`), and the build bundles the content again
+(the snapshot). When GitHub fails, the public pages serve that snapshot (`withSnapshotFallback`). A
+draft save and a media commit keep `[skip ci]`: a draft is not public, and the `/media/**` route
+serves a new file until the next published save deploys it. A static output (GitHub Pages) changes
+only with a build, so it needs the default too. `commit.skipDeploy: true` turns the build off: a
+save is still live, but the snapshot and a static output get old.
+
 ### Skip a deploy on Vercel
 
 `commit.skipDeploy` adds `[skip ci]` to the commit message. GitHub Actions and many CI tools read
 that marker. Vercel does not read `[skip ci]` in a commit message. This is not confirmed by Vercel
 docs: treat it as a rule of thumb and test it on your project. To skip a Vercel build, use an
 Ignored Build Step script. It is a command that decides, from the project settings, whether
-to build. A site that must deploy on each edit sets `commit.skipDeploy: false`. Its draft saves still
-carry `[skip ci]`: a Vercel Ignored Build Step can read the commit message to skip them too.
+to build. With the default (`commit.skipDeploy: false`), draft saves and media commits carry
+`[skip ci]`: a Vercel Ignored Build Step can read the commit message to skip them too.
 
 ## Setup from the site
 
@@ -833,7 +847,7 @@ commit of the content branch that did not skip CI, next to the Save button. A dr
 deploy, so that commit has the builds that serve the site. A draft that was never public in the page
 (`isPublicItem` of `client-rules.ts`, read when the page opens and after each save) shows no status and
 calls nothing. It shows only for GitHub storage with
-`commit.skipDeploy` false (a save then starts a deploy). With the `fs` store, or with
+`commit.skipDeploy` false (the default: a save then starts a deploy). With the `fs` store, or with
 `skipDeploy` on, nothing shows. The module copies `skipDeploy` to `runtimeConfig.public.plutoGithub`,
 and `showBuildStatus` (`runtime/shared/client-rules.ts`) is the test.
 
@@ -891,7 +905,8 @@ registers it, lazy, only when `showBuildStatus` is true.
   small spinner shows by the Info button, and the popover says "Static build in progress". When the
   build fails, the item keeps "Live", the Info icon gets a warning tint, and the popover says "The
   static build failed. The site serves the change at run time until a build passes." On open, the item
-  shows "Live" once the status is known. Without `liveOnSave` nothing changes.
+  shows "Live" once the status is known. Without `liveOnSave` nothing changes. The post type sets
+  `liveOnSave`: the site reads the posts at run time.
 - Pending: a spinner and "Publishing…". Success: a check mark and "Live". Failure: an error icon
   and "Build failed". `none`, and a failed read: nothing. The text hides below `md`.
 - The Info button opens a popover (`UPopover`): the commit (short sha, message, time) and each

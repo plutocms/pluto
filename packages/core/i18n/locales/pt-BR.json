@@ -506,7 +506,7 @@
             "none": "Nenhum deploy ainda. Siga os passos acima.",
             "unknown": "O Pluto não consegue ler os deploys deste repositório. Para um repositório privado, configure o GitHub App ou um token de leitura no .env."
           },
-          "nodeAdmin": "Um admin em um host Node pode usar o mesmo site: defina commit.skipDeploy como false, para que cada salvamento de conteúdo publicado inicie uma geração."
+          "nodeAdmin": "Um admin em um host Node pode usar o mesmo site: cada salvamento de conteúdo publicado inicia a geração, e um salvamento de rascunho não."
         },
         "cloudflare": {
           "name": "Cloudflare Pages",

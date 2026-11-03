@@ -21,15 +21,20 @@ import { createAppTokenProvider } from '../github/app-token'
 import { createGithubMediaDriver } from '../media'
 import { createFsStore } from '../store/fs'
 import { createGithubStore } from '../store/github'
-import { createSnapshotStore, withBuildSnapshot } from '../store/snapshot'
+import {
+  createSnapshotStore,
+  withBuildSnapshot,
+  withSnapshotFallback,
+} from '../store/snapshot'
 import { createGithubCache } from './github-cache'
 import { getGithubSession } from './session'
 
 /**
  * Picks the store: the local files in dev with `fs`, otherwise GitHub. The
  * GitHub store reads for anonymous callers with the read token, or with an
- * installation token of the App. See `createAppTokenProvider`. With neither (a first deploy,
- * before the App), anonymous reads go to the snapshot of the build that `loadSnapshot` gives.
+ * installation token of the App. See `createAppTokenProvider`. The build bundles the content
+ * (`loadSnapshot`). With neither (a first deploy, before the App), anonymous reads go to it. With
+ * one, they go to GitHub, and to the bundled content when GitHub fails (hybrid).
  */
 export function createContentStore(
   config: GithubConfig,
@@ -63,8 +68,25 @@ export function createContentStore(
   const canRead = Boolean(
     config.readToken || (config.appId && config.privateKey)
   )
-  if (canRead || !loadSnapshot) {
+  if (!loadSnapshot) {
     return github
+  }
+  if (canRead) {
+    // At most one warning in 5 minutes, so an outage does not flood the log.
+    let warnedAt = -Infinity
+    return withSnapshotFallback(
+      github,
+      createSnapshotStore(loadSnapshot),
+      (error) => {
+        if (Date.now() - warnedAt < 5 * 60_000) {
+          return
+        }
+        warnedAt = Date.now()
+        console.warn(
+          `[pluto-github] GitHub did not answer (${error instanceof Error ? error.message : String(error)}): the public pages show the content of the last build.`
+        )
+      }
+    )
   }
   let told = false
   return withBuildSnapshot(github, createSnapshotStore(loadSnapshot), () => {
@@ -145,7 +167,6 @@ export function registerGithubContent(
       store,
       dir: config.dir,
       getAccess: getGithubAccess,
-      skipDeploy: config.skipDeploy,
     })
   )
 }

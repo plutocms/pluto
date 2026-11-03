@@ -77,7 +77,7 @@ export function getGithubConfig(): GithubConfig {
     hostSite: text(secret.hostSite),
     siteName: text((config.public as Record<string, unknown>).websiteName),
     skipDeploy:
-      secret.skipDeploy !== false && String(secret.skipDeploy) !== 'false',
+      secret.skipDeploy === true || String(secret.skipDeploy) === 'true',
     localCommit:
       secret.localCommit !== false && String(secret.localCommit) !== 'false',
     headTtl: Number.isFinite(Number(secret.headTtl))

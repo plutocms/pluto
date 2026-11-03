@@ -88,6 +88,9 @@ policies shared by every project here.
   session, the auth driver for the core admin shell, and the stores, adapter and post type (public on the public API).
   A deployed site bundles the Markdown of its content dir at build time: before the GitHub App or a
   read token exists (a first deploy), the public pages read that snapshot, and then GitHub live.
+  Hybrid by default: a save is live at once, a save of published content starts a build that
+  refreshes the snapshot (`commit.skipDeploy` is `false` by default), and when GitHub fails the
+  public pages serve the snapshot. The post type sets `liveOnSave`. Media commits skip the deploy.
   It also has a Markdown editor with a Visual/Source switch (`PlutoMarkdownSource`, `findUnsafeMarkdown`,
   the `editor` field option), the post editor (`widget: 'post-canvas'`: the canvas layout, an outline
   of the headings, a compose panel with a Visual mode and a Markdown mode (`PlutoMarkdownCodeEditor`,
@@ -99,7 +102,7 @@ policies shared by every project here.
   (`excerpt` in a list, `html` for one item, through `adapter.toPublic`), and `PlutoMarkdown` (an alias of the core `PlutoHtml`, which shows the sanitized `html` of any backend). The GitHub App is created from the site (App Manifest flow): the setup routes
   under `/api/_pluto/github/setup/` (`status`, `github/start`, `github/callback`), a result page with the
   env block, a `.env` write in development, a setup check on `/admin/login`, a **GitHub** tab in Settings,
-  and a private key in PEM, `\n` or base64 form. With `commit.skipDeploy` off, a draft save gets
+  and a private key in PEM, `\n` or base64 form. With `commit.skipDeploy` off (the default), a draft save gets
   `[skip ci]`, so only a change of published content deploys. The edit form shows the build status of the
   newest commit that did not skip CI (check runs, commit statuses, deployments) next to Save, for GitHub storage with
   `commit.skipDeploy` off: the route `GET /api/_pluto/github/build-status`, a pure reducer, a polling loop,

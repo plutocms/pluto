@@ -29,7 +29,10 @@ export interface PlutoGithubOptions {
   /** The folder of the content files, relative to the repo root. Default `content`. */
   dir?: string
   commit?: {
-    /** Add a skip-deploy marker to the commit message. Default `true`. */
+    /**
+     * `true`: add a skip-deploy marker (`[skip ci]`) to every commit message. `false` (default):
+     * only a commit that changes no published content gets it, so a published change deploys.
+     */
     skipDeploy?: boolean
     /**
      * Local mode (`fs`, dev only): commit each save to the local Git repo of the project.
@@ -160,7 +163,7 @@ export function resolvePlutoGithubOptions(
     },
     dir: 'content',
     commit: {
-      skipDeploy: options.commit?.skipDeploy ?? true,
+      skipDeploy: options.commit?.skipDeploy ?? false,
       local: options.commit?.local ?? true,
     },
     cache: {
