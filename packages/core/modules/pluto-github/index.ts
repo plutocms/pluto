@@ -150,7 +150,11 @@ export default defineNuxtModule<PlutoGithubOptions>({
     const resolver = createResolver(import.meta.url)
     const server = (file: string) => resolver.resolve('./runtime/server', file)
     // A route of the server build. A static build has no server, so it adds none.
-    const addRoute = (route: string, method: 'get' | 'post', file: string) => {
+    const addRoute = (
+      route: string,
+      method: 'get' | 'post' | 'delete',
+      file: string
+    ) => {
       if (!isStatic) {
         addServerHandler({ route, method, handler: server(file) })
       }
@@ -283,6 +287,11 @@ export default defineNuxtModule<PlutoGithubOptions>({
     // handler checks it).
     addRoute('/api/_pluto/github/deploy/status', 'get', 'api/deploy/status.get')
     addRoute('/api/_pluto/github/deploy/pages', 'post', 'api/deploy/pages.post')
+    addRoute(
+      '/api/_pluto/github/deploy/pages',
+      'delete',
+      'api/deploy/pages.delete'
+    )
     addRoute('/api/_pluto/github/deploy/dns', 'get', 'api/deploy/dns.get')
 
     // The people with write access to the repo, for the Users page. It needs a signed-in user.

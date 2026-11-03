@@ -143,6 +143,32 @@ async function setupPages() {
   }
 }
 
+// Remove: delete and commit the workflow (after a dialog). GitHub keeps the
+// last site until the author unpublishes it in the Pages settings.
+const removeOpen = ref(false)
+const removing = ref(false)
+const removeError = ref('')
+const removed = ref(false)
+
+async function removePages() {
+  removeOpen.value = false
+  removing.value = true
+  removeError.value = ''
+  try {
+    const result = await $fetch<PlutoPagesSetupResult>(
+      '/api/_pluto/github/deploy/pages',
+      { method: 'DELETE' }
+    )
+    status.value = result.status
+    removed.value = true
+    localGit.refresh()
+  } catch (error) {
+    removeError.value = errorText(error)
+  } finally {
+    removing.value = false
+  }
+}
+
 const pushError = ref('')
 async function push() {
   pushError.value = ''
@@ -464,9 +490,57 @@ const cloudflare = {
             </div>
           </template>
 
-          <p class="text-muted text-xs">
-            {{ t('pluto.github.deploy.pages.nodeAdmin') }}
-          </p>
+          <UAlert
+            v-if="removed && status?.local"
+            :title="t('pluto.github.deploy.remove.done.title')"
+            :description="t('pluto.github.deploy.remove.done.description')"
+            :actions="[
+              ...(localGit.ahead.value
+                ? [
+                    {
+                      label: t('pluto.github.local.push'),
+                      icon: 'i-lucide-upload',
+                      loading: localGit.pushing.value,
+                      onClick: push,
+                    },
+                  ]
+                : []),
+              {
+                label: t('pluto.github.deploy.pages.settings'),
+                to: pagesSettingsUrl,
+                target: '_blank',
+                color: 'neutral',
+                variant: 'outline',
+                trailingIcon: 'i-lucide-external-link',
+              },
+            ]"
+            color="info"
+            icon="i-lucide-info"
+            variant="subtle"
+          />
+          <UAlert
+            v-if="removeError"
+            :description="removeError"
+            color="error"
+            icon="i-lucide-circle-x"
+            variant="subtle"
+          />
+
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <p class="text-muted text-xs">
+              {{ t('pluto.github.deploy.pages.nodeAdmin') }}
+            </p>
+            <UButton
+              v-if="status?.local && status.workflow.exists"
+              :label="t('pluto.github.deploy.remove.action')"
+              :loading="removing"
+              color="error"
+              icon="i-lucide-trash-2"
+              size="sm"
+              variant="ghost"
+              @click="removeOpen = true"
+            />
+          </div>
         </div>
       </UCard>
 
@@ -564,6 +638,43 @@ const cloudflare = {
             :label="t('pluto.github.deploy.confirm.action')"
             icon="i-lucide-file-plus"
             @click="setupPages"
+          />
+        </div>
+      </template>
+    </UModal>
+
+    <UModal
+      v-if="status"
+      v-model:open="removeOpen"
+      :title="t('pluto.github.deploy.remove.title')"
+      :description="t('pluto.github.deploy.remove.description')"
+    >
+      <template #body>
+        <ul class="flex list-disc flex-col gap-y-1 pl-5 text-sm">
+          <li>
+            {{
+              t('pluto.github.deploy.remove.delete', {
+                path: status.workflow.path,
+              })
+            }}
+          </li>
+          <li>{{ t('pluto.github.deploy.remove.push') }}</li>
+          <li>{{ t('pluto.github.deploy.remove.unpublish') }}</li>
+        </ul>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton
+            :label="t('pluto.common.cancel')"
+            color="neutral"
+            variant="ghost"
+            @click="removeOpen = false"
+          />
+          <UButton
+            :label="t('pluto.github.deploy.remove.confirm')"
+            color="error"
+            icon="i-lucide-trash-2"
+            @click="removePages"
           />
         </div>
       </template>

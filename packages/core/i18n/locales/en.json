@@ -563,6 +563,19 @@
           "errors": {
             "invalid": "This is not a domain. Type a domain, such as blog.example.com."
           }
+        },
+        "remove": {
+          "action": "Remove GitHub Pages",
+          "title": "Remove GitHub Pages?",
+          "description": "Pluto changes your project. It changes nothing on GitHub.",
+          "delete": "Pluto deletes {path} and commits the change to the local repo.",
+          "push": "Then push, so that GitHub stops building the site.",
+          "unpublish": "The last site stays online until you select Unpublish site in the Pages settings of the repo.",
+          "confirm": "Remove",
+          "done": {
+            "title": "The workflow is removed",
+            "description": "Push your commits, so that GitHub stops building the site. To take the site offline, select Unpublish site in the Pages settings of the repo."
+          }
         }
       }
     },

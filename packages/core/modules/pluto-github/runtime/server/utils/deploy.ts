@@ -8,7 +8,7 @@ import type {
 import type { GithubConfig } from './github-config'
 import { resolve4, resolve6, resolveCname } from 'node:dns/promises'
 import { existsSync } from 'node:fs'
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { createError, getQuery, getRequestHost, setResponseHeader } from 'h3'
 import { createPlutoError } from '../../../../../server/utils/pluto-error'
@@ -219,6 +219,44 @@ export async function handleSetupPages(
     } catch (error) {
       // The file is written. A hook or a missing author stops the commit only.
       console.warn('[pluto-github] Could not commit the Pages workflow.', error)
+    }
+  }
+
+  const token = await readToken(config, true, '')
+  return { status: await buildStatus(event, true, token), committed }
+}
+
+/**
+ * Route: DELETE /api/_pluto/github/deploy/pages. Local mode on this computer only (404 otherwise).
+ * It deletes the workflow and commits the removal to the local repo. It changes nothing on GitHub:
+ * the push stops new builds, and the author unpublishes the site in the Pages settings of the repo.
+ */
+export async function handleRemovePages(
+  event: H3Event
+): Promise<PlutoPagesSetupResult> {
+  setResponseHeader(event, 'Cache-Control', 'no-store')
+  if (!isLocalMode(event)) {
+    throw createError({ statusCode: 404 })
+  }
+  const config = getGithubConfig()
+  const file = join(config.fsRoot, PAGES_WORKFLOW_PATH)
+
+  let committed = false
+  if (existsSync(file)) {
+    await unlink(file)
+    try {
+      const result = await commitLocalFiles(
+        config.fsRoot,
+        [PAGES_WORKFLOW_PATH],
+        'ci: stop deploying the site to GitHub Pages'
+      )
+      committed = result.committed
+    } catch (error) {
+      // The file is gone. A hook or a missing author stops the commit only.
+      console.warn(
+        '[pluto-github] Could not commit the removal of the Pages workflow.',
+        error
+      )
     }
   }
 

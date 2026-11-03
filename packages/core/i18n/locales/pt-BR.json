@@ -563,6 +563,19 @@
           "errors": {
             "invalid": "Isto não é um domínio. Digite um domínio, como blog.exemplo.com."
           }
+        },
+        "remove": {
+          "action": "Remover o GitHub Pages",
+          "title": "Remover o GitHub Pages?",
+          "description": "O Pluto altera o seu projeto. Ele não altera nada no GitHub.",
+          "delete": "O Pluto apaga {path} e faz o commit da mudança no repositório local.",
+          "push": "Depois faça o push, para o GitHub parar de gerar o site.",
+          "unpublish": "O último site fica no ar até você selecionar Unpublish site nas configurações do Pages do repositório.",
+          "confirm": "Remover",
+          "done": {
+            "title": "O workflow foi removido",
+            "description": "Faça o push dos seus commits, para o GitHub parar de gerar o site. Para tirar o site do ar, selecione Unpublish site nas configurações do Pages do repositório."
+          }
         }
       }
     },

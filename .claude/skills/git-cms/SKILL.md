@@ -1049,6 +1049,12 @@ The workflow runs on a push to the branch and by hand (`workflow_dispatch`, so t
   it (`ci: deploy the site to GitHub Pages`, with `commitLocalFiles`; a failed commit only logs).
   It changes nothing on GitHub. The answer: `{ status, committed }`. The author pushes to deploy
   (the Git badge counts the new commit).
+- `DELETE /api/_pluto/github/deploy/pages`: local mode only, else 404. It deletes the workflow and
+  commits the removal (`ci: stop deploying the site to GitHub Pages`). It changes nothing on GitHub.
+  The answer: `{ status, committed }` (`committed: false` when there was no file). The card shows
+  **Remove GitHub Pages** in local mode when the file exists, after a dialog. Then an alert gives a
+  Push button and the Pages settings link: the last site stays online until the author selects
+  **Unpublish site** there.
 - `GET /api/_pluto/github/deploy/dns?domain=<domain>` (signed-in user): `checkPagesDomain` with
   `node:dns/promises` (`resolveCname`, `resolve4`, `resolve6`). `ok` when every address is a
   GitHub Pages address (`GITHUB_PAGES_A`, `GITHUB_PAGES_AAAA`; a CNAME to `<owner>.github.io`

@@ -12,6 +12,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parse } from 'yaml'
 import dnsRoute from '../modules/pluto-github/runtime/server/api/deploy/dns.get'
+import removeRoute from '../modules/pluto-github/runtime/server/api/deploy/pages.delete'
 import pagesRoute from '../modules/pluto-github/runtime/server/api/deploy/pages.post'
 import statusRoute from '../modules/pluto-github/runtime/server/api/deploy/status.get'
 import { clearGithubUsersCache } from '../modules/pluto-github/runtime/server/utils/github-users'
@@ -216,6 +217,7 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     return createAuthApp((router) => {
       router.get('/api/_pluto/github/deploy/status', statusRoute)
       router.post('/api/_pluto/github/deploy/pages', pagesRoute)
+      router.delete('/api/_pluto/github/deploy/pages', removeRoute)
       router.get('/api/_pluto/github/deploy/dns', dnsRoute)
     })
   }
@@ -389,6 +391,47 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     )
     expect(response.status).toBe(404)
     expect(existsSync(join(root, PAGES_WORKFLOW_PATH))).toBe(false)
+  })
+
+  it('removes the workflow with a commit, and changes nothing on GitHub', async () => {
+    await app().request('/api/_pluto/github/deploy/pages', POST_LOCAL)
+    const DELETE_LOCAL = { ...POST_LOCAL, method: 'DELETE' }
+    const response = await app().request(
+      '/api/_pluto/github/deploy/pages',
+      DELETE_LOCAL
+    )
+    expect(response.status).toBe(200)
+    const body = await response.json()
+    expect(body.committed).toBe(true)
+    expect(body.status.workflow).toMatchObject({
+      exists: false,
+      current: false,
+    })
+    expect(existsSync(join(root, PAGES_WORKFLOW_PATH))).toBe(false)
+    const git = (...args: string[]) =>
+      execFileSync('git', args, { cwd: root }).toString().trim()
+    expect(git('log', '-1', '--format=%s')).toBe(
+      'ci: stop deploying the site to GitHub Pages'
+    )
+    expect(git('status', '--porcelain')).toBe('')
+    expect(api.calls.every((call) => call.method === 'GET')).toBe(true)
+
+    // A second run has nothing to remove.
+    const again = await (
+      await app().request('/api/_pluto/github/deploy/pages', DELETE_LOCAL)
+    ).json()
+    expect(again.committed).toBe(false)
+  })
+
+  it('refuses the removal outside local mode', async () => {
+    await app().request('/api/_pluto/github/deploy/pages', POST_LOCAL)
+    resetTestConfig(undefined, { dev: false, storage: 'fs', fsRoot: root })
+    const response = await app().request('/api/_pluto/github/deploy/pages', {
+      ...POST_LOCAL,
+      method: 'DELETE',
+    })
+    expect(response.status).toBe(404)
+    expect(existsSync(join(root, PAGES_WORKFLOW_PATH))).toBe(true)
   })
 
   describe('the DNS check', () => {
