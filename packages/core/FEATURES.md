@@ -113,8 +113,11 @@ policies shared by every project here.
   keeps the admin out, and takes a sub path from `PLUTO_BASE_URL` (`PlutoHtml` puts it before the
   site paths of a post body). A **Deploy** tab in Settings (`/admin/settings/deploy`) puts the site
   on a host: import links for Vercel and Netlify, a Node host guide, Cloudflare Pages build settings,
-  and GitHub Pages (in local mode it writes and commits the workflow and turns Pages on with the
-  GitHub CLI). @.claude/skills/git-cms/SKILL.md
+  and GitHub Pages (in local mode it writes and commits the workflow after a dialog, links to the
+  Pages settings, and reads the last deploy with the GitHub API; no CLI). Its Domain section links to
+  the domain settings of the host (the host is found at build time), and for GitHub Pages gives the
+  steps, the DNS records and a DNS check from the server. In local mode, Remove GitHub Pages deletes and
+  commits the workflow, then links to the Pages settings to unpublish. @.claude/skills/git-cms/SKILL.md
 - Lazy admin components: core registers its field widgets and dashboard widgets with
   `defineAsyncComponent`, shows a skeleton per field, widget and settings panel while a chunk
   loads, and warns in dev about a registered component that is not async.

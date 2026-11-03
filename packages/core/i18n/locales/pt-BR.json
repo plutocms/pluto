@@ -481,42 +481,31 @@
         },
         "pages": {
           "name": "GitHub Pages",
-          "description": "Uma GitHub Action compila o site a cada push e o coloca no GitHub Pages. A compilação não precisa de segredo.",
-          "ready": "Pronto",
+          "description": "Uma GitHub Action gera o site a cada push e o publica no GitHub Pages. A geração não precisa de segredo, e você não precisa de nenhuma ferramenta além do Git.",
+          "online": "No ar",
           "open": "Abrir o site",
-          "setup": "Configurar o GitHub Pages",
+          "setup": "Adicionar o workflow",
           "settings": "Configurações do Pages no GitHub",
           "showWorkflow": "Mostrar o workflow",
-          "hideWorkflow": "Esconder o workflow",
+          "hideWorkflow": "Ocultar o workflow",
           "workflow": {
             "done": "O workflow está no projeto:",
             "old": "O workflow está no projeto, mas o Pluto tem uma versão nova:",
-            "missing": "O workflow ainda não está no projeto:"
+            "missing": "O workflow ainda não está no projeto:",
+            "manual": "Adicione este workflow ao repositório:"
           },
-          "state": {
-            "on": "O GitHub Pages está ligado, com o GitHub Actions como fonte.",
-            "legacy": "O GitHub Pages está ligado, mas compila de uma branch. Configurar o passa para o GitHub Actions.",
-            "off": "O GitHub Pages está desligado no repositório."
+          "source": "Nas configurações do Pages do repositório, defina Source como GitHub Actions. Isto é feito uma vez só.",
+          "push": "Faça o push dos seus commits. Cada push gera o site de novo.",
+          "check": "Verificar de novo",
+          "runs": "Abrir o log da geração",
+          "deploy": {
+            "success": "O site está no ar em {url}.",
+            "failure": "A última geração falhou. Confira se Source é GitHub Actions nas configurações do Pages. Depois abra o log da geração.",
+            "pending": "O GitHub está gerando o site. Isto leva alguns minutos.",
+            "none": "Nenhum deploy ainda. Siga os passos acima.",
+            "unknown": "O Pluto não consegue ler os deploys deste repositório. Para um repositório privado, configure o GitHub App ou um token de leitura no .env."
           },
-          "reason": {
-            "no-gh": "O Pluto não consegue ver o GitHub Pages: o GitHub CLI (gh) não está instalado. Configurar ainda grava o workflow. Depois ligue o Pages nas configurações do repositório.",
-            "signed-out": "O Pluto não consegue ver o GitHub Pages: o GitHub CLI não está conectado. Rode gh auth login, ou ligue o Pages nas configurações do repositório.",
-            "error": "O Pluto não consegue ver o GitHub Pages do repositório."
-          },
-          "done": {
-            "title": "O GitHub Pages está configurado",
-            "description": "Envie seus commits para publicar: use o selo do Git na barra, ou rode git push. A primeira compilação leva alguns minutos."
-          },
-          "partial": {
-            "title": "O workflow está pronto",
-            "description": "O Pluto não conseguiu ligar o GitHub Pages. Abra as configurações do Pages do repositório e escolha GitHub Actions como fonte. Depois envie seus commits."
-          },
-          "manual": {
-            "step1": "Adicione o workflow abaixo ao repositório, no caminho que ele mostra.",
-            "step2": "Nas configurações do Pages do repositório, escolha GitHub Actions como fonte.",
-            "step3": "Faça o push. A Action compila e publica o site."
-          },
-          "nodeAdmin": "Um admin em um host Node pode usar o mesmo site: defina commit.skipDeploy como false, para que cada salvamento de conteúdo publicado inicie uma compilação."
+          "nodeAdmin": "Um admin em um host Node pode usar o mesmo site: defina commit.skipDeploy como false, para que cada salvamento de conteúdo publicado inicie uma geração."
         },
         "cloudflare": {
           "name": "Cloudflare Pages",
@@ -524,6 +513,70 @@
           "command": "Comando de compilação",
           "output": "Pasta de saída",
           "action": "Abrir a Cloudflare"
+        },
+        "confirm": {
+          "title": "Adicionar o workflow do GitHub Pages?",
+          "description": "O Pluto altera o seu projeto. Ele não altera nada no GitHub.",
+          "write": "O Pluto escreve {path} e faz o commit no repositório local.",
+          "github": "Depois você define a fonte do GitHub Pages nas configurações do repositório.",
+          "push": "Nada vai ao ar antes do seu push.",
+          "action": "Adicionar o workflow"
+        },
+        "domain": {
+          "title": "Domínio",
+          "description": "Use o seu próprio domínio, como blog.exemplo.com. Adicione o domínio no host do site. Depois adicione os registros DNS no seu registrador de domínio.",
+          "hosts": {
+            "title": "No host do app",
+            "description": "O host serve o domínio e obtém o certificado HTTPS.",
+            "current": "Este app roda em {host}, no endereço {domain}.",
+            "open": "Abrir as configurações de domínio",
+            "vercel": "Domínios na Vercel",
+            "netlify": "Domínios na Netlify",
+            "cloudflare": "Domínios no Cloudflare Pages"
+          },
+          "pages": {
+            "name": "GitHub Pages",
+            "description": "O domínio fica nas configurações do Pages do repositório. Um arquivo CNAME não tem efeito: o GitHub o ignora quando uma Action gera o site.",
+            "current": "O site usa o domínio {domain}.",
+            "label": "Seu domínio",
+            "placeholder": "blog.exemplo.com",
+            "steps": {
+              "settings": "Nas configurações do Pages do repositório, digite o domínio em Custom domain e salve.",
+              "build": "Gere o site de novo, para que ele use o novo endereço. Abra o workflow e selecione Run workflow, ou faça o push de um commit.",
+              "https": "Quando o GitHub tiver o certificado HTTPS, ative Enforce HTTPS nas configurações do Pages. Isto pode levar até uma hora."
+            },
+            "openWorkflow": "Abrir o workflow",
+            "dns": {
+              "title": "No seu registrador de domínio, adicione estes registros DNS:",
+              "typeFirst": "Digite o seu domínio acima para ver os registros.",
+              "apex": "Um domínio raiz, como exemplo.com",
+              "subdomain": "Um subdomínio, como blog.exemplo.com",
+              "type": "Tipo",
+              "name": "Nome",
+              "value": "Valor",
+              "check": "Verificar o DNS",
+              "ok": "Os registros DNS de {domain} apontam para o GitHub Pages.",
+              "missing": "O Pluto ainda não encontra registros DNS para {domain}. Registros novos podem levar algumas horas para funcionar.",
+              "other": "{domain} aponta para outro lugar: {found}. Altere os registros como a tabela mostra."
+            },
+            "remove": "Para remover o domínio, apague-o nas configurações do Pages. Depois gere o site de novo."
+          },
+          "errors": {
+            "invalid": "Isto não é um domínio. Digite um domínio, como blog.exemplo.com."
+          }
+        },
+        "remove": {
+          "action": "Remover o GitHub Pages",
+          "title": "Remover o GitHub Pages?",
+          "description": "O Pluto altera o seu projeto. Ele não altera nada no GitHub.",
+          "delete": "O Pluto apaga {path} e faz o commit da mudança no repositório local.",
+          "push": "Depois faça o push, para o GitHub parar de gerar o site.",
+          "unpublish": "O último site fica no ar até você selecionar Unpublish site nas configurações do Pages do repositório.",
+          "confirm": "Remover",
+          "done": {
+            "title": "O workflow foi removido",
+            "description": "Faça o push dos seus commits, para o GitHub parar de gerar o site. Para tirar o site do ar, selecione Unpublish site nas configurações do Pages do repositório."
+          }
         }
       }
     },

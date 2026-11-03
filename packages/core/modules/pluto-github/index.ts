@@ -12,6 +12,7 @@ import {
 } from '@nuxt/kit'
 import { readGitOrigin } from './git-remote'
 import { PLUTO_GITHUB_SECRET_ENV, resolvePlutoGithubOptions } from './options'
+import { detectDeployHost } from './runtime/shared/domain'
 
 export type { PlutoGithubOptions } from './options'
 
@@ -104,6 +105,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
       secrets[toCamelCase(name)] = ''
     }
 
+    const deployHost = detectDeployHost(process.env)
+
     // Non-secret settings for the server code. They stay out of the public
     // config. `fsRoot` is set for the dev `fs` store only.
     Object.assign(secrets, {
@@ -117,6 +120,9 @@ export default defineNuxtModule<PlutoGithubOptions>({
       fsRoot: resolved.storage === 'fs' ? nuxt.options.rootDir : '',
       // Development only: the setup writes the `.env` file there.
       rootDir: nuxt.options.dev ? nuxt.options.rootDir : '',
+      // The host that builds the app (Vercel, Netlify). The Deploy tab links to its domain settings.
+      host: deployHost.id,
+      hostSite: deployHost.site,
     })
 
     nuxt.options.runtimeConfig.plutoGithub =
@@ -144,7 +150,11 @@ export default defineNuxtModule<PlutoGithubOptions>({
     const resolver = createResolver(import.meta.url)
     const server = (file: string) => resolver.resolve('./runtime/server', file)
     // A route of the server build. A static build has no server, so it adds none.
-    const addRoute = (route: string, method: 'get' | 'post', file: string) => {
+    const addRoute = (
+      route: string,
+      method: 'get' | 'post' | 'delete',
+      file: string
+    ) => {
       if (!isStatic) {
         addServerHandler({ route, method, handler: server(file) })
       }
@@ -272,10 +282,17 @@ export default defineNuxtModule<PlutoGithubOptions>({
     // The build status of the head commit. It needs a signed-in user.
     addRoute('/api/_pluto/github/build-status', 'get', 'api/build-status.get')
 
-    // The Deploy tab: the facts of the hosts (signed-in user), and the GitHub Pages setup (local
-    // mode on this computer only; the handler checks it).
+    // The Deploy tab: the facts of the hosts and the last Pages deploy, the DNS check of a domain
+    // (signed-in user), and the GitHub Pages workflow setup (local mode on this computer only; the
+    // handler checks it).
     addRoute('/api/_pluto/github/deploy/status', 'get', 'api/deploy/status.get')
     addRoute('/api/_pluto/github/deploy/pages', 'post', 'api/deploy/pages.post')
+    addRoute(
+      '/api/_pluto/github/deploy/pages',
+      'delete',
+      'api/deploy/pages.delete'
+    )
+    addRoute('/api/_pluto/github/deploy/dns', 'get', 'api/deploy/dns.get')
 
     // The people with write access to the repo, for the Users page. It needs a signed-in user.
     addRoute('/api/_pluto/github/users', 'get', 'api/users.get')

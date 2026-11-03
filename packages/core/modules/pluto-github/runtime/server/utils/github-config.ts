@@ -1,3 +1,4 @@
+import type { PlutoDeployHostId } from '../../shared/domain'
 import type { GithubFetch } from '../github/client'
 import { useRuntimeConfig } from 'nitropack/runtime'
 
@@ -19,6 +20,10 @@ export interface GithubConfig {
   fsRoot: string
   /** The project root. Set in development only. The setup writes `.env` there. */
   rootDir: string
+  /** The host that built the app: `vercel`, `netlify`, or empty. */
+  host: PlutoDeployHostId
+  /** Vercel: the production domain. Netlify: the site name. */
+  hostSite: string
   /** The site name (`websiteName`), or an empty string. */
   siteName: string
   skipDeploy: boolean
@@ -67,6 +72,9 @@ export function getGithubConfig(): GithubConfig {
     dir: text(open.dir, 'content'),
     fsRoot: text(secret.fsRoot),
     rootDir: text(secret.rootDir),
+    host:
+      secret.host === 'vercel' || secret.host === 'netlify' ? secret.host : '',
+    hostSite: text(secret.hostSite),
     siteName: text((config.public as Record<string, unknown>).websiteName),
     skipDeploy:
       secret.skipDeploy !== false && String(secret.skipDeploy) !== 'false',

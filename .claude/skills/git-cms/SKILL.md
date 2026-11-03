@@ -1013,42 +1013,93 @@ order 160, `i-lucide-rocket`) is in the CMS client plugin. The module adds the r
   After the first deploy, the setup of the login page creates the GitHub App.
 - **A static site** (the admin stays local, see "Static build"): GitHub Pages and Cloudflare Pages
   (the build command `npx nuxt generate` and the output `.output/public`, with Copy buttons).
-- GitHub Pages in local mode: the checklist (the workflow file, the Pages state), **Set up GitHub
-  Pages**, a link to the Pages settings of the repo, and the workflow text. Outside local mode: the
-  steps by hand and the workflow to copy.
+- GitHub Pages: four steps with a check icon each. (1) The workflow file: in local mode **Add the
+  workflow**, after a dialog; outside local mode the workflow to copy. (2) Set Source to GitHub Actions
+  in the Pages settings of the repo (a link). (3) Push (in local mode a Push button with the count of
+  the Git badge). (4) The last deploy, with **Check again** and a link to the build log.
+
+The tab runs no CLI. Do not add one: the user may not have the GitHub CLI. Pluto writes files and
+reads public facts. The author does each change on GitHub in the GitHub settings, from a link.
 
 ### The workflow
 
 `runtime/shared/pages-workflow.ts` (pure): `renderPagesWorkflow({ branch, packageManager })`,
 `detectPackageManager(files)` (the lock file: `bun.lock`/`bun.lockb`, `pnpm-lock.yaml`, `yarn.lock`,
 else npm), `defaultPagesUrl(repo)` and `PAGES_WORKFLOW_PATH` (`.github/workflows/pluto-pages.yml`).
-The workflow runs on a push to the branch and by hand: checkout, `configure-pages@v5`, the setup and
-install of the package manager, `nuxt generate --preset github_pages` (generate, not build: Nuxt Icon sees a static build only through `nuxt generate`, then reads icons from the Iconify API and bundles the custom collections; with `nuxt build` it asks the missing `/api/_nuxt_icon` route and the icons of a page opened in the browser stay blank) with
-`PLUTO_BASE_URL: ${{ steps.pages.outputs.base_path }}`, `upload-pages-artifact@v3` (`.output/public`),
-then `deploy-pages@v4`. Permissions: `contents: read`, `pages: write`, `id-token: write`. It needs no
-secret.
+The workflow runs on a push to the branch and by hand (`workflow_dispatch`, so the workflow page has
+**Run workflow**): checkout, `configure-pages@v5`, the setup and install of the package manager,
+`nuxt generate --preset github_pages` with `PLUTO_BASE_URL: ${{ steps.pages.outputs.base_path }}`,
+`upload-pages-artifact@v3` (`.output/public`), then `deploy-pages@v4`. Permissions:
+`contents: read`, `pages: write`, `id-token: write`. It needs no secret. It runs `generate`, not
+`build`: Nuxt Icon sees a static build only through `nuxt generate`. Then it reads icons from the
+Iconify API and bundles the custom collections. With `nuxt build` it asks the missing
+`/api/_nuxt_icon` route, and the icons of a page opened in the browser stay blank.
 
 ### Routes
 
 - `GET /api/_pluto/github/deploy/status` (signed-in user): `PlutoDeployStatus`
   (`runtime/shared/deploy.ts`): `repo`, `branch`, `local`, `packageManager`, `workflow` (`path`,
-  `text`; in local mode also `exists` and `current`), `pagesUrl`, and in local mode `pages`.
+  `text`; in local mode also `exists` and `current`), `deploy`, `pagesUrl`, `host`, and outside
+  local mode `siteHost` (the request host).
+- `deploy` (`readPagesDeploy`): the newest deployment of the `github-pages` environment
+  (`/repos/<repo>/deployments?environment=github-pages&per_page=1`) and its newest status.
+  `success` (also `inactive`), `failure` (`failure`, `error`), `pending` (any other state, or no
+  status), `none` (no deployment), `unknown` (no answer). `url` is `environment_url`: the live
+  address, a custom domain included. `logUrl` is `log_url` or `target_url`. It reads with a token
+  first, then with no token: a public repo needs none (the Pages API itself needs a token even for a
+  public repo, so Pluto does not read it). The token: the signed-in user's on a live admin; in local
+  mode the read token or the App token (`localReadToken`, shared with the Users page). It never
+  throws.
 - `POST /api/_pluto/github/deploy/pages`: local mode on this computer only (a dev build, the `fs`
-  store, `isLocalRequest`), else 404. It writes the workflow when it is missing or old, commits it
-  (`ci: deploy the site to GitHub Pages`, with `commitLocalFiles`; a failed commit only logs), and
-  calls `enablePages`. The answer: `{ status, committed, pagesOn }`. The author pushes to deploy (the
-  Git badge counts the new commit).
-- `readPagesState(repo)` runs `gh api repos/<repo>/pages` (30 s timeout, `GH_PROMPT_DISABLED`):
-  `on` with `url` and `source` (`workflow` or `legacy`), `off` on a 404, or `unknown` with a reason
-  (`no-gh`, `signed-out`, `error`). `enablePages` sends `POST` (Pages off) or `PUT` (a branch site)
-  with `build_type=workflow`. The repo name must match `owner/name` before it goes in a `gh` path.
+  store, `isLocalRequest`), else 404. It writes the workflow when it is missing or old and commits
+  it (`ci: deploy the site to GitHub Pages`, with `commitLocalFiles`; a failed commit only logs).
+  It changes nothing on GitHub. The answer: `{ status, committed }`. The author pushes to deploy
+  (the Git badge counts the new commit).
+- `DELETE /api/_pluto/github/deploy/pages`: local mode only, else 404. It deletes the workflow and
+  commits the removal (`ci: stop deploying the site to GitHub Pages`). It changes nothing on GitHub.
+  The answer: `{ status, committed }` (`committed: false` when there was no file). The card shows
+  **Remove GitHub Pages** in local mode when the file exists, after a dialog. Then an alert gives a
+  Push button and the Pages settings link: the last site stays online until the author selects
+  **Unpublish site** there.
+- `GET /api/_pluto/github/deploy/dns?domain=<domain>` (signed-in user): `checkPagesDomain` with
+  `node:dns/promises` (`resolveCname`, `resolve4`, `resolve6`). `ok` when every address is a
+  GitHub Pages address (`GITHUB_PAGES_A`, `GITHUB_PAGES_AAAA`; a CNAME to `<owner>.github.io`
+  resolves to them too), `other` (`found` lists the CNAME targets and the addresses), `missing` (no
+  record). A bad domain gives 400 `pluto.github.deploy.domain.errors.invalid`.
 
-Text: `pluto.github.deploy.*`, `pluto.settings.tabs.deploy`, `pluto.common.copy` and `copied`. Tests:
-`test/github-deploy.test.ts` (the workflow as YAML for each package manager, the status, the setup
-with a fake `gh`, a branch site, no `gh`, `gh` signed out, 404 outside local mode).
+**Add the workflow** opens a dialog first: Pluto writes and commits the file, it changes nothing on
+GitHub, and nothing is online before a push.
 
-Not checked live yet: a real push that runs the workflow on GitHub. It needs a core release with the
-static build.
+### Domain
+
+The **Domain** section of the tab is `PlutoGithubDeployDomain.vue`. Pure helpers are in
+`runtime/shared/domain.ts`.
+
+- A full-site host serves its own domain. The module reads the host at build time
+  (`detectDeployHost(process.env)`: `VERCEL` with `VERCEL_PROJECT_PRODUCTION_URL`, `NETLIFY=true` with
+  `SITE_NAME`) into the private config (`host`, `hostSite`). On a known host, the section shows
+  "This app runs on <host> at <domain>" and one link. Else it links to all three hosts.
+  `hostDomainSettingsUrl`: Vercel `vercel.com/d?to=/[team]/[project]/settings/domains` (Vercel asks
+  for the team and the project), Netlify `app.netlify.com/projects/<site>/domain-management`,
+  Cloudflare the Workers and Pages list.
+- GitHub Pages: GitHub ignores a `CNAME` file when an Action builds the site, so Pluto writes none.
+  The domain is in the Pages settings of the repo. The section shows the current custom domain (the
+  host of `deploy.url` when it is not `*.github.io`), a domain field (`normalizeDomain`: lowercase;
+  it removes a scheme and a trailing `/`; it refuses an IP address, a path, a port or one label) and
+  four steps: type the domain in the Pages settings (a link); add the DNS records (a CNAME to
+  `<owner>.github.io` for a subdomain, the four A and four AAAA records for an apex domain;
+  `isApexDomain` guesses and a toggle switches) and **Check the DNS**; build again (a link to the
+  workflow page, because a new domain changes the base path); turn on Enforce HTTPS when the
+  certificate is ready.
+
+Text: `pluto.github.deploy.*` (with `confirm.*` and `domain.*`), `pluto.settings.tabs.deploy`,
+`pluto.common.copy` and `copied`, and `pluto.github.local.push` and `ahead`. Tests:
+`test/github-deploy.test.ts` (the workflow as YAML for each package manager, the domain helpers, the
+status in local mode and on a live admin, the last deploy with no token, with the read token of a
+private repo and with the user token, the setup with no write to GitHub, 404 outside local mode, and
+the DNS check with a fake `node:dns/promises`).
+
+Not checked live yet: a real push that runs the workflow on GitHub.
 
 ## Static build
 

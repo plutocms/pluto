@@ -27,8 +27,8 @@ export function clearGithubUsersCache(): void {
   appTokens = undefined
 }
 
-/** The token of the App (or the read token), for local mode. One provider per config. */
-function appToken(config: GithubConfig): Promise<string> {
+/** The token of the App (or the read token), for local mode. One provider per config. The deploy status uses it too. */
+export function localReadToken(config: GithubConfig): Promise<string> {
   const key = [config.repo, config.appId, config.apiUrl, config.readToken].join(
     '\n'
   )
@@ -99,7 +99,7 @@ export async function handleGithubUsers(
   let token = session.token
   if (local) {
     try {
-      token = await appToken(config)
+      token = await localReadToken(config)
     } catch {
       // The App is not installed on the repo, or its key is wrong. The provider logs the cause.
       return { ...base, reason: 'app-error' }

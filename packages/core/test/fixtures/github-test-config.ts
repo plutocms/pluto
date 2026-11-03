@@ -14,6 +14,8 @@ function baseConfig(): GithubConfig {
     dir: 'content',
     fsRoot: '',
     rootDir: '',
+    host: '',
+    hostSite: '',
     siteName: 'Acme',
     skipDeploy: false,
     localCommit: false,
