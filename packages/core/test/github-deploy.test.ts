@@ -142,7 +142,7 @@ describe('the Pages workflow', () => {
         uses?: string
         env?: Record<string, string>
       }>
-      const build = steps.find((step) => step.run?.includes('nuxt build'))!
+      const build = steps.find((step) => step.run?.includes('nuxt generate'))!
       expect(build.run).toContain('--preset github_pages')
       expect(build.env).toEqual({
         // eslint-disable-next-line no-template-curly-in-string -- a GitHub Actions expression
@@ -281,7 +281,7 @@ describe('the deploy routes', { timeout: 30000 }, () => {
       pagesUrl: 'https://acme.github.io/site/',
       host: { id: 'netlify', site: 'acme' },
     })
-    expect(body.workflow.text).toContain('bunx nuxt build')
+    expect(body.workflow.text).toContain('bunx nuxt generate')
   })
 
   it('reads the last deploy with no token for a public repo', async () => {

@@ -291,7 +291,7 @@
       },
       "setup": {
         "title": "Configure o login com GitHub",
-        "intro": "O CMS precisa de um GitHub App para entrar com os editores. Veja a lista abaixo e crie o App.",
+        "intro": "O CMS precisa de um GitHub App para conectar os editores. Crie-o com o botão abaixo. A checklist mostra o que falta.",
         "checklist": "Lista de configuração",
         "done": "Pronto",
         "missing": "Faltando",
@@ -373,7 +373,8 @@
             "github": "O GitHub não aceitou a configuração. Comece de novo.",
             "retry": "Começar de novo"
           }
-        }
+        },
+        "progress": "{done} de {total} feitos"
       },
       "backend": {
         "local": "Local",

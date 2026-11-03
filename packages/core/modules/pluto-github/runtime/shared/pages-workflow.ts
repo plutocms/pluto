@@ -23,7 +23,12 @@ function actionsExpression(expression: string): string {
   return ['$', '{{ ', expression, ' }}'].join('')
 }
 
-/** The setup and install steps of each package manager, and the build command, as YAML lines. */
+/**
+ * The setup and install steps of each package manager, and the build command, as YAML lines. The
+ * command is `nuxt generate`, not `nuxt build`: Nuxt Icon sees a static site only through
+ * `generate`. Then it reads icons from the Iconify API in the browser, instead of the
+ * `/api/_nuxt_icon` route that a static site does not have.
+ */
 function buildSteps(manager: PackageManager): {
   setup: string[]
   build: string
@@ -40,7 +45,7 @@ function buildSteps(manager: PackageManager): {
           '      - uses: oven-sh/setup-bun@v2',
           '      - run: bun install --frozen-lockfile',
         ],
-        build: 'bunx nuxt build --preset github_pages',
+        build: 'bunx nuxt generate --preset github_pages',
       }
     case 'pnpm':
       return {
@@ -50,7 +55,7 @@ function buildSteps(manager: PackageManager): {
           '          cache: pnpm',
           '      - run: pnpm install --frozen-lockfile',
         ],
-        build: 'pnpm exec nuxt build --preset github_pages',
+        build: 'pnpm exec nuxt generate --preset github_pages',
       }
     case 'yarn':
       return {
@@ -59,12 +64,12 @@ function buildSteps(manager: PackageManager): {
           '          cache: yarn',
           '      - run: yarn install --frozen-lockfile',
         ],
-        build: 'yarn nuxt build --preset github_pages',
+        build: 'yarn nuxt generate --preset github_pages',
       }
     default:
       return {
         setup: [...node, '          cache: npm', '      - run: npm ci'],
-        build: 'npx nuxt build --preset github_pages',
+        build: 'npx nuxt generate --preset github_pages',
       }
   }
 }

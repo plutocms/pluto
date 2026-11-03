@@ -539,14 +539,17 @@ and the base64 of the PEM (no `-----BEGIN` in the value: it decodes, and uses th
 ### In the admin
 
 - The login card (`PlutoGithubSignIn`): when the status says `ready: false`, it shows
-  `PlutoGithubSetupPanel` (a warning, the checklist with a short fix for each missing item, the
-  **Create the GitHub App** button when `canCreateApp`, an **Install the App** link when the
-  installation check fails and the slug is known, and a link to the quickstart). The Sign in button
-  is disabled while `ready` is false. A failed status read keeps it on.
+  `PlutoGithubSetupPanel`: a warning, then the actions first (the **Create the GitHub App** button
+  when `canCreateApp`, an **Install the App** link when the installation check fails and the slug
+  is known, and a link to the quickstart), then the checklist with a short fix for each missing
+  item. The checklist is folded (`UCollapsible`, the trigger shows "2 of 6 done",
+  `pluto.github.setup.progress`). It opens by itself only when the panel has no action button. The
+  Sign in button is disabled while `ready` is false. A failed status read keeps it on.
 - The **GitHub** tab of Settings: `/admin/settings/github`. The `settingsPages` entry (id `github`,
   order 150, no capability) is in the CMS client plugin. The module adds the route with
   `extendPages`, as a child of `settings`, from `app/components/Pluto/Github/PlutoGithubSettingsPage.vue`.
-  It shows the same checklist, the callback URL to use (with a Copy button) and the Create button.
+  It shows the same panel (the Create button, then the folded checklist) and the callback URL to use
+  (with a Copy button).
 - `usePlutoGithubSetup()` (`runtime/app/composables/pluto-github-setup.ts`) reads the status after
   hydration (`server: false`, key `pluto-github-setup`).
 
@@ -1025,9 +1028,12 @@ reads public facts. The author does each change on GitHub in the GitHub settings
 else npm), `defaultPagesUrl(repo)` and `PAGES_WORKFLOW_PATH` (`.github/workflows/pluto-pages.yml`).
 The workflow runs on a push to the branch and by hand (`workflow_dispatch`, so the workflow page has
 **Run workflow**): checkout, `configure-pages@v5`, the setup and install of the package manager,
-`nuxt build --preset github_pages` with `PLUTO_BASE_URL: ${{ steps.pages.outputs.base_path }}`,
+`nuxt generate --preset github_pages` with `PLUTO_BASE_URL: ${{ steps.pages.outputs.base_path }}`,
 `upload-pages-artifact@v3` (`.output/public`), then `deploy-pages@v4`. Permissions:
-`contents: read`, `pages: write`, `id-token: write`. It needs no secret.
+`contents: read`, `pages: write`, `id-token: write`. It needs no secret. It runs `generate`, not
+`build`: Nuxt Icon sees a static build only through `nuxt generate`. Then it reads icons from the
+Iconify API and bundles the custom collections. With `nuxt build` it asks the missing
+`/api/_nuxt_icon` route, and the icons of a page opened in the browser stay blank.
 
 ### Routes
 
@@ -1122,8 +1128,10 @@ author's machine (local mode) or on a Node host, and each push of content rebuil
   `PlutoHtml` adds it to the site paths of a post body (`withBaseInHtml` of
   `shared/utils/html-base.ts`).
 - Drafts are not public, so they are never in the output.
-- Checked live: `nuxt build --preset github_pages` with `PLUTO_BASE_URL`, served under the sub path:
-  the home page, a post, the cover, an inline image and the links work, and no request fails.
+- Checked live: a static build with `PLUTO_BASE_URL`, served under the sub path: the home page, a
+  post, the cover, an inline image and the links work, and no request fails. After a page change in
+  the browser, the icons of the new page load from the Iconify API (`nuxt generate` only; with
+  `nuxt build --preset github_pages` they ask `/api/_nuxt_icon` and stay blank).
 - Tests: `test/github-module.test.ts` ("a static build"), `test/pluto-github-options.test.ts`,
   `test/html-base.test.ts`.
 
