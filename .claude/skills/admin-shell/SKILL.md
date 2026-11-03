@@ -261,7 +261,9 @@ later page load has it in the first paint. If the capabilities load fails, the b
 - The page offset is in core. While the marker is on `<html>` of a public page (not
   `data-pluto-admin`), the plain `<style>` of `PlutoRoot` gives `body` a `padding-top` of the bar
   height, `<html>` a `scroll-padding-top` of the same value, and `#__nuxt` a `min-height` of
-  `100dvh` less the bar, so a short page does not scroll. The selectors are in `:where()`, so a
+  `--pluto-page-height`, so a short page does not scroll. `--pluto-page-height` is `100dvh`, less
+  the bar while it shows (both rules in `:where()`). A site layout with a footer at the bottom
+  uses it: `min-h-(--pluto-page-height)`, no script. The selectors are in `:where()`, so a
   rule of the site wins. A site adds no offset of its own for the page; a sticky or fixed header
   still needs `top: var(--pluto-admin-bar-height)` (`pluto-site-header` of the site theme does it).
 
