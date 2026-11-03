@@ -59,7 +59,7 @@ policies shared by every project here.
   @.claude/skills/admin-theme/SKILL.md
 - Pluto site theme: the opt-in `@import '@plutocms/css/site'` gives a public site the look of the Pluto
   docs (the fonts, the shades of the app colors, a deep-space dark mode, `pluto-sky`,
-  `pluto-site-header`). The official templates use it.
+  `pluto-site-header`). The shop template uses it.
   @.claude/skills/single-tailwind-build/SKILL.md
 - White label: `appConfig.pluto.brand` gives the admin the agency brand (logos, primary color,
   radius, fonts, help and agency links, Pluto links off). @.claude/skills/white-label/SKILL.md
