@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.49.1](https://github.com/plutocms/pluto/compare/v0.49.0...v0.49.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* a first deploy of the Git CMS reads the content of the build until the GitHub App is set up ([#380](https://github.com/plutocms/pluto/issues/380)) ([4d3abad](https://github.com/plutocms/pluto/commit/4d3abad5a84a98712d26ff2a8bb72bc5168cef6e))
+
 ## [0.49.0](https://github.com/plutocms/pluto/compare/v0.48.0...v0.49.0) (2026-11-03)
 
 
