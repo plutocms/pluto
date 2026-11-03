@@ -26,9 +26,12 @@ policies shared by every project here.
   the saved versions, a diff against the form, and a restore that fills the form, so the user saves
   it like any edit. The Git CMS keeps the revisions as commits (GitHub, local Git).
   @.claude/skills/content-model/SKILL.md
-- Site composables: `usePosts` and `usePost` (pages from the URL, a 404 page, the SEO tags and
-  the admin bar edit link), `definePlutoContent` for any public type, and `extendPlutoAsyncData`
-  for a layer's own names. @.claude/skills/content-model/SKILL.md
+- Site composables: `usePosts` and `usePost` (pages and search from the URL, `pageLink`, a 404
+  page, the SEO tags, the admin bar edit link, drafts for an editor), `useAdjacentPosts` (newer and
+  older), `usePlutoSite` and `usePlutoSiteHead` (the site name, description and title template),
+  `definePlutoContent` for any public type, and `extendPlutoAsyncData` for a layer's own names.
+  The public API serves a draft to an editor (`?drafts=1`) and the neighbors of an item
+  (`/api/pluto/v1/surround/<type>/<id>`). @.claude/skills/content-model/SKILL.md
 - Public API (headless): a versioned, read-only API for any framework or stack.
   `GET /api/pluto/v1/content/<type>` and `/<type>/<id>` serve the published items of a type that sets
   `api: { public: true }`, with `{ data, meta }` answers, `limit`/`offset`/`search`/`sort`/`filter[field]`,

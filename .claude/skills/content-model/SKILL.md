@@ -365,21 +365,45 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
 - `useList(options)` (`PlutoContentListOptions`): `limit` (default 20, clamped 1..100), `search`,
   `sort` and `filter` (values or getters), and `page`. `page` defaults to `?page=` of the URL;
   setting the returned `page` pushes it (no key for page 1); a number or a getter fixes it;
-  `false` keeps page 1. A new search goes back to page 1. It returns the `useFetch` refs plus
-  `items`, `total`, `page`, `pages`.
+  `false` keeps page 1. `search` defaults to `?q=` of the URL: the returned `search` is the search
+  box (`v-model`), it writes `q` with `router.replace` 300 ms after the last change (and drops
+  `page`), and a change of the URL (back, forward) fills the box. A value or a getter: that search;
+  `false`: none. A new search goes back to page 1. It returns the `useFetch` refs plus `items`,
+  `total`, `page`, `pages`, `search` and `pageLink(n)` (a `NuxtLink` target with `?page=`).
 - `useItem(id, options)` (`PlutoContentItemOptions`): the `useFetch` refs plus `item`. Awaited,
   a failure throws `createError` (404 for a missing item or a draft, else the status of the error)
   unless `notFound: 'null'`. It calls `usePlutoEditLink` (`editLink: false` skips it) and
   `useSeoMeta` (`seo: false` skips it): the title field, `excerpt` or `description`, `og:image`
   from the first media field (absolute, with `useRequestURL().origin`), `og:type` from `ogType`.
   Every composable call happens before the first `await`, so the Nuxt context is still there.
+  Drafts: while the admin bar shows (an editor), the request carries `?drafts=1`
+  (`usePlutoPublicItem(type, id, { drafts })`), so an editor sees a draft on the real page; the
+  returned `draft` is true then. `drafts: false` turns it off.
+- `useSurround(id, { sort?, filter? })`: `previous` and `next` (`usePlutoPublicSurround`, the
+  surround route), in the order of `defaults.list.sort`. `useAdjacentPosts(slug)` names them
+  `newer` and `older`.
+- `usePlutoSite()` (`app/composables/pluto-site.ts`): `name` (site info, else `websiteName`
+  unless 'Untitled'), `description` (`websiteDescription`, a new public runtime key, env
+  `NUXT_PUBLIC_WEBSITE_DESCRIPTION`), `url` (site info, else the request origin).
+  `usePlutoSiteHead()`, for the public layout: the title template (`Title - Site`, the site name
+  alone for a page with no title or the same title), `og:site_name`, and the site description as
+  the default `description` / `og:description`; a page that sets its own wins. Test:
+  `test/site-composables.test.ts`.
 - `extendPlutoAsyncData(result, keys)` adds named keys to the thenable result and to what it
   resolves to. `usePosts` and `usePost` (core, type `post`, both backends, sorted by
   `-publishedAt`, `og:type` article) add `posts` and `post`. `@plutocms/supabase-shop` adds
   `useProducts`, `useProduct` and `useProductCategories` the same way.
 - Types (`shared/types/public-api.ts`): `PlutoPost`, `PlutoPostSummary`, the option interfaces.
-- Test: `test/site-content-composables.test.ts` (`usePlutoPublicList` / `usePlutoPublicItem`
-  mocked, the Nuxt auto-imports stubbed).
+- Test: `test/site-content-composables.test.ts` (the fetch composables mocked like Nuxt, with
+  their own `then`; the Nuxt auto-imports stubbed).
+- The public API for these: `getPublicContent(event, type, id, { drafts })` serves a draft only
+  when `canReadDrafts` passes: `adapter.authorize` with the read capability of the type, else its
+  write capability. No capability, no `authorize`, or a refusal: the read stays anonymous
+  (`markPublicRead`) and a draft answers 404. A draft answer has `meta.draft` and
+  `Cache-Control: private, no-store`. `getPublicSurround` (`GET /api/pluto/v1/surround/<type>/<id>`,
+  anonymous) reads up to `PUBLIC_SURROUND_MAX` (1000) published items in the list order, finds the
+  item by id or slug field, and answers `{ data: { previous, next } }` (list shape), 404 when the
+  item is not among them.
 - Tests: `test/public-api.test.ts` and `test/github-public.test.ts`.
 
 ## Capability enforcement: read is never checked here

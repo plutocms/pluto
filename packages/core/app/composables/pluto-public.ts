@@ -4,11 +4,13 @@ import type {
   PlutoPublicList,
   PlutoPublicOne,
   PlutoPublicQuery,
+  PlutoPublicSurround,
 } from '../../shared/types/public-api'
 import { computed, toValue } from 'vue'
 import {
   plutoContentApiPath,
   plutoPublicQueryParams,
+  plutoSurroundApiPath,
 } from '../../shared/utils/public-api'
 
 /**
@@ -37,20 +39,55 @@ export function usePlutoPublicList<T = PlutoPublicItem>(
 }
 
 /**
- * One published item of a public content type, by id or slug. `data.value` is `{ data }`. A draft
- * or a missing item gives a 404 in `error`.
+ * One published item of a public content type, by id or slug. `data.value` is `{ data, meta? }`.
+ * A draft or a missing item gives a 404 in `error`. With `drafts` true, an editor of the type
+ * also gets a draft, with `meta.draft` (the request carries `?drafts=1`; for anyone else it
+ * changes nothing).
  *
  * @example
  * const { data } = await usePlutoPublicItem('post', () => String(route.params.slug))
  */
 export function usePlutoPublicItem<T = PlutoPublicItem>(
   type: MaybeRefOrGetter<string>,
-  id: MaybeRefOrGetter<string | number>
+  id: MaybeRefOrGetter<string | number>,
+  options: {
+    drafts?: MaybeRefOrGetter<boolean>
+  } = {}
 ) {
+  const drafts = computed(() => toValue(options.drafts) === true)
   return useFetch<PlutoPublicOne<T>>(
     () => plutoContentApiPath(toValue(type), toValue(id)),
     {
-      key: computed(() => `pluto-public-item:${toValue(type)}:${toValue(id)}`),
+      key: computed(
+        () =>
+          `pluto-public-item:${toValue(type)}:${toValue(id)}${drafts.value ? ':drafts' : ''}`
+      ),
+      query: computed(() => (drafts.value ? { drafts: '1' } : {})),
+    }
+  )
+}
+
+/**
+ * The published items before and after one item (`data.value.data` is `{ previous, next }`), in
+ * the order of `sort` (default: the `defaultSort` of the type), with an optional `filter`.
+ *
+ * @example
+ * const { data } = await usePlutoPublicSurround('post', slug, { sort: '-publishedAt' })
+ */
+export function usePlutoPublicSurround<T = PlutoPublicItem>(
+  type: MaybeRefOrGetter<string>,
+  id: MaybeRefOrGetter<string | number>,
+  query: MaybeRefOrGetter<Pick<PlutoPublicQuery, 'sort' | 'filter'>> = {}
+) {
+  const params = computed(() => plutoPublicQueryParams(toValue(query)))
+  return useFetch<PlutoPublicOne<PlutoPublicSurround<T>>>(
+    () => plutoSurroundApiPath(toValue(type), toValue(id)),
+    {
+      key: computed(
+        () =>
+          `pluto-public-surround:${toValue(type)}:${toValue(id)}:${JSON.stringify(params.value)}`
+      ),
+      query: params,
     }
   )
 }

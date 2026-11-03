@@ -7,9 +7,14 @@ import type {
   PlutoPostSummary,
   PlutoPublicItem,
 } from '../../shared/types/public-api'
-import { computed, toValue, watch } from 'vue'
+import { computed, onScopeDispose, ref, toValue, watch } from 'vue'
 import { usePlutoEditLink } from './pluto-edit-link'
-import { usePlutoPublicItem, usePlutoPublicList } from './pluto-public'
+import { usePlutoAdminBar } from './pluto-navbar'
+import {
+  usePlutoPublicItem,
+  usePlutoPublicList,
+  usePlutoPublicSurround,
+} from './pluto-public'
 
 function errorStatus(error: unknown): number {
   const value = error as {
@@ -104,8 +109,38 @@ export function definePlutoContent<
         }
       },
     })
-    const search = computed(
-      () => toValue(settings.search)?.trim() || undefined
+    const searchOption = settings.search
+    const urlSearch = computed(() => String(route.query.q ?? '').trim())
+
+    // The search box. Bound to `?q=` of the URL (the default): a change writes the URL after
+    // 300 ms, on page 1, and a change of the URL (back, forward) fills the box.
+    const searchInput = ref(searchOption === undefined ? urlSearch.value : '')
+    if (searchOption === undefined) {
+      let timer: ReturnType<typeof setTimeout> | undefined
+      watch(searchInput, (value) => {
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          const term = value.trim()
+          if (term !== urlSearch.value) {
+            router.replace({
+              query: { ...route.query, q: term || undefined, page: undefined },
+            })
+          }
+        }, 300)
+      })
+      watch(urlSearch, (value) => {
+        if (value !== searchInput.value.trim()) {
+          searchInput.value = value
+        }
+      })
+      onScopeDispose(() => clearTimeout(timer))
+    }
+    const search = computed(() =>
+      searchOption === false
+        ? undefined
+        : searchOption === undefined
+          ? urlSearch.value || undefined
+          : toValue(searchOption)?.trim() || undefined
     )
 
     // A new search starts on the first page.
@@ -114,6 +149,16 @@ export function definePlutoContent<
         page.value = 1
       }
     })
+
+    /** A link to page `value` of the list, for `NuxtLink` (`?page=`, no key for page 1). */
+    function pageLink(value: number) {
+      return {
+        query: {
+          ...route.query,
+          page: value > 1 ? String(Math.trunc(value)) : undefined,
+        },
+      }
+    }
 
     const fetch = usePlutoPublicList<TSummary>(type, () => {
       const sort = toValue(settings.sort)
@@ -132,15 +177,27 @@ export function definePlutoContent<
       Math.max(1, Math.ceil(total.value / limit))
     )
 
-    return extendPlutoAsyncData(fetch, { items, total, page, pages })
+    return extendPlutoAsyncData(fetch, {
+      items,
+      total,
+      page,
+      pages,
+      pageLink,
+      search: searchInput,
+    })
   }
 
   function useItem(
     id: MaybeRefOrGetter<string | number>,
     options: PlutoContentItemOptions = {}
   ) {
-    const fetch = usePlutoPublicItem<TItem>(type, id)
+    // An editor (the admin bar shows) also gets a draft: the same page shows it before it is out.
+    const adminBar = usePlutoAdminBar()
+    const fetch = usePlutoPublicItem<TItem>(type, id, {
+      drafts: () => options.drafts !== false && adminBar.visible.value,
+    })
     const item = computed<TItem | null>(() => fetch.data.value?.data ?? null)
+    const draft = computed(() => fetch.data.value?.meta?.draft === true)
 
     if (options.editLink !== false) {
       usePlutoEditLink(
@@ -179,7 +236,7 @@ export function definePlutoContent<
       })
     }
 
-    const result = extendPlutoAsyncData(fetch, { item })
+    const result = extendPlutoAsyncData(fetch, { item, draft })
     return withRefsOf(
       result.then((value) => {
         const error = fetch.error.value
@@ -196,7 +253,26 @@ export function definePlutoContent<
     )
   }
 
-  return { useList, useItem }
+  /**
+   * The published items before and after one item (`previous`, `next`), in the order of the
+   * list (`defaults.list.sort`, else `sort`). Both `null` while there is none.
+   */
+  function useSurround(
+    id: MaybeRefOrGetter<string | number>,
+    options: Pick<PlutoContentListOptions, 'sort' | 'filter'> = {}
+  ) {
+    const fetch = usePlutoPublicSurround<TSummary>(type, id, () => {
+      const sort = toValue(options.sort ?? defaults.list?.sort)
+      const filter = toValue(options.filter ?? defaults.list?.filter)
+      return { ...(sort && { sort }), ...(filter && { filter }) }
+    })
+    return extendPlutoAsyncData(fetch, {
+      previous: computed(() => fetch.data.value?.data.previous ?? null),
+      next: computed(() => fetch.data.value?.data.next ?? null),
+    })
+  }
+
+  return { useList, useItem, useSurround }
 }
 
 const posts = definePlutoContent<PlutoPost, PlutoPostSummary>('post', {
@@ -228,4 +304,18 @@ export function usePost(
 ) {
   const result = posts.useItem(slug, options)
   return extendPlutoAsyncData(result, { post: result.item })
+}
+
+/**
+ * The posts around one post, newest first: `newer` and `older` (`null` at either end).
+ *
+ * @example
+ * const { newer, older } = await useAdjacentPosts(() => String(route.params.slug))
+ */
+export function useAdjacentPosts(slug: MaybeRefOrGetter<string | number>) {
+  const result = posts.useSurround(slug)
+  return extendPlutoAsyncData(result, {
+    newer: result.previous,
+    older: result.next,
+  })
 }

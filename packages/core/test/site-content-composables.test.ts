@@ -6,6 +6,10 @@ import { ref } from 'vue'
 
 const listCalls: Array<() => unknown> = []
 const itemCalls: unknown[] = []
+const itemOptions: Array<{ drafts?: () => boolean }> = []
+const surroundCalls: Array<{ type: string; id: unknown; query: () => unknown }> = []
+let surroundAnswer: unknown = null
+const adminBar = { visible: ref(false) }
 const editLink = vi.fn()
 let listAnswer: unknown = null
 let itemAnswer: unknown = null
@@ -29,10 +33,23 @@ vi.mock('../app/composables/pluto-public', () => ({
     listCalls.push(query)
     return asyncData(listAnswer)
   },
-  usePlutoPublicItem: (type: string, id: unknown) => {
+  usePlutoPublicItem: (
+    type: string,
+    id: unknown,
+    options: { drafts?: () => boolean } = {}
+  ) => {
     itemCalls.push({ type, id })
+    itemOptions.push(options)
     return asyncData(itemAnswer, itemError)
   },
+  usePlutoPublicSurround: (type: string, id: unknown, query: () => unknown) => {
+    surroundCalls.push({ type, id, query })
+    return asyncData(surroundAnswer)
+  },
+}))
+
+vi.mock('../app/composables/pluto-navbar', () => ({
+  usePlutoAdminBar: () => adminBar,
 }))
 
 vi.mock('../app/composables/pluto-edit-link', () => ({
@@ -41,17 +58,22 @@ vi.mock('../app/composables/pluto-edit-link', () => ({
 
 const route = { query: {} as Record<string, string | undefined> }
 const push = vi.fn()
+const replace = vi.fn()
 const seo = vi.fn()
 
 beforeEach(() => {
   listCalls.length = 0
   itemCalls.length = 0
+  itemOptions.length = 0
+  surroundCalls.length = 0
+  surroundAnswer = null
+  adminBar.visible.value = false
   route.query = {}
   listAnswer = { data: [{ id: 1 }], meta: { total: 25, limit: 10, offset: 0 } }
   itemAnswer = null
   itemError = null
   vi.stubGlobal('useRoute', () => route)
-  vi.stubGlobal('useRouter', () => ({ push }))
+  vi.stubGlobal('useRouter', () => ({ push, replace }))
   vi.stubGlobal('useSeoMeta', seo)
   vi.stubGlobal('useRequestURL', () => new URL('https://blog.example.com/posts/a'))
   vi.stubGlobal('usePlutoContentTypes', () => ({
@@ -72,7 +94,7 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-const { definePlutoContent, usePost, usePosts } = await import(
+const { definePlutoContent, useAdjacentPosts, usePost, usePosts } = await import(
   '../app/composables/pluto-site-content'
 )
 
@@ -178,5 +200,73 @@ describe('definePlutoContent', () => {
       'website'
     )
     expect(listCalls[0]!()).toEqual({ limit: 20, offset: 0 })
+  })
+})
+
+describe('the search of a list', () => {
+  it('reads ?q= of the URL, and writes the search box to it after 300 ms, on page 1', async () => {
+    vi.useFakeTimers()
+    route.query = { q: 'mugs', page: '2' }
+    const { search } = usePosts()
+
+    expect(listCalls[0]!()).toMatchObject({ search: 'mugs', offset: 20 })
+    expect(search.value).toBe('mugs')
+
+    search.value = '  cups '
+    await vi.advanceTimersByTimeAsync(299)
+    expect(replace).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1)
+    expect(replace).toHaveBeenCalledWith({ query: { q: 'cups', page: undefined } })
+    vi.useRealTimers()
+  })
+
+  it('takes no search with search: false, and a given search with a value', () => {
+    route.query = { q: 'mugs' }
+    usePosts({ search: false })
+    usePosts({ search: ' tea ' })
+
+    expect(listCalls[0]!()).not.toHaveProperty('search')
+    expect(listCalls[1]!()).toMatchObject({ search: 'tea' })
+  })
+
+  it('gives a link to another page', () => {
+    route.query = { q: 'x', page: '3' }
+    const { pageLink } = usePosts()
+
+    expect(pageLink(1)).toEqual({ query: { q: 'x', page: undefined } })
+    expect(pageLink(4)).toEqual({ query: { q: 'x', page: '4' } })
+  })
+})
+
+describe('drafts', () => {
+  it('asks for drafts only while the admin bar shows, unless drafts: false', async () => {
+    itemAnswer = { data: { id: 2, title: 'Soon' }, meta: { draft: true } }
+    const { draft } = await usePost('soon')
+    usePost('soon', { drafts: false })
+
+    expect(draft.value).toBe(true)
+    expect(itemOptions[0]!.drafts!()).toBe(false)
+    adminBar.visible.value = true
+    expect(itemOptions[0]!.drafts!()).toBe(true)
+    expect(itemOptions[1]!.drafts!()).toBe(false)
+  })
+})
+
+describe('useAdjacentPosts', () => {
+  it('gives the newer and the older post, in the order of the posts', async () => {
+    surroundAnswer = { data: { previous: { slug: 'new' }, next: { slug: 'old' } } }
+    const { newer, older } = await useAdjacentPosts('mid')
+
+    expect(newer.value).toEqual({ slug: 'new' })
+    expect(older.value).toEqual({ slug: 'old' })
+    expect(surroundCalls[0]).toMatchObject({ type: 'post', id: 'mid' })
+    expect(surroundCalls[0]!.query()).toEqual({ sort: '-publishedAt' })
+  })
+
+  it('is null at the ends', async () => {
+    surroundAnswer = { data: { previous: null, next: null } }
+    const { newer, older } = await useAdjacentPosts('only')
+    expect(newer.value).toBeNull()
+    expect(older.value).toBeNull()
   })
 })

@@ -1,7 +1,9 @@
 import type { H3Event } from 'h3'
 import type {
+  PlutoPublicItem,
   PlutoPublicList,
   PlutoPublicOne,
+  PlutoPublicSurround,
 } from '../../shared/types/public-api'
 import { setResponseHeader } from 'h3'
 import { getPlutoApiConfig } from './pluto-api-config'
@@ -260,19 +262,52 @@ export async function listPublicContent(
   }
 }
 
-/** `GET /api/pluto/v1/content/:type/:id`: one published item, by id or slug. */
+/**
+ * True when the caller may read the drafts of the type: the adapter says the caller holds the read
+ * capability of the type (else its write capability). Fails closed: no capability to check, no
+ * `authorize`, or no session gives false.
+ */
+async function canReadDrafts(
+  event: H3Event,
+  type: PlutoContentType
+): Promise<boolean> {
+  const capability = type.capabilities?.read ?? type.capabilities?.write
+  const adapter = requireContentAdapter()
+  if (!capability || !adapter.authorize) {
+    return false
+  }
+  try {
+    await adapter.authorize(event, capability)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * `GET /api/pluto/v1/content/:type/:id`: one published item, by id or slug. With `drafts`
+ * (`?drafts=1`), an editor of the type (`canReadDrafts`) also gets a draft, marked with
+ * `meta.draft`, and the answer is private (`no-store`). For anyone else `drafts` changes nothing.
+ */
 export async function getPublicContent(
   event: H3Event,
   typeName: string,
-  idOrSlug: string
+  idOrSlug: string,
+  options: {
+    drafts?: boolean
+  } = {}
 ): Promise<PlutoPublicOne> {
-  markPublicRead(event)
   const type = requirePublicType(typeName)
+  const drafts = options.drafts === true && (await canReadDrafts(event, type))
+  if (!drafts) {
+    markPublicRead(event)
+  }
   const ctx = { event, type }
 
   const item =
     idOrSlug === '' ? null : await requireContentAdapter().get(ctx, idOrSlug)
-  if (!item || !isPublishedItem(type, item)) {
+  const published = item ? isPublishedItem(type, item) : false
+  if (!item || (!published && !drafts)) {
     throw createPlutoError({
       statusCode: 404,
       message: 'Not found.',
@@ -281,6 +316,81 @@ export async function getPublicContent(
   }
 
   const data = await toPublicData(ctx, item, 'item')
+  if (drafts) {
+    setResponseHeader(event, 'Cache-Control', 'private, no-store')
+  } else {
+    setPublicApiCache(event)
+  }
+  return {
+    data: data as PlutoPublicOne['data'],
+    ...(!published && { meta: { draft: true } }),
+  }
+}
+
+/** The most published items that `getPublicSurround` reads to find the neighbors. */
+export const PUBLIC_SURROUND_MAX = 1000
+
+/**
+ * `GET /api/pluto/v1/surround/:type/:id`: the published items before and after one item, in the
+ * order of `sort` (default: the `defaultSort` of the type), with the same `filter` as a list.
+ * For a list sorted by `-publishedAt`, `previous` is the newer item and `next` the older one. It
+ * reads at most `PUBLIC_SURROUND_MAX` items. 404 when the item is not among them.
+ */
+export async function getPublicSurround(
+  event: H3Event,
+  typeName: string,
+  idOrSlug: string,
+  rawQuery: Record<string, unknown>
+): Promise<PlutoPublicOne<PlutoPublicSurround>> {
+  markPublicRead(event)
+  const type = requirePublicType(typeName)
+  const query = parsePublicQuery(type, rawQuery)
+  const ctx = { event, type }
+  const adapter = requireContentAdapter()
+
+  const items: PlutoContentItem[] = []
+  for (let offset = 0; offset < PUBLIC_SURROUND_MAX; offset += PUBLIC_MAX_LIMIT) {
+    const page = await adapter.list(ctx, {
+      limit: PUBLIC_MAX_LIMIT,
+      offset,
+      sort: query.sort ?? type.defaultSort,
+      filters: query.filters,
+      includeUnpublished: false,
+    })
+    items.push(...page.data.filter((item) => isPublishedItem(type, item)))
+    if (page.data.length < PUBLIC_MAX_LIMIT) {
+      break
+    }
+  }
+
+  const slugField = type.slug ? type.slug.field : undefined
+  const index = items.findIndex(
+    (item) =>
+      String(item.id) === idOrSlug ||
+      (slugField !== undefined && String(item[slugField]) === idOrSlug)
+  )
+  if (index === -1) {
+    throw createPlutoError({
+      statusCode: 404,
+      message: 'Not found.',
+      key: 'pluto.errors.notFound',
+    })
+  }
+
+  const previous = items[index - 1]
+  const next = items[index + 1]
+  const batch = [previous, next].filter(
+    (item): item is PlutoContentItem => Boolean(item)
+  )
+  const [previousData, nextData] = await Promise.all([
+    previous ? toPublicData(ctx, previous, 'list', batch) : null,
+    next ? toPublicData(ctx, next, 'list', batch) : null,
+  ])
   setPublicApiCache(event)
-  return { data: data as PlutoPublicOne['data'] }
+  return {
+    data: {
+      previous: (previousData as PlutoPublicItem | null) ?? null,
+      next: (nextData as PlutoPublicItem | null) ?? null,
+    },
+  }
 }

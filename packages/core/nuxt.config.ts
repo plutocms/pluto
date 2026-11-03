@@ -66,6 +66,9 @@ export default defineNuxtConfig({
     },
     public: {
       websiteName,
+      // The site description: the default `description` of a public page (`usePlutoSiteHead`).
+      // Env: `NUXT_PUBLIC_WEBSITE_DESCRIPTION`.
+      websiteDescription: '',
       // The media library. A backend sets `driver` (`github`, `supabase`) when it
       // registers its media driver; the admin shows the library only then. Empty
       // `allowedTypes` and `0` give the defaults (shared/utils/media.ts). Env:

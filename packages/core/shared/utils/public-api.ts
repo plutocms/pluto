@@ -7,6 +7,11 @@ export const PLUTO_API_PREFIX = '/api/pluto/v1'
  * The path of a public content route: the list of `type`, or one item when `id` is set. Each
  * segment of a nested id (`1.start/2.install`) is encoded on its own, so the slashes stay.
  */
+/** The path of the surround route of one item: `/api/pluto/v1/surround/<type>/<id>`. */
+export function plutoSurroundApiPath(type: string, id: string | number): string {
+  return `${PLUTO_API_PREFIX}/surround/${encodeURIComponent(type)}/${String(id).split('/').map(encodeURIComponent).join('/')}`
+}
+
 export function plutoContentApiPath(
   type: string,
   id?: string | number
