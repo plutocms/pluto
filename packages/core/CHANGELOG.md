@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.50.0](https://github.com/plutocms/pluto/compare/v0.49.1...v0.50.0) (2026-11-03)
+
+
+### Features
+
+* a language select under the login card; the next sign-in keeps the choice ([#383](https://github.com/plutocms/pluto/issues/383)) ([1b16616](https://github.com/plutocms/pluto/commit/1b166166c84e0dc55ad5467936e8b8ea6900fe31))
+
 ## [0.49.1](https://github.com/plutocms/pluto/compare/v0.49.0...v0.49.1) (2026-11-03)
 
 
