@@ -219,3 +219,81 @@ export async function pushLocalGit(
 
   return readLocalGitStatus(root)
 }
+
+/** One commit of `localFileHistory`. */
+export interface LocalFileCommit {
+  oid: string
+  message: string
+  committedAt: string
+  authorName: string
+}
+
+const FIELD = '\u001F'
+const RECORD = '\u001E'
+const COMMIT_OID = /^[0-9a-f]{7,64}$/i
+
+/**
+ * The commits of the local Git repo of `root` that changed `path` (relative to `root`), newest
+ * first. `skip` commits are left out first. An empty list when `root` is not in a Git work tree
+ * or Git is not installed. `more` is true when older commits exist.
+ */
+export async function localFileHistory(
+  root: string,
+  path: string,
+  query: {
+    limit: number
+    skip: number
+  }
+): Promise<{
+  commits: LocalFileCommit[]
+  more: boolean
+}> {
+  let out: string
+  try {
+    out = await git(root, [
+      'log',
+      `-n${query.limit + 1}`,
+      `--skip=${query.skip}`,
+      `--format=%H${FIELD}%cI${FIELD}%an${FIELD}%s${RECORD}`,
+      '--',
+      path,
+    ])
+  } catch {
+    return { commits: [], more: false }
+  }
+  const commits = out
+    .split(RECORD)
+    .map((record) => record.trim())
+    .filter(Boolean)
+    .map((record) => {
+      const [oid = '', committedAt = '', authorName = '', message = ''] =
+        record.split(FIELD)
+      return { oid, committedAt, authorName, message }
+    })
+  return {
+    commits: commits.slice(0, query.limit),
+    more: commits.length > query.limit,
+  }
+}
+
+/** The text of `path` (relative to `root`) at a commit. `null` when it was not there. */
+export async function localFileAt(
+  root: string,
+  path: string,
+  commitOid: string
+): Promise<string | null> {
+  if (!COMMIT_OID.test(commitOid)) {
+    return null
+  }
+  try {
+    const { stdout } = await run(
+      'git',
+      // `./`: the path is relative to `root`, not to the top of the repo.
+      ['show', `${commitOid}:./${path}`],
+      { cwd: root, windowsHide: true, maxBuffer: 32 * 1024 * 1024 }
+    )
+    return stdout
+  } catch {
+    return null
+  }
+}

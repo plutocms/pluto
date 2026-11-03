@@ -493,8 +493,9 @@ definePlutoExtension({
 `usePlutoContentToolbarItems(typeName)` returns the matching entries as a computed (the same match
 rule as `usePlutoContentActions`; the registry sorts by `order`). `PlutoContentForm` passes the list
 to `PlutoContentFormHeader` in the `toolbarItems` prop. The component must show nothing when it has
-nothing to say, because the item has no `show` test. The Git CMS uses this for its build status
-(see the git-cms skill). Tests: `test/content-toolbar-items.test.ts`.
+nothing to say, because the item has no `show` test. Core uses it for History (`history`, order 40, every
+type; see the content-model skill, "Revisions"), and the Git CMS for its build status (order 50, see
+the git-cms skill). Tests: `test/content-toolbar-items.test.ts`.
 
 ## Known limits, out of scope for this pass
 

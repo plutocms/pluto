@@ -99,6 +99,35 @@
       "stay": "Stay on this page",
       "leave": "Leave without saving"
     },
+    "history": {
+      "button": "History",
+      "title": "History",
+      "description": "The saved versions of this item. Pick one to see what changed.",
+      "current": "Current",
+      "actions": {
+        "create": "Created",
+        "update": "Saved",
+        "publish": "Published",
+        "unpublish": "Unpublished",
+        "rename": "Renamed"
+      },
+      "unknownAuthor": "Someone",
+      "loadMore": "Load more",
+      "loadError": "Could not load the history.",
+      "versionError": "Could not load this version.",
+      "pick": "Pick a version to see what a restore changes in the form.",
+      "same": "This version is the same as the form.",
+      "changes": "No changed fields | 1 changed field | {count} changed fields",
+      "now": "Now",
+      "version": "This version",
+      "empty": "(empty)",
+      "hiddenLines": "1 unchanged line | {count} unchanged lines",
+      "restore": "Restore this version",
+      "restoreHint": "The form gets the fields of this version. The slug and the status stay. Save to keep it.",
+      "restored": "Version restored in the form",
+      "restoredHint": "Check it, then save to keep it.",
+      "back": "Back to the versions"
+    },
     "canvas": {
       "page": "Page",
       "panels": "Panels",

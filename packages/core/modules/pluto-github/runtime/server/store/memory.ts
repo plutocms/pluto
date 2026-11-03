@@ -18,9 +18,10 @@ function parentOf(path: string): string {
 }
 
 /**
- * An in-memory store for tests. It keeps the current state only, so `listDir`
- * and `readFile` ignore the head id they get. The head id comes from the
- * content, so it changes after each change.
+ * An in-memory store for tests. `listDir` and `readFile` read the current
+ * state and ignore the head id they get. The head id comes from the content,
+ * so it changes after each change. Each commit keeps a copy of the text files,
+ * for `history` and `readAt` (commit ids `c1`, `c2`, ..., author `Memory`).
  */
 export function createMemoryStore(
   initial: Record<string, string> = {}
@@ -28,6 +29,13 @@ export function createMemoryStore(
   const files = new Map<string, string>(Object.entries(initial))
   // Binary files (media), as base64. They count for the head id too.
   const raw = new Map<string, string>()
+  // Each commit, oldest first, with the text files after it.
+  const log: {
+    oid: string
+    message: string
+    committedAt: string
+    files: Map<string, string>
+  }[] = []
 
   function currentHead(): string {
     return listingOid(
@@ -79,6 +87,33 @@ export function createMemoryStore(
       const text = files.get(path)
       return text === undefined ? null : toFile(path, text)
     },
+    history: async (path, query) => {
+      const newest = log
+        .filter((entry, index) => {
+          const before =
+            index === 0 ? initial[path] : log[index - 1]!.files.get(path)
+          return entry.files.get(path) !== before
+        })
+        .reverse()
+      const skip = Number.parseInt(query.cursor ?? '0', 10) || 0
+      return {
+        commits: newest.slice(skip, skip + query.limit).map((entry) => ({
+          oid: entry.oid,
+          message: entry.message,
+          committedAt: entry.committedAt,
+          author: { name: 'Memory' },
+        })),
+        ...(newest.length > skip + query.limit && {
+          nextCursor: String(skip + query.limit),
+        }),
+      }
+    },
+    readAt: async (path, commitOid) => {
+      const text = log
+        .find((entry) => entry.oid === commitOid)
+        ?.files.get(path)
+      return text === undefined ? null : toFile(path, text)
+    },
     readRaw: async (path) => {
       const base64 = raw.get(path)
       if (base64 !== undefined) {
@@ -102,6 +137,15 @@ export function createMemoryStore(
           files.set(addition.path, addition.contents)
         }
       }
+      log.push({
+        oid: `c${log.length + 1}`,
+        message: input.message.split('\n')[0] ?? '',
+        // One minute apart, so the order is clear.
+        committedAt: new Date(
+          Date.UTC(2026, 0, 1, 0, log.length)
+        ).toISOString(),
+        files: new Map(files),
+      })
       return { oid: currentHead() }
     },
   }

@@ -283,3 +283,65 @@ export async function contentActivity(
     })),
   }
 }
+
+/** Most revisions in one page. */
+export const CONTENT_REVISIONS_MAX_LIMIT = 50
+
+/** The history of an item is for its editors: the type write capability. */
+async function authorizeRevisions(ctx: PlutoContentContext): Promise<void> {
+  await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
+}
+
+/**
+ * The saved versions of one item, newest first. It needs the write capability of the type: only
+ * an editor can restore one. Returns `supported: false` when the adapter keeps no revisions.
+ */
+export async function listContentRevisions(
+  ctx: PlutoContentContext,
+  id: string | number,
+  query: {
+    limit?: number
+    cursor?: string
+  } = {}
+): Promise<PlutoContentRevisionList> {
+  const adapter = requireContentAdapter()
+  if (!adapter.listRevisions || !adapter.getRevision) {
+    return { supported: false, data: [] }
+  }
+  await authorizeRevisions(ctx)
+  const limit = Math.min(
+    CONTENT_REVISIONS_MAX_LIMIT,
+    Math.max(1, Math.trunc(query.limit ?? 20) || 20)
+  )
+  const page = await adapter.listRevisions(ctx, id, {
+    limit,
+    ...(query.cursor && { cursor: query.cursor }),
+  })
+  return { supported: true, ...page }
+}
+
+/** One item as it was at a revision. The same rule as `listContentRevisions`. 404 when it has none. */
+export async function getContentRevision(
+  ctx: PlutoContentContext,
+  id: string | number,
+  revisionId: string
+): Promise<PlutoContentItem> {
+  const adapter = requireContentAdapter()
+  if (!adapter.getRevision) {
+    throw createPlutoError({
+      statusCode: 404,
+      message: 'This site keeps no revisions.',
+      key: 'pluto.errors.notFound',
+    })
+  }
+  await authorizeRevisions(ctx)
+  const item = await adapter.getRevision(ctx, id, revisionId)
+  if (!item) {
+    throw createPlutoError({
+      statusCode: 404,
+      message: 'Not found.',
+      key: 'pluto.errors.notFound',
+    })
+  }
+  return item
+}

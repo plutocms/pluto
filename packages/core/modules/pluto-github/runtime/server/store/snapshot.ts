@@ -42,6 +42,16 @@ export function createSnapshotStore(load: SnapshotLoader): PlutoGithubStore & {
   }
 }
 
+/** The `history` and `readAt` of a store, when it has them. */
+function historyOf(
+  store: PlutoGithubStore
+): Pick<PlutoGithubStore, 'history' | 'readAt'> {
+  return {
+    ...(store.history && { history: store.history }),
+    ...(store.readAt && { readAt: store.readAt }),
+  }
+}
+
 /**
  * The store of a deployed site that has no GitHub credentials yet (no read token, no App): a
  * call with the token of a signed-in user goes to GitHub, and an anonymous read goes to the
@@ -70,6 +80,8 @@ export function withBuildSnapshot(
       (await pick(auth)).readFile(path, head, auth),
     readRaw: async (path, auth) => (await pick(auth)).readRaw(path, auth),
     commit: (input, auth) => github.commit(input, auth),
+    // The history is for editors: GitHub only. The snapshot has none.
+    ...historyOf(github),
   }
 }
 
@@ -139,5 +151,7 @@ export function withSnapshotFallback(
         () => snapshot.readRaw(path)
       ),
     commit: (input, auth) => github.commit(input, auth),
+    // The history is for editors: GitHub only. The snapshot has none.
+    ...historyOf(github),
   }
 }

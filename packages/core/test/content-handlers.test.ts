@@ -577,3 +577,102 @@ describe('contentActivity', () => {
     expect(result).toEqual({ supported: false, interval: 'week', points: [] })
   })
 })
+
+describe('content revisions', () => {
+  const revision = {
+    id: 'abc123',
+    createdAt: '2026-11-01T10:00:00Z',
+    action: 'update' as const,
+  }
+
+  function withRevisions(authorize?: (...args: unknown[]) => Promise<void>) {
+    const listRevisions = vi.fn(async () => ({
+      data: [revision],
+      nextCursor: 'next',
+    }))
+    const getRevision = vi.fn(
+      async (_ctx: unknown, id: string | number, revisionId: string) =>
+        revisionId === 'abc123' ? { id, title: 'Old', _version: 'b1' } : null
+    )
+    return {
+      adapter: {
+        ...createMemoryContentAdapter(authorize ? { authorize } : {}),
+        listRevisions,
+        getRevision,
+      },
+      listRevisions,
+      getRevision,
+    }
+  }
+
+  it('answers supported: false when the adapter keeps no revisions', async () => {
+    const { registerContentAdapter, listContentRevisions, getContentRevision } =
+      await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter())
+
+    const ctx = ctxFor(contentType())
+    expect(await listContentRevisions(ctx, 'hello')).toEqual({
+      supported: false,
+      data: [],
+    })
+    await expect(getContentRevision(ctx, 'hello', 'abc123')).rejects.toThrow(
+      expect.objectContaining({ statusCode: 404 })
+    )
+  })
+
+  it('lists a page, with the limit clamped and the cursor passed on', async () => {
+    const { registerContentAdapter, listContentRevisions } =
+      await loadHandlers()
+    const { adapter, listRevisions } = withRevisions()
+    registerContentAdapter(adapter)
+
+    const ctx = ctxFor(contentType())
+    expect(
+      await listContentRevisions(ctx, 'a/b', { limit: 999, cursor: 'c1' })
+    ).toEqual({ supported: true, data: [revision], nextCursor: 'next' })
+    expect(listRevisions).toHaveBeenCalledWith(ctx, 'a/b', {
+      limit: 50,
+      cursor: 'c1',
+    })
+
+    await listContentRevisions(ctx, 'a/b', { limit: 0 })
+    expect(listRevisions).toHaveBeenLastCalledWith(ctx, 'a/b', { limit: 20 })
+  })
+
+  it('gets one revision, and 404 for an unknown one', async () => {
+    const { registerContentAdapter, getContentRevision } = await loadHandlers()
+    const { adapter } = withRevisions()
+    registerContentAdapter(adapter)
+
+    const ctx = ctxFor(contentType())
+    expect(await getContentRevision(ctx, 'hello', 'abc123')).toMatchObject({
+      title: 'Old',
+    })
+    await expect(getContentRevision(ctx, 'hello', 'zzz')).rejects.toThrow(
+      expect.objectContaining({ statusCode: 404 })
+    )
+  })
+
+  it('needs the write capability of the type', async () => {
+    const { registerContentAdapter, listContentRevisions, getContentRevision } =
+      await loadHandlers()
+    const authorize = vi.fn(async () => {
+      throw new Error('forbidden')
+    })
+    const { adapter, listRevisions, getRevision } = withRevisions(authorize)
+    registerContentAdapter(adapter)
+
+    const ctx = ctxFor(
+      contentType({ capabilities: { write: 'posts:publish' } })
+    )
+    await expect(listContentRevisions(ctx, 'hello')).rejects.toThrow(
+      'forbidden'
+    )
+    await expect(getContentRevision(ctx, 'hello', 'abc123')).rejects.toThrow(
+      'forbidden'
+    )
+    expect(authorize).toHaveBeenCalledWith(fakeEvent, 'posts:publish')
+    expect(listRevisions).not.toHaveBeenCalled()
+    expect(getRevision).not.toHaveBeenCalled()
+  })
+})

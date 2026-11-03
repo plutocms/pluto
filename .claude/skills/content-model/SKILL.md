@@ -263,7 +263,7 @@ too. It does not, for the reasons above.
 Five routes, all under the `/api/_pluto/content/` prefix. They are for the admin. The leading
 underscore marks an internal route: not a stable contract, and not for a public site (that is the
 public API, below). The rule for every official layer: core's internal routes are
-`/api/_pluto/<area>/...` (`content`, `content-activity`, `mail`; the CMS `auth` and `cms`), and a
+`/api/_pluto/<area>/...` (`content`, `content-activity`, `content-revisions`, `content-revision`, `mail`; the CMS `auth` and `cms`), and a
 layer's internal routes are `/api/_pluto/<layer>/...` (for example `/api/_pluto/supabase/...`,
 `/api/_pluto/shop/...`), REST style: nouns in the path, the method says the action. Core's
 middleware `server/middleware/pluto-origin.ts` blocks a cross-site write to `/api/_pluto/**`
@@ -505,6 +505,53 @@ fetches it expecting `{ data: Array<Record<string, unknown>> }`, maps each row t
 renders a disabled `UInputMenu` with a placeholder noting no options source is configured,
 rather than throwing — resolving `field.target` against another content type's own list endpoint
 is later work.
+
+## Revisions
+
+A backend that keeps the saved versions of an item implements two optional adapter reads. Core
+gives the routes, the capability check and the admin UI.
+
+- `listRevisions(ctx, id, { limit, cursor })` returns `{ data, nextCursor? }`: the versions of
+  one item, newest first. The first entry is the version that the item has now. A
+  `PlutoContentRevision` has `id` (safe in a URL path segment), `createdAt` (ISO), `author?`
+  (`name`, `login?`, `avatarUrl?`), `action?` (`create`, `update`, `publish`, `unpublish`,
+  `rename`) and `message?` (shown when there is no `action`).
+- `getRevision(ctx, id, revisionId)` returns the item as it was at that revision, or `null`. Its
+  `_version` is the version of that revision.
+
+| Route | Method | Calls |
+| --- | --- | --- |
+| `/api/_pluto/content-revisions/[type]/[...id]?limit&cursor` | GET | `listContentRevisions` |
+| `/api/_pluto/content-revision/[type]/[revision]/[...id]` | GET | `getContentRevision` |
+
+Own base paths, because an id can hold slashes (a nested type): the revision comes before the id.
+Both need `type.capabilities.write` (`authorizeContentOperation`, so the fail-open rule applies):
+the history is for editors. The adapter checks its own access too. `limit` is 1 to 50 (default
+20). An adapter without the two methods answers `{ supported: false, data: [] }`, and
+`getContentRevision` gives 404. Tests: `test/content-handlers.test.ts` ("content revisions"),
+`test/content-routes.test.ts`.
+
+**There is no restore call.** `PlutoContentHistory` (a core `contentToolbarItems` entry for
+every type, order 40) copies the fields of a revision into the form, and the user saves. So a
+restore is a normal save: validation, capabilities, hooks, the publish rules, the `_version`
+conflict check, and a new version that can be undone. `revisionRestoreValues` copies the stored
+form fields (`restorableFields`: not virtual, not `inForm: false`), but not the slug field and not
+the status field: a restore keeps the id and does not publish or unpublish. The form keeps its
+own `_version`.
+
+The component asks for the first page when an edit page opens, and shows its button only when
+the backend answers `supported` with one revision or more. A save reads the list again. The
+slideover lists the versions (avatar, action or message, date) with "Load more", and shows what a
+restore of the selected one changes in the form (`diffRevision`): a value pair for a short value,
+a line diff for a richtext or textarea field or a multi-line value (`diffLines`, an LCS with a
+4 M-cell cap, then a plain replace), folded to 2 lines of context (`foldDiff`). On open it selects
+the version before the current one, or the current one when the form has unsaved changes. Below
+`md` the detail replaces the list, with a back button. The pure helpers are in
+`shared/utils/content-revision.ts` (test: `test/content-revision.test.ts`). The texts are under
+`pluto.history.*`.
+
+The Git CMS implements both methods (see the git-cms skill, "Revisions"). `@plutocms/supabase` keeps them in
+the table `pluto_content_revisions` (its content-adapter skill, "Revisions").
 
 ## The `_version` token and id changes: for adapter authors
 
