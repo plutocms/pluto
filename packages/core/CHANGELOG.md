@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [0.49.0](https://github.com/plutocms/pluto/compare/v0.48.0...v0.49.0) (2026-11-03)
+
+
+### Features
+
+* a Domain section in the Deploy tab, and GitHub Pages with no CLI ([#375](https://github.com/plutocms/pluto/issues/375)) ([a1b685e](https://github.com/plutocms/pluto/commit/a1b685ef020351bb904921d4e7bbe4e627dc4921))
+* the GitHub setup panel shows the Create button first and folds the checklist ([#376](https://github.com/plutocms/pluto/issues/376)) ([438d7a9](https://github.com/plutocms/pluto/commit/438d7a99a8feb85947c8d7b8a95e83ced19422ff))
+
+
+### Bug Fixes
+
+* the GitHub Pages workflow runs nuxt generate, so icons load after a page change ([#377](https://github.com/plutocms/pluto/issues/377)) ([808413e](https://github.com/plutocms/pluto/commit/808413e63e868230874052ff938b8b8f2e27a6e4))
+
 ## [0.48.0](https://github.com/plutocms/pluto/compare/v0.47.1...v0.48.0) (2026-11-02)
 
 
