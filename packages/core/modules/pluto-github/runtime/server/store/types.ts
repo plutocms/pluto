@@ -12,6 +12,20 @@ export interface PlutoGithubFile {
   text: string
 }
 
+/** One commit of a file history. */
+export interface PlutoGithubCommitInfo {
+  oid: string
+  /** The first line of the message. */
+  message: string
+  /** An ISO timestamp. */
+  committedAt: string
+  author: {
+    name: string
+    login?: string
+    avatarUrl?: string
+  }
+}
+
 /** A GitHub token (user or server). The fs and memory stores ignore it. */
 export interface PlutoGithubAuth {
   token: string
@@ -58,6 +72,27 @@ export interface PlutoGithubStore {
   ) => Promise<PlutoGithubFile | null>
   /** The bytes of any file (a media file), at the branch head. `null` when it does not exist. */
   readRaw: (path: string, auth?: PlutoGithubAuth) => Promise<Uint8Array | null>
+  /**
+   * The commits that changed one file, newest first. Optional: a store without it has no history
+   * (the build snapshot). `cursor` is the `nextCursor` of the page before. Renames are not followed.
+   */
+  history?: (
+    path: string,
+    query: {
+      limit: number
+      cursor?: string
+    },
+    auth?: PlutoGithubAuth
+  ) => Promise<{
+    commits: PlutoGithubCommitInfo[]
+    nextCursor?: string
+  }>
+  /** One file as it was at a commit. `null` when the file was not there. Optional, with `history`. */
+  readAt?: (
+    path: string,
+    commitOid: string,
+    auth?: PlutoGithubAuth
+  ) => Promise<PlutoGithubFile | null>
   /** Throws a `PlutoGithubConflictError` when `expectedHeadOid` is stale. */
   commit: (
     input: PlutoGithubCommitInput,

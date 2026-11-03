@@ -210,6 +210,32 @@ Conflict handling:
 Store errors map to HTTP errors with `pluto.github.errors.*` keys: conflict 409, auth 401, forbidden
 403, rate limit 503 with a `Retry-After` header, not found 404, GitHub failure 502.
 
+### Revisions
+
+The adapter implements `listRevisions` and `getRevision` (see the content-model skill,
+"Revisions"). A revision is a commit that changed the file of the item.
+
+- The store has two optional methods: `history(path, { limit, cursor }, auth)` (the commits that
+  changed a file, newest first: `{ commits: PlutoGithubCommitInfo[], nextCursor? }`) and
+  `readAt(path, commitOid, auth)` (the file at a commit, or `null`).
+  - GitHub: one GraphQL query, `history(path:)` on the branch, 1 to 50 per page with the GraphQL
+    cursor. The author is the Git author name, with the GitHub login and avatar when GitHub knows
+    the user. `readAt` reads the blob `<commit>:<path>` (single-flight, no index cache).
+  - fs: `localFileHistory` and `localFileAt` (`store/local-git.ts`): `git log -n --skip -- path`
+    and `git show <oid>:./<path>` in the project dir. The cursor is the skip count. A commit id
+    must be hex, so it can never act as an option. No Git repo, or no Git: an empty history.
+  - Memory (tests): a copy of the text files after each commit. Commit ids `c1`, `c2`, ...
+  - The build snapshot has none. `withBuildSnapshot` and `withSnapshotFallback` pass both
+    methods to the GitHub store (an editor always has a token).
+- Both adapter methods need a signed-in caller with the type write capability (401, 403). A draft
+  revision follows the rule of `get`: without the read capability it is `null`.
+- The action comes from a Pluto commit message (`content(post): update "slug"`). Another commit
+  (a push by hand) shows its first line, without `[skip ci]`.
+- Renames are not followed: the history of an item starts at its last rename.
+
+Tests: `test/github-revisions.test.ts` (the adapter over the memory store, a nested id, the
+snapshot, the GitHub GraphQL calls, and `fs` in a temp Git repo).
+
 ### Nested content types
 
 A type with `files: { nested: true }` stores its items in nested folders. A docs site needs this.

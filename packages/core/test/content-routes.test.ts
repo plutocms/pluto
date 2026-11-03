@@ -91,3 +91,62 @@ describe('content item routes', () => {
     expect(calls[0]!.id).toBe('a b/c/d')
   })
 })
+
+describe('content revision routes', () => {
+  it('pass a nested id, the revision, the limit and the cursor', async () => {
+    const seen: unknown[] = []
+    vi.stubGlobal('getQuery', h3.getQuery)
+    vi.stubGlobal(
+      'listContentRevisions',
+      async (_ctx: unknown, id: string, query: unknown) => {
+        seen.push({ op: 'list', id, query })
+        return { supported: true, data: [] }
+      }
+    )
+    vi.stubGlobal(
+      'getContentRevision',
+      async (_ctx: unknown, id: string, revision: string) => {
+        seen.push({ op: 'get', id, revision })
+        return { id }
+      }
+    )
+    const list = (
+      await import('../server/api/_pluto/content-revisions/[type]/[...id].get')
+    ).default
+    const one = (
+      await import(
+        '../server/api/_pluto/content-revision/[type]/[revision]/[...id].get'
+      )
+    ).default
+    const app = h3.createApp()
+    const router = h3.createRouter()
+    router.get('/api/_pluto/content-revisions/:type/**:id', list)
+    router.get('/api/_pluto/content-revision/:type/:revision/**:id', one)
+    app.use(router)
+    const web = h3.toWebHandler(app)
+
+    await web(
+      new Request(
+        'http://localhost/api/_pluto/content-revisions/doc/1.start/2.install?limit=5&cursor=c1'
+      )
+    )
+    await web(
+      new Request('http://localhost/api/_pluto/content-revisions/doc/hello')
+    )
+    await web(
+      new Request(
+        'http://localhost/api/_pluto/content-revision/doc/abc123/1.start/index'
+      )
+    )
+
+    expect(seen).toEqual([
+      {
+        op: 'list',
+        id: '1.start/2.install',
+        query: { limit: 5, cursor: 'c1' },
+      },
+      { op: 'list', id: 'hello', query: {} },
+      { op: 'get', id: '1.start/index', revision: 'abc123' },
+    ])
+  })
+})

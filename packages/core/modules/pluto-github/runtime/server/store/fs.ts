@@ -4,7 +4,7 @@ import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { gitBlobSha, listingOid } from '../utils/blob-sha'
 import { PlutoGithubConflictError, PlutoGithubStoreError } from './errors'
-import { commitLocalFiles } from './local-git'
+import { commitLocalFiles, localFileAt, localFileHistory } from './local-git'
 
 export interface FsStoreOptions {
   /** The absolute root dir. All paths are relative to it. */
@@ -191,6 +191,36 @@ export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
       return files
     },
     readFile: async (path) => read(path),
+    // The history of the local Git repo of the project. No repo, or no Git: no history.
+    history: async (path, query) => {
+      safePath(path)
+      const skip = Number.parseInt(query.cursor ?? '0', 10) || 0
+      const page = await localFileHistory(root, path, {
+        limit: query.limit,
+        skip,
+      })
+      return {
+        commits: page.commits.map((commit) => ({
+          oid: commit.oid,
+          message: commit.message,
+          committedAt: commit.committedAt,
+          author: { name: commit.authorName },
+        })),
+        ...(page.more && { nextCursor: String(skip + query.limit) }),
+      }
+    },
+    readAt: async (path, commitOid) => {
+      safePath(path)
+      const text = await localFileAt(root, path, commitOid)
+      return text === null
+        ? null
+        : {
+            path,
+            name: path.slice(path.lastIndexOf('/') + 1),
+            oid: gitBlobSha(text),
+            text,
+          }
+    },
     readRaw: async (path) => {
       try {
         return new Uint8Array(await readFile(safePath(path)))

@@ -99,6 +99,35 @@
       "stay": "Ficar nesta página",
       "leave": "Sair sem salvar"
     },
+    "history": {
+      "button": "Histórico",
+      "title": "Histórico",
+      "description": "As versões salvas deste item. Escolha uma para ver o que mudou.",
+      "current": "Atual",
+      "actions": {
+        "create": "Criado",
+        "update": "Salvo",
+        "publish": "Publicado",
+        "unpublish": "Despublicado",
+        "rename": "Renomeado"
+      },
+      "unknownAuthor": "Alguém",
+      "loadMore": "Carregar mais",
+      "loadError": "Não foi possível carregar o histórico.",
+      "versionError": "Não foi possível carregar esta versão.",
+      "pick": "Escolha uma versão para ver o que uma restauração muda no formulário.",
+      "same": "Esta versão é igual ao formulário.",
+      "changes": "Nenhum campo alterado | 1 campo alterado | {count} campos alterados",
+      "now": "Agora",
+      "version": "Esta versão",
+      "empty": "(vazio)",
+      "hiddenLines": "1 linha sem mudança | {count} linhas sem mudança",
+      "restore": "Restaurar esta versão",
+      "restoreHint": "O formulário recebe os campos desta versão. O slug e o status ficam. Salve para manter.",
+      "restored": "Versão restaurada no formulário",
+      "restoredHint": "Confira e salve para manter.",
+      "back": "Voltar para as versões"
+    },
     "canvas": {
       "page": "Página",
       "panels": "Painéis",

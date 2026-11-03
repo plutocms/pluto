@@ -43,6 +43,9 @@ const PlutoDashboardQuickActions = defineAsyncComponent(
 const PlutoContentBarActions = defineAsyncComponent(
   () => import('../components/Pluto/Content/PlutoContentBarActions.vue')
 )
+const PlutoContentHistory = defineAsyncComponent(
+  () => import('../components/Pluto/Content/PlutoContentHistory.vue')
+)
 
 // Registers core's own Home and Settings anchors, plus the eight built-in
 // content field widgets. `order: 0` and `order: 1000` are reserved for the
@@ -229,6 +232,16 @@ export default defineNuxtPlugin(() => {
     // "New <type>" and "Edit <type>" for the content types that set `adminBar`.
     navbarActions: [
       { id: 'content', order: 50, component: PlutoContentBarActions },
+    ],
+    // History in the edit form of every type. It shows only when the backend keeps revisions.
+    // Order 40: before the build status of the Git CMS (50).
+    contentToolbarItems: [
+      {
+        id: 'history',
+        contentType: '*',
+        order: 40,
+        component: PlutoContentHistory,
+      },
     ],
   })
 })

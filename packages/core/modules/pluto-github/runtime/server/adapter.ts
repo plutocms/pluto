@@ -5,6 +5,9 @@ import type {
   PlutoContentItem,
   PlutoContentListResult,
   PlutoContentQuery,
+  PlutoContentRevision,
+  PlutoContentRevisionAction,
+  PlutoContentRevisionPage,
   PlutoContentType,
   PlutoField,
 } from '../../../../shared/types/content'
@@ -146,6 +149,29 @@ function layoutOf(type: PlutoContentType): Layout {
     publishedAtColumn: type.status ? type.status.publishedAtColumn : undefined,
     createdColumn: created || undefined,
     updatedColumn: updated || undefined,
+  }
+}
+
+// A commit message of the adapter: `content(post): update "slug"`. See `messageOf`.
+const PLUTO_MESSAGE =
+  /^content\([^)]*\): (create|update|publish|unpublish|rename)\b/
+
+/** A history commit as a revision: the action of a Pluto commit, or the message of any other. */
+function toRevision(commit: {
+  oid: string
+  message: string
+  committedAt: string
+  author: PlutoContentRevision['author']
+}): PlutoContentRevision {
+  const action = PLUTO_MESSAGE.exec(commit.message)?.[1] as
+    | PlutoContentRevisionAction
+    | undefined
+  const message = commit.message.replace(/\s*\[skip ci\]\s*$/, '')
+  return {
+    id: commit.oid,
+    createdAt: commit.committedAt,
+    ...(commit.author?.name && { author: commit.author }),
+    ...(action ? { action } : { message }),
   }
 }
 
@@ -1167,10 +1193,69 @@ export function createMarkdownContentAdapter(
     return result
   }
 
+  /**
+   * The commits that changed the file of one item, newest first. Only an editor (the type write
+   * capability) reads them. A store with no history (the build snapshot) gives an empty page.
+   * Renames are not followed: the history starts at the last rename.
+   */
+  async function listRevisions(
+    ctx: PlutoContentContext,
+    id: string | number,
+    query: {
+      limit: number
+      cursor?: string
+    }
+  ): Promise<PlutoContentRevisionPage> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const access = await requireAccess(ctx.event, type.capabilities?.write)
+      const layout = layoutOf(type)
+      const slug = String(id)
+      if (!store.history || !isUsableId(layout, slug)) {
+        return { data: [] }
+      }
+      const path = contentFilePath(dir, type.source, slug, pathOptions(layout))
+      const page = await store.history(path, query, access.auth)
+      return {
+        data: page.commits.map(toRevision),
+        ...(page.nextCursor && { nextCursor: page.nextCursor }),
+      }
+    })
+  }
+
+  /** The item as the file was at one commit. A draft follows the rule of `get`. */
+  async function getRevision(
+    ctx: PlutoContentContext,
+    id: string | number,
+    revisionId: string
+  ): Promise<PlutoContentItem | null> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const access = await requireAccess(ctx.event, type.capabilities?.write)
+      const layout = layoutOf(type)
+      const slug = String(id)
+      if (!store.readAt || !isUsableId(layout, slug)) {
+        return null
+      }
+      const path = contentFilePath(dir, type.source, slug, pathOptions(layout))
+      const file = await store.readAt(path, revisionId, access.auth)
+      const entry = file ? await toEntry(layout, file, slug) : null
+      if (
+        !entry ||
+        !isVisible(type, layout, entry, canSeeDrafts(type, access))
+      ) {
+        return null
+      }
+      return toItem(type, layout, entry, true)
+    })
+  }
+
   return {
     id: 'markdown',
     list,
     get,
+    listRevisions,
+    getRevision,
     create,
     update,
     remove,

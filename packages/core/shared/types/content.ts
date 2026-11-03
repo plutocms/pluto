@@ -509,6 +509,30 @@ export interface PlutoContentAdapter {
     version?: string
   } | null>
   /**
+   * The saved versions of one item, newest first. Optional: without it, the edit form shows no
+   * History. The first entry is the version that the item has now. `cursor` is the `nextCursor`
+   * of the page before. The adapter checks that the caller may edit the type. See the
+   * content-model skill ("Revisions").
+   */
+  listRevisions?: (
+    ctx: PlutoContentContext,
+    id: string | number,
+    query: {
+      limit: number
+      cursor?: string
+    }
+  ) => Promise<PlutoContentRevisionPage>
+  /**
+   * The item as it was at one revision (an `id` from `listRevisions`). `null` when the item had no
+   * such revision. Optional, and needed with `listRevisions`. The `_version` of the answer is the
+   * version of that revision: a restore saves with the `_version` of the current item.
+   */
+  getRevision?: (
+    ctx: PlutoContentContext,
+    id: string | number,
+    revisionId: string
+  ) => Promise<PlutoContentItem | null>
+  /**
    * The keys of the timestamps on an item of `type`, when the item has them. Optional. The public
    * API reads them and answers `createdAt`, `updatedAt` and `publishedAt`. Without it, the public
    * answer has no timestamps.
@@ -523,6 +547,45 @@ export interface PlutoContentAdapter {
    * the file adapter of the CMS renders the Markdown body as HTML.
    */
   toPublic?: PlutoContentToPublic
+}
+
+/** What a revision did, when the backend knows it. */
+export type PlutoContentRevisionAction =
+  | 'create'
+  | 'update'
+  | 'publish'
+  | 'unpublish'
+  | 'rename'
+
+/** One saved version of an item. See `PlutoContentAdapter.listRevisions`. */
+export interface PlutoContentRevision {
+  /** Unique for the item, and safe in a URL path segment (a commit sha, a row id). */
+  id: string
+  /** When the version was saved, an ISO timestamp. */
+  createdAt: string
+  author?: {
+    name: string
+    /** The user name on the backend, for example the GitHub login. */
+    login?: string
+    avatarUrl?: string
+  }
+  /** What the version did. Without it, the admin shows `message`. */
+  action?: PlutoContentRevisionAction
+  /** A short text of the backend, for example a commit message that Pluto did not write. */
+  message?: string
+}
+
+/** One page of revisions, newest first. */
+export interface PlutoContentRevisionPage {
+  data: PlutoContentRevision[]
+  /** Give it back as `cursor` to get the next page. Absent on the last page. */
+  nextCursor?: string
+}
+
+/** The answer of `GET /api/_pluto/content-revisions/<type>/<id>`. */
+export interface PlutoContentRevisionList extends PlutoContentRevisionPage {
+  /** False when the backend keeps no revisions. Then `data` is empty. */
+  supported: boolean
 }
 
 /** One week of the content activity series. */

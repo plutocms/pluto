@@ -20,6 +20,12 @@ policies shared by every project here.
   `/admin/content/**` pages with catch-all id routes, `contentIdPath`, `listContentTypes`, and nav/pages
   derivation). Real adapters exist: the supabase layer (PostgREST) and the Git CMS (Markdown files) each provide a `PlutoContentAdapter`.
   @.claude/skills/content-model/SKILL.md
+- Revisions: the optional adapter reads `listRevisions` and `getRevision`, the routes
+  `/api/_pluto/content-revisions/<type>/<id>` and `/api/_pluto/content-revision/<type>/<revision>/<id>`
+  (the type write capability), and History in the edit form of every type (`PlutoContentHistory`):
+  the saved versions, a diff against the form, and a restore that fills the form, so the user saves
+  it like any edit. The Git CMS keeps the revisions as commits (GitHub, local Git).
+  @.claude/skills/content-model/SKILL.md
 - Public API (headless): a versioned, read-only API for any framework or stack.
   `GET /api/pluto/v1/content/<type>` and `/<type>/<id>` serve the published items of a type that sets
   `api: { public: true }`, with `{ data, meta }` answers, `limit`/`offset`/`search`/`sort`/`filter[field]`,

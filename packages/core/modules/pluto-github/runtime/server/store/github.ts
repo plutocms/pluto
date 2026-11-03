@@ -116,6 +116,49 @@ const BLOB_QUERY = `query PlutoGithubBlob($owner: String!, $name: String!, $expr
   }
 }`
 
+const HISTORY_QUERY = `query PlutoGithubHistory($owner: String!, $name: String!, $branch: String!, $path: String!, $first: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    object(expression: $branch) {
+      ... on Commit {
+        history(path: $path, first: $first, after: $after) {
+          pageInfo { hasNextPage endCursor }
+          nodes {
+            oid
+            messageHeadline
+            committedDate
+            author { name user { login avatarUrl } }
+          }
+        }
+      }
+    }
+  }
+}`
+
+interface HistoryQueryData {
+  repository: {
+    object: {
+      history?: {
+        pageInfo: {
+          hasNextPage: boolean
+          endCursor: string | null
+        }
+        nodes: {
+          oid: string
+          messageHeadline: string
+          committedDate: string
+          author: {
+            name: string | null
+            user: {
+              login: string
+              avatarUrl: string
+            } | null
+          } | null
+        }[]
+      }
+    } | null
+  } | null
+}
+
 const COMMIT_MUTATION = `mutation PlutoGithubCommit($input: CreateCommitOnBranchInput!) {
   createCommitOnBranch(input: $input) {
     commit { oid }
@@ -294,6 +337,67 @@ export function createGithubStore(
         const data = await githubGraphql<BlobQueryData>(
           BLOB_QUERY,
           { owner, name, expression: `${headOid}:${path}` },
+          {
+            token: await tokenOf(auth),
+            apiUrl: options.apiUrl,
+            fetch: options.fetch,
+          }
+        )
+        const blob = data.repository?.object
+        if (!usable(blob, path) || !blob.oid) {
+          return null
+        }
+        return { path, name: nameOf(path), oid: blob.oid, text: blob.text }
+      })
+    },
+
+    async history(path, query, auth) {
+      const data = await githubGraphql<HistoryQueryData>(
+        HISTORY_QUERY,
+        {
+          owner,
+          name,
+          branch: options.branch,
+          path,
+          first: query.limit,
+          after: query.cursor ?? null,
+        },
+        {
+          token: await tokenOf(auth),
+          apiUrl: options.apiUrl,
+          fetch: options.fetch,
+        }
+      )
+      const history = data.repository?.object?.history
+      if (!history) {
+        return { commits: [] }
+      }
+      return {
+        commits: history.nodes.map((node) => ({
+          oid: node.oid,
+          message: node.messageHeadline,
+          committedAt: node.committedDate,
+          author: {
+            name: node.author?.name || node.author?.user?.login || '',
+            ...(node.author?.user && {
+              login: node.author.user.login,
+              avatarUrl: node.author.user.avatarUrl,
+            }),
+          },
+        })),
+        ...(history.pageInfo.hasNextPage &&
+          history.pageInfo.endCursor && {
+            nextCursor: history.pageInfo.endCursor,
+          }),
+      }
+    },
+
+    async readAt(path, commitOid, auth) {
+      // A commit never changes, so the blob at `<commit>:<path>` never does either.
+      return cache.singleFlight(`file:${path}@${commitOid}`, async () => {
+        const data = await githubGraphql<BlobQueryData>(
+          BLOB_QUERY,
+          { owner, name, expression: `${commitOid}:${path}` },
           {
             token: await tokenOf(auth),
             apiUrl: options.apiUrl,
