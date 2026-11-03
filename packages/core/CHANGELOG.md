@@ -1,6 +1,17 @@
 # Changelog
 
 
+## [0.51.0](https://github.com/plutocms/pluto/compare/v0.50.0...v0.51.0) (2026-11-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* the Git CMS is hybrid by default: a published save also starts a build, and the public pages serve the content of the last build when GitHub fails ([#386](https://github.com/plutocms/pluto/issues/386))
+
+### Features
+
+* the Git CMS is hybrid by default: a published save also starts a build, and the public pages serve the content of the last build when GitHub fails ([#386](https://github.com/plutocms/pluto/issues/386)) ([9af8505](https://github.com/plutocms/pluto/commit/9af85059fd2bf804d684ca4e00cc483b0936da10))
+
 ## [0.50.0](https://github.com/plutocms/pluto/compare/v0.49.1...v0.50.0) (2026-11-03)
 
 
