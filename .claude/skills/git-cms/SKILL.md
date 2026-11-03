@@ -1023,7 +1023,7 @@ order 160, `i-lucide-rocket`) is in the CMS client plugin. The module adds the r
 `detectPackageManager(files)` (the lock file: `bun.lock`/`bun.lockb`, `pnpm-lock.yaml`, `yarn.lock`,
 else npm), `defaultPagesUrl(repo)` and `PAGES_WORKFLOW_PATH` (`.github/workflows/pluto-pages.yml`).
 The workflow runs on a push to the branch and by hand: checkout, `configure-pages@v5`, the setup and
-install of the package manager, `nuxt build --preset github_pages` with
+install of the package manager, `nuxt generate --preset github_pages` (generate, not build: Nuxt Icon sees a static build only through `nuxt generate`, then reads icons from the Iconify API and bundles the custom collections; with `nuxt build` it asks the missing `/api/_nuxt_icon` route and the icons of a page opened in the browser stay blank) with
 `PLUTO_BASE_URL: ${{ steps.pages.outputs.base_path }}`, `upload-pages-artifact@v3` (`.output/public`),
 then `deploy-pages@v4`. Permissions: `contents: read`, `pages: write`, `id-token: write`. It needs no
 secret.
@@ -1077,8 +1077,10 @@ author's machine (local mode) or on a Node host, and each push of content rebuil
   `PlutoHtml` adds it to the site paths of a post body (`withBaseInHtml` of
   `shared/utils/html-base.ts`).
 - Drafts are not public, so they are never in the output.
-- Checked live: `nuxt build --preset github_pages` with `PLUTO_BASE_URL`, served under the sub path:
-  the home page, a post, the cover, an inline image and the links work, and no request fails.
+- Checked live: a static build with `PLUTO_BASE_URL`, served under the sub path: the home page, a
+  post, the cover, an inline image and the links work, and no request fails. After a page change in
+  the browser, the icons of the new page load from the Iconify API (`nuxt generate` only; with
+  `nuxt build --preset github_pages` they ask `/api/_nuxt_icon` and stay blank).
 - Tests: `test/github-module.test.ts` ("a static build"), `test/pluto-github-options.test.ts`,
   `test/html-base.test.ts`.
 
