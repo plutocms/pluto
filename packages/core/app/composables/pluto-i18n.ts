@@ -97,23 +97,32 @@ export function usePlutoI18n() {
    * Automatic: the browser language is detected again. The cookie keeps the
    * explicit code, or is cleared for Automatic. Then the registered locale
    * driver, if any, saves the choice. A driver error rejects the promise, and
-   * the switch stays.
+   * the switch stays. `save: false` keeps the choice on this device only: the
+   * login page uses it, because no user is signed in to save it for. The next
+   * sign-in saves it (see `syncUserLocale`).
    */
-  async function setLocale(code: string | null) {
+  async function setLocale(
+    code: string | null,
+    options: { save?: boolean } = {}
+  ) {
     if (code !== null && !scope.locales.includes(code)) {
       return
     }
     await switchTo(code ?? detectAdminLocale())
     preference.value = code
     cookie.value = code
-    await driver.value?.save(code)
+    if (options.save !== false) {
+      await driver.value?.save(code)
+    }
   }
 
   /**
    * Reads the user's stored language from the locale driver. A stored code
-   * switches the admin to it and sets the cookie. No stored code means
-   * Automatic: the cookie is cleared, and the browser language applies. With
-   * no driver, or on a driver error, nothing changes.
+   * switches the admin to it and sets the cookie. No stored code, and an
+   * explicit choice on this device (the cookie, for example from the login
+   * page): the choice stays, and the driver saves it for the user. No stored
+   * code and no choice means Automatic: the browser language applies. With no
+   * driver, or on a driver error, nothing changes.
    */
   async function syncUserLocale() {
     if (!driver.value) {
@@ -128,10 +137,19 @@ export function usePlutoI18n() {
       )
       return
     }
+    const chosen = cookie.value
     if (stored && scope.locales.includes(stored)) {
       await switchTo(stored)
       preference.value = stored
       cookie.value = stored
+    } else if (chosen && scope.locales.includes(chosen)) {
+      await switchTo(chosen)
+      preference.value = chosen
+      try {
+        await driver.value.save(chosen)
+      } catch {
+        // The choice stays on this device. The Settings page can save it later.
+      }
     } else {
       await switchTo(detectAdminLocale())
       preference.value = null
