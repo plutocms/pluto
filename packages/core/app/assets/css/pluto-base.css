@@ -225,4 +225,26 @@
   :where(.pluto-prose) :where(input[type='checkbox']) {
     margin-inline-end: 0.5rem;
   }
+
+  /* ColorModeButton. */
+
+  :where(.pluto-color-mode-button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: 0;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  :where(.pluto-color-mode-button:hover) {
+    background: var(
+      --ui-bg-elevated,
+      color-mix(in oklab, currentColor 10%, transparent)
+    );
+  }
 }
