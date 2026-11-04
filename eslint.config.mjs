@@ -18,6 +18,7 @@ export default createConfigForNuxt({
     src: [
       'packages/core/app',
       'packages/layers/addons/3d/app',
+      'packages/layers/addons/shop/app',
       'playground/app',
     ],
   },

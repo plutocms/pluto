@@ -18,6 +18,12 @@
       "package-name": "@plutocms/docs",
       "component": "docs",
       "include-component-in-tag": true
+    },
+    "packages/layers/addons/shop": {
+      "package-name": "@plutocms/shop",
+      "component": "shop",
+      "include-component-in-tag": true,
+      "initial-version": "0.1.0"
     }
   }
 }

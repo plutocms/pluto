@@ -1,0 +1,40 @@
+{
+  "name": "@plutocms/shop",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "An add-on layer for Pluto shops: a cart saved in the browser, and the price helpers, for every backend",
+  "author": "Victor Ribeiro",
+  "license": "MIT",
+  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/layers/addons/shop#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutocms/pluto.git",
+    "directory": "packages/layers/addons/shop"
+  },
+  "bugs": {
+    "url": "https://github.com/plutocms/pluto/issues"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt-layer",
+    "pluto",
+    "shop",
+    "cart"
+  ],
+  "main": "./nuxt.config.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "nuxt prepare ../../../../playground && vue-tsc --noEmit -p ../../../../playground/.nuxt/tsconfig.app.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@plutocms/core": ">=0.55.0 <1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@plutocms/core": {
+      "optional": true
+    }
+  }
+}

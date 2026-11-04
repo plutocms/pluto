@@ -56,15 +56,17 @@ See [Public API](https://pluto.vulmix.dev/docs/build/public-api).
 | `@plutocms/supabase-blog` | Blog posts on Supabase.                                  |
 | `@plutocms/supabase-shop` | Products on Supabase.                                    |
 | `@plutocms/3d`            | 3D models in the media library, and a viewer.            |
+| `@plutocms/shop`          | A cart saved in the browser, and the price helpers.      |
 
 Read [Layers](https://pluto.vulmix.dev/docs/extend/layers) to see how they fit together.
 
 ## This repository
 
-| Folder                      | Package          |
-| --------------------------- | ---------------- |
-| `packages/core`             | `@plutocms/core` |
-| `packages/layers/addons/3d` | `@plutocms/3d`   |
+| Folder                        | Package          |
+| ----------------------------- | ---------------- |
+| `packages/core`               | `@plutocms/core` |
+| `packages/layers/addons/3d`   | `@plutocms/3d`   |
+| `packages/layers/addons/shop` | `@plutocms/shop` |
 
 ## Links
 

@@ -2,7 +2,7 @@
 
 This repo holds the core layer of Pluto, `@plutocms/core` (`packages/core`), the feature layers
 (`packages/layers/<name>`: `@plutocms/docs`), and the add-on layers (`packages/layers/addons/*`,
-for example `@plutocms/3d`). The other layers move here one by one (see
+for example `@plutocms/3d` and `@plutocms/shop`). The other layers move here one by one (see
 `.claude/plan/monorepo-layers.md` in the workspace). Each layer keeps its own skills
 (`packages/layers/<name>/.claude/skills/`), its own ESLint config (ESLint finds the nearest one)
 and its own tests and typecheck; the root scripts run them all. It is a Bun workspace. The
@@ -18,7 +18,7 @@ Run them at the root. The root scripts call the packages.
 - `bun install`: install. The `postinstall` hook of the root package runs `dev:prepare` (`nuxt prepare`) in
   `packages/core`. The published packages have no install script.
 - `bun run dev`: run the playground (`playground/`), an app that extends `@plutocms/core` and
-  `@plutocms/3d` by name. The workspace links the names to `packages/`. Do not save content or
+  `@plutocms/3d` and `@plutocms/shop` by name. The workspace links the names to `packages/`. Do not save content or
   upload files in it with the Git CMS: the local Git commits go into this repo.
 - `bun run test`: run the Vitest suites of core (`packages/core/test/`) and of the add-ons. The tests are plain Vitest, with no Nuxt
   environment. Mock the Nuxt imports (see `test/fixtures/`).
