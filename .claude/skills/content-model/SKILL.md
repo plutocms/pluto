@@ -393,6 +393,12 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
   alone for a page with no title or the same title), `og:site_name`, and the site description as
   the default `description` / `og:description`; a page that sets its own wins. Test:
   `test/site-composables.test.ts`.
+- `formatPublishedDate(item, { locale?, timeZone?, ...Intl options })` (`shared/utils/public-api.ts`):
+  `publishedAt`, else `createdAt`, as text; `''` with no date or a bad one. Defaults: `'en'`,
+  UTC (the server and the browser give the same text, so no hydration mismatch), and
+  `dateStyle: 'medium'` when no format option is given. Test: `test/published-date.test.ts`.
+- `readingMinutes(html, wordsPerMinute = 220)` (same file): the words of the text (tags removed)
+  over the rate, rounded, at least 1. Test: `test/reading-minutes.test.ts`.
 - `extendPlutoAsyncData(result, keys)` adds named keys to the thenable result and to what it
   resolves to. `usePosts` and `usePost` (core, type `post`, both backends, sorted by
   `-publishedAt`, `og:type` article) add `posts` and `post`. `@plutocms/supabase-shop` adds
@@ -574,10 +580,10 @@ gives the routes, the capability check and the admin UI.
 - `getRevision(ctx, id, revisionId)` returns the item as it was at that revision, or `null`. Its
   `_version` is the version of that revision.
 
-| Route | Method | Calls |
-| --- | --- | --- |
-| `/api/_pluto/content-revisions/[type]/[...id]?limit&cursor` | GET | `listContentRevisions` |
-| `/api/_pluto/content-revision/[type]/[revision]/[...id]` | GET | `getContentRevision` |
+| Route                                                       | Method | Calls                  |
+| ----------------------------------------------------------- | ------ | ---------------------- |
+| `/api/_pluto/content-revisions/[type]/[...id]?limit&cursor` | GET    | `listContentRevisions` |
+| `/api/_pluto/content-revision/[type]/[revision]/[...id]`    | GET    | `getContentRevision`   |
 
 Own base paths, because an id can hold slashes (a nested type): the revision comes before the id.
 Both need `type.capabilities.write` (`authorizeContentOperation`, so the fail-open rule applies):

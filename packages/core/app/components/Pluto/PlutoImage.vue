@@ -8,6 +8,9 @@
 // Git CMS that is in the repo but not in a deploy yet), it shows the file
 // as it is. A file that is not an image shows its preview image (the
 // thumbnail of a 3D model), or nothing when it has none. See the media skill.
+//
+// The template has one root (a v-if chain, no fragment), so a class on
+// PlutoImage reaches the image.
 import type { PlutoPublicMedia } from '../../../shared/types/media'
 
 const props = withDefaults(
@@ -51,28 +54,26 @@ const text = computed(() => props.alt ?? image.value?.alt ?? '')
 </script>
 
 <template>
-  <template v-if="image">
-    <img
-      v-if="failed"
-      :src="image.url"
-      :alt="text"
-      :width="image.width ?? undefined"
-      :height="image.height ?? undefined"
-      :loading="loading"
-      :fetchpriority="fetchpriority"
-      decoding="async"
-    />
-    <NuxtImg
-      v-else
-      :src="image.url"
-      :alt="text"
-      :width="image.width ?? undefined"
-      :height="image.height ?? undefined"
-      :sizes="sizes"
-      :loading="loading"
-      :fetchpriority="fetchpriority"
-      decoding="async"
-      @error="failed = true"
-    />
-  </template>
+  <img
+    v-if="image && failed"
+    :src="image.url"
+    :alt="text"
+    :width="image.width ?? undefined"
+    :height="image.height ?? undefined"
+    :loading="loading"
+    :fetchpriority="fetchpriority"
+    decoding="async"
+  />
+  <NuxtImg
+    v-else-if="image"
+    :src="image.url"
+    :alt="text"
+    :width="image.width ?? undefined"
+    :height="image.height ?? undefined"
+    :sizes="sizes"
+    :loading="loading"
+    :fetchpriority="fetchpriority"
+    decoding="async"
+    @error="failed = true"
+  />
 </template>

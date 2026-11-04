@@ -18,14 +18,17 @@ function templateClasses(sfc: string): string[] {
 }
 
 describe('public components', () => {
-  it.each(['PlutoHtml.vue'])('%s has only pluto-* classes', (file) => {
-    const sfc = read('components', 'Pluto', file)
-    const classes = templateClasses(sfc)
+  it.each([['Pluto', 'PlutoHtml.vue'], ['ColorModeButton.vue']])(
+    '%s has only pluto-* classes',
+    (...path) => {
+      const sfc = read('components', ...path)
+      const classes = templateClasses(sfc)
 
-    expect(classes.length).toBeGreaterThan(0)
-    expect(classes.filter((token) => !token.startsWith('pluto-'))).toEqual([])
-    expect(sfc).not.toContain('#build/ui/')
-  })
+      expect(classes.length).toBeGreaterThan(0)
+      expect(classes.filter((token) => !token.startsWith('pluto-'))).toEqual([])
+      expect(sfc).not.toContain('#build/ui/')
+    }
+  )
 })
 
 describe('pluto-base.css', () => {
