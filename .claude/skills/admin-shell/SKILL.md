@@ -282,7 +282,8 @@ order:
    "Visit {domain}".
 5. The navbar actions, inside `ClientOnly` with a spinner fallback. Core adds one: the content
    bar actions (see "Content buttons").
-6. The color mode button.
+6. The color mode button, `PlutoAdminColorModeButton` (a `PlutoNavbarHit`). `ColorModeButton`
+   is the plain one for a site (see the public-components skill).
 7. `PlutoAdminUserMenu`, only when a driver is registered. It is `ClientOnly`, with an avatar
    skeleton as the fallback.
 

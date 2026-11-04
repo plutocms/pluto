@@ -9,9 +9,9 @@ Tailwind.
 
 | Component                         | Layer         | Notes                                                                                                                                                                          |
 | --------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PlutoRoot`                       | core          | Plain CSS in its `<style>` (`--pluto-admin-bar-height`, `--pluto-page-height`, the wrappers).                                                                                                         |
+| `PlutoRoot`                       | core          | Plain CSS in its `<style>` (`--pluto-admin-bar-height`, `--pluto-page-height`, the wrappers).                                                                                  |
 | `PlutoHtml`                       | core          | The `html` of a public item, with the `pluto-prose` class. Under a sub path (`app.baseURL` not `/`), `withBaseInHtml` puts the base before each site path of `src` and `href`. |
-| `PlutoImage`                      | core          | An `<img>` (NuxtImg) with no class.                                                                                                                                            |
+| `PlutoImage`                      | core          | One `<img>` (NuxtImg) with no class. One root (a `v-if` chain, no fragment), so a class of the caller reaches the image.                                                       |
 | `PlutoLogo`                       | core          | An SVG with no class.                                                                                                                                                          |
 | `PlutoProse`                      | supabase-blog | A rich text value, with the `pluto-prose` class.                                                                                                                               |
 | `Pluto3dViewer`, `Pluto3dPreview` | 3d            | Layout in the component, look in the base file.                                                                                                                                |
@@ -19,8 +19,13 @@ Tailwind.
 `PlutoMarkdown` is the old Git CMS name of `PlutoHtml`. The docs layer is a full docs site on
 Nuxt UI and Nuxt Content: a site that uses it needs Tailwind and Nuxt UI.
 
-Not in the list: the unprefixed core helpers (`Container`, `ScrollArea`, `Modal*`,
-`ColorModeButton`). They use Tailwind classes with `twMerge`, and they serve the admin.
+`ColorModeButton` (core, unprefixed): one `<button>` with the `pluto-color-mode-button` class and a
+`UIcon` (1em). It is in `ClientOnly` with no fallback slot, so before the mount Nuxt renders an
+empty `<span>` with the attributes of the caller (the same size). Hidden when the color mode is
+forced. The admin navbar uses `PlutoAdminColorModeButton` (a `PlutoNavbarHit`) instead.
+
+Not in the list: the unprefixed core helpers (`Container`, `ScrollArea`, `Modal*`). They use
+Tailwind classes with `twMerge`, and they serve the admin.
 
 ## Rules for a public component
 

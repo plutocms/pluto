@@ -123,7 +123,7 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
       </div>
 
       <div class="flex shrink-0 items-center gap-1 lg:gap-3">
-        <ColorModeButton />
+        <PlutoAdminColorModeButton />
 
         <!--
           The user is known in the browser only. On a public page the server
