@@ -26,9 +26,7 @@ LAYERS=(
 )
 # Wave 2: the Pluto org apps.
 PLUTO_APPS=(
-  plutocms/pluto-admin-template
-  plutocms/pluto-blog-template
-  plutocms/pluto-supabase-shop-template
+  plutocms/templates
   plutocms/plutocms
 )
 # Wave 2 too: apps outside the Pluto org, from PLUTO_FANOUT_APPS (owner/repo,
