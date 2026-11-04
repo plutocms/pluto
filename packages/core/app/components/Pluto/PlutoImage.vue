@@ -51,12 +51,20 @@ const image = computed(() => {
   return media.preview ? { ...media.preview, alt: media.alt } : null
 })
 const text = computed(() => props.alt ?? image.value?.alt ?? '')
+
+// The file as it is. A site path of the Git CMS (`/media/...`) is under the base path of a site
+// on a sub path (GitHub Pages). On a static build the image service has only the sizes of the
+// prerendered pages, so an image that shows in the browser only (a cart) needs this file.
+const baseURL = useRuntimeConfig().app.baseURL
+const fileUrl = computed(() =>
+  image.value ? withBasePath(image.value.url, baseURL) : ''
+)
 </script>
 
 <template>
   <img
     v-if="image && failed"
-    :src="image.url"
+    :src="fileUrl"
     :alt="text"
     :width="image.width ?? undefined"
     :height="image.height ?? undefined"
