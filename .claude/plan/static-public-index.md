@@ -16,9 +16,10 @@ Branch / PR: feat/static-public-index (pluto), templates#3 (the demo)
 - Decisions:
   - A static build prerenders one file, `/api/pluto/v1/index.json`: per public type, its title
     field and all its published items, in the list shape and in the default sort.
-  - The route exists in a static build only (the Git module adds it and prerenders it).
+  - The route exists in a static build only. The `pluto-static` module of core adds it, for every
+    backend, with the base path and the admin ignore (moved from the Git module).
   - `runtimeConfig.public.plutoPublicApi.static` (core, default `false`) tells the client. The Git
-    module sets it in a static build.
+    `pluto-static` module sets it in a static build.
   - In the browser, with the flag on, `usePlutoPublicList` gives `useFetch` its own `$fetch`: it
     loads the index once and answers from it (`queryPublicIndex`, a pure shared util: the search on
     the title, the `filter[field]` equality, the sort, `limit` and `offset`, the same rules as the
@@ -35,10 +36,13 @@ Branch / PR: feat/static-public-index (pluto), templates#3 (the demo)
 - [x] `usePlutoPublicList` answers from the index in a static build.
 - [x] Skills (`git-cms`, `content-model`), FEATURES.md.
 - [x] Try it: a static build under a sub path, search and page 2 (the blog demo, local core).
-- [ ] Docs (static sites).
+- [x] Docs (static sites): plutocms#104.
+- [x] Every backend: the `pluto-static` module; checked on the shop demo (Supabase layer, fixture).
 
 ## Log
 
 - 2026-11-04: planned.
 - 2026-11-04: built and checked live on the fictional blog demo (12 posts, 2 pages): next page,
   direct `?page=2`, search, direct `?q=`, no failed request. PR open. Next: docs.
+- 2026-11-04: moved to `modules/pluto-static` (every backend; #405 merged in). A filter of the
+  index compares an expanded relation by its `id`. Checked on the shop demo.
