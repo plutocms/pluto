@@ -131,7 +131,9 @@ policies shared by every project here.
   Pluto, and who `ALLOWED_USERS` blocks. A static build (`nuxt generate`, or the `github_pages`
   preset) prerenders the site from the files of the checkout with no token, adds no server route,
   keeps the admin out, and takes a sub path from `PLUTO_BASE_URL` (`PlutoHtml` puts it before the
-  site paths of a post body). A **Deploy** tab in Settings (`/admin/settings/deploy`) puts the site
+  site paths of a post body). Any static build, with any backend, also writes a public index
+  (`/api/pluto/v1/index.json`), so the list composables search and page in the browser with no
+  server (the `pluto-static` module). A **Deploy** tab in Settings (`/admin/settings/deploy`) puts the site
   on a host: import links for Vercel and Netlify, a Node host guide, Cloudflare Pages build settings,
   and GitHub Pages (in local mode it writes and commits the workflow after a dialog, links to the
   Pages settings, and reads the last deploy with the GitHub API; no CLI). Its Domain section links to

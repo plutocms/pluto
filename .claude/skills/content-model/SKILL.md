@@ -354,6 +354,10 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
 - Composables: `usePlutoPublicList<T>(type, query)` and `usePlutoPublicItem<T>(type, id)`, `useFetch`
   wrappers that run on the server. `data.value` is the answer above. The site composables below
   wrap them.
+- A static site (`public.plutoPublicApi.static`, set by the `pluto-static` module of core in every static build): in the
+  browser, `usePlutoPublicList` answers from the prerendered public index
+  (`/api/pluto/v1/index.json`, `PlutoPublicIndex`, `queryPublicIndex` of
+  `shared/utils/public-index.ts`). See the git-cms skill ("Static build").
 
 ## Site composables
 

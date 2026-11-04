@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import githubModule, {
-  isStaticPreset,
-  normalizeBasePath,
-} from '../modules/pluto-github'
+import githubModule from '../modules/pluto-github'
 import { countKitCalls, kitCalls, resetKitCalls } from './fixtures/kit-mock'
 
 vi.mock('@nuxt/kit', async (importOriginal) =>
@@ -283,11 +280,6 @@ describe('pluto-github module wiring', () => {
       })
       expect(kitCalls.serverHandlers).toEqual([])
       expect(kitCalls.serverPlugins).toHaveLength(1)
-      expect(nuxt.options.nitro.prerender.ignore).toEqual([
-        '/admin',
-        '/api/_pluto',
-        '/_pluto',
-      ])
     })
 
     it('knows a static Nitro preset', async () => {
@@ -298,29 +290,6 @@ describe('pluto-github module wiring', () => {
       expect(nuxt.options.runtimeConfig.public.plutoGithub.static).toBe(true)
       expect(kitCalls.serverHandlers).toEqual([])
     })
-
-    it('takes the base path from PLUTO_BASE_URL', async () => {
-      vi.stubEnv('PLUTO_BASE_URL', 'my-site')
-      try {
-        const nuxt = await run({ enabled: true }, generate())
-        expect(nuxt.options.app.baseURL).toBe('/my-site/')
-        expect(nuxt.options.runtimeConfig.app.baseURL).toBe('/my-site/')
-      } finally {
-        vi.unstubAllEnvs()
-      }
-    })
-  })
-
-  it('isStaticPreset and normalizeBasePath', () => {
-    expect(isStaticPreset('github_pages')).toBe(true)
-    expect(isStaticPreset('github-pages')).toBe(true)
-    expect(isStaticPreset('static')).toBe(true)
-    expect(isStaticPreset('netlify_static')).toBe(true)
-    expect(isStaticPreset('vercel')).toBe(false)
-    expect(isStaticPreset(undefined)).toBe(false)
-    expect(normalizeBasePath('repo')).toBe('/repo/')
-    expect(normalizeBasePath('/a/b/')).toBe('/a/b/')
-    expect(normalizeBasePath('')).toBe('/')
   })
 
   it('bundles the Markdown of the content dir for a site that reads from GitHub', async () => {

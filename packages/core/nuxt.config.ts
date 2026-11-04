@@ -69,6 +69,12 @@ export default defineNuxtConfig({
       // The site description: the default `description` of a public page (`usePlutoSiteHead`).
       // Env: `NUXT_PUBLIC_WEBSITE_DESCRIPTION`.
       websiteDescription: '',
+      // The public API. `static`: the site is a static build, so the list composables of the
+      // browser answer from the prerendered index (`/api/pluto/v1/index.json`). The Git CMS sets
+      // it in a static build.
+      plutoPublicApi: {
+        static: false,
+      },
       // The media library. A backend sets `driver` (`github`, `supabase`) when it
       // registers its media driver; the admin shows the library only then. Empty
       // `allowedTypes` and `0` give the defaults (shared/utils/media.ts). Env:

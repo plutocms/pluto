@@ -1164,10 +1164,43 @@ Not checked live yet: a real push that runs the workflow on GitHub.
 A site can be a set of static files, for example on GitHub Pages. The admin then stays on the
 author's machine (local mode) or on a Node host, and each push of content rebuilds the site.
 
-- The module sees a static build when it is not dev and `nuxt.options._generate` (`nuxt generate`)
-  or `nitro.static` is set, or the Nitro preset (`nitro.preset`, else `NITRO_PRESET`) is static:
-  `static`, `github_pages` (or `github-pages`), or a name that ends with `_static`
-  (`isStaticPreset`).
+Two modules of core share the work. `modules/pluto-static` does what every static build needs,
+with any backend. The Git module does what the Git CMS needs.
+
+- A static build: not dev, and `nuxt.options._generate` (`nuxt generate`) or `nitro.static` is set,
+  or the Nitro preset (`nitro.preset`, else `NITRO_PRESET`) is static: `static`, `github_pages` (or
+  `github-pages`), or a name that ends with `_static` (`isStaticBuild`, `isStaticPreset` of
+  `modules/pluto-static/static-build.ts`). The Git module uses the same `isStaticBuild`.
+
+### The pluto-static module (every backend)
+
+- Base path: a project site of GitHub Pages lives under `/<repo>/`. The workflow gives the path in
+  `PLUTO_BASE_URL`, and the module writes it (`normalizeBasePath`) in `app.baseURL` and
+  `runtimeConfig.app.baseURL`. Do not use `NUXT_APP_BASE_URL` for this: the prerenderer then reads
+  the base at run time too, the paths do not match, and every page is a 16-byte "Redirecting..."
+  file. `@nuxt/image` adds the base to `PlutoImage` and prerenders the sizes (`/_ipx/...`).
+  `PlutoHtml` adds it to the site paths of a post body (`withBaseInHtml` of
+  `shared/utils/html-base.ts`). Nuxt does not add it to the links of `app.head`: the module does,
+  for a site path such as the favicon (`/favicon.svg`; `withBaseInHeadLinks`). A full URL or
+  `//host` stays.
+- `nitro.prerender.ignore` gets `/admin`, `/api/_pluto` and `/_pluto` (the preview pages).
+- The public index: the one server route of a static build, `/api/pluto/v1/index.json`
+  (`modules/pluto-static/runtime/public-index.get.ts`, `buildPublicIndex` of
+  `server/utils/pluto-public-api.ts`). It is in `nitro.prerender.routes`, so the output has it as a
+  file: per public type, its `titleField` and all its published items, in the list shape and the
+  default sort. The module sets `public.plutoPublicApi.static`. Then, in the browser,
+  `usePlutoPublicList` (and `usePosts`, and every `useList`) gives `useFetch` its own `$fetch`: it
+  loads the index once and answers with `queryPublicIndex` (`shared/utils/public-index.ts`, the
+  rules of the Git adapter: the search in the title, the `filter[field]` equality, the sort with a
+  missing value last, `limit` and `offset`). A filter on an object (a relation that `toPublic`
+  expands, such as `category: { id, label }`) compares its `id`. So a search and the pages after
+  the first work with no server, also on a direct load of `?page=2` or `?q=`. The prerender keeps
+  the real API. One item and the surround need no index: each page is prerendered, and its payload
+  has them.
+- A server build or dev gets nothing.
+
+### The Git module
+
 - The options take `ctx.static`: the `fs` store is the default and is valid, and no repo is needed.
   The store reads the files of the checkout (`fsRoot` is the project dir), so the build needs no
   token and no secret. `localCommit` is off.
@@ -1175,23 +1208,20 @@ author's machine (local mode) or on a Node host, and each push of content rebuil
   client plugin and the pages, but no server route: every `addRoute` call (sign-in, setup, users,
   build status, local Git, `/media/**`) does nothing in a static build. The admin is client-only and
   is never crawled.
-- `nitro.prerender.ignore` gets `/admin`, `/api/_pluto` and `/_pluto` (the preview pages).
 - `public.plutoGithub.static` is true, and `usePlutoGithubSession` then asks for no session
   (`immediate: false`): nobody signs in on a static site, and the request would get a 404.
-- Base path: a project site of GitHub Pages lives under `/<repo>/`. The workflow gives the path in
-  `PLUTO_BASE_URL`, and the module writes it (`normalizeBasePath`) in `app.baseURL` and
-  `runtimeConfig.app.baseURL`. Do not use `NUXT_APP_BASE_URL` for this: the prerenderer then reads
-  the base at run time too, the paths do not match, and every page is a 16-byte "Redirecting..."
-  file. `@nuxt/image` adds the base to `PlutoImage` and prerenders the sizes (`/_ipx/...`).
-  `PlutoHtml` adds it to the site paths of a post body (`withBaseInHtml` of
-  `shared/utils/html-base.ts`).
 - Drafts are not public, so they are never in the output.
-- Checked live: a static build with `PLUTO_BASE_URL`, served under the sub path: the home page, a
-  post, the cover, an inline image and the links work, and no request fails. After a page change in
-  the browser, the icons of the new page load from the Iconify API (`nuxt generate` only; with
+
+### Checked
+
+- A static build with `PLUTO_BASE_URL`, served under the sub path: the home page, a post, the
+  cover, an inline image and the links work, and no request fails. After a page change in the
+  browser, the icons of the new page load from the Iconify API (`nuxt generate` only; with
   `nuxt build --preset github_pages` they ask `/api/_nuxt_icon` and stay blank).
-- Tests: `test/github-module.test.ts` ("a static build"), `test/pluto-github-options.test.ts`,
-  `test/html-base.test.ts`.
+- The public index: under `/templates/blog/`, the next page, a direct `?page=2`, a search, and a
+  direct `?q=` answer from the index, with no failed request.
+- Tests: `test/static-module.test.ts`, `test/github-module.test.ts` ("a static build"),
+  `test/pluto-github-options.test.ts`, `test/html-base.test.ts`, `test/public-index.test.ts`.
 
 ## Rules found in live testing
 
