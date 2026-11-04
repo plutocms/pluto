@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.55.0](https://github.com/plutocms/pluto/compare/v0.54.0...v0.55.0) (2026-11-04)
+
+
+### Features
+
+* a plain ColorModeButton for a site, formatPublishedDate, and PlutoImage passes its class to the image ([#402](https://github.com/plutocms/pluto/issues/402)) ([3930aab](https://github.com/plutocms/pluto/commit/3930aabebc1ce6b289cb67b7fd2542cbf4fa6969))
+
 ## [0.54.0](https://github.com/plutocms/pluto/compare/v0.53.0...v0.54.0) (2026-11-04)
 
 
