@@ -45,10 +45,16 @@ export function usePlutoPublicList<T = PlutoPublicItem>(
       // The prerender asks the real API. The browser of a static site has none.
       ...(import.meta.client &&
         staticSite && {
+          // Through `unknown`: a direct cast compares the function with `$fetch` over every
+          // typed server route of the app, and TypeScript stops with "excessive stack depth".
           $fetch: ((
             _request: string,
             options?: { query?: Record<string, unknown> }
-          ) => queryStaticList(toValue(type), options?.query)) as typeof $fetch,
+          ) =>
+            queryStaticList(
+              toValue(type),
+              options?.query
+            )) as unknown as typeof $fetch,
         }),
     }
   )
