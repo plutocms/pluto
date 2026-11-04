@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.55.1](https://github.com/plutocms/pluto/compare/v0.55.0...v0.55.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* **core:** the type of the static list fetch no longer overflows the typecheck of an app ([#411](https://github.com/plutocms/pluto/issues/411)) ([b9b30fa](https://github.com/plutocms/pluto/commit/b9b30fa818ee7c6a54f56d1d3fb690e4e50c634f))
+
 ## [0.55.0](https://github.com/plutocms/pluto/compare/v0.54.0...v0.55.0) (2026-11-04)
 
 
