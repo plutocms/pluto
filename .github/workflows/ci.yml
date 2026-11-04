@@ -34,6 +34,10 @@ concurrency:
 jobs:
   ci:
     name: Lint, typecheck & build
+    # A copy of a template (a deploy button, create-pluto) gets this file too.
+    # It runs only in the Pluto repos, and in an app that opts in with the
+    # repository variable PLUTOCMS_WORKFLOWS=true.
+    if: github.repository_owner == 'plutocms' || vars.PLUTOCMS_WORKFLOWS == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
