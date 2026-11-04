@@ -193,6 +193,12 @@ export default defineNuxtModule<PlutoGithubOptions>({
           ...nuxt.options.runtimeConfig.app,
           baseURL,
         }
+        // Nuxt does not put the base before a link of `app.head`, such as the favicon of
+        // the app (`/favicon.svg`).
+        const head = nuxt.options.app.head
+        if (head?.link) {
+          head.link = withBaseInHeadLinks(head.link, baseURL)
+        }
       }
       // The admin, the API routes of the admin and the preview pages stay out of the output.
       nuxt.options.nitro.prerender ||= {}
@@ -365,6 +371,20 @@ export function isStaticPreset(preset: unknown): boolean {
 }
 
 /** `repo`, `/repo` and `/repo/` become `/repo/`. An empty path becomes `/`. */
+/** The links of `app.head` with a site path (`/favicon.svg`) get the base path in front. */
+export function withBaseInHeadLinks<T extends { href?: unknown }>(
+  links: T[],
+  baseURL: string
+): T[] {
+  return links.map((link) =>
+    typeof link.href === 'string' &&
+    link.href.startsWith('/') &&
+    !link.href.startsWith('//')
+      ? { ...link, href: `${baseURL}${link.href.slice(1)}` }
+      : link
+  )
+}
+
 export function normalizeBasePath(path: string): string {
   const segments = path.split('/').filter(Boolean)
   return segments.length > 0 ? `/${segments.join('/')}/` : '/'

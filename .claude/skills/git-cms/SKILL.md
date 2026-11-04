@@ -1196,6 +1196,8 @@ author's machine (local mode) or on a Node host, and each push of content rebuil
   file. `@nuxt/image` adds the base to `PlutoImage` and prerenders the sizes (`/_ipx/...`).
   `PlutoHtml` adds it to the site paths of a post body (`withBaseInHtml` of
   `shared/utils/html-base.ts`).
+  Nuxt does not add it to the links of `app.head`: the module does, for a site path such as the
+  favicon (`/favicon.svg`; `withBaseInHeadLinks`). A full URL or `//host` stays.
 - Drafts are not public, so they are never in the output.
 - Checked live: a static build with `PLUTO_BASE_URL`, served under the sub path: the home page, a
   post, the cover, an inline image and the links work, and no request fails. After a page change in
