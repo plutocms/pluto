@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.54.0](https://github.com/plutocms/pluto/compare/v0.53.0...v0.54.0) (2026-11-04)
+
+
+### Features
+
+* drafts on the real page for an editor, useAdjacentPosts, the search and pageLink of a list, usePlutoSite and usePlutoSiteHead ([#399](https://github.com/plutocms/pluto/issues/399)) ([d678930](https://github.com/plutocms/pluto/commit/d678930c0ee84d24a189a5761a1a51877a1907b1))
+
 ## [0.53.0](https://github.com/plutocms/pluto/compare/v0.52.0...v0.53.0) (2026-11-03)
 
 
