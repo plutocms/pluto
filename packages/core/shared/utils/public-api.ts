@@ -74,3 +74,15 @@ export function formatPublishedDate(
     timeZone,
   }).format(date)
 }
+
+/**
+ * The reading time of an HTML body, in minutes: its words over `wordsPerMinute` (default 220),
+ * rounded, at least 1. The tags do not count as words.
+ */
+export function readingMinutes(html: string, wordsPerMinute = 220): number {
+  const words = html
+    .replace(/<[^>]+>/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean).length
+  return Math.max(1, Math.round(words / wordsPerMinute))
+}

@@ -393,6 +393,8 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
   `publishedAt`, else `createdAt`, as text; `''` with no date or a bad one. Defaults: `'en'`,
   UTC (the server and the browser give the same text, so no hydration mismatch), and
   `dateStyle: 'medium'` when no format option is given. Test: `test/published-date.test.ts`.
+- `readingMinutes(html, wordsPerMinute = 220)` (same file): the words of the text (tags removed)
+  over the rate, rounded, at least 1. Test: `test/reading-minutes.test.ts`.
 - `extendPlutoAsyncData(result, keys)` adds named keys to the thenable result and to what it
   resolves to. `usePosts` and `usePost` (core, type `post`, both backends, sorted by
   `-publishedAt`, `og:type` article) add `posts` and `post`. `@plutocms/supabase-shop` adds

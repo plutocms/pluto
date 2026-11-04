@@ -30,6 +30,7 @@ policies shared by every project here.
   page, the SEO tags, the admin bar edit link, drafts for an editor), `useAdjacentPosts` (newer and
   older), `usePlutoSite` and `usePlutoSiteHead` (the site name, description and title template),
   `formatPublishedDate` (the date of an item, the same text on the server and in the browser),
+  `readingMinutes` (the reading time of a body),
   `definePlutoContent` for any public type, and `extendPlutoAsyncData` for a layer's own names.
   The public API serves a draft to an editor (`?drafts=1`) and the neighbors of an item
   (`/api/pluto/v1/surround/<type>/<id>`). @.claude/skills/content-model/SKILL.md
