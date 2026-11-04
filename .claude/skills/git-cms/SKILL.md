@@ -1175,6 +1175,17 @@ author's machine (local mode) or on a Node host, and each push of content rebuil
   client plugin and the pages, but no server route: every `addRoute` call (sign-in, setup, users,
   build status, local Git, `/media/**`) does nothing in a static build. The admin is client-only and
   is never crawled.
+- The public index: the one route of a static build, `/api/pluto/v1/index.json`
+  (`runtime/server/routes/public-index.get.ts`, `buildPublicIndex` of core). It is in
+  `nitro.prerender.routes`, so the output has it as a file: per public type, its `titleField` and
+  all its published items, in the list shape and the default sort. The module sets
+  `public.plutoPublicApi.static`. Then, in the browser, `usePlutoPublicList` (and `usePosts`, and
+  every `useList`) gives `useFetch` its own `$fetch`: it loads the index once and answers with
+  `queryPublicIndex` (`shared/utils/public-index.ts`, the rules of the Git adapter: the search in the
+  title, the `filter[field]` equality, the sort with a missing value last, `limit` and `offset`). So
+  a search and the pages after the first work with no server, also on a direct load of `?page=2` or
+  `?q=`. The prerender keeps the real API. One item and the surround need no index: each page is
+  prerendered, and its payload has them.
 - `nitro.prerender.ignore` gets `/admin`, `/api/_pluto` and `/_pluto` (the preview pages).
 - `public.plutoGithub.static` is true, and `usePlutoGithubSession` then asks for no session
   (`immediate: false`): nobody signs in on a static site, and the request would get a 404.
@@ -1190,8 +1201,10 @@ author's machine (local mode) or on a Node host, and each push of content rebuil
   post, the cover, an inline image and the links work, and no request fails. After a page change in
   the browser, the icons of the new page load from the Iconify API (`nuxt generate` only; with
   `nuxt build --preset github_pages` they ask `/api/_nuxt_icon` and stay blank).
+- Checked live (the public index): under `/templates/blog/`, the next page, a direct `?page=2`, a
+  search, and a direct `?q=` answer from the index, with no failed request.
 - Tests: `test/github-module.test.ts` ("a static build"), `test/pluto-github-options.test.ts`,
-  `test/html-base.test.ts`.
+  `test/html-base.test.ts`, `test/public-index.test.ts`.
 
 ## Rules found in live testing
 

@@ -57,6 +57,20 @@ export interface PlutoPublicSurround<T = PlutoPublicItem> {
   next: T | null
 }
 
+/**
+ * The public index of a static build (`/api/pluto/v1/index.json`): per public type, its title
+ * field and all its published items, in the list shape and in the default sort. In the browser,
+ * the list composables answer from it, because a static site has no API.
+ */
+export interface PlutoPublicIndex {
+  types: Record<string, PlutoPublicIndexType>
+}
+
+export interface PlutoPublicIndexType {
+  titleField: string
+  items: PlutoPublicItem[]
+}
+
 /** The query of a list route. */
 export interface PlutoPublicQuery {
   /** 1 to 100. Default 20. */

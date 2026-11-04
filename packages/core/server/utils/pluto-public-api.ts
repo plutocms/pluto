@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import type {
+  PlutoPublicIndex,
   PlutoPublicItem,
   PlutoPublicList,
   PlutoPublicOne,
@@ -7,7 +8,7 @@ import type {
 } from '../../shared/types/public-api'
 import { setResponseHeader } from 'h3'
 import { getPlutoApiConfig } from './pluto-api-config'
-import { getContentType } from './pluto-content'
+import { getContentType, listContentTypes } from './pluto-content'
 import { requireContentAdapter } from './pluto-content-handlers'
 import { createPlutoError } from './pluto-error'
 import { expandPublicMedia } from './pluto-media-public'
@@ -260,6 +261,35 @@ export async function listPublicContent(
       offset: query.offset,
     },
   }
+}
+
+/**
+ * The public index of a static build (`PlutoPublicIndex`): every published item of every public
+ * type, in the list shape and in the default sort. The prerender writes it to
+ * `/api/pluto/v1/index.json`, and the list composables of the browser answer from it.
+ */
+export async function buildPublicIndex(
+  event: H3Event
+): Promise<PlutoPublicIndex> {
+  const index: PlutoPublicIndex = { types: {} }
+  for (const type of listContentTypes()) {
+    if (type.api?.public !== true) {
+      continue
+    }
+    const items: PlutoPublicItem[] = []
+    let total = Infinity
+    while (items.length < total) {
+      // The query of a URL: text values.
+      const page = await listPublicContent(event, type.name, {
+        limit: String(PUBLIC_MAX_LIMIT),
+        offset: String(items.length),
+      })
+      items.push(...page.data)
+      total = page.data.length > 0 ? page.meta.total : items.length
+    }
+    index.types[type.name] = { titleField: type.titleField, items }
+  }
+  return index
 }
 
 /**

@@ -270,7 +270,7 @@ describe('pluto-github module wiring', () => {
       ...extra,
     })
 
-    it('reads the files of the checkout and adds no server route', async () => {
+    it('reads the files of the checkout and adds no server route but the public index', async () => {
       const nuxt = await run({ enabled: true }, generate())
 
       expect(nuxt.options.runtimeConfig.public.plutoGithub).toMatchObject({
@@ -281,7 +281,9 @@ describe('pluto-github module wiring', () => {
         fsRoot: '/work/site',
         localCommit: false,
       })
-      expect(kitCalls.serverHandlers).toEqual([])
+      expect(kitCalls.serverHandlers.map((entry) => entry.route)).toEqual([
+        '/api/pluto/v1/index.json',
+      ])
       expect(kitCalls.serverPlugins).toHaveLength(1)
       expect(nuxt.options.nitro.prerender.ignore).toEqual([
         '/admin',
@@ -290,13 +292,34 @@ describe('pluto-github module wiring', () => {
       ])
     })
 
+    it('prerenders the public index and tells the client', async () => {
+      const nuxt = await run({ enabled: true }, generate())
+
+      expect(handler('/api/pluto/v1/index.json', 'get')).toBeDefined()
+      expect(nuxt.options.nitro.prerender.routes).toEqual([
+        '/api/pluto/v1/index.json',
+      ])
+      expect(nuxt.options.runtimeConfig.public.plutoPublicApi).toEqual({
+        static: true,
+      })
+    })
+
+    it('adds no public index to a server build', async () => {
+      const nuxt = await run({ enabled: true, github: repo })
+
+      expect(handler('/api/pluto/v1/index.json', 'get')).toBeUndefined()
+      expect(nuxt.options.runtimeConfig.public.plutoPublicApi).toBeUndefined()
+    })
+
     it('knows a static Nitro preset', async () => {
       const nuxt = await run(
         { enabled: true },
         { app: { baseURL: '/' }, nitro: { preset: 'github_pages' } }
       )
       expect(nuxt.options.runtimeConfig.public.plutoGithub.static).toBe(true)
-      expect(kitCalls.serverHandlers).toEqual([])
+      expect(kitCalls.serverHandlers.map((entry) => entry.route)).toEqual([
+        '/api/pluto/v1/index.json',
+      ])
     })
 
     it('takes the base path from PLUTO_BASE_URL', async () => {

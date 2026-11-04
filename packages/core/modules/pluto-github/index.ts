@@ -11,6 +11,7 @@ import {
   extendPages,
   useLogger,
 } from '@nuxt/kit'
+import { PLUTO_PUBLIC_INDEX_PATH } from '../../shared/utils/public-index'
 import { readGitOrigin } from './git-remote'
 import { PLUTO_GITHUB_SECRET_ENV, resolvePlutoGithubOptions } from './options'
 import { detectDeployHost } from './runtime/shared/domain'
@@ -201,6 +202,21 @@ export default defineNuxtModule<PlutoGithubOptions>({
         '/api/_pluto',
         '/_pluto',
       ]
+      // The public index: the list composables of the browser search and page from this file.
+      addServerHandler({
+        route: PLUTO_PUBLIC_INDEX_PATH,
+        method: 'get',
+        handler: server('routes/public-index.get'),
+      })
+      nuxt.options.nitro.prerender.routes = [
+        ...(nuxt.options.nitro.prerender.routes ?? []),
+        PLUTO_PUBLIC_INDEX_PATH,
+      ]
+      nuxt.options.runtimeConfig.public.plutoPublicApi = {
+        ...(nuxt.options.runtimeConfig.public.plutoPublicApi as
+          Record<string, unknown> | undefined),
+        static: true,
+      } as typeof nuxt.options.runtimeConfig.public.plutoPublicApi
     }
 
     // Server: the sign-in routes.
