@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import githubModule, {
   isStaticPreset,
   normalizeBasePath,
+  withBaseInHeadLinks,
 } from '../modules/pluto-github'
 import { countKitCalls, kitCalls, resetKitCalls } from './fixtures/kit-mock'
 
@@ -309,6 +310,29 @@ describe('pluto-github module wiring', () => {
         vi.unstubAllEnvs()
       }
     })
+
+    it('puts the base path before the site links of app.head', async () => {
+      vi.stubEnv('PLUTO_BASE_URL', '/templates/blog')
+      try {
+        const options = generate()
+        options.app = {
+          ...options.app,
+          head: {
+            link: [
+              { rel: 'icon', href: '/favicon.svg' },
+              { rel: 'preconnect', href: 'https://fonts.example.com' },
+            ],
+          },
+        }
+        const nuxt = await run({ enabled: true }, options)
+        expect(nuxt.options.app.head.link).toEqual([
+          { rel: 'icon', href: '/templates/blog/favicon.svg' },
+          { rel: 'preconnect', href: 'https://fonts.example.com' },
+        ])
+      } finally {
+        vi.unstubAllEnvs()
+      }
+    })
   })
 
   it('isStaticPreset and normalizeBasePath', () => {
@@ -321,6 +345,17 @@ describe('pluto-github module wiring', () => {
     expect(normalizeBasePath('repo')).toBe('/repo/')
     expect(normalizeBasePath('/a/b/')).toBe('/a/b/')
     expect(normalizeBasePath('')).toBe('/')
+    expect(
+      withBaseInHeadLinks(
+        [{ href: '/a.svg' }, { href: '//cdn.dev/b' }, { href: 'c.css' }, {}],
+        '/repo/'
+      )
+    ).toEqual([
+      { href: '/repo/a.svg' },
+      { href: '//cdn.dev/b' },
+      { href: 'c.css' },
+      {},
+    ])
   })
 
   it('bundles the Markdown of the content dir for a site that reads from GitHub', async () => {
