@@ -45,6 +45,16 @@ export interface PlutoPublicList<T = PlutoPublicItem> {
 /** The answer of a route for one thing. */
 export interface PlutoPublicOne<T = PlutoPublicItem> {
   data: T
+  /** Set on a draft, which only an editor gets (`?drafts=1`). */
+  meta?: {
+    draft?: boolean
+  }
+}
+
+/** The data of the surround route: the items before and after one item, in the list order. */
+export interface PlutoPublicSurround<T = PlutoPublicItem> {
+  previous: T | null
+  next: T | null
 }
 
 /** The query of a list route. */
@@ -64,8 +74,12 @@ export interface PlutoPublicQuery {
 export interface PlutoContentListOptions {
   /** Items per page, 1 to 100. Default 20. */
   limit?: number
-  /** Searches the title field. An empty value lists everything. */
-  search?: MaybeRefOrGetter<string | null | undefined>
+  /**
+   * Searches the title field. Default: `?q=` of the URL, and the returned `search` is the search
+   * box (it writes the URL after 300 ms, on page 1). A value or a ref: that search. `false`: no
+   * search. An empty value lists everything.
+   */
+  search?: MaybeRefOrGetter<string | null | undefined> | false
   /** A public field or `createdAt`, `updatedAt`, `publishedAt`. A leading `-` sorts descending. */
   sort?: MaybeRefOrGetter<string | undefined>
   /** Equality filters on public fields. */
@@ -91,6 +105,11 @@ export interface PlutoContentItemOptions {
   seo?: boolean
   /** Shows "Edit <type>" in the admin bar for the item. Default true. */
   editLink?: boolean
+  /**
+   * An editor of the type (the admin bar shows) also gets a draft; the returned `draft` is then
+   * true. Default true. For a visitor it changes nothing.
+   */
+  drafts?: boolean
 }
 
 /** The options of `definePlutoContent`. */

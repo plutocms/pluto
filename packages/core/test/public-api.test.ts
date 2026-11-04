@@ -377,3 +377,110 @@ describe('shared URL helpers', () => {
     })
   })
 })
+
+describe('drafts for an editor', () => {
+  function headerEvent() {
+    const headers: Record<string, string> = {}
+    const ev = {
+      context: {},
+      node: {
+        res: {
+          setHeader: (name: string, value: string) => {
+            headers[name.toLowerCase()] = value
+          },
+          getHeader: () => undefined,
+        },
+      },
+    } as unknown as H3Event
+    return { ev, headers }
+  }
+
+  it('gives an editor a draft with meta.draft, privately, and reads it as the editor', async () => {
+    const authorize = vi.fn(async () => {})
+    const type = postType({ capabilities: { read: 'posts:read_drafts' } })
+    const api = await load(type, leakyAdapter({ authorize }))
+    const { ev, headers } = headerEvent()
+
+    const answer = await api.getPublicContent(ev, 'post', 'two', { drafts: true })
+
+    expect(answer).toMatchObject({ data: { id: 2 }, meta: { draft: true } })
+    expect(authorize).toHaveBeenCalledWith(ev, 'posts:read_drafts')
+    expect(ev.context.plutoPublicRead).toBeUndefined()
+    expect(headers['cache-control']).toBe('private, no-store')
+  })
+
+  it('keeps a published item free of meta.draft, with drafts on', async () => {
+    const type = postType({ capabilities: { read: 'posts:read_drafts' } })
+    const api = await load(type, leakyAdapter({ authorize: async () => {} }))
+
+    const answer = await api.getPublicContent(event(), 'post', 'one', {
+      drafts: true,
+    })
+    expect(answer.meta).toBeUndefined()
+  })
+
+  it('answers 404 for a draft when the caller is not an editor, or nothing can check', async () => {
+    const type = postType({ capabilities: { read: 'posts:read_drafts' } })
+    const denied = await load(
+      type,
+      leakyAdapter({
+        authorize: async () => {
+          throw new Error('no')
+        },
+      })
+    )
+    const { ev } = headerEvent()
+    await expect(
+      denied.getPublicContent(ev, 'post', 'two', { drafts: true })
+    ).rejects.toMatchObject({ statusCode: 404 })
+    expect(ev.context.plutoPublicRead).toBe(true)
+
+    vi.resetModules()
+    // No capability to check: drafts stay closed, even with an authorize that lets all through.
+    const open = await load(postType(), leakyAdapter({ authorize: async () => {} }))
+    await expect(
+      open.getPublicContent(event(), 'post', 'two', { drafts: true })
+    ).rejects.toMatchObject({ statusCode: 404 })
+  })
+})
+
+describe('getPublicSurround', () => {
+  const POSTS: PlutoContentItem[] = ['a', 'b', 'c', 'd'].map((slug, index) => ({
+    id: index + 1,
+    title: slug.toUpperCase(),
+    slug,
+    status: slug === 'c' ? 'draft' : 'published',
+  }))
+
+  function listAdapter() {
+    return leakyAdapter({
+      async list(_ctx, query) {
+        const offset = query.offset ?? 0
+        return {
+          data: POSTS.slice(offset, offset + (query.limit ?? 100)),
+          total: POSTS.length,
+        }
+      },
+    })
+  }
+
+  it('gives the published neighbors in the list order, by slug or id', async () => {
+    const api = await load(postType({ slug: { field: 'slug' } }), listAdapter())
+
+    const middle = await api.getPublicSurround(event(), 'post', 'b', {})
+    expect(middle.data.previous).toMatchObject({ slug: 'a' })
+    // The draft `c` is skipped.
+    expect(middle.data.next).toMatchObject({ slug: 'd' })
+
+    const first = await api.getPublicSurround(event(), 'post', '1', {})
+    expect(first.data.previous).toBeNull()
+    expect(first.data.next).toMatchObject({ slug: 'b' })
+  })
+
+  it('answers 404 for an item that is not published', async () => {
+    const api = await load(postType({ slug: { field: 'slug' } }), listAdapter())
+    await expect(
+      api.getPublicSurround(event(), 'post', 'c', {})
+    ).rejects.toMatchObject({ statusCode: 404 })
+  })
+})
