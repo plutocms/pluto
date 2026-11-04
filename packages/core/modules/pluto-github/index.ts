@@ -11,7 +11,7 @@ import {
   extendPages,
   useLogger,
 } from '@nuxt/kit'
-import { PLUTO_PUBLIC_INDEX_PATH } from '../../shared/utils/public-index'
+import { isStaticBuild } from '../pluto-static/static-build'
 import { readGitOrigin } from './git-remote'
 import { PLUTO_GITHUB_SECRET_ENV, resolvePlutoGithubOptions } from './options'
 import { detectDeployHost } from './runtime/shared/domain'
@@ -62,12 +62,7 @@ export default defineNuxtModule<PlutoGithubOptions>({
     // A static build (`nuxt generate`, or a static Nitro preset such as `github_pages`): the pages
     // are prerendered from the files of the checkout. The output has no server, so the module adds
     // no sign-in, admin or write route.
-    // `_generate` is the internal flag of `nuxt generate`. It is not in the public types.
-    const generate = (nuxt.options as { _generate?: boolean })._generate
-    const isStatic =
-      !nuxt.options.dev &&
-      (Boolean(generate || nuxt.options.nitro?.static) ||
-        isStaticPreset(nuxt.options.nitro?.preset ?? process.env.NITRO_PRESET))
+    const isStatic = isStaticBuild(nuxt)
 
     const { enabled, resolved, warnings, errors } = resolvePlutoGithubOptions(
       options,
@@ -180,50 +175,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
       })
     }
 
-    if (isStatic) {
-      // A project site of GitHub Pages lives under `/<repo>/`. The workflow gives the path in
-      // `PLUTO_BASE_URL`, and the module writes it in the build config and the app config.
-      // `NUXT_APP_BASE_URL` does not work here: the prerenderer reads it at run time too, the
-      // paths then do not match, and every page answers a redirect.
-      const basePath = process.env.PLUTO_BASE_URL?.trim()
-      if (basePath) {
-        const baseURL = normalizeBasePath(basePath)
-        nuxt.options.app.baseURL = baseURL
-        nuxt.options.runtimeConfig.app = {
-          ...nuxt.options.runtimeConfig.app,
-          baseURL,
-        }
-        // Nuxt does not put the base before a link of `app.head`, such as the favicon of
-        // the app (`/favicon.svg`).
-        const head = nuxt.options.app.head
-        if (head?.link) {
-          head.link = withBaseInHeadLinks(head.link, baseURL)
-        }
-      }
-      // The admin, the API routes of the admin and the preview pages stay out of the output.
-      nuxt.options.nitro.prerender ||= {}
-      nuxt.options.nitro.prerender.ignore = [
-        ...(nuxt.options.nitro.prerender.ignore ?? []),
-        '/admin',
-        '/api/_pluto',
-        '/_pluto',
-      ]
-      // The public index: the list composables of the browser search and page from this file.
-      addServerHandler({
-        route: PLUTO_PUBLIC_INDEX_PATH,
-        method: 'get',
-        handler: server('routes/public-index.get'),
-      })
-      nuxt.options.nitro.prerender.routes = [
-        ...(nuxt.options.nitro.prerender.routes ?? []),
-        PLUTO_PUBLIC_INDEX_PATH,
-      ]
-      nuxt.options.runtimeConfig.public.plutoPublicApi = {
-        ...(nuxt.options.runtimeConfig.public.plutoPublicApi as
-          Record<string, unknown> | undefined),
-        static: true,
-      } as typeof nuxt.options.runtimeConfig.public.plutoPublicApi
-    }
+    // A static build: the base path, the admin out of the prerender and the public index are in
+    // the pluto-static module of core, for every backend.
 
     // Server: the sign-in routes.
     addRoute(
@@ -357,35 +310,4 @@ function toCamelCase(name: string): string {
   return name
     .toLowerCase()
     .replace(/_([a-z])/g, (_match, char: string) => char.toUpperCase())
-}
-
-/** The Nitro presets that write only static files: `static`, `github_pages`, `*_static`. */
-export function isStaticPreset(preset: unknown): boolean {
-  if (typeof preset !== 'string') {
-    return false
-  }
-  const name = preset.toLowerCase().replaceAll('-', '_')
-  return (
-    name === 'static' || name === 'github_pages' || name.endsWith('_static')
-  )
-}
-
-/** `repo`, `/repo` and `/repo/` become `/repo/`. An empty path becomes `/`. */
-/** The links of `app.head` with a site path (`/favicon.svg`) get the base path in front. */
-export function withBaseInHeadLinks<T extends { href?: unknown }>(
-  links: T[],
-  baseURL: string
-): T[] {
-  return links.map((link) =>
-    typeof link.href === 'string' &&
-    link.href.startsWith('/') &&
-    !link.href.startsWith('//')
-      ? { ...link, href: `${baseURL}${link.href.slice(1)}` }
-      : link
-  )
-}
-
-export function normalizeBasePath(path: string): string {
-  const segments = path.split('/').filter(Boolean)
-  return segments.length > 0 ? `/${segments.join('/')}/` : '/'
 }

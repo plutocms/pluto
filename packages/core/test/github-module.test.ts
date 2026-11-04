@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import githubModule, {
-  isStaticPreset,
-  normalizeBasePath,
-  withBaseInHeadLinks,
-} from '../modules/pluto-github'
+import githubModule from '../modules/pluto-github'
 import { countKitCalls, kitCalls, resetKitCalls } from './fixtures/kit-mock'
 
 vi.mock('@nuxt/kit', async (importOriginal) =>
@@ -271,7 +267,7 @@ describe('pluto-github module wiring', () => {
       ...extra,
     })
 
-    it('reads the files of the checkout and adds no server route but the public index', async () => {
+    it('reads the files of the checkout and adds no server route', async () => {
       const nuxt = await run({ enabled: true }, generate())
 
       expect(nuxt.options.runtimeConfig.public.plutoGithub).toMatchObject({
@@ -282,34 +278,8 @@ describe('pluto-github module wiring', () => {
         fsRoot: '/work/site',
         localCommit: false,
       })
-      expect(kitCalls.serverHandlers.map((entry) => entry.route)).toEqual([
-        '/api/pluto/v1/index.json',
-      ])
+      expect(kitCalls.serverHandlers).toEqual([])
       expect(kitCalls.serverPlugins).toHaveLength(1)
-      expect(nuxt.options.nitro.prerender.ignore).toEqual([
-        '/admin',
-        '/api/_pluto',
-        '/_pluto',
-      ])
-    })
-
-    it('prerenders the public index and tells the client', async () => {
-      const nuxt = await run({ enabled: true }, generate())
-
-      expect(handler('/api/pluto/v1/index.json', 'get')).toBeDefined()
-      expect(nuxt.options.nitro.prerender.routes).toEqual([
-        '/api/pluto/v1/index.json',
-      ])
-      expect(nuxt.options.runtimeConfig.public.plutoPublicApi).toEqual({
-        static: true,
-      })
-    })
-
-    it('adds no public index to a server build', async () => {
-      const nuxt = await run({ enabled: true, github: repo })
-
-      expect(handler('/api/pluto/v1/index.json', 'get')).toBeUndefined()
-      expect(nuxt.options.runtimeConfig.public.plutoPublicApi).toBeUndefined()
     })
 
     it('knows a static Nitro preset', async () => {
@@ -318,67 +288,8 @@ describe('pluto-github module wiring', () => {
         { app: { baseURL: '/' }, nitro: { preset: 'github_pages' } }
       )
       expect(nuxt.options.runtimeConfig.public.plutoGithub.static).toBe(true)
-      expect(kitCalls.serverHandlers.map((entry) => entry.route)).toEqual([
-        '/api/pluto/v1/index.json',
-      ])
+      expect(kitCalls.serverHandlers).toEqual([])
     })
-
-    it('takes the base path from PLUTO_BASE_URL', async () => {
-      vi.stubEnv('PLUTO_BASE_URL', 'my-site')
-      try {
-        const nuxt = await run({ enabled: true }, generate())
-        expect(nuxt.options.app.baseURL).toBe('/my-site/')
-        expect(nuxt.options.runtimeConfig.app.baseURL).toBe('/my-site/')
-      } finally {
-        vi.unstubAllEnvs()
-      }
-    })
-
-    it('puts the base path before the site links of app.head', async () => {
-      vi.stubEnv('PLUTO_BASE_URL', '/templates/blog')
-      try {
-        const options = generate()
-        options.app = {
-          ...options.app,
-          head: {
-            link: [
-              { rel: 'icon', href: '/favicon.svg' },
-              { rel: 'preconnect', href: 'https://fonts.example.com' },
-            ],
-          },
-        }
-        const nuxt = await run({ enabled: true }, options)
-        expect(nuxt.options.app.head.link).toEqual([
-          { rel: 'icon', href: '/templates/blog/favicon.svg' },
-          { rel: 'preconnect', href: 'https://fonts.example.com' },
-        ])
-      } finally {
-        vi.unstubAllEnvs()
-      }
-    })
-  })
-
-  it('isStaticPreset and normalizeBasePath', () => {
-    expect(isStaticPreset('github_pages')).toBe(true)
-    expect(isStaticPreset('github-pages')).toBe(true)
-    expect(isStaticPreset('static')).toBe(true)
-    expect(isStaticPreset('netlify_static')).toBe(true)
-    expect(isStaticPreset('vercel')).toBe(false)
-    expect(isStaticPreset(undefined)).toBe(false)
-    expect(normalizeBasePath('repo')).toBe('/repo/')
-    expect(normalizeBasePath('/a/b/')).toBe('/a/b/')
-    expect(normalizeBasePath('')).toBe('/')
-    expect(
-      withBaseInHeadLinks(
-        [{ href: '/a.svg' }, { href: '//cdn.dev/b' }, { href: 'c.css' }, {}],
-        '/repo/'
-      )
-    ).toEqual([
-      { href: '/repo/a.svg' },
-      { href: '//cdn.dev/b' },
-      { href: 'c.css' },
-      {},
-    ])
   })
 
   it('bundles the Markdown of the content dir for a site that reads from GitHub', async () => {

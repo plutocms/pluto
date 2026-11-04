@@ -15,7 +15,8 @@ const FILTER_KEY = /^filter\[([^\]]+)\]$/
 /**
  * The answer of a list route, from the items of the public index: the same rules as the list of
  * the Git CMS. `search` looks for the text in the title, without case. `filter[field]` compares the
- * text of the value. `sort` (`field` or `-field`) puts the items with no value last; with no
+ * text of the value; for an object (a relation that `toPublic` expands, such as
+ * `category: { id, label }`), the text of its `id`. `sort` (`field` or `-field`) puts the items with no value last; with no
  * `sort`, the items keep the order of the index (the default sort). Then `offset` and `limit`
  * (1 to 100, default 20). `params` is the URL query, as `plutoPublicQueryParams` gives it.
  */
@@ -38,7 +39,7 @@ export function queryPublicIndex<T = PlutoPublicItem>(
     const name = FILTER_KEY.exec(key)?.[1]
     if (name !== undefined) {
       items = items.filter(
-        (item) => String(item[name] ?? '') === String(text(value) ?? '')
+        (item) => filterText(item[name]) === String(text(value) ?? '')
       )
     }
   }
@@ -74,6 +75,14 @@ export function queryPublicIndex<T = PlutoPublicItem>(
 function text(value: unknown): string | undefined {
   const one = Array.isArray(value) ? value[0] : value
   return one === undefined || one === null ? undefined : String(one)
+}
+
+/** The text that a filter compares. An object with an `id` compares by its `id`. */
+function filterText(value: unknown): string {
+  if (value && typeof value === 'object' && 'id' in value) {
+    return String(value.id)
+  }
+  return String(value ?? '')
 }
 
 function whole(value: unknown, fallback: number): number {

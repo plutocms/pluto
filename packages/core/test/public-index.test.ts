@@ -64,6 +64,25 @@ describe('queryPublicIndex', () => {
     expect(ids(list)).toEqual(['c', 'b'])
   })
 
+  it('filters an expanded relation by its id', () => {
+    const shop: PlutoPublicIndexType = {
+      titleField: 'name',
+      items: [
+        { id: 1, name: 'Mug', category: { id: 3, label: 'Kitchen' } },
+        { id: 2, name: 'Lamp', category: { id: 4, label: 'Home' } },
+        { id: 3, name: 'Plate', category: null },
+      ],
+    }
+    expect(
+      ids(
+        queryPublicIndex(
+          shop,
+          plutoPublicQueryParams({ filter: { category: 3 } })
+        )
+      )
+    ).toEqual([1])
+  })
+
   it('sorts, with a missing value last in both directions', () => {
     expect(ids(queryPublicIndex(entry, { sort: 'publishedAt' }))).toEqual([
       'b',
