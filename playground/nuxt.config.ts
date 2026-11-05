@@ -3,7 +3,7 @@
 // links the names to `packages/`, so a change in a layer shows here at once.
 // Core runs with the Git CMS: in development, the content is files on disk.
 export default defineNuxtConfig({
-  extends: ['@plutocms/core', '@plutocms/3d'],
+  extends: ['@plutocms/core', '@plutocms/3d', '@plutocms/shop'],
 
   css: ['~/assets/css/main.css'],
 
