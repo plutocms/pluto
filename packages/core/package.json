@@ -38,17 +38,17 @@
     "@codemirror/search": "^6.7.2",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.15",
-    "@iconify-json/lucide": "^1.2.144",
+    "@iconify-json/lucide": "^1.2.150",
     "@internationalized/date": "^3.12.4",
     "@lezer/highlight": "^1.2.5",
-    "@nuxt/image": "^2.1.0",
+    "@nuxt/image": "^2.2.1",
     "@nuxt/ui": "^4.12.0",
-    "@tanstack/charts": "^1.1.0",
+    "@tanstack/charts": "^1.2.0",
     "@vueuse/nuxt": "^15.0.0",
-    "image-meta": "^0.3.0",
+    "image-meta": "^0.3.1",
     "marked": "^18.1.1",
     "postcss": "^8.5.30",
-    "postcss-selector-parser": "^7.1.4",
+    "postcss-selector-parser": "^7.1.7",
     "reka-ui": "^2.11.0",
     "tailwind-merge": "^3.7.0",
     "ultrahtml": "^1.7.0",
@@ -64,7 +64,7 @@
     "vitest": "^5.0.5",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0",
-    "vue-tsc": "^3.3.13"
+    "vue-tsc": "^3.3.14"
   },
   "publishConfig": {
     "access": "public"
