@@ -3,6 +3,8 @@ import type { PlutoMedia } from '../shared/types/media'
 import { describe, expect, it } from 'vitest'
 import {
   previewMediaIds,
+  previewReferenceIds,
+  previewReferenceTargets,
   toPreviewItem,
 } from '../shared/utils/content-preview'
 
@@ -86,8 +88,16 @@ describe('toPreviewItem', () => {
     ])
     const type = postType()
     expect(
-      toPreviewItem(type, { cover: 'a', gallery: ['b', 'gone', 'a'] }, '', media)
-    ).toMatchObject({ cover: media.get('a'), gallery: [media.get('b'), media.get('a')] })
+      toPreviewItem(
+        type,
+        { cover: 'a', gallery: ['b', 'gone', 'a'] },
+        '',
+        media
+      )
+    ).toMatchObject({
+      cover: media.get('a'),
+      gallery: [media.get('b'), media.get('a')],
+    })
     expect(toPreviewItem(type, { cover: 'gone' }, '', media).cover).toBeNull()
     expect(toPreviewItem(type, {}, '').gallery).toEqual([])
   })
@@ -96,7 +106,69 @@ describe('toPreviewItem', () => {
 describe('previewMediaIds', () => {
   it('lists the ids of every media field once', () => {
     expect(
-      previewMediaIds(postType(), { cover: 'a', gallery: ['b', 'a'], title: 'x' })
+      previewMediaIds(postType(), {
+        cover: 'a',
+        gallery: ['b', 'a'],
+        title: 'x',
+      })
     ).toEqual(['a', 'b'])
+  })
+})
+
+describe('references in a preview', () => {
+  const type = postType({
+    fields: [
+      { name: 'title', type: 'text', label: 'Title' },
+      {
+        name: 'tags',
+        type: 'reference',
+        label: 'Tags',
+        target: 'tag',
+        multiple: true,
+      },
+      { name: 'category', type: 'reference', label: 'Category', target: 'cat' },
+      { name: 'other', type: 'reference', label: 'Other', optionsUrl: '/x' },
+    ],
+  })
+  const references = new Map([
+    [
+      'tag',
+      new Map([
+        ['a', { id: 'a', label: 'A', slug: 'a' }],
+        ['b', { id: 'b', label: 'B', slug: 'bee' }],
+      ]),
+    ],
+    ['cat', new Map([['7', { id: 7, label: 'Seven' }]])],
+  ])
+
+  it('expands target references like the public API', () => {
+    const item = toPreviewItem(
+      type,
+      { title: 'Hi', tags: ['b', 'gone', 'a'], category: 7, other: 'x' },
+      '',
+      new Map(),
+      references
+    )
+    expect(item.tags).toEqual([
+      { id: 'b', label: 'B', slug: 'bee' },
+      { id: 'a', label: 'A', slug: 'a' },
+    ])
+    expect(item.category).toEqual({ id: 7, label: 'Seven' })
+    expect(item.other).toBe('x')
+  })
+
+  it('gives an empty list or null when nothing is known', () => {
+    const item = toPreviewItem(type, { title: 'Hi', tags: ['a'] }, '')
+    expect(item.tags).toEqual([])
+    expect(item.category).toBeNull()
+  })
+
+  it('lists the targets and the ids of an item', () => {
+    expect(previewReferenceTargets(type)).toEqual(['tag', 'cat'])
+    expect(previewReferenceTargets(undefined)).toEqual([])
+    expect(
+      previewReferenceIds(type, { tags: ['a', 'b'], category: 7 }, 'tag')
+    ).toEqual(['a', 'b'])
+    expect(previewReferenceIds(type, { category: 7 }, 'cat')).toEqual(['7'])
   })
 })

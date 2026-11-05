@@ -49,6 +49,12 @@ policies shared by every project here.
   (`plutoApi.cors`: any origin, a list, or off) and the composables `usePlutoPublicList` and
   `usePlutoPublicItem`. Internal routes are `/api/_pluto/<area>/...`, and core blocks a cross-site
   write to them for every layer. @.claude/skills/content-model/SKILL.md
+- Tags and categories (many-to-many references): a `reference` field with `target` and `multiple` stores
+  term ids; the public API expands them to `{ id, label, slug }`, filters by id or slug
+  (`filter[tags]=<slug>`) and takes `ids`; the Git CMS registers the `tag` and `category` types
+  (capability `terms:manage`), adds the post fields `tags` and `categories`, and rewrites the
+  referencing posts in the same commit on a rename or a delete; `useTags`, `useTag`, `useCategories`
+  and `useCategory`. @.claude/skills/tags-and-categories/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
   registry bucket that lets a layer add its own buttons to that form, and the `contentToolbarItems`

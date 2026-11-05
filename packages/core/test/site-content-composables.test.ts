@@ -122,8 +122,16 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-const { definePlutoContent, useAdjacentPosts, usePost, usePosts } =
-  await import('../app/composables/pluto-site-content')
+const {
+  definePlutoContent,
+  useAdjacentPosts,
+  useCategories,
+  useCategory,
+  usePost,
+  usePosts,
+  useTag,
+  useTags,
+} = await import('../app/composables/pluto-site-content')
 
 describe('usePosts', () => {
   it('reads the page from the URL, sorts by publishedAt, and counts the pages', async () => {
@@ -358,5 +366,42 @@ describe('useAdjacentPosts', () => {
     const { newer, older } = await useAdjacentPosts('only')
     expect(newer.value).toBeNull()
     expect(older.value).toBeNull()
+  })
+})
+
+describe('the term composables', () => {
+  it('lists the tags and the categories by title', async () => {
+    route.query = {}
+    listAnswer = {
+      data: [{ id: 'a', title: 'A', slug: 'a' }],
+      meta: { total: 1 },
+    }
+    const tagResult = await useTags({ limit: 100, search: false })
+    const categoryResult = await useCategories()
+
+    expect(listCalls[0]!()).toMatchObject({ limit: 100, sort: 'title' })
+    expect(listCalls[1]!()).toMatchObject({ sort: 'title' })
+    expect(tagResult.tags.value).toEqual([{ id: 'a', title: 'A', slug: 'a' }])
+    expect(categoryResult.categories.value).toEqual([
+      { id: 'a', title: 'A', slug: 'a' },
+    ])
+  })
+
+  it('reads one tag and one category', async () => {
+    itemAnswer = { data: { id: 'a', title: 'A', slug: 'a' } }
+    const { tag } = await useTag('a')
+    const { category } = await useCategory('b')
+
+    expect(itemCalls).toEqual([
+      { type: 'tag', id: 'a' },
+      { type: 'category', id: 'b' },
+    ])
+    expect(tag.value).toMatchObject({ slug: 'a' })
+    expect(category.value).toMatchObject({ slug: 'a' })
+  })
+
+  it('throws a 404 for a missing tag', async () => {
+    itemError = { status: 404, statusText: 'Not Found' }
+    await expect(useTag('nope')).rejects.toMatchObject({ status: 404 })
   })
 })

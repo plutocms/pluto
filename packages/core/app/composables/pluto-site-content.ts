@@ -6,6 +6,7 @@ import type {
   PlutoPost,
   PlutoPostSummary,
   PlutoPublicItem,
+  PlutoTerm,
 } from '../../shared/types/public-api'
 import { computed, onScopeDispose, ref, toValue, watch } from 'vue'
 import { usePlutoEditLink } from './pluto-edit-link'
@@ -330,4 +331,62 @@ export function useAdjacentPosts(slug: MaybeRefOrGetter<string | number>) {
     newer: result.previous,
     older: result.next,
   })
+}
+
+const tags = definePlutoContent<PlutoTerm>('tag', { list: { sort: 'title' } })
+const categories = definePlutoContent<PlutoTerm>('category', {
+  list: { sort: 'title' },
+})
+
+/**
+ * The published tags, by title, with pages. `tags` is the list. To list the posts of a tag, give
+ * `usePosts` the filter `{ tags: slug }`.
+ *
+ * @example
+ * const { tags } = await useTags({ limit: 100, search: false })
+ */
+export function useTags(options: PlutoContentListOptions = {}) {
+  const result = tags.useList(options)
+  return extendPlutoAsyncData(result, { tags: result.items })
+}
+
+/**
+ * One published tag, by slug or id. A missing tag shows the error page (404). `tag` is the tag.
+ *
+ * @example
+ * const { tag } = await useTag(() => String(route.params.slug))
+ */
+export function useTag(
+  slug: MaybeRefOrGetter<string | number>,
+  options: PlutoContentItemOptions = {}
+) {
+  const result = tags.useItem(slug, options)
+  return extendPlutoAsyncData(result, { tag: result.item })
+}
+
+/**
+ * The published categories, by title, with pages. `categories` is the list. To list the posts of
+ * a category, give `usePosts` the filter `{ categories: slug }`.
+ *
+ * @example
+ * const { categories } = await useCategories({ limit: 100, search: false })
+ */
+export function useCategories(options: PlutoContentListOptions = {}) {
+  const result = categories.useList(options)
+  return extendPlutoAsyncData(result, { categories: result.items })
+}
+
+/**
+ * One published category, by slug or id. A missing category shows the error page (404).
+ * `category` is the category.
+ *
+ * @example
+ * const { category } = await useCategory(() => String(route.params.slug))
+ */
+export function useCategory(
+  slug: MaybeRefOrGetter<string | number>,
+  options: PlutoContentItemOptions = {}
+) {
+  const result = categories.useItem(slug, options)
+  return extendPlutoAsyncData(result, { category: result.item })
 }

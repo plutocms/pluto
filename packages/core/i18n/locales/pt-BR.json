@@ -317,7 +317,8 @@
       "capabilities": {
         "readDrafts": "Ler rascunhos de posts",
         "publish": "Criar, editar e publicar posts",
-        "delete": "Excluir posts"
+        "delete": "Excluir posts",
+        "manageTerms": "Criar, editar e excluir tags e categorias"
       },
       "setup": {
         "title": "Configure o login com GitHub",
@@ -618,7 +619,8 @@
       "max": "Informe em \"{label}\" um valor de no máximo {max}.",
       "boolean": "Use apenas verdadeiro ou falso em \"{label}\".",
       "option": "Escolha uma das opções permitidas em \"{label}\".",
-      "maxLength": "Use no máximo {max} caracteres em \"{label}\"."
+      "maxLength": "Use no máximo {max} caracteres em \"{label}\".",
+      "reference": "Escolha um valor válido em \"{label}\"."
     },
     "auth": {
       "signIn": "Entrar",

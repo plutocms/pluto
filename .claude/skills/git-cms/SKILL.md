@@ -154,6 +154,10 @@ The storage layer is in `modules/pluto-github/runtime/server/`. The Nitro plugin
 `PlutoGithubStore`. The Nitro plugin registers it (see "Wiring"). Options:
 `store`, `dir`, `getAccess`, `commit.skipDeploy`, `cache`, `retries` (default 2).
 `runtime/shared/post-type.ts` has `plutoGithubPostType`, the built-in `post` content type.
+`runtime/shared/term-types.ts` has `plutoGithubTagType` and `plutoGithubCategoryType`, registered with
+`post` when `postType` is on (see the tags-and-categories skill). The post has the fields
+`categories` and `tags`: lists of term ids (the file names) in the frontmatter. The option
+`getTypes` gives the registered types (default: the core registry).
 
 File layout:
 
@@ -171,6 +175,15 @@ Frontmatter mapping:
   sets the timestamps. A payload cannot set them. The adapter sets `publishedAt` on the first
   publish only. Without a `timestamps` setting, the keys are `createdAt` and `updatedAt`.
 - An update keeps frontmatter keys that the type does not know.
+- An empty list (`[]`) leaves the frontmatter: the key is removed, as for an empty value.
+- `list` takes `query.ids` (only these ids) and matches a filter on a list field when the list has
+  the value.
+- A rename (a new slug) or a delete of an item also rewrites the items that reference it, in the same
+  commit. The adapter reads every type that has a `reference` field with this item's type as
+  `target` (`getTypes`), drafts too. It replaces the id, or removes it (a list that ends empty
+  drops its key), and keeps the body, the unknown keys and the `updatedAt` stamp. The commit message
+  ends with `(N references)`. A referencing file that changes during the commit gives 409. The
+  rewrite needs no write capability on the referencing type.
 - A file with no status key counts as the default status (`draft` for posts).
 - Every returned item has `_version`. It is the blob id of the file. A list item has no body.
   The excerpt field stays in the list item.
@@ -785,7 +798,7 @@ keys of the type) and `toPublic`:
 - A list item has no body. It has `excerpt`: the `excerpt` value of the item when it has text, else
   `markdownToPlainText(body, 200)`.
 - One item keeps the Markdown body and adds `html`: the body rendered and sanitized.
-- `list` applies `query.filters` by the text of each item value.
+- `list` applies `query.filters` by the text of each item value (a list matches when it has the value).
 
 Every CMS type gets this, also the docs types of the Nuxt Content layer.
 

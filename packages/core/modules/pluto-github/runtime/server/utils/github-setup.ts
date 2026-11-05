@@ -16,6 +16,7 @@ import {
   markPublicRead,
 } from '../../../../../server/utils/pluto-public-read'
 import { plutoGithubPostType } from '../../shared/post-type'
+import { plutoGithubTermTypes } from '../../shared/term-types'
 import { createMarkdownContentAdapter } from '../adapter'
 import { createAppTokenProvider } from '../github/app-token'
 import { createGithubMediaDriver } from '../media'
@@ -150,6 +151,10 @@ export function registerGithubContent(
   registeredCache = cache
   if (config.postType) {
     registerContentType(plutoGithubPostType)
+    // The terms of the post: the post fields `categories` and `tags` point to them.
+    for (const type of plutoGithubTermTypes) {
+      registerContentType(type)
+    }
   }
   const store = createContentStore(config, cache, loadSnapshot)
   registeredStore = store

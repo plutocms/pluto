@@ -14,6 +14,26 @@ export type PlutoPublicItem = Record<string, unknown> & {
   publishedAt?: string
 }
 
+/**
+ * A referenced item in a public answer: what core puts in place of the id of a public `reference`
+ * field with a public `target`. `slug` is set when the target type has a slug.
+ */
+export interface PlutoPublicReference {
+  id: string | number
+  label: string
+  slug?: string
+}
+
+/** A tag or a category in the public API (`useTags`, `useCategories`). */
+export interface PlutoTerm {
+  id: string | number
+  title: string
+  slug: string
+  description?: string | null
+  createdAt?: string
+  updatedAt?: string
+}
+
 /** A post in a list of the public API (`usePosts`): both backends give these keys. */
 export interface PlutoPostSummary {
   id: string | number
@@ -21,6 +41,8 @@ export interface PlutoPostSummary {
   title: string
   excerpt?: string | null
   cover?: PlutoPublicMedia | null
+  tags?: PlutoPublicReference[]
+  categories?: PlutoPublicReference[]
   createdAt?: string
   updatedAt?: string
   publishedAt?: string

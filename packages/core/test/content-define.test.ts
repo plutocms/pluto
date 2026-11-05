@@ -82,3 +82,50 @@ describe('defineContentType', () => {
     expect(result).toBe(type)
   })
 })
+
+describe('defineContentType — reference fields', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('accepts a reference with a target, and with an optionsUrl', () => {
+    defineContentType(
+      baseType({
+        fields: [
+          { name: 'title', type: 'text', label: 'Title' },
+          {
+            name: 'a',
+            type: 'reference',
+            label: 'A',
+            target: 'tag',
+            create: true,
+          },
+          { name: 'b', type: 'reference', label: 'B', optionsUrl: '/x' },
+        ],
+      })
+    )
+    expect(console.warn).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['no target and no optionsUrl', { type: 'reference' as const }],
+    [
+      'create without target',
+      { type: 'reference' as const, optionsUrl: '/x', create: true },
+    ],
+  ])('warns on %s', (_name, extra) => {
+    defineContentType(
+      baseType({
+        fields: [
+          { name: 'title', type: 'text', label: 'Title' },
+          { name: 'ref', label: 'Ref', ...extra },
+        ],
+      })
+    )
+    expect(console.warn).toHaveBeenCalledTimes(1)
+  })
+})

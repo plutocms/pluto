@@ -41,6 +41,27 @@ export const plutoGithubPostType: PlutoContentType = {
       accept: ['image/*'],
       region: 'side',
     },
+    // The terms: lists of term ids (the slugs of `content/categories/` and `content/tags/`) in
+    // the frontmatter. The public API gives `[{ id, label, slug }]`. See the tags-and-categories skill.
+    {
+      name: 'categories',
+      type: 'reference',
+      label: 'Categories',
+      target: 'category',
+      multiple: true,
+      create: true,
+      inList: true,
+      region: 'side',
+    },
+    {
+      name: 'tags',
+      type: 'reference',
+      label: 'Tags',
+      target: 'tag',
+      multiple: true,
+      create: true,
+      region: 'side',
+    },
     {
       name: 'content',
       type: 'richtext',

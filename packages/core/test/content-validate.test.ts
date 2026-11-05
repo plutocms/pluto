@@ -249,3 +249,63 @@ describe('validateContentPayload — code and params', () => {
     }
   })
 })
+
+describe('validateContentPayload — references', () => {
+  const refType: PlutoContentType = {
+    ...type,
+    fields: [
+      { name: 'title', type: 'text', label: 'Title' },
+      {
+        name: 'tags',
+        type: 'reference',
+        label: 'Tags',
+        target: 'tag',
+        multiple: true,
+        required: true,
+      },
+      { name: 'category', type: 'reference', label: 'Category', target: 'cat' },
+      { name: 'images', type: 'media', label: 'Images', multiple: true },
+      {
+        name: 'gallery',
+        type: 'media',
+        label: 'Gallery',
+        multiple: true,
+        required: true,
+      },
+    ],
+  }
+  const ok = { tags: ['a'], gallery: ['m1'] }
+
+  it('accepts a list of ids and a single id', () => {
+    expect(
+      validateContentPayload(refType, { ...ok, tags: ['a', 3], category: 'x' })
+    ).toEqual([])
+    expect(validateContentPayload(refType, { ...ok, category: 7 })).toEqual([])
+  })
+
+  it('fails required for an empty list, also for a multiple media', () => {
+    const errors = validateContentPayload(refType, { tags: [], gallery: [] })
+    expect(errors.map((error) => [error.field, error.code])).toEqual([
+      ['tags', 'required'],
+      ['gallery', 'required'],
+    ])
+  })
+
+  it('does not fail an optional empty list', () => {
+    expect(
+      validateContentPayload(refType, { ...ok, images: [], category: '' })
+    ).toEqual([])
+  })
+
+  it.each([
+    ['a text for a multiple field', { tags: 'a' }],
+    ['an object in the list', { tags: [{ id: 'a' }] }],
+    ['an empty text in the list', { tags: ['a', ''] }],
+    ['a list for a single field', { category: ['x'] }],
+    ['an object for a single field', { category: { id: 1 } }],
+  ])('rejects %s with the code reference', (_name, extra) => {
+    const errors = validateContentPayload(refType, { ...ok, ...extra })
+    expect(errors).toHaveLength(1)
+    expect(errors[0]?.code).toBe('reference')
+  })
+})

@@ -10,6 +10,7 @@ export type ContentValidationCode =
   | 'boolean'
   | 'option'
   | 'maxLength'
+  | 'reference'
 
 export interface ContentValidationError {
   field: string
@@ -46,7 +47,13 @@ export function validateContentPayload(
 
     if (field.required) {
       const skipBecausePartial = options?.partial === true && !present
-      const empty = value === undefined || value === null || value === ''
+      const empty =
+        value === undefined ||
+        value === null ||
+        value === '' ||
+        ((field.type === 'reference' || field.type === 'media') &&
+          Array.isArray(value) &&
+          value.length === 0)
       if (!skipBecausePartial && empty) {
         errors.push({
           field: field.name,
@@ -146,8 +153,26 @@ export function validateContentPayload(
         break
       }
 
-      // 'date' | 'reference' | 'media': no format check in this wave, only
-      // the required check above.
+      case 'reference': {
+        const valid = (entry: unknown) =>
+          (typeof entry === 'string' && entry !== '') ||
+          (typeof entry === 'number' && Number.isFinite(entry))
+        const ok =
+          value === '' ||
+          (field.multiple
+            ? Array.isArray(value) && value.every(valid)
+            : valid(value))
+        if (!ok) {
+          errors.push({
+            field: field.name,
+            message: `"${field.label}" must be an id or a list of ids.`,
+            code: 'reference',
+          })
+        }
+        break
+      }
+
+      // 'date' | 'media': no format check, only the required check above.
       default:
         break
     }
