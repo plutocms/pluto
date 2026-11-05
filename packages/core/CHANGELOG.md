@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.56.0](https://github.com/plutocms/pluto/compare/v0.55.1...v0.56.0) (2026-11-05)
+
+
+### Features
+
+* **shop:** @plutocms/shop, a cart saved in the browser, and the price helpers ([#414](https://github.com/plutocms/pluto/issues/414)) ([31b097f](https://github.com/plutocms/pluto/commit/31b097f56b9e9d3836463a33b8c6f973a653068f))
+
+
+### Bug Fixes
+
+* **core:** PlutoImage falls back to the file under the base path of the site ([#415](https://github.com/plutocms/pluto/issues/415)) ([ab6c782](https://github.com/plutocms/pluto/commit/ab6c78242c6b64c9f05f4720446511028aa922ac))
+
 ## [0.55.1](https://github.com/plutocms/pluto/compare/v0.55.0...v0.55.1) (2026-11-04)
 
 
