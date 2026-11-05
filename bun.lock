@@ -71,7 +71,7 @@
     },
     "packages/layers/addons/seo": {
       "name": "@plutocms/seo",
-      "version": "0.0.0",
+      "version": "0.1.0",
       "peerDependencies": {
         "@plutocms/core": ">=0.57.0 <1.0.0",
       },
