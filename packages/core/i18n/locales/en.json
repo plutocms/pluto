@@ -317,7 +317,8 @@
       "capabilities": {
         "readDrafts": "Read draft posts",
         "publish": "Create, edit and publish posts",
-        "delete": "Delete posts"
+        "delete": "Delete posts",
+        "manageTerms": "Create, edit and delete tags and categories"
       },
       "setup": {
         "title": "Set up the GitHub sign-in",
@@ -618,7 +619,8 @@
       "max": "\"{label}\" must be at most {max}.",
       "boolean": "\"{label}\" must be a boolean.",
       "option": "\"{label}\" must be one of the allowed options.",
-      "maxLength": "\"{label}\" must be at most {max} characters."
+      "maxLength": "\"{label}\" must be at most {max} characters.",
+      "reference": "\"{label}\" must be an id or a list of ids."
     },
     "auth": {
       "signIn": "Sign in",

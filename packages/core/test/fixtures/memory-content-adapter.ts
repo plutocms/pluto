@@ -53,6 +53,20 @@ export function createMemoryContentAdapter(
         )
       }
 
+      if (query.ids) {
+        const wanted = new Set(query.ids.map(String))
+        data = data.filter((row) => wanted.has(String(row.id)))
+      }
+
+      for (const [name, value] of Object.entries(query.filters ?? {})) {
+        data = data.filter((row) => {
+          const stored = row[name]
+          return Array.isArray(stored)
+            ? stored.some((entry) => String(entry) === value)
+            : String(stored ?? '') === value
+        })
+      }
+
       return { data, total: data.length }
     },
 

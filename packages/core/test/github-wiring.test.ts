@@ -107,6 +107,33 @@ describe('registerGithubContent', () => {
     expect(getContentAdapter()?.id).toBe('markdown')
   })
 
+  it('registers the tag and category types with the post type', () => {
+    setup()
+
+    expect(getContentType('tag')).toMatchObject({
+      source: 'tags',
+      api: { public: true },
+      capabilities: { write: 'terms:manage', delete: 'terms:manage' },
+    })
+    expect(getContentType('category')).toMatchObject({
+      source: 'categories',
+      api: { public: true },
+      capabilities: { write: 'terms:manage', delete: 'terms:manage' },
+    })
+    const fields = getContentType('post')?.fields ?? []
+    expect(fields.find((field) => field.name === 'tags')).toMatchObject({
+      type: 'reference',
+      target: 'tag',
+      multiple: true,
+      create: true,
+    })
+    expect(fields.find((field) => field.name === 'categories')).toMatchObject({
+      type: 'reference',
+      target: 'category',
+      multiple: true,
+    })
+  })
+
   it('registers no post type when postType is off, and still the adapter', async () => {
     vi.resetModules()
     const registry = await import('../server/utils/pluto-content')
@@ -117,6 +144,8 @@ describe('registerGithubContent', () => {
     wiring.registerGithubContent({ ...testConfig, postType: false }, cache)
 
     expect(registry.getContentType('post')).toBeUndefined()
+    expect(registry.getContentType('tag')).toBeUndefined()
+    expect(registry.getContentType('category')).toBeUndefined()
     expect(registry.getContentAdapter()?.id).toBe('markdown')
   })
 })

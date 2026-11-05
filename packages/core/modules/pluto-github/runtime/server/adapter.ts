@@ -18,12 +18,17 @@ import type {
 } from './store/types'
 import type { GithubCache } from './utils/github-cache'
 import { isError, setResponseHeader } from 'h3'
+import { listContentTypes } from '../../../../server/utils/pluto-content'
 import { createPlutoError } from '../../../../server/utils/pluto-error'
 import { compareContentIds } from '../../../../shared/utils/content-id'
 import {
   fieldColumn,
   mapColumnsToFields,
 } from '../../../../shared/utils/content-map'
+import {
+  referenceFieldsTo,
+  referenceValue,
+} from '../../../../shared/utils/content-reference'
 import { PlutoGithubConflictError, PlutoGithubStoreError } from './store/errors'
 import { gitBlobSha } from './utils/blob-sha'
 import { createGithubCache } from './utils/github-cache'
@@ -63,6 +68,11 @@ export interface MarkdownContentAdapterOptions {
   }
   /** The cache that holds parsed files by blob id. A memory cache by default. */
   cache?: GithubCache
+  /**
+   * The registered content types. A rename or a delete of an item reads it to find the types
+   * that reference the item. Default: the types of the core registry.
+   */
+  getTypes?: () => PlutoContentType[]
   /** How many times a commit retries after an unrelated change. Default 2. */
   retries?: number
   now?: () => Date
@@ -164,8 +174,7 @@ function toRevision(commit: {
   author: PlutoContentRevision['author']
 }): PlutoContentRevision {
   const action = PLUTO_MESSAGE.exec(commit.message)?.[1] as
-    | PlutoContentRevisionAction
-    | undefined
+    PlutoContentRevisionAction | undefined
   const message = commit.message.replace(/\s*\[skip ci\]\s*$/, '')
   return {
     id: commit.oid,
@@ -212,6 +221,7 @@ export function createMarkdownContentAdapter(
   const { store, dir, getAccess } = options
   const cache = options.cache ?? createGithubCache({ headTtl: 0 })
   const retries = options.retries ?? 2
+  const getTypes = options.getTypes ?? listContentTypes
   const now = options.now ?? (() => new Date())
   const skipAll = options.commit?.skipDeploy === true
 
@@ -634,6 +644,93 @@ export function createMarkdownContentAdapter(
     return file ? toEntry(layout, file, slug) : null
   }
 
+  /**
+   * The files of the items that reference the item `oldId` of the type `target`, rewritten: the id
+   * becomes `newId`, or leaves the field when `newId` is null. Drafts count too. The body, the
+   * unknown keys and the stamps of each file stay. A list that ends empty drops its key. Files
+   * that hold no reference are not in the answer. The item itself is not rewritten.
+   */
+  async function referenceRewrites(
+    head: string,
+    access: PlutoGithubAccess,
+    target: PlutoContentType,
+    oldId: string,
+    newId: string | null
+  ): Promise<{
+    additions: Plan['additions']
+    targets: Plan['targets']
+    published: boolean
+  }> {
+    const result: Awaited<ReturnType<typeof referenceRewrites>> = {
+      additions: [],
+      targets: [],
+      published: false,
+    }
+    for (const type of getTypes()) {
+      const fields = referenceFieldsTo(type, target.name)
+      if (fields.length === 0) {
+        continue
+      }
+      const layout = layoutOf(type)
+      const files = await listFiles(type, layout, head, access.auth)
+      const prefixLength =
+        contentDirPath(dir, type.source, pathOptions(layout)).length + 1
+      for (const file of files) {
+        const id = layout.nested
+          ? file.path.slice(prefixLength, -'.md'.length)
+          : file.name.slice(0, -'.md'.length)
+        if (type.name === target.name && id === oldId) {
+          continue
+        }
+        const entry = await toEntry(layout, file, id)
+        if (!entry) {
+          continue
+        }
+        const frontmatter = { ...entry.frontmatter }
+        let changed = false
+        for (const field of fields) {
+          const column = fieldColumn(field)
+          if (!Object.hasOwn(frontmatter, column)) {
+            continue
+          }
+          const ids = referenceValue(frontmatter[column])
+          if (!ids.some((one) => String(one) === oldId)) {
+            continue
+          }
+          changed = true
+          const next: Array<string | number> = []
+          for (const one of ids) {
+            const replacement = String(one) === oldId ? newId : one
+            if (
+              replacement !== null &&
+              !next.some((have) => String(have) === String(replacement))
+            ) {
+              next.push(replacement)
+            }
+          }
+          if (next.length === 0) {
+            delete frontmatter[column]
+          } else {
+            frontmatter[column] = Array.isArray(frontmatter[column])
+              ? next
+              : next[0]
+          }
+        }
+        if (!changed) {
+          continue
+        }
+        const path = contentFilePath(dir, type.source, id, pathOptions(layout))
+        result.additions.push({
+          path,
+          contents: fileText(layout, frontmatter, entry.body),
+        })
+        result.targets.push({ path, oid: entry.oid })
+        result.published ||= isPublished(type, layout, entry)
+      }
+    }
+    return result
+  }
+
   /** Applies the payload to a frontmatter object. Unknown keys stay. */
   function applyValues(
     type: PlutoContentType,
@@ -649,7 +746,8 @@ export function createMarkdownContentAdapter(
       }
       const value = values[field.name]
       const column = fieldColumn(field)
-      if (isEmptyValue(value)) {
+      // An empty list leaves the frontmatter, like an empty value.
+      if (isEmptyValue(value) || (Array.isArray(value) && value.length === 0)) {
         delete frontmatter[column]
       } else {
         frontmatter[column] = value
@@ -751,14 +849,23 @@ export function createMarkdownContentAdapter(
         )
       }
 
-      // Equality filters compare the text of the value, because the public API sends text.
+      if (query.ids) {
+        const wanted = new Set(query.ids.map(String))
+        entries = entries.filter((entry) => wanted.has(entry.slug))
+      }
+
+      // Equality filters compare the text of the value, because the public API sends text. A list
+      // (a `multiple` reference) matches when it has the value.
       const filters = Object.entries(query.filters ?? {})
       if (filters.length > 0) {
         entries = entries.filter((entry) => {
           const item = toItem(type, layout, entry, false)
-          return filters.every(
-            ([name, value]) => String(item[name] ?? '') === value
-          )
+          return filters.every(([name, value]) => {
+            const stored = item[name]
+            return Array.isArray(stored)
+              ? stored.some((one) => String(one) === value)
+              : String(stored ?? '') === value
+          })
         })
       }
 
@@ -1017,16 +1124,31 @@ export function createMarkdownContentAdapter(
         }
 
         let verb = `update "${oldSlug}"`
+        // A rename also rewrites the items that reference the old id, in the same commit.
+        const rewrites =
+          newPath === oldPath
+            ? undefined
+            : await referenceRewrites(head, access, type, oldSlug, newSlug)
         if (newPath !== oldPath) {
           verb = `rename "${oldSlug}" -> "${newSlug}"`
+          if (rewrites && rewrites.additions.length > 0) {
+            verb += ` (${rewrites.additions.length} references)`
+          }
         } else if (wasPublished !== nowPublished) {
           verb = `${nowPublished ? 'publish' : 'unpublish'} "${oldSlug}"`
         }
         return {
-          message: messageOf(type, verb, wasPublished || nowPublished),
-          additions: [{ path: newPath, contents: text }],
+          message: messageOf(
+            type,
+            verb,
+            wasPublished || nowPublished || rewrites?.published === true
+          ),
+          additions: [
+            { path: newPath, contents: text },
+            ...(rewrites?.additions ?? []),
+          ],
           deletions: newPath === oldPath ? [] : [{ path: oldPath }],
-          targets,
+          targets: [...targets, ...(rewrites?.targets ?? [])],
           item: toItem(
             type,
             layout,
@@ -1058,15 +1180,18 @@ export function createMarkdownContentAdapter(
         if (!current) {
           throw notFoundError()
         }
+        // The items that reference the deleted id lose it, in the same commit.
+        const rewrites = await referenceRewrites(head, access, type, slug, null)
+        const count = rewrites.additions.length
         return {
           message: messageOf(
             type,
-            `delete "${slug}"`,
-            isPublished(type, layout, current)
+            `delete "${slug}"${count > 0 ? ` (${count} references)` : ''}`,
+            isPublished(type, layout, current) || rewrites.published
           ),
-          additions: [],
+          additions: rewrites.additions,
           deletions: [{ path }],
-          targets: [{ path, oid: current.oid }],
+          targets: [{ path, oid: current.oid }, ...rewrites.targets],
         }
       })
     })

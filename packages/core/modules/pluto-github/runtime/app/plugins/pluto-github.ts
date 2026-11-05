@@ -11,6 +11,7 @@ import {
   showPublicRepoWarning,
 } from '../../shared/client-rules'
 import { plutoGithubPostType } from '../../shared/post-type'
+import { plutoGithubTermTypes } from '../../shared/term-types'
 import { usePlutoGithubLocalGit } from '../composables/pluto-github-local-git'
 import {
   CMS_SESSION_URL,
@@ -79,6 +80,10 @@ export default defineNuxtPlugin(() => {
           { key: read, label: 'pluto.github.capabilities.readDrafts' },
           { key: write, label: 'pluto.github.capabilities.publish' },
           { key: remove, label: 'pluto.github.capabilities.delete' },
+          {
+            key: plutoGithubTermTypes[0]?.capabilities?.write,
+            label: 'pluto.github.capabilities.manageTerms',
+          },
         ]
       : []
   ).flatMap((entry) =>
@@ -175,7 +180,12 @@ export default defineNuxtPlugin(() => {
       },
     ],
     // The content type gives the Posts nav item, the list and the form.
-    contentTypes: postType ? [{ id: 'post', type: plutoGithubPostType }] : [],
+    contentTypes: postType
+      ? [
+          { id: 'post', type: plutoGithubPostType },
+          ...plutoGithubTermTypes.map((type) => ({ id: type.name, type })),
+        ]
+      : [],
     // The Markdown editor. The import is lazy, so Tiptap loads on the edit page only.
     contentFieldWidgets: [
       {

@@ -16,7 +16,8 @@ const FILTER_KEY = /^filter\[([^\]]+)\]$/
  * The answer of a list route, from the items of the public index: the same rules as the list of
  * the Git CMS. `search` looks for the text in the title, without case. `filter[field]` compares the
  * text of the value; for an object (a relation that `toPublic` expands, such as
- * `category: { id, label }`), the text of its `id`. `sort` (`field` or `-field`) puts the items with no value last; with no
+ * `category: { id, label }`), its `id` or its `slug`; for a list (a `multiple` reference), one
+ * entry that matches. `sort` (`field` or `-field`) puts the items with no value last; with no
  * `sort`, the items keep the order of the index (the default sort). Then `offset` and `limit`
  * (1 to 100, default 20). `params` is the URL query, as `plutoPublicQueryParams` gives it.
  */
@@ -38,9 +39,8 @@ export function queryPublicIndex<T = PlutoPublicItem>(
   for (const [key, value] of Object.entries(params)) {
     const name = FILTER_KEY.exec(key)?.[1]
     if (name !== undefined) {
-      items = items.filter(
-        (item) => filterText(item[name]) === String(text(value) ?? '')
-      )
+      const wanted = String(text(value) ?? '')
+      items = items.filter((item) => matchesFilter(item[name], wanted))
     }
   }
 
@@ -77,12 +77,24 @@ function text(value: unknown): string | undefined {
   return one === undefined || one === null ? undefined : String(one)
 }
 
-/** The text that a filter compares. An object with an `id` compares by its `id`. */
-function filterText(value: unknown): string {
-  if (value && typeof value === 'object' && 'id' in value) {
-    return String(value.id)
+/**
+ * True when a value matches the text of a filter. A list matches when one entry matches. An object
+ * with an `id` (an expanded reference) matches by its `id` or its `slug`. Anything else compares
+ * by its text.
+ */
+function matchesFilter(value: unknown, wanted: string): boolean {
+  if (Array.isArray(value)) {
+    return value.some((entry) => matchesFilter(entry, wanted))
   }
-  return String(value ?? '')
+  if (value && typeof value === 'object' && 'id' in value) {
+    return (
+      String(value.id) === wanted ||
+      ('slug' in value &&
+        value.slug !== undefined &&
+        String(value.slug) === wanted)
+    )
+  }
+  return String(value ?? '') === wanted
 }
 
 function whole(value: unknown, fallback: number): number {

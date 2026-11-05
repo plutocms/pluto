@@ -13,6 +13,10 @@ import { requireContentAdapter } from './pluto-content-handlers'
 import { createPlutoError } from './pluto-error'
 import { expandPublicMedia } from './pluto-media-public'
 import { markPublicRead } from './pluto-public-read'
+import {
+  expandPublicReferences,
+  resolveReferenceFilters,
+} from './pluto-reference-public'
 
 /**
  * The logic of the public API (`/api/pluto/v1/content/...`). It is in plain functions, so a test
@@ -203,6 +207,8 @@ export async function toPublicData(
 
   // The ids of the `media` fields become the records of the files.
   data = await expandPublicMedia(ctx.event, ctx.type, data, batch)
+  // The ids of the `reference` fields with a public `target` become `{ id, label, slug }`.
+  data = await expandPublicReferences(ctx.event, ctx.type, data, batch)
 
   const adapter = requireContentAdapter()
   if (adapter.toPublic) {
@@ -237,12 +243,26 @@ export async function listPublicContent(
   const query = parsePublicQuery(type, rawQuery)
   const ctx = { event, type }
 
+  // A filter on a reference field takes an id or a slug. An unknown value matches nothing.
+  const { filters, empty } = await resolveReferenceFilters(
+    event,
+    type,
+    query.filters
+  )
+  if (empty) {
+    setPublicApiCache(event)
+    return {
+      data: [],
+      meta: { total: 0, limit: query.limit, offset: query.offset },
+    }
+  }
+
   const result = await requireContentAdapter().list(ctx, {
     limit: query.limit,
     offset: query.offset,
     search: query.search,
     sort: query.sort ?? type.defaultSort,
-    filters: query.filters,
+    filters,
     includeUnpublished: false,
   })
 
@@ -378,13 +398,30 @@ export async function getPublicSurround(
   const ctx = { event, type }
   const adapter = requireContentAdapter()
 
+  const { filters, empty } = await resolveReferenceFilters(
+    event,
+    type,
+    query.filters
+  )
+  if (empty) {
+    throw createPlutoError({
+      statusCode: 404,
+      message: 'Not found.',
+      key: 'pluto.errors.notFound',
+    })
+  }
+
   const items: PlutoContentItem[] = []
-  for (let offset = 0; offset < PUBLIC_SURROUND_MAX; offset += PUBLIC_MAX_LIMIT) {
+  for (
+    let offset = 0;
+    offset < PUBLIC_SURROUND_MAX;
+    offset += PUBLIC_MAX_LIMIT
+  ) {
     const page = await adapter.list(ctx, {
       limit: PUBLIC_MAX_LIMIT,
       offset,
       sort: query.sort ?? type.defaultSort,
-      filters: query.filters,
+      filters,
       includeUnpublished: false,
     })
     items.push(...page.data.filter((item) => isPublishedItem(type, item)))
@@ -409,8 +446,8 @@ export async function getPublicSurround(
 
   const previous = items[index - 1]
   const next = items[index + 1]
-  const batch = [previous, next].filter(
-    (item): item is PlutoContentItem => Boolean(item)
+  const batch = [previous, next].filter((item): item is PlutoContentItem =>
+    Boolean(item)
   )
   const [previousData, nextData] = await Promise.all([
     previous ? toPublicData(ctx, previous, 'list', batch) : null,

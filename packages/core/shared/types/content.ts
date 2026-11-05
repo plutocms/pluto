@@ -86,8 +86,16 @@ export interface PlutoSelectField extends PlutoFieldBase {
 
 export interface PlutoReferenceField extends PlutoFieldBase {
   type: 'reference'
-  /** Name of the referenced content type, for example 'category'. */
+  /**
+   * Name of the referenced content type, for example 'category'. The value is the id of an item of
+   * that type, or a list of ids (`multiple`). The public API gives `{ id, label, slug? }` in place
+   * of each id when the target is public. See the tags-and-categories skill.
+   */
   target?: string
+  /** The value is a list of ids, in order. */
+  multiple?: boolean
+  /** The admin widget can create a new item of `target` inline. Needs `target`. */
+  create?: boolean
   optionsUrl?: string
   labelKey?: string
   valueKey?: string
@@ -449,9 +457,15 @@ export interface PlutoContentQuery {
   /**
    * Equality filters, by field name. An item matches when every field equals its value. The
    * public API sends the values as text, so an adapter compares a stored number or boolean by its
-   * text too (`3` matches `'3'`, `true` matches `'true'`).
+   * text too (`3` matches `'3'`, `true` matches `'true'`). When the stored value is a list (a
+   * `multiple` reference), the item matches when the list has the value.
    */
   filters?: Record<string, string>
+  /**
+   * Only the items with these ids, in any order. An empty list gives no item. An adapter that
+   * ignores it still works: core matches the ids again.
+   */
+  ids?: Array<string | number>
 }
 
 export interface PlutoContentListResult {

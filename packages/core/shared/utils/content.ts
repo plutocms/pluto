@@ -28,6 +28,19 @@ export function defineContentType(type: PlutoContentType): PlutoContentType {
       if (field.type === 'select' && field.options.length === 0) {
         console.warn(`${prefix} select field "${field.name}" has no options.`)
       }
+
+      if (field.type === 'reference') {
+        if (!field.target && !field.optionsUrl) {
+          console.warn(
+            `${prefix} reference field "${field.name}" has neither target nor optionsUrl.`
+          )
+        }
+        if (field.create && !field.target) {
+          console.warn(
+            `${prefix} reference field "${field.name}" sets create without target.`
+          )
+        }
+      }
     }
 
     if (!type.fields.some((field) => field.name === type.titleField)) {

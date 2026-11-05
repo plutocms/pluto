@@ -179,8 +179,10 @@ required field present in the payload with an empty value (`''`, `null`, `undefi
 error, partial or not.
 
 This wave checks `required`, `number` (numeric, `integer`, `min`, `max`), `boolean`, `select`
-(value must match an option), and text-family `maxLength`. A `date`, `reference`, or `media`
-field only gets the `required` check in this wave.
+(value must match an option), text-family `maxLength`, and `reference` (code `reference`: a list of
+text or number ids for a `multiple` field, else one id). A `date` or `media` field only gets the
+`required` check. An empty list (`[]`) counts as empty for `required`, for a `multiple` `reference`
+and a `multiple` `media` field.
 
 Being pure TypeScript, the same function will run on both an app composable and a server route
 once a later wave adds one — the payload is valid or it isn't, regardless of which side asks.
@@ -260,6 +262,15 @@ Resolution order: an exact `field.widget` name match first, then the last-regist
 `PlutoContentFieldWidget` whose `fieldType` matches `field.type`, else `undefined`. This wave
 adds no fallback placeholder component — deciding what to show when nothing resolves is later,
 UI-wave work.
+
+## References and terms
+
+A `reference` field with a `target` stores the id of an item of another content type, or a list of
+ids (`multiple`). `create` lets the admin widget create a new item of the target inline. Core
+expands the ids in the public API, filters by them and keeps them true on a rename or a delete (Git
+CMS). `shared/utils/content-reference.ts` has the helpers (`referenceValue`, `referenceFieldIds`,
+`isTargetReference`, `referenceFieldsTo`). The full detail, with the tag and category types, is in the
+[tags-and-categories](../tags-and-categories/SKILL.md) skill.
 
 ## Media
 
@@ -375,10 +386,14 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
   `search` (the title, at most 200 characters), `sort` (`field` or `-field`: a public field, or
   `createdAt`, `updatedAt`, `publishedAt`), `filter[field]=value` (equality on a public field;
   the adapter gets `query.filters` as text). Any other key is ignored. A sort or a filter on a
-  field that the answer does not have gives 400 (`pluto.errors.invalidQuery`).
+  field that the answer does not have gives 400 (`pluto.errors.invalidQuery`). A filter on a
+  `reference` field with a `target` takes the id or the slug of the target item (see "References and
+  terms"); a value that names no published item gives an empty list. A filter on a list field
+  matches when the list has the value (`PlutoContentQuery.filters`).
 - The answer of an item (`toPublicData`): `id`, the public fields (`api.fields`, else every field
   that is not `virtual`), and `createdAt`, `updatedAt`, `publishedAt` from the item keys that
-  `adapter.timestampKeys(type)` names. Then `adapter.toPublic` (the CMS Markdown adapter adds
+  `adapter.timestampKeys(type)` names. Core expands the public `reference` fields that have a public
+  `target` to `{ id, label, slug? }` (a list for `multiple`), after the media. Then `adapter.toPublic` (the CMS Markdown adapter adds
   `excerpt` to a list item and `html` to one item), then `type.hooks.toPublic` (server only, for
   relations and URLs). Both get `{ view: 'list' | 'item', item, batch }`: `batch` is every item of
   the answer, so a hook loads related rows once and keeps them on `ctx.event.context`.
@@ -465,7 +480,11 @@ item, ogType }) }`. `useItem` calls each matching `setup` right after its own `u
   resolves to. `usePosts` and `usePost` (core, type `post`, both backends, sorted by
   `-publishedAt`, `og:type` article) add `posts` and `post`. `@plutocms/supabase-shop` adds
   `useProducts`, `useProduct` and `useProductCategories` the same way.
-- Types (`shared/types/public-api.ts`): `PlutoPost`, `PlutoPostSummary`, the option interfaces.
+- `useTags`, `useTag`, `useCategories` and `useCategory` (core, types `tag` and `category`, sorted by
+  `title`) add `tags`, `tag`, `categories` and `category`. The posts of a term:
+  `usePosts({ filter: { tags: slug } })`.
+- Types (`shared/types/public-api.ts`): `PlutoPost`, `PlutoPostSummary`, `PlutoTerm`,
+  `PlutoPublicReference`, the option interfaces.
 - Test: `test/site-content-composables.test.ts` (the fetch composables mocked like Nuxt, with
   their own `then`; the Nuxt auto-imports stubbed).
 - The public API for these: `getPublicContent(event, type, id, { drafts })` serves a draft only
@@ -476,7 +495,7 @@ item, ogType }) }`. `useItem` calls each matching `setup` right after its own `u
   anonymous) reads up to `PUBLIC_SURROUND_MAX` (1000) published items in the list order, finds the
   item by id or slug field, and answers `{ data: { previous, next } }` (list shape), 404 when the
   item is not among them.
-- Tests: `test/public-api.test.ts` and `test/github-public.test.ts`.
+- Tests: `test/public-api.test.ts`, `test/reference-public.test.ts` and `test/github-public.test.ts`.
 
 ## Capability enforcement: read is never checked here
 

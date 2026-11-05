@@ -83,6 +83,37 @@ describe('queryPublicIndex', () => {
     ).toEqual([1])
   })
 
+  it('filters a list of references by id or slug', () => {
+    const blog: PlutoPublicIndexType = {
+      titleField: 'title',
+      items: [
+        {
+          id: 'p1',
+          title: 'One',
+          tags: [
+            { id: 'a', label: 'A', slug: 'alpha' },
+            { id: 'b', label: 'B', slug: 'beta' },
+          ],
+        },
+        {
+          id: 'p2',
+          title: 'Two',
+          tags: [{ id: 'b', label: 'B', slug: 'beta' }],
+        },
+        { id: 'p3', title: 'Three', tags: [] },
+        { id: 'p4', title: 'Four' },
+        { id: 'p5', title: 'Five', plain: ['x', 'y'] },
+      ],
+    }
+    const run = (filter: Record<string, string>) =>
+      ids(queryPublicIndex(blog, plutoPublicQueryParams({ filter })))
+    expect(run({ tags: 'a' })).toEqual(['p1'])
+    expect(run({ tags: 'alpha' })).toEqual(['p1'])
+    expect(run({ tags: 'beta' })).toEqual(['p1', 'p2'])
+    expect(run({ tags: 'nope' })).toEqual([])
+    expect(run({ plain: 'y' })).toEqual(['p5'])
+  })
+
   it('sorts, with a missing value last in both directions', () => {
     expect(ids(queryPublicIndex(entry, { sort: 'publishedAt' }))).toEqual([
       'b',

@@ -79,6 +79,19 @@ describe('mapRepoPermission for push', () => {
     ])
   })
 
+  it('gives terms:manage when the term types are registered', async () => {
+    const { registerContentType, mapRepoPermission } = await load()
+    const { plutoGithubTermTypes } =
+      await import('../modules/pluto-github/runtime/shared/term-types')
+    for (const type of plutoGithubTermTypes) {
+      registerContentType(type)
+    }
+
+    expect(mapRepoPermission({ push: true })!.capabilities).toContain(
+      'terms:manage'
+    )
+  })
+
   it('does not widen admin or a lower permission', async () => {
     const { registerContentType, mapRepoPermission } = await load()
     registerContentType(docType())
