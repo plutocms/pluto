@@ -52,6 +52,10 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.backend ? [definition.backend] : []
   )
   registry.contentTypes.set(definition.id, definition.contentTypes ?? [])
+  registry.contentTypeExtensions.set(
+    definition.id,
+    definition.contentTypeExtensions ?? []
+  )
   registry.contentFieldWidgets.set(
     definition.id,
     definition.contentFieldWidgets ?? []
@@ -63,6 +67,7 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.id,
     definition.contentToolbarItems ?? []
   )
+  registry.contentHead.set(definition.id, definition.contentHead ?? [])
 }
 
 // Dev only. The names already warned about, so each component warns once

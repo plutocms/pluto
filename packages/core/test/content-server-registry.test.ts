@@ -102,3 +102,131 @@ describe('registerContentAdapter / getContentAdapter', () => {
     expect(getContentAdapter()?.id).toBe('second')
   })
 })
+
+describe('extendContentTypes', () => {
+  // An extension that adds one field to the types it names.
+  function addField(id: string, field: string, only?: string, order?: number) {
+    return {
+      id,
+      order,
+      extend: (type: PlutoContentType): PlutoContentType =>
+        only && type.name !== only
+          ? type
+          : {
+              ...type,
+              fields: [
+                ...type.fields,
+                { name: field, type: 'text', label: field },
+              ],
+            },
+    }
+  }
+
+  const names = (type?: PlutoContentType) => type?.fields.map((f) => f.name)
+
+  it('extends a type that registered before the extension', async () => {
+    const { registerContentType, extendContentTypes, getContentType } =
+      await loadRegistry()
+
+    registerContentType(contentType('post'))
+    extendContentTypes(addField('seo', 'seoTitle', 'post'))
+
+    expect(names(getContentType('post'))).toEqual(['title', 'seoTitle'])
+  })
+
+  it('extends a type that registers after the extension', async () => {
+    const { registerContentType, extendContentTypes, getContentType } =
+      await loadRegistry()
+
+    extendContentTypes(addField('seo', 'seoTitle', 'post'))
+    registerContentType(contentType('post'))
+
+    expect(names(getContentType('post'))).toEqual(['title', 'seoTitle'])
+  })
+
+  it('leaves another type as it is', async () => {
+    const { registerContentType, extendContentTypes, getContentType } =
+      await loadRegistry()
+
+    const page = contentType('page')
+    registerContentType(page)
+    extendContentTypes(addField('seo', 'seoTitle', 'post'))
+
+    expect(getContentType('page')).toBe(page)
+  })
+
+  it('replaces an extension with the same id', async () => {
+    const { registerContentType, extendContentTypes, getContentType } =
+      await loadRegistry()
+
+    registerContentType(contentType('post'))
+    extendContentTypes(addField('seo', 'first'))
+    extendContentTypes(addField('seo', 'second'))
+
+    expect(names(getContentType('post'))).toEqual(['title', 'second'])
+  })
+
+  it('runs the extensions by order, then by first registration', async () => {
+    const { registerContentType, extendContentTypes, getContentType } =
+      await loadRegistry()
+
+    registerContentType(contentType('post'))
+    extendContentTypes(addField('a', 'a'))
+    extendContentTypes(addField('late', 'late', undefined, 200))
+    extendContentTypes(addField('early', 'early', undefined, 10))
+    extendContentTypes(addField('b', 'b'))
+
+    expect(names(getContentType('post'))).toEqual([
+      'title',
+      'early',
+      'a',
+      'b',
+      'late',
+    ])
+  })
+
+  it('keeps the raw type unchanged', async () => {
+    const { registerContentType, extendContentTypes, getContentType } =
+      await loadRegistry()
+
+    const post = contentType('post')
+    registerContentType(post)
+    extendContentTypes(addField('seo', 'seoTitle'))
+    getContentType('post')
+
+    expect(post.fields).toHaveLength(1)
+  })
+
+  it('gives the same extended type to getContentType and listContentTypes', async () => {
+    const {
+      registerContentType,
+      extendContentTypes,
+      getContentType,
+      listContentTypes,
+    } = await loadRegistry()
+
+    registerContentType(contentType('post'))
+    registerContentType(contentType('page'))
+    extendContentTypes(addField('seo', 'seoTitle', 'post'))
+
+    expect(listContentTypes().map((type) => type.name)).toEqual([
+      'post',
+      'page',
+    ])
+    expect(listContentTypes()[0]).toBe(getContentType('post'))
+    expect(getContentType('post')).toBe(getContentType('post'))
+  })
+
+  it('drops the cache when a type registers again', async () => {
+    const { registerContentType, extendContentTypes, getContentType } =
+      await loadRegistry()
+
+    registerContentType(contentType('post'))
+    extendContentTypes(addField('seo', 'seoTitle'))
+    getContentType('post')
+    registerContentType({ ...contentType('post'), label: 'Post (updated)' })
+
+    expect(getContentType('post')?.label).toBe('Post (updated)')
+    expect(names(getContentType('post'))).toEqual(['title', 'seoTitle'])
+  })
+})

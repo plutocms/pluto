@@ -43,24 +43,26 @@ It adds:
 A layer's `definePlutoExtension` call can set any of these. Every field is optional; a layer
 sets only what it has.
 
-| Field                 | Type                        | Purpose                                                                                                                                      |
-| --------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `navbarActions`       | `PlutoNavbarAction[]`       | Small buttons in the navbar. Each is a component action (`{ component }`) or a link action (`{ label, icon?, to, target? }`). A union type.  |
-| `nav`                 | `PlutoNavItem[]`            | Sidebar entries, with optional `children`.                                                                                                   |
-| `pages`               | `PlutoAdminPage[]`          | Metadata (title, icon, parent) for a route Nuxt already made from a file.                                                                    |
-| `dashboardWidgets`    | `PlutoDashboardWidget[]`    | Cards shown on `/admin/home`.                                                                                                                |
-| `settingsPanels`      | `PlutoSettingsPanel[]`      | Forms shown on `/admin/settings`.                                                                                                            |
-| `settingsPages`       | `PlutoSettingsPage[]`       | Tabs of the Settings section. See "Settings pages" below.                                                                                    |
-| `mailPanels`          | `PlutoMailPanel[]`          | Sections that a layer adds to the Email settings page. See the [mail skill](../mail/SKILL.md).                                               |
-| `settingsDriver`      | `PlutoSettingsDriver`       | Load/save functions for settings storage. One layer normally provides it.                                                                    |
-| `localeDriver`        | `PlutoLocaleDriver`         | Load/save functions for the current user's admin language. One layer normally provides it.                                                   |
-| `authDriver`          | `PlutoAuthDriver`           | The sign-in backend of the admin. The last one wins. See the admin-shell skill.                                                              |
-| `accountMenu`         | `PlutoAccountMenuItem[]`    | Extra items in the navbar user menu.                                                                                                         |
-| `adminBanners`        | `PlutoAdminBanner[]`        | Banner components for the admin. Registered now, rendered later.                                                                             |
-| `contentToolbarItems` | `PlutoContentToolbarItem[]` | Components in the toolbar of the generic content form, before the buttons. See the [admin view chrome](../admin-view-chrome/SKILL.md) skill. |
-| `site`                | `PlutoSiteInfo`             | `name()` and `url()` of the public site.                                                                                                     |
-| `backend`             | `PlutoBackendInfo`          | The backend badge of the navbar (Git or a database). The last one wins. See the admin-shell skill.                                           |
-| `navGroups`           | `PlutoNavGroup[]`           | Groups of content types in the sidebar and the admin bar. See "Nav groups" below.                                                            |
+| Field                   | Type                               | Purpose                                                                                                                                      |
+| ----------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `navbarActions`         | `PlutoNavbarAction[]`              | Small buttons in the navbar. Each is a component action (`{ component }`) or a link action (`{ label, icon?, to, target? }`). A union type.  |
+| `nav`                   | `PlutoNavItem[]`                   | Sidebar entries, with optional `children`.                                                                                                   |
+| `pages`                 | `PlutoAdminPage[]`                 | Metadata (title, icon, parent) for a route Nuxt already made from a file.                                                                    |
+| `dashboardWidgets`      | `PlutoDashboardWidget[]`           | Cards shown on `/admin/home`.                                                                                                                |
+| `settingsPanels`        | `PlutoSettingsPanel[]`             | Forms shown on `/admin/settings`.                                                                                                            |
+| `settingsPages`         | `PlutoSettingsPage[]`              | Tabs of the Settings section. See "Settings pages" below.                                                                                    |
+| `mailPanels`            | `PlutoMailPanel[]`                 | Sections that a layer adds to the Email settings page. See the [mail skill](../mail/SKILL.md).                                               |
+| `settingsDriver`        | `PlutoSettingsDriver`              | Load/save functions for settings storage. One layer normally provides it.                                                                    |
+| `localeDriver`          | `PlutoLocaleDriver`                | Load/save functions for the current user's admin language. One layer normally provides it.                                                   |
+| `authDriver`            | `PlutoAuthDriver`                  | The sign-in backend of the admin. The last one wins. See the admin-shell skill.                                                              |
+| `accountMenu`           | `PlutoAccountMenuItem[]`           | Extra items in the navbar user menu.                                                                                                         |
+| `adminBanners`          | `PlutoAdminBanner[]`               | Banner components for the admin. Registered now, rendered later.                                                                             |
+| `contentToolbarItems`   | `PlutoContentToolbarItem[]`        | Components in the toolbar of the generic content form, before the buttons. See the [admin view chrome](../admin-view-chrome/SKILL.md) skill. |
+| `contentTypeExtensions` | `PlutoContentTypeExtensionEntry[]` | Changes to content types that the layer does not own (new fields on `post`). See the [content model](../content-model/SKILL.md) skill.       |
+| `contentHead`           | `PlutoContentHead[]`               | Head tags for every item page of `definePlutoContent().useItem`. See the [content model](../content-model/SKILL.md) skill.                   |
+| `site`                  | `PlutoSiteInfo`                    | `name()` and `url()` of the public site.                                                                                                     |
+| `backend`               | `PlutoBackendInfo`                 | The backend badge of the navbar (Git or a database). The last one wins. See the admin-shell skill.                                           |
+| `navGroups`             | `PlutoNavGroup[]`                  | Groups of content types in the sidebar and the admin bar. See "Nav groups" below.                                                            |
 
 The registry buckets for these are `authDrivers`, `accountMenu`, `adminBanners`, `siteInfo` and
 `backend`. Core renders the navbar from them. See the [admin shell](../admin-shell/SKILL.md).

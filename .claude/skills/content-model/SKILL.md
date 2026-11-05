@@ -207,6 +207,47 @@ items.value // PlutoContentTypeEntry[]
 byName('post') // PlutoContentType | undefined — looks up by type.name, not entry.id
 ```
 
+### Content type extensions
+
+A content type can have two owners, for example `post` (the Git module of core, or the Supabase
+blog layer). A layer that is not the owner adds fields to it with a content type extension. Core
+knows nothing of what the layer adds.
+
+```ts
+// shared: the same object works on the server and on the client
+const extension: PlutoContentTypeExtension = {
+  id: 'seo',
+  order: 100, // optional, lower runs first
+  extend: (type) =>
+    type.name === 'post'
+      ? {
+          ...type,
+          fields: [
+            ...type.fields,
+            { name: 'seoTitle', type: 'text', label: 'SEO title' },
+          ],
+        }
+      : type,
+}
+```
+
+- `extend` is pure. It gets a type and returns a new one (or the same object). It runs for every
+  type, so it checks `type.name`. A later extension with the same `id` replaces the earlier one.
+- Server: `extendContentTypes(extension)` from a `server/plugins/*.ts` file. The registry keeps
+  the raw type. `getContentType` and `listContentTypes` give the extended type, so the handlers,
+  the public API and the static index all see the new fields. The extended types are cached. Each
+  `registerContentType` and `extendContentTypes` clears the cache. The order does not depend on
+  the order of the plugins: an extension also applies to a type that registers later.
+- Client: the `contentTypeExtensions` field of `definePlutoExtension`
+  (`PlutoContentTypeExtensionEntry`: the same shape, as a registry entry). `usePlutoContentTypes()`
+  gives the extended types in `items` and `byName`. The registry entry of the type
+  (`registry.contentTypes`) stays raw.
+- Extensions run by `order` (default 100), then by first registration. In dev, an extended type goes
+  through the checks of `defineContentType`.
+- The layer sets `column` on each new field. The storage of the new fields is the job of the
+  layer: a Supabase column, or a `files.frontmatter` hook for the Git CMS.
+- Tests: `test/content-server-registry.test.ts`, `test/content-registry.test.ts`.
+
 ## `usePlutoContentFieldWidget(field)`
 
 Resolves the component that should render one field in the generic content form (a later wave):
@@ -229,14 +270,15 @@ ids.
 
 ## The server-side registry
 
-`server/utils/pluto-content.ts` holds two things: a `Map<string, PlutoContentType>` (keyed by
-`type.name`) and a single `PlutoContentAdapter | undefined` variable — both plain module-scope
+`server/utils/pluto-content.ts` holds three things: a `Map<string, PlutoContentType>` (keyed by
+`type.name`), the content type extensions (see "Content type extensions") and a single `PlutoContentAdapter | undefined` variable — both plain module-scope
 state:
 
 ```ts
-registerContentType(type) // adds or overwrites one content type, by type.name
-getContentType(name) // PlutoContentType | undefined
-listContentTypes() // PlutoContentType[], in registration order
+registerContentType(type) // adds or overwrites one content type, by type.name (the raw type)
+extendContentTypes(extension) // adds or replaces (by id) an extension of every type
+getContentType(name) // PlutoContentType | undefined, with the extensions applied
+listContentTypes() // PlutoContentType[], extended, in registration order
 registerContentAdapter(adapter) // replaces whatever was registered before — last wins
 getContentAdapter() // PlutoContentAdapter | undefined
 ```
@@ -378,7 +420,8 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
   a failure throws `createError` (404 for a missing item or a draft, else the status of the error)
   unless `notFound: 'null'`. It calls `usePlutoEditLink` (`editLink: false` skips it) and
   `useSeoMeta` (`seo: false` skips it): the title field, `excerpt` or `description`, `og:image`
-  from the first media field (absolute, with `useRequestURL().origin`), `og:type` from `ogType`.
+  from the first media field (absolute, through `usePlutoSite().absoluteUrl`; none while the site
+  root is not known), `og:type` from `ogType`. Then it calls each `contentHead` hook (see below).
   Every composable call happens before the first `await`, so the Nuxt context is still there.
   Drafts: while the admin bar shows (an editor), the request carries `?drafts=1`
   (`usePlutoPublicItem(type, id, { drafts })`), so an editor sees a draft on the real page; the
@@ -388,8 +431,27 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
   `newer` and `older`.
 - `usePlutoSite()` (`app/composables/pluto-site.ts`): `name` (site info, else `websiteName`
   unless 'Untitled'), `description` (`websiteDescription`, a new public runtime key, env
-  `NUXT_PUBLIC_WEBSITE_DESCRIPTION`), `url` (site info, else the request origin).
-  `usePlutoSiteHead()`, for the public layout: the title template (`Title - Site`, the site name
+  `NUXT_PUBLIC_WEBSITE_DESCRIPTION`), `url` (`websiteUrl`, else site info, else the request origin), `root` and `absoluteUrl(path)`.
+  The site URL: `public.websiteUrl` (env `NUXT_PUBLIC_WEBSITE_URL`) is the address of the site. The
+  build default is `https://$VERCEL_PROJECT_PRODUCTION_URL` on Vercel, else the `URL` of Netlify,
+  else empty. The GitHub Pages workflow sets it from `steps.pages.outputs.base_url`. `url` is
+  `websiteUrl`, else the site info URL, else the request origin. `root` is the root URL for
+  absolute links, with the base path and no trailing slash. It comes from `websiteUrl`, else from
+  the request origin, and never from the site info, so the server and the browser agree. On a
+  static build without `websiteUrl` it is `''`. `absoluteUrl(path)` puts a site path under the root
+  (`''` with no root; a full URL stays). The helpers are in `shared/utils/url.ts`:
+  `siteRootUrl({ websiteUrl, origin, baseURL })` adds the base path only when the path of
+  `websiteUrl` does not end with it, and `absoluteSiteUrl(pathOrUrl, root)`. Never use
+  `new URL('/x', root)`: it drops the base path (`/repo/`). A server route calls
+  `getPlutoSiteRoot(event)` (`server/utils/pluto-site.ts`): the same root, or `null` on a static
+  build without `websiteUrl`. Tests: `test/site-url.test.ts`, `test/pluto-site-server.test.ts`.
+- `contentHead` (registry bucket, `PlutoContentHead`): `{ id, contentType: name | '*', setup({ type,
+item, ogType }) }`. `useItem` calls each matching `setup` right after its own `useSeoMeta`, in
+  registry order, inside the same Nuxt context. So a hook can call `useHead` and `useSeoMeta` and
+  override the core tags. `item` is a computed (`null` while it loads). `seo: false` skips the
+  hooks. A layer uses it to add tags to every `usePost` page with no change to the page.
+  Test: `test/site-content-composables.test.ts`.
+- `usePlutoSiteHead()`, for the public layout: the title template (`Title - Site`, the site name
   alone for a page with no title or the same title), `og:site_name`, and the site description as
   the default `description` / `og:description`; a page that sets its own wins. Test:
   `test/site-composables.test.ts`.

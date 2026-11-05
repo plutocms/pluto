@@ -147,6 +147,8 @@ describe('the Pages workflow', () => {
       expect(build.env).toEqual({
         // eslint-disable-next-line no-template-curly-in-string -- a GitHub Actions expression
         PLUTO_BASE_URL: '${{ steps.pages.outputs.base_path }}',
+        // eslint-disable-next-line no-template-curly-in-string -- a GitHub Actions expression
+        NUXT_PUBLIC_WEBSITE_URL: '${{ steps.pages.outputs.base_url }}',
       })
       expect(steps.at(-1)!.uses).toBe('actions/upload-pages-artifact@v3')
       expect(workflow.jobs.deploy.steps[0].uses).toBe('actions/deploy-pages@v4')

@@ -78,7 +78,7 @@ function buildSteps(manager: PackageManager): {
  * The GitHub Actions workflow that builds the site as static files and deploys it to GitHub
  * Pages, on each push to the content branch. The build reads the Markdown of the checkout, so it
  * needs no secret. `PLUTO_BASE_URL` gets the sub path of a project site (`/<repo>`), or nothing
- * for a user site or a custom domain.
+ * for a user site or a custom domain. `NUXT_PUBLIC_WEBSITE_URL` gets the address of the site.
  */
 export function renderPagesWorkflow(options: {
   branch: string
@@ -116,6 +116,8 @@ export function renderPagesWorkflow(options: {
     '        env:',
     '          # A project site lives under /<repo>. A user site or a custom domain has no path.',
     `          PLUTO_BASE_URL: ${actionsExpression('steps.pages.outputs.base_path')}`,
+    '          # The address of the site, for the absolute URLs of the pages.',
+    `          NUXT_PUBLIC_WEBSITE_URL: ${actionsExpression('steps.pages.outputs.base_url')}`,
     '      - uses: actions/upload-pages-artifact@v3',
     '        with:',
     '          path: .output/public',

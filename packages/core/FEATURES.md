@@ -20,6 +20,10 @@ policies shared by every project here.
   `/admin/content/**` pages with catch-all id routes, `contentIdPath`, `listContentTypes`, and nav/pages
   derivation). Real adapters exist: the supabase layer (PostgREST) and the Git CMS (Markdown files) each provide a `PlutoContentAdapter`.
   @.claude/skills/content-model/SKILL.md
+- Content type extensions: a layer that does not own a type adds fields to it (`extendContentTypes` on
+  the server, the `contentTypeExtensions` bucket on the client). `getContentType`, `listContentTypes`
+  and `usePlutoContentTypes()` give the extended type. Core knows nothing of what a layer adds.
+  @.claude/skills/content-model/SKILL.md
 - Revisions: the optional adapter reads `listRevisions` and `getRevision`, the routes
   `/api/_pluto/content-revisions/<type>/<id>` and `/api/_pluto/content-revision/<type>/<revision>/<id>`
   (the type write capability), and History in the edit form of every type (`PlutoContentHistory`):
@@ -32,6 +36,9 @@ policies shared by every project here.
   `formatPublishedDate` (the date of an item, the same text on the server and in the browser),
   `readingMinutes` (the reading time of a body),
   `definePlutoContent` for any public type, and `extendPlutoAsyncData` for a layer's own names.
+  The site URL (`websiteUrl`, `NUXT_PUBLIC_WEBSITE_URL`) gives `usePlutoSite().root` and
+  `absoluteUrl(path)`, `og:image` is absolute under it, and a server route reads it with
+  `getPlutoSiteRoot(event)`. The `contentHead` bucket lets a layer add head tags to every item page.
   The public API serves a draft to an editor (`?drafts=1`) and the neighbors of an item
   (`/api/pluto/v1/surround/<type>/<id>`). @.claude/skills/content-model/SKILL.md
 - Public API (headless): a versioned, read-only API for any framework or stack.

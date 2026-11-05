@@ -12,6 +12,7 @@ vi.mock('../app/composables/pluto-navbar', () => ({
 }))
 
 let config: Record<string, unknown> = {}
+let appConfig: { baseURL: string } = { baseURL: '/' }
 const head = vi.fn()
 const seo = vi.fn()
 
@@ -19,7 +20,8 @@ beforeEach(() => {
   infoName.value = undefined
   infoUrl.value = undefined
   config = { websiteName: 'My Blog', websiteDescription: 'Notes and stories.' }
-  vi.stubGlobal('useRuntimeConfig', () => ({ public: config }))
+  appConfig = { baseURL: '/' }
+  vi.stubGlobal('useRuntimeConfig', () => ({ public: config, app: appConfig }))
   vi.stubGlobal('useRequestURL', () => new URL('https://blog.example.com/x'))
   vi.stubGlobal('useHead', head)
   vi.stubGlobal('useSeoMeta', seo)
@@ -30,9 +32,8 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-const { usePlutoSite, usePlutoSiteHead } = await import(
-  '../app/composables/pluto-site'
-)
+const { usePlutoSite, usePlutoSiteHead } =
+  await import('../app/composables/pluto-site')
 
 describe('usePlutoSite', () => {
   it('reads the site info first, then the runtime config', () => {
@@ -51,6 +52,58 @@ describe('usePlutoSite', () => {
     config = { websiteName: 'Untitled' }
     expect(usePlutoSite().name.value).toBe('')
     expect(usePlutoSite().description.value).toBe('')
+  })
+})
+
+describe('usePlutoSite, the site URL', () => {
+  it('uses websiteUrl for url and root, and adds the base path', () => {
+    config = { websiteUrl: 'https://user.github.io' }
+    appConfig = { baseURL: '/repo/' }
+    infoUrl.value = 'https://ada.example.com'
+
+    const site = usePlutoSite()
+    expect(site.url.value).toBe('https://user.github.io')
+    expect(site.root.value).toBe('https://user.github.io/repo')
+    expect(site.absoluteUrl('/posts/a')).toBe(
+      'https://user.github.io/repo/posts/a'
+    )
+  })
+
+  it('falls back to the request origin and the base path', () => {
+    appConfig = { baseURL: '/repo/' }
+
+    const site = usePlutoSite()
+    expect(site.root.value).toBe('https://blog.example.com/repo')
+    expect(site.absoluteUrl('/feed.xml')).toBe(
+      'https://blog.example.com/repo/feed.xml'
+    )
+  })
+
+  it('never takes the root from the site info', () => {
+    infoUrl.value = 'https://ada.example.com'
+
+    expect(usePlutoSite().root.value).toBe('https://blog.example.com')
+  })
+
+  it('has no root on a static build without websiteUrl', () => {
+    config = { plutoPublicApi: { static: true } }
+
+    const site = usePlutoSite()
+    expect(site.root.value).toBe('')
+    expect(site.absoluteUrl('/posts/a')).toBe('')
+    expect(site.absoluteUrl('https://cdn.io/a.png')).toBe(
+      'https://cdn.io/a.png'
+    )
+  })
+
+  it('has a root on a static build with websiteUrl', () => {
+    config = {
+      websiteUrl: 'https://user.github.io/repo',
+      plutoPublicApi: { static: true },
+    }
+    appConfig = { baseURL: '/repo/' }
+
+    expect(usePlutoSite().root.value).toBe('https://user.github.io/repo')
   })
 })
 

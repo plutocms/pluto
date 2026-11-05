@@ -31,9 +31,12 @@ export function usePlutoRegistry(): PlutoRegistry {
       siteInfo: createOwnedRegistry<PlutoSiteInfo>(),
       backend: createOwnedRegistry<PlutoBackendInfo>(),
       contentTypes: createOwnedRegistry<PlutoContentTypeEntry>(),
+      contentTypeExtensions:
+        createOwnedRegistry<PlutoContentTypeExtensionEntry>(),
       contentFieldWidgets: createOwnedRegistry<PlutoContentFieldWidget>(),
       contentActions: createOwnedRegistry<PlutoContentAction>(),
       contentToolbarItems: createOwnedRegistry<PlutoContentToolbarItem>(),
+      contentHead: createOwnedRegistry<PlutoContentHead>(),
       mediaKinds: createOwnedRegistry<PlutoMediaKind>(),
       navGroups: createOwnedRegistry<PlutoNavGroup>(),
     }

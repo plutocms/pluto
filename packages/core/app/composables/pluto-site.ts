@@ -1,28 +1,46 @@
 import { computed } from 'vue'
+import { absoluteSiteUrl, siteRootUrl } from '../../shared/utils/url'
 import { usePlutoSiteInfo } from './pluto-navbar'
 
 /**
  * The site for a public page: `name` (the site info of the backend, else `websiteName`; empty
- * while neither is set), `description` (`websiteDescription`) and `url` (the site info URL, else
- * the origin of the request).
+ * while neither is set), `description` (`websiteDescription`) and `url` (`websiteUrl`, else the site
+ * info URL, else the origin of the request). `root` is the root URL for absolute links, with the
+ * base path and no trailing slash (`websiteUrl`, else the origin of the request; `''` on a
+ * static build without `websiteUrl`), and `absoluteUrl(path)` puts a site path under it (`''`
+ * with no root). The site info never sets `root`, so the server and the browser agree.
  *
  * @example
  * const { name, description } = usePlutoSite()
  */
 export function usePlutoSite() {
   const info = usePlutoSiteInfo()
-  const config = useRuntimeConfig().public as {
+  const runtime = useRuntimeConfig()
+  const config = runtime.public as {
     websiteName?: string
     websiteDescription?: string
+    websiteUrl?: string
+    plutoPublicApi?: { static?: boolean }
   }
   const origin = useRequestURL().origin
+  const websiteUrl = config.websiteUrl?.trim() ?? ''
+  const root = siteRootUrl({
+    websiteUrl,
+    // A static build has no request at run time: its origin would be the build host.
+    origin: websiteUrl || config.plutoPublicApi?.static ? '' : origin,
+    baseURL: runtime.app?.baseURL,
+  })
   return {
     name: computed(() => {
       const fallback = config.websiteName
-      return info.name.value || (fallback && fallback !== 'Untitled' ? fallback : '')
+      return (
+        info.name.value || (fallback && fallback !== 'Untitled' ? fallback : '')
+      )
     }),
     description: computed(() => config.websiteDescription ?? ''),
-    url: computed(() => info.url.value || origin),
+    url: computed(() => websiteUrl || info.url.value || origin),
+    root: computed(() => root),
+    absoluteUrl: (path: string) => absoluteSiteUrl(path, root),
   }
 }
 
