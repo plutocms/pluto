@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/plutocms/pluto/compare/shop-v0.1.1...shop-v0.1.2) (2026-11-05)
+
+
+### Bug Fixes
+
+* **shop:** an interface of the app (PublicProduct) fits useCart ([#422](https://github.com/plutocms/pluto/issues/422)) ([4a6e9b3](https://github.com/plutocms/pluto/commit/4a6e9b3d0984647a2283c3fb39f7a173be95b435))
+
 ## [0.1.1](https://github.com/plutocms/pluto/compare/shop-v0.1.0...shop-v0.1.1) (2026-11-05)
 
 
