@@ -57,6 +57,7 @@ See [Public API](https://pluto.vulmix.dev/docs/build/public-api).
 | `@plutocms/supabase-shop` | Products on Supabase.                                    |
 | `@plutocms/3d`            | 3D models in the media library, and a viewer.            |
 | `@plutocms/shop`          | A cart saved in the browser, and the price helpers.      |
+| `@plutocms/seo`           | SEO fields, head tags, a sitemap, robots.txt and a feed. |
 
 Read [Layers](https://pluto.vulmix.dev/docs/extend/layers) to see how they fit together.
 

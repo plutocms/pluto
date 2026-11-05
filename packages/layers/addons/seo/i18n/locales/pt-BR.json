@@ -1,0 +1,40 @@
+{
+  "seo": {
+    "preview": {
+      "search": "Resultado de busca",
+      "social": "Cartão social",
+      "untitled": "Ainda sem título",
+      "noDescription": "Ainda sem descrição. Os buscadores escolhem um texto da página.",
+      "titleCount": "Título: {length} de {max} caracteres.",
+      "descriptionCount": "Descrição: {length} de {max} caracteres.",
+      "cut": "Os resultados de busca cortam o texto.",
+      "noUrl": "O endereço aparece quando a página é publicada.",
+      "noImage": "Sem imagem. Adicione uma imagem social ou uma imagem de capa."
+    }
+  },
+  "content": {
+    "post": {
+      "fields": {
+        "seoPreview": {
+          "label": "Prévia de busca e redes sociais"
+        },
+        "seoTitle": {
+          "label": "Título para SEO",
+          "description": "O título nos resultados de busca e nos cartões sociais. Vazio: o título."
+        },
+        "seoDescription": {
+          "label": "Descrição para SEO",
+          "description": "Uma ou duas frases para o resultado de busca. Vazio: o resumo."
+        },
+        "seoImage": {
+          "label": "Imagem social",
+          "description": "A imagem nos cartões sociais. Vazio: a imagem de capa."
+        },
+        "seoNoindex": {
+          "label": "Ocultar dos buscadores",
+          "description": "Adiciona noindex e deixa a página fora do sitemap e do feed."
+        }
+      }
+    }
+  }
+}

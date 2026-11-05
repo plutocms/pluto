@@ -1,0 +1,40 @@
+{
+  "seo": {
+    "preview": {
+      "search": "Search result",
+      "social": "Social card",
+      "untitled": "No title yet",
+      "noDescription": "No description yet. Search engines choose a text from the page.",
+      "titleCount": "Title: {length} of {max} characters.",
+      "descriptionCount": "Description: {length} of {max} characters.",
+      "cut": "Search results cut it.",
+      "noUrl": "The address shows when the page is published.",
+      "noImage": "No image. Add a social image or a cover image."
+    }
+  },
+  "content": {
+    "post": {
+      "fields": {
+        "seoPreview": {
+          "label": "Search and social preview"
+        },
+        "seoTitle": {
+          "label": "SEO title",
+          "description": "The title in search results and on social cards. Empty: the title."
+        },
+        "seoDescription": {
+          "label": "SEO description",
+          "description": "One or two sentences for the search result. Empty: the excerpt."
+        },
+        "seoImage": {
+          "label": "Social image",
+          "description": "The image on social cards. Empty: the cover image."
+        },
+        "seoNoindex": {
+          "label": "Hide from search engines",
+          "description": "Adds noindex, and leaves the page out of the sitemap and the feed."
+        }
+      }
+    }
+  }
+}

@@ -69,6 +69,16 @@
         "@plutocms/core",
       ],
     },
+    "packages/layers/addons/seo": {
+      "name": "@plutocms/seo",
+      "version": "0.0.0",
+      "peerDependencies": {
+        "@plutocms/core": ">=0.57.0 <1.0.0",
+      },
+      "optionalPeers": [
+        "@plutocms/core",
+      ],
+    },
     "packages/layers/addons/shop": {
       "name": "@plutocms/shop",
       "version": "0.1.2",
@@ -118,6 +128,7 @@
       "dependencies": {
         "@plutocms/3d": "workspace:*",
         "@plutocms/core": "workspace:*",
+        "@plutocms/seo": "workspace:*",
         "@plutocms/shop": "workspace:*",
       },
     },
@@ -559,6 +570,8 @@
     "@plutocms/core": ["@plutocms/core@workspace:packages/core"],
 
     "@plutocms/docs": ["@plutocms/docs@workspace:packages/layers/docs"],
+
+    "@plutocms/seo": ["@plutocms/seo@workspace:packages/layers/addons/seo"],
 
     "@plutocms/shop": ["@plutocms/shop@workspace:packages/layers/addons/shop"],
 
