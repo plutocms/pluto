@@ -1,12 +1,14 @@
 // The pure rules of the cart: no Vue, no Nuxt, no storage. `useCart` (app/composables/cart.ts)
 // keeps the lines in state and calls these. Tests: test/cart.test.ts.
 
-/** The fields the cart reads from a product. The public API gives more. */
+/**
+ * The fields the cart needs from a product. The public API gives more. No index signature, so an
+ * interface of the app (`PublicProduct`) fits: an interface has no implicit index signature.
+ */
 export interface PlutoCartProduct {
   id: string | number
   /** The price of one unit, in cents. */
   price: number
-  [field: string]: unknown
 }
 
 /** One product in the cart. `product` is a copy, from the last time the cart read it. */
@@ -52,10 +54,12 @@ export function cartLimit(
   rules: PlutoCartRules
 ): number {
   const max = Math.max(0, Math.floor(rules.maxQuantity))
-  if (rules.madeToOrderField && product[rules.madeToOrderField] === true) {
+  // The fields are names from the settings, so read the product as a record.
+  const fields = product as unknown as Record<string, unknown>
+  if (rules.madeToOrderField && fields[rules.madeToOrderField] === true) {
     return max
   }
-  const stock = rules.stockField ? product[rules.stockField] : undefined
+  const stock = rules.stockField ? fields[rules.stockField] : undefined
   if (typeof stock !== 'number' || !Number.isFinite(stock)) {
     return max
   }
