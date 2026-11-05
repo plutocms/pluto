@@ -71,7 +71,7 @@
     },
     "packages/layers/addons/shop": {
       "name": "@plutocms/shop",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "peerDependencies": {
         "@plutocms/core": ">=0.55.0 <1.0.0",
       },
