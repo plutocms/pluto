@@ -153,7 +153,13 @@
     },
     "fields": {
       "noWidget": "Nenhum widget registrado para o tipo de campo \"{type}\".",
-      "noOptionsSource": "Nenhuma fonte de opções configurada para este campo de referência."
+      "noOptionsSource": "Nenhuma fonte de opções configurada para este campo de referência.",
+      "reference": {
+        "create": "Criar \"{name}\"",
+        "createFailed": "Não foi possível criar o item.",
+        "placeholder": "Escolha ou digite para buscar",
+        "empty": "Nenhum item encontrado."
+      }
     },
     "dashboard": {
       "noWidgets": "Ainda não há widgets registrados no painel. Uma camada pode adicionar um com",
@@ -999,6 +1005,42 @@
       "open": "Onde o conteúdo fica: {name}",
       "gitMode": "Modo Git: o conteúdo são arquivos Markdown em um repositório Git.",
       "databaseMode": "Modo banco de dados: o conteúdo fica em um banco de dados."
+    }
+  },
+  "content": {
+    "tag": {
+      "label": "Tag",
+      "labelPlural": "Tags",
+      "fields": {
+        "title": {
+          "label": "Nome"
+        },
+        "description": {
+          "label": "Descrição"
+        }
+      }
+    },
+    "category": {
+      "label": "Categoria",
+      "labelPlural": "Categorias",
+      "fields": {
+        "title": {
+          "label": "Nome"
+        },
+        "description": {
+          "label": "Descrição"
+        }
+      }
+    },
+    "post": {
+      "fields": {
+        "tags": {
+          "label": "Tags"
+        },
+        "categories": {
+          "label": "Categorias"
+        }
+      }
     }
   }
 }

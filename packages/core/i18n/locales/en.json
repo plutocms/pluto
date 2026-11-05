@@ -153,7 +153,13 @@
     },
     "fields": {
       "noWidget": "No widget registered for field type \"{type}\".",
-      "noOptionsSource": "No options source configured for this reference field."
+      "noOptionsSource": "No options source configured for this reference field.",
+      "reference": {
+        "create": "Create \"{name}\"",
+        "createFailed": "Could not create the item.",
+        "placeholder": "Choose or type to search",
+        "empty": "No items found."
+      }
     },
     "dashboard": {
       "noWidgets": "No dashboard widgets are registered yet. A layer can add one with",
@@ -999,6 +1005,42 @@
       "open": "Where the content is: {name}",
       "gitMode": "Git mode: the content is Markdown files in a Git repo.",
       "databaseMode": "Database mode: the content is in a database."
+    }
+  },
+  "content": {
+    "tag": {
+      "label": "Tag",
+      "labelPlural": "Tags",
+      "fields": {
+        "title": {
+          "label": "Name"
+        },
+        "description": {
+          "label": "Description"
+        }
+      }
+    },
+    "category": {
+      "label": "Category",
+      "labelPlural": "Categories",
+      "fields": {
+        "title": {
+          "label": "Name"
+        },
+        "description": {
+          "label": "Description"
+        }
+      }
+    },
+    "post": {
+      "fields": {
+        "tags": {
+          "label": "Tags"
+        },
+        "categories": {
+          "label": "Categories"
+        }
+      }
     }
   }
 }

@@ -7,6 +7,11 @@
 // (read from the media library, the preview runs for a signed-in editor), and the dates
 // as `createdAt` and `publishedAt`. Only a message from the same origin and from the
 // parent window counts.
+import {
+  referenceOptionsFromItems,
+  referenceOptionsToPublic,
+} from '../../composables/internal/reference-options'
+
 definePageMeta({ layout: false, plutoAdminBar: false })
 
 const { t } = usePlutoI18n()
@@ -63,8 +68,50 @@ watch(
   }
 )
 
+// The items of the target types of the reference fields (tags, categories), by id. The page
+// reads each target once.
+const referenceRecords = shallowRef(
+  new Map<string, ReadonlyMap<string, PlutoPublicReference>>()
+)
+const referenceLoads = new Set<string>()
+watch(
+  () => previewReferenceTargets(type.value),
+  (targets) => {
+    for (const target of targets) {
+      if (referenceLoads.has(target)) {
+        continue
+      }
+      referenceLoads.add(target)
+      $fetch<PlutoContentListResult>(`/api/_pluto/content/${target}`, {
+        query: { limit: 1000 },
+      })
+        .then((result) => {
+          const next = new Map(referenceRecords.value)
+          next.set(
+            target,
+            referenceOptionsToPublic(
+              referenceOptionsFromItems(byName(target), result.data)
+            )
+          )
+          referenceRecords.value = next
+        })
+        .catch(() => {
+          // The preview shows the item without these labels.
+          referenceLoads.delete(target)
+        })
+    }
+  },
+  { immediate: true }
+)
+
 const preview = computed(() =>
-  toPreviewItem(type.value, item.value, html.value, mediaRecords.value)
+  toPreviewItem(
+    type.value,
+    item.value,
+    html.value,
+    mediaRecords.value,
+    referenceRecords.value
+  )
 )
 
 function scrollToHeading(index: number) {

@@ -640,13 +640,12 @@ the git-cms skill). Other widgets ignore it.
 through its own `contentFieldWidgets` entry. `media` has the core widget, `PlutoFieldMedia`: the
 picker of the core media library (see the media skill).
 
-`PlutoFieldReference` only resolves `field.optionsUrl` in this wave. When it's set, the widget
-fetches it expecting `{ data: Array<Record<string, unknown>> }`, maps each row through
-`field.labelKey`/`field.valueKey` (default `'label'`/`'id'`), and renders a searchable
-`UInputMenu`. When it's unset (for example `field.target` names a content type instead), it
-renders a disabled `UInputMenu` with a placeholder noting no options source is configured,
-rather than throwing — resolving `field.target` against another content type's own list endpoint
-is later work.
+`PlutoFieldReference` reads its choices from `field.target` (the items of another content type,
+from the generic list route; see the tags-and-categories skill) or from `field.optionsUrl` (it
+fetches the URL expecting `{ data: Array<Record<string, unknown>> }` and maps each row through
+`field.labelKey`/`field.valueKey`, default `'label'`/`'id'`). Both render a searchable
+`UInputMenu`; `multiple` gives a list value. With neither, it renders a disabled `UInputMenu` with
+a placeholder noting no options source is configured, rather than throwing.
 
 ## Revisions
 
@@ -965,9 +964,6 @@ segment, `index` comes first, then a numeric prefix (`2.name`) as a number, then
   admin pages (`PostForm.vue` and so on) — switching them over to `PlutoContentList`/
   `PlutoContentForm` is a later wave's job, once a real adapter exists for them to declare
   content types against.
-- `PlutoFieldReference` does not resolve `field.target` (a same-app content-type reference with
-  no `optionsUrl`) — it needs the generic list endpoint of _another_ content type, which is later
-  work. It renders the documented disabled placeholder instead.
 - No query-string support for `filter` or a custom `sort` override on the generic list route.
   `PlutoContentQuery` has room for both; this wave only wires `limit`, `offset`, and `search`
   from the query string, with sort always coming from `type.defaultSort`.

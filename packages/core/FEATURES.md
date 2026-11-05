@@ -54,7 +54,9 @@ policies shared by every project here.
   (`filter[tags]=<slug>`) and takes `ids`; the Git CMS registers the `tag` and `category` types
   (capability `terms:manage`), adds the post fields `tags` and `categories`, and rewrites the
   referencing posts in the same commit on a rename or a delete; `useTags`, `useTag`, `useCategories`
-  and `useCategory`. @.claude/skills/tags-and-categories/SKILL.md
+  and `useCategory`. Admin: the `reference` widget is a multi-select with inline create (needs the
+  write capability of the target), `usePlutoReferenceOptions(target)`, label badges with "+N" in the
+  list (`PlutoContentReferenceCell`), and chips in the post preview. @.claude/skills/tags-and-categories/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
   registry bucket that lets a layer add its own buttons to that form, and the `contentToolbarItems`

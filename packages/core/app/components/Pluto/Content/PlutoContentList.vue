@@ -152,6 +152,11 @@ const listFields = computed(() =>
     .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
 )
 
+// A `reference` field with a `target` shows the labels of the referenced items as badges.
+function isReferenceColumn(field: PlutoField): field is PlutoReferenceField {
+  return isTargetReference(field)
+}
+
 // The fields of a card on a small screen. The title is the card heading.
 const cardFields = computed(() =>
   listFields.value.filter(
@@ -355,7 +360,14 @@ const footer = computed(() => {
                 {{ text.fieldLabel(field) }}
               </dt>
               <dd class="font-medium">
-                {{ formatListValue(field, item) }}
+                <PlutoContentReferenceCell
+                  v-if="isReferenceColumn(field)"
+                  :field="field"
+                  :value="item[field.name]"
+                />
+                <template v-else>
+                  {{ formatListValue(field, item) }}
+                </template>
               </dd>
             </div>
           </dl>
@@ -409,6 +421,17 @@ const footer = computed(() => {
         >
           {{ itemTitle(row.original) || t('pluto.content.untitled') }}
         </NuxtLink>
+      </template>
+
+      <template
+        v-for="field in listFields.filter(isReferenceColumn)"
+        :key="field.name"
+        #[`${field.name}-cell`]="{ row }"
+      >
+        <PlutoContentReferenceCell
+          :field="field"
+          :value="row.original[field.name]"
+        />
       </template>
 
       <template #status-cell="{ row }">
