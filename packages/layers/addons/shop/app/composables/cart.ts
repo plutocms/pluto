@@ -42,6 +42,13 @@ export const PLUTO_CART_STATE = 'pluto-shop-cart'
 
 let pendingRefresh: Promise<PlutoCartRefresh> | undefined
 
+// `$fetch` with a plain type. Through `unknown`: a call with a `string` path compares it with
+// every typed server route of the app, and TypeScript stops with "excessive stack depth" in an
+// app with many routes (a Supabase shop).
+function fetchJson<R>(path: string): Promise<R> {
+  return ($fetch as unknown as (path: string) => Promise<R>)(path)
+}
+
 /**
  * The cart. The same lines in every component, saved in the browser (localStorage). On the
  * server and until the page hydrates, the cart is empty and `ready` is false: show the count
@@ -117,7 +124,7 @@ export function useCart<T extends PlutoCartProduct = PlutoCartProduct>() {
         indexPath: PLUTO_PUBLIC_INDEX_PATH,
         itemPath: (id) =>
           `${PLUTO_API_PREFIX}/content/${settings.type}/${encodeURIComponent(id)}`,
-        fetch: (path) => $fetch(path),
+        fetch: fetchJson,
       }
     )
       .then((fresh) => {
