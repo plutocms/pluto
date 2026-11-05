@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.57.0](https://github.com/plutocms/pluto/compare/v0.56.0...v0.57.0) (2026-11-05)
+
+
+### Features
+
+* **core:** content type extensions, an item head hook and the site URL ([#425](https://github.com/plutocms/pluto/issues/425)) ([ea2a8a9](https://github.com/plutocms/pluto/commit/ea2a8a9f6d1b865e315f286b39ba10d021835df8))
+
 ## [0.56.0](https://github.com/plutocms/pluto/compare/v0.55.1...v0.56.0) (2026-11-05)
 
 
