@@ -3,7 +3,7 @@ import type {
   PlutoContentType,
   PlutoContentTypeExtension,
 } from '../../shared/types/content'
-import { applyContentTypeExtensions } from '../../shared/utils/content'
+import { applyContentTypeExtensions } from '../../shared/utils/content-extend'
 
 /**
  * The server-side content-type and adapter registry. Deliberately a plain

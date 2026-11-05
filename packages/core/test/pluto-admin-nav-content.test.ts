@@ -64,6 +64,10 @@ async function loadComposables() {
   const { usePlutoContentTypes } =
     await import('../app/composables/pluto-content-types')
   vi.stubGlobal('usePlutoContentTypes', usePlutoContentTypes)
+  // `usePlutoContentTypes` uses the auto-import of `shared/utils`.
+  const { applyContentTypeExtensions } =
+    await import('../shared/utils/content-extend')
+  vi.stubGlobal('applyContentTypeExtensions', applyContentTypeExtensions)
 
   const { usePlutoPermissions } =
     await import('../app/composables/pluto-permissions')

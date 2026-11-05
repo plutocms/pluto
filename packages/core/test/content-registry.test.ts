@@ -27,6 +27,10 @@ afterEach(() => {
 async function loadComposables() {
   const { usePlutoRegistry } = await import('../app/composables/pluto-registry')
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)
+  // `usePlutoContentTypes` uses the auto-import of `shared/utils`.
+  const { applyContentTypeExtensions } =
+    await import('../shared/utils/content-extend')
+  vi.stubGlobal('applyContentTypeExtensions', applyContentTypeExtensions)
 
   const { definePlutoExtension } =
     await import('../app/composables/pluto-extension')

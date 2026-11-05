@@ -1,6 +1,5 @@
 import type { PlutoContentType } from '../../shared/types/content'
 import { computed } from 'vue'
-import { applyContentTypeExtensions } from '../../shared/utils/content'
 
 /**
  * Content types declared by every layer, in registry order, with the extensions of the layers
