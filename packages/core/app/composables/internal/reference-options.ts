@@ -1,10 +1,14 @@
 // Pure part of `usePlutoReferenceOptions`. It does not use Nuxt auto-imports, so plain Vitest
-// can import it.
+// can import it. It has no runtime import from `shared/` (a layer build cannot resolve one from
+// `app/`), so the caller passes `slugifyTitle`.
+
+/** Makes a slug from a title. Core gives `slugifyTitle`. */
 import type {
   PlutoContentItem,
   PlutoContentType,
 } from '../../../shared/types/content'
-import { slugifyTitle } from '../../../shared/utils/content-slug'
+
+export type ReferenceSlugify = (title: string) => string
 
 /** One choice of a reference widget: the id of an item of the target type and its label. */
 export interface PlutoReferenceOption {
@@ -49,13 +53,14 @@ function normalize(value: string): string {
 /** The option whose label or slug equals the text (case and edge spaces do not count). */
 export function findReferenceOption(
   options: readonly PlutoReferenceOption[],
-  text: string
+  text: string,
+  slugify: ReferenceSlugify
 ): PlutoReferenceOption | undefined {
   const wanted = normalize(text)
   if (wanted === '') {
     return undefined
   }
-  const slug = slugifyTitle(text)
+  const slug = slugify(text)
   return options.find(
     (option) =>
       normalize(option.label) === wanted ||
@@ -67,13 +72,14 @@ export function findReferenceOption(
 /** The body that creates an item of the target type from a typed title. */
 export function referenceCreateBody(
   type: PlutoContentType | undefined,
-  title: string
+  title: string,
+  slugify: ReferenceSlugify
 ): Record<string, string> {
   const trimmed = title.trim()
   const slugField = referenceSlugField(type)
   return {
     [type?.titleField ?? 'title']: trimmed,
-    ...(slugField && { [slugField]: slugifyTitle(trimmed) }),
+    ...(slugField && { [slugField]: slugify(trimmed) }),
   }
 }
 

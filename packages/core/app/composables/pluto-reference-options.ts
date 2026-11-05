@@ -89,7 +89,7 @@ export function usePlutoReferenceOptions(target: MaybeRefOrGetter<string>) {
   }
 
   async function create(title: string): Promise<PlutoReferenceOption> {
-    const existing = findReferenceOption(options.value, title)
+    const existing = findReferenceOption(options.value, title, slugifyTitle)
     if (existing) {
       return existing
     }
@@ -98,12 +98,12 @@ export function usePlutoReferenceOptions(target: MaybeRefOrGetter<string>) {
     try {
       created = await $fetch<PlutoContentItem>(`/api/_pluto/content/${key}`, {
         method: 'POST',
-        body: referenceCreateBody(type.value, title),
+        body: referenceCreateBody(type.value, title, slugifyTitle),
       })
     } catch (cause) {
       if ((cause as { statusCode?: number }).statusCode === 409) {
         await load()
-        const match = findReferenceOption(options.value, title)
+        const match = findReferenceOption(options.value, title, slugifyTitle)
         if (match) {
           return match
         }

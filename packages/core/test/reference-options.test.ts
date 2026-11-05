@@ -8,6 +8,7 @@ import {
   referenceSlugField,
   withUnknownIds,
 } from '../app/composables/internal/reference-options'
+import { slugifyTitle } from '../shared/utils/content-slug'
 
 const tagType: PlutoContentType = {
   name: 'tag',
@@ -48,24 +49,26 @@ describe('findReferenceOption', () => {
   ]
 
   it('matches the label without case or edge spaces', () => {
-    expect(findReferenceOption(options, '  hiking ')?.value).toBe('hiking')
-  })
-
-  it('matches the slug of the text', () => {
-    expect(findReferenceOption(options, 'Pao de mel')?.value).toBe(
-      'pao-de-mel'
+    expect(findReferenceOption(options, '  hiking ', slugifyTitle)?.value).toBe(
+      'hiking'
     )
   })
 
+  it('matches the slug of the text', () => {
+    expect(
+      findReferenceOption(options, 'Pao de mel', slugifyTitle)?.value
+    ).toBe('pao-de-mel')
+  })
+
   it('finds nothing for empty text or a new term', () => {
-    expect(findReferenceOption(options, '  ')).toBeUndefined()
-    expect(findReferenceOption(options, 'Winter')).toBeUndefined()
+    expect(findReferenceOption(options, '  ', slugifyTitle)).toBeUndefined()
+    expect(findReferenceOption(options, 'Winter', slugifyTitle)).toBeUndefined()
   })
 })
 
 describe('referenceCreateBody', () => {
   it('sends the title and its slug', () => {
-    expect(referenceCreateBody(tagType, ' Pão de Mel ')).toEqual({
+    expect(referenceCreateBody(tagType, ' Pão de Mel ', slugifyTitle)).toEqual({
       title: 'Pão de Mel',
       slug: 'pao-de-mel',
     })
@@ -74,7 +77,7 @@ describe('referenceCreateBody', () => {
   it('sends no slug for a type with no slug field', () => {
     const type = { ...tagType, fields: [tagType.fields[0]!] }
     expect(referenceSlugField(type)).toBeUndefined()
-    expect(referenceCreateBody(type, 'A')).toEqual({ title: 'A' })
+    expect(referenceCreateBody(type, 'A', slugifyTitle)).toEqual({ title: 'A' })
   })
 })
 
