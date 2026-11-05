@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/plutocms/pluto/compare/shop-v0.1.0...shop-v0.1.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* **shop:** the cart's fetch no longer overflows the typecheck of an app with many routes ([#419](https://github.com/plutocms/pluto/issues/419)) ([21279d6](https://github.com/plutocms/pluto/commit/21279d6292bcd8d123485bb3b1fef68c9eefe81a))
+
 ## 0.1.0 (2026-11-05)
 
 
