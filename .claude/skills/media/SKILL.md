@@ -195,7 +195,10 @@ An id with no record (a deleted file) is dropped. A layer needs no `toPublic` ho
 - Give every entry of `sizes` a screen (`xs:100vw`). An entry with no screen gives a 1 px
   `srcset` entry.
 - When the image service cannot read the file, `PlutoImage` shows the file as it is. A record
-  that is not an image shows nothing.
+  that is not an image shows nothing. A site path (`/media/...`) gets the base path of a site
+  under a sub path first (`withBasePath`, shared/utils/html-base.ts). On a static build the image
+  service has only the sizes of the prerendered pages, so an image that shows in the browser only
+  (a cart) loads this file.
 - IPX reads only the public folders that exist when the dev server starts. A project with no
   `public/` folder before its first upload gets the plain file until a restart.
 

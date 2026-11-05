@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { withBaseInHtml } from '../shared/utils/html-base'
+import { withBaseInHtml, withBasePath } from '../shared/utils/html-base'
 
 describe('withBaseInHtml', () => {
   const html =
@@ -36,5 +36,24 @@ describe('withBaseInHtml', () => {
   it('reads only attributes, not the text', () => {
     const text = '<p>src="/media/a.png"</p><code>href="/x"</code>'
     expect(withBaseInHtml(text, '/repo/')).toBe(text)
+  })
+})
+
+describe('withBasePath', () => {
+  it('puts the base before a site path, once', () => {
+    expect(withBasePath('/media/a.png', '/repo/')).toBe('/repo/media/a.png')
+    expect(withBasePath('/media/a.png', '/repo')).toBe('/repo/media/a.png')
+    expect(withBasePath('/repo/media/a.png', '/repo/')).toBe(
+      '/repo/media/a.png'
+    )
+  })
+
+  it('keeps the path with the root base, and keeps other URLs', () => {
+    expect(withBasePath('/media/a.png', '/')).toBe('/media/a.png')
+    expect(withBasePath('https://cdn.test/a.png', '/repo/')).toBe(
+      'https://cdn.test/a.png'
+    )
+    expect(withBasePath('//cdn.test/a.png', '/repo/')).toBe('//cdn.test/a.png')
+    expect(withBasePath('a.png', '/repo/')).toBe('a.png')
   })
 })
