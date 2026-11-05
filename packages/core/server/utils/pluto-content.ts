@@ -1,3 +1,10 @@
+import type {
+  PlutoContentAdapter,
+  PlutoContentType,
+  PlutoContentTypeExtension,
+} from '../../shared/types/content'
+import { applyContentTypeExtensions } from '../../shared/utils/content'
+
 /**
  * The server-side content-type and adapter registry. Deliberately a plain
  * module-scope singleton — NOT built like `usePlutoRegistry` (the client
@@ -24,19 +31,58 @@
  */
 
 const contentTypes = new Map<string, PlutoContentType>()
+// The extensions that layers add, by id, with the order of first registration.
+const extensions = new Map<string, PlutoContentTypeExtension>()
+const extensionSequence = new Map<string, number>()
+// The extended types. Cleared on each register and extend, so a read costs one lookup.
+const extendedTypes = new Map<string, PlutoContentType>()
 let contentAdapter: PlutoContentAdapter | undefined
 
+function orderedExtensions(): PlutoContentTypeExtension[] {
+  return [...extensions.values()].sort(
+    (a, b) =>
+      (a.order ?? 100) - (b.order ?? 100) ||
+      (extensionSequence.get(a.id) ?? 0) - (extensionSequence.get(b.id) ?? 0)
+  )
+}
+
+/** Registers the raw type. `getContentType` and `listContentTypes` give it with the extensions. */
 export function registerContentType(type: PlutoContentType): void {
   contentTypes.set(type.name, type)
+  extendedTypes.clear()
 }
 
+/**
+ * Adds an extension to every content type, the registered ones and the ones that register later.
+ * A layer calls it from a `server/plugins/*.ts` file. The same `id` replaces the earlier
+ * extension. The registered (raw) types stay unchanged.
+ */
+export function extendContentTypes(extension: PlutoContentTypeExtension): void {
+  if (!extensionSequence.has(extension.id)) {
+    extensionSequence.set(extension.id, extensionSequence.size)
+  }
+  extensions.set(extension.id, extension)
+  extendedTypes.clear()
+}
+
+function extend(type: PlutoContentType): PlutoContentType {
+  let extended = extendedTypes.get(type.name)
+  if (!extended) {
+    extended = applyContentTypeExtensions(type, orderedExtensions())
+    extendedTypes.set(type.name, extended)
+  }
+  return extended
+}
+
+/** A content type with the extensions of the layers applied. */
 export function getContentType(name: string): PlutoContentType | undefined {
-  return contentTypes.get(name)
+  const type = contentTypes.get(name)
+  return type && extend(type)
 }
 
-/** Every registered content type, in registration order. */
+/** Every registered content type, with the extensions applied, in registration order. */
 export function listContentTypes(): PlutoContentType[] {
-  return [...contentTypes.values()]
+  return [...contentTypes.values()].map(extend)
 }
 
 /** Replaces whatever adapter was registered before. Last-registered wins, the same rule `registerMediaDriver` and the client `settingsDrivers` use. */

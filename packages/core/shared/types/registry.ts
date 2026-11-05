@@ -1,5 +1,9 @@
 import type { Component, ComputedRef } from 'vue'
-import type { PlutoContentType, PlutoFieldType } from './content'
+import type {
+  PlutoContentType,
+  PlutoContentTypeExtension,
+  PlutoFieldType,
+} from './content'
 
 /**
  * A kind of file of the media library: images, PDFs, 3D models (the 3D
@@ -204,6 +208,37 @@ export interface PlutoContentTypeEntry extends PlutoEntry {
 }
 
 /**
+ * An extension of the content types a layer does not own, for the client registry (see
+ * `PlutoContentTypeExtension`). `usePlutoContentTypes()` gives every type with the extensions
+ * applied, in `order`. The same object works for the server, with `extendContentTypes`.
+ */
+export interface PlutoContentTypeExtensionEntry
+  extends PlutoEntry, Pick<PlutoContentTypeExtension, 'extend'> {}
+
+/**
+ * A call that a layer adds to the head of every item page of `definePlutoContent().useItem`. It
+ * runs after core sets its own tags (title, description, `og:image`), so it can override them.
+ * It runs inside `useItem`, so it can call `useHead` and `useSeoMeta`. Matched against a content
+ * type like `PlutoContentAction`: by exact name, or by `'*'` for every content type. `useItem`
+ * with `seo: false` skips it.
+ */
+export interface PlutoContentHead extends PlutoEntry {
+  /** Content type `name`, or '*' for every content type. */
+  contentType: string | '*'
+  setup: (context: PlutoContentHeadContext) => void
+}
+
+/** What a `PlutoContentHead` gets. `item` is reactive: read it inside a getter. */
+export interface PlutoContentHeadContext {
+  /** The content type, with the extensions applied. `undefined` when it is not registered. */
+  type: PlutoContentType | undefined
+  /** The public item, `null` while it loads or when it is missing. */
+  item: ComputedRef<Record<string, unknown> | null>
+  /** `og:type` of the page: `website` or `article`. */
+  ogType: 'website' | 'article'
+}
+
+/**
  * A component that renders one field type, or one named `widget`, in the
  * generic content form (a later wave). `fieldType` and `widget` are both
  * optional so an entry can match by either — see
@@ -395,9 +430,11 @@ export interface PlutoExtension {
   site?: PlutoSiteInfo
   backend?: PlutoBackendInfo
   contentTypes?: PlutoContentTypeEntry[]
+  contentTypeExtensions?: PlutoContentTypeExtensionEntry[]
   contentFieldWidgets?: PlutoContentFieldWidget[]
   contentActions?: PlutoContentAction[]
   contentToolbarItems?: PlutoContentToolbarItem[]
+  contentHead?: PlutoContentHead[]
   mediaKinds?: PlutoMediaKind[]
   navGroups?: PlutoNavGroup[]
 }
@@ -432,9 +469,11 @@ export interface PlutoRegistry {
   siteInfo: PlutoRegistryBucket<PlutoSiteInfo>
   backend: PlutoRegistryBucket<PlutoBackendInfo>
   contentTypes: PlutoRegistryBucket<PlutoContentTypeEntry>
+  contentTypeExtensions: PlutoRegistryBucket<PlutoContentTypeExtensionEntry>
   contentFieldWidgets: PlutoRegistryBucket<PlutoContentFieldWidget>
   contentActions: PlutoRegistryBucket<PlutoContentAction>
   contentToolbarItems: PlutoRegistryBucket<PlutoContentToolbarItem>
+  contentHead: PlutoRegistryBucket<PlutoContentHead>
   mediaKinds: PlutoRegistryBucket<PlutoMediaKind>
   navGroups: PlutoRegistryBucket<PlutoNavGroup>
 }

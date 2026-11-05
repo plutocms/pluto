@@ -1,5 +1,11 @@
 const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
+// The build default of the site URL: the production host of Vercel, else the URL of Netlify.
+// `NUXT_PUBLIC_WEBSITE_URL` overrides it at run time.
+const websiteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : process.env.URL || ''
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 // Core extends no other layer. The helpers of the retired `@plutocms/utils` that
 // core uses are in shared/utils (`domainFromUrl`).
@@ -69,6 +75,10 @@ export default defineNuxtConfig({
       // The site description: the default `description` of a public page (`usePlutoSiteHead`).
       // Env: `NUXT_PUBLIC_WEBSITE_DESCRIPTION`.
       websiteDescription: '',
+      // The address of the site, for absolute URLs (`og:image`, a canonical, a sitemap). It may
+      // include the base path of a project site. A static build needs it. A server build falls
+      // back to the origin of the request. Env: `NUXT_PUBLIC_WEBSITE_URL`.
+      websiteUrl,
       // The public API. `static`: the site is a static build, so the list composables of the
       // browser answer from the prerendered index (`/api/pluto/v1/index.json`). The Git CMS sets
       // it in a static build.

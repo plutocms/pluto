@@ -1,4 +1,4 @@
-import type { MaybeRefOrGetter } from 'vue'
+import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import type {
   PlutoContentDefaults,
   PlutoContentItemOptions,
@@ -15,6 +15,7 @@ import {
   usePlutoPublicList,
   usePlutoPublicSurround,
 } from './pluto-public'
+import { usePlutoSite } from './pluto-site'
 
 function errorStatus(error: unknown): number {
   const value = error as {
@@ -45,11 +46,11 @@ export function extendPlutoAsyncData<R extends object, E extends object>(
  * `finally`: Nuxt puts them on the `useFetch` result as own keys, bound to its own promise. A
  * copy would make an await of `target` wait for that promise and skip `target` itself.
  */
-function withRefsOf<T extends Promise<unknown>, S extends object, E extends object>(
-  target: T,
-  source: S,
-  extra: E = {} as E
-): T & S & E {
+function withRefsOf<
+  T extends Promise<unknown>,
+  S extends object,
+  E extends object,
+>(target: T, source: S, extra: E = {} as E): T & S & E {
   for (const [key, value] of Object.entries(source)) {
     if (key !== 'then' && key !== 'catch' && key !== 'finally') {
       Object.defineProperty(target, key, {
@@ -173,9 +174,7 @@ export function definePlutoContent<
     })
     const items = computed(() => fetch.data.value?.data ?? [])
     const total = computed(() => fetch.data.value?.meta.total ?? 0)
-    const pages = computed(() =>
-      Math.max(1, Math.ceil(total.value / limit))
-    )
+    const pages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 
     return extendPlutoAsyncData(fetch, {
       items,
@@ -208,12 +207,12 @@ export function definePlutoContent<
 
     if (options.seo !== false) {
       const { byName } = usePlutoContentTypes()
-      const origin = useRequestURL().origin
+      const { absoluteUrl } = usePlutoSite()
+      const registry = usePlutoRegistry()
       const fields = () => item.value as Record<string, unknown> | null
       const text = (value: unknown) =>
         typeof value === 'string' && value ? value : undefined
-      const title = () =>
-        text(fields()?.[byName(type)?.titleField ?? 'title'])
+      const title = () => text(fields()?.[byName(type)?.titleField ?? 'title'])
       const description = () =>
         text(fields()?.excerpt) ?? text(fields()?.description)
       const image = () => {
@@ -221,10 +220,13 @@ export function definePlutoContent<
           (field) => field.type === 'media'
         )
         const value = media ? fields()?.[media.name] : undefined
-        const first = (Array.isArray(value) ? value[0] : value) as {
-          url?: string
-        } | null | undefined
-        return first?.url ? new URL(first.url, origin).href : undefined
+        const first = (Array.isArray(value) ? value[0] : value) as
+          | {
+              url?: string
+            }
+          | null
+          | undefined
+        return first?.url ? absoluteUrl(first.url) || undefined : undefined
       }
       useSeoMeta({
         title,
@@ -234,6 +236,16 @@ export function definePlutoContent<
         ogImage: image,
         ogType: defaults.ogType ?? 'website',
       })
+      // The head hooks of the layers run after the tags above, so they can override them.
+      for (const hook of registry.contentHead.list.value) {
+        if (hook.contentType === '*' || hook.contentType === type) {
+          hook.setup({
+            type: byName(type),
+            item: item as ComputedRef<Record<string, unknown> | null>,
+            ogType: defaults.ogType ?? 'website',
+          })
+        }
+      }
     }
 
     const result = extendPlutoAsyncData(fetch, { item, draft })

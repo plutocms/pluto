@@ -156,6 +156,20 @@ export interface PlutoContentTimestamps {
   updated?: string | false
 }
 
+/**
+ * A change that a layer makes to content types it does not own, for example new fields on the
+ * `post` type, which a backend owns. `extend` is pure: it gets a type and returns a new one (the
+ * same object when it changes nothing). It runs for every type, so it checks `type.name` itself.
+ * The server registry (`extendContentTypes`) and the client registry (`contentTypeExtensions`)
+ * use the same shape. A later extension with the same `id` replaces an earlier one.
+ */
+export interface PlutoContentTypeExtension {
+  id: string
+  /** Lower runs first. Default 100. */
+  order?: number
+  extend: (type: PlutoContentType) => PlutoContentType
+}
+
 export interface PlutoContentI18n {
   /** Reserved for a future release. Only 'row' will ever be supported: one row per locale. Not implemented yet — declaring it costs nothing and avoids a breaking rename later. */
   strategy: 'row'
@@ -555,9 +569,7 @@ export interface PlutoContentAdapter {
  * `createdAt`, `updatedAt` and `publishedAt`. See `toPreviewItem`. A preview component can type
  * it with its own fields: `PlutoPreviewItem<{ title: string }>`.
  */
-export type PlutoPreviewItem<
-  T extends object = Record<string, unknown>,
-> = T & {
+export type PlutoPreviewItem<T extends object = Record<string, unknown>> = T & {
   html: string
   createdAt?: string
   updatedAt?: string
@@ -566,11 +578,7 @@ export type PlutoPreviewItem<
 
 /** What a revision did, when the backend knows it. */
 export type PlutoContentRevisionAction =
-  | 'create'
-  | 'update'
-  | 'publish'
-  | 'unpublish'
-  | 'rename'
+  'create' | 'update' | 'publish' | 'unpublish' | 'rename'
 
 /** One saved version of an item. See `PlutoContentAdapter.listRevisions`. */
 export interface PlutoContentRevision {

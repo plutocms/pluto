@@ -165,6 +165,103 @@ describe('contentTypes bucket', () => {
   })
 })
 
+describe('contentTypeExtensions bucket', () => {
+  const addSeo = (field: string) => ({
+    id: 'seo',
+    extend: (type: PlutoContentType): PlutoContentType =>
+      type.name === 'post'
+        ? {
+            ...type,
+            fields: [
+              ...type.fields,
+              { name: field, type: 'text', label: field },
+            ],
+          }
+        : type,
+  })
+  const names = (type?: PlutoContentType) => type?.fields.map((f) => f.name)
+
+  it('gives byName and items the extended type', async () => {
+    const { definePlutoExtension, usePlutoContentTypes } =
+      await loadComposables()
+
+    definePlutoExtension({
+      id: 'blog',
+      contentTypes: [
+        { id: 'post', type: contentType('post') },
+        { id: 'page', type: contentType('page') },
+      ],
+    })
+    definePlutoExtension({
+      id: 'seo-layer',
+      contentTypeExtensions: [addSeo('seoTitle')],
+    })
+
+    const { items, byName } = usePlutoContentTypes()
+
+    expect(names(byName('post'))).toEqual(['title', 'seoTitle'])
+    expect(names(items.value[0]?.type)).toEqual(['title', 'seoTitle'])
+    expect(names(byName('page'))).toEqual(['title'])
+    expect(items.value[0]?.id).toBe('blog:post')
+  })
+
+  it('replaces the extensions when the same layer defines itself again', async () => {
+    const { definePlutoExtension, usePlutoContentTypes } =
+      await loadComposables()
+
+    definePlutoExtension({
+      id: 'blog',
+      contentTypes: [{ id: 'post', type: contentType('post') }],
+    })
+    definePlutoExtension({
+      id: 'seo-layer',
+      contentTypeExtensions: [addSeo('first')],
+    })
+    definePlutoExtension({
+      id: 'seo-layer',
+      contentTypeExtensions: [addSeo('second')],
+    })
+
+    expect(names(usePlutoContentTypes().byName('post'))).toEqual([
+      'title',
+      'second',
+    ])
+  })
+
+  it('leaves the declared type unchanged', async () => {
+    const { usePlutoRegistry, definePlutoExtension } = await loadComposables()
+    const post = contentType('post')
+
+    definePlutoExtension({
+      id: 'blog',
+      contentTypes: [{ id: 'post', type: post }],
+      contentTypeExtensions: [addSeo('seoTitle')],
+    })
+
+    expect(usePlutoRegistry().contentTypes.list.value[0]?.type).toBe(post)
+    expect(post.fields).toHaveLength(1)
+  })
+})
+
+describe('contentHead bucket', () => {
+  it('keeps the hooks of each owner, and drops them with the owner', async () => {
+    const { usePlutoRegistry, definePlutoExtension } = await loadComposables()
+
+    definePlutoExtension({
+      id: 'seo-layer',
+      contentHead: [{ id: 'head', contentType: '*', setup: () => {} }],
+    })
+
+    expect(
+      usePlutoRegistry().contentHead.list.value.map((hook) => hook.id)
+    ).toEqual(['seo-layer:head'])
+
+    definePlutoExtension({ id: 'seo-layer' })
+
+    expect(usePlutoRegistry().contentHead.list.value).toEqual([])
+  })
+})
+
 describe('contentFieldWidgets bucket', () => {
   it('merges two owners and sorts by order', async () => {
     const { usePlutoRegistry, definePlutoExtension } = await loadComposables()
