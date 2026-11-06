@@ -1,4 +1,10 @@
 import type { H3Event } from 'h3'
+import {
+  backupFields,
+  parseBackup,
+  PLUTO_BACKUP_MAX_CHARS,
+  PLUTO_BACKUP_TTL_MS,
+} from '../../shared/utils/content-backup'
 import { validateContentPayload } from '../../shared/utils/content-validate'
 import { getContentAdapter, getContentType } from './pluto-content'
 import { createPlutoError } from './pluto-error'
@@ -9,6 +15,9 @@ import { createPlutoError } from './pluto-error'
  * unit-tested by calling it directly, the same way this workspace already
  * tests everything else: no live Nitro server, no `@nuxt/test-utils`.
  */
+
+/** The key of the server copy of a new item. */
+const NEW_BACKUP_KEY = '+new'
 
 export function requireContentType(name: string): PlutoContentType {
   const type = getContentType(name)
@@ -135,6 +144,25 @@ function requirePlainObjectBody(body: unknown): Record<string, unknown> {
 }
 
 /**
+ * Removes the server copy of the caller after a save or a delete worked. It does nothing when the
+ * adapter keeps no copies. A copy that stays is harmless, so an error only warns: it never fails the
+ * save. `key` is the item id as text, or '+new'.
+ */
+export async function removeBackupQuietly(
+  ctx: PlutoContentContext,
+  key: string
+): Promise<void> {
+  try {
+    await getContentAdapter()?.backups?.remove(ctx, key)
+  } catch (error) {
+    console.warn(
+      `[pluto] Could not remove the backup of "${ctx.type.name}" "${key}".`,
+      error
+    )
+  }
+}
+
+/**
  * Creates one item. Validates the full payload (not partial), authorizes
  * against `type.capabilities.write`, then calls the adapter, then runs
  * `type.hooks.afterCreate` when one is registered. A hook error propagates
@@ -159,6 +187,7 @@ export async function createContentItem(
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
 
   const item = await requireContentAdapter().create(ctx, payload)
+  await removeBackupQuietly(ctx, NEW_BACKUP_KEY)
 
   if (ctx.type.hooks?.afterCreate) {
     await ctx.type.hooks.afterCreate(ctx, item, payload)
@@ -193,6 +222,7 @@ export async function updateContentItem(
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
 
   const item = await requireContentAdapter().update(ctx, id, payload)
+  await removeBackupQuietly(ctx, String(id))
 
   if (ctx.type.hooks?.afterUpdate) {
     await ctx.type.hooks.afterUpdate(ctx, item, payload)
@@ -209,6 +239,7 @@ export async function deleteContentItem(
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
 
   await requireContentAdapter().remove(ctx, id)
+  await removeBackupQuietly(ctx, String(id))
 }
 
 /** Most weeks the activity route accepts. */
@@ -344,4 +375,94 @@ export async function getContentRevision(
     })
   }
   return item
+}
+
+// --- Server copy of the unsaved changes ------------------------------------------------
+
+/** The server copy is for the editors of the type: the write capability, as a save. */
+async function authorizeBackup(ctx: PlutoContentContext): Promise<void> {
+  await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
+}
+
+/** The key of the copy: the item id, or '+new' when the request has none. */
+function backupKeyOf(id: string | undefined): string {
+  return id || NEW_BACKUP_KEY
+}
+
+/**
+ * The server copy of the caller for one item (`id` absent: a new item). Returns
+ * `supported: false` before any check when the adapter keeps no copies (the Git CMS), so the form
+ * sends one cheap request and no backend call happens. Needs the write capability of the type.
+ */
+export async function getContentBackup(
+  ctx: PlutoContentContext,
+  id?: string
+): Promise<PlutoContentBackupAnswer> {
+  const backups = requireContentAdapter().backups
+  if (!backups) {
+    return { supported: false }
+  }
+  await authorizeBackup(ctx)
+  return { supported: true, backup: await backups.get(ctx, backupKeyOf(id)) }
+}
+
+/**
+ * Replaces the server copy of the caller. `body` is the raw request text. It must be at most
+ * `PLUTO_BACKUP_MAX_CHARS` characters (413) and a record of the backup shape (400). Only the
+ * declared backup fields are kept. Same rules as `getContentBackup`.
+ */
+export async function putContentBackup(
+  ctx: PlutoContentContext,
+  id: string | undefined,
+  body: string | undefined
+): Promise<PlutoContentBackupAnswer> {
+  const backups = requireContentAdapter().backups
+  if (!backups) {
+    return { supported: false }
+  }
+  await authorizeBackup(ctx)
+
+  const text = body ?? ''
+  if (text.length > PLUTO_BACKUP_MAX_CHARS) {
+    throw createPlutoError({
+      statusCode: 413,
+      message: 'The backup is too large.',
+      key: 'pluto.errors.backupTooLarge',
+    })
+  }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    parsed = undefined
+  }
+  const record = parseBackup(parsed, {
+    now: Date.now(),
+    ttlMs: PLUTO_BACKUP_TTL_MS,
+    fields: backupFields(ctx.type),
+  })
+  if (!record) {
+    throw createPlutoError({
+      statusCode: 400,
+      message: 'The backup is not valid.',
+      key: 'pluto.errors.backupInvalid',
+    })
+  }
+
+  const { otherDevice } = await backups.put(ctx, backupKeyOf(id), record)
+  return { supported: true, otherDevice }
+}
+
+/** Removes the server copy of the caller. Same rules as `getContentBackup`. */
+export async function removeContentBackup(
+  ctx: PlutoContentContext,
+  id?: string
+): Promise<PlutoContentBackupAnswer> {
+  const backups = requireContentAdapter().backups
+  if (!backups) {
+    return { supported: false }
+  }
+  await authorizeBackup(ctx)
+  await backups.remove(ctx, backupKeyOf(id))
+  return { supported: true }
 }

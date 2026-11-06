@@ -328,6 +328,8 @@ const {
   offer: backupOffer,
   changes: backupChanges,
   otherTab: backupOtherTab,
+  otherDevice: backupOtherDevice,
+  prepareSave: prepareBackupSave,
   conflict: backupConflict,
   merging: backupMerging,
   onConflict: backupOnConflict,
@@ -353,6 +355,7 @@ const {
   interact: () => tracker.interact(),
   flush: runFlush,
   reload: refresh,
+  server: usePlutoContentBackupServer(() => contentType.value?.name),
   // Same as a save: a widget can write its own normal form of the new value on the next tick.
   resetBaseline: async () => {
     tracker.reset(snapshot.value)
@@ -492,6 +495,8 @@ async function onSave(statusOverride?: string) {
   lastStatusOverride = statusOverride
 
   try {
+    // The server copy must not be written after the save removed it.
+    await prepareBackupSave()
     const saved = await save(payload)
 
     // The saved item is the new baseline. A widget can write its own normal
@@ -1076,6 +1081,20 @@ const asideTitle = computed(() =>
         icon="lucide:copy"
         close
         @update:open="backupOtherTab = false"
+      />
+    </div>
+
+    <div
+      v-if="backupOtherDevice"
+      :class="isCanvas ? 'shrink-0 p-4' : undefined"
+    >
+      <UAlert
+        :title="t('pluto.backup.otherDevice')"
+        color="warning"
+        variant="subtle"
+        icon="lucide:monitor-smartphone"
+        close
+        @update:open="backupOtherDevice = false"
       />
     </div>
 

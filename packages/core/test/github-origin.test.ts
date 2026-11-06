@@ -113,6 +113,21 @@ describe('isSameOriginRequest', () => {
     ).toBe(false)
   })
 
+  it('checks a PUT and a DELETE to the backup route', () => {
+    const backup = { ...base, path: '/api/_pluto/content-backup/post?id=a' }
+    for (const method of ['PUT', 'DELETE']) {
+      expect(isSameOriginRequest({ ...backup, method }), method).toBe(false)
+      expect(
+        isSameOriginRequest({ ...backup, method, origin: 'https://evil.test' }),
+        method
+      ).toBe(false)
+      expect(
+        isSameOriginRequest({ ...backup, method, origin: 'https://cms.test' }),
+        method
+      ).toBe(true)
+    }
+  })
+
   it('rejects a write with neither header', () => {
     expect(isSameOriginRequest({ ...base })).toBe(false)
   })

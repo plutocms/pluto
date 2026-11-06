@@ -76,6 +76,10 @@ policies shared by every project here.
   pending edits first. Same on every backend. A save that fails with a 409 conflict (a stale
   `_version`) writes the backup, shows a warning alert, and "Load the latest and keep my changes"
   loads the stored item and puts the changes on top, naming the fields that changed in both places.
+  An adapter with the optional `backups` keeps a server copy too (10 s after the last change, 30 s at most, and a
+  `keepalive` write when the page hides): the item opens on another device with the same offer, and a warning
+  shows when another device wrote the copy. The Git CMS has no `backups`: one GET answers `supported: false`
+  and no other request goes out.
   @.claude/skills/content-backup/SKILL.md
 - Command palette: Cmd/Ctrl+K and a sidebar search button open a `UDashboardSearch` with
   "New <type>" commands for writable content types, every admin nav destination, and theme

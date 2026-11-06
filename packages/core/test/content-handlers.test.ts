@@ -676,3 +676,211 @@ describe('content revisions', () => {
     expect(getRevision).not.toHaveBeenCalled()
   })
 })
+
+describe('content backups', () => {
+  const record = {
+    v: 1,
+    savedAt: Date.now(),
+    device: 'device-a',
+    tab: 'tab-a',
+    changes: {
+      title: { base: 'Old', value: 'New' },
+      // Not a declared field: the handler drops it.
+      other: { base: 1, value: 2 },
+    },
+  }
+  const body = JSON.stringify(record)
+  const user = (userId: string) =>
+    ({ context: { userId } }) as unknown as H3Event
+  const ctxOf = (event: H3Event, type = contentType()) => ({ event, type })
+
+  it('answers supported: false before any check when the adapter has no backups', async () => {
+    const {
+      registerContentAdapter,
+      getContentBackup,
+      putContentBackup,
+      removeContentBackup,
+    } = await loadHandlers()
+    const authorize = vi.fn(async () => {
+      throw new Error('forbidden')
+    })
+    registerContentAdapter(createMemoryContentAdapter({ authorize }))
+
+    const ctx = ctxFor(
+      contentType({ capabilities: { write: 'posts:publish' } })
+    )
+    expect(await getContentBackup(ctx, 'a')).toEqual({ supported: false })
+    expect(await putContentBackup(ctx, 'a', body)).toEqual({
+      supported: false,
+    })
+    expect(await removeContentBackup(ctx, 'a')).toEqual({ supported: false })
+    expect(authorize).not.toHaveBeenCalled()
+  })
+
+  it('needs the write capability of the type', async () => {
+    const {
+      registerContentAdapter,
+      getContentBackup,
+      putContentBackup,
+      removeContentBackup,
+    } = await loadHandlers()
+    const authorize = vi.fn(async () => {
+      throw new Error('forbidden')
+    })
+    const adapter = createMemoryContentAdapter({ authorize, backups: true })
+    const get = vi.spyOn(adapter.backups!, 'get')
+    registerContentAdapter(adapter)
+
+    const ctx = ctxFor(
+      contentType({ capabilities: { write: 'posts:publish' } })
+    )
+    await expect(getContentBackup(ctx, 'a')).rejects.toThrow('forbidden')
+    await expect(putContentBackup(ctx, 'a', body)).rejects.toThrow('forbidden')
+    await expect(removeContentBackup(ctx, 'a')).rejects.toThrow('forbidden')
+    expect(authorize).toHaveBeenCalledWith(fakeEvent, 'posts:publish')
+    expect(get).not.toHaveBeenCalled()
+  })
+
+  it('stores, reads and removes a copy; no id means +new', async () => {
+    const {
+      registerContentAdapter,
+      getContentBackup,
+      putContentBackup,
+      removeContentBackup,
+    } = await loadHandlers()
+    const adapter = createMemoryContentAdapter({ backups: true })
+    const put = vi.spyOn(adapter.backups!, 'put')
+    const remove = vi.spyOn(adapter.backups!, 'remove')
+    registerContentAdapter(adapter)
+
+    const ctx = ctxOf(user('u1'))
+    expect(await getContentBackup(ctx)).toEqual({
+      supported: true,
+      backup: null,
+    })
+    expect(await putContentBackup(ctx, undefined, body)).toEqual({
+      supported: true,
+      otherDevice: false,
+    })
+    expect(put).toHaveBeenCalledWith(ctx, '+new', expect.anything())
+    // The undeclared field is gone.
+    const saved = (await getContentBackup(ctx)).backup
+    expect(Object.keys(saved!.changes)).toEqual(['title'])
+    expect(await getContentBackup(ctx, 'a/b')).toEqual({
+      supported: true,
+      backup: null,
+    })
+
+    expect(await removeContentBackup(ctx)).toEqual({ supported: true })
+    expect(remove).toHaveBeenCalledWith(ctx, '+new')
+    expect((await getContentBackup(ctx)).backup).toBeNull()
+  })
+
+  it('keeps one map for each caller', async () => {
+    const { registerContentAdapter, getContentBackup, putContentBackup } =
+      await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter({ backups: true }))
+
+    await putContentBackup(ctxOf(user('u1')), 'a', body)
+    expect((await getContentBackup(ctxOf(user('u1')), 'a')).backup).not.toBe(
+      null
+    )
+    expect((await getContentBackup(ctxOf(user('u2')), 'a')).backup).toBeNull()
+  })
+
+  it('refuses a body over the size limit with 413', async () => {
+    const { registerContentAdapter, putContentBackup } = await loadHandlers()
+    const adapter = createMemoryContentAdapter({ backups: true })
+    const put = vi.spyOn(adapter.backups!, 'put')
+    registerContentAdapter(adapter)
+
+    await expect(
+      putContentBackup(ctxFor(contentType()), 'a', 'x'.repeat(1_000_001))
+    ).rejects.toThrow(expect.objectContaining({ statusCode: 413 }))
+    expect(put).not.toHaveBeenCalled()
+  })
+
+  it('refuses a bad shape with 400', async () => {
+    const { registerContentAdapter, putContentBackup } = await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter({ backups: true }))
+
+    const ctx = ctxFor(contentType())
+    for (const bad of [
+      undefined,
+      '',
+      'not json',
+      '[]',
+      JSON.stringify({ ...record, v: 2 }),
+      JSON.stringify({ ...record, device: '' }),
+      JSON.stringify({ ...record, savedAt: 1 }),
+    ]) {
+      await expect(putContentBackup(ctx, 'a', bad)).rejects.toThrow(
+        expect.objectContaining({ statusCode: 400 })
+      )
+    }
+  })
+
+  it('reports otherDevice when another device wrote the copy before', async () => {
+    const { registerContentAdapter, putContentBackup } = await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter({ backups: true }))
+
+    const ctx = ctxOf(user('u1'))
+    expect((await putContentBackup(ctx, 'a', body)).otherDevice).toBe(false)
+    expect((await putContentBackup(ctx, 'a', body)).otherDevice).toBe(false)
+    const other = JSON.stringify({ ...record, device: 'device-b' })
+    expect((await putContentBackup(ctx, 'a', other)).otherDevice).toBe(true)
+  })
+
+  it('removes the copy of the caller after a create, an update and a delete', async () => {
+    const {
+      registerContentAdapter,
+      putContentBackup,
+      getContentBackup,
+      createContentItem,
+      updateContentItem,
+      deleteContentItem,
+    } = await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter({ backups: true }))
+
+    const ctx = ctxOf(user('u1'))
+    const exists = async (id?: string) =>
+      (await getContentBackup(ctx, id)).backup !== null
+
+    await putContentBackup(ctx, undefined, body)
+    const created = await createContentItem(ctx, { title: 'Hello' })
+    expect(await exists()).toBe(false)
+
+    const id = String(created.id)
+    await putContentBackup(ctx, id, body)
+    await updateContentItem(ctx, id, { title: 'Again' })
+    expect(await exists(id)).toBe(false)
+
+    await putContentBackup(ctx, id, body)
+    await deleteContentItem(ctx, id)
+    expect(await exists(id)).toBe(false)
+  })
+
+  it('does not fail a save when the removal throws', async () => {
+    const {
+      registerContentAdapter,
+      createContentItem,
+      updateContentItem,
+      deleteContentItem,
+    } = await loadHandlers()
+    const adapter = createMemoryContentAdapter({ backups: true })
+    adapter.backups!.remove = vi.fn(async () => {
+      throw new Error('database down')
+    })
+    registerContentAdapter(adapter)
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const ctx = ctxFor(contentType())
+    const created = await createContentItem(ctx, { title: 'Hello' })
+    await expect(
+      updateContentItem(ctx, created.id, { title: 'Again' })
+    ).resolves.toMatchObject({ title: 'Again' })
+    await expect(deleteContentItem(ctx, created.id)).resolves.toBeUndefined()
+    expect(warn).toHaveBeenCalledTimes(3)
+    warn.mockRestore()
+  })
+})

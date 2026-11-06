@@ -146,6 +146,7 @@
       "restored": "Alterações restauradas",
       "restoredHint": "Confira e depois salve.",
       "otherTab": "Este item tem alterações não salvas em outra aba. Vale a aba que salvar por último.",
+      "otherDevice": "Este item tem alterações não salvas em outro dispositivo. Vale o dispositivo que salvar por último.",
       "conflict": {
         "title": "Alguém salvou este item depois que você o abriu",
         "description": "Suas alterações estão seguras.",
@@ -251,7 +252,9 @@
       "forbidden": "Somente um administrador pode fazer isso.",
       "unauthorized": "Entre para continuar.",
       "crossOrigin": "Esta requisição não veio deste site.",
-      "invalidQuery": "O parâmetro \"{name}\" da consulta não é válido."
+      "invalidQuery": "O parâmetro \"{name}\" da consulta não é válido.",
+      "backupTooLarge": "As alterações não salvas são grandes demais para o backup no servidor.",
+      "backupInvalid": "O backup não é válido."
     },
     "github": {
       "build": {
