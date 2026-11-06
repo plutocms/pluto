@@ -6,9 +6,19 @@ import type {
   PlutoContentListResult,
   PlutoContentQuery,
 } from '../../shared/types/content'
+import type { PlutoContentBackup } from '../../shared/utils/content-backup'
 
 interface MemoryContentAdapterOptions {
   authorize?: (event: H3Event, capability: string) => Promise<void>
+  /** Add `backups`: a server copy with one map for each caller. */
+  backups?: boolean
+}
+
+/** The caller of a request in the tests: `event.context.userId`, or an empty id. */
+export function memoryCaller(event: H3Event): string {
+  return String(
+    (event as { context?: { userId?: unknown } }).context?.userId ?? ''
+  )
 }
 
 /**
@@ -20,6 +30,9 @@ interface MemoryContentAdapterOptions {
  *
  * Pass `options.authorize` to test a capability check that throws (the 403
  * path). Omit it to test the fail-open path (no `authorize` method at all).
+ *
+ * Pass `options.backups` to add `backups`. Each caller (see `memoryCaller`) has its own map, and
+ * a `put` reports `otherDevice` when the replaced record has another `device`.
  */
 export function createMemoryContentAdapter(
   options?: MemoryContentAdapterOptions
@@ -104,6 +117,35 @@ export function createMemoryContentAdapter(
         rows.splice(index, 1)
       }
     },
+  }
+
+  if (options?.backups) {
+    const maps = new Map<string, Map<string, PlutoContentBackup>>()
+    const mapOf = (ctx: PlutoContentContext) => {
+      const caller = memoryCaller(ctx.event)
+      let map = maps.get(caller)
+      if (!map) {
+        map = new Map()
+        maps.set(caller, map)
+      }
+      return map
+    }
+    const slot = (ctx: PlutoContentContext, key: string) =>
+      `${ctx.type.name}:${key}`
+    adapter.backups = {
+      async get(ctx, key) {
+        return mapOf(ctx).get(slot(ctx, key)) ?? null
+      },
+      async put(ctx, key, record) {
+        const map = mapOf(ctx)
+        const before = map.get(slot(ctx, key))
+        map.set(slot(ctx, key), record)
+        return { otherDevice: Boolean(before && before.device !== record.device) }
+      },
+      async remove(ctx, key) {
+        mapOf(ctx).delete(slot(ctx, key))
+      },
+    }
   }
 
   if (options?.authorize) {

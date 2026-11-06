@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import type { PlutoContentBackup } from '../utils/content-backup'
 
 export type PlutoFieldType =
   | 'text'
@@ -567,6 +568,33 @@ export interface PlutoContentAdapter {
     revisionId: string
   ) => Promise<PlutoContentItem | null>
   /**
+   * A server copy of the unsaved changes of the caller, one for each user, type and item.
+   * Optional: without it, the form keeps the browser backup only, and the backup routes answer
+   * `supported: false`. `key` is the item id as text, or `'+new'` for a new item. The adapter reads
+   * the caller from `ctx.event`, and each caller sees only its own copies. The core routes check
+   * the write capability of the type before they call it. Core also calls `remove` after a create
+   * (`'+new'`), an update (the route id) and a delete, and only warns on an error. See the
+   * content-backup skill.
+   */
+  backups?: {
+    /** The copy of the caller, or `null`. */
+    get: (
+      ctx: PlutoContentContext,
+      key: string
+    ) => Promise<PlutoContentBackup | null>
+    /**
+     * Replaces the copy of the caller. `otherDevice` is true when the replaced copy came from
+     * another `device` a short time ago (10 minutes).
+     */
+    put: (
+      ctx: PlutoContentContext,
+      key: string,
+      record: PlutoContentBackup
+    ) => Promise<{ otherDevice: boolean }>
+    /** Removes the copy of the caller. No error when there is none. */
+    remove: (ctx: PlutoContentContext, key: string) => Promise<void>
+  }
+  /**
    * The keys of the timestamps on an item of `type`, when the item has them. Optional. The public
    * API reads them and answers `createdAt`, `updatedAt` and `publishedAt`. Without it, the public
    * answer has no timestamps.
@@ -629,6 +657,16 @@ export interface PlutoContentRevisionPage {
 export interface PlutoContentRevisionList extends PlutoContentRevisionPage {
   /** False when the backend keeps no revisions. Then `data` is empty. */
   supported: boolean
+}
+
+/** The answer of `GET /api/_pluto/content-backup/<type>?id=<id>`, `PUT` and `DELETE`. */
+export interface PlutoContentBackupAnswer {
+  /** False when the adapter keeps no server copies (the Git CMS). Then nothing else is set. */
+  supported: boolean
+  /** `GET`: the copy of the caller, or `null`. */
+  backup?: PlutoContentBackup | null
+  /** `PUT`: the copy that this write replaced came from another device a short time ago. */
+  otherDevice?: boolean
 }
 
 /** One week of the content activity series. */

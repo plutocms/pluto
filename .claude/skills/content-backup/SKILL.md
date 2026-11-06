@@ -14,7 +14,8 @@ This skill covers the browser backup and the recovery UI. It builds on the
   backup never touches the backend: no commit, no revision, no deploy, no live text.
 - The word in code and UI is "backup". The form already has "Save draft" and a "Draft" status, so
   "draft" would mix with them.
-- It works the same on every backend. It needs no adapter change.
+- The browser backup works the same on every backend. A server copy (below) needs the optional
+  `PlutoContentAdapter.backups`: `@plutocms/supabase` will have it, the Git CMS does not.
 
 ## The record
 
@@ -43,14 +44,19 @@ except the status field (`backupFields`). Virtual fields and the slug are in. Th
 
 - `shared/utils/content-backup.ts` (pure, no Nuxt imports): the record type, `backupFields`,
   `backupChanges`, `parseBackup`, `planRestore`, `pickBackup`, `keepaliveBody`, and the limits
-  (`PLUTO_BACKUP_*`). `pickBackup` and `keepaliveBody` are for the server copy: the form does not
-  use them yet.
+  (`PLUTO_BACKUP_*`). `pickBackup` and `keepaliveBody` serve the server copy.
 - `shared/utils/stable-stringify.ts`: `stableStringify`, moved out of `content-dirty.ts`. A module
   of `app/composables/internal` cannot import a runtime value from `shared/` (a layer build cannot
   resolve it, pluto#433). Use it by auto-import, or pass it in.
 - `app/composables/internal/content-backup-store.ts` (pure): `backupKey`, `isBackupKeyOf`,
   `createBackupStore(storage, limits)`, `createBackupScheduler`, `deviceId`, `clearUserBackups`.
   It takes a `Storage`-like object, timers and the `parse` function as parameters.
+- `app/composables/internal/content-backup-sync.ts` (pure): `createBackupSync`, the rules of the server
+  requests, and `errorStatus`. Test: `test/content-backup-sync.test.ts`.
+- `app/composables/pluto-content-backup-server.ts`: `usePlutoContentBackupServer`, the `server` slot with
+  `$fetch` and the `keepalive` `fetch`.
+- `server/utils/pluto-content-handlers.ts`: `getContentBackup`, `putContentBackup`, `removeContentBackup`,
+  `removeBackupQuietly`. Routes: `server/api/_pluto/content-backup/[type].{get,put,delete}.ts`.
 - `app/composables/pluto-content-backup.ts`: `usePlutoContentBackup(options)`, the Vue glue.
 - `app/components/Pluto/Content/PlutoContentBackupAlert.vue`: the offer.
 - `app/components/Pluto/Content/PlutoContentChanges.vue`: the diff list, shared with History.
@@ -94,7 +100,8 @@ If a field differs, `PlutoContentBackupAlert` shows above the fields (color `war
 
 - Title "Unsaved changes found". Text "Changes from {time} were not saved." The text for a record from
   another device ("Changes from another device, from {time}, were not saved.") is in the locale
-  files and in the alert. The form shows it only when a server copy exists (not yet).
+  files and in the alert. The form shows it when the record
+  comes from the server copy and its `device` is not this browser.
 - **Restore** sets `slugTouched` (new item), calls `tracker.interact()` (so the baseline stays and
   the form is dirty), puts the backup `value` of each changed field in the form, and shows a toast.
   A field that only the stored item changed keeps the stored value. A field that changed in both
@@ -120,7 +127,7 @@ key `pluto.errors.conflict`. `errorKey(error)` (`internal/error-text.ts`, for a 
 Nuxt error) tells it from a taken slug (`pluto.github.errors.slugTaken`), which keeps its error
 toast. On the conflict key the form calls `onConflict()` of `usePlutoContentBackup`:
 
-- It writes the browser backup now (and calls `server.write`, when the slot has one), and sets
+- It writes the browser backup now (and sends the server copy at once with `server.write`), and sets
   `conflict`. A warning `UAlert` shows above the fields instead of the toast: "Someone saved this
   item after you opened it. Your changes are safe." with the button "Load the latest and keep my
   changes".
@@ -168,12 +175,34 @@ backups for the page view, with no message. The store catches every storage erro
 - In development, two apps on `localhost:3000` share `localStorage`. The same user, type and id can
   give an offer from the other app. The user discards it.
 
-## The `server` slot
+## The server copy
 
-`usePlutoContentBackup` takes an optional `server` (`read(key)`, `remove(key)`). `PlutoContentForm`
-passes none: the browser backup is all there is. A later version fills the slot with a server copy
-and uses `pickBackup` and `keepaliveBody`. The key of the server copy is the item id as text, or
-`+new`. Do not use the slot for anything else.
+An adapter with `backups` (content-model skill, "Backups") keeps a copy of the unsaved changes for each
+user, type and item. It gives recovery on another device. The record is the same as the browser one. The
+`server` slot of `usePlutoContentBackup` is `usePlutoContentBackupServer(typeName)` (`read`, `write`, `remove`,
+`keepalive`, `forget`, `settled`). The key is the item id as text, or `+new`.
+
+- **Open.** The form reads the browser backup, then `GET /api/_pluto/content-backup/<type>?id=<id>` (3 s at
+  most). `pickBackup` takes the newer `savedAt`, and a tie goes to the browser. A GET that fails gives the
+  browser backup only. A record with another `device` shows the "another device" text.
+- **Not supported.** The Git CMS has no `backups`. The GET answers `{ supported: false }`, and then this page
+  view sends no PUT and no DELETE.
+- **Write.** 10 s after the last change, 30 s at most (`createBackupScheduler`). No write while
+  `navigator.onLine` is false: the `online` event schedules one. A record equal to the last one sent is
+  skipped (the time and the tab id do not count). One write at a time. A clean form sends nothing and keeps the
+  server copy until a save, Discard or Leave.
+- **Stop.** A 401, 403 or 413 stops the server copy for the page view. Another error tries again with the next
+  change. A request never throws into the form.
+- **Hide.** On `pagehide` and `visibilitychange` to hidden, one `fetch(..., { method: 'PUT', keepalive: true })`
+  when the body is 60,000 bytes or less (`keepaliveBody`). A larger body relies on the last timed write.
+- **Save.** Before `save`, the form calls `prepareSave()`: it cancels the server timer and waits at most 2 s for
+  a write in progress. The core write handlers remove the copy of the caller after the save, so the form sends no
+  DELETE then. A copy that stays (a removal error) is stale: `planRestore` finds nothing to restore and removes it.
+- **Discard and Leave** send a DELETE. The 409 flow sends the server copy at once.
+- **Other device.** A PUT answer `{ otherDevice: true }` shows a closable warning: "This item has unsaved changes
+  on another device. The device that saves last wins."
+- **Privacy.** The route needs the write capability of the type. The adapter returns only the copy of the caller.
+  Sign-out keeps the server copy, so the user gets it back after the next sign-in.
 
 ## Known limits
 

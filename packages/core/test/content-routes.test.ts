@@ -114,9 +114,7 @@ describe('content revision routes', () => {
       await import('../server/api/_pluto/content-revisions/[type]/[...id].get')
     ).default
     const one = (
-      await import(
-        '../server/api/_pluto/content-revision/[type]/[revision]/[...id].get'
-      )
+      await import('../server/api/_pluto/content-revision/[type]/[revision]/[...id].get')
     ).default
     const app = h3.createApp()
     const router = h3.createRouter()
@@ -147,6 +145,63 @@ describe('content revision routes', () => {
       },
       { op: 'list', id: 'hello', query: {} },
       { op: 'get', id: '1.start/index', revision: 'abc123' },
+    ])
+  })
+})
+
+describe('content backup routes', () => {
+  it('pass the id query (absent: a new item) and the raw body', async () => {
+    const seen: unknown[] = []
+    vi.stubGlobal('getQuery', h3.getQuery)
+    vi.stubGlobal('readRawBody', h3.readRawBody)
+    vi.stubGlobal('getContentBackup', async (_ctx: unknown, id?: string) => {
+      seen.push({ op: 'get', id })
+      return { supported: true, backup: null }
+    })
+    vi.stubGlobal(
+      'putContentBackup',
+      async (_ctx: unknown, id: string | undefined, body: string) => {
+        seen.push({ op: 'put', id, body })
+        return { supported: true, otherDevice: false }
+      }
+    )
+    vi.stubGlobal('removeContentBackup', async (_ctx: unknown, id?: string) => {
+      seen.push({ op: 'delete', id })
+      return { supported: true }
+    })
+    const base = '../server/api/_pluto/content-backup/[type]'
+    const get = (await import(`${base}.get`)).default
+    const put = (await import(`${base}.put`)).default
+    const remove = (await import(`${base}.delete`)).default
+    const app = h3.createApp()
+    const router = h3.createRouter()
+    router.get('/api/_pluto/content-backup/:type', get)
+    router.put('/api/_pluto/content-backup/:type', put)
+    router.delete('/api/_pluto/content-backup/:type', remove)
+    app.use(router)
+    const web = h3.toWebHandler(app)
+    const url = 'http://localhost/api/_pluto/content-backup/doc'
+
+    await web(new Request(`${url}?id=1.start%2F2.install`))
+    await web(new Request(url))
+    const putResponse = await web(
+      new Request(`${url}?id=hello`, { method: 'PUT', body: '{"v":1}' })
+    )
+    await web(new Request(url, { method: 'PUT', body: '{}' }))
+    await web(new Request(`${url}?id=hello`, { method: 'DELETE' }))
+    await web(new Request(url, { method: 'DELETE' }))
+
+    expect(await putResponse.json()).toEqual({
+      supported: true,
+      otherDevice: false,
+    })
+    expect(seen).toEqual([
+      { op: 'get', id: '1.start/2.install' },
+      { op: 'get', id: undefined },
+      { op: 'put', id: 'hello', body: '{"v":1}' },
+      { op: 'put', id: undefined, body: '{}' },
+      { op: 'delete', id: 'hello' },
+      { op: 'delete', id: undefined },
     ])
   })
 })

@@ -146,6 +146,7 @@
       "restored": "Changes restored",
       "restoredHint": "Check them, then save.",
       "otherTab": "This item has unsaved changes in another tab. The tab that saves last wins.",
+      "otherDevice": "This item has unsaved changes on another device. The device that saves last wins.",
       "conflict": {
         "title": "Someone saved this item after you opened it",
         "description": "Your changes are safe.",
@@ -251,7 +252,9 @@
       "forbidden": "Only an administrator can do this.",
       "unauthorized": "Sign in to continue.",
       "crossOrigin": "This request did not come from this site.",
-      "invalidQuery": "The query parameter \"{name}\" is not valid."
+      "invalidQuery": "The query parameter \"{name}\" is not valid.",
+      "backupTooLarge": "The unsaved changes are too large to back up on the server.",
+      "backupInvalid": "The backup is not valid."
     },
     "github": {
       "build": {

@@ -316,7 +316,7 @@ too. It does not, for the reasons above.
 Five routes, all under the `/api/_pluto/content/` prefix. They are for the admin. The leading
 underscore marks an internal route: not a stable contract, and not for a public site (that is the
 public API, below). The rule for every official layer: core's internal routes are
-`/api/_pluto/<area>/...` (`content`, `content-activity`, `content-revisions`, `content-revision`, `mail`; the CMS `auth` and `cms`), and a
+`/api/_pluto/<area>/...` (`content`, `content-activity`, `content-revisions`, `content-revision`, `content-backup`, `mail`; the CMS `auth` and `cms`), and a
 layer's internal routes are `/api/_pluto/<layer>/...` (for example `/api/_pluto/supabase/...`,
 `/api/_pluto/shop/...`), REST style: nouns in the path, the method says the action. Core's
 middleware `server/middleware/pluto-origin.ts` blocks a cross-site write to `/api/_pluto/**`
@@ -694,6 +694,34 @@ the version before the current one, or the current one when the form has unsaved
 
 The Git CMS implements both methods (see the git-cms skill, "Revisions"). `@plutocms/supabase` keeps them in
 the table `pluto_content_revisions` (its content-adapter skill, "Revisions").
+
+## Backups
+
+`PlutoContentAdapter.backups` is optional: a server copy of the unsaved changes of the caller, one for each
+user, type and item (the content-backup skill has the client side). Without it the form keeps the browser
+backup only.
+
+- `get(ctx, key)` returns the `PlutoContentBackup` of the caller or `null`. `put(ctx, key, record)` replaces it and
+  returns `{ otherDevice }`: true when the replaced copy came from another `device` in the last 10 minutes.
+  `remove(ctx, key)` deletes it. `key` is the item id as text, or `+new` for a new item. The adapter reads the
+  caller from `ctx.event`, and each caller sees only its own copies.
+
+| Route                                      | Method | Handler              |
+| ------------------------------------------ | ------ | -------------------- |
+| `/api/_pluto/content-backup/[type]?id=<id>` | GET    | `getContentBackup`    |
+| same                                       | PUT    | `putContentBackup`    |
+| same                                       | DELETE | `removeContentBackup` |
+
+The id is a query, because an id can hold slashes. No `id` means a new item (`+new`). Each handler answers
+`{ supported: false }` before any check when the adapter has no `backups` (the Git CMS). Then it checks the
+write capability of the type, as a save does. PUT reads the raw body: over 1,000,000 characters is a 413
+(`pluto.errors.backupTooLarge`), and a body that `parseBackup` refuses is a 400 (`pluto.errors.backupInvalid`).
+Only the declared backup fields are kept. The origin check covers PUT and DELETE.
+
+`createContentItem` (`+new`), `updateContentItem` (the route id, also for a rename) and `deleteContentItem` call
+`removeBackupQuietly` after the adapter call worked. A removal error only warns: a backup never fails a save.
+Tests: `test/content-handlers.test.ts` ("content backups"), `test/content-routes.test.ts`; the memory fixture
+takes `{ backups: true }`, one map for each caller (`event.context.userId`).
 
 ## The `_version` token and id changes: for adapter authors
 
