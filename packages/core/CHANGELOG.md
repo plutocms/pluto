@@ -1,6 +1,15 @@
 # Changelog
 
 
+## [0.58.0](https://github.com/plutocms/pluto/compare/v0.57.0...v0.58.0) (2026-11-06)
+
+
+### Features
+
+* **core:** many-to-many references, tag and category types, and reference filters ([#432](https://github.com/plutocms/pluto/issues/432)) ([02e7f59](https://github.com/plutocms/pluto/commit/02e7f598f95aee5700aae01160b3bead29c66c19))
+* **core:** reference widget, list badges and preview chips ([#433](https://github.com/plutocms/pluto/issues/433)) ([0c69b03](https://github.com/plutocms/pluto/commit/0c69b031f55c1dddc32d02a0d8e07f0209beb68e))
+* **seo:** @plutocms/seo, SEO fields, head tags, sitemap, robots.txt and an RSS feed ([#428](https://github.com/plutocms/pluto/issues/428)) ([6cd86ef](https://github.com/plutocms/pluto/commit/6cd86ef994f9849f74d8da9512371b35fe0261e1))
+
 ## [0.57.0](https://github.com/plutocms/pluto/compare/v0.56.0...v0.57.0) (2026-11-05)
 
 
