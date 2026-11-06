@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.58.1](https://github.com/plutocms/pluto/compare/v0.58.0...v0.58.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **core:** the list delete dialog shows a loading state and a toast on failure ([#435](https://github.com/plutocms/pluto/issues/435)) ([edb05a0](https://github.com/plutocms/pluto/commit/edb05a09182e08865a37241604bf6d53478fab6b))
+
 ## [0.58.0](https://github.com/plutocms/pluto/compare/v0.57.0...v0.58.0) (2026-11-06)
 
 
