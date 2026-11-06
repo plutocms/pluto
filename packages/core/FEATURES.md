@@ -73,7 +73,10 @@ policies shared by every project here.
   like History). A save while it is open asks first (Cancel, Restore, Save and discard). A field changed in both places is named. Save, delete and "Leave without saving"
   remove the backup, sign-out removes the backups of the user, and a backup expires after 14 days.
   `form.backup: false` opts a type out, and `onFlush` in the form context lets a widget write
-  pending edits first. Same on every backend. @.claude/skills/content-backup/SKILL.md
+  pending edits first. Same on every backend. A save that fails with a 409 conflict (a stale
+  `_version`) writes the backup, shows a warning alert, and "Load the latest and keep my changes"
+  loads the stored item and puts the changes on top, naming the fields that changed in both places.
+  @.claude/skills/content-backup/SKILL.md
 - Command palette: Cmd/Ctrl+K and a sidebar search button open a `UDashboardSearch` with
   "New <type>" commands for writable content types, every admin nav destination, and theme
   commands. @.claude/skills/command-palette/SKILL.md

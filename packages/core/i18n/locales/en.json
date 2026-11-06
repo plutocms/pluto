@@ -145,7 +145,14 @@
       "backup": "Backup",
       "restored": "Changes restored",
       "restoredHint": "Check them, then save.",
-      "otherTab": "This item has unsaved changes in another tab. The tab that saves last wins."
+      "otherTab": "This item has unsaved changes in another tab. The tab that saves last wins.",
+      "conflict": {
+        "title": "Someone saved this item after you opened it",
+        "description": "Your changes are safe.",
+        "reload": "Load the latest and keep my changes",
+        "merged": "Latest version loaded",
+        "mergedHint": "Your changes are on top of it. Check them, then save."
+      }
     },
     "canvas": {
       "page": "Page",

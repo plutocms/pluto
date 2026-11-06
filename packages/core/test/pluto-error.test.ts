@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveErrorText } from '../app/composables/internal/error-text'
+import { errorKey, resolveErrorText } from '../app/composables/internal/error-text'
 import { createPlutoError } from '../server/utils/pluto-error'
 import { createI18nStub } from './fixtures/i18n-stub'
 
@@ -121,5 +121,32 @@ describe('resolveErrorText', () => {
     expect(
       resolveErrorText({ statusMessage: '  ' }, 'pluto.form.saveError', en)
     ).toBe('An error occurred while saving.')
+  })
+})
+
+describe('errorKey', () => {
+  it('reads the key of a $fetch error', () => {
+    const error = {
+      statusCode: 409,
+      data: {
+        statusCode: 409,
+        data: { i18n: { key: 'pluto.errors.conflict' } },
+      },
+    }
+
+    expect(errorKey(error)).toBe('pluto.errors.conflict')
+  })
+
+  it('reads the key of an error that Nuxt created on the client', () => {
+    const error = { data: { i18n: { key: 'pluto.errors.conflict' } } }
+
+    expect(errorKey(error)).toBe('pluto.errors.conflict')
+  })
+
+  it('returns undefined when the error has no key', () => {
+    expect(errorKey({ statusMessage: 'Conflict' })).toBeUndefined()
+    expect(errorKey(new Error('x'))).toBeUndefined()
+    expect(errorKey(null)).toBeUndefined()
+    expect(errorKey({ data: { i18n: { key: 5 } } })).toBeUndefined()
   })
 })
