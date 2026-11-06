@@ -133,18 +133,18 @@ function asText(value: unknown): string {
 }
 
 /**
- * What a restore of `revision` would change in `current` (the form): one entry for each
- * restorable field whose value differs, in field order. Pure.
+ * What a change from `current` to `next` does in each of `fields`: one entry for each field
+ * whose value differs, in field order. A key that `next` does not have counts as empty. Pure.
  */
-export function diffRevision(
-  type: PlutoContentType,
+export function diffFields(
+  fields: PlutoField[],
   current: Record<string, unknown>,
-  revision: PlutoContentItem
+  next: Record<string, unknown>
 ): PlutoFieldChange[] {
   const changes: PlutoFieldChange[] = []
-  for (const field of restorableFields(type)) {
+  for (const field of fields) {
     const before = asText(current[field.name])
-    const after = asText(revision[field.name])
+    const after = asText(next[field.name])
     if (before === after) {
       continue
     }
@@ -160,6 +160,18 @@ export function diffRevision(
     }
   }
   return changes
+}
+
+/**
+ * What a restore of `revision` would change in `current` (the form): one entry for each
+ * restorable field whose value differs, in field order. Pure.
+ */
+export function diffRevision(
+  type: PlutoContentType,
+  current: Record<string, unknown>,
+  revision: PlutoContentItem
+): PlutoFieldChange[] {
+  return diffFields(restorableFields(type), current, revision)
 }
 
 /** A row of a folded diff: a line, or a run of unchanged lines that the view hides. */

@@ -7,7 +7,6 @@ import {
   isEditingEvent,
   isSaveShortcut,
   savedAgo,
-  stableStringify,
 } from '../../../composables/internal/content-dirty'
 import { buildContentPayload } from '../../../composables/internal/content-payload'
 
@@ -20,7 +19,7 @@ const props = defineProps<{
 
 const { byName } = usePlutoContentTypes()
 const contentType = computed(() => byName(props.type))
-const { t, tx, locale } = usePlutoI18n()
+const { t, tx, d, locale } = usePlutoI18n()
 const text = usePlutoContentText(contentType)
 const errorText = usePlutoErrorText()
 
@@ -302,6 +301,84 @@ function onSaved(callback: (saved: PlutoContentItem) => void) {
   return stop
 }
 
+// Callbacks that a widget registers with `usePlutoContentForm().onFlush`. They run before a
+// save builds its payload, and before a backup write.
+const flushCallbacks = new Set<() => void>()
+function onFlush(callback: () => void) {
+  flushCallbacks.add(callback)
+  const stop = () => {
+    flushCallbacks.delete(callback)
+  }
+  tryOnScopeDispose(stop)
+  return stop
+}
+function runFlush() {
+  for (const callback of flushCallbacks) {
+    callback()
+  }
+}
+
+// --- Backup of the unsaved changes -----------------------------------------------
+//
+// The browser keeps the unsaved changes. The next visit offers them again. See
+// `usePlutoContentBackup` and the content-backup skill.
+const {
+  state: backupState,
+  offer: backupOffer,
+  changes: backupChanges,
+  otherTab: backupOtherTab,
+  restore: restoreBackup,
+  discard: discardBackup,
+  onSaved: backupSaved,
+  onRemoved: backupRemoved,
+  leave: backupLeave,
+} = usePlutoContentBackup({
+  type: contentType,
+  id: () => props.id,
+  editing,
+  item,
+  dirtyState,
+  snapshot,
+  dirty,
+  ready: computed(
+    () => !editing.value || (!itemPending.value && !loadFailed.value)
+  ),
+  canSave,
+  slugTouched,
+  interact: () => tracker.interact(),
+  flush: runFlush,
+})
+
+// A save while the recovery alert is open would delete the backup. A dialog asks first.
+const backupConfirmOpen = ref(false)
+let pendingSave: { statusOverride?: string } | null = null
+const backupTime = computed(() =>
+  backupOffer.value
+    ? d(backupOffer.value.record.savedAt, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : ''
+)
+
+function closeBackupConfirm() {
+  backupConfirmOpen.value = false
+  pendingSave = null
+}
+
+function restoreFromConfirm() {
+  closeBackupConfirm()
+  restoreBackup()
+}
+
+function saveAndDiscard() {
+  const save = pendingSave
+  closeBackupConfirm()
+  // Discard removes the backup. A save that fails after this has no backup to keep.
+  discardBackup()
+  onSave(save?.statusOverride)
+}
+
 // --- Leave guard ---------------------------------------------------------------
 //
 // A navigation away from a dirty form opens an in-app dialog and waits. The
@@ -334,6 +411,8 @@ async function leavePage() {
   leaveOpen.value = false
   leaveTarget = null
   bypass = true
+  // "Leave without saving" means the changes are gone, so the backup goes too.
+  backupLeave()
   if (target) {
     await navigateTo(target.fullPath)
   }
@@ -355,7 +434,8 @@ useEventListener('keydown', (event: KeyboardEvent) => {
     !canSave.value ||
     saving.value ||
     leaveOpen.value ||
-    isDeleteModalOpen.value
+    isDeleteModalOpen.value ||
+    backupConfirmOpen.value
   ) {
     return
   }
@@ -369,6 +449,14 @@ async function onSave(statusOverride?: string) {
     return
   }
 
+  if (backupState.value === 'offered') {
+    pendingSave = { statusOverride }
+    backupConfirmOpen.value = true
+    return
+  }
+
+  // A widget can hold edits that are not in the item yet (an editor with a debounce).
+  runFlush()
   const payload = buildContentPayload(type, item.value, statusOverride)
   const errors = validateContentPayload(type, payload, {
     partial: editing.value,
@@ -394,6 +482,7 @@ async function onSave(statusOverride?: string) {
     tracker.reset(snapshot.value)
     saveStatus.value = 'saved'
     savedAt.value = new Date()
+    backupSaved(saved.id)
     for (const callback of savedCallbacks) {
       callback(saved)
     }
@@ -466,6 +555,7 @@ async function confirmDelete() {
     await remove()
     closeDeleteModal()
     bypass = true
+    backupRemoved()
     await navigateTo(basePath.value)
   } catch (error) {
     toast.add({
@@ -716,6 +806,7 @@ provide(plutoContentFormKey, {
     right: isDesktop.value && Boolean(asideSlot.value) && !asideModel.value,
   })),
   onSaved,
+  onFlush,
   openPanel,
 })
 
@@ -917,6 +1008,27 @@ const asideTitle = computed(() =>
         @toggle-left="leftOpen = !leftOpen"
       />
     </template>
+
+    <PlutoContentBackupAlert
+      v-if="backupOffer"
+      :type="contentType"
+      :offer="backupOffer"
+      :changes="backupChanges"
+      :canvas="isCanvas"
+      @restore="restoreBackup"
+      @discard="discardBackup"
+    />
+
+    <div v-if="backupOtherTab" :class="isCanvas ? 'shrink-0 p-4' : undefined">
+      <UAlert
+        :title="t('pluto.backup.otherTab')"
+        color="warning"
+        variant="subtle"
+        icon="lucide:copy"
+        close
+        @update:open="backupOtherTab = false"
+      />
+    </div>
 
     <UAlert
       v-if="validationErrors.length > 0"
@@ -1135,6 +1247,47 @@ const asideTitle = computed(() =>
           @click="confirmDelete"
         >
           {{ t('pluto.common.remove') }}
+        </UButton>
+      </div>
+    </ModalFooter>
+  </Modal>
+
+  <!-- A save while the backup is offered. Closing it with Escape or a click outside means "Cancel". -->
+  <Modal
+    :model-value="backupConfirmOpen"
+    :custom-size="480"
+    @update:model-value="!$event && closeBackupConfirm()"
+  >
+    <ModalHeader @close="closeBackupConfirm">
+      {{ t('pluto.backup.confirmTitle') }}
+    </ModalHeader>
+
+    <ModalContent>
+      <p>{{ t('pluto.backup.confirmDescription', { time: backupTime }) }}</p>
+    </ModalContent>
+
+    <ModalFooter>
+      <div class="flex items-center gap-4">
+        <UButton
+          icon="lucide:x"
+          variant="ghost"
+          color="neutral"
+          @click="closeBackupConfirm"
+        >
+          {{ t('pluto.common.cancel') }}
+        </UButton>
+
+        <UButton
+          icon="lucide:rotate-ccw"
+          variant="outline"
+          color="neutral"
+          @click="restoreFromConfirm"
+        >
+          {{ t('pluto.backup.restore') }}
+        </UButton>
+
+        <UButton icon="lucide:trash-2" color="error" @click="saveAndDiscard">
+          {{ t('pluto.backup.saveAndDiscard') }}
         </UButton>
       </div>
     </ModalFooter>

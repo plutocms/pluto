@@ -1,5 +1,6 @@
 import type { PlutoContentType } from '../shared/types/content'
 import { describe, expect, it } from 'vitest'
+import { computed, reactive } from 'vue'
 import { buildContentPayload } from '../app/composables/internal/content-payload'
 
 const type: PlutoContentType = {
@@ -73,5 +74,15 @@ describe('buildContentPayload', () => {
     expect(
       buildContentPayload(undefined, { id: 1, title: 'A', _version: 'v' })
     ).toEqual({})
+  })
+})
+
+describe('buildContentPayload in a computed', () => {
+  it('sees a declared field that a reactive item gets later', () => {
+    const item = reactive<Record<string, unknown>>({})
+    const payload = computed(() => buildContentPayload(type, item))
+    expect(payload.value).toEqual({})
+    item.title = 'Hello'
+    expect(payload.value).toEqual({ title: 'Hello' })
   })
 })

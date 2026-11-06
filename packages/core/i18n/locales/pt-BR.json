@@ -128,6 +128,25 @@
       "restoredHint": "Confira e salve para manter.",
       "back": "Voltar para as versões"
     },
+    "backup": {
+      "title": "Alterações não salvas encontradas",
+      "description": "As alterações de {time} não foram salvas.",
+      "descriptionOtherDevice": "As alterações de outro dispositivo, de {time}, não foram salvas.",
+      "conflicts": "O item foi salvo de novo depois disso. Estes campos mudaram nos dois lugares: {fields}.",
+      "restore": "Restaurar",
+      "discard": "Descartar",
+      "showChanges": "Ver alterações",
+      "confirmTitle": "Descartar as alterações não salvas?",
+      "confirmDescription": "Este navegador tem alterações não salvas de {time}. Se você salvar agora, essas alterações serão apagadas.",
+      "saveAndDiscard": "Salvar e descartar",
+      "changesTitle": "Alterações não salvas",
+      "changesHint": "Restaurar coloca o backup no formulário. Salve para mantê-lo.",
+      "saved": "Salvo",
+      "backup": "Backup",
+      "restored": "Alterações restauradas",
+      "restoredHint": "Confira e depois salve.",
+      "otherTab": "Este item tem alterações não salvas em outra aba. Vale a aba que salvar por último."
+    },
     "canvas": {
       "page": "Página",
       "panels": "Painéis",

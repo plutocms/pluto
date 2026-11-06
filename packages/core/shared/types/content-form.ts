@@ -47,6 +47,14 @@ export interface PlutoContentFormContext {
    * calling component unmounts, if the call is inside `setup`.
    */
   onSaved: (callback: (item: PlutoContentItem) => void) => () => void
+  /**
+   * Runs `callback` synchronously before the form builds the payload of a save, and before the
+   * form writes a backup (also when the page hides). A widget that holds edits outside its
+   * `modelValue` (for example an editor with a debounce) writes them to the model there. It
+   * returns a function that stops the callback. Vue stops it too when the calling component
+   * unmounts, if the call is inside `setup`.
+   */
+  onFlush: (callback: () => void) => () => void
   /** Opens the right panel and shows the tab with this `PlutoContentCanvasPanel` id. 'canvas' layout only. */
   openPanel: (id: string) => void
 }

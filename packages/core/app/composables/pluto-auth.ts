@@ -5,6 +5,7 @@ import {
   normalizePublicPaths,
   safeRedirect,
 } from './internal/admin-shell'
+import { clearUserBackups } from './internal/content-backup-store'
 
 let validated = false
 
@@ -47,6 +48,7 @@ export function usePlutoAuth() {
   // Read at setup, while the Nuxt context exists. `signOut` runs after an await.
   const { t } = usePlutoI18n()
   const toast = useToast()
+  const base = useRuntimeConfig().app.baseURL
   const driver = computed(() => registry.authDrivers.list.value.at(-1) ?? null)
 
   if (import.meta.dev && !validated && driver.value) {
@@ -83,7 +85,17 @@ export function usePlutoAuth() {
     if (!driver.value) {
       return
     }
+    const userId = user.value?.id
     await driver.value.signOut()
+    // The browser backups of the user (unsaved changes) must not stay on a shared computer. A
+    // session that expires keeps them, so the same user gets them back after the next sign-in.
+    if (userId && import.meta.client) {
+      try {
+        clearUserBackups(window.localStorage, base, userId)
+      } catch {
+        // Storage is not available. There is nothing to clear.
+      }
+    }
     toast.add({ title: t('pluto.navbar.signedOut'), color: 'success' })
     await navigateTo(ADMIN_LOGIN_PATH)
   }

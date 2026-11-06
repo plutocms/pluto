@@ -323,6 +323,12 @@ export interface PlutoContentType {
     asideCollapsed?: boolean
     /** Drop the max-width container in the main region. Default false, or true when layout is 'focus'. */
     width?: 'container' | 'full'
+    /**
+     * Keep a backup of the unsaved changes in this browser (`localStorage`), and offer to restore
+     * it when the user opens the item again. Default true. Set false for a type whose text must
+     * not stay in the browser. See the content-backup skill.
+     */
+    backup?: boolean
   }
   /**
    * Options for the file adapters (the Git CMS). Other adapters ignore them. Every member is

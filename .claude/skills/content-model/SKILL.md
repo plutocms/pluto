@@ -689,7 +689,8 @@ a line diff for a richtext or textarea field or a multi-line value (`diffLines`,
 the version before the current one, or the current one when the form has unsaved changes. Below
 `md` the detail replaces the list, with a back button. The pure helpers are in
 `shared/utils/content-revision.ts` (test: `test/content-revision.test.ts`). The texts are under
-`pluto.history.*`.
+`pluto.history.*`. `diffFields(fields, current, next)` is the shared diff, and
+`PlutoContentChanges` renders it for History and for the backup recovery.
 
 The Git CMS implements both methods (see the git-cms skill, "Revisions"). `@plutocms/supabase` keeps them in
 the table `pluto_content_revisions` (its content-adapter skill, "Revisions").
@@ -944,9 +945,15 @@ third-party widget gets the translated label with no change. Server code and any
 ## The form context for widgets
 
 A field widget can read the state of its form with `usePlutoContentForm()`: the item, `dirty`,
-`saving`, `errorsByField`, and `onSaved(callback)`. A canvas widget adds panels with
+`saving`, `errorsByField`, `onSaved(callback)` and `onFlush(callback)`. A widget that holds edits
+outside its `modelValue` registers `onFlush`: the form runs it before a save and before a backup
+write. A canvas widget adds panels with
 `PlutoContentCanvasPanel`. The widget contract above does not change. See the admin-view-chrome
 skill, "The form context" and "The canvas layout".
+
+`PlutoContentType.form.backup?: boolean` (default `true`) turns off the browser backup of the
+unsaved changes for the type. Set it to `false` for a type whose text must not stay in the
+browser. See the [content backup](../content-backup/SKILL.md) skill.
 
 ## Nested ids and `compareContentIds`
 

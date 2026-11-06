@@ -1,6 +1,7 @@
 import type { PlutoContentType } from '../shared/types/content'
 import { describe, expect, it } from 'vitest'
 import {
+  diffFields,
   diffLines,
   diffRevision,
   foldDiff,
@@ -132,5 +133,44 @@ describe('foldDiff', () => {
       { kind: 'same', text: 'b' },
       { kind: 'same', text: 'c' },
     ])
+  })
+})
+
+describe('diffFields', () => {
+  const fields = type.fields
+
+  it('lists only the fields that differ, in field order', () => {
+    const changes = diffFields(
+      fields,
+      { title: 'A', note: 'x', content: 'one' },
+      { title: 'B', note: 'x', content: 'two' }
+    )
+    expect(changes.map((change) => change.field.name)).toEqual([
+      'title',
+      'content',
+    ])
+  })
+
+  it('shows a short value as before and after, and a long text as a line diff', () => {
+    const [title, content] = diffFields(
+      fields,
+      { title: 'A', content: 'a\nb' },
+      { title: 'B', content: 'a\nc' }
+    )
+    expect(title).toMatchObject({ kind: 'value', before: 'A', after: 'B' })
+    expect(content).toMatchObject({ kind: 'text' })
+  })
+
+  it('counts a key that the next values do not have as empty', () => {
+    const changes = diffFields([fields[0]!], { title: 'A' }, {})
+    expect(changes).toMatchObject([{ kind: 'value', before: 'A', after: '' }])
+  })
+
+  it('gives the same result as diffRevision for the restorable fields', () => {
+    const current = { title: 'A', slug: 'a', content: 'x' }
+    const revision = { id: '1', title: 'B', slug: 'b', content: 'y' }
+    expect(diffRevision(type, current, revision)).toEqual(
+      diffFields(restorableFields(type), current, revision)
+    )
   })
 })
