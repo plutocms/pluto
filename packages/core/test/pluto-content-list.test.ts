@@ -83,7 +83,7 @@ describe('usePlutoContentList', () => {
     await expect(list.refresh()).rejects.toThrow('network down')
   })
 
-  it('surfaces a remove() rejection through error, and rethrows, without refreshing', async () => {
+  it('rethrows a remove() rejection, leaves error alone, and does not refresh', async () => {
     fetchMock.mockResolvedValueOnce({ data: [{ id: 1 }], total: 1 })
     const { usePlutoContentList } = await loadComposable()
 
@@ -93,8 +93,8 @@ describe('usePlutoContentList', () => {
     const failure = new Error('forbidden')
     fetchMock.mockRejectedValueOnce(failure)
 
-    await expect(list.remove(1)).rejects.toThrow('forbidden')
-    expect(list.error.value).toBe(failure)
+    await expect(list.remove(1)).rejects.toBe(failure)
+    expect(list.error.value).toBeNull()
     // Only the initial list fetch plus the failed DELETE — no refresh() follow-up.
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })

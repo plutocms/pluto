@@ -209,8 +209,12 @@ const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
   { id: 'actions', header: '' },
 ])
 
+const toast = useToast()
+const errorText = usePlutoErrorText()
+
 const pendingDeleteId = ref<string | number | null>(null)
 const isDeleteModalOpen = ref(false)
+const deleting = ref(false)
 
 function openDeleteModal(id: string | number) {
   pendingDeleteId.value = id
@@ -218,17 +222,33 @@ function openDeleteModal(id: string | number) {
 }
 
 function closeDeleteModal() {
+  // The dialog stays open while the delete runs, so the user sees it finish.
+  if (deleting.value) {
+    return
+  }
   pendingDeleteId.value = null
   isDeleteModalOpen.value = false
 }
 
 async function confirmDelete() {
-  if (pendingDeleteId.value === null) {
+  if (pendingDeleteId.value === null || deleting.value) {
     return
   }
 
-  await remove(pendingDeleteId.value)
-  closeDeleteModal()
+  deleting.value = true
+  try {
+    await remove(pendingDeleteId.value)
+    deleting.value = false
+    closeDeleteModal()
+  } catch (caught) {
+    toast.add({
+      title: t('pluto.common.error'),
+      description: errorText(caught, 'pluto.form.removeError'),
+      color: 'error',
+    })
+  } finally {
+    deleting.value = false
+  }
 }
 
 // The footer line: "Showing 5 of 20 posts", plus "Loading more…" while a
@@ -501,6 +521,7 @@ const footer = computed(() => {
     <ModalFooter>
       <div class="flex items-center gap-4">
         <UButton
+          :disabled="deleting"
           icon="lucide:x"
           variant="ghost"
           color="neutral"
@@ -509,7 +530,12 @@ const footer = computed(() => {
           {{ t('pluto.common.cancel') }}
         </UButton>
 
-        <UButton icon="lucide:trash" color="error" @click="confirmDelete">
+        <UButton
+          :loading="deleting"
+          icon="lucide:trash"
+          color="error"
+          @click="confirmDelete"
+        >
           {{ t('pluto.common.remove') }}
         </UButton>
       </div>
