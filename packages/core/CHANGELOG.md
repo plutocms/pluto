@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.59.1](https://github.com/plutocms/pluto/compare/v0.59.0...v0.59.1) (2026-11-06)
+
+
+### Bug Fixes
+
+* **core:** send an offered browser backup to the server when the server has none ([#444](https://github.com/plutocms/pluto/issues/444)) ([899472c](https://github.com/plutocms/pluto/commit/899472c8478408479f1cbd2b75665057cd2ad3d8))
+
 ## [0.59.0](https://github.com/plutocms/pluto/compare/v0.58.1...v0.59.0) (2026-11-06)
 
 
