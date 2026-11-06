@@ -48,9 +48,9 @@ function restore() {
   <div :class="canvas ? 'shrink-0 p-4' : undefined">
     <UAlert
       :title="t('pluto.backup.title')"
-      color="info"
+      color="warning"
       variant="subtle"
-      icon="lucide:life-buoy"
+      icon="lucide:triangle-alert"
       role="status"
     >
       <template #description>
@@ -63,7 +63,7 @@ function restore() {
             :label="t('pluto.backup.restore')"
             icon="lucide:rotate-ccw"
             size="xs"
-            color="info"
+            color="warning"
             @click="restore"
           />
           <UButton

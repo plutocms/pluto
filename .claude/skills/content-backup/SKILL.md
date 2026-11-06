@@ -77,7 +77,7 @@ not refuse a write.
 
 - `idle`: backups write.
 - `offered`: the alert shows. Writes pause, so the old backup stays until the user chooses. The
-  state ends on Restore, Discard, a save that worked, and when `planRestore` finds nothing to
+  state ends on Restore, Discard, "Save and discard", and when `planRestore` finds nothing to
   restore (the backup is removed).
 - `stopped`: after "Leave without saving", a delete, or a save that navigates (a new item or an id
   change). A stopped form writes nothing, so the unmount flush of an editor cannot write a removed
@@ -89,8 +89,8 @@ When the item loads (at once for a new item), the form reads the record, drops t
 type does not declare, and runs `planRestore` against the baseline (`JSON.parse(dirtyState.baseline)`,
 so it follows the normal form that an editor writes after it mounts).
 
-If a field differs, `PlutoContentBackupAlert` shows above the fields (color `info`, icon
-`lucide:life-buoy`):
+If a field differs, `PlutoContentBackupAlert` shows above the fields (color `warning`, icon
+`lucide:triangle-alert`):
 
 - Title "Unsaved changes found". Text "Changes from {time} were not saved." The text for a record from
   another device ("Changes from another device, from {time}, were not saved.") is in the locale
@@ -101,6 +101,11 @@ If a field differs, `PlutoContentBackupAlert` shows above the fields (color `inf
   places (the stored value is not the backup `base`) takes the backup value, and the alert named it
   before: "The item was saved again after that. These fields changed in both places: {fields}."
 - **Discard** removes the backup.
+- A **save while the offer is open** (the Save, Save draft, Publish and Unpublish buttons, and Ctrl+S) does
+  not save at once. A dialog asks "Discard the unsaved changes?" with Cancel (nothing happens),
+  Restore (runs Restore, no save) and "Save and discard" (removes the backup, then saves).
+  Escape and a click outside mean Cancel. If the save then fails, the backup is already gone: keep
+  it simple. With no offer open, a save works as before.
 - **Show changes** opens a slideover with `PlutoContentChanges` ("Saved" against "Backup"), the
   same diff as History, and the Restore and Discard buttons.
 

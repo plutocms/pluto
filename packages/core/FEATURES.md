@@ -69,8 +69,8 @@ policies shared by every project here.
   @.claude/skills/admin-view-chrome/SKILL.md
 - Content backup: the content form keeps the unsaved changes in `localStorage` (one entry for each
   user, type and item, written 1 s after the last change and when the page hides) and offers to
-  restore them when the item opens again: an alert with Restore, Discard and Show changes (a diff,
-  like History). A field changed in both places is named. Save, delete and "Leave without saving"
+  restore them when the item opens again: a warning alert with Restore, Discard and Show changes (a diff,
+  like History). A save while it is open asks first (Cancel, Restore, Save and discard). A field changed in both places is named. Save, delete and "Leave without saving"
   remove the backup, sign-out removes the backups of the user, and a backup expires after 14 days.
   `form.backup: false` opts a type out, and `onFlush` in the form context lets a widget write
   pending edits first. Same on every backend. @.claude/skills/content-backup/SKILL.md

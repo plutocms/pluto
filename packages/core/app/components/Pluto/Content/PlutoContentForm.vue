@@ -19,7 +19,7 @@ const props = defineProps<{
 
 const { byName } = usePlutoContentTypes()
 const contentType = computed(() => byName(props.type))
-const { t, tx, locale } = usePlutoI18n()
+const { t, tx, d, locale } = usePlutoI18n()
 const text = usePlutoContentText(contentType)
 const errorText = usePlutoErrorText()
 
@@ -323,6 +323,7 @@ function runFlush() {
 // The browser keeps the unsaved changes. The next visit offers them again. See
 // `usePlutoContentBackup` and the content-backup skill.
 const {
+  state: backupState,
   offer: backupOffer,
   changes: backupChanges,
   otherTab: backupOtherTab,
@@ -347,6 +348,36 @@ const {
   interact: () => tracker.interact(),
   flush: runFlush,
 })
+
+// A save while the recovery alert is open would delete the backup. A dialog asks first.
+const backupConfirmOpen = ref(false)
+let pendingSave: { statusOverride?: string } | null = null
+const backupTime = computed(() =>
+  backupOffer.value
+    ? d(backupOffer.value.record.savedAt, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : ''
+)
+
+function closeBackupConfirm() {
+  backupConfirmOpen.value = false
+  pendingSave = null
+}
+
+function restoreFromConfirm() {
+  closeBackupConfirm()
+  restoreBackup()
+}
+
+function saveAndDiscard() {
+  const save = pendingSave
+  closeBackupConfirm()
+  // Discard removes the backup. A save that fails after this has no backup to keep.
+  discardBackup()
+  onSave(save?.statusOverride)
+}
 
 // --- Leave guard ---------------------------------------------------------------
 //
@@ -403,7 +434,8 @@ useEventListener('keydown', (event: KeyboardEvent) => {
     !canSave.value ||
     saving.value ||
     leaveOpen.value ||
-    isDeleteModalOpen.value
+    isDeleteModalOpen.value ||
+    backupConfirmOpen.value
   ) {
     return
   }
@@ -414,6 +446,12 @@ useEventListener('keydown', (event: KeyboardEvent) => {
 async function onSave(statusOverride?: string) {
   const type = contentType.value
   if (!type || saving.value) {
+    return
+  }
+
+  if (backupState.value === 'offered') {
+    pendingSave = { statusOverride }
+    backupConfirmOpen.value = true
     return
   }
 
@@ -1209,6 +1247,47 @@ const asideTitle = computed(() =>
           @click="confirmDelete"
         >
           {{ t('pluto.common.remove') }}
+        </UButton>
+      </div>
+    </ModalFooter>
+  </Modal>
+
+  <!-- A save while the backup is offered. Closing it with Escape or a click outside means "Cancel". -->
+  <Modal
+    :model-value="backupConfirmOpen"
+    :custom-size="480"
+    @update:model-value="!$event && closeBackupConfirm()"
+  >
+    <ModalHeader @close="closeBackupConfirm">
+      {{ t('pluto.backup.confirmTitle') }}
+    </ModalHeader>
+
+    <ModalContent>
+      <p>{{ t('pluto.backup.confirmDescription', { time: backupTime }) }}</p>
+    </ModalContent>
+
+    <ModalFooter>
+      <div class="flex items-center gap-4">
+        <UButton
+          icon="lucide:x"
+          variant="ghost"
+          color="neutral"
+          @click="closeBackupConfirm"
+        >
+          {{ t('pluto.common.cancel') }}
+        </UButton>
+
+        <UButton
+          icon="lucide:rotate-ccw"
+          variant="outline"
+          color="neutral"
+          @click="restoreFromConfirm"
+        >
+          {{ t('pluto.backup.restore') }}
+        </UButton>
+
+        <UButton icon="lucide:trash-2" color="error" @click="saveAndDiscard">
+          {{ t('pluto.backup.saveAndDiscard') }}
         </UButton>
       </div>
     </ModalFooter>
