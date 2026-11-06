@@ -23,8 +23,11 @@ export function buildContentPayload(
   }
 
   const payload: Record<string, unknown> = {}
+  // `Object.keys` is tracked by a Vue reactive object, `Object.hasOwn` is not. A computed that
+  // calls this function must see a key that the item gets later (a new item starts empty).
+  const keys = new Set(Object.keys(item))
   for (const field of type.fields) {
-    if (Object.hasOwn(item, field.name)) {
+    if (keys.has(field.name)) {
       payload[field.name] = item[field.name]
     }
   }
