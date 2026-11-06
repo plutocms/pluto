@@ -38,6 +38,15 @@ function findTag(data: Record<string, unknown> | undefined):
 }
 
 /**
+ * The i18n key that a server `createPlutoError` put in an error, or
+ * `undefined`. It reads a `$fetch` error and an error that Nuxt creates on the
+ * client. Use it to tell two errors with the same status apart.
+ */
+export function errorKey(error: unknown): string | undefined {
+  return findTag(asRecord(asRecord(error)?.data))?.key
+}
+
+/**
  * Turns an error into text for an admin. Order:
  *
  * 1. The translated `data.i18n` of a server `createPlutoError`.

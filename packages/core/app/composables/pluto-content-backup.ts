@@ -12,10 +12,12 @@ import {
 } from './internal/content-backup-store'
 
 /**
- * The server copy of a backup. PR A of the content backup has none: `PlutoContentForm` passes no
- * server. A later version fills this slot. `key` is the item id as text, or '+new'.
+ * The server copy of a backup. `PlutoContentForm` passes no server yet. A later version fills this
+ * slot. `key` is the item id as text, or '+new'.
  */
 export interface PlutoBackupServer {
+  /** Sends the record now. The conflict flow calls it. */
+  write?: (key: string, record: PlutoContentBackup) => Promise<void>
   read: (key: string) => Promise<PlutoContentBackup | null>
   remove: (key: string) => Promise<void>
 }
@@ -60,10 +62,15 @@ export function usePlutoContentBackup(options: {
   interact: () => void
   /** Runs the `onFlush` callbacks of the widgets. */
   flush: () => void
+  /** Loads the stored item again (`refresh` of the item composable). It rejects on an error. */
+  reload: () => Promise<void>
+  /** Sets the dirty baseline to the form now, two times as a save does (now and after a tick). */
+  resetBaseline: () => Promise<void>
   server?: PlutoBackupServer
 }) {
   const { user } = usePlutoAuth()
   const { t } = usePlutoI18n()
+  const text = usePlutoContentText(options.type)
   const toast = useToast()
   const base = useRuntimeConfig().app.baseURL
   const userId = computed(() => user.value?.id)
@@ -72,6 +79,9 @@ export function usePlutoContentBackup(options: {
   const state = ref<PlutoBackupState>('idle')
   const offer = shallowRef<PlutoBackupOffer | null>(null)
   const otherTab = ref(false)
+  // A save failed with a 409: someone saved the item after the form loaded it.
+  const conflict = ref(false)
+  const merging = ref(false)
   // False until the form decided on the offer. Nothing writes before that.
   const checked = ref(false)
   const store = shallowRef<BackupStore | null>(null)
@@ -121,6 +131,7 @@ export function usePlutoContentBackup(options: {
       enabled.value &&
       checked.value &&
       state.value === 'idle' &&
+      !merging.value &&
       options.canSave.value &&
       !failed
     )
@@ -149,7 +160,8 @@ export function usePlutoContentBackup(options: {
     run: () => writeNow(),
   })
 
-  function writeNow() {
+  /** `force` also sends the server copy now (the conflict flow). */
+  function writeNow(force = false) {
     scheduler.cancel()
     if (!canWrite()) {
       return
@@ -191,6 +203,9 @@ export function usePlutoContentBackup(options: {
     const result = store.value!.write(key(), record)
     if (result === 'ok') {
       lastWritten = snapshot
+      if (force) {
+        options.server?.write?.(serverKey(), record).catch(() => {})
+      }
     } else if (result === 'quota') {
       failed = true
     } else if (import.meta.dev) {
@@ -216,7 +231,7 @@ export function usePlutoContentBackup(options: {
   })
 
   // A hidden page can be closed at once, so write now. A page that is shown again needs nothing.
-  useEventListener('pagehide', writeNow)
+  useEventListener('pagehide', () => writeNow())
   useEventListener(
     import.meta.client ? document : undefined,
     'visibilitychange',
@@ -369,6 +384,95 @@ export function usePlutoContentBackup(options: {
     })
   }
 
+  /**
+   * The save failed with a 409. Write the backup now, so the changes are safe, and show the
+   * conflict alert.
+   */
+  function onConflict() {
+    // The last write may be equal to the form: write again to send the server copy.
+    lastWritten = null
+    writeNow(true)
+    conflict.value = true
+  }
+
+  /**
+   * "Load the latest and keep my changes": load the stored item again, make it the baseline, and
+   * put the changes of the backup on top of it. There is no offer. If the load fails, the backup
+   * stays and the alert stays.
+   */
+  async function reloadAndMerge() {
+    if (!conflict.value || merging.value) {
+      return
+    }
+    // Write the unsaved changes first, then read them back. The record has the base values.
+    writeNow(true)
+    const stored = store.value?.read(key()) ?? null
+    const record = stored
+      ? parseBackup(stored, {
+          now: Date.now(),
+          ttlMs: PLUTO_BACKUP_TTL_MS,
+          fields: fields.value,
+        })
+      : null
+
+    merging.value = true
+    scheduler.cancel()
+    try {
+      try {
+        await options.reload()
+      } catch {
+        toast.add({
+          title: t('pluto.form.loadFailed'),
+          description: t('pluto.form.loadFailedHint'),
+          color: 'error',
+        })
+        return
+      }
+      // A widget can write its own normal form of the new value on the next tick.
+      await options.resetBaseline()
+
+      conflict.value = false
+      const plan = record
+        ? planRestore(
+            fields.value,
+            record,
+            parseValues(options.dirtyState.baseline)
+          )
+        : null
+      if (!record || !plan || Object.keys(plan.values).length === 0) {
+        // The stored item already has the values of the backup.
+        removeBoth()
+        lastWritten = null
+        toast.add({
+          title: t('pluto.backup.conflict.merged'),
+          color: 'success',
+          icon: 'lucide:git-merge',
+        })
+        return
+      }
+      options.interact()
+      options.item.value = { ...options.item.value, ...plan.values }
+      const both = fields.value
+        .filter((field) => plan.conflicts.includes(field.name))
+        .map((field) => text.fieldLabel(field))
+      toast.add({
+        title: t('pluto.backup.conflict.merged'),
+        description:
+          both.length > 0
+            ? t('pluto.backup.conflicts', { fields: both.join(', ') })
+            : t('pluto.backup.conflict.mergedHint'),
+        color: both.length > 0 ? 'warning' : 'success',
+        icon: 'lucide:git-merge',
+      })
+    } finally {
+      merging.value = false
+      if (state.value === 'idle' && options.dirty.value) {
+        lastChangeAt = Date.now()
+        scheduler.schedule()
+      }
+    }
+  }
+
   /** Removes the backup. */
   function discard() {
     removeBoth()
@@ -382,6 +486,7 @@ export function usePlutoContentBackup(options: {
     removeBoth()
     lastWritten = null
     offer.value = null
+    conflict.value = false
     if (!options.editing.value || String(savedId) !== String(options.id())) {
       // The form navigates now (a new item, or an id change).
       state.value = 'stopped'
@@ -401,6 +506,7 @@ export function usePlutoContentBackup(options: {
     scheduler.cancel()
     removeBoth()
     offer.value = null
+    conflict.value = false
     state.value = 'stopped'
   }
 
@@ -428,6 +534,12 @@ export function usePlutoContentBackup(options: {
     /** The changes that a restore makes, for the "Show changes" view. */
     changes,
     otherTab,
+    /** A save failed with a 409 and the conflict alert shows. */
+    conflict,
+    /** The conflict button is loading the latest version. */
+    merging,
+    onConflict,
+    reloadAndMerge,
     restore,
     discard,
     onSaved,

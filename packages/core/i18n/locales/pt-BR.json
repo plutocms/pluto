@@ -145,7 +145,14 @@
       "backup": "Backup",
       "restored": "Alterações restauradas",
       "restoredHint": "Confira e depois salve.",
-      "otherTab": "Este item tem alterações não salvas em outra aba. Vale a aba que salvar por último."
+      "otherTab": "Este item tem alterações não salvas em outra aba. Vale a aba que salvar por último.",
+      "conflict": {
+        "title": "Alguém salvou este item depois que você o abriu",
+        "description": "Suas alterações estão seguras.",
+        "reload": "Carregar a versão mais recente e manter minhas alterações",
+        "merged": "Versão mais recente carregada",
+        "mergedHint": "Suas alterações estão por cima dela. Confira e depois salve."
+      }
     },
     "canvas": {
       "page": "Página",

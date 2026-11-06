@@ -113,6 +113,29 @@ A second alert (warning, closable) shows when another tab wrote the backup of th
 `storage` event with another `tab`): "This item has unsaved changes in another tab. The tab that
 saves last wins." There is no lock.
 
+## The 409 conflict
+
+An adapter with a `_version` token (the Git CMS) answers a save of a stale item with a 409 and the
+key `pluto.errors.conflict`. `errorKey(error)` (`internal/error-text.ts`, for a `$fetch` error and a
+Nuxt error) tells it from a taken slug (`pluto.github.errors.slugTaken`), which keeps its error
+toast. On the conflict key the form calls `onConflict()` of `usePlutoContentBackup`:
+
+- It writes the browser backup now (and calls `server.write`, when the slot has one), and sets
+  `conflict`. A warning `UAlert` shows above the fields instead of the toast: "Someone saved this
+  item after you opened it. Your changes are safe." with the button "Load the latest and keep my
+  changes".
+- The button runs `reloadAndMerge()`: it writes and reads the backup record, calls `refresh()`
+  (the `reload` option), resets the dirty baseline two times as a save does (the `resetBaseline`
+  option: now and after `nextTick`), runs `planRestore` at once (no offer), calls
+  `tracker.interact()` and puts the backup values on the new item. A toast lists the fields that
+  changed in both places (the backup wins there). It then clears `conflict`, and the form resets
+  the "Save failed" status. The next save carries the new `_version`.
+- While it merges, writes pause (`merging`), so the reset baseline cannot remove the backup.
+- If the refresh fails, the backup stays, the toast "Could not load this item" shows, and the
+  conflict alert stays.
+- A save that works, "Leave without saving" and a delete clear `conflict`.
+- Supabase returns no `_version`, so this flow never shows there.
+
 ## Save, delete, leave
 
 - A save that worked removes the backup of the item (and the `+new` key of a new item). A rename
@@ -154,7 +177,6 @@ and uses `pickBackup` and `keepaliveBody`. The key of the server copy is the ite
 
 ## Known limits
 
-- The 409 conflict flow ("Load the latest and keep my changes") is not here yet.
 - A widget that holds edits outside its `modelValue` must register `onFlush`
   (`usePlutoContentForm()?.onFlush(...)`). The core widgets need nothing.
 - Edits made while the offer shows are not backed up. The leave guard still protects them.

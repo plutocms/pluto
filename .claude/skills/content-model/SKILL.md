@@ -705,7 +705,11 @@ optimistic-concurrency token.
   request body, unchanged. The Supabase adapter never returns it, so nothing changes there.
 - An adapter that uses the token compares it with the stored one on update. When they differ,
   it throws `createPlutoError({ statusCode: 409, key: 'pluto.errors.conflict', ... })`. The
-  form then shows the translated text "This item changed since you opened it."
+  form tells this 409 from a taken slug (`pluto.github.errors.slugTaken`) with `errorKey(error)`
+  (`internal/error-text.ts`). On the conflict key it writes the backup now and shows a warning
+  alert, "Someone saved this item after you opened it. Your changes are safe.", with the button
+  "Load the latest and keep my changes" (see the [content backup](../content-backup/SKILL.md)). Any
+  other 409 keeps the error toast.
 - An adapter that does not use the token ignores the key.
 - Do not declare a field named `_version`.
 

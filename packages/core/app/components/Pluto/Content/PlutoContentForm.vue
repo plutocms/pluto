@@ -9,6 +9,7 @@ import {
   savedAgo,
 } from '../../../composables/internal/content-dirty'
 import { buildContentPayload } from '../../../composables/internal/content-payload'
+import { errorKey } from '../../../composables/internal/error-text'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -327,6 +328,10 @@ const {
   offer: backupOffer,
   changes: backupChanges,
   otherTab: backupOtherTab,
+  conflict: backupConflict,
+  merging: backupMerging,
+  onConflict: backupOnConflict,
+  reloadAndMerge: reloadBackupConflict,
   restore: restoreBackup,
   discard: discardBackup,
   onSaved: backupSaved,
@@ -347,6 +352,20 @@ const {
   slugTouched,
   interact: () => tracker.interact(),
   flush: runFlush,
+  reload: refresh,
+  // Same as a save: a widget can write its own normal form of the new value on the next tick.
+  resetBaseline: async () => {
+    tracker.reset(snapshot.value)
+    await nextTick()
+    tracker.reset(snapshot.value)
+  },
+})
+
+// The conflict is solved (the latest version is loaded): the "Save failed" status has no meaning.
+watch(backupConflict, (value) => {
+  if (!value && saveStatus.value === 'failed') {
+    saveStatus.value = 'idle'
+  }
 })
 
 // A save while the recovery alert is open would delete the backup. A dialog asks first.
@@ -526,11 +545,17 @@ async function onSave(statusOverride?: string) {
     // (a 403 included), surfaces here rather than as an unhandled
     // rejection.
     saveStatus.value = 'failed'
-    toast.add({
-      title: t('pluto.common.error'),
-      description: errorText(error, 'pluto.form.saveError'),
-      color: 'error',
-    })
+    if (errorKey(error) === 'pluto.errors.conflict') {
+      // Someone saved the item after this form loaded it. The alert replaces the toast. A taken
+      // slug is also a 409, with another key: it keeps the toast.
+      backupOnConflict()
+    } else {
+      toast.add({
+        title: t('pluto.common.error'),
+        description: errorText(error, 'pluto.form.saveError'),
+        color: 'error',
+      })
+    }
   } finally {
     saving.value = false
   }
@@ -1018,6 +1043,30 @@ const asideTitle = computed(() =>
       @restore="restoreBackup"
       @discard="discardBackup"
     />
+
+    <div v-if="backupConflict" :class="isCanvas ? 'shrink-0 p-4' : undefined">
+      <UAlert
+        :title="t('pluto.backup.conflict.title')"
+        color="warning"
+        variant="subtle"
+        icon="lucide:triangle-alert"
+        role="alert"
+      >
+        <template #description>
+          <p>{{ t('pluto.backup.conflict.description') }}</p>
+          <div class="mt-3">
+            <UButton
+              :label="t('pluto.backup.conflict.reload')"
+              :loading="backupMerging"
+              icon="lucide:git-merge"
+              size="xs"
+              color="warning"
+              @click="reloadBackupConflict"
+            />
+          </div>
+        </template>
+      </UAlert>
+    </div>
 
     <div v-if="backupOtherTab" :class="isCanvas ? 'shrink-0 p-4' : undefined">
       <UAlert
