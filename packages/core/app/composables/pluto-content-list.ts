@@ -124,13 +124,10 @@ export function usePlutoContentList(
   // `refresh()` again later still gets a real rejection to `await`.
   refresh().catch(() => {})
 
+  // A failed delete rejects and leaves `error` alone: `error` is about loading
+  // the list, and the caller shows its own message for the delete.
   async function remove(id: string | number): Promise<void> {
-    try {
-      await $fetch(`${url}/${id}`, { method: 'DELETE' })
-    } catch (caught) {
-      error.value = caught
-      throw caught
-    }
+    await $fetch(`${url}/${id}`, { method: 'DELETE' })
 
     if (pageSize === undefined) {
       await refresh()
