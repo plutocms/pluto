@@ -217,6 +217,8 @@ form?: {
   asideCollapsed?: boolean
   /** Drop the max-width container in the main region. Default false, or true when layout is 'focus'. */
   width?: 'container' | 'full'
+  /** Keep a backup of the unsaved changes in the browser. Default true. */
+  backup?: boolean
 }
 ```
 
@@ -271,6 +273,15 @@ While the form is dirty:
 
 The form skips the guard for its own navigation (after a create, an id change, and a delete).
 
+A new item starts as an empty object. `buildContentPayload` reads the keys with `Object.keys`, which
+a Vue computed tracks, and not with `Object.hasOwn`, which it does not. So a field that the item
+gets later (the first keystroke in a new item) changes the snapshot.
+
+**Backup.** The form also keeps the unsaved changes in `localStorage` and offers them again on the
+next visit (`usePlutoContentBackup`, `PlutoContentBackupAlert` above the fields, `form.backup` to
+opt out). "Leave without saving" removes the backup. See the
+[content backup](../content-backup/SKILL.md) skill.
+
 **Ctrl+S** (Cmd+S on macOS) saves like the Save button (not Publish) and stops the browser's save
 dialog. It does nothing while a save runs, while a dialog is open, or when the user cannot write.
 
@@ -293,6 +304,7 @@ form?.onSaved((saved) => refetchMedia(saved.id)) // after each save that worked
 | `saving`, `dirty`         | a save runs, the item has unsaved changes                                                                                                                                                       |
 | `errorsByField`           | the validation message of each field that failed the last save                                                                                                                                  |
 | `layout`, `canvas`        | the layout, and true for 'canvas'                                                                                                                                                               |
+| `onFlush(callback)`       | runs synchronously before a save builds its payload, and before each backup write (also when the page hides). A widget that holds edits outside `modelValue` (an editor with a debounce) writes them to the model there. Returns a stop function. |
 | `onSaved(callback)`       | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope.                                                                            |
 | `openPanel(id)`           | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only)                                                                                                                      |
 | `panelToggles`            | `{ left, right }`: true while that panel is closed and its open button floats at the top of that side (desktop). A canvas widget keeps the corner free (the post editor adds `ps-12` / `pe-12`) |

@@ -149,7 +149,10 @@ describe('the store: read and write', () => {
     const storage = new FakeStorage()
     const store = make(storage)
     storage.data.set(key('post', 'a'), '{not json')
-    storage.data.set(key('post', 'b'), JSON.stringify(record({ savedAt: NOW - 15 * DAY })))
+    storage.data.set(
+      key('post', 'b'),
+      JSON.stringify(record({ savedAt: NOW - 15 * DAY }))
+    )
     expect(store.read(key('post', 'a'))).toBeNull()
     expect(store.read(key('post', 'b'))).toBeNull()
     expect(storage.data.size).toBe(0)
@@ -215,7 +218,10 @@ describe('the store: limits', () => {
   it('prunes the expired backups of the user', () => {
     const storage = new FakeStorage()
     const store = make(storage)
-    storage.data.set(key('post', 'old'), JSON.stringify(record({ savedAt: NOW - 20 * DAY })))
+    storage.data.set(
+      key('post', 'old'),
+      JSON.stringify(record({ savedAt: NOW - 20 * DAY }))
+    )
     storage.data.set(key('post', 'bad'), 'nope')
     store.write(key('post', 'fresh'), record())
     store.prune('/', 'u1')
@@ -225,8 +231,14 @@ describe('the store: limits', () => {
   it('prunes a user over the count limit', () => {
     const storage = new FakeStorage()
     const store = make(storage, { maxCount: 1 })
-    storage.data.set(key('post', 'a'), JSON.stringify(record({ savedAt: NOW - 2000 })))
-    storage.data.set(key('post', 'b'), JSON.stringify(record({ savedAt: NOW - 1000 })))
+    storage.data.set(
+      key('post', 'a'),
+      JSON.stringify(record({ savedAt: NOW - 2000 }))
+    )
+    storage.data.set(
+      key('post', 'b'),
+      JSON.stringify(record({ savedAt: NOW - 1000 }))
+    )
     store.prune('/', 'u1')
     expect([...storage.data.keys()]).toEqual([key('post', 'b')])
   })

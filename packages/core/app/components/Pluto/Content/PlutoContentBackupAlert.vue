@@ -44,83 +44,85 @@ function restore() {
 </script>
 
 <template>
-  <UAlert
-    :title="t('pluto.backup.title')"
-    :class="canvas ? 'm-4 shrink-0' : undefined"
-    color="info"
-    variant="subtle"
-    icon="lucide:life-buoy"
-    role="status"
-  >
-    <template #description>
-      <p>{{ description }}</p>
-      <p v-if="offer.conflicts.length > 0" class="mt-1">
-        {{ t('pluto.backup.conflicts', { fields: conflicts }) }}
-      </p>
-      <div class="mt-3 flex flex-wrap items-center gap-2">
-        <UButton
-          :label="t('pluto.backup.restore')"
-          icon="lucide:rotate-ccw"
-          size="xs"
-          color="info"
-          @click="restore"
-        />
-        <UButton
-          :label="t('pluto.backup.discard')"
-          icon="lucide:trash-2"
-          size="xs"
-          color="neutral"
-          variant="outline"
-          @click="emit('discard')"
-        />
-        <UButton
-          :label="t('pluto.backup.showChanges')"
-          icon="lucide:file-diff"
-          size="xs"
-          color="neutral"
-          variant="ghost"
-          @click="open = true"
-        />
-      </div>
-    </template>
-  </UAlert>
-
-  <USlideover
-    v-model:open="open"
-    :title="t('pluto.backup.changesTitle')"
-    :description="description"
-    :ui="{ content: 'sm:max-w-3xl' }"
-    side="right"
-  >
-    <template #body>
-      <div class="flex flex-col gap-5">
-        <p class="text-muted text-xs">
-          {{ t('pluto.backup.changesHint') }}
+  <!-- A div, because the alert is `w-full`: a margin on it would push it out of the canvas. -->
+  <div :class="canvas ? 'shrink-0 p-4' : undefined">
+    <UAlert
+      :title="t('pluto.backup.title')"
+      color="info"
+      variant="subtle"
+      icon="lucide:life-buoy"
+      role="status"
+    >
+      <template #description>
+        <p>{{ description }}</p>
+        <p v-if="offer.conflicts.length > 0" class="mt-1">
+          {{ t('pluto.backup.conflicts', { fields: conflicts }) }}
         </p>
-        <PlutoContentChanges
-          :type="type"
-          :changes="changes"
-          :before-label="t('pluto.backup.saved')"
-          :after-label="t('pluto.backup.backup')"
-        />
-      </div>
-    </template>
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <UButton
+            :label="t('pluto.backup.restore')"
+            icon="lucide:rotate-ccw"
+            size="xs"
+            color="info"
+            @click="restore"
+          />
+          <UButton
+            :label="t('pluto.backup.discard')"
+            icon="lucide:trash-2"
+            size="xs"
+            color="neutral"
+            variant="outline"
+            @click="emit('discard')"
+          />
+          <UButton
+            :label="t('pluto.backup.showChanges')"
+            icon="lucide:file-diff"
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            @click="open = true"
+          />
+        </div>
+      </template>
+    </UAlert>
 
-    <template #footer>
-      <div class="flex w-full justify-end gap-2">
-        <UButton
-          :label="t('pluto.backup.discard')"
-          icon="lucide:trash-2"
-          color="neutral"
-          variant="outline"
-          @click="emit('discard')"
-        />
-        <UButton
-          :label="t('pluto.backup.restore')"
-          icon="lucide:rotate-ccw"
-          @click="restore"
-        />
-      </div>
-    </template>
-  </USlideover>
+    <USlideover
+      v-model:open="open"
+      :title="t('pluto.backup.changesTitle')"
+      :description="description"
+      :ui="{ content: 'sm:max-w-3xl' }"
+      side="right"
+    >
+      <template #body>
+        <div class="flex flex-col gap-5">
+          <p class="text-muted text-xs">
+            {{ t('pluto.backup.changesHint') }}
+          </p>
+          <PlutoContentChanges
+            :type="type"
+            :changes="changes"
+            :before-label="t('pluto.backup.saved')"
+            :after-label="t('pluto.backup.backup')"
+          />
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton
+            :label="t('pluto.backup.discard')"
+            icon="lucide:trash-2"
+            color="neutral"
+            variant="outline"
+            @click="emit('discard')"
+          />
+          <UButton
+            :label="t('pluto.backup.restore')"
+            icon="lucide:rotate-ccw"
+            @click="restore"
+          />
+        </div>
+      </template>
+    </USlideover>
+  </div>
 </template>

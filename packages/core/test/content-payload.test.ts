@@ -1,6 +1,6 @@
 import type { PlutoContentType } from '../shared/types/content'
-import { computed, reactive } from 'vue'
 import { describe, expect, it } from 'vitest'
+import { computed, reactive } from 'vue'
 import { buildContentPayload } from '../app/composables/internal/content-payload'
 
 const type: PlutoContentType = {

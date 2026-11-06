@@ -67,6 +67,13 @@ policies shared by every project here.
   from `previewUrl`), a form context for widgets (`usePlutoContentForm`), and a `canvas` layout with a left
   panel, a right panel with tabs, and `PlutoContentCanvasPanel`.
   @.claude/skills/admin-view-chrome/SKILL.md
+- Content backup: the content form keeps the unsaved changes in `localStorage` (one entry for each
+  user, type and item, written 1 s after the last change and when the page hides) and offers to
+  restore them when the item opens again: an alert with Restore, Discard and Show changes (a diff,
+  like History). A field changed in both places is named. Save, delete and "Leave without saving"
+  remove the backup, sign-out removes the backups of the user, and a backup expires after 14 days.
+  `form.backup: false` opts a type out, and `onFlush` in the form context lets a widget write
+  pending edits first. Same on every backend. @.claude/skills/content-backup/SKILL.md
 - Command palette: Cmd/Ctrl+K and a sidebar search button open a `UDashboardSearch` with
   "New <type>" commands for writable content types, every admin nav destination, and theme
   commands. @.claude/skills/command-palette/SKILL.md

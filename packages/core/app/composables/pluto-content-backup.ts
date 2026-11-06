@@ -217,11 +217,15 @@ export function usePlutoContentBackup(options: {
 
   // A hidden page can be closed at once, so write now. A page that is shown again needs nothing.
   useEventListener('pagehide', writeNow)
-  useEventListener(import.meta.client ? document : undefined, 'visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      writeNow()
+  useEventListener(
+    import.meta.client ? document : undefined,
+    'visibilitychange',
+    () => {
+      if (document.visibilityState === 'hidden') {
+        writeNow()
+      }
     }
-  })
+  )
 
   // Another tab wrote the backup of this item.
   useEventListener('storage', (event: StorageEvent) => {
@@ -287,7 +291,9 @@ export function usePlutoContentBackup(options: {
     }
     const pick = pickBackup(
       local,
-      server ? parseBackup(server, { ...parseOptions, fields: fields.value }) : null,
+      server
+        ? parseBackup(server, { ...parseOptions, fields: fields.value })
+        : null,
       device
     )
     if (pick) {
@@ -334,11 +340,7 @@ export function usePlutoContentBackup(options: {
       })
     }
     watch(
-      [
-        enabled,
-        options.ready,
-        () => options.dirtyState.baseline !== null,
-      ],
+      [enabled, options.ready, () => options.dirtyState.baseline !== null],
       check,
       { immediate: true }
     )
@@ -380,10 +382,7 @@ export function usePlutoContentBackup(options: {
     removeBoth()
     lastWritten = null
     offer.value = null
-    if (
-      !options.editing.value ||
-      String(savedId) !== String(options.id())
-    ) {
+    if (!options.editing.value || String(savedId) !== String(options.id())) {
       // The form navigates now (a new item, or an id change).
       state.value = 'stopped'
     } else if (state.value === 'offered') {

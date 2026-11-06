@@ -981,16 +981,16 @@ const asideTitle = computed(() =>
       @discard="discardBackup"
     />
 
-    <UAlert
-      v-if="backupOtherTab"
-      :title="t('pluto.backup.otherTab')"
-      :class="isCanvas ? 'm-4 shrink-0' : undefined"
-      color="warning"
-      variant="subtle"
-      icon="lucide:copy"
-      close
-      @update:open="backupOtherTab = false"
-    />
+    <div v-if="backupOtherTab" :class="isCanvas ? 'shrink-0 p-4' : undefined">
+      <UAlert
+        :title="t('pluto.backup.otherTab')"
+        color="warning"
+        variant="subtle"
+        icon="lucide:copy"
+        close
+        @update:open="backupOtherTab = false"
+      />
+    </div>
 
     <UAlert
       v-if="validationErrors.length > 0"

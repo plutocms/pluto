@@ -179,8 +179,7 @@ export function createBackupStore(
   function ofScopeOf(key: string): (other: string) => boolean {
     const parts = parseKey(key)
     return (other) =>
-      parts !== null &&
-      isBackupKeyOf(other, String(parts[0]), String(parts[1]))
+      parts !== null && isBackupKeyOf(other, String(parts[0]), String(parts[1]))
   }
 
   function trySet(key: string, text: string): boolean {
