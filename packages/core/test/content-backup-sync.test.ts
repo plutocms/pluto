@@ -55,8 +55,19 @@ describe('createBackupSync', () => {
     const stored = record('b')
     const { sync } = setup(() => ({ supported: true, backup: stored }))
 
-    expect(await sync.read('a')).toEqual(stored)
+    expect(await sync.read('a')).toEqual({ record: stored })
     expect(sync.supported).toBe(true)
+  })
+
+  it('tells a server with no copy from no answer', async () => {
+    expect(
+      await setup(() => ({ supported: true, backup: null })).sync.read('a')
+    ).toEqual({ record: null })
+    expect(
+      await setup(() => {
+        throw new Error('offline')
+      }).sync.read('a')
+    ).toBeNull()
   })
 
   it('sends nothing after a GET answers supported: false', async () => {

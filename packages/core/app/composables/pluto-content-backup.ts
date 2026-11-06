@@ -2,6 +2,7 @@ import type { ComputedRef, Ref } from 'vue'
 import type { PlutoContentType, PlutoField } from '../../shared/types/content'
 import type { PlutoContentBackup } from '../../shared/utils/content-backup'
 import type { BackupStore } from './internal/content-backup-store'
+import type { BackupRead } from './internal/content-backup-sync'
 import type { DirtyState } from './internal/content-dirty'
 import {
   backupKey,
@@ -22,7 +23,8 @@ export interface PlutoBackupServer {
     key: string,
     record: PlutoContentBackup
   ) => Promise<{ otherDevice: boolean }>
-  read: (key: string) => Promise<PlutoContentBackup | null>
+  /** `{ record }` (`null`: no copy) when the server answered. `null` when it gave no answer. */
+  read: (key: string) => Promise<BackupRead>
   remove: (key: string) => Promise<void>
   /** Sends `body` (the JSON of `record`) in a `keepalive` request, for a page that closes. */
   keepalive?: (key: string, record: PlutoContentBackup, body: string) => void
@@ -370,7 +372,8 @@ export function usePlutoContentBackup(options: {
 
   // --- Offer --------------------------------------------------------------------
 
-  async function readServer(): Promise<PlutoContentBackup | null> {
+  /** The answer of the server, or `null` when it gave none within `SERVER_WAIT_MS`. */
+  async function readServer(): Promise<BackupRead> {
     if (!options.server) {
       return null
     }
@@ -406,17 +409,14 @@ export function usePlutoContentBackup(options: {
     const local = stored
       ? parseBackup(stored, { ...parseOptions, fields: fields.value })
       : null
-    const server = await readServer()
+    const answer = await readServer()
     if (disposed) {
       return
     }
-    const pick = pickBackup(
-      local,
-      server
-        ? parseBackup(server, { ...parseOptions, fields: fields.value })
-        : null,
-      device
-    )
+    const server = answer?.record
+      ? parseBackup(answer.record, { ...parseOptions, fields: fields.value })
+      : null
+    const pick = pickBackup(local, server, device)
     if (pick) {
       const plan = planRestore(
         fields.value,
@@ -433,6 +433,13 @@ export function usePlutoContentBackup(options: {
           otherDevice: pick.otherDevice,
         }
         state.value = 'offered'
+        // The form writes nothing while it offers a backup. A browser backup that the server does
+        // not have (written before the server kept copies, or while it was down) goes there now,
+        // so another device can offer it too. With no answer, nothing goes: a failed read must
+        // not replace a newer copy of another device.
+        if (answer && needsServerCopy(pick, server)) {
+          sendToServer(pick.record)
+        }
       } else {
         // The backup holds nothing new: the item already has these values.
         removeBoth()

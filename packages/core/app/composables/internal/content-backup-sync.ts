@@ -11,6 +11,9 @@ export interface BackupAnswer {
   otherDevice?: boolean
 }
 
+/** The answer of a GET. `null` when the server gave none (see `read` of `createBackupSync`). */
+export type BackupRead = { record: PlutoContentBackup | null } | null
+
 export type BackupRequest = (
   method: 'GET' | 'PUT' | 'DELETE',
   key: string,
@@ -108,8 +111,12 @@ export function createBackupSync(options: {
     get halted() {
       return halted
     },
-    /** The record of the server, or `null`. */
-    async read(key: string): Promise<PlutoContentBackup | null> {
+    /**
+     * The answer of the server: `{ record }`, where `record` is `null` when the server has no
+     * copy. `null` when there is no answer: the server keeps no copies, the page view stopped, or
+     * the request failed.
+     */
+    async read(key: string): Promise<BackupRead> {
       if (!usable()) {
         return null
       }
@@ -120,7 +127,7 @@ export function createBackupSync(options: {
           return null
         }
         supported = true
-        return answer.backup ?? null
+        return { record: answer.backup ?? null }
       } catch (error) {
         fail(error)
         return null
