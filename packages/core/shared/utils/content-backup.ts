@@ -193,6 +193,21 @@ export function pickBackup(
 }
 
 /**
+ * True when the browser record of `pick` must go to the server: the server has no copy, or an
+ * older one. A browser backup written before the server kept copies (or while the server was
+ * down) then reaches the other devices too. Call it only when the server answered. Pure.
+ */
+export function needsServerCopy(
+  pick: PlutoBackupPick,
+  server: PlutoContentBackup | null
+): boolean {
+  return (
+    pick.source === 'local' &&
+    (server === null || pick.record.savedAt > server.savedAt)
+  )
+}
+
+/**
  * The JSON text of a record for a `keepalive` request, or `null` when the text is larger than
  * `maxBytes` (counted in UTF-8 bytes). Pure.
  */

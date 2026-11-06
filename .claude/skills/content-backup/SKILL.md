@@ -44,7 +44,7 @@ except the status field (`backupFields`). Virtual fields and the slug are in. Th
 
 - `shared/utils/content-backup.ts` (pure, no Nuxt imports): the record type, `backupFields`,
   `backupChanges`, `parseBackup`, `planRestore`, `pickBackup`, `keepaliveBody`, and the limits
-  (`PLUTO_BACKUP_*`). `pickBackup` and `keepaliveBody` serve the server copy.
+  (`PLUTO_BACKUP_*`). `pickBackup`, `needsServerCopy` and `keepaliveBody` serve the server copy.
 - `shared/utils/stable-stringify.ts`: `stableStringify`, moved out of `content-dirty.ts`. A module
   of `app/composables/internal` cannot import a runtime value from `shared/` (a layer build cannot
   resolve it, pluto#433). Use it by auto-import, or pass it in.
@@ -184,7 +184,13 @@ user, type and item. It gives recovery on another device. The record is the same
 
 - **Open.** The form reads the browser backup, then `GET /api/_pluto/content-backup/<type>?id=<id>` (3 s at
   most). `pickBackup` takes the newer `savedAt`, and a tie goes to the browser. A GET that fails gives the
-  browser backup only. A record with another `device` shows the "another device" text.
+  browser backup only. A record with another `device` shows the "another device" text. `read` gives
+  `{ record }` when the server answered (`record` is `null` for no copy), and `null` for no answer.
+- **Send an offered browser backup.** The form writes nothing while it offers a backup. So when the form
+  offers its browser backup and the server answered with no copy or an older one (`needsServerCopy`), the
+  form sends that record at once. A browser backup from before the server kept copies, or from a time
+  when the server was down, then reaches the other devices. With no answer, nothing goes: a failed read
+  must not replace a newer copy of another device.
 - **Not supported.** The Git CMS has no `backups`. The GET answers `{ supported: false }`, and then this page
   view sends no PUT and no DELETE.
 - **Write.** 10 s after the last change, 30 s at most (`createBackupScheduler`). No write while

@@ -5,6 +5,7 @@ import {
   backupChanges,
   backupFields,
   keepaliveBody,
+  needsServerCopy,
   parseBackup,
   pickBackup,
   planRestore,
@@ -261,5 +262,28 @@ describe('keepaliveBody', () => {
     expect(bytes).toBeGreaterThan(text.length)
     expect(keepaliveBody(wide, text.length)).toBeNull()
     expect(keepaliveBody(wide, bytes)).toBe(text)
+  })
+})
+
+describe('needsServerCopy', () => {
+  const older = record({ savedAt: 1000, device: 'device-a' })
+  const newer = record({ savedAt: 2000, device: 'device-a' })
+
+  it('sends a browser record that the server does not have', () => {
+    expect(needsServerCopy(pickBackup(newer, null, 'device-a')!, null)).toBe(
+      true
+    )
+    expect(needsServerCopy(pickBackup(newer, older, 'device-a')!, older)).toBe(
+      true
+    )
+  })
+
+  it('sends nothing for an equal time or a server record', () => {
+    expect(needsServerCopy(pickBackup(newer, newer, 'device-a')!, newer)).toBe(
+      false
+    )
+    expect(needsServerCopy(pickBackup(older, newer, 'device-a')!, newer)).toBe(
+      false
+    )
   })
 })
