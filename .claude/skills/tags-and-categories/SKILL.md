@@ -5,9 +5,8 @@ many-to-many `reference` field and the pieces around it: validation, the public 
 the Git CMS term types. A term page is the public API with a filter. The plan is
 `.claude/plan/tags-and-categories.md` of the workspace.
 
-This skill covers the data path (core, pull request A). The admin widget, the list cell and the
-preview page are a later part of the same feature (pull request B). The Supabase tables are in the
-`@plutocms/supabase-blog` repo.
+This skill covers the data path and the admin UI of core: the widget, the list cell and the preview
+page. The Supabase tables are in the `@plutocms/supabase-blog` repo.
 
 It builds on the [content model](../content-model/SKILL.md) and the [Git CMS](../git-cms/SKILL.md).
 
@@ -87,6 +86,29 @@ on the client (`pluto-github.ts`).
   changes while the commit runs gives 409.
 - **Empty list.** An empty list leaves the frontmatter (the key is removed), for every field.
 
+## The admin UI
+
+- **`usePlutoReferenceOptions(target)`** (`app/composables/pluto-reference-options.ts`; pure parts in
+  `internal/reference-options.ts`, tested in `test/reference-options.test.ts`). Returns
+  `{ options, byId, pending, error, refresh, ensure, create }`. It reads the items of the target
+  from the generic admin route (`limit=1000`) and shares them by target in `useState`, with one
+  request in flight per target. `ensure()` reads unless the last read is under 10 seconds old.
+  `create(title)` returns an option with the same label or slug with no request, else POSTs
+  `{ <titleField>: title, <slugField>: slugifyTitle(title) }`; on 409 it reads again and returns the
+  match.
+- **`PlutoFieldReference.vue`**. A `UInputMenu` with `value-key`; `multiple` gives chips and a list
+  value, else one id. A `target` field reads `usePlutoReferenceOptions`; an `optionsUrl` field reads
+  its URL (both support `multiple`). An id with no option shows the id as its text. The "Create
+  “…”" entry shows only when the field has `create` and the user has the write capability of the
+  target type (`terms:manage` for the term types). A failed create shows a toast.
+- **`PlutoContentReferenceCell.vue`**. In the list table and the mobile card, a `target` reference
+  shows up to three badges (the labels, in the order of the stored ids), then "+N".
+- **Preview.** `post-preview.vue` reads each target of `previewReferenceTargets(type)` and passes the
+  map to `toPreviewItem`. The default `PlutoPostPreview` shows the references as chips under the
+  body. An app preview component reads `item.tags` and `item.categories` as `PlutoPublicReference[]`.
+- **i18n.** `pluto.fields.reference.{create,createFailed,placeholder,empty}`, and the convention keys
+  `content.tag`, `content.category` and `content.post.fields.{tags,categories}.label`.
+
 ## Site composables
 
 `useTags`, `useTag`, `useCategories`, `useCategory` (`app/composables/pluto-site-content.ts`,
@@ -104,19 +126,21 @@ const { posts } = await usePosts({ filter: { tags: tag.value.slug } })
 the `target` references of a form item like the public API. `references` is a map from the
 target type name to a map from id to `PlutoPublicReference`. `previewReferenceTargets(type)` gives
 the target names and `previewReferenceIds(type, item, target)` the ids to load. The preview
-page uses them in the admin part of this feature.
+page uses the targets (see "The admin UI").
 
 ## Limits
 
 - No hierarchy of categories. A category is flat.
 - A rename in the Git CMS reads every file of each referencing type: on a large blog it writes many
   files in one commit.
-- The admin widget loads up to 1000 terms (admin part).
+- The admin widget loads up to 1000 terms. A longer list needs a server search.
 
 ## Files and tests
 
-Core: `shared/utils/content-reference.ts`, `server/utils/pluto-reference-public.ts`,
+Core: `app/components/Pluto/Content/fields/PlutoFieldReference.vue`,
+`app/components/Pluto/Content/PlutoContentReferenceCell.vue`, `app/composables/pluto-reference-options.ts`,
+`shared/utils/content-reference.ts`, `server/utils/pluto-reference-public.ts`,
 `modules/pluto-github/runtime/shared/term-types.ts`, `modules/pluto-github/runtime/server/adapter.ts`.
-Tests: `test/content-reference.test.ts`, `content-validate`, `content-define`, `public-index`,
+Tests: `test/reference-options.test.ts`, `test/content-reference.test.ts`, `content-validate`, `content-define`, `public-index`,
 `reference-public`, `github-references`, `github-wiring`, `github-push-capabilities`,
 `content-preview` and `site-content-composables`.

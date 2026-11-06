@@ -29,6 +29,21 @@ const date = computed(() => {
     ? parsed.toLocaleDateString(undefined, { dateStyle: 'long' })
     : ''
 })
+
+// The reference fields to a content type (tags, categories) show as chips, in field order.
+const references = computed(() =>
+  (byName(props.contentType)?.fields ?? [])
+    .filter(isTargetReference)
+    .map((field) => {
+      const value = props.item[field.name]
+      const list = (Array.isArray(value) ? value : [value]).filter(
+        (entry): entry is PlutoPublicReference =>
+          typeof entry === 'object' && entry !== null
+      )
+      return { name: field.name, label: field.label, list }
+    })
+    .filter((group) => group.list.length > 0)
+)
 </script>
 
 <template>
@@ -46,6 +61,23 @@ const date = computed(() => {
       </header>
 
       <PlutoHtml :html="item.html" data-pluto-post-body />
+
+      <footer v-if="references.length > 0" class="flex flex-col gap-2">
+        <div
+          v-for="group in references"
+          :key="group.name"
+          class="flex flex-wrap items-center gap-2"
+        >
+          <span class="text-muted text-sm">{{ group.label }}</span>
+          <UBadge
+            v-for="entry in group.list"
+            :key="entry.id"
+            :label="entry.label"
+            color="neutral"
+            variant="subtle"
+          />
+        </div>
+      </footer>
     </article>
   </UContainer>
 </template>
