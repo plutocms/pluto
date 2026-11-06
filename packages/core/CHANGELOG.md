@@ -1,6 +1,20 @@
 # Changelog
 
 
+## [0.59.0](https://github.com/plutocms/pluto/compare/v0.58.1...v0.59.0) (2026-11-06)
+
+
+### Features
+
+* **core:** keep a browser backup of the unsaved changes of the content form ([#438](https://github.com/plutocms/pluto/issues/438)) ([a34248c](https://github.com/plutocms/pluto/commit/a34248cd09450c5928904d912fee77125c297b37))
+* **core:** keep a server copy of the unsaved changes when the adapter supports it ([#442](https://github.com/plutocms/pluto/issues/442)) ([f4b5b1d](https://github.com/plutocms/pluto/commit/f4b5b1d228d37dee826cab4a965093139eb1ef54))
+* **core:** recover from a 409 conflict and keep the unsaved changes ([#441](https://github.com/plutocms/pluto/issues/441)) ([2e108e9](https://github.com/plutocms/pluto/commit/2e108e97c3e19bdf0d5fd5dd38447dafd051bca6))
+
+
+### Bug Fixes
+
+* **core:** Escape closes the top modal ([#440](https://github.com/plutocms/pluto/issues/440)) ([b43857a](https://github.com/plutocms/pluto/commit/b43857a6d1e0b66bd6e769d6dfb61d0864c1b75e))
+
 ## [0.58.1](https://github.com/plutocms/pluto/compare/v0.58.0...v0.58.1) (2026-11-06)
 
 
