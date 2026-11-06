@@ -4,8 +4,8 @@ import {
   isEditingEvent,
   isSaveShortcut,
   savedAgo,
-  stableStringify,
 } from '../app/composables/internal/content-dirty'
+import { stableStringify } from '../shared/utils/stable-stringify'
 
 describe('stableStringify', () => {
   it('gives the same text for any key order, at any depth', () => {

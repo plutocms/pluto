@@ -7,7 +7,6 @@ import {
   isEditingEvent,
   isSaveShortcut,
   savedAgo,
-  stableStringify,
 } from '../../../composables/internal/content-dirty'
 import { buildContentPayload } from '../../../composables/internal/content-payload'
 
@@ -302,6 +301,53 @@ function onSaved(callback: (saved: PlutoContentItem) => void) {
   return stop
 }
 
+// Callbacks that a widget registers with `usePlutoContentForm().onFlush`. They run before a
+// save builds its payload, and before a backup write.
+const flushCallbacks = new Set<() => void>()
+function onFlush(callback: () => void) {
+  flushCallbacks.add(callback)
+  const stop = () => {
+    flushCallbacks.delete(callback)
+  }
+  tryOnScopeDispose(stop)
+  return stop
+}
+function runFlush() {
+  for (const callback of flushCallbacks) {
+    callback()
+  }
+}
+
+// --- Backup of the unsaved changes -----------------------------------------------
+//
+// The browser keeps the unsaved changes. The next visit offers them again. See
+// `usePlutoContentBackup` and the content-backup skill.
+const {
+  offer: backupOffer,
+  changes: backupChanges,
+  otherTab: backupOtherTab,
+  restore: restoreBackup,
+  discard: discardBackup,
+  onSaved: backupSaved,
+  onRemoved: backupRemoved,
+  leave: backupLeave,
+} = usePlutoContentBackup({
+  type: contentType,
+  id: () => props.id,
+  editing,
+  item,
+  dirtyState,
+  snapshot,
+  dirty,
+  ready: computed(
+    () => !editing.value || (!itemPending.value && !loadFailed.value)
+  ),
+  canSave,
+  slugTouched,
+  interact: () => tracker.interact(),
+  flush: runFlush,
+})
+
 // --- Leave guard ---------------------------------------------------------------
 //
 // A navigation away from a dirty form opens an in-app dialog and waits. The
@@ -334,6 +380,8 @@ async function leavePage() {
   leaveOpen.value = false
   leaveTarget = null
   bypass = true
+  // "Leave without saving" means the changes are gone, so the backup goes too.
+  backupLeave()
   if (target) {
     await navigateTo(target.fullPath)
   }
@@ -369,6 +417,8 @@ async function onSave(statusOverride?: string) {
     return
   }
 
+  // A widget can hold edits that are not in the item yet (an editor with a debounce).
+  runFlush()
   const payload = buildContentPayload(type, item.value, statusOverride)
   const errors = validateContentPayload(type, payload, {
     partial: editing.value,
@@ -394,6 +444,7 @@ async function onSave(statusOverride?: string) {
     tracker.reset(snapshot.value)
     saveStatus.value = 'saved'
     savedAt.value = new Date()
+    backupSaved(saved.id)
     for (const callback of savedCallbacks) {
       callback(saved)
     }
@@ -466,6 +517,7 @@ async function confirmDelete() {
     await remove()
     closeDeleteModal()
     bypass = true
+    backupRemoved()
     await navigateTo(basePath.value)
   } catch (error) {
     toast.add({
@@ -716,6 +768,7 @@ provide(plutoContentFormKey, {
     right: isDesktop.value && Boolean(asideSlot.value) && !asideModel.value,
   })),
   onSaved,
+  onFlush,
   openPanel,
 })
 
@@ -917,6 +970,27 @@ const asideTitle = computed(() =>
         @toggle-left="leftOpen = !leftOpen"
       />
     </template>
+
+    <PlutoContentBackupAlert
+      v-if="backupOffer"
+      :type="contentType"
+      :offer="backupOffer"
+      :changes="backupChanges"
+      :canvas="isCanvas"
+      @restore="restoreBackup"
+      @discard="discardBackup"
+    />
+
+    <UAlert
+      v-if="backupOtherTab"
+      :title="t('pluto.backup.otherTab')"
+      :class="isCanvas ? 'm-4 shrink-0' : undefined"
+      color="warning"
+      variant="subtle"
+      icon="lucide:copy"
+      close
+      @update:open="backupOtherTab = false"
+    />
 
     <UAlert
       v-if="validationErrors.length > 0"

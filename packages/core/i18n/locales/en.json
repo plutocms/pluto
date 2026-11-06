@@ -128,6 +128,22 @@
       "restoredHint": "Check it, then save to keep it.",
       "back": "Back to the versions"
     },
+    "backup": {
+      "title": "Unsaved changes found",
+      "description": "Changes from {time} were not saved.",
+      "descriptionOtherDevice": "Changes from another device, from {time}, were not saved.",
+      "conflicts": "The item was saved again after that. These fields changed in both places: {fields}.",
+      "restore": "Restore",
+      "discard": "Discard",
+      "showChanges": "Show changes",
+      "changesTitle": "Unsaved changes",
+      "changesHint": "A restore puts the backup in the form. Save to keep it.",
+      "saved": "Saved",
+      "backup": "Backup",
+      "restored": "Changes restored",
+      "restoredHint": "Check them, then save.",
+      "otherTab": "This item has unsaved changes in another tab. The tab that saves last wins."
+    },
     "canvas": {
       "page": "Page",
       "panels": "Panels",
