@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.61.1](https://github.com/plutocms/pluto/compare/v0.61.0...v0.61.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **core:** the bulk actions of the list fail the typecheck of a large app ([#464](https://github.com/plutocms/pluto/issues/464)) ([be028e8](https://github.com/plutocms/pluto/commit/be028e84af6002eecb97b4cdb9b6db83c97e6719))
+
 ## [0.61.0](https://github.com/plutocms/pluto/compare/v0.60.1...v0.61.0) (2026-11-07)
 
 
