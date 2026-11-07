@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/plutocms/pluto/compare/seo-v0.1.0...seo-v0.2.0) (2026-11-07)
+
+
+### Features
+
+* **seo:** authors in the head, the feed and a JSON-LD BlogPosting ([#449](https://github.com/plutocms/pluto/issues/449)) ([5a59d04](https://github.com/plutocms/pluto/commit/5a59d0416ffe46ab491a7dc52af8865211de26b9))
+
 ## 0.1.0 (2026-11-05)
 
 
