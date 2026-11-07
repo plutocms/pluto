@@ -674,6 +674,51 @@ fetches the URL expecting `{ data: Array<Record<string, unknown>> }` and maps ea
 `UInputMenu`; `multiple` gives a list value. With neither, it renders a disabled `UInputMenu` with
 a placeholder noting no options source is configured, rather than throwing.
 
+## Trash
+
+A type opts in with `trash: true` (or `{ column }` for Supabase, default `deleted_at`). Then a
+remove moves the item to the trash, and a trashed item goes for good after `PLUTO_TRASH_DAYS` (30)
+or with Delete forever. Without `trash`, a remove is final, as before. The Git CMS post, term and
+author types have `trash: true`.
+
+The adapter has the optional `trash` object, with all five methods: `move(ctx, id)`,
+`list(ctx, { limit, offset, search })` (items with `_deletedAt`, the last trashed first),
+`restore(ctx, id)` (404 not in the trash, 409 a live item has the id), `purge(ctx, id)` and
+`purgeBefore(ctx, before)` (returns the count). Each needs the delete capability. A trashed item
+is not in `list`, `get`, `countCreated`, the public API or the reference expansion, and keeps
+its id and the references to it until the purge. The contract suite tests it for an adapter that
+has it.
+
+Core (`server/utils/pluto-content-handlers.ts`): `deleteContentItem` calls `trash.move` when the
+type has `trash` and the adapter has it, else `remove`. `listTrashItems` first calls
+`purgeBefore(trashCutoff())` (a failure only warns), so a host with no scheduled task purges too;
+`restoreTrashItem`, `purgeTrashItem`, `emptyTrash` (`purgeBefore` one second ahead). 404
+`pluto.errors.noTrash` for a type without `trash`, 501 `pluto.errors.noTrashAdapter` for an
+adapter without it. The routes, under their own base (an id can hold slashes):
+
+| Route | Method | Calls |
+| --- | --- | --- |
+| `/api/_pluto/content-trash/[type]` | GET | `listTrashItems` (`limit`, `offset`, `search`) |
+| `/api/_pluto/content-trash/[type]` | DELETE | `emptyTrash`, answers `{ purged }` |
+| `/api/_pluto/content-trash/[type]/[...id]` | POST | `restoreTrashItem` |
+| `/api/_pluto/content-trash/[type]/[...id]` | DELETE | `purgeTrashItem` |
+
+The Git CMS: a trashed item is its file in `<dir>/.trash/<type name>/<id>.md` (`trashFilePath`;
+the type name, because a nested type can have the source `''`), with `deletedAt` (ISO) in the
+raw frontmatter, moved in one commit (`trash "<id>"`). The tree reads skip dot folders. Restore
+moves it back without `deletedAt` (`restore "<id>"`). The references to the item are removed at
+the purge, not at the trash (`purge "<id>" (N references)`), and not at all when a live item has
+the id again. `purgeBefore` purges in one commit (`purge N from the trash`); a file with no valid
+`deletedAt` stays. `referenceRewrites` takes a map of old id to new id (or `null`).
+
+The admin (`PlutoContentList`): for a type with `trash` and the delete capability, the tabs All and
+Trash with the count (`PlutoContentListTabs`; the Trash tab is `?trash=1` of the same page, not a
+path, because an id can be "trash"). Remove is **Move to trash**: no dialog, one toast with Undo
+(one item, bulk, and the edit form, which opens the item again on Undo). The Trash tab
+(`PlutoContentTrash`, `usePlutoContentTrash`): a search, up to 100 rows, Restore and Delete forever
+for one row or the selected rows, **Empty the trash**, and the note about 30 days. Delete forever
+and Empty the trash ask first.
+
 ## Revisions
 
 A backend that keeps the saved versions of an item implements two optional adapter reads. Core

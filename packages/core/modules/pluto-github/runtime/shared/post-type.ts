@@ -117,6 +117,8 @@ export const plutoGithubPostType: PlutoContentType = {
   liveOnSave: true,
   // Served by the public API: /api/pluto/v1/content/post.
   api: { public: true },
+  // Remove moves a post to `content/.trash/post/`. See the content-model skill ("Trash").
+  trash: true,
   // The canvas layout, like the page editor: the body fills the page, the outline is at the
   // left, the other fields are in the Post tab at the right.
   form: {

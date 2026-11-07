@@ -922,3 +922,112 @@ describe('content backups', () => {
     warn.mockRestore()
   })
 })
+
+describe('the trash', () => {
+  function fakeTrash() {
+    return {
+      move: vi.fn(async () => {}),
+      list: vi.fn(async () => ({
+        data: [{ id: 'a', _deletedAt: 'x' }],
+        total: 1,
+      })),
+      restore: vi.fn(async (_ctx: unknown, id: string | number) => ({ id })),
+      purge: vi.fn(async () => {}),
+      purgeBefore: vi.fn(async () => 2),
+    }
+  }
+
+  it('moves the item to the trash for a type with trash, and removes it for a type without', async () => {
+    const { registerContentAdapter, deleteContentItem } = await loadHandlers()
+    const trash = fakeTrash()
+    const adapter = { ...createMemoryContentAdapter(), trash }
+    const remove = vi.spyOn(adapter, 'remove')
+    registerContentAdapter(adapter)
+
+    await deleteContentItem(ctxFor(contentType({ trash: true })), 'a')
+    expect(trash.move).toHaveBeenCalledWith(expect.anything(), 'a')
+    expect(remove).not.toHaveBeenCalled()
+
+    const plain = ctxFor(contentType())
+    const created = await adapter.create(plain, { title: 'Hello' })
+    await deleteContentItem(plain, created.id)
+    expect(remove).toHaveBeenCalledWith(plain, created.id)
+  })
+
+  it('purges the items older than 30 days, then lists the trash', async () => {
+    const { registerContentAdapter, listTrashItems, trashCutoff } =
+      await loadHandlers()
+    const trash = fakeTrash()
+    registerContentAdapter({ ...createMemoryContentAdapter(), trash })
+    const ctx = ctxFor(contentType({ trash: true }))
+
+    const result = await listTrashItems(ctx, { limit: 10, search: 'x' })
+
+    expect(result.total).toBe(1)
+    const before = trash.purgeBefore.mock.calls[0]![1] as unknown as string
+    expect(Date.parse(before)).toBeLessThan(Date.now() - 29 * 864e5)
+    expect(Date.parse(before)).toBeGreaterThan(Date.now() - 31 * 864e5)
+    expect(trash.list).toHaveBeenCalledWith(ctx, { limit: 10, search: 'x' })
+    expect(trashCutoff(new Date('2026-03-31T00:00:00Z'))).toBe(
+      '2026-03-01T00:00:00.000Z'
+    )
+  })
+
+  it('still lists the trash when the purge fails', async () => {
+    const { registerContentAdapter, listTrashItems } = await loadHandlers()
+    const trash = fakeTrash()
+    trash.purgeBefore.mockRejectedValueOnce(new Error('offline'))
+    registerContentAdapter({ ...createMemoryContentAdapter(), trash })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    await expect(
+      listTrashItems(ctxFor(contentType({ trash: true })), {})
+    ).resolves.toMatchObject({ total: 1 })
+    expect(warn).toHaveBeenCalledOnce()
+    warn.mockRestore()
+  })
+
+  it('restores, purges and empties, each with the delete capability', async () => {
+    const {
+      registerContentAdapter,
+      restoreTrashItem,
+      purgeTrashItem,
+      emptyTrash,
+    } = await loadHandlers()
+    const trash = fakeTrash()
+    const authorize = vi.fn(async () => {})
+    registerContentAdapter({
+      ...createMemoryContentAdapter({ authorize }),
+      trash,
+    })
+    const ctx = ctxFor(
+      contentType({ trash: true, capabilities: { delete: 'posts:delete' } })
+    )
+
+    expect(await restoreTrashItem(ctx, 'a')).toEqual({ id: 'a' })
+    await purgeTrashItem(ctx, 'a')
+    const now = new Date('2026-05-01T00:00:00Z')
+    expect(await emptyTrash(ctx, now)).toEqual({ purged: 2 })
+
+    expect(trash.purge).toHaveBeenCalledWith(ctx, 'a')
+    expect(trash.purgeBefore).toHaveBeenCalledWith(
+      ctx,
+      '2026-05-01T00:00:01.000Z'
+    )
+    expect(authorize).toHaveBeenCalledTimes(3)
+    expect(authorize).toHaveBeenCalledWith(fakeEvent, 'posts:delete')
+  })
+
+  it('answers 404 for a type with no trash, and 501 for an adapter with none', async () => {
+    const { registerContentAdapter, listTrashItems, restoreTrashItem } =
+      await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter())
+
+    await expect(
+      listTrashItems(ctxFor(contentType()), {})
+    ).rejects.toMatchObject({ statusCode: 404 })
+    await expect(
+      restoreTrashItem(ctxFor(contentType({ trash: true })), 'a')
+    ).rejects.toMatchObject({ statusCode: 501 })
+  })
+})

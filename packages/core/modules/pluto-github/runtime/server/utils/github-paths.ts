@@ -116,6 +116,29 @@ export function contentFilePath(
   return path
 }
 
+/** The name of the trash folder under the content dir. A dot folder: lists and reads skip it. */
+export const TRASH_DIR = '.trash'
+
+/**
+ * The trash folder of one content type: `<dir>/.trash/<type name>`. The type name, not the source:
+ * a nested type can have the source `''`, and two types never share a name.
+ */
+export function trashDirPath(dir: string, typeName: string): string {
+  assertSafeSlug(typeName, 'type')
+  return `${baseOf(dir)}/${TRASH_DIR}/${typeName}`
+}
+
+/** The trashed file of one item: `<dir>/.trash/<type name>/<id>.md`. */
+export function trashFilePath(
+  dir: string,
+  typeName: string,
+  id: string,
+  options: PlutoGithubPathOptions = {}
+): string {
+  assertSafeContentId(id, options)
+  return `${trashDirPath(dir, typeName)}/${id}.md`
+}
+
 /** The folder `<dir>/<source>` that holds the files of one content type. */
 export function contentDirPath(
   dir: string,

@@ -204,6 +204,31 @@
         "nothing": "Nothing to change",
         "removeTitle": "Remove the selected items",
         "removeConfirm": "Remove the selected items ({count})? You cannot undo this."
+      },
+      "trash": {
+        "tabs": "All and Trash",
+        "tabAll": "All",
+        "tabTrash": "Trash",
+        "move": "Move to trash",
+        "moved": "Moved to the trash",
+        "movedMany": "Moved to the trash: {count}",
+        "undo": "Undo",
+        "restore": "Restore",
+        "restoredMany": "Restored: {count}",
+        "restoreError": "Could not restore the item.",
+        "purge": "Delete forever",
+        "purgeConfirm": "Delete this item forever? You cannot undo this.",
+        "purgeManyConfirm": "Delete the selected items forever ({count})? You cannot undo this.",
+        "purgedMany": "Deleted forever: {count}",
+        "purgeError": "Could not delete the items.",
+        "empty": "Empty the trash",
+        "emptyConfirm": "Delete all the items in the trash forever ({count})? You cannot undo this.",
+        "emptyTitle": "The trash is empty",
+        "emptyHint": "Items that you move to the trash show here for 30 days.",
+        "note": "Items stay in the trash for 30 days. Then they are deleted forever.",
+        "deletedAt": "Moved to the trash on {date}",
+        "search": "Search the trashed {labelPlural}",
+        "loadFailed": "Could not load the trash"
       }
     },
     "fields": {
@@ -282,7 +307,9 @@
       "crossOrigin": "This request did not come from this site.",
       "invalidQuery": "The query parameter \"{name}\" is not valid.",
       "backupTooLarge": "The unsaved changes are too large to back up on the server.",
-      "backupInvalid": "The backup is not valid."
+      "backupInvalid": "The backup is not valid.",
+      "noTrash": "This content type has no trash.",
+      "noTrashAdapter": "The content backend has no trash."
     },
     "github": {
       "build": {

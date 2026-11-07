@@ -204,6 +204,31 @@
         "nothing": "Nada para mudar",
         "removeTitle": "Remover os itens selecionados",
         "removeConfirm": "Remover os itens selecionados ({count})? Não é possível desfazer."
+      },
+      "trash": {
+        "tabs": "Todos e Lixeira",
+        "tabAll": "Todos",
+        "tabTrash": "Lixeira",
+        "move": "Mover para a lixeira",
+        "moved": "Movido para a lixeira",
+        "movedMany": "Movidos para a lixeira: {count}",
+        "undo": "Desfazer",
+        "restore": "Restaurar",
+        "restoredMany": "Restaurados: {count}",
+        "restoreError": "Não foi possível restaurar o item.",
+        "purge": "Excluir para sempre",
+        "purgeConfirm": "Excluir este item para sempre? Não é possível desfazer.",
+        "purgeManyConfirm": "Excluir os itens selecionados para sempre ({count})? Não é possível desfazer.",
+        "purgedMany": "Excluídos para sempre: {count}",
+        "purgeError": "Não foi possível excluir os itens.",
+        "empty": "Esvaziar a lixeira",
+        "emptyConfirm": "Excluir para sempre todos os itens da lixeira ({count})? Não é possível desfazer.",
+        "emptyTitle": "A lixeira está vazia",
+        "emptyHint": "Os itens que você move para a lixeira aparecem aqui por 30 dias.",
+        "note": "Os itens ficam na lixeira por 30 dias. Depois disso, são excluídos para sempre.",
+        "deletedAt": "Movido para a lixeira em {date}",
+        "search": "Pesquisar {labelPlural} na lixeira",
+        "loadFailed": "Não foi possível carregar a lixeira"
       }
     },
     "fields": {
@@ -282,7 +307,9 @@
       "crossOrigin": "Esta requisição não veio deste site.",
       "invalidQuery": "O parâmetro \"{name}\" da consulta não é válido.",
       "backupTooLarge": "As alterações não salvas são grandes demais para o backup no servidor.",
-      "backupInvalid": "O backup não é válido."
+      "backupInvalid": "O backup não é válido.",
+      "noTrash": "Este tipo de conteúdo não tem lixeira.",
+      "noTrashAdapter": "O backend de conteúdo não tem lixeira."
     },
     "github": {
       "build": {

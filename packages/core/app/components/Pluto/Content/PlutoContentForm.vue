@@ -18,6 +18,7 @@ import {
   rememberKey,
   writeRemembered,
 } from '../../../composables/internal/form-initial-values'
+import { restorePlutoTrashItem } from '../../../composables/pluto-content-trash'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -661,7 +662,40 @@ async function onSave(statusOverride?: string) {
 const deleting = ref(false)
 
 function openDeleteModal() {
+  // A type with a trash moves the item there at once: the toast offers Undo.
+  if (contentType.value?.trash) {
+    void confirmDelete()
+    return
+  }
   isDeleteModalOpen.value = true
+}
+
+/** The toast after Move to trash, with Undo: the item comes back and its form opens again. */
+function trashedToast(id: string | number) {
+  toast.add({
+    title: t('pluto.list.trash.moved'),
+    color: 'success',
+    actions: [
+      {
+        label: t('pluto.list.trash.undo'),
+        icon: 'lucide:undo-2',
+        color: 'neutral',
+        variant: 'outline',
+        onClick: async () => {
+          try {
+            await restorePlutoTrashItem(props.type, id)
+            await navigateTo(editPath(id))
+          } catch (error) {
+            toast.add({
+              title: t('pluto.common.error'),
+              description: errorText(error, 'pluto.list.trash.restoreError'),
+              color: 'error',
+            })
+          }
+        },
+      },
+    ],
+  })
 }
 
 function closeDeleteModal() {
@@ -677,6 +711,9 @@ async function confirmDelete() {
     bypass = true
     backupRemoved()
     await navigateTo(basePath.value)
+    if (contentType.value?.trash && props.id !== undefined) {
+      trashedToast(props.id)
+    }
   } catch (error) {
     toast.add({
       title: t('pluto.common.error'),
@@ -1118,6 +1155,7 @@ const asideTitle = computed(() =>
         :saving="saving"
         :can-unpublish="canUnpublish"
         :can-delete="canShowDelete"
+        :trash="Boolean(contentType?.trash)"
         :aside-toggle="asideToggle"
         :left-toggle="leftToggle"
         @press="onHeaderPress"

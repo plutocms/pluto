@@ -38,6 +38,8 @@ import {
   contentFilePath,
   PlutoGithubPathError,
   slugifyTitle,
+  trashDirPath,
+  trashFilePath,
   typeRelativePath,
 } from './utils/github-paths'
 import { markdownToPlainText, renderMarkdown } from './utils/markdown'
@@ -654,17 +656,16 @@ export function createMarkdownContentAdapter(
   }
 
   /**
-   * The files of the items that reference the item `oldId` of the type `target`, rewritten: the id
-   * becomes `newId`, or leaves the field when `newId` is null. Drafts count too. The body, the
-   * unknown keys and the stamps of each file stay. A list that ends empty drops its key. Files
-   * that hold no reference are not in the answer. The item itself is not rewritten.
+   * The files of the items that reference items of the type `target`, rewritten by `changes`:
+   * each old id becomes its new id, or leaves the field when the new id is null. Drafts count too.
+   * The body, the unknown keys and the stamps of each file stay. A list that ends empty drops its
+   * key. Files that hold no reference are not in the answer. The changed items are not rewritten.
    */
   async function referenceRewrites(
     head: string,
     access: PlutoGithubAccess,
     target: PlutoContentType,
-    oldId: string,
-    newId: string | null
+    changes: Map<string, string | null>
   ): Promise<{
     additions: Plan['additions']
     targets: Plan['targets']
@@ -688,7 +689,7 @@ export function createMarkdownContentAdapter(
         const id = layout.nested
           ? file.path.slice(prefixLength, -'.md'.length)
           : file.name.slice(0, -'.md'.length)
-        if (type.name === target.name && id === oldId) {
+        if (type.name === target.name && changes.has(id)) {
           continue
         }
         const entry = await toEntry(layout, file, id)
@@ -703,13 +704,15 @@ export function createMarkdownContentAdapter(
             continue
           }
           const ids = referenceValue(frontmatter[column])
-          if (!ids.some((one) => String(one) === oldId)) {
+          if (!ids.some((one) => changes.has(String(one)))) {
             continue
           }
           changed = true
           const next: Array<string | number> = []
           for (const one of ids) {
-            const replacement = String(one) === oldId ? newId : one
+            const replacement = changes.has(String(one))
+              ? changes.get(String(one))!
+              : one
             if (
               replacement !== null &&
               !next.some((have) => String(have) === String(replacement))
@@ -1144,7 +1147,12 @@ export function createMarkdownContentAdapter(
         const rewrites =
           newPath === oldPath
             ? undefined
-            : await referenceRewrites(head, access, type, oldSlug, newSlug)
+            : await referenceRewrites(
+                head,
+                access,
+                type,
+                new Map([[oldSlug, newSlug]])
+              )
         if (newPath !== oldPath) {
           verb = `rename "${oldSlug}" -> "${newSlug}"`
           if (rewrites && rewrites.additions.length > 0) {
@@ -1197,7 +1205,12 @@ export function createMarkdownContentAdapter(
           throw notFoundError()
         }
         // The items that reference the deleted id lose it, in the same commit.
-        const rewrites = await referenceRewrites(head, access, type, slug, null)
+        const rewrites = await referenceRewrites(
+          head,
+          access,
+          type,
+          new Map([[slug, null]])
+        )
         const count = rewrites.additions.length
         return {
           message: messageOf(
@@ -1210,6 +1223,336 @@ export function createMarkdownContentAdapter(
           targets: [{ path, oid: current.oid }, ...rewrites.targets],
         }
       })
+    })
+  }
+
+  // --- Trash ----------------------------------------------------------------
+  //
+  // A trashed item is its file in `<dir>/.trash/<type name>/<id>.md`, with the time it went there
+  // in the frontmatter key `deletedAt`. The tree reads skip dot folders, so `list`, `get` and the
+  // public API do not see it. The references to it stay until the purge.
+
+  /** The frontmatter key of a trashed file: the time it went to the trash (ISO). */
+  const TRASH_KEY = 'deletedAt'
+
+  interface TrashEntry {
+    entry: Entry
+    path: string
+    /** The time it went to the trash, in ms. `NaN` when the file has no valid `deletedAt`. */
+    deletedAt: number
+  }
+
+  /** The trashed files of one type, at `head`. */
+  async function trashEntries(
+    type: PlutoContentType,
+    layout: Layout,
+    head: string,
+    auth?: PlutoGithubAuth
+  ): Promise<TrashEntry[]> {
+    const folder = trashDirPath(dir, type.name)
+    const files = layout.nested
+      ? await store.listTree(folder, head, auth)
+      : await store.listDir(folder, head, auth)
+    const result: TrashEntry[] = []
+    for (const file of files) {
+      const id = layout.nested
+        ? file.path.slice(folder.length + 1, -'.md'.length)
+        : file.name.slice(0, -'.md'.length)
+      const entry = await toEntry(layout, file, id)
+      const parsed = entry ? await parseFile(file) : null
+      if (!entry || !parsed) {
+        continue
+      }
+      result.push({
+        entry,
+        path: file.path,
+        deletedAt: Date.parse(String(parsed.frontmatter[TRASH_KEY] ?? '')),
+      })
+    }
+    return result
+  }
+
+  /** The trashed file of one item, at `head`, or `null`. */
+  async function readTrashed(
+    type: PlutoContentType,
+    layout: Layout,
+    head: string,
+    id: string,
+    auth?: PlutoGithubAuth
+  ): Promise<TrashEntry | null> {
+    if (!isUsableId(layout, id)) {
+      return null
+    }
+    const path = trashFilePath(dir, type.name, id, pathOptions(layout))
+    const file = await store.readFile(path, head, auth)
+    const entry = file ? await toEntry(layout, file, id) : null
+    const parsed = file && entry ? await parseFile(file) : null
+    return entry && parsed
+      ? {
+          entry,
+          path,
+          deletedAt: Date.parse(String(parsed.frontmatter[TRASH_KEY] ?? '')),
+        }
+      : null
+  }
+
+  /** The text of a file with `deletedAt` set, or removed. The raw frontmatter, not the mapped one. */
+  function withTrashKey(text: string, deletedAt: string | null): string {
+    const raw = parseMarkdownFile(text)
+    const frontmatter = { ...raw.frontmatter }
+    if (deletedAt === null) {
+      delete frontmatter[TRASH_KEY]
+    } else {
+      frontmatter[TRASH_KEY] = deletedAt
+    }
+    return serializeMarkdownFile(frontmatter, raw.body)
+  }
+
+  /** The reference rewrites of a purge: none for an id that a live item has again. */
+  async function purgeRewrites(
+    head: string,
+    access: PlutoGithubAccess,
+    type: PlutoContentType,
+    ids: string[]
+  ): ReturnType<typeof referenceRewrites> {
+    const changes = new Map<string, string | null>()
+    for (const id of ids) {
+      if (!(await readExisting(type, access, head, id))) {
+        changes.set(id, null)
+      }
+    }
+    return changes.size > 0
+      ? referenceRewrites(head, access, type, changes)
+      : { additions: [], targets: [], published: false }
+  }
+
+  async function moveToTrash(
+    ctx: PlutoContentContext,
+    id: string | number
+  ): Promise<void> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const access = await requireAccess(ctx.event, type.capabilities?.delete)
+      const layout = layoutOf(type)
+      const slug = String(id)
+      if (!isUsableId(layout, slug)) {
+        throw notFoundError()
+      }
+      const path = contentFilePath(dir, type.source, slug, pathOptions(layout))
+      const target = trashFilePath(dir, type.name, slug, pathOptions(layout))
+
+      await commitPlan(ctx.event, access, async (head) => {
+        const current = await readExisting(type, access, head, slug)
+        if (!current) {
+          throw notFoundError()
+        }
+        // An older trashed copy with the same id is replaced.
+        return {
+          message: messageOf(
+            type,
+            `trash "${slug}"`,
+            isPublished(type, layout, current)
+          ),
+          additions: [
+            {
+              path: target,
+              contents: withTrashKey(current.text, now().toISOString()),
+            },
+          ],
+          deletions: [{ path }],
+          targets: [{ path, oid: current.oid }],
+        }
+      })
+    })
+  }
+
+  async function listTrash(
+    ctx: PlutoContentContext,
+    query: {
+      limit?: number
+      offset?: number
+      search?: string
+    }
+  ): Promise<PlutoContentListResult> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const access = await requireAccess(ctx.event, type.capabilities?.delete)
+      const layout = layoutOf(type)
+      const head = await store.head({ auth: access.auth })
+      let entries = await trashEntries(type, layout, head, access.auth)
+
+      if (query.search) {
+        const needle = query.search.toLowerCase()
+        const titleField = type.fields.find(
+          (field) => field.name === type.titleField
+        )
+        const titleColumn = titleField
+          ? fieldColumn(titleField)
+          : type.titleField
+        entries = entries.filter((trashed) =>
+          String(trashed.entry.frontmatter[titleColumn] ?? '')
+            .toLowerCase()
+            .includes(needle)
+        )
+      }
+
+      // The last trashed first. A file with no valid time goes last.
+      entries.sort(
+        (a, b) =>
+          (Number.isNaN(b.deletedAt) ? -Infinity : b.deletedAt) -
+            (Number.isNaN(a.deletedAt) ? -Infinity : a.deletedAt) ||
+          compareValues(a.entry.slug, b.entry.slug)
+      )
+
+      const total = entries.length
+      const offset = Math.max(0, query.offset ?? 0)
+      const end =
+        query.limit === undefined
+          ? undefined
+          : offset + Math.max(0, query.limit)
+      return {
+        data: entries.slice(offset, end).map((trashed) => ({
+          ...toItem(type, layout, trashed.entry, false),
+          _deletedAt: Number.isNaN(trashed.deletedAt)
+            ? null
+            : new Date(trashed.deletedAt).toISOString(),
+        })),
+        total,
+      }
+    })
+  }
+
+  async function restore(
+    ctx: PlutoContentContext,
+    id: string | number
+  ): Promise<PlutoContentItem> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const access = await requireAccess(ctx.event, type.capabilities?.delete)
+      const layout = layoutOf(type)
+      const slug = String(id)
+      if (!isUsableId(layout, slug)) {
+        throw notFoundError()
+      }
+      const path = contentFilePath(dir, type.source, slug, pathOptions(layout))
+
+      const done = await commitPlan(ctx.event, access, async (head) => {
+        const trashed = await readTrashed(type, layout, head, slug, access.auth)
+        if (!trashed) {
+          throw notFoundError()
+        }
+        if (await readExisting(type, access, head, slug)) {
+          throw slugTakenError(slug)
+        }
+        const text = withTrashKey(trashed.entry.text, null)
+        const oid = gitBlobSha(text)
+        const entry = await toEntry(
+          layout,
+          { path, name: path.split('/').pop()!, oid, text },
+          slug
+        )
+        if (!entry) {
+          throw notFoundError()
+        }
+        return {
+          message: messageOf(
+            type,
+            `restore "${slug}"`,
+            isPublished(type, layout, entry)
+          ),
+          additions: [{ path, contents: text }],
+          deletions: [{ path: trashed.path }],
+          targets: [
+            { path: trashed.path, oid: trashed.entry.oid },
+            { path, oid: null },
+          ],
+          item: toItem(type, layout, entry, true),
+        }
+      })
+      return done.item as PlutoContentItem
+    })
+  }
+
+  async function purge(
+    ctx: PlutoContentContext,
+    id: string | number
+  ): Promise<void> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const access = await requireAccess(ctx.event, type.capabilities?.delete)
+      const layout = layoutOf(type)
+      const slug = String(id)
+      if (!isUsableId(layout, slug)) {
+        throw notFoundError()
+      }
+
+      await commitPlan(ctx.event, access, async (head) => {
+        const trashed = await readTrashed(type, layout, head, slug, access.auth)
+        if (!trashed) {
+          throw notFoundError()
+        }
+        // The items that reference the purged id lose it, in the same commit.
+        const rewrites = await purgeRewrites(head, access, type, [slug])
+        const count = rewrites.additions.length
+        return {
+          message: messageOf(
+            type,
+            `purge "${slug}"${count > 0 ? ` (${count} references)` : ''}`,
+            rewrites.published
+          ),
+          additions: rewrites.additions,
+          deletions: [{ path: trashed.path }],
+          targets: [
+            { path: trashed.path, oid: trashed.entry.oid },
+            ...rewrites.targets,
+          ],
+        }
+      })
+    })
+  }
+
+  async function purgeBefore(
+    ctx: PlutoContentContext,
+    before: string
+  ): Promise<number> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const access = await requireAccess(ctx.event, type.capabilities?.delete)
+      const layout = layoutOf(type)
+      const limit = Date.parse(before)
+      let purged = 0
+
+      await commitPlan(ctx.event, access, async (head) => {
+        // A file with no valid time stays: nobody knows when it went to the trash.
+        const expired = (
+          await trashEntries(type, layout, head, access.auth)
+        ).filter((trashed) => trashed.deletedAt < limit)
+        purged = expired.length
+        const rewrites = await purgeRewrites(
+          head,
+          access,
+          type,
+          expired.map((trashed) => trashed.entry.slug)
+        )
+        return {
+          message: messageOf(
+            type,
+            `purge ${expired.length} from the trash`,
+            rewrites.published
+          ),
+          additions: rewrites.additions,
+          deletions: expired.map((trashed) => ({ path: trashed.path })),
+          targets: [
+            ...expired.map((trashed) => ({
+              path: trashed.path,
+              oid: trashed.entry.oid,
+            })),
+            ...rewrites.targets,
+          ],
+          unchanged: expired.length === 0,
+        }
+      })
+      return purged
     })
   }
 
@@ -1400,6 +1743,13 @@ export function createMarkdownContentAdapter(
     create,
     update,
     remove,
+    trash: {
+      move: moveToTrash,
+      list: listTrash,
+      restore,
+      purge,
+      purgeBefore,
+    },
     authorize,
     countCreated,
     readFile,

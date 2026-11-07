@@ -62,4 +62,5 @@ export const plutoGithubAuthorType: PlutoContentType = {
   defaultSort: { field: 'name', direction: 'asc' },
   liveOnSave: true,
   api: { public: true },
+  trash: true,
 }

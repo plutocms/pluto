@@ -467,6 +467,119 @@ export function runContentAdapterContract(
       })
     })
 
+    describe('trash', () => {
+      function trashOf() {
+        if (!adapter.trash) {
+          throw new Error('no trash')
+        }
+        return adapter.trash
+      }
+
+      it('moves an item to the trash, lists it, and restores it with its id and content', async () => {
+        if (!adapter.trash) {
+          return
+        }
+        await add('Hello', { status: 'published', excerpt: 'Kept' })
+        await add('Other')
+        await trashOf().move(ctx, 'hello')
+
+        expect(await adapter.get(ctx, 'hello')).toBeNull()
+        const live = await adapter.list(ctx, { includeUnpublished: true })
+        expect(live.data.map((item) => item.id)).toEqual(['other'])
+
+        const trashed = await trashOf().list(ctx, {})
+        expect(trashed.total).toBe(1)
+        expect(trashed.data[0]).toMatchObject({ id: 'hello', title: 'Hello' })
+        expect(typeof trashed.data[0]!._deletedAt).toBe('string')
+
+        const restored = await trashOf().restore(ctx, 'hello')
+        expect(restored).toMatchObject({
+          id: 'hello',
+          title: 'Hello',
+          excerpt: 'Kept',
+          status: 'published',
+          content: 'Body of Hello',
+        })
+        expect((await trashOf().list(ctx, {})).total).toBe(0)
+        expect(await adapter.get(ctx, 'hello')).toMatchObject({ id: 'hello' })
+      })
+
+      it('searches the trash by title, the last trashed first', async () => {
+        if (!adapter.trash) {
+          return
+        }
+        await add('Alpha')
+        await add('Bravo')
+        await add('Charlie')
+        await trashOf().move(ctx, 'alpha')
+        await trashOf().move(ctx, 'charlie')
+
+        expect(
+          (await trashOf().list(ctx, {})).data.map((item) => item.id)
+        ).toEqual(['charlie', 'alpha'])
+        expect(
+          (await trashOf().list(ctx, { search: 'ALP' })).data.map(
+            (item) => item.id
+          )
+        ).toEqual(['alpha'])
+      })
+
+      it('answers 409 when a live item has the id, and 404 for an item not in the trash', async () => {
+        if (!adapter.trash) {
+          return
+        }
+        await add('Hello')
+        await trashOf().move(ctx, 'hello')
+        await add('Hello')
+
+        await expect(trashOf().restore(ctx, 'hello')).rejects.toMatchObject({
+          statusCode: 409,
+        })
+        await expect(trashOf().restore(ctx, 'nope')).rejects.toMatchObject({
+          statusCode: 404,
+        })
+        await expect(trashOf().move(ctx, 'nope')).rejects.toMatchObject({
+          statusCode: 404,
+        })
+      })
+
+      it('purges one item, and every item trashed before a time', async () => {
+        if (!adapter.trash) {
+          return
+        }
+        await add('One')
+        await add('Two')
+        await add('Three')
+        await trashOf().move(ctx, 'one')
+        await trashOf().move(ctx, 'two')
+        await trashOf().move(ctx, 'three')
+
+        await trashOf().purge(ctx, 'one')
+        await expect(trashOf().purge(ctx, 'one')).rejects.toMatchObject({
+          statusCode: 404,
+        })
+        expect(await trashOf().purgeBefore(ctx, '2000-01-01T00:00:00Z')).toBe(0)
+        expect(await trashOf().purgeBefore(ctx, '2999-01-01T00:00:00Z')).toBe(2)
+        expect((await trashOf().list(ctx, {})).total).toBe(0)
+        expect(await adapter.get(ctx, 'two')).toBeNull()
+      })
+
+      it('needs the delete capability', async () => {
+        if (!adapter.trash) {
+          return
+        }
+        await add('Hello')
+        harness.as(VIEWER)
+
+        await expect(trashOf().move(ctx, 'hello')).rejects.toMatchObject({
+          statusCode: 403,
+        })
+        await expect(trashOf().list(ctx, {})).rejects.toMatchObject({
+          statusCode: 403,
+        })
+      })
+    })
+
     describe('countCreated', () => {
       it('counts by creation time in a half-open range', async () => {
         // The clock gives 00:01, 00:02, 00:03 and 00:04 to the four creates.

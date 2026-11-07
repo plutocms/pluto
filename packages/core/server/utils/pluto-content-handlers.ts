@@ -241,8 +241,103 @@ export async function deleteContentItem(
 ): Promise<void> {
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
 
-  await requireContentAdapter().remove(ctx, id)
+  // A type with a trash moves the item there. Without one, the delete is final.
+  const adapter = requireContentAdapter()
+  if (ctx.type.trash && adapter.trash) {
+    await adapter.trash.move(ctx, id)
+  } else {
+    await adapter.remove(ctx, id)
+  }
   await removeBackupQuietly(ctx, String(id))
+}
+
+/** The days that an item stays in the trash. Then the purge deletes it. */
+export const PLUTO_TRASH_DAYS = 30
+
+/** The time before which a trashed item is old enough for the purge (ISO). */
+export function trashCutoff(now: Date = new Date()): string {
+  return new Date(
+    now.getTime() - PLUTO_TRASH_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString()
+}
+
+/** The trash of the adapter, for a type with `trash`. 404 without it on the type, 501 on the adapter. */
+function requireTrash(
+  ctx: PlutoContentContext
+): NonNullable<PlutoContentAdapter['trash']> {
+  if (!ctx.type.trash) {
+    throw createPlutoError({
+      statusCode: 404,
+      message: 'This content type has no trash.',
+      key: 'pluto.errors.noTrash',
+    })
+  }
+  const trash = requireContentAdapter().trash
+  if (!trash) {
+    throw createPlutoError({
+      statusCode: 501,
+      message: 'The content adapter has no trash.',
+      key: 'pluto.errors.noTrashAdapter',
+    })
+  }
+  return trash
+}
+
+/**
+ * The trashed items of a type, the last trashed first. It purges the items older than
+ * `PLUTO_TRASH_DAYS` first, so a host with no scheduled task purges too. A failed purge only
+ * warns. Needs the delete capability.
+ */
+export async function listTrashItems(
+  ctx: PlutoContentContext,
+  query: {
+    limit?: number
+    offset?: number
+    search?: string
+  }
+): Promise<PlutoContentListResult> {
+  await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
+  const trash = requireTrash(ctx)
+  try {
+    await trash.purgeBefore(ctx, trashCutoff())
+  } catch (error) {
+    console.warn(
+      `[pluto] The purge of the trash of "${ctx.type.name}" failed: ${(error as Error).message}`
+    )
+  }
+  return trash.list(ctx, query)
+}
+
+/** Moves a trashed item back. Needs the delete capability. */
+export async function restoreTrashItem(
+  ctx: PlutoContentContext,
+  id: string | number
+): Promise<PlutoContentItem> {
+  await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
+  return requireTrash(ctx).restore(ctx, id)
+}
+
+/** Deletes a trashed item forever. Needs the delete capability. */
+export async function purgeTrashItem(
+  ctx: PlutoContentContext,
+  id: string | number
+): Promise<void> {
+  await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
+  await requireTrash(ctx).purge(ctx, id)
+}
+
+/** Deletes every trashed item of the type forever. Needs the delete capability. */
+export async function emptyTrash(
+  ctx: PlutoContentContext,
+  now: Date = new Date()
+): Promise<{ purged: number }> {
+  await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
+  // One second ahead, so an item trashed in this second goes too.
+  const purged = await requireTrash(ctx).purgeBefore(
+    ctx,
+    new Date(now.getTime() + 1000).toISOString()
+  )
+  return { purged }
 }
 
 /** Most weeks the activity route accepts. */

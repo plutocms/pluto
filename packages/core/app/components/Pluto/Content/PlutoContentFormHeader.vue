@@ -31,6 +31,8 @@ const props = defineProps<{
   saving: boolean
   canUnpublish: boolean
   canDelete: boolean
+  /** The type has a trash: the menu says Move to trash. */
+  trash?: boolean
   asideToggle?: PlutoFormHeaderToggle
   leftToggle?: PlutoFormHeaderToggle
 }>()
@@ -81,7 +83,9 @@ const menuItems = computed(() => [
     ...(props.canDelete
       ? [
           {
-            label: t('pluto.common.delete'),
+            label: props.trash
+              ? t('pluto.list.trash.move')
+              : t('pluto.common.delete'),
             icon: 'lucide:trash',
             color: 'error' as const,
             onSelect: () => emit('delete'),
