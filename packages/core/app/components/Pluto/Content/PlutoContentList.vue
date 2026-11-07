@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { ButtonProps, TableColumn } from '@nuxt/ui'
 import type { PlutoAdminListQuery } from '../../../../shared/utils/content-list'
+import type { PlutoBulkAction } from '../../../composables/internal/bulk-actions'
+import {
+  bulkStatusChange,
+  runInBatches,
+} from '../../../composables/internal/bulk-actions'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -30,6 +35,12 @@ const canWrite = computed(
     !contentType.value?.capabilities?.write ||
     can(contentType.value.capabilities.write)
 )
+const canPublish = computed(() => {
+  const cap =
+    contentType.value?.capabilities?.publish ??
+    contentType.value?.capabilities?.write
+  return !cap || can(cap)
+})
 const canDelete = computed(
   () =>
     !contentType.value?.capabilities?.delete ||
@@ -205,6 +216,13 @@ const cardFields = computed(() =>
 // a neutral badge, a published item a green one, as in the form toolbar.
 const statusConfig = computed(() => contentType.value?.status || null)
 
+// Bulk actions on the rows of the table. Publish and Unpublish need a workflow
+// and the publish capability, Remove needs the delete capability.
+const canBulkStatus = computed(
+  () => Boolean(statusConfig.value) && canPublish.value
+)
+const canBulk = computed(() => canBulkStatus.value || canDelete.value)
+
 // The search waits 300 ms after the last key. A change of the route (the back
 // button, "Clear the filters") puts its text back in the box.
 const searchText = ref(listQuery.value.search ?? '')
@@ -306,6 +324,7 @@ function itemStatus(item: PlutoContentItem): {
 }
 
 const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
+  ...(canBulk.value ? [{ id: 'select', header: '' }] : []),
   ...listFields.value.map((field) => ({
     accessorKey: field.name,
     header: text.fieldLabel(field),
@@ -334,6 +353,93 @@ const pendingDeleteId = ref<string | number | null>(null)
 const isDeleteModalOpen = ref(false)
 const deleting = ref(false)
 
+// The selected rows, by the text of their id. Only loaded rows can be selected.
+const selected = ref<Set<string>>(new Set())
+const selectedItems = computed(() =>
+  items.value.filter((item) => selected.value.has(String(item.id)))
+)
+const allSelected = computed(
+  () =>
+    items.value.length > 0 && selectedItems.value.length === items.value.length
+)
+
+function toggleRow(id: string | number, on: boolean) {
+  const next = new Set(selected.value)
+  if (on) {
+    next.add(String(id))
+  } else {
+    next.delete(String(id))
+  }
+  selected.value = next
+}
+
+function toggleAll(on: boolean) {
+  selected.value = on
+    ? new Set(items.value.map((item) => String(item.id)))
+    : new Set()
+}
+
+function clearSelection() {
+  selected.value = new Set()
+}
+
+// Another search, filter or sort shows other rows: the selection goes.
+watch(() => JSON.stringify(adminListQueryKeys(listQuery.value)), clearSelection)
+
+// Remove with the dialog: one item, or the selected items.
+const bulkRemove = ref(false)
+const bulkRunning = ref<PlutoBulkAction | null>(null)
+
+function itemUrl(id: string | number): string {
+  return `/api/_pluto/content/${props.type}/${contentIdPath(id)}`
+}
+
+/** Runs one request per item, 4 at a time, then shows one toast and loads the list again. */
+async function runBulk(
+  action: PlutoBulkAction,
+  ids: Array<string | number>,
+  task: (id: string | number) => Promise<unknown>
+) {
+  bulkRunning.value = action
+  try {
+    const { done, failed } = await runInBatches(ids, task)
+    toast.add({
+      title: t(`pluto.list.bulk.${action}Done`, { count: n(done) }),
+      description: failed
+        ? t('pluto.list.bulk.failed', { count: n(failed) })
+        : undefined,
+      color: failed ? 'warning' : 'success',
+    })
+  } finally {
+    bulkRunning.value = null
+    clearSelection()
+    retry()
+  }
+}
+
+function bulkStatus(action: 'publish' | 'unpublish') {
+  if (bulkRunning.value) {
+    return
+  }
+  const change = bulkStatusChange(
+    selectedItems.value,
+    action,
+    statusConfig.value ?? undefined
+  )
+  if (!change || change.ids.length === 0) {
+    toast.add({ title: t('pluto.list.bulk.nothing'), color: 'neutral' })
+    return
+  }
+  void runBulk(action, change.ids, (id) =>
+    $fetch(itemUrl(id), { method: 'PATCH', body: { status: change.status } })
+  )
+}
+
+function openBulkRemove() {
+  bulkRemove.value = true
+  isDeleteModalOpen.value = true
+}
+
 function openDeleteModal(id: string | number) {
   pendingDeleteId.value = id
   isDeleteModalOpen.value = true
@@ -345,11 +451,26 @@ function closeDeleteModal() {
     return
   }
   pendingDeleteId.value = null
+  bulkRemove.value = false
   isDeleteModalOpen.value = false
 }
 
 async function confirmDelete() {
-  if (pendingDeleteId.value === null || deleting.value) {
+  if (deleting.value) {
+    return
+  }
+  if (bulkRemove.value) {
+    deleting.value = true
+    await runBulk(
+      'remove',
+      selectedItems.value.map((item) => item.id),
+      (id) => $fetch(itemUrl(id), { method: 'DELETE' })
+    )
+    deleting.value = false
+    closeDeleteModal()
+    return
+  }
+  if (pendingDeleteId.value === null) {
     return
   }
 
@@ -413,9 +534,62 @@ const footer = computed(() => {
       <PlutoAdminNavTabs variant="toolbar" />
     </template>
 
+    <!-- The bulk actions, while rows are selected. They take the place of the filters. -->
+    <div
+      v-if="selectedItems.length > 0"
+      class="bg-elevated flex shrink-0 flex-wrap items-center gap-2 rounded-lg px-3 py-1.5"
+    >
+      <span class="text-highlighted me-2 text-sm font-medium tabular-nums">
+        {{ t('pluto.list.bulk.selected', { count: n(selectedItems.length) }) }}
+      </span>
+      <template v-if="canBulkStatus">
+        <UButton
+          :label="t('pluto.list.bulk.publish')"
+          :loading="bulkRunning === 'publish'"
+          :disabled="bulkRunning !== null"
+          icon="lucide:globe"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="bulkStatus('publish')"
+        />
+        <UButton
+          :label="t('pluto.list.bulk.unpublish')"
+          :loading="bulkRunning === 'unpublish'"
+          :disabled="bulkRunning !== null"
+          icon="lucide:eye-off"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="bulkStatus('unpublish')"
+        />
+      </template>
+      <UButton
+        v-if="canDelete"
+        :label="t('pluto.list.bulk.remove')"
+        :loading="bulkRunning === 'remove'"
+        :disabled="bulkRunning !== null"
+        icon="lucide:trash"
+        color="error"
+        variant="soft"
+        size="sm"
+        @click="openBulkRemove"
+      />
+      <UButton
+        :label="t('pluto.list.bulk.clear')"
+        :disabled="bulkRunning !== null"
+        icon="lucide:x"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        class="ms-auto"
+        @click="clearSelection"
+      />
+    </div>
+
     <!-- The search and the filters. Not on an empty type: there is nothing to narrow. -->
     <div
-      v-if="emptyState !== 'empty'"
+      v-else-if="emptyState !== 'empty'"
       class="flex shrink-0 flex-wrap items-center gap-2"
     >
       <UInput
@@ -663,6 +837,34 @@ const footer = computed(() => {
         </button>
       </template>
 
+      <template #select-header>
+        <UCheckbox
+          :model-value="
+            allSelected
+              ? true
+              : selectedItems.length > 0
+                ? 'indeterminate'
+                : false
+          "
+          :aria-label="t('pluto.list.bulk.selectAll')"
+          @update:model-value="(value) => toggleAll(value === true)"
+        />
+      </template>
+
+      <template #select-cell="{ row }">
+        <UCheckbox
+          :model-value="selected.has(String(row.original.id))"
+          :aria-label="
+            t('pluto.list.bulk.selectRow', {
+              title: itemTitle(row.original) || t('pluto.content.untitled'),
+            })
+          "
+          @update:model-value="
+            (value) => toggleRow(row.original.id, value === true)
+          "
+        />
+      </template>
+
       <template #status-cell="{ row }">
         <UBadge
           v-if="itemStatus(row.original)"
@@ -720,11 +922,23 @@ const footer = computed(() => {
 
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
     <ModalHeader @close="closeDeleteModal">
-      {{ t('pluto.list.removeTitle') }}
+      {{
+        bulkRemove
+          ? t('pluto.list.bulk.removeTitle')
+          : t('pluto.list.removeTitle')
+      }}
     </ModalHeader>
 
     <ModalContent>
-      <p>{{ t('pluto.content.removeConfirm') }}</p>
+      <p>
+        {{
+          bulkRemove
+            ? t('pluto.list.bulk.removeConfirm', {
+                count: n(selectedItems.length),
+              })
+            : t('pluto.content.removeConfirm')
+        }}
+      </p>
     </ModalContent>
 
     <ModalFooter>

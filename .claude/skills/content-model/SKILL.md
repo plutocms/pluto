@@ -803,6 +803,18 @@ then the default sort. The state is in the route query, in the keys of the list 
 parses it with `parseAdminListQuery` and drops a bad value. A narrowed list with no row shows "No
 <labelPlural> match" with "Clear the filters". An empty type shows no search and no filter.
 
+Bulk actions (desktop table): a checkbox column (`select`) with a select-all header checkbox, for a
+user who can publish (a type with a workflow) or delete. While rows are selected, a bar takes the
+place of the filters: "Selected: N", Publish and Unpublish (the publish capability, `publish ?? write`),
+Remove (the delete capability, with the confirm dialog), and "Clear the selection". The helpers are
+in `app/composables/internal/bulk-actions.ts`: `bulkStatusChange` takes the items that need the
+change (publish: not published; unpublish: published, back to `status.default`), and
+`runInBatches` sends one request per item (`PATCH { status }` or `DELETE`), 4 at a time, and counts
+the ones that worked and failed. Then one toast ("Published: 3", and "Failed: 1" as a warning), the
+selection goes, and the list loads again. A new search, filter or sort clears the selection. Each
+request goes through the normal routes, so the capability checks, the hooks, the revisions and the
+Git commits are the same as for one item (the Git CMS makes one commit for each item).
+
 `PlutoContentForm` renders a two-column form (fields with `region !== 'side'` in the wide column,
 `region: 'side'` in the sidebar, both sorted by `order`), a Save button, and client-side
 validation through `validateContentPayload` before it ever calls `save()` — the server validates
