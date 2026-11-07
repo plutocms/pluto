@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.62.0](https://github.com/plutocms/pluto/compare/v0.61.1...v0.62.0) (2026-11-07)
+
+
+### Features
+
+* **core:** trash and restore, with the Git CMS trash ([#467](https://github.com/plutocms/pluto/issues/467)) ([11af69d](https://github.com/plutocms/pluto/commit/11af69d91935c59cd2af416546be7c0d2e7cb3c0))
+
 ## [0.61.1](https://github.com/plutocms/pluto/compare/v0.61.0...v0.61.1) (2026-11-07)
 
 
