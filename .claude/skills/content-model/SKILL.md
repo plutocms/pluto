@@ -342,11 +342,29 @@ Each route file is a thin wrapper: resolve `type` from the `[type]` route param 
 `server/utils/pluto-content-handlers.ts`, and return its result. The real logic lives in that
 handlers file, as plain exported async functions, so it can be unit-tested by calling it
 directly — no live Nitro server, no `@nuxt/test-utils` — the same way this workspace already
-tests everything else. The list route accepts `limit`, `offset`, and `search` as query params;
-sorting always comes from `type.defaultSort`, never from the query string, in this wave.
-It also accepts `published=1` (or `true`) for a type with a status workflow: the adapter then
+tests everything else. The list route accepts `limit` and `offset`, and the admin list query of
+`parseAdminListQuery` (`shared/utils/content-list.ts`, the same parser as the list page):
+
+- `search`: trimmed, cut at 200 characters. Both adapters search the title field.
+- `status=<value>`: a value of `type.status.values`. The adapter gets `query.status`.
+- `filter[<field>]=<value>`: a field that `isListFilterField` allows (a `reference` with a
+  `target`; a `select` or a `boolean` that is `inList` or has `filter: true`; never
+  `filter: false`). A select value must be one of its options, a boolean value `true` or
+  `false`. The adapter gets `query.filters`.
+- `sort=<field>` or `-<field>`: a field that `isListSortField` allows (an `inList` field of type
+  `text`, `textarea`, `slug`, `number`, `select`, `boolean` or `date`, not `sortable: false`).
+  Without it, `type.defaultSort`.
+
+A value that the type does not allow gives 400 `pluto.errors.invalidQuery` with the key as
+`name`. It also accepts `published=1` (or `true`) for a type with a status workflow: the adapter then
 gets `includeUnpublished: false` and returns published rows only. The dashboard content
 overview uses it with `limit=1` to count published rows (see the `dashboard` skill).
+
+`PlutoContentQuery.status` is part of the adapter contract: only the items with that status
+value; an item with no stored status has `type.status.default`; a type with no workflow ignores
+it. It does not add drafts by itself (core sets `includeUnpublished`), so an anonymous caller of
+the Git CMS still sees no draft. The contract suite (`test/contracts/content-adapter.contract.ts`)
+tests it; `@plutocms/supabase` implements it too.
 
 An adapter may also implement the optional `countCreated(ctx, { from, to })`. It counts the
 items created from `from` (inclusive) to `to` (exclusive), both ISO timestamps, and returns
@@ -598,7 +616,9 @@ await save(payload) // POSTs when id is undefined, PATCHes when id is defined
 (`refresh()` and the first load), and it clears when a fetch starts. A form reads `loadError` to
 show the load error state, because a failed save must not hide the fields.
 
-`usePlutoContentList(typeName, { pageSize })` loads the list page by page. It requests
+`usePlutoContentList(typeName, { pageSize, query })` loads the list page by page. `query` is a
+ref or getter of a `PlutoAdminListQuery` (search, status, filters, sort): its keys go with each
+page (`adminListQueryKeys`), and a change of the keys loads the list again from the first page. It requests
 `?limit=<pageSize>&offset=<n>`, appends each page, and also returns `loadingMore`, `hasMore`,
 and `loadMore()`. `hasMore` compares the loaded rows with `total`; without a `total`, a full page
 means there may be another one. `remove(id)` then drops the row in place instead of a refetch,
@@ -771,6 +791,17 @@ directly.
 (the same breakpoint pattern `supabase-blog/app/pages/admin/posts.vue` already used), an "Add
 `<labelPlural>`" button, and a delete-confirm modal built from core's own `Modal`/`ModalHeader`/
 `ModalContent`/`ModalFooter` — never `UModal` directly, matching this repo's established pattern.
+
+Above the rows: a search box (300 ms after the last key), a Status filter for a type with a
+workflow, and one filter for each field of `listFilterFields(type)`
+(`PlutoContentListFilter`: a `USelectMenu` whose first item "All" clears it; a reference filter
+loads its target with `usePlutoReferenceOptions` and has a search; a set filter shows
+"<label>: <value>" with a highlight). "Clear the filters" removes the search, the status and the
+filters, and keeps the sort. The header of a sortable column is a button: ascending, descending,
+then the default sort. The state is in the route query, in the keys of the list route (`search`,
+`status`, `filter[<field>]`, `sort`), so a reload, a link and the back button keep it; the page
+parses it with `parseAdminListQuery` and drops a bad value. A narrowed list with no row shows "No
+<labelPlural> match" with "Clear the filters". An empty type shows no search and no filter.
 
 `PlutoContentForm` renders a two-column form (fields with `region !== 'side'` in the wide column,
 `region: 'side'` in the sidebar, both sorted by `order`), a Save button, and client-side

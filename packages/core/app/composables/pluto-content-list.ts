@@ -1,3 +1,8 @@
+import type { MaybeRefOrGetter } from 'vue'
+import type { PlutoAdminListQuery } from '../../shared/utils/content-list'
+import { toValue, watch } from 'vue'
+import { adminListQueryKeys } from '../../shared/utils/content-list'
+
 export interface PlutoContentListOptions {
   /**
    * Rows per request. Set it to load the list page by page: the first page
@@ -6,6 +11,11 @@ export interface PlutoContentListOptions {
    * Supabase adapter returns at most 1000 rows).
    */
   pageSize?: number
+  /**
+   * The search, the status, the filters and the sort of the list (see `parseAdminListQuery`). A
+   * change loads the list again from the first page.
+   */
+  query?: MaybeRefOrGetter<PlutoAdminListQuery | undefined>
 }
 
 /**
@@ -30,6 +40,11 @@ export function usePlutoContentList(
   options: PlutoContentListOptions = {}
 ) {
   const { pageSize } = options
+
+  /** The query keys of the search, the status, the filters and the sort. */
+  function listKeys(): Record<string, string> {
+    return adminListQueryKeys(toValue(options.query) ?? {})
+  }
   const url = `/api/_pluto/content/${typeName}`
 
   const items = ref<PlutoContentItem[]>([])
@@ -46,11 +61,12 @@ export function usePlutoContentList(
   let generation = 0
 
   function fetchPage(offset: number): Promise<PlutoContentListResult> {
-    return pageSize === undefined
+    const keys = listKeys()
+    const query =
+      pageSize === undefined ? keys : { ...keys, limit: pageSize, offset }
+    return Object.keys(query).length === 0
       ? $fetch<PlutoContentListResult>(url)
-      : $fetch<PlutoContentListResult>(url, {
-          query: { limit: pageSize, offset },
-        })
+      : $fetch<PlutoContentListResult>(url, { query })
   }
 
   function updateHasMore(lastPageLength: number) {
@@ -123,6 +139,17 @@ export function usePlutoContentList(
   // it never surfaces as an unhandled rejection. A caller invoking
   // `refresh()` again later still gets a real rejection to `await`.
   refresh().catch(() => {})
+
+  // A new search, status, filter or sort: the first page again. The new rows replace the old ones,
+  // so the list never mixes two queries, and the generation drops a page of the old query.
+  if (options.query !== undefined) {
+    watch(
+      () => JSON.stringify(listKeys()),
+      () => {
+        refresh().catch(() => {})
+      }
+    )
+  }
 
   // A failed delete rejects and leaves `error` alone: `error` is about loading
   // the list, and the caller shows its own message for the delete.

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ButtonProps, TableColumn } from '@nuxt/ui'
+import type { PlutoAdminListQuery } from '../../../../shared/utils/content-list'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -53,6 +54,37 @@ function editPath(id: string | number) {
   )
 }
 
+// The search, the status, the filters and the sort live in the route query, so
+// a reload, a link and the back button keep them. A value that the type does
+// not allow is dropped. See `parseAdminListQuery`.
+const route = useRoute()
+const router = useRouter()
+const listQuery = computed<PlutoAdminListQuery>(() =>
+  contentType.value
+    ? parseAdminListQuery(contentType.value, route.query).query
+    : {}
+)
+
+// A search, a status or a filter narrows the list. A sort alone does not.
+const narrowed = computed(() => isNarrowedListQuery(listQuery.value))
+
+function isListQueryKey(key: string): boolean {
+  return (
+    key === 'search' ||
+    key === 'status' ||
+    key === 'sort' ||
+    key.startsWith('filter[')
+  )
+}
+
+/** Writes the list query to the route. The other keys of the route query stay. */
+function setListQuery(next: PlutoAdminListQuery) {
+  const kept = Object.fromEntries(
+    Object.entries(route.query).filter(([key]) => !isListQueryKey(key))
+  )
+  router.replace({ query: { ...kept, ...adminListQueryKeys(next) } })
+}
+
 // Load the list 50 rows at a time. The table is virtualized, so only the
 // visible rows render, and the next page loads when the user scrolls near
 // the end of the table (or of the card list, on mobile).
@@ -67,7 +99,7 @@ const {
   refresh,
   loadMore,
   remove,
-} = usePlutoContentList(props.type, { pageSize: PAGE_SIZE })
+} = usePlutoContentList(props.type, { pageSize: PAGE_SIZE, query: listQuery })
 
 const tableRef = useTemplateRef<{
   $el: HTMLElement
@@ -89,15 +121,20 @@ useInfiniteScroll(mobileListRef, loadMoreSafely, { distance: 240, canLoadMore })
 
 // What to show while the list has no rows. With rows, the list shows
 // them, and a failed refresh shows an alert above them instead.
-const emptyState = computed<'loading' | 'error' | 'empty' | null>(() => {
-  if (items.value.length > 0) {
-    return null
+const emptyState = computed<'loading' | 'error' | 'empty' | 'no-match' | null>(
+  () => {
+    if (items.value.length > 0) {
+      return null
+    }
+    if (pending.value) {
+      return 'loading'
+    }
+    if (error.value) {
+      return 'error'
+    }
+    return narrowed.value ? 'no-match' : 'empty'
   }
-  if (pending.value) {
-    return 'loading'
-  }
-  return error.value ? 'error' : 'empty'
-})
+)
 
 function retry() {
   refresh().catch(() => {})
@@ -167,6 +204,87 @@ const cardFields = computed(() =>
 // The status of each item, for a type with a publish workflow. A draft shows
 // a neutral badge, a published item a green one, as in the form toolbar.
 const statusConfig = computed(() => contentType.value?.status || null)
+
+// The search waits 300 ms after the last key. A change of the route (the back
+// button, "Clear the filters") puts its text back in the box.
+const searchText = ref(listQuery.value.search ?? '')
+const applySearch = useDebounceFn((value: string) => {
+  setListQuery({ ...listQuery.value, search: value.trim() || undefined })
+}, 300)
+watch(searchText, (value) => {
+  applySearch(value)
+})
+watch(
+  () => listQuery.value.search ?? '',
+  (value) => {
+    if (value !== searchText.value.trim()) {
+      searchText.value = value
+    }
+  }
+)
+
+const statusItems = computed(() =>
+  (statusConfig.value?.values ?? []).map((entry) => ({
+    label: text.statusLabel(entry.value, entry.label),
+    value: entry.value,
+  }))
+)
+
+// The fields that filter, with their translated labels and options.
+const filterFields = computed(() =>
+  contentType.value
+    ? listFilterFields(contentType.value).map((field) => text.field(field))
+    : []
+)
+
+function setStatus(value: string | undefined) {
+  setListQuery({ ...listQuery.value, status: value })
+}
+
+function setFilter(name: string, value: string | undefined) {
+  const filters = { ...listQuery.value.filters }
+  if (value === undefined) {
+    delete filters[name]
+  } else {
+    filters[name] = value
+  }
+  setListQuery({ ...listQuery.value, filters })
+}
+
+/** Removes the search, the status and the filters. The sort stays. */
+function clearFilters() {
+  searchText.value = ''
+  setListQuery({ sort: listQuery.value.sort })
+}
+
+// A sortable column header goes: ascending, descending, then the default sort.
+function sortState(name: string): 'asc' | 'desc' | undefined {
+  const sort = listQuery.value.sort
+  return sort?.field === name ? sort.direction : undefined
+}
+
+function toggleSort(name: string) {
+  const state = sortState(name)
+  setListQuery({
+    ...listQuery.value,
+    sort:
+      state === undefined
+        ? { field: name, direction: 'asc' }
+        : state === 'asc'
+          ? { field: name, direction: 'desc' }
+          : undefined,
+  })
+}
+
+function sortIcon(name: string): string {
+  const state = sortState(name)
+  if (state === 'asc') {
+    return 'lucide:arrow-up'
+  }
+  return state === 'desc' ? 'lucide:arrow-down' : 'lucide:arrow-up-down'
+}
+
+const sortFields = computed(() => listFields.value.filter(isListSortField))
 
 function itemStatus(item: PlutoContentItem): {
   label: string
@@ -295,6 +413,47 @@ const footer = computed(() => {
       <PlutoAdminNavTabs variant="toolbar" />
     </template>
 
+    <!-- The search and the filters. Not on an empty type: there is nothing to narrow. -->
+    <div
+      v-if="emptyState !== 'empty'"
+      class="flex shrink-0 flex-wrap items-center gap-2"
+    >
+      <UInput
+        v-model="searchText"
+        :placeholder="
+          t('pluto.list.search', { labelPlural: text.labelPluralLower })
+        "
+        :aria-label="
+          t('pluto.list.search', { labelPlural: text.labelPluralLower })
+        "
+        icon="lucide:search"
+        class="min-w-48 flex-1"
+      />
+      <PlutoContentListFilter
+        v-if="statusItems.length > 0"
+        :label="t('pluto.list.status')"
+        :items="statusItems"
+        :model-value="listQuery.status"
+        @update:model-value="setStatus"
+      />
+      <PlutoContentListFilter
+        v-for="field in filterFields"
+        :key="field.name"
+        :label="field.label"
+        :field="field"
+        :model-value="listQuery.filters?.[field.name]"
+        @update:model-value="(value) => setFilter(field.name, value)"
+      />
+      <UButton
+        v-if="narrowed"
+        :label="t('pluto.list.clearFilters')"
+        icon="lucide:x"
+        color="neutral"
+        variant="ghost"
+        @click="clearFilters"
+      />
+    </div>
+
     <PlutoSkeletonList
       v-if="emptyState === 'loading'"
       :columns="listFields.map((field) => text.fieldLabel(field))"
@@ -326,6 +485,23 @@ const footer = computed(() => {
       "
       :icon="contentType.icon ?? 'lucide:inbox'"
       :actions="emptyActions"
+      variant="naked"
+    />
+
+    <UEmpty
+      v-else-if="emptyState === 'no-match'"
+      :title="t('pluto.list.noMatch', { labelPlural: text.labelPluralLower })"
+      :description="t('pluto.list.noMatchHint')"
+      :actions="[
+        {
+          label: t('pluto.list.clearFilters'),
+          icon: 'lucide:x',
+          color: 'neutral',
+          variant: 'outline',
+          onClick: clearFilters,
+        },
+      ]"
+      icon="lucide:search-x"
       variant="naked"
     />
 
@@ -452,6 +628,39 @@ const footer = computed(() => {
           :field="field"
           :value="row.original[field.name]"
         />
+      </template>
+
+      <!-- A sortable column: the header is a button (ascending, descending, default). -->
+      <template
+        v-for="field in sortFields"
+        :key="field.name"
+        #[`${field.name}-header`]
+      >
+        <button
+          :aria-label="
+            t('pluto.list.sortBy', { label: text.fieldLabel(field) })
+          "
+          :class="sortState(field.name) ? 'text-highlighted' : undefined"
+          type="button"
+          class="hover:text-highlighted -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 py-0.5"
+          @click="toggleSort(field.name)"
+        >
+          {{ text.fieldLabel(field) }}
+          <UIcon
+            :name="sortIcon(field.name)"
+            :class="sortState(field.name) ? undefined : 'opacity-40'"
+            class="size-3.5"
+          />
+          <span v-if="sortState(field.name)" class="sr-only">
+            {{
+              t(
+                sortState(field.name) === 'asc'
+                  ? 'pluto.list.sortedAsc'
+                  : 'pluto.list.sortedDesc'
+              )
+            }}
+          </span>
+        </button>
       </template>
 
       <template #status-cell="{ row }">

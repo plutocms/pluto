@@ -32,6 +32,17 @@ export interface PlutoFieldBase {
   /** Show this field as a column in the generic list view. Default false. */
   inList?: boolean
   /**
+   * Offer this field as a filter of the admin list. Only a `select`, a `boolean` and a `reference`
+   * with a `target` can filter. A reference with a target filters by default; a select and a
+   * boolean filter by default when they are `inList`. `true` turns it on, `false` turns it off.
+   */
+  filter?: boolean
+  /**
+   * Let the admin list sort by this column. An `inList` field of type `text`, `textarea`, `slug`,
+   * `number`, `select`, `boolean` or `date` sorts by default. Set `false` to turn it off.
+   */
+  sortable?: boolean
+  /**
    * Formats this field's value for the generic list, in the desktop table and the mobile cards. Return the text to show. For example, a price in cents can show as "R$ 49,90". Only the list uses it. The form and the API keep the raw value. It must be a pure function with no browser dependency, because content type definitions are shared with the server. If it throws, the list shows the raw value.
    */
   listFormat?: (value: unknown, item: PlutoContentItem) => string
@@ -480,6 +491,12 @@ export interface PlutoContentQuery {
    * `multiple` reference), the item matches when the list has the value.
    */
   filters?: Record<string, string>
+  /**
+   * Only the items with this status value (a value of `type.status`). An item with no stored status
+   * has the default status of the type. A type with no publish workflow ignores it. It does not
+   * show unpublished items by itself: core sets `includeUnpublished` too.
+   */
+  status?: string
   /**
    * Only the items with these ids, in any order. An empty list gives no item. An adapter that
    * ignores it still works: core matches the ids again.
