@@ -74,6 +74,7 @@ policies shared by every project here.
   The generic list has a search, a Status filter, a filter for each reference with a target (and
   each `select` or `boolean` in the list, or with `filter: true`), and sortable column headers. The
   state is in the URL. The adapter query has `status` (both backends).
+  Bulk actions on the selected rows: Publish, Unpublish and Remove, one request per item, 4 at a time.
   Every form layout has one toolbar (title, save state, unsaved-changes dialog, Ctrl/Cmd+S, a View link
   from `previewUrl`), a form context for widgets (`usePlutoContentForm`), and a `canvas` layout with a left
   panel, a right panel with tabs, and `PlutoContentCanvasPanel`.

@@ -188,7 +188,23 @@
       "noMatchHint": "Tente outras palavras, ou limpe os filtros.",
       "sortBy": "Ordenar por {label}",
       "sortedAsc": "Ordem crescente",
-      "sortedDesc": "Ordem decrescente"
+      "sortedDesc": "Ordem decrescente",
+      "bulk": {
+        "selected": "Selecionados: {count}",
+        "selectAll": "Selecionar todas as linhas",
+        "selectRow": "Selecionar {title}",
+        "publish": "Publicar",
+        "unpublish": "Despublicar",
+        "remove": "Remover",
+        "clear": "Limpar a seleção",
+        "publishDone": "Publicados: {count}",
+        "unpublishDone": "Despublicados: {count}",
+        "removeDone": "Removidos: {count}",
+        "failed": "Falharam: {count}. Abra um item para ver o motivo.",
+        "nothing": "Nada para mudar",
+        "removeTitle": "Remover os itens selecionados",
+        "removeConfirm": "Remover os itens selecionados ({count})? Não é possível desfazer."
+      }
     },
     "fields": {
       "noWidget": "Nenhum widget registrado para o tipo de campo \"{type}\".",

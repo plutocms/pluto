@@ -188,7 +188,23 @@
       "noMatchHint": "Try other words, or clear the filters.",
       "sortBy": "Sort by {label}",
       "sortedAsc": "Sorted ascending",
-      "sortedDesc": "Sorted descending"
+      "sortedDesc": "Sorted descending",
+      "bulk": {
+        "selected": "Selected: {count}",
+        "selectAll": "Select all the rows",
+        "selectRow": "Select {title}",
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "remove": "Remove",
+        "clear": "Clear the selection",
+        "publishDone": "Published: {count}",
+        "unpublishDone": "Unpublished: {count}",
+        "removeDone": "Removed: {count}",
+        "failed": "Failed: {count}. Open an item to see why.",
+        "nothing": "Nothing to change",
+        "removeTitle": "Remove the selected items",
+        "removeConfirm": "Remove the selected items ({count})? You cannot undo this."
+      }
     },
     "fields": {
       "noWidget": "No widget registered for field type \"{type}\".",
