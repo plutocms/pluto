@@ -1,7 +1,7 @@
 {
   "name": "@plutocms/seo",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An add-on layer for Pluto: SEO fields, head tags, a sitemap, robots.txt and an RSS feed, for every backend",
   "author": "Victor Ribeiro",
   "license": "MIT",
