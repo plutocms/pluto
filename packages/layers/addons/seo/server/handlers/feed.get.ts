@@ -1,7 +1,8 @@
 import { defineEventHandler, setResponseHeader } from 'h3'
 
 // `/feed.xml`. The module adds the route. An RSS 2.0 feed of the newest published items of
-// `plutoSeo.feed.type`. Each item has the title, the link, the date and the description only.
+// `plutoSeo.feed.type`. Each item has the title, the link, the date, the description and the
+// authors (`dc:creator`).
 // An item that says `seoNoindex` stays out. A type that is missing or private, or a site URL that
 // is not known, gives a valid feed with no items, so a static build can prerender the route.
 export default defineEventHandler(async (event) => {
@@ -28,11 +29,15 @@ export default defineEventHandler(async (event) => {
     })
     for (const entry of entries) {
       const title = entry.data?.[type.titleField]
+      const creator = plutoSeoAuthors(entry.data)
+        .map((author) => author.name)
+        .join(', ')
       items.push({
         title: typeof title === 'string' ? title : entry.path,
         link: absoluteSiteUrl(entry.path, root),
         pubDate: entry.publishedAt,
         description: plutoSeoDescription(entry.data) ?? '',
+        ...(creator && { creator }),
       })
     }
     lastBuildDate = entries

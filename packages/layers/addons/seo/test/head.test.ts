@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
+  plutoSeoArticleJsonLd,
+  plutoSeoAuthors,
   plutoSeoCanonicalPath,
   plutoSeoDescription,
   plutoSeoIsPrivatePath,
   plutoSeoItemHead,
+  plutoSeoJsonLdText,
   plutoSeoPlainText,
   plutoSeoSiteHead,
 } from '../shared/utils/seo-head'
@@ -181,6 +184,7 @@ describe('plutoSeoItemHead', () => {
   it('gives an empty head while the item loads', () => {
     expect(plutoSeoItemHead(null, { type, absoluteUrl })).toEqual({
       noindex: false,
+      authors: [],
     })
   })
 })
@@ -320,5 +324,93 @@ describe('plutoSeoSiteHead', () => {
       none
     )
     expect(plutoSeoSiteHead({ ...base, error: true })).toEqual(none)
+  })
+})
+
+describe('the authors', () => {
+  const authorType: any = {
+    name: 'author',
+    titleField: 'name',
+    fields: [{ name: 'name', type: 'text' }],
+    previewUrl: (item: Record<string, unknown>) => `/authors/${item.slug}`,
+  }
+  const postType: any = {
+    name: 'post',
+    titleField: 'title',
+    fields: [
+      { name: 'title', type: 'text' },
+      { name: 'authors', type: 'reference', target: 'author', multiple: true },
+    ],
+  }
+  const typeOf = (name: string) => (name === 'author' ? authorType : undefined)
+  const item = {
+    title: 'Tea',
+    publishedAt: '2026-03-01T10:00:00Z',
+    authors: [
+      { id: 'bo', label: 'Bo', slug: 'bo', avatar: null },
+      { id: 'ana', label: 'Ana', slug: 'ana', avatar: image('ana') },
+      'unexpanded',
+    ],
+  }
+
+  it('gives the authors in order, with the page URL and the avatar', () => {
+    const head = plutoSeoItemHead(item, { type: postType, typeOf, absoluteUrl })
+    expect(head.authors).toEqual([
+      { name: 'Bo', url: 'https://a.io/repo/authors/bo' },
+      {
+        name: 'Ana',
+        url: 'https://a.io/repo/authors/ana',
+        image: 'https://a.io/repo/media/ana.webp',
+      },
+    ])
+  })
+
+  it('gives the names only with no author type, and reads one author too', () => {
+    expect(plutoSeoAuthors(item).map((author) => author.name)).toEqual([
+      'Bo',
+      'Ana',
+    ])
+    expect(plutoSeoAuthors({ author: { id: 1, name: 'Cy' } })).toEqual([
+      { name: 'Cy' },
+    ])
+    expect(plutoSeoAuthors({ title: 'No author' })).toEqual([])
+  })
+
+  it('uses the bio as the description of an author page', () => {
+    expect(plutoSeoDescription({ name: 'Ana', bio: ' Writes. ' })).toBe(
+      'Writes.'
+    )
+  })
+
+  it('builds a BlogPosting with the authors as Person', () => {
+    const head = plutoSeoItemHead(item, { type: postType, typeOf, absoluteUrl })
+    expect(plutoSeoArticleJsonLd(head, 'https://a.io/repo/posts/tea')).toEqual({
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: 'Tea',
+      datePublished: '2026-03-01T10:00:00Z',
+      author: [
+        { '@type': 'Person', name: 'Bo', url: 'https://a.io/repo/authors/bo' },
+        {
+          '@type': 'Person',
+          name: 'Ana',
+          url: 'https://a.io/repo/authors/ana',
+          image: 'https://a.io/repo/media/ana.webp',
+        },
+      ],
+      mainEntityOfPage: 'https://a.io/repo/posts/tea',
+      url: 'https://a.io/repo/posts/tea',
+    })
+    expect(
+      plutoSeoArticleJsonLd({ noindex: false, authors: [] })
+    ).toBeUndefined()
+  })
+
+  it('escapes the JSON-LD text so no value closes the script', () => {
+    const text = plutoSeoJsonLdText({ headline: '</script><b>&\u2028' })
+    expect(text).not.toContain('<')
+    expect(text).not.toContain('>')
+    expect(text).not.toContain('&')
+    expect(JSON.parse(text)).toEqual({ headline: '</script><b>&\u2028' })
   })
 })

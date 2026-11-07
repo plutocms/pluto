@@ -53,8 +53,8 @@ export function plutoSeoPlainText(html: string, max?: number): string {
 }
 
 /**
- * The description of an item: `seoDescription`, else `excerpt`, else `description`, else the plain
- * text of `html` cut at 160. `undefined` when the item has none.
+ * The description of an item: `seoDescription`, else `excerpt`, else `description`, else `bio`
+ * (an author page), else the plain text of `html` cut at 160. `undefined` when the item has none.
  */
 export function plutoSeoDescription(
   item: Record<string, unknown> | null | undefined
@@ -63,7 +63,10 @@ export function plutoSeoDescription(
     return undefined
   }
   const own =
-    text(item.seoDescription) ?? text(item.excerpt) ?? text(item.description)
+    text(item.seoDescription) ??
+    text(item.excerpt) ??
+    text(item.description) ??
+    text(item.bio)
   if (own) {
     return own
   }
@@ -101,9 +104,89 @@ function imageOf(
   }
 }
 
+/** An author of an item, for the head and the feed. */
+export interface PlutoSeoAuthor {
+  name: string
+  /** The absolute URL of the author page. */
+  url?: string
+  /** The absolute URL of the avatar. */
+  image?: string
+}
+
+/** The fields that hold the authors of an item: `authors` (a list), else `author` (one). */
+const AUTHOR_FIELDS = ['authors', 'author']
+
+/**
+ * The authors of an item: the expanded references of its `authors` field (or `author`), in
+ * order. The name is `label` (or `name`). `authorUrl` gives the site path of the author page,
+ * and the avatar is the `avatar` record. A plain id (an unexpanded reference) is skipped.
+ */
+export function plutoSeoAuthors(
+  item: Record<string, unknown> | null | undefined,
+  context: {
+    absoluteUrl?: (path: string) => string
+    authorUrl?: (author: Record<string, unknown>) => string | undefined
+  } = {}
+): PlutoSeoAuthor[] {
+  const name = AUTHOR_FIELDS.find(
+    (key) => item?.[key] !== undefined && item?.[key] !== null
+  )
+  if (!item || !name) {
+    return []
+  }
+  const value = item[name]
+  const entries = (Array.isArray(value) ? value : [value]).filter(
+    (entry): entry is Record<string, unknown> =>
+      entry !== null && typeof entry === 'object'
+  )
+  const absolute = context.absoluteUrl ?? (() => '')
+  return entries.flatMap((entry) => {
+    const label = text(entry.label) ?? text(entry.name)
+    if (!label) {
+      return []
+    }
+    const path = context.authorUrl?.(entry)
+    const url = path ? absolute(path) : ''
+    const avatar = entry.avatar as Record<string, unknown> | null | undefined
+    const avatarUrl = avatar && text(avatar.url)
+    const image = avatarUrl ? absolute(avatarUrl) : ''
+    return [{ name: label, ...(url && { url }), ...(image && { image }) }]
+  })
+}
+
+/**
+ * The site path of an author page, from the `previewUrl` of the target type of the `authors`
+ * (or `author`) field of `type`. `typeOf` gives a content type by name.
+ */
+export function plutoSeoAuthorUrl(
+  type: PlutoContentType | undefined,
+  typeOf: (name: string) => PlutoContentType | undefined
+): ((author: Record<string, unknown>) => string | undefined) | undefined {
+  const field = type?.fields.find(
+    (entry) => entry.type === 'reference' && AUTHOR_FIELDS.includes(entry.name)
+  )
+  const target =
+    field?.type === 'reference' && field.target
+      ? typeOf(field.target)
+      : undefined
+  const previewUrl = target?.previewUrl
+  if (!previewUrl) {
+    return undefined
+  }
+  return (author) => {
+    try {
+      return previewUrl({ ...author, id: author.id } as PlutoContentItem)
+    } catch {
+      return undefined
+    }
+  }
+}
+
 export interface PlutoSeoItemContext {
   /** The content type, with the extensions applied. */
   type?: PlutoContentType
+  /** Gives a content type by name, for the author page URL. */
+  typeOf?: (name: string) => PlutoContentType | undefined
   /** The default share image of the site (`plutoSeo.image`): a site path or a full URL. */
   defaultImage?: string
   /** Gives the absolute URL of a site path, or `''` when the site root is not known. */
@@ -119,6 +202,8 @@ export interface PlutoSeoItemHead {
   publishedTime?: string
   /** ISO time of the last change. */
   modifiedTime?: string
+  /** The authors, in byline order. */
+  authors: PlutoSeoAuthor[]
 }
 
 /**
@@ -132,7 +217,7 @@ export function plutoSeoItemHead(
   context: PlutoSeoItemContext
 ): PlutoSeoItemHead {
   if (!item) {
-    return { noindex: false }
+    return { noindex: false, authors: [] }
   }
   const { type, absoluteUrl } = context
 
@@ -155,7 +240,56 @@ export function plutoSeoItemHead(
     noindex: item.seoNoindex === true,
     publishedTime: text(item.publishedAt),
     modifiedTime: text(item.updatedAt),
+    authors: plutoSeoAuthors(item, {
+      absoluteUrl,
+      authorUrl: context.typeOf
+        ? plutoSeoAuthorUrl(type, context.typeOf)
+        : undefined,
+    }),
   }
+}
+
+/**
+ * The JSON-LD of an article page: a schema.org `BlogPosting` with the headline, the description,
+ * the image, the dates, the authors (each a `Person`) and the page URL. `undefined` without a
+ * title. Pure.
+ */
+export function plutoSeoArticleJsonLd(
+  head: PlutoSeoItemHead,
+  pageUrl?: string
+): Record<string, unknown> | undefined {
+  if (!head.title) {
+    return undefined
+  }
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: head.title,
+    ...(head.description && { description: head.description }),
+    ...(head.image && { image: [head.image.url] }),
+    ...(head.publishedTime && { datePublished: head.publishedTime }),
+    ...(head.modifiedTime && { dateModified: head.modifiedTime }),
+    ...(head.authors.length > 0 && {
+      author: head.authors.map((author) => ({
+        '@type': 'Person',
+        name: author.name,
+        ...(author.url && { url: author.url }),
+        ...(author.image && { image: author.image }),
+      })),
+    }),
+    ...(pageUrl && { mainEntityOfPage: pageUrl, url: pageUrl }),
+  }
+}
+
+/**
+ * The text of a JSON-LD script: the JSON, with `<`, `>`, `&` and the line separators escaped, so
+ * no value can close the script tag. Pure.
+ */
+export function plutoSeoJsonLdText(data: unknown): string {
+  return JSON.stringify(data).replace(
+    /[<>&\u2028\u2029]/g,
+    (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`
+  )
 }
 
 /**

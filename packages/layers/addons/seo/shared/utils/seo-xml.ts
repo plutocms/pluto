@@ -108,6 +108,8 @@ export interface PlutoSeoFeedItem {
   pubDate?: unknown
   /** Plain text. The renderer escapes it. */
   description: string
+  /** The names of the authors (`dc:creator`), for example "Ana, Bo". Plain text. */
+  creator?: string
 }
 
 /** The RSS 2.0 feed XML. The items are as the caller sorts them. It keeps the first 100. */
@@ -127,12 +129,13 @@ export function plutoSeoRenderRss(
       `      <guid isPermaLink="true">${plutoSeoEscapeXml(item.link)}</guid>`,
       ...(pubDate ? [`      <pubDate>${pubDate}</pubDate>`] : []),
       text('description', item.description, '      '),
+      ...(item.creator ? [text('dc:creator', item.creator, '      ')] : []),
       '    </item>',
     ].join('\n')
   })
   return [
     XML_HEAD,
-    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">',
     '  <channel>',
     text('title', channel.title),
     text('link', channel.link),
