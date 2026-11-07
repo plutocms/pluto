@@ -62,7 +62,9 @@ policies shared by every project here.
   each public reference (`{ id, label, slug, avatar, bio }`, one list and one media read per answer, also
   in the post preview); the Git CMS registers the type (`content/authors/`, capability `authors:manage`)
   and rewrites the posts on a rename or a delete; `useAuthors`, `useAuthor`, `PlutoAuthor`,
-  `PlutoPostAuthor`. @.claude/skills/authors/SKILL.md
+  `PlutoPostAuthor`. A new item in the form gets the `default` of each field, and each `remember` reference
+  field gets the value that the user saved last time (per browser; a deleted item is dropped).
+  @.claude/skills/authors/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
   registry bucket that lets a layer add its own buttons to that form, and the `contentToolbarItems`

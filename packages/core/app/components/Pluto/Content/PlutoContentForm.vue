@@ -10,6 +10,14 @@ import {
 } from '../../../composables/internal/content-dirty'
 import { buildContentPayload } from '../../../composables/internal/content-payload'
 import { errorKey } from '../../../composables/internal/error-text'
+import {
+  initialValues,
+  keepKnownIds,
+  readRemembered,
+  rememberFields,
+  rememberKey,
+  writeRemembered,
+} from '../../../composables/internal/form-initial-values'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -78,6 +86,87 @@ const {
   save,
   remove,
 } = usePlutoContentItem(props.type, () => props.id)
+
+// --- The first values of a new item ------------------------------------------
+//
+// A new item starts with the `default` of each field, then with the value that the user saved
+// last time in each `remember` field (the authors of a post). The admin renders in the browser
+// only, so the storage is there. The fill runs before the first edit, so the dirty baseline
+// follows it and a new form is not dirty. A remembered id with no item any more is dropped when
+// the options load. See the authors skill.
+const { user: rememberUser } = usePlutoAuth()
+const rememberBase = useRuntimeConfig().app.baseURL
+
+function rememberStorage(): Storage | null {
+  try {
+    return import.meta.client ? window.localStorage : null
+  } catch {
+    return null
+  }
+}
+
+function rememberKeyOf(field: string): string | null {
+  const userId = rememberUser.value?.id
+  return userId && contentType.value
+    ? rememberKey({
+        base: rememberBase,
+        userId: String(userId),
+        type: contentType.value.name,
+        field,
+      })
+    : null
+}
+
+if (!editing.value) {
+  const storage = rememberStorage()
+  const remembered: Record<string, unknown> = {}
+  for (const field of rememberFields(contentType.value)) {
+    const key = rememberKeyOf(field.name)
+    const value = storage && key ? readRemembered(storage, key) : undefined
+    if (value !== undefined) {
+      remembered[field.name] = value
+    }
+  }
+  const values = initialValues(contentType.value, remembered)
+  if (Object.keys(values).length > 0) {
+    item.value = { ...values, ...item.value }
+  }
+  for (const field of rememberFields(contentType.value)) {
+    if (remembered[field.name] === undefined) {
+      continue
+    }
+    const filled = item.value[field.name]
+    const options = usePlutoReferenceOptions(field.target)
+    options
+      .ensure()
+      .then(() => {
+        // The options did not load, or the user changed the field: keep it as it is.
+        if (options.error.value || item.value[field.name] !== filled) {
+          return
+        }
+        const known = new Set(options.byId.value.keys())
+        const kept = keepKnownIds(field, filled, known)
+        if (JSON.stringify(kept) !== JSON.stringify(filled)) {
+          item.value = { ...item.value, [field.name]: kept }
+        }
+      })
+      .catch(() => {})
+  }
+}
+
+/** Keeps the value of each `remember` field of a saved payload, for the next new item. */
+function rememberSaved(payload: Record<string, unknown>) {
+  const storage = rememberStorage()
+  if (!storage) {
+    return
+  }
+  for (const field of rememberFields(contentType.value)) {
+    const key = rememberKeyOf(field.name)
+    if (key && Object.hasOwn(payload, field.name)) {
+      writeRemembered(storage, key, payload[field.name])
+    }
+  }
+}
 
 // The item did not load (a 404, or a network error). The form shows an error
 // state with a retry button. It shows no fields and no Save button.
@@ -506,6 +595,7 @@ async function onSave(statusOverride?: string) {
     tracker.reset(snapshot.value)
     saveStatus.value = 'saved'
     savedAt.value = new Date()
+    rememberSaved(payload)
     backupSaved(saved.id)
     for (const callback of savedCallbacks) {
       callback(saved)
