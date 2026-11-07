@@ -253,3 +253,31 @@ describe('createContentStore', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('content of the last build')
   })
 })
+
+describe('the access of a system request', () => {
+  const cache = () => createGithubCache({ headTtl: 0 })
+
+  it('has every capability: no token with the fs store, none at all with no App key', async () => {
+    const { getGithubAccess } =
+      await import('../modules/pluto-github/runtime/server/utils/github-setup')
+    const { createPlutoSystemEvent } =
+      await import('../server/utils/pluto-system')
+
+    resetTestConfig(undefined, { storage: 'fs', fsRoot: '.' })
+    createContentStore(testConfig, cache())
+    expect(await getGithubAccess(createPlutoSystemEvent())).toEqual({
+      capabilities: ['*'],
+      auth: { token: '' },
+    })
+
+    resetTestConfig(undefined, {
+      storage: 'github',
+      appId: '',
+      privateKey: '',
+      readToken: 'pat',
+      fetch: vi.fn(),
+    })
+    createContentStore(testConfig, cache())
+    expect(await getGithubAccess(createPlutoSystemEvent())).toBeNull()
+  })
+})

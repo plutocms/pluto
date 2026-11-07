@@ -119,6 +119,19 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-08-15',
 
+  // The scheduled tasks of Pluto (experimental in Nitro). `pluto:trash:purge` deletes the items
+  // that are in the trash for more than 30 days. A host with no scheduled tasks (Netlify, a static
+  // site) skips it: opening a Trash purges too. To turn it off, an app sets
+  // `nitro.scheduledTasks['0 3 * * *']` to `[]`.
+  nitro: {
+    experimental: {
+      tasks: true,
+    },
+    scheduledTasks: {
+      '0 3 * * *': ['pluto:trash:purge'],
+    },
+  },
+
   typescript: {
     // No `includeWorkspace`: in the monorepo it would read every package. Each package has its own typecheck.
     includeWorkspace: false,

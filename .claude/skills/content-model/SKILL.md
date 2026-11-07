@@ -719,6 +719,18 @@ path, because an id can be "trash"). Remove is **Move to trash**: no dialog, one
 for one row or the selected rows, **Empty the trash**, and the note about 30 days. Delete forever
 and Empty the trash ask first.
 
+The scheduled purge: the Nitro task `pluto:trash:purge` (`server/tasks/pluto/trash/purge.ts`), every day at
+03:00 (`nitro.experimental.tasks` and `nitro.scheduledTasks` in the core `nuxt.config.ts`; an app
+sets `nitro.scheduledTasks['0 3 * * *']` to `[]` to turn it off). It runs on the hosts that run
+scheduled tasks (a Node, Bun or Deno server, Cloudflare, Vercel), not on Netlify or a static site:
+opening a Trash purges too. `purgeExpiredTrash()` calls `trash.purgeBefore(trashCutoff())` for each type
+with `trash`, with a system request (`createPlutoSystemEvent`, `isPlutoSystemEvent` in
+`server/utils/pluto-system.ts`: a flag on `event.context`, which a client cannot set). A type that
+fails only warns. An adapter gives a system request its server credentials and every capability:
+the Git CMS an installation token that can write (`getWriteToken` of the App token provider: the
+App id and key, not the read token), or no token with the `fs` store; with no App key it gives
+`null` (401, the task skips the type). In dev, `POST /_nitro/tasks/pluto:trash:purge` runs it.
+
 ## Revisions
 
 A backend that keeps the saved versions of an item implements two optional adapter reads. Core

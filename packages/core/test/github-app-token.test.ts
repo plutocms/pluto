@@ -307,3 +307,44 @@ describe('createAppTokenProvider', () => {
     spy.mockRestore()
   })
 })
+
+describe('the write token of a system request', () => {
+  it('asks for a contents-write token, kept apart from the read token', async () => {
+    const { fake } = setup()
+    const provider = createAppTokenProvider({
+      repo: 'acme/site',
+      appId: '12345',
+      privateKey,
+      fetch: fake.fetch,
+      now: () => NOW,
+    })
+
+    const write = await provider.getWriteToken()
+    const read = await provider.getReadToken()
+
+    expect(write).not.toBe(read)
+    expect(await provider.getWriteToken()).toBe(write)
+    expect(fake.appCalls.lookups).toBe(1)
+    expect(fake.appCalls.tokenRequests).toEqual([
+      { repositories: ['site'], permissions: { contents: 'write' } },
+      { repositories: ['site'], permissions: { contents: 'read' } },
+    ])
+  })
+
+  it('answers 503 with no App id or key, even with a read token, and logs nothing', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const provider = createAppTokenProvider({
+      repo: 'acme/site',
+      appId: '',
+      privateKey: '',
+      readToken: 'ro',
+    })
+
+    await expect(provider.getWriteToken()).rejects.toMatchObject({
+      statusCode: 503,
+    })
+    expect(await provider.getReadToken()).toBe('ro')
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
+})

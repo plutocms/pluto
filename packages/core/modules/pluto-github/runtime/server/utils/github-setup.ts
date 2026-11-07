@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import type { PlutoGithubAccess } from '../adapter'
+import type { AppTokenProvider } from '../github/app-token'
 import type { SnapshotLoader } from '../store/snapshot'
 import type { PlutoGithubStore } from '../store/types'
 import type { GithubCache } from './github-cache'
@@ -15,6 +16,7 @@ import {
   isPublicRead,
   markPublicRead,
 } from '../../../../../server/utils/pluto-public-read'
+import { isPlutoSystemEvent } from '../../../../../server/utils/pluto-system'
 import { plutoGithubAuthorType } from '../../shared/author-type'
 import { plutoGithubPostType } from '../../shared/post-type'
 import { plutoGithubTermTypes } from '../../shared/term-types'
@@ -31,6 +33,9 @@ import {
 import { createGithubCache } from './github-cache'
 import { getGithubSession } from './session'
 
+/** The token provider of the GitHub store. None with the `fs` store. */
+let registeredTokens: AppTokenProvider | undefined
+
 /**
  * Picks the store: the local files in dev with `fs`, otherwise GitHub. The
  * GitHub store reads for anonymous callers with the read token, or with an
@@ -44,6 +49,7 @@ export function createContentStore(
   loadSnapshot?: SnapshotLoader
 ): PlutoGithubStore {
   if (config.storage === 'fs') {
+    registeredTokens = undefined
     // Only the content dir makes the head id. The root is the project dir.
     return createFsStore({
       root: resolve(config.fsRoot || process.cwd()),
@@ -59,6 +65,7 @@ export function createContentStore(
     readToken: config.readToken,
     fetch: config.fetch,
   })
+  registeredTokens = tokens
   const github = createGithubStore({
     repo: config.repo,
     branch: config.branch,
@@ -119,6 +126,9 @@ export function markGithubAnonymous(event: H3Event): void {
 export async function getGithubAccess(
   event: H3Event
 ): Promise<PlutoGithubAccess | null> {
+  if (isPlutoSystemEvent(event)) {
+    return systemAccess()
+  }
   if (isPublicRead(event)) {
     return null
   }
@@ -127,6 +137,25 @@ export async function getGithubAccess(
     return null
   }
   return { capabilities: session.capabilities, auth: { token: session.token } }
+}
+
+/**
+ * The access of a system request (a scheduled task): every capability. With the GitHub store, an
+ * installation token that can write; without the App id and key, `null` (the adapter answers 401
+ * and the task skips). The `fs` store needs no token.
+ */
+async function systemAccess(): Promise<PlutoGithubAccess | null> {
+  if (!registeredTokens) {
+    return { capabilities: ['*'], auth: { token: '' } }
+  }
+  try {
+    return {
+      capabilities: ['*'],
+      auth: { token: await registeredTokens.getWriteToken() },
+    }
+  } catch {
+    return null
+  }
 }
 
 let registeredCache: GithubCache | undefined
