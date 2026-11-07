@@ -430,9 +430,14 @@ function bulkStatus(action: 'publish' | 'unpublish') {
     toast.add({ title: t('pluto.list.bulk.nothing'), color: 'neutral' })
     return
   }
-  void runBulk(action, change.ids, (id) =>
-    $fetch(itemUrl(id), { method: 'PATCH', body: { status: change.status } })
-  )
+  // Each task awaits and returns nothing. A returned $fetch promise makes TypeScript compare the
+  // answers of every typed route of the app, which is too deep in a large app.
+  void runBulk(action, change.ids, async (id) => {
+    await $fetch(itemUrl(id), {
+      method: 'PATCH',
+      body: { status: change.status },
+    })
+  })
 }
 
 function openBulkRemove() {
@@ -464,7 +469,9 @@ async function confirmDelete() {
     await runBulk(
       'remove',
       selectedItems.value.map((item) => item.id),
-      (id) => $fetch(itemUrl(id), { method: 'DELETE' })
+      async (id) => {
+        await $fetch(itemUrl(id), { method: 'DELETE' })
+      }
     )
     deleting.value = false
     closeDeleteModal()
