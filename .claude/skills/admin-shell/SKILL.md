@@ -254,9 +254,13 @@ later page load has it in the first paint. If the capabilities load fails, the b
 - `--ui-header-height: 2.5rem` stays on `:root`, so an existing app does not change. A site with a
   taller header can set its own `--ui-header-height` (for example for the public pages only) and
   the admin bar keeps its height.
-- `PlutoRoot` sets `data-pluto-admin-bar="true"` on `<html>` (`useHead` `htmlAttrs`) while
+- `PlutoRoot` sets `data-pluto-admin-bar="true"` on `<html>` while
   `usePlutoAdminBar().visible` is `true`. It follows the bar, so it is in the server HTML when
-  the hint puts the bar there. A site can write
+  the hint puts the bar there. The server uses `useHead` `htmlAttrs`. The browser uses a watch
+  that sets or removes the attribute on `document.documentElement` directly. Do not move it back
+  to `useHead` in the browser: unhead removes only the attributes that it rendered in the browser.
+  With a stale hint (the session ended), the bar hides before the first head render, so the
+  attribute of the server HTML stayed, and the page kept the gap of the bar. A site can write
   `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
 - The page offset is in core. While the marker is on `<html>` of a public page (not
   `data-pluto-admin`), the plain `<style>` of `PlutoRoot` gives `body` a `padding-top` of the bar

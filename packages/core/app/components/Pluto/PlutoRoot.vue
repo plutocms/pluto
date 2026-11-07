@@ -87,13 +87,32 @@ useHead(
 // `data-pluto-admin-bar` marks <html> while the admin bar shows, so a site can
 // offset its own header only then. It follows the bar, so it is in the server
 // HTML when the hint puts the bar there (see `usePlutoAdminBar`).
-useHead({
-  htmlAttrs: {
-    'data-pluto-admin-bar': computed(() =>
-      adminBar.visible.value ? 'true' : undefined
-    ),
-  },
-})
+//
+// In the browser, a watch sets it on <html> directly, not through useHead.
+// Unhead removes only the attributes that it rendered in the browser. With a
+// stale hint (the session ended), the bar can hide before the first head render
+// in the browser, so the attribute of the server HTML would stay, and with it
+// the gap of the bar on the page.
+if (import.meta.server) {
+  useHead({
+    htmlAttrs: {
+      'data-pluto-admin-bar': adminBar.visible.value ? 'true' : undefined,
+    },
+  })
+} else {
+  watch(
+    adminBar.visible,
+    (visible) => {
+      const html = document.documentElement
+      if (visible) {
+        html.setAttribute('data-pluto-admin-bar', 'true')
+      } else {
+        html.removeAttribute('data-pluto-admin-bar')
+      }
+    },
+    { immediate: true }
+  )
+}
 
 // A page that the hint changed must not go into a shared cache. The bar holds
 // no user data, but a cached copy would show its empty frame to every visitor.
