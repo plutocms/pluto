@@ -176,7 +176,19 @@
       "showing": "Showing {loaded} {labelPlural}",
       "showingOf": "Showing {loaded} of {total} {labelPlural}",
       "loadingMore": "Loading more…",
-      "status": "Status"
+      "status": "Status",
+      "search": "Search {labelPlural}",
+      "filterBy": "Filter by {label}",
+      "filterAll": "All",
+      "filterSearch": "Search…",
+      "yes": "Yes",
+      "no": "No",
+      "clearFilters": "Clear the filters",
+      "noMatch": "No {labelPlural} match",
+      "noMatchHint": "Try other words, or clear the filters.",
+      "sortBy": "Sort by {label}",
+      "sortedAsc": "Sorted ascending",
+      "sortedDesc": "Sorted descending"
     },
     "fields": {
       "noWidget": "No widget registered for field type \"{type}\".",

@@ -186,3 +186,53 @@ describe('usePlutoContentList with pageSize', () => {
     expect(list.items.value.map((item) => item.id)).toEqual([10])
   })
 })
+
+describe('usePlutoContentList with a query', () => {
+  it('sends the query keys with the page, and loads again from the first page when it changes', async () => {
+    fetchMock.mockResolvedValue({ data: [{ id: 1 }], total: 1 })
+    const { usePlutoContentList } = await loadComposable()
+    const query = ref<Record<string, unknown>>({ search: 'hi' })
+
+    const list = usePlutoContentList('post', { pageSize: 50, query })
+    await vi.waitFor(() => expect(list.pending.value).toBe(false))
+
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/_pluto/content/post', {
+      query: { search: 'hi', limit: 50, offset: 0 },
+    })
+
+    query.value = {
+      search: 'hi',
+      status: 'draft',
+      filters: { kind: 'news' },
+      sort: { field: 'title', direction: 'desc' },
+    }
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/_pluto/content/post', {
+      query: {
+        search: 'hi',
+        status: 'draft',
+        'filter[kind]': 'news',
+        sort: '-title',
+        limit: 50,
+        offset: 0,
+      },
+    })
+  })
+
+  it('does not load again for the same keys', async () => {
+    fetchMock.mockResolvedValue({ data: [], total: 0 })
+    const { usePlutoContentList } = await loadComposable()
+    const query = ref<Record<string, unknown>>({ search: 'hi' })
+
+    const list = usePlutoContentList('post', { query })
+    await vi.waitFor(() => expect(list.pending.value).toBe(false))
+    query.value = { search: 'hi', filters: {} }
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledWith('/api/_pluto/content/post', {
+      query: { search: 'hi' },
+    })
+  })
+})

@@ -71,6 +71,9 @@ policies shared by every project here.
   bucket that adds a component (a status) to its toolbar. The form shows the item title
   in the toolbar, a load error state with retry, a create toast, labeled icon buttons with tooltips,
   and the aside fields inline on a narrow screen. A field can set `listFormat` for the generic list.
+  The generic list has a search, a Status filter, a filter for each reference with a target (and
+  each `select` or `boolean` in the list, or with `filter: true`), and sortable column headers. The
+  state is in the URL. The adapter query has `status` (both backends).
   Every form layout has one toolbar (title, save state, unsaved-changes dialog, Ctrl/Cmd+S, a View link
   from `previewUrl`), a form context for widgets (`usePlutoContentForm`), and a `canvas` layout with a left
   panel, a right panel with tabs, and `PlutoContentCanvasPanel`.

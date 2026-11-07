@@ -183,6 +183,25 @@ export function runContentAdapterContract(
         ])
       })
 
+      it('keeps one status', async () => {
+        const drafts = await adapter.list(ctx, {
+          includeUnpublished: true,
+          status: 'draft',
+        })
+        const published = await adapter.list(ctx, {
+          includeUnpublished: true,
+          status: 'published',
+        })
+
+        expect(drafts.data.map((item) => item.id)).toEqual(['delta', 'bravo'])
+        expect(drafts.total).toBe(2)
+        expect(published.data.map((item) => item.id)).toEqual([
+          'echo',
+          'charlie',
+          'alpha',
+        ])
+      })
+
       it('pages with offset and limit, and the total stays the filtered count', async () => {
         const page = await adapter.list(ctx, {
           includeUnpublished: true,
@@ -211,6 +230,14 @@ export function runContentAdapterContract(
 
         expect(result.data.map((item) => item.id)).toEqual(['public'])
         expect(result.total).toBe(1)
+        expect(
+          (
+            await adapter.list(ctx, {
+              includeUnpublished: true,
+              status: 'draft',
+            })
+          ).data
+        ).toEqual([])
       })
 
       it('gets a published item and not a draft', async () => {

@@ -123,6 +123,44 @@ describe('listContentItems', () => {
     )
   })
 
+  it('passes the search, the status, the filters and the sort of the admin list', async () => {
+    const { registerContentAdapter, listContentItems } = await loadHandlers()
+
+    const adapter = createMemoryContentAdapter()
+    const listSpy = vi.spyOn(adapter, 'list')
+    registerContentAdapter(adapter)
+
+    const ctx = ctxFor(
+      contentType({ defaultSort: { field: 'title', direction: 'asc' } })
+    )
+
+    await listContentItems(ctx, {
+      search: 'hi',
+      status: 'draft',
+      filters: { kind: 'news' },
+      sort: { field: 'views', direction: 'desc' },
+    })
+    await listContentItems(ctx, {})
+
+    expect(listSpy).toHaveBeenNthCalledWith(
+      1,
+      ctx,
+      expect.objectContaining({
+        search: 'hi',
+        status: 'draft',
+        filters: { kind: 'news' },
+        sort: { field: 'views', direction: 'desc' },
+        includeUnpublished: true,
+      })
+    )
+    // With no sort, the default sort of the type.
+    expect(listSpy).toHaveBeenNthCalledWith(
+      2,
+      ctx,
+      expect.objectContaining({ sort: { field: 'title', direction: 'asc' } })
+    )
+  })
+
   it('requests includeUnpublished from the adapter by default', async () => {
     const { registerContentAdapter, listContentItems } = await loadHandlers()
 

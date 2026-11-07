@@ -59,6 +59,13 @@ export function createMemoryContentAdapter(
         )
       }
 
+      if (query.status !== undefined && ctx.type.status) {
+        const fallback = ctx.type.status.default
+        data = data.filter(
+          (row) => String(row.status ?? fallback) === query.status
+        )
+      }
+
       if (query.search) {
         const needle = query.search.toLowerCase()
         data = data.filter((row) =>
@@ -140,7 +147,9 @@ export function createMemoryContentAdapter(
         const map = mapOf(ctx)
         const before = map.get(slot(ctx, key))
         map.set(slot(ctx, key), record)
-        return { otherDevice: Boolean(before && before.device !== record.device) }
+        return {
+          otherDevice: Boolean(before && before.device !== record.device),
+        }
       },
       async remove(ctx, key) {
         mapOf(ctx).delete(slot(ctx, key))

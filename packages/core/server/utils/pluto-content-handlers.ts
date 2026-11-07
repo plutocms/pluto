@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import type { PlutoAdminListQuery } from '../../shared/utils/content-list'
 import {
   backupFields,
   parseBackup,
@@ -97,10 +98,9 @@ export async function authorizeContentOperation(
  */
 export async function listContentItems(
   ctx: PlutoContentContext,
-  query: {
+  query: PlutoAdminListQuery & {
     limit?: number
     offset?: number
-    search?: string
     published?: boolean
   }
 ): Promise<PlutoContentListResult> {
@@ -108,7 +108,10 @@ export async function listContentItems(
     limit: query.limit,
     offset: query.offset,
     search: query.search,
-    sort: ctx.type.defaultSort,
+    sort: query.sort ?? ctx.type.defaultSort,
+    filters: query.filters,
+    status: query.status,
+    // A status filter can ask for a draft, so it needs the unpublished rows.
     includeUnpublished: query.published !== true,
   })
 }

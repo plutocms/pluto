@@ -506,6 +506,18 @@ export function createMarkdownContentAdapter(
     return file ? toEntry(layout, file, slug) : null
   }
 
+  /** The status of an entry. A file with no status key has the default status of the type. */
+  function statusOf(
+    type: PlutoContentType,
+    layout: Layout,
+    entry: Pick<Entry, 'frontmatter'>
+  ): unknown {
+    return layout.statusColumn
+      ? (entry.frontmatter[layout.statusColumn] ??
+          (type.status && type.status.default))
+      : undefined
+  }
+
   function isPublished(
     type: PlutoContentType,
     layout: Layout,
@@ -514,10 +526,7 @@ export function createMarkdownContentAdapter(
     if (!layout.statusColumn) {
       return true
     }
-    const value =
-      entry.frontmatter[layout.statusColumn] ??
-      (type.status && type.status.default)
-    return value === layout.publishedValue
+    return statusOf(type, layout, entry) === layout.publishedValue
   }
 
   function isVisible(
@@ -833,6 +842,13 @@ export function createMarkdownContentAdapter(
       let entries = (await loadEntries(type, access)).filter((entry) =>
         isVisible(type, layout, entry, drafts)
       )
+
+      // Only one status. A type with no publish workflow has no status, so the option does nothing.
+      if (query.status !== undefined && layout.statusColumn) {
+        entries = entries.filter(
+          (entry) => String(statusOf(type, layout, entry)) === query.status
+        )
+      }
 
       if (query.search) {
         const needle = query.search.toLowerCase()
