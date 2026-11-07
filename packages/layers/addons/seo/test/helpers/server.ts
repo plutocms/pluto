@@ -25,7 +25,10 @@ import { markPublicRead } from '../../../../../core/server/utils/pluto-public-re
 import { absoluteSiteUrl } from '../../../../../core/shared/utils/url'
 import { plutoSeoListEntries } from '../../server/utils/seo-entries'
 import { plutoSeoTypeExtension } from '../../shared/utils/seo-fields'
-import { plutoSeoDescription } from '../../shared/utils/seo-head'
+import {
+  plutoSeoAuthors,
+  plutoSeoDescription,
+} from '../../shared/utils/seo-head'
 import {
   PLUTO_SEO_FEED_MAX,
   PLUTO_SEO_SITEMAP_MAX,
@@ -155,6 +158,7 @@ export function setupSeoServer(options: SeoServerOptions = {}) {
     toPublicData,
     plutoSeoListEntries,
     plutoSeoDescription,
+    plutoSeoAuthors,
     plutoSeoRenderSitemap,
     plutoSeoRenderRss,
     plutoSeoRenderRobots,

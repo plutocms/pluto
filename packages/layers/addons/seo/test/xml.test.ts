@@ -111,7 +111,7 @@ describe('plutoSeoRenderRss', () => {
     expect(xml).toBe(
       [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">',
         '  <channel>',
         '    <title>My &lt;Blog&gt;</title>',
         '    <link>https://a.io/</link>',
@@ -197,5 +197,24 @@ describe('plutoSeoRenderRobots', () => {
         sitemap: 'https://a.io/sitemap.xml',
       })
     ).toBe('User-agent: *\nDisallow: /\n')
+  })
+})
+
+describe('dc:creator', () => {
+  it('names the authors of an item', () => {
+    const xml = plutoSeoRenderRss(
+      { title: 'T', link: 'https://a.io/', description: 'D' },
+      [
+        {
+          title: 'A',
+          link: 'https://a.io/a',
+          description: 'x',
+          creator: 'Ana & Bo',
+        },
+        { title: 'B', link: 'https://a.io/b', description: 'y' },
+      ]
+    )
+    expect(xml).toContain('      <dc:creator>Ana &amp; Bo</dc:creator>')
+    expect(xml.match(/dc:creator>/g)).toHaveLength(2)
   })
 })

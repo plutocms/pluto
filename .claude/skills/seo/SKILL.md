@@ -141,11 +141,12 @@ All three set the cache header of the public API (`setPublicApiCache`) and alway
   `<base>_pluto` and `robots.disallow`, then `Sitemap:` when the root is known. With
   `indexable: false`: `Disallow: /` only. A GitHub Pages project site serves it under `/repo/`, where
   crawlers do not read it. Put it at the domain root by hand there.
-- `/feed.xml`: RSS 2.0 with `xmlns:atom`. The channel has the title, the link, the description,
+- `/feed.xml`: RSS 2.0 with `xmlns:atom` and `xmlns:dc`. The channel has the title, the link, the description,
   the language, `atom:link rel="self"` and `lastBuildDate`. The newest `feed.limit` items (100 at
   most) by `-publishedAt`, with no noindex item. An item has the title, the link,
-  `guid isPermaLink="true"`, `pubDate` (RFC 822) and the description: `seoDescription`, else the
-  excerpt. No full HTML in v1. A missing or private type, or an unknown site root, gives a valid
+  `guid isPermaLink="true"`, `pubDate` (RFC 822), the description (`seoDescription`, else the
+  excerpt) and `dc:creator` (the author names joined with ", ", when the item has authors). No full
+  HTML in v1. A missing or private type, or an unknown site root, gives a valid
   channel with no items.
 
 The renderers in `seo-xml.ts` are pure and escape every value (`plutoSeoEscapeXml` also drops the
@@ -165,11 +166,20 @@ flag that core sets (`runtimeConfig.public.plutoPublicApi.static`). The pure rul
 
 - `usePlutoSeo(item, { type?, ogType? })`: sets the tags of one item page with `useSeoMeta`, from
   `plutoSeoItemHead`. Title: `seoTitle`, else the title field. Description: `seoDescription`, else
-  `excerpt`, else `description`, else the plain text of `html` cut at 160. Image: `seoImage`, else
+  `excerpt`, else `description`, else `bio` (an author page), else the plain text of `html` cut at 160. Image: `seoImage`, else
   `cover`, else the first `media` field with a file, else `plutoSeo.image`; it is absolute, with the
   alt text and the size. It sets `og:*`, `twitter:*`, `twitter:card` (`summary_large_image` with an
-  image), `robots: noindex, follow` for `seoNoindex`, and the published and modified times for an
-  `article`. It returns the head as a computed value.
+  image), `robots: noindex, follow` for `seoNoindex`, and `<meta name="author">` (the names joined
+  with ", "). For an `article` it also sets the published and modified times, one `article:author`
+  per author (the author page URL, else the name) and a JSON-LD `BlogPosting` script
+  (`plutoSeoArticleJsonLd`: headline, description, image, dates, the authors as `Person` with
+  `name`, `url` and `image`, and the page URL). The script text comes from `plutoSeoJsonLdText`,
+  which escapes `<`, `>`, `&`, U+2028 and U+2029, so no value can close the script. It returns the
+  head as a computed value.
+- The authors (`plutoSeoAuthors`): the expanded references of the item field `authors` (a list), else
+  `author` (one), in order. The name is `label` (or `name`). The URL comes from the `previewUrl` of
+  the target type of that field (`plutoSeoAuthorUrl`, with `typeOf`), made absolute. The image is the
+  `avatar` record. A plain id is skipped. See the authors skill of core.
 - The plugin registers a `contentHead` entry for every type (`'*'`). Core calls it inside
   `definePlutoContent().useItem`, after its own tags, so `usePost` and the other content pages get
   the tags with no page change. A page that uses `seo: false` skips it. A page that you wrote
