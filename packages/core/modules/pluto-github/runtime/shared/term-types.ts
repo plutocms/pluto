@@ -61,6 +61,7 @@ function termType(options: {
     defaultSort: { field: 'title', direction: 'asc' },
     liveOnSave: true,
     api: { public: true },
+    trash: true,
   }
 }
 

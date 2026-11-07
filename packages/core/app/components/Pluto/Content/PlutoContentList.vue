@@ -6,6 +6,10 @@ import {
   bulkStatusChange,
   runInBatches,
 } from '../../../composables/internal/bulk-actions'
+import {
+  restorePlutoTrashItem,
+  usePlutoContentTrashCount,
+} from '../../../composables/pluto-content-trash'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -440,7 +444,90 @@ function bulkStatus(action: 'publish' | 'unpublish') {
   })
 }
 
+// A type with a trash: Remove moves the items to the trash at once, with Undo in the toast, and
+// the list has the tabs All and Trash (`?trash=1`). Without one, Remove asks and is final.
+const trashEnabled = computed(
+  () => Boolean(contentType.value?.trash) && canDelete.value
+)
+const trashView = computed(
+  () => trashEnabled.value && route.query.trash === '1'
+)
+const trashCounter =
+  contentType.value?.trash && canDelete.value
+    ? usePlutoContentTrashCount(props.type)
+    : null
+
+async function undoTrash(ids: Array<string | number>) {
+  const { done, failed } = await runInBatches(ids, (id) =>
+    restorePlutoTrashItem(props.type, id)
+  )
+  toast.add({
+    title: t('pluto.list.trash.restoredMany', { count: n(done) }),
+    description: failed
+      ? t('pluto.list.bulk.failed', { count: n(failed) })
+      : undefined,
+    color: failed ? 'warning' : 'success',
+  })
+  retry()
+  void trashCounter?.refresh()
+}
+
+async function moveToTrash(ids: Array<string | number>) {
+  if (bulkRunning.value) {
+    return
+  }
+  bulkRunning.value = 'remove'
+  const moved: Array<string | number> = []
+  try {
+    const { failed } = await runInBatches(ids, async (id) => {
+      await $fetch(itemUrl(id), { method: 'DELETE' })
+      moved.push(id)
+    })
+    toast.add({
+      title:
+        ids.length === 1 && moved.length === 1
+          ? t('pluto.list.trash.moved')
+          : t('pluto.list.trash.movedMany', { count: n(moved.length) }),
+      description: failed
+        ? t('pluto.list.bulk.failed', { count: n(failed) })
+        : undefined,
+      color: failed ? 'warning' : 'success',
+      ...(moved.length > 0 && {
+        actions: [
+          {
+            label: t('pluto.list.trash.undo'),
+            icon: 'lucide:undo-2',
+            color: 'neutral' as const,
+            variant: 'outline' as const,
+            onClick: () => {
+              void undoTrash(moved)
+            },
+          },
+        ],
+      }),
+    })
+  } finally {
+    bulkRunning.value = null
+    clearSelection()
+    retry()
+    void trashCounter?.refresh()
+  }
+}
+
+/** Remove of one row: to the trash at once, or the final delete with the dialog. */
+function removeItem(id: string | number) {
+  if (trashEnabled.value) {
+    void moveToTrash([id])
+  } else {
+    openDeleteModal(id)
+  }
+}
+
 function openBulkRemove() {
+  if (trashEnabled.value) {
+    void moveToTrash(selectedItems.value.map((item) => item.id))
+    return
+  }
   bulkRemove.value = true
   isDeleteModalOpen.value = true
 }
@@ -520,7 +607,7 @@ const footer = computed(() => {
   <PlutoViewAdminPanel v-if="contentType" fill>
     <template #toolbar>
       <PlutoViewToolbar :title="text.labelPlural">
-        <template #trailing>
+        <template v-if="!trashView" #trailing>
           <UButton
             :loading="pending"
             :title="t('pluto.common.refresh')"
@@ -539,384 +626,411 @@ const footer = computed(() => {
       </PlutoViewToolbar>
       <!-- The tabs of the menu item that holds this list (for example Pages). -->
       <PlutoAdminNavTabs variant="toolbar" />
+      <PlutoContentListTabs
+        v-if="trashEnabled"
+        :view="trashView ? 'trash' : 'all'"
+        :count="trashCounter?.count.value ?? null"
+      />
     </template>
 
-    <!-- The bulk actions, while rows are selected. They take the place of the filters. -->
-    <div
-      v-if="selectedItems.length > 0"
-      class="bg-elevated flex shrink-0 flex-wrap items-center gap-2 rounded-lg px-3 py-1.5"
-    >
-      <span class="text-highlighted me-2 text-sm font-medium tabular-nums">
-        {{ t('pluto.list.bulk.selected', { count: n(selectedItems.length) }) }}
-      </span>
-      <template v-if="canBulkStatus">
-        <UButton
-          :label="t('pluto.list.bulk.publish')"
-          :loading="bulkRunning === 'publish'"
-          :disabled="bulkRunning !== null"
-          icon="lucide:globe"
-          color="neutral"
-          variant="outline"
-          size="sm"
-          @click="bulkStatus('publish')"
-        />
-        <UButton
-          :label="t('pluto.list.bulk.unpublish')"
-          :loading="bulkRunning === 'unpublish'"
-          :disabled="bulkRunning !== null"
-          icon="lucide:eye-off"
-          color="neutral"
-          variant="outline"
-          size="sm"
-          @click="bulkStatus('unpublish')"
-        />
-      </template>
-      <UButton
-        v-if="canDelete"
-        :label="t('pluto.list.bulk.remove')"
-        :loading="bulkRunning === 'remove'"
-        :disabled="bulkRunning !== null"
-        icon="lucide:trash"
-        color="error"
-        variant="soft"
-        size="sm"
-        @click="openBulkRemove"
-      />
-      <UButton
-        :label="t('pluto.list.bulk.clear')"
-        :disabled="bulkRunning !== null"
-        icon="lucide:x"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        class="ms-auto"
-        @click="clearSelection"
-      />
-    </div>
-
-    <!-- The search and the filters. Not on an empty type: there is nothing to narrow. -->
-    <div
-      v-else-if="emptyState !== 'empty'"
-      class="flex shrink-0 flex-wrap items-center gap-2"
-    >
-      <UInput
-        v-model="searchText"
-        :placeholder="
-          t('pluto.list.search', { labelPlural: text.labelPluralLower })
-        "
-        :aria-label="
-          t('pluto.list.search', { labelPlural: text.labelPluralLower })
-        "
-        icon="lucide:search"
-        class="min-w-48 flex-1"
-      />
-      <PlutoContentListFilter
-        v-if="statusItems.length > 0"
-        :label="t('pluto.list.status')"
-        :items="statusItems"
-        :model-value="listQuery.status"
-        @update:model-value="setStatus"
-      />
-      <PlutoContentListFilter
-        v-for="field in filterFields"
-        :key="field.name"
-        :label="field.label"
-        :field="field"
-        :model-value="listQuery.filters?.[field.name]"
-        @update:model-value="(value) => setFilter(field.name, value)"
-      />
-      <UButton
-        v-if="narrowed"
-        :label="t('pluto.list.clearFilters')"
-        icon="lucide:x"
-        color="neutral"
-        variant="ghost"
-        @click="clearFilters"
-      />
-    </div>
-
-    <PlutoSkeletonList
-      v-if="emptyState === 'loading'"
-      :columns="listFields.map((field) => text.fieldLabel(field))"
-      :status="Boolean(statusConfig)"
-      :aria-label="
-        t('pluto.list.loading', { labelPlural: text.labelPluralLower })
-      "
-      aria-busy="true"
+    <PlutoContentTrash
+      v-if="trashView"
+      :type="type"
+      @changed="trashCounter?.refresh()"
     />
 
-    <UEmpty
-      v-else-if="emptyState === 'error'"
-      :title="
-        t('pluto.list.loadFailed', { labelPlural: text.labelPluralLower })
-      "
-      :actions="emptyActions"
-      :description="t('pluto.list.loadFailedHint')"
-      icon="lucide:circle-alert"
-      variant="naked"
-    />
-
-    <UEmpty
-      v-else-if="emptyState === 'empty'"
-      :title="t('pluto.list.empty', { labelPlural: text.labelPluralLower })"
-      :description="
-        canWrite
-          ? t('pluto.list.emptyCanWrite', { label: text.labelLower })
-          : t('pluto.list.emptyReadOnly')
-      "
-      :icon="contentType.icon ?? 'lucide:inbox'"
-      :actions="emptyActions"
-      variant="naked"
-    />
-
-    <UEmpty
-      v-else-if="emptyState === 'no-match'"
-      :title="t('pluto.list.noMatch', { labelPlural: text.labelPluralLower })"
-      :description="t('pluto.list.noMatchHint')"
-      :actions="[
-        {
-          label: t('pluto.list.clearFilters'),
-          icon: 'lucide:x',
-          color: 'neutral',
-          variant: 'outline',
-          onClick: clearFilters,
-        },
-      ]"
-      icon="lucide:search-x"
-      variant="naked"
-    />
-
-    <UAlert
-      v-if="!emptyState && error"
-      :actions="[
-        {
-          label: t('pluto.common.tryAgain'),
-          color: 'error',
-          variant: 'outline',
-          onClick: retry,
-        },
-      ]"
-      :title="
-        t('pluto.list.refreshFailed', { labelPlural: text.labelPluralLower })
-      "
-      :description="t('pluto.list.refreshFailedHint')"
-      color="error"
-      variant="subtle"
-      icon="lucide:circle-alert"
-    />
-
-    <div
-      v-if="!emptyState"
-      ref="mobileList"
-      class="flex min-h-0 flex-col gap-3 overflow-y-auto lg:hidden"
-    >
-      <UCard v-for="item in items" :key="item.id" class="shrink-0">
-        <div class="flex flex-col gap-4">
-          <div class="flex min-w-0 items-center justify-between gap-3">
-            <NuxtLink
-              :to="editPath(item.id)"
-              :class="itemTitle(item) ? undefined : 'text-muted italic'"
-              class="block truncate text-lg font-semibold hover:underline"
-            >
-              {{ itemTitle(item) || t('pluto.content.untitled') }}
-            </NuxtLink>
-
-            <UBadge
-              v-if="itemStatus(item)"
-              :color="itemStatus(item)!.published ? 'success' : 'neutral'"
-              variant="subtle"
-              class="shrink-0"
-            >
-              {{ itemStatus(item)!.label }}
-            </UBadge>
-          </div>
-
-          <dl class="grid grid-cols-2 gap-3 text-sm">
-            <div v-for="field in cardFields" :key="field.name">
-              <dt class="text-muted">
-                {{ text.fieldLabel(field) }}
-              </dt>
-              <dd class="font-medium">
-                <PlutoContentReferenceCell
-                  v-if="isReferenceColumn(field)"
-                  :field="field"
-                  :value="item[field.name]"
-                />
-                <template v-else>
-                  {{ formatListValue(field, item) }}
-                </template>
-              </dd>
-            </div>
-          </dl>
-
-          <div class="border-default flex gap-2 border-t pt-3">
-            <UButton
-              v-if="canWrite"
-              :to="editPath(item.id)"
-              icon="lucide:pen-line"
-              color="neutral"
-              variant="soft"
-              class="flex-1 justify-center"
-            >
-              {{ t('pluto.common.edit') }}
-            </UButton>
-
-            <UButton
-              v-if="canDelete"
-              icon="lucide:trash"
-              color="error"
-              variant="soft"
-              class="flex-1 justify-center"
-              @click="openDeleteModal(item.id)"
-            >
-              {{ t('pluto.common.remove') }}
-            </UButton>
-          </div>
-        </div>
-      </UCard>
-    </div>
-
-    <UTable
-      v-if="!emptyState"
-      ref="table"
-      :data="items"
-      :columns="columns"
-      :loading="pending || loadingMore"
-      :empty="t('pluto.list.emptyTable')"
-      :ui="{ tr: 'group' }"
-      class="ring-default hidden min-h-0 rounded-lg ring lg:block"
-      sticky
-      virtualize
-    >
-      <template #[titleCellSlot]="{ row }">
-        <NuxtLink
-          :to="editPath(row.original.id)"
-          :class="
-            itemTitle(row.original) ? 'text-highlighted' : 'text-muted italic'
-          "
-          class="font-medium hover:underline"
-        >
-          {{ itemTitle(row.original) || t('pluto.content.untitled') }}
-        </NuxtLink>
-      </template>
-
-      <template
-        v-for="field in listFields.filter(isReferenceColumn)"
-        :key="field.name"
-        #[`${field.name}-cell`]="{ row }"
+    <template v-else>
+      <!-- The bulk actions, while rows are selected. They take the place of the filters. -->
+      <div
+        v-if="selectedItems.length > 0"
+        class="bg-elevated flex shrink-0 flex-wrap items-center gap-2 rounded-lg px-3 py-1.5"
       >
-        <PlutoContentReferenceCell
-          :field="field"
-          :value="row.original[field.name]"
-        />
-      </template>
-
-      <!-- A sortable column: the header is a button (ascending, descending, default). -->
-      <template
-        v-for="field in sortFields"
-        :key="field.name"
-        #[`${field.name}-header`]
-      >
-        <button
-          :aria-label="
-            t('pluto.list.sortBy', { label: text.fieldLabel(field) })
-          "
-          :class="sortState(field.name) ? 'text-highlighted' : undefined"
-          type="button"
-          class="hover:text-highlighted -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 py-0.5"
-          @click="toggleSort(field.name)"
-        >
-          {{ text.fieldLabel(field) }}
-          <UIcon
-            :name="sortIcon(field.name)"
-            :class="sortState(field.name) ? undefined : 'opacity-40'"
-            class="size-3.5"
+        <span class="text-highlighted me-2 text-sm font-medium tabular-nums">
+          {{
+            t('pluto.list.bulk.selected', { count: n(selectedItems.length) })
+          }}
+        </span>
+        <template v-if="canBulkStatus">
+          <UButton
+            :label="t('pluto.list.bulk.publish')"
+            :loading="bulkRunning === 'publish'"
+            :disabled="bulkRunning !== null"
+            icon="lucide:globe"
+            color="neutral"
+            variant="outline"
+            size="sm"
+            @click="bulkStatus('publish')"
           />
-          <span v-if="sortState(field.name)" class="sr-only">
-            {{
-              t(
-                sortState(field.name) === 'asc'
-                  ? 'pluto.list.sortedAsc'
-                  : 'pluto.list.sortedDesc'
-              )
-            }}
-          </span>
-        </button>
-      </template>
-
-      <template #select-header>
-        <UCheckbox
-          :model-value="
-            allSelected
-              ? true
-              : selectedItems.length > 0
-                ? 'indeterminate'
-                : false
+          <UButton
+            :label="t('pluto.list.bulk.unpublish')"
+            :loading="bulkRunning === 'unpublish'"
+            :disabled="bulkRunning !== null"
+            icon="lucide:eye-off"
+            color="neutral"
+            variant="outline"
+            size="sm"
+            @click="bulkStatus('unpublish')"
+          />
+        </template>
+        <UButton
+          v-if="canDelete"
+          :label="
+            trashEnabled
+              ? t('pluto.list.trash.move')
+              : t('pluto.list.bulk.remove')
           "
-          :aria-label="t('pluto.list.bulk.selectAll')"
-          @update:model-value="(value) => toggleAll(value === true)"
+          :loading="bulkRunning === 'remove'"
+          :disabled="bulkRunning !== null"
+          icon="lucide:trash"
+          color="error"
+          variant="soft"
+          size="sm"
+          @click="openBulkRemove"
         />
-      </template>
+        <UButton
+          :label="t('pluto.list.bulk.clear')"
+          :disabled="bulkRunning !== null"
+          icon="lucide:x"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          class="ms-auto"
+          @click="clearSelection"
+        />
+      </div>
 
-      <template #select-cell="{ row }">
-        <UCheckbox
-          :model-value="selected.has(String(row.original.id))"
+      <!-- The search and the filters. Not on an empty type: there is nothing to narrow. -->
+      <div
+        v-else-if="emptyState !== 'empty'"
+        class="flex shrink-0 flex-wrap items-center gap-2"
+      >
+        <UInput
+          v-model="searchText"
+          :placeholder="
+            t('pluto.list.search', { labelPlural: text.labelPluralLower })
+          "
           :aria-label="
-            t('pluto.list.bulk.selectRow', {
-              title: itemTitle(row.original) || t('pluto.content.untitled'),
-            })
+            t('pluto.list.search', { labelPlural: text.labelPluralLower })
           "
-          @update:model-value="
-            (value) => toggleRow(row.original.id, value === true)
-          "
+          icon="lucide:search"
+          class="min-w-48 flex-1"
         />
-      </template>
+        <PlutoContentListFilter
+          v-if="statusItems.length > 0"
+          :label="t('pluto.list.status')"
+          :items="statusItems"
+          :model-value="listQuery.status"
+          @update:model-value="setStatus"
+        />
+        <PlutoContentListFilter
+          v-for="field in filterFields"
+          :key="field.name"
+          :label="field.label"
+          :field="field"
+          :model-value="listQuery.filters?.[field.name]"
+          @update:model-value="(value) => setFilter(field.name, value)"
+        />
+        <UButton
+          v-if="narrowed"
+          :label="t('pluto.list.clearFilters')"
+          icon="lucide:x"
+          color="neutral"
+          variant="ghost"
+          @click="clearFilters"
+        />
+      </div>
 
-      <template #status-cell="{ row }">
-        <UBadge
-          v-if="itemStatus(row.original)"
-          :color="itemStatus(row.original)!.published ? 'success' : 'neutral'"
-          variant="subtle"
+      <PlutoSkeletonList
+        v-if="emptyState === 'loading'"
+        :columns="listFields.map((field) => text.fieldLabel(field))"
+        :status="Boolean(statusConfig)"
+        :aria-label="
+          t('pluto.list.loading', { labelPlural: text.labelPluralLower })
+        "
+        aria-busy="true"
+      />
+
+      <UEmpty
+        v-else-if="emptyState === 'error'"
+        :title="
+          t('pluto.list.loadFailed', { labelPlural: text.labelPluralLower })
+        "
+        :actions="emptyActions"
+        :description="t('pluto.list.loadFailedHint')"
+        icon="lucide:circle-alert"
+        variant="naked"
+      />
+
+      <UEmpty
+        v-else-if="emptyState === 'empty'"
+        :title="t('pluto.list.empty', { labelPlural: text.labelPluralLower })"
+        :description="
+          canWrite
+            ? t('pluto.list.emptyCanWrite', { label: text.labelLower })
+            : t('pluto.list.emptyReadOnly')
+        "
+        :icon="contentType.icon ?? 'lucide:inbox'"
+        :actions="emptyActions"
+        variant="naked"
+      />
+
+      <UEmpty
+        v-else-if="emptyState === 'no-match'"
+        :title="t('pluto.list.noMatch', { labelPlural: text.labelPluralLower })"
+        :description="t('pluto.list.noMatchHint')"
+        :actions="[
+          {
+            label: t('pluto.list.clearFilters'),
+            icon: 'lucide:x',
+            color: 'neutral',
+            variant: 'outline',
+            onClick: clearFilters,
+          },
+        ]"
+        icon="lucide:search-x"
+        variant="naked"
+      />
+
+      <UAlert
+        v-if="!emptyState && error"
+        :actions="[
+          {
+            label: t('pluto.common.tryAgain'),
+            color: 'error',
+            variant: 'outline',
+            onClick: retry,
+          },
+        ]"
+        :title="
+          t('pluto.list.refreshFailed', { labelPlural: text.labelPluralLower })
+        "
+        :description="t('pluto.list.refreshFailedHint')"
+        color="error"
+        variant="subtle"
+        icon="lucide:circle-alert"
+      />
+
+      <div
+        v-if="!emptyState"
+        ref="mobileList"
+        class="flex min-h-0 flex-col gap-3 overflow-y-auto lg:hidden"
+      >
+        <UCard v-for="item in items" :key="item.id" class="shrink-0">
+          <div class="flex flex-col gap-4">
+            <div class="flex min-w-0 items-center justify-between gap-3">
+              <NuxtLink
+                :to="editPath(item.id)"
+                :class="itemTitle(item) ? undefined : 'text-muted italic'"
+                class="block truncate text-lg font-semibold hover:underline"
+              >
+                {{ itemTitle(item) || t('pluto.content.untitled') }}
+              </NuxtLink>
+
+              <UBadge
+                v-if="itemStatus(item)"
+                :color="itemStatus(item)!.published ? 'success' : 'neutral'"
+                variant="subtle"
+                class="shrink-0"
+              >
+                {{ itemStatus(item)!.label }}
+              </UBadge>
+            </div>
+
+            <dl class="grid grid-cols-2 gap-3 text-sm">
+              <div v-for="field in cardFields" :key="field.name">
+                <dt class="text-muted">
+                  {{ text.fieldLabel(field) }}
+                </dt>
+                <dd class="font-medium">
+                  <PlutoContentReferenceCell
+                    v-if="isReferenceColumn(field)"
+                    :field="field"
+                    :value="item[field.name]"
+                  />
+                  <template v-else>
+                    {{ formatListValue(field, item) }}
+                  </template>
+                </dd>
+              </div>
+            </dl>
+
+            <div class="border-default flex gap-2 border-t pt-3">
+              <UButton
+                v-if="canWrite"
+                :to="editPath(item.id)"
+                icon="lucide:pen-line"
+                color="neutral"
+                variant="soft"
+                class="flex-1 justify-center"
+              >
+                {{ t('pluto.common.edit') }}
+              </UButton>
+
+              <UButton
+                v-if="canDelete"
+                icon="lucide:trash"
+                color="error"
+                variant="soft"
+                class="flex-1 justify-center"
+                @click="removeItem(item.id)"
+              >
+                {{
+                  trashEnabled
+                    ? t('pluto.list.trash.move')
+                    : t('pluto.common.remove')
+                }}
+              </UButton>
+            </div>
+          </div>
+        </UCard>
+      </div>
+
+      <UTable
+        v-if="!emptyState"
+        ref="table"
+        :data="items"
+        :columns="columns"
+        :loading="pending || loadingMore"
+        :empty="t('pluto.list.emptyTable')"
+        :ui="{ tr: 'group' }"
+        class="ring-default hidden min-h-0 rounded-lg ring lg:block"
+        sticky
+        virtualize
+      >
+        <template #[titleCellSlot]="{ row }">
+          <NuxtLink
+            :to="editPath(row.original.id)"
+            :class="
+              itemTitle(row.original) ? 'text-highlighted' : 'text-muted italic'
+            "
+            class="font-medium hover:underline"
+          >
+            {{ itemTitle(row.original) || t('pluto.content.untitled') }}
+          </NuxtLink>
+        </template>
+
+        <template
+          v-for="field in listFields.filter(isReferenceColumn)"
+          :key="field.name"
+          #[`${field.name}-cell`]="{ row }"
         >
-          {{ itemStatus(row.original)!.label }}
-        </UBadge>
-      </template>
+          <PlutoContentReferenceCell
+            :field="field"
+            :value="row.original[field.name]"
+          />
+        </template>
 
-      <!--
+        <!-- A sortable column: the header is a button (ascending, descending, default). -->
+        <template
+          v-for="field in sortFields"
+          :key="field.name"
+          #[`${field.name}-header`]
+        >
+          <button
+            :aria-label="
+              t('pluto.list.sortBy', { label: text.fieldLabel(field) })
+            "
+            :class="sortState(field.name) ? 'text-highlighted' : undefined"
+            type="button"
+            class="hover:text-highlighted -mx-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 py-0.5"
+            @click="toggleSort(field.name)"
+          >
+            {{ text.fieldLabel(field) }}
+            <UIcon
+              :name="sortIcon(field.name)"
+              :class="sortState(field.name) ? undefined : 'opacity-40'"
+              class="size-3.5"
+            />
+            <span v-if="sortState(field.name)" class="sr-only">
+              {{
+                t(
+                  sortState(field.name) === 'asc'
+                    ? 'pluto.list.sortedAsc'
+                    : 'pluto.list.sortedDesc'
+                )
+              }}
+            </span>
+          </button>
+        </template>
+
+        <template #select-header>
+          <UCheckbox
+            :model-value="
+              allSelected
+                ? true
+                : selectedItems.length > 0
+                  ? 'indeterminate'
+                  : false
+            "
+            :aria-label="t('pluto.list.bulk.selectAll')"
+            @update:model-value="(value) => toggleAll(value === true)"
+          />
+        </template>
+
+        <template #select-cell="{ row }">
+          <UCheckbox
+            :model-value="selected.has(String(row.original.id))"
+            :aria-label="
+              t('pluto.list.bulk.selectRow', {
+                title: itemTitle(row.original) || t('pluto.content.untitled'),
+              })
+            "
+            @update:model-value="
+              (value) => toggleRow(row.original.id, value === true)
+            "
+          />
+        </template>
+
+        <template #status-cell="{ row }">
+          <UBadge
+            v-if="itemStatus(row.original)"
+            :color="itemStatus(row.original)!.published ? 'success' : 'neutral'"
+            variant="subtle"
+          >
+            {{ itemStatus(row.original)!.label }}
+          </UBadge>
+        </template>
+
+        <!--
         Edit and Remove show on row hover. They keep their place (opacity only), and stay visible
         on a device without hover and while they hold the keyboard focus.
       -->
-      <template #actions-cell="{ row }">
-        <div
-          class="flex justify-end gap-3 group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
-        >
-          <NuxtLink
-            v-if="canWrite"
-            :to="editPath(row.original.id)"
-            class="text-info px-0 py-0.5 hover:underline"
+        <template #actions-cell="{ row }">
+          <div
+            class="flex justify-end gap-3 group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"
           >
-            {{ t('pluto.common.edit') }}
-          </NuxtLink>
+            <NuxtLink
+              v-if="canWrite"
+              :to="editPath(row.original.id)"
+              class="text-info px-0 py-0.5 hover:underline"
+            >
+              {{ t('pluto.common.edit') }}
+            </NuxtLink>
 
-          <button
-            v-if="canDelete"
-            type="button"
-            class="text-error cursor-pointer px-0 py-0.5 hover:underline"
-            @click="openDeleteModal(row.original.id)"
-          >
-            {{ t('pluto.common.remove') }}
-          </button>
-        </div>
-      </template>
-    </UTable>
+            <button
+              v-if="canDelete"
+              type="button"
+              class="text-error cursor-pointer px-0 py-0.5 hover:underline"
+              @click="removeItem(row.original.id)"
+            >
+              {{
+                trashEnabled
+                  ? t('pluto.list.trash.move')
+                  : t('pluto.common.remove')
+              }}
+            </button>
+          </div>
+        </template>
+      </UTable>
 
-    <p
-      v-if="!emptyState"
-      class="text-muted shrink-0 text-xs tabular-nums"
-      aria-live="polite"
-    >
-      {{ footer }}
-    </p>
+      <p
+        v-if="!emptyState"
+        class="text-muted shrink-0 text-xs tabular-nums"
+        aria-live="polite"
+      >
+        {{ footer }}
+      </p>
+    </template>
   </PlutoViewAdminPanel>
 
   <PlutoViewAdminPanel v-else>

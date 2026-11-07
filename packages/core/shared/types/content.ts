@@ -244,6 +244,13 @@ export interface PlutoContentType {
     | false
   /** `false` disables status/publish workflow entirely for this content type. */
   status?: PlutoContentStatus | false
+  /**
+   * Remove moves an item to the trash, and the admin has a Trash tab for the type. A trashed item
+   * goes for good after 30 days, or with Delete forever. Default off: a remove is final. The
+   * adapter must have `trash`. Supabase needs a `deleted_at` column on the table (`column` names
+   * another one); the Git CMS keeps the file in `<dir>/.trash/<type name>/`.
+   */
+  trash?: boolean | { column?: string }
   /** `false` disables created/updated timestamps entirely for this content type. */
   timestamps?: PlutoContentTimestamps | false
   capabilities?: PlutoContentTypeCapabilities
@@ -596,6 +603,38 @@ export interface PlutoContentAdapter {
     id: string | number,
     revisionId: string
   ) => Promise<PlutoContentItem | null>
+  /**
+   * The trash. Optional; an adapter that has it implements every method below. For a type with
+   * `trash`, the delete route calls `trash` instead of `remove`. A trashed item is not in `list`,
+   * `get`, `countCreated`, the public API or the reference expansion, and keeps its id and the
+   * references to it until `purge`. Every method needs the delete capability of the type. See the
+   * content-model skill ("Trash").
+   */
+  trash?: {
+    /** Moves the item to the trash. 404 when it does not exist. */
+    move: (ctx: PlutoContentContext, id: string | number) => Promise<void>
+    /**
+     * The trashed items, the last trashed first. Each item has `_deletedAt` (ISO). `search` matches
+     * the title field, without case.
+     */
+    list: (
+      ctx: PlutoContentContext,
+      query: {
+        limit?: number
+        offset?: number
+        search?: string
+      }
+    ) => Promise<PlutoContentListResult>
+    /** Moves the item back. 404 when it is not in the trash, 409 when a live item has its id. */
+    restore: (
+      ctx: PlutoContentContext,
+      id: string | number
+    ) => Promise<PlutoContentItem>
+    /** Deletes a trashed item forever, and removes the references to it. 404 when it is not in the trash. */
+    purge: (ctx: PlutoContentContext, id: string | number) => Promise<void>
+    /** Deletes forever every item trashed before `before` (ISO). Returns how many. */
+    purgeBefore: (ctx: PlutoContentContext, before: string) => Promise<number>
+  }
   /**
    * A server copy of the unsaved changes of the caller, one for each user, type and item.
    * Optional: without it, the form keeps the browser backup only, and the backup routes answer

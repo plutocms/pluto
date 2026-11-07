@@ -318,3 +318,107 @@ describe('a rename or a delete of an author', () => {
     ).not.toHaveProperty('authors')
   })
 })
+
+describe('the trash of a term', () => {
+  const files = {
+    'content/tags/a.md': file('title: A', ''),
+    'content/tags/b.md': file('title: B', ''),
+    'content/posts/live.md': file(
+      `title: Live\nstatus: published\ntags:\n  - a\n  - b\nupdatedAt: ${STAMP}`
+    ),
+    'content/posts/draft.md': file(
+      `title: Draft\nstatus: draft\ntags:\n  - a\nupdatedAt: ${STAMP}`
+    ),
+  }
+
+  it('keeps the references in the trash, and moves the file in one commit', async () => {
+    const { github, adapter, state } = setup(files)
+
+    await adapter.trash!.move(tag, 'a')
+
+    expect(state.commits).toHaveLength(1)
+    expect(state.commits[0]).toMatchObject({
+      message: 'content(tag): trash "a"',
+      additions: ['content/.trash/tag/a.md'],
+      deletions: ['content/tags/a.md'],
+    })
+    const trashed = read(github, 'content/.trash/tag/a.md').frontmatter
+    expect(trashed.title).toBe('A')
+    expect(typeof trashed.deletedAt).toBe('string')
+    expect(read(github, 'content/posts/live.md').frontmatter.tags).toEqual([
+      'a',
+      'b',
+    ])
+    // The public answer drops a trashed target: it is not in the list of tags.
+    expect(
+      (await adapter.list(tag, { ids: ['a', 'b'] })).data.map((item) => item.id)
+    ).toEqual(['b'])
+  })
+
+  it('restores the file without deletedAt, and the references are still there', async () => {
+    const { github, adapter } = setup(files)
+    await adapter.trash!.move(tag, 'a')
+
+    await adapter.trash!.restore(tag, 'a')
+
+    expect(github.read('content/.trash/tag/a.md')).toBeUndefined()
+    expect(read(github, 'content/tags/a.md').frontmatter).toEqual({
+      title: 'A',
+    })
+    expect(read(github, 'content/posts/live.md').frontmatter.tags).toEqual([
+      'a',
+      'b',
+    ])
+  })
+
+  it('drops the references at the purge, drafts too, in one commit', async () => {
+    const { github, adapter, state } = setup(files)
+    await adapter.trash!.move(tag, 'a')
+
+    await adapter.trash!.purge(tag, 'a')
+
+    expect(state.commits.at(-1)).toMatchObject({
+      message: 'content(tag): purge "a" (2 references)',
+      deletions: ['content/.trash/tag/a.md'],
+    })
+    expect(read(github, 'content/posts/live.md').frontmatter.tags).toEqual([
+      'b',
+    ])
+    expect(
+      read(github, 'content/posts/draft.md').frontmatter
+    ).not.toHaveProperty('tags')
+  })
+
+  it('keeps the references when a live item has the id again', async () => {
+    const { github, adapter } = setup(files)
+    await adapter.trash!.move(tag, 'a')
+    await adapter.create(tag, { title: 'A', slug: 'a' })
+
+    await adapter.trash!.purge(tag, 'a')
+
+    expect(read(github, 'content/posts/live.md').frontmatter.tags).toEqual([
+      'a',
+      'b',
+    ])
+  })
+
+  it('purges two terms in one commit, and one post loses both', async () => {
+    const { github, adapter, state } = setup(files)
+    await adapter.trash!.move(tag, 'a')
+    await adapter.trash!.move(tag, 'b')
+
+    expect(await adapter.trash!.purgeBefore(tag, '2999-01-01T00:00:00Z')).toBe(
+      2
+    )
+
+    expect(state.commits.at(-1)!.message).toBe(
+      'content(tag): purge 2 from the trash'
+    )
+    expect(
+      read(github, 'content/posts/live.md').frontmatter
+    ).not.toHaveProperty('tags')
+    expect(await adapter.trash!.purgeBefore(tag, '2999-01-01T00:00:00Z')).toBe(
+      0
+    )
+  })
+})
