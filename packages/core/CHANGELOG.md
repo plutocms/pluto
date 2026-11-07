@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.60.1](https://github.com/plutocms/pluto/compare/v0.60.0...v0.60.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **core:** the admin bar gap stays after a stale hint ([#457](https://github.com/plutocms/pluto/issues/457)) ([05b7946](https://github.com/plutocms/pluto/commit/05b7946d323b5d4cdf767e03a0b45a61ce883c91))
+
 ## [0.60.0](https://github.com/plutocms/pluto/compare/v0.59.1...v0.60.0) (2026-11-07)
 
 
