@@ -53,8 +53,21 @@ the raw `publicFields` values of the loaded target items and loads their media.
 ## `remember`
 
 `PlutoReferenceField.remember`: on a new item, the form fills the field with the value that the
-user saved last time for this type. `defineContentType` warns for `remember` without `target`. The
-form side comes in a later change (see the plan, PR B).
+user saved last time for this type. `defineContentType` warns for `remember` without `target`.
+
+- The helpers are pure, in `app/composables/internal/form-initial-values.ts`: `rememberFields`,
+  `rememberKey` (`pluto:remember:` and the JSON of `[baseURL, userId, type, field]`),
+  `initialValues` (each `default`, then each remembered value), `readRemembered`,
+  `writeRemembered` (an empty value removes the key; a storage error is ignored) and
+  `keepKnownIds`.
+- `PlutoContentForm` fills a new item in its setup, before the first edit: the dirty baseline
+  follows the fill, so the new form is not dirty. It then loads the options of the target
+  (`usePlutoReferenceOptions(target).ensure()`) and drops the ids with no item, unless the options
+  did not load or the user changed the field.
+- After each save that works, the form keeps the value of each `remember` field of the payload
+  (`rememberSaved`). It is per browser: a new device fills nothing until the first save there.
+- A restored backup of a new item puts its own values on top of the fill.
+- Test: `test/form-initial-values.test.ts`.
 
 ## Public types and composables
 
@@ -71,7 +84,7 @@ form side comes in a later change (see the plan, PR B).
   `runtime/server/utils/github-setup.ts`, `runtime/app/plugins/pluto-github.ts`.
 - `server/utils/pluto-reference-public.ts`, `shared/utils/content-preview.ts`,
   `app/pages/_pluto/post-preview.vue`, `shared/types/{content,public-api}.ts`.
-- Tests: `test/reference-public.test.ts` ("publicFields"), `test/content-preview.test.ts`,
+- Tests: `test/form-initial-values.test.ts`, `test/reference-public.test.ts` ("publicFields"), `test/content-preview.test.ts`,
   `test/github-wiring.test.ts`, `test/github-push-capabilities.test.ts`,
   `test/github-references.test.ts` ("a rename or a delete of an author"),
   `test/site-content-composables.test.ts`, `test/content-define.test.ts`.

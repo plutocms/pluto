@@ -155,6 +155,11 @@ and so on.
 `name` is the field's key on a `PlutoContentItem` and its default storage column. Set `column`
 only when the storage column name differs from `name` — see "Field-to-column mapping" below.
 
+Set `default` on a field to give a new item a first value in the form (`PlutoContentForm`). The form
+copies it, so the type keeps its own value. A `remember` reference field then replaces it with the
+value that the user saved last time (see the authors skill). The first values do not make a new
+form dirty. The server does not apply `default`.
+
 Set `listFormat` on a field to control the text of its cell in the generic list. See "Formatting a list cell" below.
 
 Set `virtual: true` on a field that has no storage column at all. A virtual field still passes
