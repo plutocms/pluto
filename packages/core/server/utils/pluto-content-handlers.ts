@@ -7,8 +7,13 @@ import {
   PLUTO_BACKUP_TTL_MS,
 } from '../../shared/utils/content-backup'
 import { validateContentPayload } from '../../shared/utils/content-validate'
-import { getContentAdapter, getContentType } from './pluto-content'
+import {
+  getContentAdapter,
+  getContentType,
+  listContentTypes,
+} from './pluto-content'
 import { createPlutoError } from './pluto-error'
+import { createPlutoSystemEvent } from './pluto-system'
 
 /**
  * The real logic behind the generic content routes, kept in plain exported
@@ -306,6 +311,35 @@ export async function listTrashItems(
     )
   }
   return trash.list(ctx, query)
+}
+
+/**
+ * Purges the expired items of every type with `trash`, as a system request. The scheduled task
+ * `pluto:trash:purge` calls it. A type that fails (no server credentials, an outage) only warns.
+ */
+export async function purgeExpiredTrash(
+  now: Date = new Date()
+): Promise<{ purged: number; failed: string[] }> {
+  const trash = getContentAdapter()?.trash
+  const result = { purged: 0, failed: [] as string[] }
+  if (!trash) {
+    return result
+  }
+  const event = createPlutoSystemEvent()
+  for (const type of listContentTypes().filter((one) => one.trash)) {
+    try {
+      result.purged += await trash.purgeBefore(
+        { event, type },
+        trashCutoff(now)
+      )
+    } catch (error) {
+      result.failed.push(type.name)
+      console.warn(
+        `[pluto] The scheduled purge of the trash of "${type.name}" failed: ${(error as Error).message}`
+      )
+    }
+  }
+  return result
 }
 
 /** Moves a trashed item back. Needs the delete capability. */

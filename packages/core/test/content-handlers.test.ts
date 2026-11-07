@@ -1031,3 +1031,49 @@ describe('the trash', () => {
     ).rejects.toMatchObject({ statusCode: 501 })
   })
 })
+
+describe('the scheduled purge', () => {
+  it('purges every type with trash as a system request, and a failing type only warns', async () => {
+    const { registerContentAdapter, registerContentType, purgeExpiredTrash } =
+      await loadHandlers()
+    const { isPlutoSystemEvent } = await import('../server/utils/pluto-system')
+    const purgeBefore = vi.fn(
+      async (ctx: PlutoContentContext, _before: string) => {
+        if (ctx.type.name === 'tag') {
+          throw new Error('no token')
+        }
+        return 2
+      }
+    )
+    registerContentAdapter({
+      ...createMemoryContentAdapter(),
+      trash: {
+        move: vi.fn(),
+        list: vi.fn(),
+        restore: vi.fn(),
+        purge: vi.fn(),
+        purgeBefore,
+      },
+    })
+    registerContentType(contentType({ trash: true }))
+    registerContentType(contentType({ name: 'tag', trash: true }))
+    registerContentType(contentType({ name: 'note' }))
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const result = await purgeExpiredTrash(new Date('2026-03-31T00:00:00Z'))
+
+    expect(result).toEqual({ purged: 2, failed: ['tag'] })
+    expect(purgeBefore).toHaveBeenCalledTimes(2)
+    const [ctx, before] = purgeBefore.mock.calls[0]!
+    expect(isPlutoSystemEvent(ctx.event)).toBe(true)
+    expect(before).toBe('2026-03-01T00:00:00.000Z')
+    expect(warn).toHaveBeenCalledOnce()
+    warn.mockRestore()
+  })
+
+  it('does nothing without a trash on the adapter', async () => {
+    const { registerContentAdapter, purgeExpiredTrash } = await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter())
+    expect(await purgeExpiredTrash()).toEqual({ purged: 0, failed: [] })
+  })
+})

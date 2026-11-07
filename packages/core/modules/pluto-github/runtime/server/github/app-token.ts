@@ -23,6 +23,12 @@ export interface AppTokenOptions {
 export interface AppTokenProvider {
   /** The token for anonymous public reads. Throws a 503 when nothing is set up. */
   getReadToken: () => Promise<string>
+  /**
+   * An installation token that can write the contents of the repo, for a system request (a
+   * scheduled task). Needs the App id and key; the read token does not count. Throws a 503 when
+   * they are missing.
+   */
+  getWriteToken: () => Promise<string>
 }
 
 /**
@@ -114,16 +120,29 @@ export function createAppTokenProvider(
   const now = options.now ?? Date.now
   const [, name = ''] = options.repo.split('/')
   let installationId: number | undefined
-  let cached:
-    | {
+  /** One token for each permission: `read` for the public pages, `write` for a system request. */
+  const cached: Partial<
+    Record<
+      'read' | 'write',
+      {
         token: string
         expiresAt: number
       }
-    | undefined
-  let inFlight: Promise<string> | undefined
+    >
+  > = {}
+  const inFlight: Partial<Record<'read' | 'write', Promise<string>>> = {}
   let warned = false
 
-  function fail(reason: string, error?: unknown, notConfigured = false): never {
+  function fail(
+    reason: string,
+    error?: unknown,
+    notConfigured = false,
+    access: 'read' | 'write' = 'read'
+  ): never {
+    if (access === 'write') {
+      // A system request (a scheduled task) logs once in its own caller.
+      throw unavailable(notConfigured)
+    }
     if (!warned) {
       warned = true
       console.error(
@@ -134,7 +153,7 @@ export function createAppTokenProvider(
     throw unavailable(notConfigured)
   }
 
-  async function mint(): Promise<string> {
+  async function mint(access: 'read' | 'write'): Promise<string> {
     let jwt: string
     try {
       jwt = createAppJwt({
@@ -143,7 +162,12 @@ export function createAppTokenProvider(
         now,
       })
     } catch (error) {
-      return fail('the GitHub App private key is not valid.', error)
+      return fail(
+        'the GitHub App private key is not valid.',
+        error,
+        false,
+        access
+      )
     }
     const transport = {
       apiUrl: options.apiUrl,
@@ -163,23 +187,39 @@ export function createAppTokenProvider(
       }>(`/app/installations/${installationId}/access_tokens`, {
         ...transport,
         method: 'POST',
-        body: { repositories: [name], permissions: { contents: 'read' } },
+        body: { repositories: [name], permissions: { contents: access } },
       })
       const expiresAt = Date.parse(created.data.expires_at)
-      cached = {
+      const token = {
         token: created.data.token,
         expiresAt: Number.isFinite(expiresAt) ? expiresAt : now() + 3600_000,
       }
-      warned = false
-      return cached.token
+      cached[access] = token
+      if (access === 'read') {
+        warned = false
+      }
+      return token.token
     } catch (error) {
       // The installation may be gone or new. Look it up again next time.
       installationId = undefined
       return fail(
         'GitHub did not give an installation token. Install the App on the repo.',
-        error
+        error,
+        false,
+        access
       )
     }
+  }
+
+  function installationToken(access: 'read' | 'write'): Promise<string> {
+    const token = cached[access]
+    if (token && token.expiresAt - RENEW_MARGIN > now()) {
+      return Promise.resolve(token.token)
+    }
+    inFlight[access] ??= mint(access).finally(() => {
+      inFlight[access] = undefined
+    })
+    return inFlight[access]
   }
 
   return {
@@ -194,13 +234,13 @@ export function createAppTokenProvider(
           true
         )
       }
-      if (cached && cached.expiresAt - RENEW_MARGIN > now()) {
-        return cached.token
+      return installationToken('read')
+    },
+    async getWriteToken() {
+      if (!options.appId || !options.privateKey) {
+        return fail('no App id or key.', undefined, true, 'write')
       }
-      inFlight ??= mint().finally(() => {
-        inFlight = undefined
-      })
-      return inFlight
+      return installationToken('write')
     },
   }
 }
