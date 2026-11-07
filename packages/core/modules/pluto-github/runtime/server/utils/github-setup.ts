@@ -15,6 +15,7 @@ import {
   isPublicRead,
   markPublicRead,
 } from '../../../../../server/utils/pluto-public-read'
+import { plutoGithubAuthorType } from '../../shared/author-type'
 import { plutoGithubPostType } from '../../shared/post-type'
 import { plutoGithubTermTypes } from '../../shared/term-types'
 import { createMarkdownContentAdapter } from '../adapter'
@@ -155,6 +156,8 @@ export function registerGithubContent(
     for (const type of plutoGithubTermTypes) {
       registerContentType(type)
     }
+    // The authors of the post: the post field `authors` points to them.
+    registerContentType(plutoGithubAuthorType)
   }
   const store = createContentStore(config, cache, loadSnapshot)
   registeredStore = store

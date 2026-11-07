@@ -6,6 +6,7 @@ import { createMarkdownContentAdapter } from '../modules/pluto-github/runtime/se
 import { createGithubStore } from '../modules/pluto-github/runtime/server/store/github'
 import { createGithubCache } from '../modules/pluto-github/runtime/server/utils/github-cache'
 import { parseMarkdownFile } from '../modules/pluto-github/runtime/server/utils/markdown-file'
+import { plutoGithubAuthorType } from '../modules/pluto-github/runtime/shared/author-type'
 import { plutoGithubPostType } from '../modules/pluto-github/runtime/shared/post-type'
 import {
   plutoGithubCategoryType,
@@ -19,11 +20,13 @@ const event = {} as H3Event
 const post = { event, type: plutoGithubPostType }
 const tag = { event, type: plutoGithubTagType }
 const category = { event, type: plutoGithubCategoryType }
+const author = { event, type: plutoGithubAuthorType }
 const EDITOR = [
   'posts:read_drafts',
   'posts:publish',
   'posts:delete',
   'terms:manage',
+  'authors:manage',
 ]
 
 const STAMP = '2026-01-01T00:00:00.000Z'
@@ -67,7 +70,11 @@ function setup(files: Record<string, string>) {
     store,
     dir: 'content',
     now: createContractClock(),
-    getTypes: () => [plutoGithubPostType, ...plutoGithubTermTypes],
+    getTypes: () => [
+      plutoGithubPostType,
+      ...plutoGithubTermTypes,
+      plutoGithubAuthorType,
+    ],
     getAccess: async (): Promise<PlutoGithubAccess | null> => ({
       capabilities: EDITOR,
       auth: { token: 't' },
@@ -262,5 +269,52 @@ describe('a rename or a delete of a term', () => {
     ).rejects.toMatchObject({ statusCode: 409 })
     expect(github.read('content/tags/a.md')).toBeDefined()
     expect(github.read('content/tags/alpha.md')).toBeUndefined()
+  })
+})
+
+describe('a rename or a delete of an author', () => {
+  const files = {
+    'content/authors/ana.md': file('name: Ana\nbio: Writes.', ''),
+    'content/authors/bo.md': file('name: Bo', ''),
+    'content/posts/live.md': file(
+      `title: Live\nstatus: published\nauthors:\n  - bo\n  - ana\nupdatedAt: ${STAMP}`
+    ),
+    'content/posts/draft.md': file(
+      `title: Draft\nstatus: draft\nauthors:\n  - ana\nupdatedAt: ${STAMP}`
+    ),
+  }
+
+  it('renames in the posts, drafts too, in one commit, and keeps the order', async () => {
+    const { github, adapter, state } = setup(files)
+
+    await adapter.update(author, 'ana', { slug: 'ana-lima' })
+
+    expect(state.commits).toHaveLength(1)
+    expect(state.commits[0]!.message).toBe(
+      'content(author): rename "ana" -> "ana-lima" (2 references)'
+    )
+    expect(read(github, 'content/posts/live.md').frontmatter.authors).toEqual([
+      'bo',
+      'ana-lima',
+    ])
+    expect(read(github, 'content/posts/draft.md').frontmatter.authors).toEqual([
+      'ana-lima',
+    ])
+    expect(read(github, 'content/authors/ana-lima.md').frontmatter.bio).toBe(
+      'Writes.'
+    )
+  })
+
+  it('drops the author on delete, and the key when no author is left', async () => {
+    const { github, adapter } = setup(files)
+
+    await adapter.remove(author, 'ana')
+
+    expect(read(github, 'content/posts/live.md').frontmatter.authors).toEqual([
+      'bo',
+    ])
+    expect(
+      read(github, 'content/posts/draft.md').frontmatter
+    ).not.toHaveProperty('authors')
   })
 })

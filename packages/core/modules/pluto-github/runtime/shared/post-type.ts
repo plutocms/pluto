@@ -31,6 +31,21 @@ export const plutoGithubPostType: PlutoContentType = {
       inList: true,
       region: 'side',
     },
+    // The authors: a list of author ids (the slugs of `content/authors/`), in byline order. The
+    // public API gives `[{ id, label, slug, avatar, bio }]`. A new post gets the authors that the
+    // user saved last time. See the authors skill.
+    {
+      name: 'authors',
+      type: 'reference',
+      label: 'Authors',
+      target: 'author',
+      multiple: true,
+      create: true,
+      remember: true,
+      publicFields: ['avatar', 'bio'],
+      inList: true,
+      region: 'side',
+    },
     { name: 'excerpt', type: 'textarea', label: 'Excerpt', region: 'side' },
     // The cover: a media id in the frontmatter (`cover: red-mug-k3j9a`). The public API gives
     // the record (`url`, `width`, `height`, `alt`). See the media skill.

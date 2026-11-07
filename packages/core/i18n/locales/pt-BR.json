@@ -353,7 +353,8 @@
         "readDrafts": "Ler rascunhos de posts",
         "publish": "Criar, editar e publicar posts",
         "delete": "Excluir posts",
-        "manageTerms": "Criar, editar e excluir tags e categorias"
+        "manageTerms": "Criar, editar e excluir tags e categorias",
+        "manageAuthors": "Criar, editar e excluir autores"
       },
       "setup": {
         "title": "Configure o login com GitHub",

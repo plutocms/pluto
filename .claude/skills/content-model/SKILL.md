@@ -270,7 +270,9 @@ ids (`multiple`). `create` lets the admin widget create a new item of the target
 expands the ids in the public API, filters by them and keeps them true on a rename or a delete (Git
 CMS). `shared/utils/content-reference.ts` has the helpers (`referenceValue`, `referenceFieldIds`,
 `isTargetReference`, `referenceFieldsTo`). The full detail, with the tag and category types, is in the
-[tags-and-categories](../tags-and-categories/SKILL.md) skill.
+[tags-and-categories](../tags-and-categories/SKILL.md) skill. `publicFields` (more target fields in
+each public reference) and `remember` (a new item gets the last saved value) are in the
+[authors](../authors/SKILL.md) skill.
 
 ## Media
 
@@ -706,11 +708,11 @@ backup only.
   `remove(ctx, key)` deletes it. `key` is the item id as text, or `+new` for a new item. The adapter reads the
   caller from `ctx.event`, and each caller sees only its own copies.
 
-| Route                                      | Method | Handler              |
-| ------------------------------------------ | ------ | -------------------- |
+| Route                                       | Method | Handler               |
+| ------------------------------------------- | ------ | --------------------- |
 | `/api/_pluto/content-backup/[type]?id=<id>` | GET    | `getContentBackup`    |
-| same                                       | PUT    | `putContentBackup`    |
-| same                                       | DELETE | `removeContentBackup` |
+| same                                        | PUT    | `putContentBackup`    |
+| same                                        | DELETE | `removeContentBackup` |
 
 The id is a query, because an id can hold slashes. No `id` means a new item (`+new`). Each handler answers
 `{ supported: false }` before any check when the adapter has no `backups` (the Git CMS). Then it checks the

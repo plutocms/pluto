@@ -45,7 +45,8 @@ change, an empty list now fails `required`.
   answer: `adapter.list(target, { ids, limit, includeUnpublished: false })`, cached by the `batch`
   array. Core matches the ids again, so an adapter that ignores `query.ids` still works. The shape
   is `PlutoPublicReference` (`shared/types/public-api.ts`). `adapter.toPublic` and `hooks.toPublic`
-  run after it and can change the result.
+  run after it and can change the result. A field with `publicFields` adds more fields of the
+  target to each reference (an author avatar and bio): see the [authors](../authors/SKILL.md) skill.
 - **Filter** (`resolveReferenceFilters`). `filter[tags]=<id or slug>` on a `target` reference: core
   does one `adapter.get` on the target type and filters by the id. A value with no published item
   gives an empty list (the surround route answers 404). The adapter filter on a list value

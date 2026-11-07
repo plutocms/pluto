@@ -34,6 +34,23 @@ export interface PlutoTerm {
   updatedAt?: string
 }
 
+/** An author in the public API (`useAuthors`, `useAuthor`). An author is public once saved. */
+export interface PlutoAuthor {
+  id: string | number
+  name: string
+  slug: string
+  bio?: string | null
+  avatar?: PlutoPublicMedia | null
+  createdAt?: string
+  updatedAt?: string
+}
+
+/** An author of a post: the reference with the `publicFields` of the post type (avatar, bio). */
+export interface PlutoPostAuthor extends PlutoPublicReference {
+  avatar?: PlutoPublicMedia | null
+  bio?: string | null
+}
+
 /** A post in a list of the public API (`usePosts`): both backends give these keys. */
 export interface PlutoPostSummary {
   id: string | number
@@ -43,6 +60,8 @@ export interface PlutoPostSummary {
   cover?: PlutoPublicMedia | null
   tags?: PlutoPublicReference[]
   categories?: PlutoPublicReference[]
+  /** The authors, in byline order. */
+  authors?: PlutoPostAuthor[]
   createdAt?: string
   updatedAt?: string
   publishedAt?: string

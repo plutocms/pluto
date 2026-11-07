@@ -1,5 +1,6 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import type {
+  PlutoAuthor,
   PlutoContentDefaults,
   PlutoContentItemOptions,
   PlutoContentListOptions,
@@ -389,4 +390,35 @@ export function useCategory(
 ) {
   const result = categories.useItem(slug, options)
   return extendPlutoAsyncData(result, { category: result.item })
+}
+
+const authors = definePlutoContent<PlutoAuthor>('author', {
+  list: { sort: 'name' },
+})
+
+/**
+ * The authors, by name, with pages. `authors` is the list. To list the posts of an author, give
+ * `usePosts` the filter `{ authors: slug }`.
+ *
+ * @example
+ * const { authors } = await useAuthors({ limit: 100, search: false })
+ */
+export function useAuthors(options: PlutoContentListOptions = {}) {
+  const result = authors.useList(options)
+  return extendPlutoAsyncData(result, { authors: result.items })
+}
+
+/**
+ * One author, by slug or id. A missing author shows the error page (404). `author` is the
+ * author: `name`, `slug`, `bio` and `avatar` (a media record).
+ *
+ * @example
+ * const { author } = await useAuthor(() => String(route.params.slug))
+ */
+export function useAuthor(
+  slug: MaybeRefOrGetter<string | number>,
+  options: PlutoContentItemOptions = {}
+) {
+  const result = authors.useItem(slug, options)
+  return extendPlutoAsyncData(result, { author: result.item })
 }

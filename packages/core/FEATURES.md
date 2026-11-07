@@ -57,6 +57,12 @@ policies shared by every project here.
   and `useCategory`. Admin: the `reference` widget is a multi-select with inline create (needs the
   write capability of the target), `usePlutoReferenceOptions(target)`, label badges with "+N" in the
   list (`PlutoContentReferenceCell`), and chips in the post preview. @.claude/skills/tags-and-categories/SKILL.md
+- Authors: a public `author` content type (name, slug, bio, avatar; no link to sign-in users) and the
+  post field `authors` (a list in byline order); `PlutoReferenceField.publicFields` adds target fields to
+  each public reference (`{ id, label, slug, avatar, bio }`, one list and one media read per answer, also
+  in the post preview); the Git CMS registers the type (`content/authors/`, capability `authors:manage`)
+  and rewrites the posts on a rename or a delete; `useAuthors`, `useAuthor`, `PlutoAuthor`,
+  `PlutoPostAuthor`. @.claude/skills/authors/SKILL.md
 - Admin view chrome: per-view shell components (`PlutoViewAdminPanel`, `PlutoViewToolbar`,
   `PlutoViewAside`), the generic content form's publish workflow, and the `contentActions`
   registry bucket that lets a layer add its own buttons to that form, and the `contentToolbarItems`

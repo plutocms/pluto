@@ -353,7 +353,8 @@
         "readDrafts": "Read draft posts",
         "publish": "Create, edit and publish posts",
         "delete": "Delete posts",
-        "manageTerms": "Create, edit and delete tags and categories"
+        "manageTerms": "Create, edit and delete tags and categories",
+        "manageAuthors": "Create, edit and delete authors"
       },
       "setup": {
         "title": "Set up the GitHub sign-in",

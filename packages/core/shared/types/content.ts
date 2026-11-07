@@ -97,6 +97,18 @@ export interface PlutoReferenceField extends PlutoFieldBase {
   multiple?: boolean
   /** The admin widget can create a new item of `target` inline. Needs `target`. */
   create?: boolean
+  /**
+   * More fields of the `target` item to put in each public reference, for example
+   * `['avatar', 'bio']` for an author. Only the public fields of the target count (stored, and in
+   * its `api.fields` when that is set). A `media` field gives its record. The values are the stored
+   * values: the `toPublic` hooks of the target do not run. Needs `target`.
+   */
+  publicFields?: string[]
+  /**
+   * On a new item, the form fills this field with the value that the user saved last time for
+   * this type (kept in the browser). A value with no item any more is not filled. Needs `target`.
+   */
+  remember?: boolean
   optionsUrl?: string
   labelKey?: string
   valueKey?: string

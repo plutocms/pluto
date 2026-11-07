@@ -5,6 +5,7 @@ import PlutoGithubSignIn from '../../../../../app/components/Pluto/Github/PlutoG
 import { isAdminPath } from '../../../../../app/composables/internal/admin-shell'
 import { definePlutoExtension } from '../../../../../app/composables/pluto-extension'
 import { usePlutoRegistry } from '../../../../../app/composables/pluto-registry'
+import { plutoGithubAuthorType } from '../../shared/author-type'
 import {
   isPostTypeOn,
   showBuildStatus,
@@ -83,6 +84,10 @@ export default defineNuxtPlugin(() => {
           {
             key: plutoGithubTermTypes[0]?.capabilities?.write,
             label: 'pluto.github.capabilities.manageTerms',
+          },
+          {
+            key: plutoGithubAuthorType.capabilities?.write,
+            label: 'pluto.github.capabilities.manageAuthors',
           },
         ]
       : []
@@ -184,6 +189,7 @@ export default defineNuxtPlugin(() => {
       ? [
           { id: 'post', type: plutoGithubPostType },
           ...plutoGithubTermTypes.map((type) => ({ id: type.name, type })),
+          { id: 'author', type: plutoGithubAuthorType },
         ]
       : [],
     // The Markdown editor. The import is lazy, so Tiptap loads on the edit page only.
