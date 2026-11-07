@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.60.0](https://github.com/plutocms/pluto/compare/v0.59.1...v0.60.0) (2026-11-07)
+
+
+### Features
+
+* **core:** authors as public content items, with publicFields on references ([#447](https://github.com/plutocms/pluto/issues/447)) ([082c60a](https://github.com/plutocms/pluto/commit/082c60ad0fa524f5030a3bb146813c957da32e24))
+* **core:** first values of a new item: field defaults and remembered references ([#451](https://github.com/plutocms/pluto/issues/451)) ([59f68d0](https://github.com/plutocms/pluto/commit/59f68d031925e3739b350e238deb830baf542845))
+
 ## [0.59.1](https://github.com/plutocms/pluto/compare/v0.59.0...v0.59.1) (2026-11-06)
 
 
