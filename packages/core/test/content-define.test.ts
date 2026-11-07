@@ -103,6 +103,8 @@ describe('defineContentType — reference fields', () => {
             label: 'A',
             target: 'tag',
             create: true,
+            publicFields: ['description'],
+            remember: true,
           },
           { name: 'b', type: 'reference', label: 'B', optionsUrl: '/x' },
         ],
@@ -116,6 +118,14 @@ describe('defineContentType — reference fields', () => {
     [
       'create without target',
       { type: 'reference' as const, optionsUrl: '/x', create: true },
+    ],
+    [
+      'publicFields without target',
+      { type: 'reference' as const, optionsUrl: '/x', publicFields: ['bio'] },
+    ],
+    [
+      'remember without target',
+      { type: 'reference' as const, optionsUrl: '/x', remember: true },
     ],
   ])('warns on %s', (_name, extra) => {
     defineContentType(

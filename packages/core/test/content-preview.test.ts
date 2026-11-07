@@ -3,7 +3,9 @@ import type { PlutoMedia } from '../shared/types/media'
 import { describe, expect, it } from 'vitest'
 import {
   previewMediaIds,
+  previewPublicFields,
   previewReferenceIds,
+  previewReferenceMediaIds,
   previewReferenceTargets,
   toPreviewItem,
 } from '../shared/utils/content-preview'
@@ -170,5 +172,80 @@ describe('references in a preview', () => {
       previewReferenceIds(type, { tags: ['a', 'b'], category: 7 }, 'tag')
     ).toEqual(['a', 'b'])
     expect(previewReferenceIds(type, { category: 7 }, 'cat')).toEqual(['7'])
+  })
+})
+
+describe('publicFields in the preview', () => {
+  const authorType = postType({
+    name: 'author',
+    titleField: 'name',
+    fields: [
+      { name: 'name', type: 'text', label: 'Name' },
+      { name: 'bio', type: 'textarea', label: 'Bio' },
+      { name: 'avatar', type: 'media', label: 'Avatar' },
+    ],
+  })
+  const type = postType({
+    fields: [
+      { name: 'title', type: 'text', label: 'Title' },
+      {
+        name: 'authors',
+        type: 'reference',
+        label: 'Authors',
+        target: 'author',
+        multiple: true,
+        publicFields: ['avatar', 'bio', 'label'],
+      },
+    ],
+  })
+  const typeOf = (name: string) => (name === 'author' ? authorType : undefined)
+  const references = new Map([
+    [
+      'author',
+      new Map([
+        [
+          'ana',
+          { id: 'ana', label: 'Ana', slug: 'ana', avatar: 'm1', bio: 'Hi.' },
+        ],
+        ['bo', { id: 'bo', label: 'Bo', slug: 'bo', avatar: null, bio: null }],
+      ]),
+    ],
+  ])
+
+  it('lists the asked fields of a target, without the reference keys', () => {
+    expect(previewPublicFields(type, 'author')).toEqual(['avatar', 'bio'])
+    expect(previewPublicFields(type, 'tag')).toEqual([])
+  })
+
+  it('gives the media ids of the referenced items', () => {
+    expect(
+      previewReferenceMediaIds(
+        type,
+        { authors: ['bo', 'ana'] },
+        references,
+        typeOf
+      )
+    ).toEqual(['m1'])
+  })
+
+  it('adds the fields, with the media records', () => {
+    const item = toPreviewItem(
+      type,
+      { title: 'Hi', authors: ['bo', 'ana'] },
+      '',
+      new Map([['m1', record('m1')]]),
+      references,
+      typeOf
+    )
+    expect(item.authors).toEqual([
+      { id: 'bo', label: 'Bo', slug: 'bo', avatar: null, bio: null },
+      {
+        id: 'ana',
+        label: 'Ana',
+        slug: 'ana',
+        avatar: record('m1'),
+        bio: 'Hi.',
+      },
+    ])
   })
 })

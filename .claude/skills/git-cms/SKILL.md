@@ -155,8 +155,10 @@ The storage layer is in `modules/pluto-github/runtime/server/`. The Nitro plugin
 `store`, `dir`, `getAccess`, `commit.skipDeploy`, `cache`, `retries` (default 2).
 `runtime/shared/post-type.ts` has `plutoGithubPostType`, the built-in `post` content type.
 `runtime/shared/term-types.ts` has `plutoGithubTagType` and `plutoGithubCategoryType`, registered with
-`post` when `postType` is on (see the tags-and-categories skill). The post has the fields
-`categories` and `tags`: lists of term ids (the file names) in the frontmatter. The option
+`post` when `postType` is on (see the tags-and-categories skill). `runtime/shared/author-type.ts` has
+`plutoGithubAuthorType` (`content/authors/<slug>.md`, capability `authors:manage`), registered
+the same way (see the authors skill). The post has the fields `authors`, `categories` and
+`tags`: lists of ids (the file names) in the frontmatter. The option
 `getTypes` gives the registered types (default: the core registry).
 
 File layout:

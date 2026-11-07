@@ -35,10 +35,12 @@ export function defineContentType(type: PlutoContentType): PlutoContentType {
             `${prefix} reference field "${field.name}" has neither target nor optionsUrl.`
           )
         }
-        if (field.create && !field.target) {
-          console.warn(
-            `${prefix} reference field "${field.name}" sets create without target.`
-          )
+        for (const option of ['create', 'publicFields', 'remember'] as const) {
+          if (field[option] && !field.target) {
+            console.warn(
+              `${prefix} reference field "${field.name}" sets ${option} without target.`
+            )
+          }
         }
       }
     }

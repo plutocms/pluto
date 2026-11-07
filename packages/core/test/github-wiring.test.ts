@@ -107,6 +107,26 @@ describe('registerGithubContent', () => {
     expect(getContentAdapter()?.id).toBe('markdown')
   })
 
+  it('registers the author type with the post type', () => {
+    setup()
+
+    expect(getContentType('author')).toMatchObject({
+      source: 'authors',
+      titleField: 'name',
+      api: { public: true },
+      capabilities: { write: 'authors:manage', delete: 'authors:manage' },
+    })
+    const fields = getContentType('post')?.fields ?? []
+    expect(fields.find((field) => field.name === 'authors')).toMatchObject({
+      type: 'reference',
+      target: 'author',
+      multiple: true,
+      create: true,
+      remember: true,
+      publicFields: ['avatar', 'bio'],
+    })
+  })
+
   it('registers the tag and category types with the post type', () => {
     setup()
 

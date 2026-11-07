@@ -125,6 +125,8 @@ afterEach(() => {
 const {
   definePlutoContent,
   useAdjacentPosts,
+  useAuthor,
+  useAuthors,
   useCategories,
   useCategory,
   usePost,
@@ -403,5 +405,22 @@ describe('the term composables', () => {
   it('throws a 404 for a missing tag', async () => {
     itemError = { status: 404, statusText: 'Not Found' }
     await expect(useTag('nope')).rejects.toMatchObject({ status: 404 })
+  })
+})
+
+describe('the author composables', () => {
+  it('lists the authors by name, and reads one by slug', async () => {
+    route.query = {}
+    listAnswer = {
+      data: [{ id: 'ana', name: 'Ana', slug: 'ana' }],
+      meta: { total: 1 },
+    }
+    const { authors } = await useAuthors({ limit: 100, search: false })
+    const { author } = await useAuthor('ana')
+
+    expect(listCalls[0]!()).toMatchObject({ limit: 100, sort: 'name' })
+    expect(authors.value).toEqual([{ id: 'ana', name: 'Ana', slug: 'ana' }])
+    expect(itemCalls).toEqual([{ type: 'author', id: 'ana' }])
+    expect(author.value).toBeDefined()
   })
 })

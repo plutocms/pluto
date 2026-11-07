@@ -345,3 +345,112 @@ describe('resolveReferenceFilters through the public API', () => {
     ).rejects.toMatchObject({ statusCode: 404 })
   })
 })
+
+describe('publicFields', () => {
+  function authorType(): PlutoContentType {
+    return {
+      name: 'author',
+      label: 'Author',
+      labelPlural: 'Authors',
+      source: 'authors',
+      titleField: 'name',
+      fields: [
+        { name: 'name', type: 'text', label: 'Name' },
+        { name: 'slug', type: 'slug', label: 'Slug' },
+        { name: 'bio', type: 'textarea', label: 'Bio' },
+        { name: 'avatar', type: 'media', label: 'Avatar' },
+        { name: 'note', type: 'text', label: 'Note' },
+      ],
+      slug: { field: 'slug' },
+      // `note` is not public.
+      api: { public: true, fields: ['name', 'slug', 'bio', 'avatar'] },
+    }
+  }
+
+  function postWithAuthors(publicFields?: string[]): PlutoContentType {
+    return postType({
+      fields: [
+        { name: 'title', type: 'text', label: 'Title' },
+        { name: 'slug', type: 'slug', label: 'Slug' },
+        {
+          name: 'authors',
+          type: 'reference',
+          label: 'Authors',
+          target: 'author',
+          multiple: true,
+          ...(publicFields && { publicFields }),
+        },
+      ],
+    })
+  }
+
+  const AUTHORS: PlutoContentItem[] = [
+    {
+      id: 1,
+      name: 'Ana',
+      slug: 'ana',
+      bio: 'Writes.',
+      avatar: 'm1',
+      note: 'x',
+    },
+    { id: 2, name: 'Bo', slug: 'bo', bio: null, avatar: 'gone', note: 'y' },
+    { id: 3, name: 'Cy', slug: 'cy', note: 'z' },
+  ]
+
+  async function setup(publicFields?: string[]) {
+    const posts = Array.from({ length: 20 }, (_, index) => ({
+      id: `p${index}`,
+      title: `Post ${index}`,
+      slug: `post-${index}`,
+      authors: index % 2 ? [2, 1] : [3],
+    }))
+    const { adapter, lists } = multiAdapter({ post: posts, author: AUTHORS })
+    const mediaModule = await import('../server/utils/pluto-media-driver')
+    const get = vi.fn(async (_event: H3Event, ids: string[]) =>
+      ids
+        .filter((id) => id !== 'gone')
+        .map((id) => ({ id, url: `/media/${id}.png`, alt: '' }))
+    )
+    mediaModule.registerMediaDriver({ get } as never)
+    const api = await load(
+      [postWithAuthors(publicFields), authorType()],
+      adapter
+    )
+    return { api, lists, get }
+  }
+
+  it('adds the public fields of the target, with one list and one media read', async () => {
+    const { api, lists, get } = await setup(['avatar', 'bio', 'note', 'id'])
+
+    const result = await api.listPublicContent(event(), 'post', {})
+
+    expect(lists.filter((entry) => entry.type === 'author')).toHaveLength(1)
+    expect(get).toHaveBeenCalledTimes(1)
+    // The order of the list stays. `note` is private and `id` is a reference key: both skipped.
+    expect(result.data[1]?.authors).toEqual([
+      { id: 2, label: 'Bo', slug: 'bo', avatar: null, bio: null },
+      {
+        id: 1,
+        label: 'Ana',
+        slug: 'ana',
+        avatar: { id: 'm1', url: '/media/m1.png', alt: '' },
+        bio: 'Writes.',
+      },
+    ])
+    expect(result.data[0]?.authors).toEqual([
+      { id: 3, label: 'Cy', slug: 'cy', avatar: null, bio: null },
+    ])
+  })
+
+  it('keeps { id, label, slug } with no publicFields, and reads no media', async () => {
+    const { api, get } = await setup()
+
+    const result = await api.listPublicContent(event(), 'post', {})
+
+    expect(get).not.toHaveBeenCalled()
+    expect(result.data[1]?.authors).toEqual([
+      { id: 2, label: 'Bo', slug: 'bo' },
+      { id: 1, label: 'Ana', slug: 'ana' },
+    ])
+  })
+})

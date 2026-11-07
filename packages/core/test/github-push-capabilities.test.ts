@@ -92,6 +92,17 @@ describe('mapRepoPermission for push', () => {
     )
   })
 
+  it('gives authors:manage when the author type is registered', async () => {
+    const { registerContentType, mapRepoPermission } = await load()
+    const { plutoGithubAuthorType } =
+      await import('../modules/pluto-github/runtime/shared/author-type')
+    registerContentType(plutoGithubAuthorType)
+
+    expect(mapRepoPermission({ push: true })!.capabilities).toContain(
+      'authors:manage'
+    )
+  })
+
   it('does not widen admin or a lower permission', async () => {
     const { registerContentType, mapRepoPermission } = await load()
     registerContentType(docType())

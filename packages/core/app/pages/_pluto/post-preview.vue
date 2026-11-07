@@ -7,6 +7,7 @@
 // (read from the media library, the preview runs for a signed-in editor), and the dates
 // as `createdAt` and `publishedAt`. Only a message from the same origin and from the
 // parent window counts.
+import type { PlutoPreviewReference } from '../../../shared/utils/content-preview'
 import {
   referenceOptionsFromItems,
   referenceOptionsToPublic,
@@ -46,11 +47,27 @@ const rendered = ref(false)
 const { byName } = usePlutoContentTypes()
 const type = computed(() => byName(contentType.value))
 
-// The media records, by id. A record never changes, so each id is read once.
+// The items of the target types of the reference fields (tags, categories, authors), by id,
+// with the raw values of their `publicFields` (an author avatar and bio). The page reads each
+// target once.
+const referenceRecords = shallowRef(
+  new Map<string, ReadonlyMap<string, PlutoPreviewReference>>()
+)
+
+// The media records, by id: the media fields of the item, and the media `publicFields` of the
+// referenced items. A record never changes, so each id is read once.
 const media = usePlutoMedia()
 const mediaRecords = shallowRef(new Map<string, PlutoMedia>())
 watch(
-  () => previewMediaIds(type.value, item.value),
+  () => [
+    ...previewMediaIds(type.value, item.value),
+    ...previewReferenceMediaIds(
+      type.value,
+      item.value,
+      referenceRecords.value,
+      byName
+    ),
+  ],
   async (ids) => {
     const missing = ids.filter((id) => !mediaRecords.value.has(id))
     if (missing.length === 0 || !media.enabled) {
@@ -68,11 +85,6 @@ watch(
   }
 )
 
-// The items of the target types of the reference fields (tags, categories), by id. The page
-// reads each target once.
-const referenceRecords = shallowRef(
-  new Map<string, ReadonlyMap<string, PlutoPublicReference>>()
-)
 const referenceLoads = new Set<string>()
 watch(
   () => previewReferenceTargets(type.value),
@@ -86,13 +98,21 @@ watch(
         query: { limit: 1000 },
       })
         .then((result) => {
-          const next = new Map(referenceRecords.value)
-          next.set(
-            target,
-            referenceOptionsToPublic(
-              referenceOptionsFromItems(byName(target), result.data)
-            )
+          const names = previewPublicFields(type.value, target)
+          const raw = new Map(
+            result.data.map((entry) => [String(entry.id), entry])
           )
+          const entries = new Map<string, PlutoPreviewReference>()
+          for (const [id, reference] of referenceOptionsToPublic(
+            referenceOptionsFromItems(byName(target), result.data)
+          )) {
+            const extra = Object.fromEntries(
+              names.map((name) => [name, raw.get(id)?.[name] ?? null])
+            )
+            entries.set(id, { ...reference, ...extra })
+          }
+          const next = new Map(referenceRecords.value)
+          next.set(target, entries)
           referenceRecords.value = next
         })
         .catch(() => {
@@ -110,7 +130,8 @@ const preview = computed(() =>
     item.value,
     html.value,
     mediaRecords.value,
-    referenceRecords.value
+    referenceRecords.value,
+    byName
   )
 )
 
@@ -155,5 +176,9 @@ onBeforeUnmount(() => window.removeEventListener('message', onMessage))
 </script>
 
 <template>
-  <PlutoPostPreview v-if="rendered" :content-type="contentType" :item="preview" />
+  <PlutoPostPreview
+    v-if="rendered"
+    :content-type="contentType"
+    :item="preview"
+  />
 </template>

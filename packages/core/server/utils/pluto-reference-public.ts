@@ -10,9 +10,19 @@ import {
 } from '../../shared/utils/content-reference'
 import { getContentType } from './pluto-content'
 import { requireContentAdapter } from './pluto-content-handlers'
+import { expandPublicMedia } from './pluto-media-public'
 
-/** The target type name, then the references of its published items by id (as text). */
-type ReferenceMap = Map<string, PlutoPublicReference>
+/** One published item of a target: its reference, and the values of the `publicFields` asked for. */
+interface LoadedReference {
+  reference: PlutoPublicReference
+  extra: Record<string, unknown>
+}
+
+/** The loaded references of one target type, by id (as text). */
+type ReferenceMap = Map<string, LoadedReference>
+
+/** The keys of a reference. A `publicFields` entry with one of these names is skipped. */
+const REFERENCE_KEYS = new Set(['id', 'label', 'slug'])
 
 const publicReferenceCache = new WeakMap<
   PlutoContentItem[],
@@ -49,7 +59,21 @@ function fieldsTo(type: PlutoContentType, target: string) {
   )
 }
 
-/** The references of the published items of `target` that the items of one answer use, with one `list`. */
+/** The `publicFields` of a field that the target can give: its public fields, not a reference key. */
+function extraFieldsOf(
+  field: { publicFields?: string[] },
+  target: PlutoContentType
+): string[] {
+  return (field.publicFields ?? []).filter(
+    (name) => !REFERENCE_KEYS.has(name) && isPublicField(target, name)
+  )
+}
+
+/**
+ * The references of the published items of `target` that the items of one answer use, with one
+ * `list`. Each one keeps the `publicFields` that the fields of `type` ask for, with the media
+ * records in place of the media ids (one media read for the answer).
+ */
 function loadReferences(
   event: H3Event,
   type: PlutoContentType,
@@ -66,7 +90,11 @@ function loadReferences(
     return cached
   }
   const ids = new Set<string>()
+  const extraNames = new Set<string>()
   for (const field of fieldsTo(type, target.name)) {
+    for (const name of extraFieldsOf(field, target)) {
+      extraNames.add(name)
+    }
     for (const item of batch) {
       for (const id of referenceFieldIds(item[field.name])) {
         ids.add(id)
@@ -83,17 +111,27 @@ function loadReferences(
       { ids: [...ids], limit: ids.size, includeUnpublished: false }
     )
     const slugField = target.slug ? target.slug.field : undefined
-    for (const item of result.data) {
-      // An adapter may ignore `ids`: core matches them again.
-      const id = String(item.id)
-      if (!ids.has(id) || !isPublished(target, item)) {
-        continue
-      }
+    // An adapter may ignore `ids`: core matches them again.
+    const items = result.data.filter(
+      (item) => ids.has(String(item.id)) && isPublished(target, item)
+    )
+    for (const item of items) {
       const slug = slugField ? item[slugField] : undefined
-      map.set(id, {
-        id: item.id,
-        label: String(item[target.titleField] ?? ''),
-        ...(typeof slug === 'string' && slug !== '' && { slug }),
+      let extra: Record<string, unknown> = {}
+      for (const name of extraNames) {
+        extra[name] = item[name] ?? null
+      }
+      if (extraNames.size > 0) {
+        // `items` is the batch of the media read: one read for every target item.
+        extra = await expandPublicMedia(event, target, extra, items)
+      }
+      map.set(String(item.id), {
+        reference: {
+          id: item.id,
+          label: String(item[target.titleField] ?? ''),
+          ...(typeof slug === 'string' && slug !== '' && { slug }),
+        },
+        extra,
       })
     }
     return map
@@ -104,9 +142,10 @@ function loadReferences(
 
 /**
  * Puts `{ id, label, slug? }` in place of the ids of the public `reference` fields of `data` that
- * have a public `target` type: a list for a `multiple` field, else one reference or `null`. An id
- * with no published item is dropped. A field with no value gives `[]` or `null`. A reference to
- * a private type keeps its ids. It reads each target type once for the items of one answer.
+ * have a public `target` type: a list for a `multiple` field, else one reference or `null`. A
+ * field with `publicFields` adds those fields of the target to each reference. An id with no
+ * published item is dropped. A field with no value gives `[]` or `null`. A reference to a private
+ * type keeps its ids. It reads each target type once for the items of one answer.
  */
 export async function expandPublicReferences(
   event: H3Event,
@@ -130,9 +169,20 @@ export async function expandPublicReferences(
       continue
     }
     const references = await loadReferences(event, type, target, batch)
+    const names = extraFieldsOf(field, target)
     const list = referenceFieldIds(data[field.name])
       .map((id) => references.get(id))
-      .filter((entry): entry is PlutoPublicReference => Boolean(entry))
+      .filter((entry): entry is LoadedReference => Boolean(entry))
+      .map(({ reference, extra }) => {
+        if (names.length === 0) {
+          return reference
+        }
+        const added: Record<string, unknown> = {}
+        for (const name of names) {
+          added[name] = extra[name] ?? null
+        }
+        return { ...reference, ...added }
+      })
     result[field.name] = field.multiple ? list : (list[0] ?? null)
   }
   return result
