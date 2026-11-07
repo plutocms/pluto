@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.61.0](https://github.com/plutocms/pluto/compare/v0.60.1...v0.61.0) (2026-11-07)
+
+
+### Features
+
+* **core:** bulk publish, unpublish and remove in the admin list ([#461](https://github.com/plutocms/pluto/issues/461)) ([7e77bcf](https://github.com/plutocms/pluto/commit/7e77bcfa2009f7e9ceb02d38da66615394a4410e))
+* **core:** search, filters and sort in the admin list ([#460](https://github.com/plutocms/pluto/issues/460)) ([85b70c1](https://github.com/plutocms/pluto/commit/85b70c1da31e29adeb9ba531d1a6a9052cc70b6c))
+
 ## [0.60.1](https://github.com/plutocms/pluto/compare/v0.60.0...v0.60.1) (2026-11-07)
 
 
