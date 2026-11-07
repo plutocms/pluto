@@ -2,6 +2,7 @@ import type { H3Event } from 'h3'
 import type {
   PlutoContentItem,
   PlutoContentType,
+  PlutoField,
 } from '../../shared/types/content'
 import type { PlutoPublicReference } from '../../shared/types/public-api'
 import {
@@ -60,10 +61,10 @@ function fieldsTo(type: PlutoContentType, target: string) {
 }
 
 /** The `publicFields` of a field that the target can give: its public fields, not a reference key. */
-function extraFieldsOf(
-  field: { publicFields?: string[] },
-  target: PlutoContentType
-): string[] {
+function extraFieldsOf(field: PlutoField, target: PlutoContentType): string[] {
+  if (field.type !== 'reference') {
+    return []
+  }
   return (field.publicFields ?? []).filter(
     (name) => !REFERENCE_KEYS.has(name) && isPublicField(target, name)
   )
