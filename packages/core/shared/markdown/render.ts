@@ -1,17 +1,45 @@
 // Markdown to safe HTML, on the server (the public API) and in the browser (the post preview).
 // It imports no Node or Nuxt API.
+import type { Tokens } from 'marked'
 import { Marked } from 'marked'
 import { ELEMENT_NODE, parse, TEXT_NODE, walkSync } from 'ultrahtml'
 import { sanitizeHtml } from './sanitize-html'
 
+/** The attribute of an embed paragraph. See `isEmbedParagraph`. */
+export const PLUTO_EMBED_ATTRIBUTE = 'data-pluto-embed'
+
+/**
+ * A paragraph that is one http(s) link and nothing else, with the URL as its text: a URL alone on
+ * its line (a GFM autolink), or `[url](url)`, which the Visual editor writes. Such a paragraph can
+ * be an embed. The renderer knows no provider: the site component (`PlutoHtml`) asks the
+ * providers of the registry. See the content-model skill ("Embeds").
+ */
+export function isEmbedParagraph(tokens: Tokens.Generic[]): boolean {
+  const parts = tokens.filter(
+    (token) => !(token.type === 'text' && !String(token.raw).trim())
+  )
+  if (parts.length !== 1 || parts[0]!.type !== 'link') {
+    return false
+  }
+  const link = parts[0] as Tokens.Link
+  return /^https?:\/\//i.test(link.href) && link.text.trim() === link.href
+}
+
 // One `Marked` instance for every render. GFM gives tables, task lists,
 // strikethrough and autolinks. The `html` renderer returns an empty string,
 // so raw HTML in a post never reaches the output. The sanitizer still runs
-// on the result, as a second guard.
+// on the result, as a second guard. A paragraph that can be an embed gets
+// `data-pluto-embed`; it stays a plain paragraph with a link for any client.
 const marked = new Marked({
   gfm: true,
   renderer: {
     html: () => '',
+    paragraph(token) {
+      if (!isEmbedParagraph(token.tokens)) {
+        return false
+      }
+      return `<p ${PLUTO_EMBED_ATTRIBUTE}="">${this.parser.parseInline(token.tokens)}</p>\n`
+    },
   },
 })
 

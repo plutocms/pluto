@@ -154,3 +154,26 @@ describe('isSafeUrl', () => {
     expect(isSafeUrl('data:text/html,<script>alert(1)</script>')).toBe(false)
   })
 })
+
+describe('attribute values are escaped once', () => {
+  it('keeps a & in a URL as one &amp;, not &amp;amp;', () => {
+    expect(sanitizeHtml('<a href="https://x.y/?a=1&amp;b=2">a</a>')).toBe(
+      '<a href="https://x.y/?a=1&amp;b=2">a</a>'
+    )
+    expect(
+      sanitizeHtml(
+        '<img src="/i.png?w=1&amp;h=2" alt="i&amp;j" title="&quot;T&quot;">'
+      )
+    ).toBe('<img src="/i.png?w=1&amp;h=2" alt="i&amp;j" title="&quot;T&quot;">')
+  })
+
+  it('keeps a quote of an entity inside the value', () => {
+    expect(sanitizeHtml('<img src="/a" alt="x&quot; onerror=&quot;a()">')).toBe(
+      '<img src="/a" alt="x&quot; onerror=&quot;a()">'
+    )
+  })
+
+  it('does not throw on a code point out of range', () => {
+    expect(() => sanitizeHtml('<a href="&#99999999999;">x</a>')).not.toThrow()
+  })
+})

@@ -14,6 +14,8 @@ export default defineNuxtConfig({
   // repo lints with @nuxt/eslint-config (eslint.config.mjs at the root).
   modules: [
     '@nuxt/image',
+    // The players of the embeds (`ScriptYouTubePlayer`, `ScriptVimeoPlayer`): they load only on a click.
+    '@nuxt/scripts',
     '@nuxt/ui',
     '@vueuse/nuxt',
     [

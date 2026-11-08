@@ -6,6 +6,21 @@ import type {
 } from './content'
 
 /**
+ * An embed provider: a URL alone on its line of a post becomes the player of the first provider
+ * (by `order`) whose `match` returns data. Core has `youtube` and `vimeo`; a layer adds more.
+ * `match` must be strict (the hosts, an id pattern) and pure: it runs on the server and in the
+ * browser. The component gets the props `url` (the URL of the line) and `match` (what `match`
+ * returned), and renders the player. Core never puts provider HTML in the body: the component is
+ * the only place that loads the provider. See the content-model skill ("Embeds").
+ */
+export interface PlutoEmbedProvider extends PlutoEntry {
+  /** A translation key or literal: the name of the provider ("YouTube"). */
+  label: string
+  match: (url: URL) => Record<string, string> | null
+  component: Component
+}
+
+/**
  * A kind of file of the media library: images, PDFs, 3D models (the 3D
  * add-on). The library, the tiles, the details and the picker use the first
  * kind whose `accept` matches the type of a file. See the media skill.
@@ -437,6 +452,7 @@ export interface PlutoExtension {
   contentHead?: PlutoContentHead[]
   mediaKinds?: PlutoMediaKind[]
   navGroups?: PlutoNavGroup[]
+  embedProviders?: PlutoEmbedProvider[]
 }
 
 /**
@@ -476,4 +492,5 @@ export interface PlutoRegistry {
   contentHead: PlutoRegistryBucket<PlutoContentHead>
   mediaKinds: PlutoRegistryBucket<PlutoMediaKind>
   navGroups: PlutoRegistryBucket<PlutoNavGroup>
+  embedProviders: PlutoRegistryBucket<PlutoEmbedProvider>
 }

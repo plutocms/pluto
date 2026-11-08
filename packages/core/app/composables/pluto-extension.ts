@@ -63,6 +63,7 @@ export function definePlutoExtension(definition: PlutoExtension): void {
   registry.contentActions.set(definition.id, definition.contentActions ?? [])
   registry.mediaKinds.set(definition.id, definition.mediaKinds ?? [])
   registry.navGroups.set(definition.id, definition.navGroups ?? [])
+  registry.embedProviders.set(definition.id, definition.embedProviders ?? [])
   registry.contentToolbarItems.set(
     definition.id,
     definition.contentToolbarItems ?? []

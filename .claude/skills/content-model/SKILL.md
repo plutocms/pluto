@@ -731,6 +731,35 @@ the Git CMS an installation token that can write (`getWriteToken` of the App tok
 App id and key, not the read token), or no token with the `fs` store; with no App key it gives
 `null` (401, the task skips the type). In dev, `POST /_nitro/tasks/pluto:trash:purge` runs it.
 
+## Embeds
+
+A URL alone on its line of a Markdown body (a bare URL, or `[url](url)`, which the Visual editor
+writes) is an embed. Core owns the block and the security; providers plug in.
+
+- **Render** (`shared/markdown/render.ts`, provider-agnostic): such a paragraph (`isEmbedParagraph`:
+  one http(s) link and nothing else, the URL as its text) renders as
+  `<p data-pluto-embed=""><a href="…">…</a></p>`. Any client of the public API still gets a link.
+  The sanitizer keeps `data-pluto-embed` (always empty) on `p` only. No iframe is ever stored or
+  rendered.
+- **Providers:** the `embedProviders` bucket of the registry (`PlutoEmbedProvider`: `id`, `label`,
+  `order`, `match(url: URL) => Record<string, string> | null`, `component`). `match` is strict
+  (hosts, an id pattern) and pure. The component gets `url` and `match` and renders the player.
+  Core registers `youtube` (`matchYoutubeUrl`: watch, shorts, embed, live, youtu.be; `t`/`start`)
+  and `vimeo` (`matchVimeoUrl`: an unlisted hash too), in `pluto-core-registrations.ts`, with
+  `PlutoEmbedYoutube` and `PlutoEmbedVimeo` (`ScriptYouTubePlayer` / `ScriptVimeoPlayer` of
+  `@nuxt/scripts`, a core module): a thumbnail and a play button (`PlutoEmbedPlay`); the player
+  loads on a click (`youtube-nocookie.com`; Vimeo with `dnt`). Other providers (X, Instagram,
+  Bluesky) belong in an add-on layer.
+- **Show** (`PlutoHtml`): with no embed paragraph, `innerHTML` as before. With one, `splitEmbedHtml`
+  (`shared/utils/embed.ts`) gives the top-level parts; each element keeps its inner HTML, an embed
+  paragraph becomes the component of the first matching provider (`resolveEmbed`, the root gets
+  `data-pluto-embed="<provider id>"`), or stays the link. The top level stays flat for the
+  direct-child rules of `.pluto-prose`. The server renders the players (SSR).
+- The post preview of the admin uses `PlutoHtml`, so the live preview of the editor shows the
+  players. The Visual editor shows the URL as a link (an embed card there is later).
+- The sanitizer writes each kept attribute value decoded once and escaped once (`keptValue`), so
+  a `&` in a URL is `&amp;`, not `&amp;amp;`.
+
 ## Scheduled publish and review
 
 Two opt-in options of `status`. The rules are in `shared/utils/content-status.ts` (auto-imported):

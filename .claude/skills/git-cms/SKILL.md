@@ -813,8 +813,10 @@ YAML props block right after an open line, `#slot` lines inside a component, inl
 `excerpt` on the public API. Code in a fence does not change. A heading needs a space after `#`, so a
 `#slot` line never looks like one.
 `renderMarkdown` uses `marked` with GFM. The `html` renderer returns an empty string, so raw HTML
-in Markdown never reaches the output. Then `sanitizeHtml` runs on the result. The rendered HTML is
-cached by blob id (`html:<oid>`, the `_version` of the item), and the fallback excerpt too
+in Markdown never reaches the output. A URL alone on its line gets `data-pluto-embed` (see the
+content-model skill, "Embeds"). Then `sanitizeHtml` runs on the result. The rendered HTML is
+cached by blob id (`html:2:<oid>`, the `_version` of the item; `HTML_CACHE_KEY` has a version to
+change when the renderer gives other HTML), and the fallback excerpt too
 (`excerpt:<oid>`), through the cache of "Storage". A blob id never changes, so an entry never goes
 stale.
 

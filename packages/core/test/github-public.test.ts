@@ -353,7 +353,7 @@ describe('one post', () => {
     // The html is in the cache under the blob id of the file.
     const oid = gitBlobSha(FILES['content/posts/live.md']!)
     expect(
-      await getRegisteredGithubCache().getBlob<string>(`html:${oid}`)
+      await getRegisteredGithubCache().getBlob<string>(`html:2:${oid}`)
     ).toBe(data.html)
   })
 })
