@@ -176,7 +176,9 @@
       "panels": "Painéis",
       "sidebar": "Barra lateral",
       "showSidebar": "Mostrar a barra lateral",
-      "hideSidebar": "Ocultar a barra lateral"
+      "hideSidebar": "Ocultar a barra lateral",
+      "actions": "Ações do editor",
+      "closePanel": "Fechar o painel"
     },
     "list": {
       "loading": "Carregando {labelPlural}…",
@@ -961,7 +963,8 @@
       "visualBlocked": "Este texto tem uma sintaxe que o editor visual não consegue manter (MDC, HTML, tabelas, listas de tarefas ou notas de rodapé). Edite-o em Markdown.",
       "previewLoading": "Carregando a prévia…",
       "previewFailedTitle": "A prévia não carregou",
-      "previewFailed": "A página de prévia do site não respondeu. Verifique se o site está no ar e tente de novo."
+      "previewFailed": "A página de prévia do site não respondeu. Verifique se o site está no ar e tente de novo.",
+      "previewSwitch": "Prévia"
     },
     "markdown": {
       "formatting": "Formatação",

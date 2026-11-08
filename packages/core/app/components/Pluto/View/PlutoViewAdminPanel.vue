@@ -48,9 +48,11 @@ const slots = useSlots()
 // refs, and read the slots again before each update of this component.
 const hasAsideSlot = ref(Boolean(slots.aside))
 const hasLeftSlot = ref(Boolean(slots.left))
+const hasRailSlot = ref(Boolean(slots.rail))
 onBeforeUpdate(() => {
   hasAsideSlot.value = Boolean(slots.aside)
   hasLeftSlot.value = Boolean(slots.left)
+  hasRailSlot.value = Boolean(slots.rail)
 })
 const { t } = usePlutoI18n()
 const isDesktop = useMediaQuery('(min-width: 64rem)')
@@ -191,6 +193,20 @@ const items = computed<SplitterItem[]>(() => [
 
     <div ref="rowEl" class="relative flex min-h-0 flex-1 overflow-hidden">
       <!--
+        The action rail (desktop): a narrow column of icon buttons at the left edge, for the left
+        panels (the Outline of the post editor) and other actions of the view. It takes the place
+        of the floating button that opens a closed left panel. On a narrow screen the toolbar
+        opens the left panel as a slideover.
+      -->
+      <nav
+        v-if="hasRailSlot && isDesktop"
+        :aria-label="t('pluto.canvas.actions')"
+        class="border-default flex w-12 shrink-0 flex-col items-center gap-1 border-e py-2"
+      >
+        <slot name="rail" />
+      </nav>
+
+      <!--
         No `id` on the splitter, on purpose. With an id, Nuxt UI names each handle
         `<id>-handle-<index>`, and reka-ui reads that name once, when the handle mounts. A panel
         that joins later (the left panel of the canvas layout loads on demand) shifts the indexes,
@@ -264,7 +280,7 @@ const items = computed<SplitterItem[]>(() => [
       -->
       <template v-if="panelToggles && isDesktop">
         <UTooltip
-          v-if="hasLeftSlot && !leftOpen"
+          v-if="hasLeftSlot && !leftOpen && !hasRailSlot"
           :text="t('pluto.canvas.showSidebar')"
         >
           <UButton

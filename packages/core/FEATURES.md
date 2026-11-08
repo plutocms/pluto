@@ -139,6 +139,9 @@ policies shared by every project here.
 - Excerpt and cover image as standard options of any content type (`excerpt`, `cover`): core adds
   the fields, the public API gives `excerpt` (with a fallback from the body) and `cover`, the admin
   list shows the cover, and the site SEO uses both.
+- The post editor: an action rail at the left edge (the Outline, closed by default, with an X in
+  its header), and a Preview switch in the footer of the compose panel (off on a phone; with no
+  preview, the text keeps a readable width).
 - Embeds: a URL alone on its line of a post becomes a player. YouTube and Vimeo in core (a
   thumbnail, the player of `@nuxt/scripts` on a click, `youtube-nocookie.com`); a layer adds
   providers (`embedProviders`). The HTML holds a marked paragraph with a link, never an iframe.

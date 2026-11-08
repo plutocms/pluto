@@ -696,7 +696,13 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   the `richtext` widget as a normal field.
 - The canvas is one `USplitter` in both modes (stacked under `lg`): the compose panel and the
   preview. The cookie `pluto-post-split` keeps the sizes. The compose panel has a footer with
-  the Visual/Markdown switch (`PlutoPostModeSwitch.vue`).
+  the Visual/Markdown switch (`PlutoPostModeSwitch.vue`) and, at the end, the **Preview** switch
+  (`USwitch`). With the preview off, the splitter has the compose panel alone (its size is not
+  saved) and the Visual editor keeps a readable width (`max-w-3xl`, in the middle). On desktop
+  the cookie `pluto-post-preview` keeps the choice (default on); under `lg` it starts off.
+- The left panel (the Outline) starts closed. The rail of the form (the `#rail` slot of
+  `PlutoViewAdminPanel`, see the admin-view-chrome skill) has its button (`i-lucide-list-tree`),
+  and its header has an X (`PlutoViewLeftCollapse`).
 - **Visual** mode shows the `richtext` widget of the app
   (`usePlutoContentFieldWidget({ ...field, widget: undefined })`) with the `canvas` prop. A
   `richtext` widget of a layer must accept `canvas`: no label, and a full-height box that
