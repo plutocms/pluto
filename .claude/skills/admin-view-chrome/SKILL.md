@@ -49,7 +49,13 @@ The outer shell for one view. Props:
 - `leftOpen?: boolean` (`v-model:left-open`) — default `false`. Whether the left panel is open.
   See "The left panel".
 - `panelToggles?: boolean` — default `false`. On desktop, draws a small floating button that opens
-  a closed side panel (see "The canvas layout"). Use it with `v-model:aside-open`.
+  a closed side panel (see "The canvas layout"). Use it with `v-model:aside-open`. With a `#rail`
+  slot, the left panel has no floating button: the rail opens it.
+- `#rail` slot — the action rail (desktop only): a column of icon buttons (`w-12`, `border-e`, a
+  `nav` with the label "Editor actions") at the left edge of the row. The content form fills it
+  in the canvas layout: one button for the left panel (its `icon` and `label`, `soft`/`primary`
+  and `aria-pressed` while open). It is the place for more actions of the view later (a layer,
+  an AI assistant).
 - `leftTitle?: string` — the title of the left panel when it shows as a slideover.
 - `fill?: boolean` — default `false`. The main region fills the panel's height and does not
   scroll. The content scrolls inside its own region instead, for a view with one long list
@@ -145,8 +151,9 @@ and a second instance of it here would fight the app-level sidebar for that hook
   inside, and the splitter has no left panel. The slot mounts once.
 - A view can fill `#left` after the first render (a widget that loads on demand adds it). The
   panel reads `useSlots()` again before each update, because `useSlots()` is not reactive.
-- The collapse button of the left panel goes in the header of the panel content: put
-  `<PlutoViewLeftCollapse />` there (it shows on desktop only; the slideover has its own close).
+- The close button of the left panel goes in the header of the panel content: put
+  `<PlutoViewLeftCollapse />` there (an X, "Close the panel"; it shows on desktop only; the
+  slideover has its own close).
   It reads `plutoViewLeftPanelKey` (`close()`, `collapseButtons`). The panel exposes
   `leftCollapsible` (true while one is mounted) through a template ref.
 
@@ -297,17 +304,17 @@ const form = usePlutoContentForm()
 form?.onSaved((saved) => refetchMedia(saved.id)) // after each save that worked
 ```
 
-| Key                       | Meaning                                                                                                                                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode                                                                                                                                       |
-| `loading`                 | true while the item of an edit page loads. The form and its toolbar items mount before the item is there: code that reads the saved item waits for `editing && !loading`                         |
-| `saving`, `dirty`         | a save runs, the item has unsaved changes                                                                                                                                                       |
-| `errorsByField`           | the validation message of each field that failed the last save                                                                                                                                  |
-| `layout`, `canvas`        | the layout, and true for 'canvas'                                                                                                                                                               |
-| `onFlush(callback)`       | runs synchronously before a save builds its payload, and before each backup write (also when the page hides). A widget that holds edits outside `modelValue` (an editor with a debounce) writes them to the model there. Returns a stop function. |
-| `onSaved(callback)`       | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope.                                                                            |
-| `openPanel(id)`           | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only)                                                                                                                      |
-| `panelToggles`            | `{ left, right }`: true while that panel is closed and its open button floats at the top of that side (desktop). A canvas widget keeps the corner free (the post editor adds `ps-12` / `pe-12`) |
+| Key                       | Meaning                                                                                                                                                                                                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode                                                                                                                                                                                                  |
+| `loading`                 | true while the item of an edit page loads. The form and its toolbar items mount before the item is there: code that reads the saved item waits for `editing && !loading`                                                                                   |
+| `saving`, `dirty`         | a save runs, the item has unsaved changes                                                                                                                                                                                                                  |
+| `errorsByField`           | the validation message of each field that failed the last save                                                                                                                                                                                             |
+| `layout`, `canvas`        | the layout, and true for 'canvas'                                                                                                                                                                                                                          |
+| `onFlush(callback)`       | runs synchronously before a save builds its payload, and before each backup write (also when the page hides). A widget that holds edits outside `modelValue` (an editor with a debounce) writes them to the model there. Returns a stop function.          |
+| `onSaved(callback)`       | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope.                                                                                                                                       |
+| `openPanel(id)`           | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only)                                                                                                                                                                                 |
+| `panelToggles`            | `{ left, right }`: true while that panel is closed and its open button floats at the top of that side (desktop). `left` is always false in a canvas (the rail opens the left panel). A canvas widget keeps the corner free (the post preview adds `pe-12`) |
 
 ## Skeletons and scroll
 
@@ -357,9 +364,10 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   and its footer sits at the bottom. The element is a ref, so the content mounts when the element exists (the panel is
   open, the tab mounted) and the state of the widget does not reset. Outside a canvas form,
   `PlutoContentCanvasPanel` renders its slot inline.
-- Desktop: an open panel closes from the button in its own header. A closed panel opens from a
-  small square button (`variant="outline"`, `size="sm"`) that floats at the place of that header
-  button: top left of the row for the left panel, top right for the aside.
+- Desktop: an open panel closes from the button in its own header (an X for the left panel). The
+  left panel opens from the rail (`#rail` of `PlutoViewAdminPanel`), and starts closed (the
+  cookie `pluto-content-left-<type>`, default `false`). A closed aside opens from a small square
+  button (`variant="outline"`, `size="sm"`) that floats at the top right of the row.
   `PlutoViewAdminPanel` draws them with `panel-toggles` (the form sets it, with
   `v-model:aside-open`; `asideOpen` is a model now). The form toolbar shows no panel toggle on
   desktop, except the left one while the left panel is open and has no `PlutoViewLeftCollapse`.

@@ -21,10 +21,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <UTooltip v-if="panel && isDesktop" :text="t('pluto.canvas.hideSidebar')">
+  <UTooltip v-if="panel && isDesktop" :text="t('pluto.canvas.closePanel')">
     <UButton
-      :aria-label="t('pluto.canvas.hideSidebar')"
-      icon="lucide:panel-left-close"
+      :aria-label="t('pluto.canvas.closePanel')"
+      icon="lucide:x"
       color="neutral"
       variant="ghost"
       size="sm"

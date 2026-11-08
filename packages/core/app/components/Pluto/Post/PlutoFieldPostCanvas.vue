@@ -106,6 +106,26 @@ function goToHeading(index: number) {
   element?.scrollIntoView({ block: 'start', behavior: 'smooth' })
 }
 
+// The preview can be off, so the editor gets the room. A switch in the footer of the compose
+// panel turns it on and off. On desktop a cookie keeps the choice (on by default); on a narrow
+// screen it starts off, because the stacked split leaves little room to write.
+const previewCookie = useCookie<boolean>('pluto-post-preview', {
+  default: () => true,
+  maxAge: 60 * 60 * 24 * 365,
+  sameSite: 'lax',
+})
+const previewNarrow = ref(false)
+const showPreview = computed({
+  get: () => (isDesktop.value ? previewCookie.value : previewNarrow.value),
+  set: (value: boolean) => {
+    if (isDesktop.value) {
+      previewCookie.value = value
+    } else {
+      previewNarrow.value = value
+    }
+  },
+})
+
 // The split between the compose panel and the preview. The cookie keeps the sizes.
 const split = useCookie<number[]>('pluto-post-split', {
   default: () => [50, 50],
@@ -113,22 +133,31 @@ const split = useCookie<number[]>('pluto-post-split', {
   sameSite: 'lax',
 })
 const dragging = ref(false)
-const splitItems = computed(() => [
-  {
-    id: 'compose',
-    slot: 'compose',
-    defaultSize: split.value[0] ?? 50,
-    minSize: 25,
-  },
-  {
-    id: 'preview',
-    slot: 'preview',
-    defaultSize: split.value[1] ?? 50,
-    minSize: 25,
-  },
-])
+const splitItems = computed(() =>
+  showPreview.value
+    ? [
+        {
+          id: 'compose',
+          slot: 'compose',
+          order: 1,
+          defaultSize: split.value[0] ?? 50,
+          minSize: 25,
+        },
+        {
+          id: 'preview',
+          slot: 'preview',
+          order: 2,
+          defaultSize: split.value[1] ?? 50,
+          minSize: 25,
+        },
+      ]
+    : [{ id: 'compose', slot: 'compose', order: 1, defaultSize: 100 }]
+)
 function onLayout(sizes: number[]) {
-  split.value = sizes.map((size) => Math.round(size))
+  // Only the split with the preview: the compose panel alone is always 100.
+  if (sizes.length === 2) {
+    split.value = sizes.map((size) => Math.round(size))
+  }
 }
 </script>
 
@@ -168,16 +197,22 @@ function onLayout(sizes: number[]) {
               <div
                 v-if="mode === 'visual' && visualWidget"
                 ref="visual"
-                class="size-full min-h-0 overflow-y-auto"
+                class="size-full min-h-0 overflow-x-hidden overflow-y-auto"
               >
-                <component
-                  :is="visualWidget"
-                  :field="visualField"
-                  :model-value="value"
-                  :disabled="disabled"
-                  canvas
-                  @update:model-value="emit('update:modelValue', $event)"
-                />
+                <!-- With no preview, the text keeps a readable width in the middle. -->
+                <div
+                  :class="!showPreview && 'mx-auto max-w-3xl'"
+                  class="min-h-full"
+                >
+                  <component
+                    :is="visualWidget"
+                    :field="visualField"
+                    :model-value="value"
+                    :disabled="disabled"
+                    canvas
+                    @update:model-value="emit('update:modelValue', $event)"
+                  />
+                </div>
               </div>
 
               <MarkdownEditor
@@ -203,6 +238,12 @@ function onLayout(sizes: number[]) {
                 :disabled="disabled"
                 :visual-blocked="visualBlocked || !visualWidget"
                 @update:mode="setMode"
+              />
+              <USwitch
+                v-model="showPreview"
+                :label="t('pluto.post.previewSwitch')"
+                size="sm"
+                class="ms-auto"
               />
             </div>
           </div>

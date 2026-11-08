@@ -970,8 +970,10 @@ const activeTab = computed({
 
 // On a narrow screen both panels are slideovers. They start closed and keep
 // no cookie, so a saved "open" never covers the page on the first visit.
+// The left panel (the Outline of a post) starts closed: the editor gets the room. The rail
+// opens it, and the cookie keeps the choice.
 const leftCookie = useCookie<boolean>(`pluto-content-left-${props.type}`, {
-  default: () => true,
+  default: () => false,
 })
 const leftNarrow = ref(false)
 const rightNarrow = ref(false)
@@ -1022,6 +1024,24 @@ const leftTitle = computed(
     leftPanels.value[0]?.label ??
     (leftPanelOption.value ? tx(leftPanelOption.value.label) : undefined)
 )
+
+// The buttons of the rail: the left panels that widgets add (the Outline), or the panel that
+// the type declares while the widget loads.
+const railPanels = computed(() =>
+  leftPanels.value.length > 0
+    ? leftPanels.value.map((panel) => ({
+        id: panel.id,
+        label: panel.label ?? panel.id,
+        icon: panel.icon ?? 'lucide:panel-left',
+      }))
+    : [
+        {
+          id: 'left',
+          label: leftTitle.value ?? t('pluto.canvas.sidebar'),
+          icon: 'lucide:panel-left',
+        },
+      ]
+)
 const hasRight = computed(
   () => isCanvas.value && rightTabs.value.length > 0 && !loadFailed.value
 )
@@ -1071,8 +1091,10 @@ provide(plutoContentFormKey, {
   canvas: isCanvas,
   // The same rule as the floating buttons of PlutoViewAdminPanel (`panel-toggles`).
   panelToggles: computed(() => ({
+    // A canvas has the rail on the left, so no floating button there.
     left:
       isDesktop.value &&
+      !isCanvas.value &&
       (hasLeft.value || Boolean(leftSkeleton.value)) &&
       !leftOpen.value,
     right: isDesktop.value && Boolean(asideSlot.value) && !asideModel.value,
@@ -1515,6 +1537,27 @@ const asideTitle = computed(() =>
         />
       </template>
     </section>
+
+    <!-- The rail of the canvas layout: one button for the left panel (its icon and label), the
+         active one while it is open. Room for more actions later (a layer, an AI assistant). -->
+    <template v-if="isCanvas && (hasLeft || leftSkeleton)" #rail>
+      <UTooltip
+        v-for="panel in railPanels"
+        :key="panel.id"
+        :text="panel.label"
+        :content="{ side: 'right' }"
+      >
+        <UButton
+          :icon="panel.icon"
+          :aria-label="panel.label"
+          :aria-pressed="leftOpen"
+          :color="leftOpen ? 'primary' : 'neutral'"
+          :variant="leftOpen ? 'soft' : 'ghost'"
+          square
+          @click="leftOpen = !leftOpen"
+        />
+      </UTooltip>
+    </template>
 
     <!-- The left panel of the canvas layout. Widget panels teleport into it. -->
     <template v-if="hasLeft" #left>
