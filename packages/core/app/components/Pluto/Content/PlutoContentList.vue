@@ -337,6 +337,13 @@ function itemStatus(item: PlutoContentItem): {
   }
   if (value === rules.scheduled && rules.publishedAtColumn) {
     const time = statusTime(item[rules.publishedAtColumn])
+    // A due item is live: the task sets its status soon.
+    if (time !== undefined && time <= Date.now()) {
+      return {
+        label: text.statusLabel(rules.published),
+        color: 'success',
+      }
+    }
     if (time !== undefined) {
       return {
         label: t('pluto.form.scheduledFor', {

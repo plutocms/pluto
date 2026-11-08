@@ -110,6 +110,11 @@ export async function listContentItems(
     published?: boolean
   }
 ): Promise<PlutoContentListResult> {
+  // The admin list of a publisher publishes the due items first: a host with no scheduled task
+  // (Vercel with Nitro 2, Netlify) still gets a right status. The dashboard count does not.
+  if (query.published !== true) {
+    await publishDueOnOpen(ctx)
+  }
   return requireContentAdapter().list(ctx, {
     limit: query.limit,
     offset: query.offset,
@@ -120,6 +125,32 @@ export async function listContentItems(
     // A status filter can ask for a draft, so it needs the unpublished rows.
     includeUnpublished: query.published !== true,
   })
+}
+
+/**
+ * Publishes the scheduled items of the type whose time has come, when the caller can publish.
+ * A caller without the publish capability only reads. A failure only warns: the list still loads.
+ */
+async function publishDueOnOpen(ctx: PlutoContentContext): Promise<void> {
+  const adapter = requireContentAdapter()
+  if (!adapter.publishDue || !statusRules(ctx.type)?.scheduled) {
+    return
+  }
+  try {
+    await authorizeContentOperation(
+      ctx.event,
+      ctx.type.capabilities?.publish ?? ctx.type.capabilities?.write
+    )
+  } catch {
+    return
+  }
+  try {
+    await adapter.publishDue(ctx, new Date().toISOString())
+  } catch (error) {
+    console.warn(
+      `[pluto] The publish of the scheduled "${ctx.type.name}" items failed: ${(error as Error).message}`
+    )
+  }
 }
 
 /** Gets one item by id or slug. No capability check — see `listContentItems`. */

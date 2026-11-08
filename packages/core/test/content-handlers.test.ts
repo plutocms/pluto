@@ -1129,6 +1129,33 @@ describe('the scheduled publish', () => {
     warn.mockRestore()
   })
 
+  it('publishes the due items when a publisher opens the admin list, not for the dashboard count', async () => {
+    const { registerContentAdapter, listContentItems } = await loadHandlers()
+    const publishDue = vi.fn(async () => 1)
+    let allowed = true
+    registerContentAdapter({
+      ...createMemoryContentAdapter(),
+      publishDue,
+      authorize: vi.fn(async () => {
+        if (!allowed) {
+          throw Object.assign(new Error('no'), { statusCode: 403 })
+        }
+      }),
+    })
+    const type = contentType({
+      status: schedule,
+      capabilities: { write: 'posts:write', publish: 'posts:publish' },
+    })
+
+    await listContentItems(ctxFor(type), {})
+    await listContentItems(ctxFor(type), { published: true })
+    allowed = false
+    await listContentItems(ctxFor(type), {})
+    await listContentItems(ctxFor(contentType()), {})
+
+    expect(publishDue).toHaveBeenCalledOnce()
+  })
+
   it('does nothing without publishDue on the adapter', async () => {
     const { registerContentAdapter, publishScheduledContent } =
       await loadHandlers()

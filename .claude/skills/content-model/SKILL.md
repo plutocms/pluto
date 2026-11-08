@@ -722,7 +722,7 @@ and Empty the trash ask first.
 The scheduled purge: the Nitro task `pluto:trash:purge` (`server/tasks/pluto/trash/purge.ts`), every day at
 03:00 (`nitro.experimental.tasks` and `nitro.scheduledTasks` in the core `nuxt.config.ts`; an app
 sets `nitro.scheduledTasks['0 3 * * *']` to `[]` to turn it off). It runs on the hosts that run
-scheduled tasks (a Node, Bun or Deno server, Cloudflare, Vercel), not on Netlify or a static site:
+scheduled tasks with Nitro 2 (a Node, Bun or Deno server, Cloudflare), not on Vercel, Netlify or a static site (Nitro 2 makes no Vercel Cron Jobs; Nitro 3 does, and the Vercel Hobby plan allows only daily ones):
 opening a Trash purges too. `purgeExpiredTrash()` calls `trash.purgeBefore(trashCutoff())` for each type
 with `trash`, with a system request (`createPlutoSystemEvent`, `isPlutoSystemEvent` in
 `server/utils/pluto-system.ts`: a flag on `event.context`, which a client cannot set). A type that
@@ -761,7 +761,12 @@ status: {
   `publishScheduledContent()`: for each type with a schedule, `adapter.publishDue(ctx, now)` with
   a system request. It sets the status to published and keeps the planned time. The Git CMS makes
   one commit `content(<type>): publish N scheduled`, with no `[skip ci]`, so a deploy starts. A
-  static site has no Nitro task: see the git-cms skill.
+  host with no Nitro task (Vercel and Netlify with Nitro 2, a static site) still shows the item at
+  its time on a server read, and the admin list of a publisher publishes the due items when it
+  opens (`listContentItems`). The admin badge of a due item is Published. A static site needs a
+  rebuild: see the git-cms skill. Before Pluto moves to Nitro 3, check the 5-minute cron: Nitro 3
+  makes Vercel Cron Jobs, and the Vercel Hobby plan refuses a deploy with a cron that runs more
+  than once a day.
 - **Capabilities:** `statusChangeNeedsPublish(type, from, to)`. A user with the write capability
   but not publish can keep a draft or a review item, and move it between draft and review (Submit
   for review, Return to draft). Publish is needed to set or leave published or scheduled, and to

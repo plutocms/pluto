@@ -312,6 +312,13 @@ const scheduledText = computed(() => {
     ? ''
     : d(new Date(time), { dateStyle: 'medium', timeStyle: 'short' })
 })
+// A scheduled item whose time has come is live: the task sets its status soon.
+const scheduledDue = computed(() => {
+  const column = rules.value?.publishedAtColumn
+  const time =
+    isScheduled.value && column ? statusTime(item.value[column]) : undefined
+  return time !== undefined && time <= Date.now()
+})
 // A published or scheduled item changes only with the publish capability. A writer without it
 // sees the item, but cannot save it.
 const lockedForWriter = computed(
@@ -1118,6 +1125,9 @@ const headerStatus = computed(() => {
     return undefined
   }
   const label = statusLabel.value ?? ''
+  if (isScheduled.value && scheduledDue.value) {
+    return { label: text.statusLabel(publishedValue.value), published: true }
+  }
   if (isScheduled.value && scheduledText.value) {
     const full = t('pluto.form.scheduledFor', { date: scheduledText.value })
     return { label: full, published: false, color: 'info' as const }
