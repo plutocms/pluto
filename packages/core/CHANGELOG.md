@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.63.0](https://github.com/plutocms/pluto/compare/v0.62.1...v0.63.0) (2026-11-08)
+
+
+### Features
+
+* **core:** scheduled publish and pending review ([#475](https://github.com/plutocms/pluto/issues/475)) ([cbd10c4](https://github.com/plutocms/pluto/commit/cbd10c463d17c1dbc3877a16463432f47aabcb25))
+
 ## [0.62.1](https://github.com/plutocms/pluto/compare/v0.62.0...v0.62.1) (2026-11-08)
 
 
