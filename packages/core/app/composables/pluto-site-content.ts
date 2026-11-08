@@ -221,7 +221,9 @@ export function definePlutoContent<
         const media = byName(type)?.fields.find(
           (field) => field.type === 'media'
         )
-        const value = media ? fields()?.[media.name] : undefined
+        // The standard cover first (`cover` on the public item), then the first media field.
+        const value =
+          fields()?.cover ?? (media ? fields()?.[media.name] : undefined)
         const first = (Array.isArray(value) ? value[0] : value) as
           | {
               url?: string

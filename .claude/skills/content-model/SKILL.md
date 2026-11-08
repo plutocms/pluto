@@ -731,6 +731,25 @@ the Git CMS an installation token that can write (`getWriteToken` of the App tok
 App id and key, not the read token), or no token with the `fs` store; with no App key it gives
 `null` (401, the task skips the type). In dev, `POST /_nitro/tasks/pluto:trash:purge` runs it.
 
+## Excerpt and cover image
+
+Two standard options of any content type ():
+
+\
+
+- **Fields:** adds a missing field: a (side panel, order 40) for
+  the excerpt, a field with (side panel, order 41) for the cover. A
+  declared field stays as it is. It runs in , so the server and the
+  client registry both see the fields.
+- **Public API:** (after , before ) sets
+  (the field, else an excerpt of the adapter, else the start of the first field as
+  plain text, 200 characters) and (the media record, when the field has another name).
+- **Admin list:** a thumbnail before the title (the preview image, else the image), one media
+  request for the ids of the loaded rows.
+- **Site SEO:** uses for first, then the first media field;
+  for the description.
+- The built-in Git CMS post type and the supabase-blog post type turn both on.
+
 ## Embeds
 
 A URL alone on its line of a Markdown body (a bare URL, or `[url](url)`, which the Visual editor

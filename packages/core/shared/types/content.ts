@@ -266,6 +266,19 @@ export interface PlutoContentType {
    * another one); the Git CMS keeps the file in `<dir>/.trash/<type name>/`.
    */
   trash?: boolean | { column?: string }
+  /**
+   * A short summary of the item. Core adds a text area named `field` (default `excerpt`) when the
+   * type does not declare it. The public API gives `excerpt`: the field, else the start of the body
+   * (the first `richtext` field) as plain text. See the content-model skill ("Excerpt and cover
+   * image").
+   */
+  excerpt?: boolean | { field?: string }
+  /**
+   * The cover image of the item. Core adds a `media` field (one image) named `field` (default
+   * `cover`) when the type does not declare it. The public API gives `cover` (the media record),
+   * the admin list shows it, and the SEO of a site uses it for `og:image`.
+   */
+  cover?: boolean | { field?: string }
   /** `false` disables created/updated timestamps entirely for this content type. */
   timestamps?: PlutoContentTimestamps | false
   capabilities?: PlutoContentTypeCapabilities
