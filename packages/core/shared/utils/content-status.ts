@@ -44,7 +44,7 @@ export function statusRules(type: StatusType): PlutoStatusRules | null {
     published,
     draft:
       status.default ??
-      status.values.find((entry) => entry.value !== published)?.value,
+      (status.values ?? []).find((entry) => entry.value !== published)?.value,
     scheduled: status.publishedAtColumn
       ? optionValue(status.schedule, 'scheduled')
       : undefined,
@@ -64,7 +64,7 @@ export function contentStatusValues(
   if (!rules || !type?.status) {
     return []
   }
-  const values = [...type.status.values]
+  const values = [...(type.status.values ?? [])]
   for (const extra of [rules.review, rules.scheduled]) {
     if (extra && !values.some((entry) => entry.value === extra)) {
       values.push({ label: extra, value: extra })
