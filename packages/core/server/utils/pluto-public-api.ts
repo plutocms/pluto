@@ -7,6 +7,7 @@ import type {
   PlutoPublicSurround,
 } from '../../shared/types/public-api'
 import { setResponseHeader } from 'h3'
+import { isLiveItem } from '../../shared/utils/content-status'
 import { getPlutoApiConfig } from './pluto-api-config'
 import { getContentType, listContentTypes } from './pluto-content'
 import { requireContentAdapter } from './pluto-content-handlers'
@@ -170,15 +171,15 @@ export function parsePublicQuery(
   return result
 }
 
-/** True when the item is published, or when the type has no publish workflow. */
+/**
+ * True when the item is live: published, scheduled with a time that has come, or of a type with
+ * no publish workflow (`isLiveItem`).
+ */
 export function isPublishedItem(
   type: PlutoContentType,
   item: PlutoContentItem
 ): boolean {
-  if (!type.status) {
-    return true
-  }
-  return item.status === (type.status.publishedValue ?? 'published')
+  return isLiveItem(type, item)
 }
 
 /** The public answer for one item: the allow-list, then `adapter.toPublic`, then `hooks.toPublic`. */

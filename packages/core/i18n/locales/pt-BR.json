@@ -97,7 +97,23 @@
       "leaveTitle": "Sair sem salvar?",
       "leaveDescription": "Você tem alterações não salvas. Se sair desta página, elas serão perdidas.",
       "stay": "Ficar nesta página",
-      "leave": "Sair sem salvar"
+      "leave": "Sair sem salvar",
+      "schedule": "Agendar",
+      "reschedule": "Reagendar",
+      "publishNow": "Publicar agora",
+      "unschedule": "Cancelar agendamento",
+      "submitReview": "Enviar para revisão",
+      "returnToDraft": "Voltar para rascunho",
+      "scheduledFor": "Agendado para {date}",
+      "submitted": "Enviado para revisão",
+      "unscheduled": "Agendamento cancelado",
+      "returnedToDraft": "Voltou para rascunho",
+      "scheduleTitle": "Agendar {label}",
+      "scheduleHint": "O item fica público nesta data e hora.",
+      "scheduleTime": "Data e hora",
+      "scheduleZone": "Fuso horário: {zone}",
+      "lockedTitle": "Só quem pode publicar pode alterar este item",
+      "lockedHint": "Ele está publicado ou agendado. Peça a um editor, ou faça uma cópia como novo rascunho."
     },
     "history": {
       "button": "Histórico",
@@ -309,7 +325,9 @@
       "backupTooLarge": "As alterações não salvas são grandes demais para o backup no servidor.",
       "backupInvalid": "O backup não é válido.",
       "noTrash": "Este tipo de conteúdo não tem lixeira.",
-      "noTrashAdapter": "O backend de conteúdo não tem lixeira."
+      "noTrashAdapter": "O backend de conteúdo não tem lixeira.",
+      "scheduleTime": "O agendamento precisa de uma data e hora válidas.",
+      "scheduleInPast": "Escolha uma data no futuro."
     },
     "github": {
       "build": {
@@ -1090,6 +1108,10 @@
       "open": "Onde o conteúdo fica: {name}",
       "gitMode": "Modo Git: o conteúdo são arquivos Markdown em um repositório Git.",
       "databaseMode": "Modo banco de dados: o conteúdo fica em um banco de dados."
+    },
+    "status": {
+      "scheduled": "Agendado",
+      "review": "Em revisão"
     }
   },
   "content": {

@@ -6,6 +6,7 @@ import type {
   PlutoContentType,
 } from '../../shared/types/content'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { statusRules } from '../../shared/utils/content-status'
 
 /** The caller a test acts as. `null` is anonymous. */
 export type ContractCaller = {
@@ -576,6 +577,112 @@ export function runContentAdapterContract(
         })
         await expect(trashOf().list(ctx, {})).rejects.toMatchObject({
           statusCode: 403,
+        })
+      })
+    })
+
+    describe('scheduled publish', () => {
+      const scheduledOn = () =>
+        Boolean(adapter.publishDue && statusRules(type)?.scheduled)
+      const timeKey = () => statusRules(type)!.publishedAtColumn!
+
+      it('schedules a draft: hidden from the public until it is published', async () => {
+        if (!scheduledOn()) {
+          return
+        }
+        await add('Later')
+        const item = await adapter.update(ctx, 'later', {
+          status: 'scheduled',
+          publishAt: '2026-03-05T10:00:00Z',
+        })
+
+        expect(item.status).toBe('scheduled')
+        expect(item[timeKey()]).toBe('2026-03-05T10:00:00.000Z')
+        harness.as(null)
+        expect((await adapter.list(ctx, {})).total).toBe(0)
+        expect(await adapter.get(ctx, 'later')).toBeNull()
+      })
+
+      it('refuses a missing or a past time with 400', async () => {
+        if (!scheduledOn()) {
+          return
+        }
+        await add('Later')
+
+        await expect(
+          adapter.update(ctx, 'later', { status: 'scheduled' })
+        ).rejects.toMatchObject({ statusCode: 400 })
+        await expect(
+          adapter.update(ctx, 'later', {
+            status: 'scheduled',
+            publishAt: '2020-01-01T00:00:00Z',
+          })
+        ).rejects.toMatchObject({ statusCode: 400 })
+      })
+
+      it('publishes the due items only, and they keep their time', async () => {
+        if (!scheduledOn()) {
+          return
+        }
+        await add('Soon', {
+          status: 'scheduled',
+          publishAt: '2026-03-02T00:00:00Z',
+        })
+        await add('Later', {
+          status: 'scheduled',
+          publishAt: '2026-03-09T00:00:00Z',
+        })
+
+        expect(await adapter.publishDue!(ctx, '2026-03-03T00:00:00Z')).toBe(1)
+        expect(await adapter.publishDue!(ctx, '2026-03-03T00:00:00Z')).toBe(0)
+        expect(await adapter.get(ctx, 'soon')).toMatchObject({
+          status: 'published',
+          [timeKey()]: '2026-03-02T00:00:00.000Z',
+        })
+        expect((await adapter.get(ctx, 'later'))!.status).toBe('scheduled')
+        harness.as(null)
+        expect(
+          (await adapter.list(ctx, {})).data.map((item) => item.id)
+        ).toEqual(['soon'])
+      })
+
+      it('unschedules to a draft with no time, and publishes now with the time now', async () => {
+        if (!scheduledOn()) {
+          return
+        }
+        await add('One', {
+          status: 'scheduled',
+          publishAt: '2026-03-05T00:00:00Z',
+        })
+        await add('Two', {
+          status: 'scheduled',
+          publishAt: '2026-03-05T00:00:00Z',
+        })
+
+        const draft = await adapter.update(ctx, 'one', { status: 'draft' })
+        const live = await adapter.update(ctx, 'two', { status: 'published' })
+
+        expect(draft.status).toBe('draft')
+        expect(draft[timeKey()] ?? null).toBeNull()
+        expect(live.status).toBe('published')
+        expect(String(live[timeKey()]) < '2026-03-02').toBe(true)
+      })
+
+      it('keeps the time on a save that does not change the status', async () => {
+        if (!scheduledOn()) {
+          return
+        }
+        await add('Later', {
+          status: 'scheduled',
+          publishAt: '2026-03-05T00:00:00Z',
+        })
+
+        const saved = await adapter.update(ctx, 'later', { title: 'Later on' })
+
+        expect(saved).toMatchObject({
+          status: 'scheduled',
+          title: 'Later on',
+          [timeKey()]: '2026-03-05T00:00:00.000Z',
         })
       })
     })

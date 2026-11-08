@@ -51,6 +51,27 @@ describe('bulkStatusChange', () => {
     ).toBeNull()
   })
 
+  it('unpublishes a scheduled item too, and publishes it now', () => {
+    const scheduling: PlutoContentStatus = {
+      ...workflow,
+      publishedAtColumn: 'publishedAt',
+      schedule: true,
+    }
+    const planned = [...items, { id: 5, status: 'scheduled' }]
+
+    expect(bulkStatusChange(planned, 'unpublish', scheduling)!.ids).toEqual([
+      1, 5,
+    ])
+    expect(bulkStatusChange(planned, 'publish', scheduling)!.ids).toEqual([
+      2,
+      3,
+      'a/b',
+      5,
+    ])
+    // Without the option, "scheduled" is only an unknown value.
+    expect(bulkStatusChange(planned, 'unpublish', workflow)!.ids).toEqual([1])
+  })
+
   it('counts a missing status as the default', () => {
     expect(
       bulkStatusChange([{ id: 9 }], 'unpublish', {

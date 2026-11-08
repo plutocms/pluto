@@ -696,12 +696,12 @@ type has `trash` and the adapter has it, else `remove`. `listTrashItems` first c
 `pluto.errors.noTrash` for a type without `trash`, 501 `pluto.errors.noTrashAdapter` for an
 adapter without it. The routes, under their own base (an id can hold slashes):
 
-| Route | Method | Calls |
-| --- | --- | --- |
-| `/api/_pluto/content-trash/[type]` | GET | `listTrashItems` (`limit`, `offset`, `search`) |
-| `/api/_pluto/content-trash/[type]` | DELETE | `emptyTrash`, answers `{ purged }` |
-| `/api/_pluto/content-trash/[type]/[...id]` | POST | `restoreTrashItem` |
-| `/api/_pluto/content-trash/[type]/[...id]` | DELETE | `purgeTrashItem` |
+| Route                                      | Method | Calls                                          |
+| ------------------------------------------ | ------ | ---------------------------------------------- |
+| `/api/_pluto/content-trash/[type]`         | GET    | `listTrashItems` (`limit`, `offset`, `search`) |
+| `/api/_pluto/content-trash/[type]`         | DELETE | `emptyTrash`, answers `{ purged }`             |
+| `/api/_pluto/content-trash/[type]/[...id]` | POST   | `restoreTrashItem`                             |
+| `/api/_pluto/content-trash/[type]/[...id]` | DELETE | `purgeTrashItem`                               |
 
 The Git CMS: a trashed item is its file in `<dir>/.trash/<type name>/<id>.md` (`trashFilePath`;
 the type name, because a nested type can have the source `''`), with `deletedAt` (ISO) in the
@@ -722,7 +722,7 @@ and Empty the trash ask first.
 The scheduled purge: the Nitro task `pluto:trash:purge` (`server/tasks/pluto/trash/purge.ts`), every day at
 03:00 (`nitro.experimental.tasks` and `nitro.scheduledTasks` in the core `nuxt.config.ts`; an app
 sets `nitro.scheduledTasks['0 3 * * *']` to `[]` to turn it off). It runs on the hosts that run
-scheduled tasks (a Node, Bun or Deno server, Cloudflare, Vercel), not on Netlify or a static site:
+scheduled tasks with Nitro 2 (a Node, Bun or Deno server, Cloudflare), not on Vercel, Netlify or a static site (Nitro 2 makes no Vercel Cron Jobs; Nitro 3 does, and the Vercel Hobby plan allows only daily ones):
 opening a Trash purges too. `purgeExpiredTrash()` calls `trash.purgeBefore(trashCutoff())` for each type
 with `trash`, with a system request (`createPlutoSystemEvent`, `isPlutoSystemEvent` in
 `server/utils/pluto-system.ts`: a flag on `event.context`, which a client cannot set). A type that
@@ -730,6 +730,56 @@ fails only warns. An adapter gives a system request its server credentials and e
 the Git CMS an installation token that can write (`getWriteToken` of the App token provider: the
 App id and key, not the read token), or no token with the `fs` store; with no App key it gives
 `null` (401, the task skips the type). In dev, `POST /_nitro/tasks/pluto:trash:purge` runs it.
+
+## Scheduled publish and review
+
+Two opt-in options of `status`. The rules are in `shared/utils/content-status.ts` (auto-imported):
+the admin, the adapters and the public API use the same functions.
+
+```ts
+status: {
+  values: [...], default: 'draft', publishedValue: 'published',
+  publishedAtColumn: 'publishedAt',  // needed by schedule
+  schedule: true,                    // or { value: 'planned' }; default value 'scheduled'
+  review: true,                      // or { value: 'pending' }; default value 'review'
+}
+```
+
+- Do not list the scheduled and review values in `values`: `contentStatusValues(type)` adds them
+  (the list filter, the list query, the Git CMS check). The admin label is the type key
+  `content.<type>.status.<value>`, else `pluto.status.scheduled` / `pluto.status.review`.
+- **The time of a scheduled item is the `publishedAtColumn`.** No new column. The payload of a
+  scheduled save has `status: 'scheduled'` and `publishAt` (ISO, after now; else 400
+  `pluto.errors.scheduleTime` / `scheduleInPast`). A save that keeps the scheduled status and has
+  no `publishAt` keeps the time. Publish now of a scheduled item stamps the time now; a scheduled
+  item that goes back to a draft or to review loses its time.
+- **Live:** `isLiveStatus(type, status, publishedAt, now)` / `isLiveItem(type, item)`: published,
+  or scheduled with a time that has come, or no workflow. The public API, the reference expansion,
+  the Git CMS reads and the build status use it, so a server read shows a scheduled item at its
+  time exactly.
+- **The task:** `pluto:publish:scheduled`, every 5 minutes (`nitro.scheduledTasks`), calls
+  `publishScheduledContent()`: for each type with a schedule, `adapter.publishDue(ctx, now)` with
+  a system request. It sets the status to published and keeps the planned time. The Git CMS makes
+  one commit `content(<type>): publish N scheduled`, with no `[skip ci]`, so a deploy starts. A
+  host with no Nitro task (Vercel and Netlify with Nitro 2, a static site) still shows the item at
+  its time on a server read, and the admin list of a publisher publishes the due items when it
+  opens (`listContentItems`). The admin badge of a due item is Published. A static site needs a
+  rebuild: see the git-cms skill. Before Pluto moves to Nitro 3, check the 5-minute cron: Nitro 3
+  makes Vercel Cron Jobs, and the Vercel Hobby plan refuses a deploy with a cron that runs more
+  than once a day.
+- **Capabilities:** `statusChangeNeedsPublish(type, from, to)`. A user with the write capability
+  but not publish can keep a draft or a review item, and move it between draft and review (Submit
+  for review, Return to draft). Publish is needed to set or leave published or scheduled, and to
+  change a published or scheduled item at all (the form shows a lock alert and no save button).
+  This matters only when `capabilities.publish` differs from `capabilities.write`. The Git CMS
+  checks it in the adapter; Supabase in the adapter and in SQL.
+- **Admin:** the form has Schedule (a dialog with a local date and time and the time zone),
+  Reschedule, Publish now, Unschedule (menu), Submit for review, Return to draft (menu); the badge
+  is blue with the date (scheduled) or amber (review). The list badge is the same, and bulk
+  Unpublish also unschedules. The Git CMS commits are `schedule "<id>"` and `submit "<id>"`
+  (both are `update` in the History).
+- The built-in Git CMS post type has `schedule: true` and no review: every editor of the Git CMS
+  has push access, so every editor can publish.
 
 ## Revisions
 

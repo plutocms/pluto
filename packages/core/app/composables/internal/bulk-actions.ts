@@ -2,6 +2,7 @@ import type {
   PlutoContentItem,
   PlutoContentStatus,
 } from '../../../shared/types/content'
+import { statusRules } from '../../../shared/utils/content-status'
 
 /** A bulk action of the admin list. */
 export type PlutoBulkAction = 'publish' | 'unpublish' | 'remove'
@@ -17,8 +18,9 @@ export const BULK_CONCURRENCY = 4
 
 /**
  * The items that a status action changes, and the status it gives them. Publish takes the items
- * that are not published, unpublish the published ones (they go back to the default status). An
- * item that has the status already needs no request. Without a workflow, nothing.
+ * that are not published (a scheduled item goes live now), unpublish the published and the
+ * scheduled ones (they go back to the default status). An item that has the status already needs
+ * no request. Without a workflow, nothing.
  */
 export function bulkStatusChange(
   items: PlutoContentItem[],
@@ -36,12 +38,14 @@ export function bulkStatusChange(
   ) {
     return null
   }
+  const scheduled = statusRules({ status: workflow })?.scheduled
   const ids = items
     .filter((item) => {
       const current = (item.status as string | undefined) ?? workflow.default
       return action === 'publish'
         ? current !== published
-        : current === published
+        : current === published ||
+            (scheduled !== undefined && current === scheduled)
     })
     .map((item) => item.id)
   return { ids, status }

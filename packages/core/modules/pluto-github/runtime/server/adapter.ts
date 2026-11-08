@@ -29,6 +29,14 @@ import {
   referenceFieldsTo,
   referenceValue,
 } from '../../../../shared/utils/content-reference'
+import {
+  contentStatusValues,
+  isLiveStatus,
+  scheduleError,
+  statusChangeNeedsPublish,
+  statusRules,
+  statusTime,
+} from '../../../../shared/utils/content-status'
 import { PlutoGithubConflictError, PlutoGithubStoreError } from './store/errors'
 import { gitBlobSha } from './utils/blob-sha'
 import { createGithubCache } from './utils/github-cache'
@@ -166,7 +174,13 @@ function layoutOf(type: PlutoContentType): Layout {
 
 // A commit message of the adapter: `content(post): update "slug"`. See `messageOf`.
 const PLUTO_MESSAGE =
-  /^content\([^)]*\): (create|update|publish|unpublish|rename)\b/
+  /^content\([^)]*\): (create|update|publish|unpublish|rename|schedule|submit)\b/
+
+/** A schedule and a submit for review are updates in the history. */
+const REVISION_ACTION: Record<string, PlutoContentRevisionAction> = {
+  schedule: 'update',
+  submit: 'update',
+}
 
 /** A history commit as a revision: the action of a Pluto commit, or the message of any other. */
 function toRevision(commit: {
@@ -175,8 +189,10 @@ function toRevision(commit: {
   committedAt: string
   author: PlutoContentRevision['author']
 }): PlutoContentRevision {
-  const action = PLUTO_MESSAGE.exec(commit.message)?.[1] as
-    PlutoContentRevisionAction | undefined
+  const verb = PLUTO_MESSAGE.exec(commit.message)?.[1]
+  const action = verb
+    ? (REVISION_ACTION[verb] ?? (verb as PlutoContentRevisionAction))
+    : undefined
   const message = commit.message.replace(/\s*\[skip ci\]\s*$/, '')
   return {
     id: commit.oid,
@@ -473,10 +489,11 @@ export function createMarkdownContentAdapter(
 
   async function loadEntries(
     type: PlutoContentType,
-    access: PlutoGithubAccess | null
+    access: PlutoGithubAccess | null,
+    atHead?: string
   ): Promise<Entry[]> {
     const layout = layoutOf(type)
-    const head = await store.head({ auth: access?.auth })
+    const head = atHead ?? (await store.head({ auth: access?.auth }))
     const files = await listFiles(type, layout, head, access?.auth)
     const prefixLength =
       contentDirPath(dir, type.source, pathOptions(layout)).length + 1
@@ -528,7 +545,19 @@ export function createMarkdownContentAdapter(
     if (!layout.statusColumn) {
       return true
     }
-    return statusOf(type, layout, entry) === layout.publishedValue
+    const status = statusOf(type, layout, entry)
+    // Only a scheduled item reads the clock.
+    if (status !== statusRules(type)?.scheduled) {
+      return status === layout.publishedValue
+    }
+    return isLiveStatus(
+      type,
+      status,
+      layout.publishedAtColumn
+        ? entry.frontmatter[layout.publishedAtColumn]
+        : undefined,
+      now().getTime()
+    )
   }
 
   function isVisible(
@@ -743,6 +772,52 @@ export function createMarkdownContentAdapter(
     return result
   }
 
+  /**
+   * The publish time. A scheduled save sets the planned time (`values.publishAt`, in the future);
+   * a scheduled item that keeps its status keeps its time when the payload has no new one. Publish
+   * now of a scheduled item stamps the time now, and a scheduled item that goes back to a draft or
+   * to review loses its time. Else the first publish stamps the time, as before.
+   */
+  function applyPublishTime(
+    type: PlutoContentType,
+    column: string,
+    frontmatter: Record<string, unknown>,
+    before: unknown,
+    after: unknown,
+    values: Record<string, unknown>,
+    stamp: string
+  ): void {
+    const rules = statusRules(type)!
+    const scheduled = rules.scheduled
+    if (scheduled !== undefined && after === scheduled) {
+      if (before !== scheduled || Object.hasOwn(values, 'publishAt')) {
+        const key = scheduleError(type, values.publishAt, now().getTime())
+        if (key) {
+          throw createPlutoError({
+            statusCode: 400,
+            message: 'The schedule time is not valid.',
+            key,
+          })
+        }
+        frontmatter[column] = new Date(
+          statusTime(values.publishAt)!
+        ).toISOString()
+      }
+      return
+    }
+    if (scheduled !== undefined && before === scheduled) {
+      if (after === rules.published) {
+        frontmatter[column] = stamp
+      } else {
+        delete frontmatter[column]
+      }
+      return
+    }
+    if (after === rules.published && isEmptyValue(frontmatter[column])) {
+      frontmatter[column] = stamp
+    }
+  }
+
   /** Applies the payload to a frontmatter object. Unknown keys stay. */
   function applyValues(
     type: PlutoContentType,
@@ -766,10 +841,10 @@ export function createMarkdownContentAdapter(
       }
     }
     if (layout.statusColumn) {
+      const before =
+        mode === 'create' ? undefined : statusOf(type, layout, { frontmatter })
       if (Object.hasOwn(values, 'status')) {
-        const allowed = (type.status ? type.status.values : []).map(
-          (entry) => entry.value
-        )
+        const allowed = contentStatusValues(type).map((entry) => entry.value)
         if (!allowed.includes(String(values.status))) {
           throw createPlutoError({
             statusCode: 400,
@@ -785,12 +860,16 @@ export function createMarkdownContentAdapter(
       ) {
         frontmatter[layout.statusColumn] = type.status.default
       }
-      if (
-        layout.publishedAtColumn &&
-        frontmatter[layout.statusColumn] === layout.publishedValue &&
-        isEmptyValue(frontmatter[layout.publishedAtColumn])
-      ) {
-        frontmatter[layout.publishedAtColumn] = stamp
+      if (layout.publishedAtColumn) {
+        applyPublishTime(
+          type,
+          layout.publishedAtColumn,
+          frontmatter,
+          before,
+          frontmatter[layout.statusColumn],
+          values,
+          stamp
+        )
       }
     }
     if (mode === 'create' && layout.createdColumn) {
@@ -823,6 +902,29 @@ export function createMarkdownContentAdapter(
       ? layout.writeFrontmatter(structuredClone(frontmatter))
       : frontmatter
     return serializeMarkdownFile(mapped, body)
+  }
+
+  /** `schedule` or `submit` when an update sets the scheduled or the review status. */
+  function statusVerb(
+    type: PlutoContentType,
+    layout: Layout,
+    current: Pick<Entry, 'frontmatter'>,
+    frontmatter: Record<string, unknown>
+  ): 'schedule' | 'submit' | undefined {
+    const rules = statusRules(type)
+    if (!rules || !layout.statusColumn) {
+      return undefined
+    }
+    const after = frontmatter[layout.statusColumn]
+    if (after === statusOf(type, layout, current)) {
+      return undefined
+    }
+    if (rules.scheduled !== undefined && after === rules.scheduled) {
+      return 'schedule'
+    }
+    return rules.review !== undefined && after === rules.review
+      ? 'submit'
+      : undefined
   }
 
   function publishCapability(type: PlutoContentType): string | undefined {
@@ -1028,7 +1130,11 @@ export function createMarkdownContentAdapter(
       const published = isPublished(type, layout, { frontmatter })
       if (
         layout.statusColumn &&
-        frontmatter[layout.statusColumn] === layout.publishedValue
+        statusChangeNeedsPublish(
+          type,
+          undefined,
+          frontmatter[layout.statusColumn]
+        )
       ) {
         await requireAccess(ctx.event, publishCapability(type))
       }
@@ -1110,10 +1216,15 @@ export function createMarkdownContentAdapter(
         const frontmatter = { ...current.frontmatter }
         const wasPublished = isPublished(type, layout, current)
         applyValues(type, layout, frontmatter, values, 'update')
-        const nowPublished =
-          !layout.statusColumn ||
-          frontmatter[layout.statusColumn] === layout.publishedValue
-        if (wasPublished !== nowPublished) {
+        const nowPublished = isPublished(type, layout, { frontmatter })
+        if (
+          layout.statusColumn &&
+          statusChangeNeedsPublish(
+            type,
+            statusOf(type, layout, current),
+            frontmatter[layout.statusColumn]
+          )
+        ) {
           await requireAccess(ctx.event, publishCapability(type))
         }
         const body = bodyOf(layout, values, current.body)
@@ -1158,6 +1269,8 @@ export function createMarkdownContentAdapter(
           if (rewrites && rewrites.additions.length > 0) {
             verb += ` (${rewrites.additions.length} references)`
           }
+        } else if (statusVerb(type, layout, current, frontmatter)) {
+          verb = `${statusVerb(type, layout, current, frontmatter)} "${oldSlug}"`
         } else if (wasPublished !== nowPublished) {
           verb = `${nowPublished ? 'publish' : 'unpublish'} "${oldSlug}"`
         }
@@ -1556,6 +1669,60 @@ export function createMarkdownContentAdapter(
     })
   }
 
+  /**
+   * Publishes the scheduled items whose time is `at` or earlier, in one commit. The item keeps its
+   * planned time. The commit is a public change, so it starts a deploy (unless every commit skips
+   * it). Needs the publish capability: the scheduled task gives a system request.
+   */
+  async function publishDue(
+    ctx: PlutoContentContext,
+    at: string
+  ): Promise<number> {
+    return guard(ctx.event, async () => {
+      const { type } = ctx
+      const rules = statusRules(type)
+      const layout = layoutOf(type)
+      const statusColumn = layout.statusColumn
+      const timeColumn = layout.publishedAtColumn
+      if (!rules?.scheduled || !statusColumn || !timeColumn) {
+        return 0
+      }
+      const access = await requireAccess(ctx.event, publishCapability(type))
+      const limit = Date.parse(at)
+      let published = 0
+
+      await commitPlan(ctx.event, access, async (head) => {
+        const due = (await loadEntries(type, access, head)).filter(
+          (entry) =>
+            statusOf(type, layout, entry) === rules.scheduled &&
+            (statusTime(entry.frontmatter[timeColumn]) ?? Infinity) <= limit
+        )
+        published = due.length
+        const paths = due.map((entry) =>
+          contentFilePath(dir, type.source, entry.slug, pathOptions(layout))
+        )
+        return {
+          message: messageOf(type, `publish ${due.length} scheduled`, true),
+          additions: due.map((entry, index) => ({
+            path: paths[index]!,
+            contents: fileText(
+              layout,
+              { ...entry.frontmatter, [statusColumn]: rules.published },
+              entry.body
+            ),
+          })),
+          deletions: [],
+          targets: due.map((entry, index) => ({
+            path: paths[index]!,
+            oid: entry.oid,
+          })),
+          unchanged: due.length === 0,
+        }
+      })
+      return published
+    })
+  }
+
   /** Fails closed: no access gives 401, a missing capability gives 403. */
   async function authorize(event: H3Event, capability: string): Promise<void> {
     await guard(event, async () => {
@@ -1750,6 +1917,7 @@ export function createMarkdownContentAdapter(
       purge,
       purgeBefore,
     },
+    publishDue,
     authorize,
     countCreated,
     readFile,

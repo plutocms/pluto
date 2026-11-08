@@ -9,6 +9,7 @@ import {
   isTargetReference,
   referenceFieldIds,
 } from '../../shared/utils/content-reference'
+import { isLiveItem } from '../../shared/utils/content-status'
 import { getContentType } from './pluto-content'
 import { requireContentAdapter } from './pluto-content-handlers'
 import { expandPublicMedia } from './pluto-media-public'
@@ -35,9 +36,7 @@ function isPublicType(type: PlutoContentType | undefined): boolean {
 }
 
 function isPublished(type: PlutoContentType, item: PlutoContentItem): boolean {
-  return (
-    !type.status || item.status === (type.status.publishedValue ?? 'published')
-  )
+  return isLiveItem(type, item)
 }
 
 /** True when the public answer has the field: it is stored and the `api.fields` list keeps it. */

@@ -14,6 +14,10 @@ const props = defineProps<{
   status?: {
     label: string
     published: boolean
+    /** The badge color. Default: success when published, else neutral. */
+    color?: 'success' | 'neutral' | 'info' | 'warning'
+    /** The full text of the badge, for a tooltip (for example the date of a schedule). */
+    title?: string
   }
   saveState: PlutoSaveState
   /** The text of the `saved` state, for example "Saved 2 min ago". */
@@ -30,6 +34,8 @@ const props = defineProps<{
   buttons: PlutoFormHeaderButton[]
   saving: boolean
   canUnpublish: boolean
+  /** The menu label of `unpublish`: Unpublish by default, else Unschedule or Return to draft. */
+  unpublishLabel?: string
   canDelete: boolean
   /** The type has a trash: the menu says Move to trash. */
   trash?: boolean
@@ -74,7 +80,7 @@ const menuItems = computed(() => [
     ...(props.canUnpublish
       ? [
           {
-            label: t('pluto.form.unpublish'),
+            label: props.unpublishLabel ?? t('pluto.form.unpublish'),
             icon: 'lucide:eye-off',
             onSelect: () => emit('unpublish'),
           },
@@ -182,7 +188,8 @@ const stateText = computed(() => {
 
       <UBadge
         v-if="status"
-        :color="status.published ? 'success' : 'neutral'"
+        :color="status.color ?? (status.published ? 'success' : 'neutral')"
+        :title="status.title"
         variant="subtle"
         class="hidden sm:inline-flex"
       >

@@ -198,6 +198,27 @@ describe('the admin list query', () => {
     expect(Object.keys(query)).toEqual(['search'])
   })
 
+  it('accepts the scheduled and review values of a type that has them', () => {
+    const scheduling = {
+      ...postType,
+      status: {
+        ...postType.status,
+        publishedAtColumn: 'publishedAt',
+        schedule: true,
+        review: true,
+      },
+    }
+    expect(
+      parseAdminListQuery(scheduling, { status: 'scheduled' }).query
+    ).toMatchObject({ status: 'scheduled' })
+    expect(
+      parseAdminListQuery(scheduling, { status: 'review' }).query
+    ).toMatchObject({ status: 'review' })
+    expect(
+      parseAdminListQuery(postType, { status: 'scheduled' }).invalid
+    ).toEqual(['status'])
+  })
+
   it('has no status filter for a type with no workflow', () => {
     const plainType = { ...postType, status: undefined }
     expect(parseAdminListQuery(plainType, { status: 'draft' }).invalid).toEqual(

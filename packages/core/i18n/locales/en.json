@@ -97,7 +97,23 @@
       "leaveTitle": "Leave without saving?",
       "leaveDescription": "You have unsaved changes. If you leave this page, you lose them.",
       "stay": "Stay on this page",
-      "leave": "Leave without saving"
+      "leave": "Leave without saving",
+      "schedule": "Schedule",
+      "reschedule": "Reschedule",
+      "publishNow": "Publish now",
+      "unschedule": "Unschedule",
+      "submitReview": "Submit for review",
+      "returnToDraft": "Return to draft",
+      "scheduledFor": "Scheduled for {date}",
+      "submitted": "Sent to review",
+      "unscheduled": "Unscheduled",
+      "returnedToDraft": "Returned to draft",
+      "scheduleTitle": "Schedule this {label}",
+      "scheduleHint": "It goes live at this time.",
+      "scheduleTime": "Date and time",
+      "scheduleZone": "Time zone: {zone}",
+      "lockedTitle": "Only a user who can publish can change this item",
+      "lockedHint": "It is published or scheduled. Ask an editor, or make a copy as a new draft."
     },
     "history": {
       "button": "History",
@@ -309,7 +325,9 @@
       "backupTooLarge": "The unsaved changes are too large to back up on the server.",
       "backupInvalid": "The backup is not valid.",
       "noTrash": "This content type has no trash.",
-      "noTrashAdapter": "The content backend has no trash."
+      "noTrashAdapter": "The content backend has no trash.",
+      "scheduleTime": "The schedule needs a valid date and time.",
+      "scheduleInPast": "Choose a time in the future."
     },
     "github": {
       "build": {
@@ -1090,6 +1108,10 @@
       "open": "Where the content is: {name}",
       "gitMode": "Git mode: the content is Markdown files in a Git repo.",
       "databaseMode": "Database mode: the content is in a database."
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "review": "In review"
     }
   },
   "content": {

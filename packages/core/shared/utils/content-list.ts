@@ -5,6 +5,7 @@ import type {
   PlutoField,
 } from '../types/content'
 import { isTargetReference } from './content-reference'
+import { contentStatusValues } from './content-status'
 
 /**
  * Returns the text that the generic list shows for one field of one item.
@@ -150,8 +151,7 @@ export function parseAdminListQuery(
 
   const status = singleText(raw.status)
   if (status !== undefined && status !== '') {
-    const workflow = type.status || undefined
-    if (workflow?.values.some((entry) => entry.value === status)) {
+    if (contentStatusValues(type).some((entry) => entry.value === status)) {
       query.status = status
     } else {
       invalid.push('status')

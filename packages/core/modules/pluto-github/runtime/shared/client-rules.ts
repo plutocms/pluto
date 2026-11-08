@@ -1,4 +1,5 @@
 import type { PlutoContentType } from '../../../../shared/types/content'
+import { isLiveItem } from '../../../../shared/utils/content-status'
 
 /**
  * Whether the client registers the built-in post type. The module copies the
@@ -53,9 +54,5 @@ export function isPublicItem(
   type: Pick<PlutoContentType, 'status'> | undefined,
   item: Record<string, unknown>
 ): boolean {
-  if (!type?.status) {
-    return true
-  }
-  const value = item[type.status.column ?? 'status'] ?? type.status.default
-  return value === (type.status.publishedValue || 'published')
+  return isLiveItem(type, item)
 }

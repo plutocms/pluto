@@ -183,7 +183,6 @@ const loadNotFound = computed(() => {
 })
 
 // Save and publish stay off while the item is missing.
-const canSave = computed(() => canWrite.value && !loadFailed.value)
 const canPublishNow = computed(() => canPublish.value && !loadFailed.value)
 
 function retryLoad() {
@@ -291,6 +290,52 @@ const statusLabel = computed(() => {
   return text.statusLabel(value, literal)
 })
 
+// Scheduled publish and pending review (`status.schedule`, `status.review`). See the
+// content-model skill ("Scheduled publish and review").
+const rules = computed(() => statusRules(contentType.value))
+const scheduledValue = computed(() => rules.value?.scheduled)
+const reviewValue = computed(() => rules.value?.review)
+const isScheduled = computed(
+  () =>
+    scheduledValue.value !== undefined &&
+    currentStatus.value === scheduledValue.value
+)
+const isReview = computed(
+  () =>
+    reviewValue.value !== undefined && currentStatus.value === reviewValue.value
+)
+const scheduledText = computed(() => {
+  const column = rules.value?.publishedAtColumn
+  const time =
+    isScheduled.value && column ? statusTime(item.value[column]) : undefined
+  return time === undefined
+    ? ''
+    : d(new Date(time), { dateStyle: 'medium', timeStyle: 'short' })
+})
+// A scheduled item whose time has come is live: the task sets its status soon.
+const scheduledDue = computed(() => {
+  const column = rules.value?.publishedAtColumn
+  const time =
+    isScheduled.value && column ? statusTime(item.value[column]) : undefined
+  return time !== undefined && time <= Date.now()
+})
+// A published or scheduled item changes only with the publish capability. A writer without it
+// sees the item, but cannot save it.
+const lockedForWriter = computed(
+  () =>
+    editing.value &&
+    !canPublish.value &&
+    statusChangeNeedsPublish(
+      contentType.value,
+      currentStatus.value,
+      currentStatus.value
+    )
+)
+// Save and publish stay off while the item is missing, and for a writer on a live item.
+const canSave = computed(
+  () => canWrite.value && !loadFailed.value && !lockedForWriter.value
+)
+
 // --- Save -------------------------------------------------------------------
 
 const toast = useToast()
@@ -302,6 +347,7 @@ const saveStatus = ref<'idle' | 'saved' | 'failed'>('idle')
 const savedAt = ref<Date | null>(null)
 // The status of the last save, so a retry repeats the same save (for example Publish).
 let lastStatusOverride: string | undefined
+let lastPublishAt: string | undefined
 
 // A validation error with a `code` shows the translated message. The
 // `message` of the error stays English, and shows when there is no code.
@@ -463,7 +509,7 @@ watch(backupConflict, (value) => {
 
 // A save while the recovery alert is open would delete the backup. A dialog asks first.
 const backupConfirmOpen = ref(false)
-let pendingSave: { statusOverride?: string } | null = null
+let pendingSave: { statusOverride?: string; publishAt?: string } | null = null
 const backupTime = computed(() =>
   backupOffer.value
     ? d(backupOffer.value.record.savedAt, {
@@ -488,7 +534,7 @@ function saveAndDiscard() {
   closeBackupConfirm()
   // Discard removes the backup. A save that fails after this has no backup to keep.
   discardBackup()
-  onSave(save?.statusOverride)
+  onSave(save?.statusOverride, save?.publishAt)
 }
 
 // --- Leave guard ---------------------------------------------------------------
@@ -555,21 +601,97 @@ useEventListener('keydown', (event: KeyboardEvent) => {
   onSave()
 })
 
-async function onSave(statusOverride?: string) {
+/** The toast title of a save: the status change, or a plain save with no override. */
+function saveToastTitle(
+  statusOverride: string | undefined,
+  statusBefore: string | undefined
+): string {
+  if (statusOverride === undefined) {
+    return t('pluto.form.saved')
+  }
+  if (statusOverride === publishedValue.value) {
+    return t('pluto.form.published')
+  }
+  if (statusOverride === scheduledValue.value) {
+    return t('pluto.form.scheduledFor', { date: scheduledText.value })
+  }
+  if (statusOverride === reviewValue.value) {
+    return t('pluto.form.submitted')
+  }
+  if (statusOverride === draftValue.value) {
+    if (statusBefore === scheduledValue.value) {
+      return t('pluto.form.unscheduled')
+    }
+    return statusBefore === reviewValue.value
+      ? t('pluto.form.returnedToDraft')
+      : t('pluto.form.unpublished')
+  }
+  return t('pluto.form.saved')
+}
+
+// The schedule dialog: a local date and time, in the time zone of the browser.
+const scheduleOpen = ref(false)
+const scheduleInput = ref('')
+const scheduleZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+/** `YYYY-MM-DDTHH:mm` in local time, the value of a `datetime-local` input. */
+function localInputValue(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+const scheduleTime = computed(() => {
+  // A `datetime-local` value with no zone is local time.
+  const time = Date.parse(scheduleInput.value)
+  return Number.isNaN(time) ? undefined : time
+})
+const scheduleInFuture = computed(
+  () => scheduleTime.value !== undefined && scheduleTime.value > Date.now()
+)
+
+/** Opens the dialog with the planned time, else tomorrow at 09:00. */
+function openSchedule() {
+  const column = rules.value?.publishedAtColumn
+  const planned =
+    isScheduled.value && column ? statusTime(item.value[column]) : undefined
+  const start = planned === undefined ? new Date() : new Date(planned)
+  if (planned === undefined) {
+    start.setDate(start.getDate() + 1)
+    start.setHours(9, 0, 0, 0)
+  }
+  scheduleInput.value = localInputValue(start)
+  scheduleOpen.value = true
+}
+
+function confirmSchedule() {
+  if (!scheduleInFuture.value || scheduledValue.value === undefined) {
+    return
+  }
+  scheduleOpen.value = false
+  onSave(scheduledValue.value, new Date(scheduleTime.value!).toISOString())
+}
+
+async function onSave(statusOverride?: string, publishAt?: string) {
   const type = contentType.value
   if (!type || saving.value) {
     return
   }
 
   if (backupState.value === 'offered') {
-    pendingSave = { statusOverride }
+    pendingSave = { statusOverride, publishAt }
     backupConfirmOpen.value = true
     return
   }
 
   // A widget can hold edits that are not in the item yet (an editor with a debounce).
   runFlush()
-  const payload = buildContentPayload(type, item.value, statusOverride)
+  const payload = buildContentPayload(
+    type,
+    item.value,
+    statusOverride,
+    publishAt
+  )
+  const statusBefore = currentStatus.value
   const errors = validateContentPayload(type, payload, {
     partial: editing.value,
   })
@@ -583,6 +705,7 @@ async function onSave(statusOverride?: string) {
   saving.value = true
   saveStatus.value = 'idle'
   lastStatusOverride = statusOverride
+  lastPublishAt = publishAt
 
   try {
     // The server copy must not be written after the save removed it.
@@ -613,15 +736,7 @@ async function onSave(statusOverride?: string) {
       return
     }
 
-    // A save with no override (no status workflow) is a plain save.
-    const title =
-      statusOverride === undefined
-        ? t('pluto.form.saved')
-        : statusOverride === publishedValue.value
-          ? t('pluto.form.published')
-          : statusOverride === draftValue.value
-            ? t('pluto.form.unpublished')
-            : t('pluto.form.saved')
+    const title = saveToastTitle(statusOverride, statusBefore)
 
     toast.add({
       title,
@@ -1005,11 +1120,24 @@ const viewUrl = computed(() => {
   }
 })
 
-const headerStatus = computed(() =>
-  statusConfig.value
-    ? { label: statusLabel.value ?? '', published: isPublished.value }
-    : undefined
-)
+const headerStatus = computed(() => {
+  if (!statusConfig.value) {
+    return undefined
+  }
+  const label = statusLabel.value ?? ''
+  if (isScheduled.value && scheduledDue.value) {
+    return { label: text.statusLabel(publishedValue.value), published: true }
+  }
+  if (isScheduled.value && scheduledText.value) {
+    const full = t('pluto.form.scheduledFor', { date: scheduledText.value })
+    return { label: full, published: false, color: 'info' as const }
+  }
+  return {
+    label,
+    published: isPublished.value,
+    ...(isReview.value && { color: 'warning' as const }),
+  }
+})
 
 const headerActions = computed<PlutoFormHeaderButton[]>(() => {
   if (!contentType.value) {
@@ -1039,10 +1167,29 @@ const headerButtons = computed<PlutoFormHeaderButton[]>(() => {
     })
   }
   if (canSave.value && statusConfig.value && !isPublished.value) {
+    // A scheduled or a review item keeps its status on a plain save.
     buttons.push({
       id: 'save',
-      label: t('pluto.form.saveDraft'),
+      label:
+        isScheduled.value || isReview.value
+          ? t('pluto.common.save')
+          : t('pluto.form.saveDraft'),
       icon: 'lucide:save',
+      variant: 'subtle',
+      secondary: true,
+    })
+  }
+  if (
+    canPublishNow.value &&
+    scheduledValue.value !== undefined &&
+    !isPublished.value
+  ) {
+    buttons.push({
+      id: 'schedule',
+      label: isScheduled.value
+        ? t('pluto.form.reschedule')
+        : t('pluto.form.schedule'),
+      icon: 'lucide:calendar-clock',
       variant: 'subtle',
       secondary: true,
     })
@@ -1058,8 +1205,24 @@ const headerButtons = computed<PlutoFormHeaderButton[]>(() => {
   if (canPublishNow.value && statusConfig.value && !isPublished.value) {
     buttons.push({
       id: 'publish',
-      label: t('pluto.form.publish'),
+      label: isScheduled.value
+        ? t('pluto.form.publishNow')
+        : t('pluto.form.publish'),
       icon: 'lucide:upload',
+      variant: 'solid',
+    })
+  } else if (
+    canSave.value &&
+    !canPublishNow.value &&
+    reviewValue.value !== undefined &&
+    !isPublished.value &&
+    !isScheduled.value &&
+    !isReview.value
+  ) {
+    buttons.push({
+      id: 'review',
+      label: t('pluto.form.submitReview'),
+      icon: 'lucide:send',
       variant: 'solid',
     })
   }
@@ -1071,6 +1234,10 @@ function onHeaderPress(id: string) {
     onSave()
   } else if (id === 'publish') {
     onSave(publishedValue.value)
+  } else if (id === 'schedule') {
+    openSchedule()
+  } else if (id === 'review') {
+    onSave(reviewValue.value)
   } else {
     toolbarActions.value
       .find((entry) => `action:${entry.id}` === id)
@@ -1109,13 +1276,21 @@ const leftToggle = computed(() => {
     icon: open ? 'lucide:panel-left-close' : 'lucide:panel-left-open',
   }
 })
+// Unpublish a published item, unschedule a scheduled one (both need publish), or take a review
+// item back to a draft (write is enough).
 const canUnpublish = computed(
   () =>
     Boolean(statusConfig.value) &&
-    isPublished.value &&
-    canPublish.value &&
-    !loadFailed.value
+    !loadFailed.value &&
+    (((isPublished.value || isScheduled.value) && canPublish.value) ||
+      (isReview.value && canSave.value))
 )
+const unpublishLabel = computed(() => {
+  if (isScheduled.value) {
+    return t('pluto.form.unschedule')
+  }
+  return isReview.value ? t('pluto.form.returnToDraft') : undefined
+})
 const canShowDelete = computed(
   () => editing.value && canDelete.value && !loadFailed.value
 )
@@ -1154,18 +1329,32 @@ const asideTitle = computed(() =>
         :buttons="headerButtons"
         :saving="saving"
         :can-unpublish="canUnpublish"
+        :unpublish-label="unpublishLabel"
         :can-delete="canShowDelete"
         :trash="Boolean(contentType?.trash)"
         :aside-toggle="asideToggle"
         :left-toggle="leftToggle"
         @press="onHeaderPress"
-        @retry="onSave(lastStatusOverride)"
+        @retry="onSave(lastStatusOverride, lastPublishAt)"
         @unpublish="onSave(draftValue)"
         @delete="openDeleteModal"
         @toggle-aside="toggleAside"
         @toggle-left="leftOpen = !leftOpen"
       />
     </template>
+
+    <div
+      v-if="lockedForWriter && !loadFailed"
+      :class="isCanvas ? 'shrink-0 p-4' : undefined"
+    >
+      <UAlert
+        :title="t('pluto.form.lockedTitle')"
+        :description="t('pluto.form.lockedHint')"
+        color="neutral"
+        variant="subtle"
+        icon="lucide:lock"
+      />
+    </div>
 
     <PlutoContentBackupAlert
       v-if="backupOffer"
@@ -1415,6 +1604,57 @@ const asideTitle = computed(() =>
       color="error"
     />
   </PlutoViewAdminPanel>
+
+  <Modal v-model="scheduleOpen" :custom-size="440">
+    <ModalHeader @close="scheduleOpen = false">
+      {{ t('pluto.form.scheduleTitle', { label: text.labelLower }) }}
+    </ModalHeader>
+
+    <ModalContent>
+      <form class="flex flex-col gap-3" @submit.prevent="confirmSchedule">
+        <p class="text-muted text-sm">
+          {{ t('pluto.form.scheduleHint') }}
+        </p>
+        <UFormField
+          :label="t('pluto.form.scheduleTime')"
+          :hint="t('pluto.form.scheduleZone', { zone: scheduleZone })"
+          :error="
+            scheduleInput && !scheduleInFuture
+              ? t('pluto.errors.scheduleInPast')
+              : undefined
+          "
+        >
+          <UInput
+            v-model="scheduleInput"
+            type="datetime-local"
+            class="w-full"
+            autofocus
+          />
+        </UFormField>
+      </form>
+    </ModalContent>
+
+    <ModalFooter>
+      <div class="flex items-center gap-4">
+        <UButton
+          icon="lucide:x"
+          variant="ghost"
+          color="neutral"
+          @click="scheduleOpen = false"
+        >
+          {{ t('pluto.common.cancel') }}
+        </UButton>
+        <UButton
+          :disabled="!scheduleInFuture"
+          :loading="saving"
+          icon="lucide:calendar-clock"
+          @click="confirmSchedule"
+        >
+          {{ t('pluto.form.schedule') }}
+        </UButton>
+      </div>
+    </ModalFooter>
+  </Modal>
 
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
     <ModalHeader @close="closeDeleteModal">

@@ -179,6 +179,21 @@ export interface PlutoContentStatus {
   /** The `values[].value` that counts as published, for example 'published'. */
   publishedValue?: string
   publishedAtColumn?: string
+  /**
+   * Scheduled publish. A user with the publish capability sets a time, and the item has the status
+   * `value` (default `'scheduled'`) until then. The time is in `publishedAtColumn`, so the type
+   * needs one (without it, the option does nothing). At the time the item is live (the public API
+   * shows it), and the scheduled task `pluto:publish:scheduled` sets the status to published. The
+   * adapter must have `publishDue`. Do not list the value in `values`: core adds it. See the
+   * content-model skill ("Scheduled publish and review").
+   */
+  schedule?: boolean | { value?: string }
+  /**
+   * Pending review. A user with the write capability but not the publish capability can set the
+   * status `value` (default `'review'`), and a user with publish then publishes it. Do not list
+   * the value in `values`: core adds it.
+   */
+  review?: boolean | { value?: string }
 }
 
 export interface PlutoContentTimestamps {
@@ -635,6 +650,14 @@ export interface PlutoContentAdapter {
     /** Deletes forever every item trashed before `before` (ISO). Returns how many. */
     purgeBefore: (ctx: PlutoContentContext, before: string) => Promise<number>
   }
+  /**
+   * Sets the status of every item of the type that is scheduled for `now` (ISO) or earlier to the
+   * published value, and keeps its time. Returns how many. The scheduled task
+   * `pluto:publish:scheduled` calls it with a system request, for each type with
+   * `status.schedule`. Optional: without it, a scheduled item is live at its time on a server read
+   * (`isLiveStatus`), but its status stays `scheduled`.
+   */
+  publishDue?: (ctx: PlutoContentContext, now: string) => Promise<number>
   /**
    * A server copy of the unsaved changes of the caller, one for each user, type and item.
    * Optional: without it, the form keeps the browser backup only, and the backup routes answer

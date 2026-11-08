@@ -6,6 +6,7 @@ import {
   PLUTO_BACKUP_MAX_CHARS,
   PLUTO_BACKUP_TTL_MS,
 } from '../../shared/utils/content-backup'
+import { statusRules } from '../../shared/utils/content-status'
 import { validateContentPayload } from '../../shared/utils/content-validate'
 import {
   getContentAdapter,
@@ -109,6 +110,11 @@ export async function listContentItems(
     published?: boolean
   }
 ): Promise<PlutoContentListResult> {
+  // The admin list of a publisher publishes the due items first: a host with no scheduled task
+  // (Vercel with Nitro 2, Netlify) still gets a right status. The dashboard count does not.
+  if (query.published !== true) {
+    await publishDueOnOpen(ctx)
+  }
   return requireContentAdapter().list(ctx, {
     limit: query.limit,
     offset: query.offset,
@@ -119,6 +125,32 @@ export async function listContentItems(
     // A status filter can ask for a draft, so it needs the unpublished rows.
     includeUnpublished: query.published !== true,
   })
+}
+
+/**
+ * Publishes the scheduled items of the type whose time has come, when the caller can publish.
+ * A caller without the publish capability only reads. A failure only warns: the list still loads.
+ */
+async function publishDueOnOpen(ctx: PlutoContentContext): Promise<void> {
+  const adapter = requireContentAdapter()
+  if (!adapter.publishDue || !statusRules(ctx.type)?.scheduled) {
+    return
+  }
+  try {
+    await authorizeContentOperation(
+      ctx.event,
+      ctx.type.capabilities?.publish ?? ctx.type.capabilities?.write
+    )
+  } catch {
+    return
+  }
+  try {
+    await adapter.publishDue(ctx, new Date().toISOString())
+  } catch (error) {
+    console.warn(
+      `[pluto] The publish of the scheduled "${ctx.type.name}" items failed: ${(error as Error).message}`
+    )
+  }
 }
 
 /** Gets one item by id or slug. No capability check — see `listContentItems`. */
@@ -336,6 +368,38 @@ export async function purgeExpiredTrash(
       result.failed.push(type.name)
       console.warn(
         `[pluto] The scheduled purge of the trash of "${type.name}" failed: ${(error as Error).message}`
+      )
+    }
+  }
+  return result
+}
+
+/**
+ * Publishes the scheduled items whose time has come, for every content type with
+ * `status.schedule`, with a system request. The scheduled task `pluto:publish:scheduled` calls it.
+ * A failed type only warns, so the other types still publish.
+ */
+export async function publishScheduledContent(
+  now: Date = new Date()
+): Promise<{ published: number; failed: string[] }> {
+  const adapter = getContentAdapter()
+  const result = { published: 0, failed: [] as string[] }
+  if (!adapter?.publishDue) {
+    return result
+  }
+  const event = createPlutoSystemEvent()
+  for (const type of listContentTypes().filter(
+    (one) => statusRules(one)?.scheduled
+  )) {
+    try {
+      result.published += await adapter.publishDue(
+        { event, type },
+        now.toISOString()
+      )
+    } catch (error) {
+      result.failed.push(type.name)
+      console.warn(
+        `[pluto] The scheduled publish of "${type.name}" failed: ${(error as Error).message}`
       )
     }
   }

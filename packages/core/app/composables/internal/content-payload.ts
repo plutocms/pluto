@@ -16,7 +16,9 @@ import type {
 export function buildContentPayload(
   type: PlutoContentType | undefined,
   item: Partial<PlutoContentItem>,
-  statusOverride?: string
+  statusOverride?: string,
+  /** The planned time (ISO) of a scheduled save. See `status.schedule`. */
+  publishAt?: string
 ): Record<string, unknown> {
   if (!type) {
     return {}
@@ -38,6 +40,9 @@ export function buildContentPayload(
 
   if (statusOverride !== undefined) {
     payload.status = statusOverride
+  }
+  if (publishAt !== undefined) {
+    payload.publishAt = publishAt
   }
 
   return payload
