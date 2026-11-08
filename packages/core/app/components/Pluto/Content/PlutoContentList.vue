@@ -155,6 +155,18 @@ function retry() {
   refresh().catch(() => {})
 }
 
+// The first page loads again while rows show (a search, a filter, the sort, a refresh). The rows
+// dim and the table shows its bar until the new rows arrive. A next page (`loadingMore`) does
+// not dim the rows: the footer says "Loading more".
+const refreshing = computed(() => pending.value && items.value.length > 0)
+const tableUi = computed(() => ({
+  tr: 'group',
+  thead: pending.value || loadingMore.value ? 'after:h-0.5' : undefined,
+  tbody: refreshing.value
+    ? 'opacity-50 transition-opacity'
+    : 'transition-opacity',
+}))
+
 // Buttons navigate with `navigateTo`, not `to`: `to` is typed per app
 // through typed pages, so a computed button list cannot type it here.
 const emptyActions = computed<ButtonProps[]>(() => {
@@ -456,6 +468,14 @@ const trashCounter =
   contentType.value?.trash && canDelete.value
     ? usePlutoContentTrashCount(props.type)
     : null
+
+// The All list stays loaded under the Trash tab, but a restore or a purge there changes it. So it
+// loads again when the view comes back to All.
+watch(trashView, (now, before) => {
+  if (before && !now) {
+    retry()
+  }
+})
 
 async function undoTrash(ids: Array<string | number>) {
   const { done, failed } = await runInBatches(ids, (id) =>
@@ -813,7 +833,9 @@ const footer = computed(() => {
       <div
         v-if="!emptyState"
         ref="mobileList"
-        class="flex min-h-0 flex-col gap-3 overflow-y-auto lg:hidden"
+        :aria-busy="refreshing"
+        :class="refreshing ? 'opacity-50' : undefined"
+        class="flex min-h-0 flex-col gap-3 overflow-y-auto transition-opacity lg:hidden"
       >
         <UCard v-for="item in items" :key="item.id" class="shrink-0">
           <div class="flex flex-col gap-4">
@@ -892,7 +914,8 @@ const footer = computed(() => {
         :columns="columns"
         :loading="pending || loadingMore"
         :empty="t('pluto.list.emptyTable')"
-        :ui="{ tr: 'group' }"
+        :ui="tableUi"
+        :aria-busy="refreshing"
         class="ring-default hidden min-h-0 rounded-lg ring lg:block"
         sticky
         virtualize
