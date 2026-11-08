@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/plutocms/pluto/compare/docs-v0.21.1...docs-v0.22.0) (2026-11-08)
+
+
+### Features
+
+* **docs:** the Image block, with the media library ([#489](https://github.com/plutocms/pluto/issues/489)) ([9980f70](https://github.com/plutocms/pluto/commit/9980f704b0ebc2593525ee37183bd6edfb0e4ae9))
+
 ## [0.21.1](https://github.com/plutocms/pluto/compare/docs-v0.21.0...docs-v0.21.1) (2026-11-02)
 
 
