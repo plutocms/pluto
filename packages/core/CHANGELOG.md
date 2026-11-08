@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.64.0](https://github.com/plutocms/pluto/compare/v0.63.0...v0.64.0) (2026-11-08)
+
+
+### Features
+
+* **core:** embeds, with YouTube and Vimeo ([#479](https://github.com/plutocms/pluto/issues/479)) ([7866bdc](https://github.com/plutocms/pluto/commit/7866bdc14965b1225af0c6c2e62a36c03d6ee512))
+
 ## [0.63.0](https://github.com/plutocms/pluto/compare/v0.62.1...v0.63.0) (2026-11-08)
 
 
