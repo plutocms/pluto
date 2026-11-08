@@ -731,6 +731,29 @@ the Git CMS an installation token that can write (`getWriteToken` of the App tok
 App id and key, not the read token), or no token with the `fs` store; with no App key it gives
 `null` (401, the task skips the type). In dev, `POST /_nitro/tasks/pluto:trash:purge` runs it.
 
+## Excerpt and cover image
+
+Two standard options of any content type (`shared/utils/content-standard.ts`):
+
+```ts
+excerpt: true, // or { field: 'summary' }; default field 'excerpt'
+cover: true, // or { field: 'hero' }; default field 'cover'
+```
+
+- **Fields:** `withStandardFields(type)` adds a missing field: a `textarea` (side panel, order 40)
+  for the excerpt, a `media` field with `accept: ['image/*']` (side panel, order 41) for the
+  cover. A declared field stays as it is. It runs in `applyContentTypeExtensions`, so the server
+  and the client registry both see the fields.
+- **Public API:** `withStandardPublicKeys` (after `adapter.toPublic`, before `hooks.toPublic`)
+  sets `excerpt` (the field, else an excerpt of the adapter, else the start of the first
+  `richtext` field as plain text, 200 characters) and `cover` (the media record, when the field
+  has another name).
+- **Admin list:** a thumbnail before the title (the preview image, else the image), one media
+  request for the ids of the loaded rows.
+- **Site SEO:** `usePlutoPublicItem` uses `cover` for `og:image` first, then the first media
+  field; `excerpt` for the description.
+- The built-in Git CMS post type and the supabase-blog post type turn both on.
+
 ## Embeds
 
 A URL alone on its line of a Markdown body (a bare URL, or `[url](url)`, which the Visual editor

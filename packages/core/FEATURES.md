@@ -136,6 +136,9 @@ policies shared by every project here.
   layer's `pluto-layer.css` (imported as `@plutocms/css` by the admin build and by a Tailwind
   site), and warns about a Tailwind build in a layer or more than one.
   @.claude/skills/single-tailwind-build/SKILL.md
+- Excerpt and cover image as standard options of any content type (`excerpt`, `cover`): core adds
+  the fields, the public API gives `excerpt` (with a fallback from the body) and `cover`, the admin
+  list shows the cover, and the site SEO uses both.
 - Embeds: a URL alone on its line of a post becomes a player. YouTube and Vimeo in core (a
   thumbnail, the player of `@nuxt/scripts` on a click, `youtube-nocookie.com`); a layer adds
   providers (`embedProviders`). The HTML holds a marked paragraph with a link, never an iframe.

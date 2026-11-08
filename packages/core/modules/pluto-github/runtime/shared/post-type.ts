@@ -121,6 +121,10 @@ export const plutoGithubPostType: PlutoContentType = {
   api: { public: true },
   // Remove moves a post to `content/.trash/post/`. See the content-model skill ("Trash").
   trash: true,
+  // The standard excerpt and cover image (the fields above): the public API, the admin list and
+  // the SEO of a site use them. See the content-model skill ("Excerpt and cover image").
+  excerpt: true,
+  cover: true,
   // The canvas layout, like the page editor: the body fills the page, the outline is at the
   // left, the other fields are in the Post tab at the right.
   form: {

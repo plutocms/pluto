@@ -7,6 +7,7 @@ import type {
   PlutoPublicSurround,
 } from '../../shared/types/public-api'
 import { setResponseHeader } from 'h3'
+import { withStandardPublicKeys } from '../../shared/utils/content-standard'
 import { isLiveItem } from '../../shared/utils/content-status'
 import { getPlutoApiConfig } from './pluto-api-config'
 import { getContentType, listContentTypes } from './pluto-content'
@@ -182,7 +183,10 @@ export function isPublishedItem(
   return isLiveItem(type, item)
 }
 
-/** The public answer for one item: the allow-list, then `adapter.toPublic`, then `hooks.toPublic`. */
+/**
+ * The public answer for one item: the allow-list, then `adapter.toPublic`, then the standard keys
+ * (`withStandardPublicKeys`), then `hooks.toPublic`.
+ */
 export async function toPublicData(
   ctx: PlutoContentContext,
   item: PlutoContentItem,
@@ -215,6 +219,7 @@ export async function toPublicData(
   if (adapter.toPublic) {
     data = await adapter.toPublic(ctx, data, { view, item, batch })
   }
+  data = withStandardPublicKeys(ctx.type, data, item)
   if (ctx.type.hooks?.toPublic) {
     data = await ctx.type.hooks.toPublic(ctx, data, { view, item, batch })
   }

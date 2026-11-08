@@ -391,6 +391,57 @@ const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
 const toast = useToast()
 const errorText = usePlutoErrorText()
 
+// The cover image of a type with the standard `cover` option: a small thumbnail before the title.
+// The records of the cover ids of the loaded rows load in one request, and stay for the next pages.
+const coverName = computed(() => standardFieldNames(contentType.value).cover)
+const covers = ref(new Map<string, PlutoMedia>())
+const mediaApi = usePlutoMedia()
+
+function coverId(item: PlutoContentItem): string | undefined {
+  const value = coverName.value ? item[coverName.value] : undefined
+  const id = Array.isArray(value) ? value[0] : value
+  return typeof id === 'string' && id ? id : undefined
+}
+
+watch(
+  () => (coverName.value ? items.value.map(coverId) : []),
+  async (ids) => {
+    const missing = [
+      ...new Set(
+        ids.filter(
+          (id): id is string => id !== undefined && !covers.value.has(id)
+        )
+      ),
+    ]
+    if (missing.length === 0) {
+      return
+    }
+    try {
+      const next = new Map(covers.value)
+      for (const record of await mediaApi.get(missing)) {
+        next.set(record.id, record)
+      }
+      covers.value = next
+    } catch {
+      // No thumbnail: the list works the same.
+    }
+  },
+  { immediate: true }
+)
+
+/** The URL of the thumbnail of an item: the preview image, else the image itself. */
+function coverUrl(item: PlutoContentItem): string | undefined {
+  const id = coverId(item)
+  const record = id ? covers.value.get(id) : undefined
+  if (!record) {
+    return undefined
+  }
+  return (
+    record.preview?.url ??
+    (record.mimeType.startsWith('image/') ? record.url : undefined)
+  )
+}
+
 const pendingDeleteId = ref<string | number | null>(null)
 const isDeleteModalOpen = ref(false)
 const deleting = ref(false)
@@ -866,13 +917,22 @@ const footer = computed(() => {
         <UCard v-for="item in items" :key="item.id" class="shrink-0">
           <div class="flex flex-col gap-4">
             <div class="flex min-w-0 items-center justify-between gap-3">
-              <NuxtLink
-                :to="editPath(item.id)"
-                :class="itemTitle(item) ? undefined : 'text-muted italic'"
-                class="block truncate text-lg font-semibold hover:underline"
-              >
-                {{ itemTitle(item) || t('pluto.content.untitled') }}
-              </NuxtLink>
+              <div class="flex min-w-0 items-center gap-3">
+                <img
+                  v-if="coverName && coverUrl(item)"
+                  :src="coverUrl(item)"
+                  alt=""
+                  loading="lazy"
+                  class="ring-default size-12 shrink-0 rounded-md object-cover ring"
+                />
+                <NuxtLink
+                  :to="editPath(item.id)"
+                  :class="itemTitle(item) ? undefined : 'text-muted italic'"
+                  class="block truncate text-lg font-semibold hover:underline"
+                >
+                  {{ itemTitle(item) || t('pluto.content.untitled') }}
+                </NuxtLink>
+              </div>
 
               <UBadge
                 v-if="itemStatus(item)"
@@ -947,15 +1007,35 @@ const footer = computed(() => {
         virtualize
       >
         <template #[titleCellSlot]="{ row }">
-          <NuxtLink
-            :to="editPath(row.original.id)"
-            :class="
-              itemTitle(row.original) ? 'text-highlighted' : 'text-muted italic'
-            "
-            class="font-medium hover:underline"
-          >
-            {{ itemTitle(row.original) || t('pluto.content.untitled') }}
-          </NuxtLink>
+          <div class="flex min-w-0 items-center gap-3">
+            <template v-if="coverName">
+              <img
+                v-if="coverUrl(row.original)"
+                :src="coverUrl(row.original)"
+                alt=""
+                loading="lazy"
+                class="ring-default size-9 shrink-0 rounded-md object-cover ring"
+              />
+              <span
+                v-else
+                class="bg-elevated text-dimmed flex size-9 shrink-0 items-center justify-center rounded-md"
+                aria-hidden="true"
+              >
+                <UIcon name="lucide:image" class="size-4" />
+              </span>
+            </template>
+            <NuxtLink
+              :to="editPath(row.original.id)"
+              :class="
+                itemTitle(row.original)
+                  ? 'text-highlighted'
+                  : 'text-muted italic'
+              "
+              class="truncate font-medium hover:underline"
+            >
+              {{ itemTitle(row.original) || t('pluto.content.untitled') }}
+            </NuxtLink>
+          </div>
         </template>
 
         <template
