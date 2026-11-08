@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.65.0](https://github.com/plutocms/pluto/compare/v0.64.0...v0.65.0) (2026-11-08)
+
+
+### Features
+
+* **core:** excerpt and cover image as standard options of any type ([#483](https://github.com/plutocms/pluto/issues/483)) ([49303af](https://github.com/plutocms/pluto/commit/49303af55e8ba9e576b3c70bb8388a867b00a139))
+
 ## [0.64.0](https://github.com/plutocms/pluto/compare/v0.63.0...v0.64.0) (2026-11-08)
 
 
