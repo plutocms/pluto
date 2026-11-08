@@ -75,16 +75,67 @@ function buildSteps(manager: PackageManager): {
 }
 
 /**
+ * The script of the `publish` job: plain Node, no install. It reads every `.md` file under the
+ * content dir (`PLUTO_CONTENT_DIR`; dot folders such as `.trash` are skipped), and sets
+ * `status: scheduled` to `status: published` when `publishedAt` is now or earlier. Only that
+ * line changes. It writes `published=<count>` to `GITHUB_OUTPUT`. The keys are the ones of the
+ * built-in post type; a type with other keys is not covered.
+ */
+export const PUBLISH_SCHEDULED_SCRIPT = [
+  "import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'",
+  "import { join } from 'node:path'",
+  "const dir = process.env.PLUTO_CONTENT_DIR || 'content'",
+  'const now = Date.now()',
+  'let published = 0',
+  'function publish(path) {',
+  "  const text = readFileSync(path, 'utf8')",
+  '  const match = /^---\\r?\\n([\\s\\S]*?)\\r?\\n---/.exec(text)',
+  '  if (!match) return',
+  '  const front = match[1]',
+  '  if (!/^status: ["\']?scheduled["\']?\\s*$/m.test(front)) return',
+  '  const at = /^publishedAt: ["\']?([^"\'\\s]+)["\']?\\s*$/m.exec(front)',
+  '  const time = at ? Date.parse(at[1]) : Number.NaN',
+  '  if (Number.isNaN(time) || time > now) return',
+  "  const next = front.replace(/^status: .*$/m, 'status: published')",
+  '  writeFileSync(path, text.replace(front, next))',
+  '  published += 1',
+  '}',
+  'function walk(folder) {',
+  '  for (const entry of readdirSync(folder, { withFileTypes: true })) {',
+  "    if (entry.name.startsWith('.')) continue",
+  '    const path = join(folder, entry.name)',
+  '    if (entry.isDirectory()) walk(path)',
+  "    else if (entry.name.endsWith('.md')) publish(path)",
+  '  }',
+  '}',
+  'try {',
+  '  walk(dir)',
+  '} catch (error) {',
+  "  if (error.code !== 'ENOENT') throw error",
+  '}',
+  "if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, 'published=' + published + '\\n')",
+  "console.log('Published ' + published + ' scheduled item(s).')",
+]
+
+/**
  * The GitHub Actions workflow that builds the site as static files and deploys it to GitHub
  * Pages, on each push to the content branch. The build reads the Markdown of the checkout, so it
  * needs no secret. `PLUTO_BASE_URL` gets the sub path of a project site (`/<repo>`), or nothing
  * for a user site or a custom domain. `NUXT_PUBLIC_WEBSITE_URL` gets the address of the site.
+ *
+ * Scheduled publish: a static site has no server task. Every hour, the `publish` job sets the
+ * due scheduled posts to published (`PUBLISH_SCHEDULED_SCRIPT`) and commits them; the build runs
+ * only when it published one. A push with the token of the workflow starts no other workflow, so
+ * the build runs in the same run, on the new commit. The schedule runs on the default branch.
  */
 export function renderPagesWorkflow(options: {
   branch: string
   packageManager: PackageManager
+  /** The content dir of the Git CMS (`plutoGithub.dir`). Default `content`. */
+  dir?: string
 }): string {
   const { setup, build } = buildSteps(options.packageManager)
+  const expression = actionsExpression
   return [
     '# Builds the site as static files and deploys it to GitHub Pages, on each push.',
     '# Pluto wrote this file. The build reads the Markdown of the repo: it needs no secret.',
@@ -94,6 +145,10 @@ export function renderPagesWorkflow(options: {
     '  push:',
     `    branches: [${JSON.stringify(options.branch)}]`,
     '  workflow_dispatch:',
+    '  # Scheduled posts: every hour, publish the posts whose time has come, then build. GitHub can',
+    '  # start a scheduled run some minutes late. Change the cron for another rhythm.',
+    '  schedule:',
+    "    - cron: '17 * * * *'",
     '',
     'permissions:',
     '  contents: read',
@@ -105,10 +160,40 @@ export function renderPagesWorkflow(options: {
     '  cancel-in-progress: true',
     '',
     'jobs:',
+    '  publish:',
+    "    if: github.event_name == 'schedule'",
+    '    runs-on: ubuntu-latest',
+    '    permissions:',
+    '      contents: write',
+    '    outputs:',
+    `      published: ${expression('steps.publish.outputs.published')}`,
+    '    steps:',
+    '      - uses: actions/checkout@v4',
+    '        with:',
+    `          ref: ${JSON.stringify(options.branch)}`,
+    '      - id: publish',
+    '        env:',
+    `          PLUTO_CONTENT_DIR: ${JSON.stringify(options.dir ?? 'content')}`,
+    '        run: |',
+    "          node --input-type=module <<'PLUTO'",
+    ...PUBLISH_SCHEDULED_SCRIPT.map((line) => `          ${line}`),
+    '          PLUTO',
+    "      - if: steps.publish.outputs.published != '0'",
+    '        run: |',
+    '          git config user.name "github-actions[bot]"',
+    '          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"',
+    `          git commit -am "content: publish ${expression('steps.publish.outputs.published')} scheduled"`,
+    '          git push',
+    '',
     '  build:',
+    '    needs: publish',
+    '    # On a push: always. On the schedule: only when the publish job published a post.',
+    `    if: ${expression("always() && needs.publish.result != 'failure' && (github.event_name != 'schedule' || needs.publish.outputs.published != '0')")}`,
     '    runs-on: ubuntu-latest',
     '    steps:',
     '      - uses: actions/checkout@v4',
+    '        with:',
+    `          ref: ${JSON.stringify(options.branch)}`,
     '      - id: pages',
     '        uses: actions/configure-pages@v5',
     ...setup,

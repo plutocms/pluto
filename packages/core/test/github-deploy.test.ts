@@ -2,6 +2,7 @@ import type { GithubFetch } from '../modules/pluto-github/runtime/server/github/
 import { execFileSync } from 'node:child_process'
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -26,6 +27,7 @@ import {
   defaultPagesUrl,
   detectPackageManager,
   PAGES_WORKFLOW_PATH,
+  PUBLISH_SCHEDULED_SCRIPT,
   renderPagesWorkflow,
 } from '../modules/pluto-github/runtime/shared/pages-workflow'
 import { createFakeGithub } from './fixtures/fake-github'
@@ -152,6 +154,97 @@ describe('the Pages workflow', () => {
       })
       expect(steps.at(-1)!.uses).toBe('actions/upload-pages-artifact@v3')
       expect(workflow.jobs.deploy.steps[0].uses).toBe('actions/deploy-pages@v4')
+    }
+  })
+
+  it('publishes the scheduled posts every hour, and builds only after a publish', () => {
+    const workflow = parse(
+      renderPagesWorkflow({
+        branch: 'site',
+        packageManager: 'npm',
+        dir: 'docs/content',
+      })
+    )
+
+    expect(workflow.on.schedule).toEqual([{ cron: '17 * * * *' }])
+    const publish = workflow.jobs.publish
+    expect(publish.if).toBe("github.event_name == 'schedule'")
+    expect(publish.permissions).toEqual({ contents: 'write' })
+    expect(publish.steps[0]).toEqual({
+      uses: 'actions/checkout@v4',
+      with: { ref: 'site' },
+    })
+    expect(publish.steps[1].env).toEqual({ PLUTO_CONTENT_DIR: 'docs/content' })
+    expect(publish.steps[1].run).toContain("node --input-type=module <<'PLUTO'")
+    expect(publish.steps[2].run).toContain('git push')
+    expect(workflow.jobs.build.needs).toBe('publish')
+    expect(workflow.jobs.build.if).toContain(
+      "needs.publish.outputs.published != '0'"
+    )
+    expect(workflow.jobs.build.steps[0].with).toEqual({ ref: 'site' })
+  })
+
+  it('has a publish script that changes only the status line of the due posts', () => {
+    const root = mkdtempSync(join(tmpdir(), 'pluto-pages-publish-'))
+    const file = (path: string, front: string) => {
+      mkdirSync(join(root, 'content', path, '..'), { recursive: true })
+      writeFileSync(
+        join(root, 'content', path),
+        `---\ntitle: A\n${front}\n---\nBody\n`
+      )
+    }
+    file(
+      'posts/due.md',
+      'status: scheduled\npublishedAt: 2020-01-01T09:00:00.000Z'
+    )
+    file(
+      'posts/quoted.md',
+      "status: 'scheduled'\npublishedAt: '2020-01-01T09:00:00Z'"
+    )
+    file(
+      'docs/1.guide/nested.md',
+      'status: scheduled\npublishedAt: 2020-01-01T09:00:00Z'
+    )
+    file(
+      'posts/later.md',
+      'status: scheduled\npublishedAt: 2999-01-01T09:00:00Z'
+    )
+    file('posts/no-time.md', 'status: scheduled')
+    file('posts/draft.md', 'status: draft\npublishedAt: 2020-01-01T09:00:00Z')
+    file(
+      '.trash/post/gone.md',
+      'status: scheduled\npublishedAt: 2020-01-01T09:00:00Z'
+    )
+    const output = join(root, 'output.txt')
+    writeFileSync(output, '')
+    try {
+      execFileSync(
+        process.execPath,
+        ['--input-type=module', '-e', PUBLISH_SCHEDULED_SCRIPT.join('\n')],
+        {
+          cwd: root,
+          env: { ...process.env, GITHUB_OUTPUT: output, PLUTO_CONTENT_DIR: '' },
+        }
+      )
+      const read = (path: string) =>
+        readFileSync(join(root, 'content', path), 'utf8')
+
+      expect(readFileSync(output, 'utf8')).toBe('published=3\n')
+      expect(read('posts/due.md')).toBe(
+        '---\ntitle: A\nstatus: published\npublishedAt: 2020-01-01T09:00:00.000Z\n---\nBody\n'
+      )
+      expect(read('posts/quoted.md')).toContain('status: published')
+      expect(read('docs/1.guide/nested.md')).toContain('status: published')
+      for (const path of [
+        'posts/later.md',
+        'posts/no-time.md',
+        '.trash/post/gone.md',
+      ]) {
+        expect(read(path), path).toContain('status: scheduled')
+      }
+      expect(read('posts/draft.md')).toContain('status: draft')
+    } finally {
+      rmSync(root, { recursive: true, force: true })
     }
   })
 
