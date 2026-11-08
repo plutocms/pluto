@@ -570,6 +570,21 @@ export function updateCode(
   })
 }
 
+/**
+ * Sets some props of a component in one edit (one undo step), for example an image and its size.
+ * A value of `undefined` removes the prop. The same doc when nothing changes.
+ */
+export function setProps(
+  doc: PlutoBlockDoc,
+  id: string,
+  patch: Record<string, PlutoPropValue>
+): PlutoBlockDoc {
+  return Object.entries(patch).reduce(
+    (current, [key, value]) => setProp(current, id, key, value),
+    doc
+  )
+}
+
 /** Sets a prop of a component. A value of `undefined` removes the prop. */
 export function setProp(
   doc: PlutoBlockDoc,

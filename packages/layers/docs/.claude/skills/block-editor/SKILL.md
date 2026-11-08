@@ -149,6 +149,23 @@ when the selected block has text in it (Markdown often writes a button as `:::u-
 text inside, and the slot wins on the site), else the prop. The panel chooses when the block is
 selected, so clearing the field does not move the text to the other place.
 
+## The Image block
+
+`pluto-figure` (palette group **Media**, label "Image"): `app/components/content/PlutoFigure.vue` of
+this layer, so every docs site has it. `::pluto-figure{src alt caption dark :width :height}`: a
+figure with a rounded ring, the `dark` image with `dark:hidden` / `dark:block`, a caption, and a
+dashed placeholder with no `src`. A `/` path gets the base URL of the site. (`pluto-image` would
+hit the global `PlutoImage` of core.)
+
+- **The `media` prop type:** the control (`PlutoBlockPropControl`) shows the image, **Choose from
+  the media library** (`PlutoMediaPicker` of core, `accept: ['image/*']`, only when the app has a
+  media driver), **Remove**, and the URL field (for an image from elsewhere).
+- **`fills`** on the prop definition names the props that a choice also sets: `{ width, height,
+alt }` (`alt` only while it is empty). The control emits `media` with the record; the inspector
+  (`setMedia`) calls `editor.setProps(id, patch)`: one undo step (`setProps` of the block model).
+- **The Markdown keeps the URL**, not the media id: a static site needs no API call, and the page
+  stays plain MDC.
+
 ## Not in this version
 
 - Typing in the preview. A click selects, and the panels edit.

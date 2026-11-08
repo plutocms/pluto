@@ -37,6 +37,7 @@
       "groups": {
         "text": "Texto",
         "callouts": "Destaques",
+        "media": "Mídia",
         "layout": "Layout",
         "code": "Código",
         "landing": "Página inicial",
@@ -64,7 +65,13 @@
         "reverse": "Inverter a ordem",
         "variant": "Estilo",
         "size": "Tamanho",
-        "spotlight": "Efeito de destaque"
+        "spotlight": "Efeito de destaque",
+        "src": "Imagem",
+        "alt": "Texto alternativo",
+        "caption": "Legenda",
+        "dark": "Imagem para o modo escuro",
+        "width": "Largura",
+        "height": "Altura"
       },
       "slots": {
         "default": "Conteúdo",
@@ -181,6 +188,10 @@
       "u-button": {
         "label": "Botão",
         "description": "Um botão que leva a uma página."
+      },
+      "pluto-figure": {
+        "label": "Imagem",
+        "description": "Uma imagem da biblioteca de mídia, com legenda e uma imagem para o modo escuro."
       }
     },
     "preview": {
@@ -247,7 +258,11 @@
       "parseErrorTitle": "O editor visual não consegue abrir esta página",
       "parseError": "O Markdown tem uma parte que o editor visual não consegue ler. Use o editor de Markdown para corrigir.",
       "switchToMarkdown": "Abrir o editor de Markdown",
-      "addItem": "Adicionar {name}"
+      "addItem": "Adicionar {name}",
+      "chooseImage": "Escolher na biblioteca de mídia",
+      "changeImage": "Trocar",
+      "removeImage": "Remover",
+      "imageUrlPlaceholder": "Ou cole a URL de uma imagem"
     }
   },
   "content": {

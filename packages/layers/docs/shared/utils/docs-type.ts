@@ -276,7 +276,14 @@ export function createDocsType(options: DocsTypeOptions): PlutoContentType {
         : undefined,
     files: {
       nested: true,
-      exclude: options.exclude ?? [],
+      // A type over the whole content dir (`source: ''`) never lists the media records of the
+      // Git CMS (`<dir>/media/<id>.md`): they are files of the media library, not pages.
+      exclude: [
+        ...(options.exclude ?? []),
+        ...(options.source === '' && !(options.exclude ?? []).includes('media/')
+          ? ['media/']
+          : []),
+      ],
       frontmatter: { read: readDocsFrontmatter, write: writeDocsFrontmatter },
     },
   }

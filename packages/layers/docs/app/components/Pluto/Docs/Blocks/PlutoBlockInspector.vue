@@ -6,6 +6,7 @@
 // raw keys or YAML, except in Advanced and in "Edit as Markdown".
 import type {
   PlutoBlock,
+  PlutoBlockPropDefinition,
   PlutoComponentBlock,
   PlutoPropValue,
 } from '../../../../../shared/utils/blocks/types'
@@ -112,6 +113,30 @@ function propValue(name: string): PlutoPropValue | undefined {
   return slot && slotBacked.value.has(name)
     ? slotMarkdown(component(), slot)
     : component().props[name]
+}
+
+/**
+ * A file chosen in the media library for a `media` prop: the URL, and the props of `fills` (the
+ * size, and the alt text while it is empty), in one edit.
+ */
+function setMedia(
+  name: string,
+  definitionOfProp: PlutoBlockPropDefinition,
+  media: PlutoMedia
+) {
+  const current = component()
+  const patch: Record<string, PlutoPropValue> = { [name]: media.url }
+  const fills = definitionOfProp.fills ?? {}
+  if (fills.width && media.width) {
+    patch[fills.width] = media.width
+  }
+  if (fills.height && media.height) {
+    patch[fills.height] = media.height
+  }
+  if (fills.alt && media.alt && !current.props[fills.alt]) {
+    patch[fills.alt] = media.alt
+  }
+  editor.setProps(current.id, patch)
 }
 
 function setPropValue(name: string, value: PlutoPropValue) {
@@ -449,6 +474,7 @@ function applyRaw(markdown: string) {
             :model-value="propValue(name)"
             :disabled="disabled"
             @update:model-value="setPropValue(name, $event)"
+            @media="setMedia(name, prop, $event)"
           />
         </section>
 
@@ -474,6 +500,7 @@ function applyRaw(markdown: string) {
               :model-value="component().props[name]"
               :disabled="disabled"
               @update:model-value="editor.setProp(block.id, name, $event)"
+              @media="setMedia(name, prop, $event)"
             />
           </div>
         </details>

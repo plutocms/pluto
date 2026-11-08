@@ -18,6 +18,7 @@ import { MDC_SNIPPETS } from '../mdc-snippets'
 export const BLOCK_GROUPS = [
   'text',
   'callouts',
+  'media',
   'layout',
   'code',
   'landing',
@@ -245,6 +246,21 @@ const DEFINITIONS: PlutoBlockDefinition[] = [
   block('icon', 'text', 'i-lucide-smile', {
     hidden: true,
     props: { name: prop('icon', 'name') },
+  }),
+  // An image of the media library (`PlutoFigure` of this layer). The choice of a file also sets
+  // its size and, while it is empty, the alt text. The Markdown keeps the URL.
+  block('pluto-figure', 'media', 'i-lucide-image', {
+    props: {
+      src: prop('media', 'src', {
+        fills: { width: 'width', height: 'height', alt: 'alt' },
+      }),
+      alt: prop('string', 'alt'),
+      caption: prop('string', 'caption'),
+      dark: prop('media', 'dark'),
+      width: prop('number', 'width', { advanced: true }),
+      height: prop('number', 'height', { advanced: true }),
+    },
+    insert: '::pluto-figure\n::',
   }),
   block('u-page-hero', 'landing', 'i-lucide-panel-top', {
     props: {

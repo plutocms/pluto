@@ -51,7 +51,7 @@ that block. A test guards this with the 48 pages of the docs site.
 ## Operations
 
 `insertBlocks`, `insertBlock`, `removeBlock`, `moveBlock`, `duplicateBlock`, `updateText`,
-`updateCode`, `setProp`, `setSlot`, `replaceWithMarkdown`, `blocksFromMarkdown`, `blockMarkdown`,
+`updateCode`, `setProp`, `setProps` (some props in one edit), `setSlot`, `replaceWithMarkdown`, `blocksFromMarkdown`, `blockMarkdown`,
 and the makers `createTextBlock`, `createCodeBlock`, `createComponentBlock`.
 
 - An edit removes `original` from the block and its ancestors. The other blocks keep theirs.
@@ -120,6 +120,9 @@ The type of a prop gives the widget. `undefined` and `null` are removed first.
 | a union of theme colors                                | `color`                            |
 | object, array, function, number literals, other unions | no widget                          |
 
+- The type `media` (an image of the media library) is not from the meta: a definition sets it, with
+  `fills` (`{ width, height, alt }`, the props that a choice also sets). See the block editor skill
+  ("The Image block").
 - A prop with no widget is not in the definition. A page that sets it shows it in Advanced.
 - A mapped prop goes in Settings. `advanced: true` in the macro moves it.
 - A simple default (`300`, `"normal"`, `false`) becomes `default`.
