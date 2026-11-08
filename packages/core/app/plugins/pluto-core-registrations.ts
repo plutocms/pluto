@@ -24,6 +24,13 @@ const PlutoFieldText = defineAsyncComponent(
 const PlutoFieldMedia = defineAsyncComponent(
   () => import('../components/Pluto/Content/fields/PlutoFieldMedia.vue')
 )
+// The players of the embeds of core (a URL alone on its line of a post).
+const PlutoEmbedYoutube = defineAsyncComponent(
+  () => import('../components/Pluto/Embed/PlutoEmbedYoutube.vue')
+)
+const PlutoEmbedVimeo = defineAsyncComponent(
+  () => import('../components/Pluto/Embed/PlutoEmbedVimeo.vue')
+)
 // The post editor (canvas layout): by widget name only, so it never replaces the
 // `richtext` widget of a field that does not ask for it.
 const PlutoFieldPostCanvas = defineAsyncComponent(
@@ -148,6 +155,24 @@ export default defineNuxtPlugin(() => {
         icon: 'lucide:mail',
         to: '/admin/settings/email',
         capability: '*',
+      },
+    ],
+    // The embed providers of core. A layer adds more (X, Instagram, ...). See the content-model
+    // skill ("Embeds").
+    embedProviders: [
+      {
+        id: 'youtube',
+        order: 10,
+        label: 'YouTube',
+        match: matchYoutubeUrl,
+        component: PlutoEmbedYoutube,
+      },
+      {
+        id: 'vimeo',
+        order: 20,
+        label: 'Vimeo',
+        match: matchVimeoUrl,
+        component: PlutoEmbedVimeo,
       },
     ],
     // The kinds of files that core knows. A layer adds its own (the 3D add-on adds 3D models).

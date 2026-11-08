@@ -39,6 +39,7 @@ export function usePlutoRegistry(): PlutoRegistry {
       contentHead: createOwnedRegistry<PlutoContentHead>(),
       mediaKinds: createOwnedRegistry<PlutoMediaKind>(),
       navGroups: createOwnedRegistry<PlutoNavGroup>(),
+      embedProviders: createOwnedRegistry<PlutoEmbedProvider>(),
     }
   }
 

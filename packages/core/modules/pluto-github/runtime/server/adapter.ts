@@ -53,6 +53,12 @@ import {
 import { markdownToPlainText, renderMarkdown } from './utils/markdown'
 import { parseMarkdownFile, serializeMarkdownFile } from './utils/markdown-file'
 
+/**
+ * The cache key of the rendered body. Change the version when the renderer gives other HTML for
+ * the same Markdown, so the cache renders again (2: the embed paragraphs).
+ */
+const HTML_CACHE_KEY = 'html:2'
+
 /** The length of an excerpt made from the body, in the public API. */
 const EXCERPT_LENGTH = 200
 
@@ -1819,7 +1825,7 @@ export function createMarkdownContentAdapter(
       const body = info.item[bodyField.name]
       result.html =
         typeof body === 'string' && body !== ''
-          ? await cachedByBlob('html', info.item._version, () =>
+          ? await cachedByBlob(HTML_CACHE_KEY, info.item._version, () =>
               renderMarkdown(body)
             )
           : ''
