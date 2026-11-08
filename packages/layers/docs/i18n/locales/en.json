@@ -37,6 +37,7 @@
       "groups": {
         "text": "Text",
         "callouts": "Callouts",
+        "media": "Media",
         "layout": "Layout",
         "code": "Code",
         "landing": "Landing page",
@@ -64,7 +65,13 @@
         "reverse": "Reverse the order",
         "variant": "Style",
         "size": "Size",
-        "spotlight": "Spotlight effect"
+        "spotlight": "Spotlight effect",
+        "src": "Image",
+        "alt": "Text alternative",
+        "caption": "Caption",
+        "dark": "Image for the dark mode",
+        "width": "Width",
+        "height": "Height"
       },
       "slots": {
         "default": "Content",
@@ -181,6 +188,10 @@
       "u-button": {
         "label": "Button",
         "description": "A button that links to a page."
+      },
+      "pluto-figure": {
+        "label": "Image",
+        "description": "An image of the media library, with a caption and an image for the dark mode."
       }
     },
     "preview": {
@@ -247,7 +258,11 @@
       "parseErrorTitle": "The visual editor cannot open this page",
       "parseError": "The Markdown has a part that the visual editor cannot read. Use the Markdown editor to fix it.",
       "switchToMarkdown": "Open the Markdown editor",
-      "addItem": "Add {name}"
+      "addItem": "Add {name}",
+      "chooseImage": "Choose from the media library",
+      "changeImage": "Change",
+      "removeImage": "Remove",
+      "imageUrlPlaceholder": "Or paste the URL of an image"
     }
   }
 }

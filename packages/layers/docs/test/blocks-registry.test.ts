@@ -323,6 +323,7 @@ describe('listPaletteBlocks', () => {
     const groups = listPaletteBlocks()
     expect(groups.map((entry) => entry.group)).toEqual([
       'callouts',
+      'media',
       'layout',
       'code',
       'landing',

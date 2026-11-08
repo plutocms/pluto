@@ -31,6 +31,7 @@ import {
   removeBlock,
   replaceWithMarkdown,
   setProp,
+  setProps,
   setSlot,
   updateCode,
   updateText,
@@ -93,6 +94,8 @@ export interface PlutoBlockEditor {
   move: (id: string, delta: number) => void
   moveTo: (id: string, target: PlutoBlockTarget) => void
   setProp: (id: string, key: string, value: PlutoPropValue) => void
+  /** Sets some props in one edit (one undo step). */
+  setProps: (id: string, patch: Record<string, PlutoPropValue>) => void
   setSlot: (id: string, slot: string, markdown: string) => void
   updateText: (id: string, markdown: string) => void
   updateCode: (
@@ -368,6 +371,8 @@ export function createPlutoBlockEditor(
     moveTo,
     setProp: (id, key, value) =>
       void commit(setProp(doc.value, id, key, value), `prop:${id}:${key}`),
+    setProps: (id, patch) =>
+      void commit(setProps(doc.value, id, patch), `props:${id}`),
     setSlot: (id, slot, markdown) =>
       void commit(setSlot(doc.value, id, slot, markdown), `slot:${id}:${slot}`),
     updateText: (id, markdown) =>

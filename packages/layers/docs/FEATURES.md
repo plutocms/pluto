@@ -32,3 +32,7 @@ policies shared by every project here.
   @.claude/skills/block-model/SKILL.md.
 - Block editor: the visual editor for the page body. A live preview, the block list, the palette, and
   the controls of the selected block, with no raw MDC. See @.claude/skills/block-editor/SKILL.md.
+- Image block (`::pluto-figure`): an image of the media library (the `media` prop type: a picker that
+  fills the URL, the size and the alt text), a caption, and an image for the dark mode.
+- A page type over the whole content dir (`source: ''`) never lists the media records
+  (`media/`).

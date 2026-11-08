@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // One setting of a component: a field with the right control for the type of
-// the prop (text, long text, switch, number, choice, icon, color, link). A
+// the prop (text, long text, switch, number, choice, icon, color, link, image). A
 // prop with an object or a list shows as YAML. An empty value removes the prop,
 // so the Markdown stays short.
 import type { PlutoBlockPropDefinition } from '../../../../../shared/utils/blocks/types'
@@ -18,6 +18,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   /** `undefined` removes the prop. */
   'update:modelValue': [value: unknown]
+  /**
+   * A `media` prop: a file chosen in the media library. The inspector sets the URL and the props
+   * of `fills` (the size, the alt text) in one edit.
+   */
+  media: [media: PlutoMedia]
 }>()
 
 const { t, tx } = usePlutoI18n()
@@ -159,6 +164,24 @@ function applyYaml() {
   }
 }
 
+// An image (a `media` prop): the URL in the Markdown, a preview, and a choice from the media
+// library of the app (when a backend has one). The URL field stays, for an image from elsewhere.
+const mediaLibrary = usePlutoMedia()
+const pickerOpen = ref(false)
+const baseURL = useRuntimeConfig().app.baseURL
+const mediaPreview = computed(() =>
+  text.value.startsWith('/') && !text.value.startsWith('//')
+    ? `${baseURL.replace(/\/$/, '')}${text.value}`
+    : text.value
+)
+
+function onMediaSelect(files: PlutoMedia[]) {
+  const file = files[0]
+  if (file) {
+    emit('media', file)
+  }
+}
+
 const iconPreview = computed(() =>
   text.value.startsWith('i-') || text.value.includes(':')
     ? text.value
@@ -256,6 +279,56 @@ const iconPreview = computed(() =>
       class="w-full"
       @update:model-value="setText($event as string)"
     />
+
+    <div v-else-if="type === 'media'" class="flex w-full flex-col gap-2">
+      <img
+        v-if="text"
+        :src="mediaPreview"
+        alt=""
+        class="ring-default bg-elevated max-h-40 w-full rounded-md object-contain ring"
+      />
+      <div class="flex flex-wrap gap-2">
+        <UButton
+          v-if="mediaLibrary.enabled"
+          :label="
+            text ? t('docs.editor.changeImage') : t('docs.editor.chooseImage')
+          "
+          :disabled="disabled"
+          icon="i-lucide-image"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="pickerOpen = true"
+        />
+        <UButton
+          v-if="text"
+          :label="t('docs.editor.removeImage')"
+          :disabled="disabled"
+          icon="i-lucide-x"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          @click="setText(undefined)"
+        />
+      </div>
+      <UInput
+        :model-value="text"
+        :disabled="disabled"
+        :placeholder="t('docs.editor.imageUrlPlaceholder')"
+        :aria-label="label"
+        icon="i-lucide-link"
+        autocomplete="off"
+        spellcheck="false"
+        class="w-full"
+        @update:model-value="setText($event as string)"
+      />
+      <PlutoMediaPicker
+        v-if="mediaLibrary.enabled"
+        v-model:open="pickerOpen"
+        :accept="['image/*']"
+        @select="onMediaSelect"
+      />
+    </div>
 
     <UInput
       v-else

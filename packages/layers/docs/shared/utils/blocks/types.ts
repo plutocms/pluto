@@ -107,6 +107,7 @@ export type PlutoBlockPropType =
   | 'icon'
   | 'color'
   | 'link'
+  | 'media'
 
 export interface PlutoBlockPropOption {
   value: string
@@ -133,6 +134,11 @@ export interface PlutoBlockPropDefinition {
    * placeholder (or in the "Default" item of a choice). It never goes into the Markdown.
    */
   default?: string | number | boolean
+  /**
+   * For a `media` prop: the other props that a choice from the media library also sets, from the
+   * record of the file: `width`, `height`, and `alt` (only while that prop is empty).
+   */
+  fills?: { width?: string; height?: string; alt?: string }
 }
 
 /** The editor for the content of a slot. */
