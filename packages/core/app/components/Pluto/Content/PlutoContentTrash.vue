@@ -267,8 +267,39 @@ defineExpose({ refresh })
       icon="lucide:circle-alert"
     />
 
+    <!-- The first load: placeholder rows in the shape of the list. -->
+    <div
+      v-else-if="pending && items.length === 0"
+      :aria-label="
+        t('pluto.list.loading', { labelPlural: text.labelPluralLower })
+      "
+      role="status"
+      aria-busy="true"
+    >
+      <ul
+        class="ring-default divide-default divide-y rounded-lg ring"
+        aria-hidden="true"
+      >
+        <li
+          v-for="row in 5"
+          :key="row"
+          class="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3"
+        >
+          <USkeleton class="size-4 rounded" />
+          <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+            <USkeleton :class="row % 2 ? 'w-1/2' : 'w-2/5'" class="h-4" />
+            <USkeleton class="h-3 w-32" />
+          </div>
+          <div class="flex gap-2">
+            <USkeleton class="h-7 w-20" />
+            <USkeleton class="h-7 w-28" />
+          </div>
+        </li>
+      </ul>
+    </div>
+
     <UEmpty
-      v-else-if="!pending && items.length === 0"
+      v-else-if="items.length === 0"
       :title="
         searchText.trim()
           ? t('pluto.list.noMatch', { labelPlural: text.labelPluralLower })
@@ -283,10 +314,12 @@ defineExpose({ refresh })
       variant="naked"
     />
 
+    <!-- A new search or a change loads the list again: the rows dim until it arrives. -->
     <ul
-      v-else-if="items.length > 0"
+      v-else
       :aria-busy="pending"
-      class="ring-default divide-default min-h-0 divide-y overflow-y-auto rounded-lg ring"
+      :class="pending ? 'opacity-50' : undefined"
+      class="ring-default divide-default min-h-0 divide-y overflow-y-auto rounded-lg ring transition-opacity"
     >
       <li
         v-for="item in items"
