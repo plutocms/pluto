@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.62.1](https://github.com/plutocms/pluto/compare/v0.62.0...v0.62.1) (2026-11-08)
+
+
+### Bug Fixes
+
+* **admin:** reload the list after the trash, and show the loading state ([#473](https://github.com/plutocms/pluto/issues/473)) ([b703472](https://github.com/plutocms/pluto/commit/b703472e219f4aa796b89f14b0611f42c708f58a))
+
 ## [0.62.0](https://github.com/plutocms/pluto/compare/v0.61.1...v0.62.0) (2026-11-07)
 
 
