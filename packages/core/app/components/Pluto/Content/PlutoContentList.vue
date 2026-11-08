@@ -18,7 +18,7 @@ const props = defineProps<{
 
 const { byName } = usePlutoContentTypes()
 const contentType = computed(() => byName(props.type))
-const { t, n } = usePlutoI18n()
+const { t, n, d } = usePlutoI18n()
 const text = usePlutoContentText(contentType)
 
 if (!contentType.value) {
@@ -257,8 +257,9 @@ watch(
   }
 )
 
+// The values of the type, plus In review and Scheduled when the type has them.
 const statusItems = computed(() =>
-  (statusConfig.value?.values ?? []).map((entry) => ({
+  contentStatusValues(contentType.value).map((entry) => ({
     label: text.statusLabel(entry.value, entry.label),
     value: entry.value,
   }))
@@ -320,22 +321,40 @@ function sortIcon(name: string): string {
 
 const sortFields = computed(() => listFields.value.filter(isListSortField))
 
+// The badge of an item: green when published, blue with the date when scheduled, amber in review.
 function itemStatus(item: PlutoContentItem): {
   label: string
-  published: boolean
+  color: 'success' | 'neutral' | 'info' | 'warning'
 } | null {
   const config = statusConfig.value
-  if (!config) {
+  const rules = statusRules(contentType.value)
+  if (!config || !rules) {
     return null
   }
   const value = (item.status as string | undefined) ?? config.default
   if (value === undefined) {
     return null
   }
+  if (value === rules.scheduled && rules.publishedAtColumn) {
+    const time = statusTime(item[rules.publishedAtColumn])
+    if (time !== undefined) {
+      return {
+        label: t('pluto.form.scheduledFor', {
+          date: d(new Date(time), { dateStyle: 'medium', timeStyle: 'short' }),
+        }),
+        color: 'info',
+      }
+    }
+  }
   const literal = config.values.find((entry) => entry.value === value)?.label
   return {
     label: text.statusLabel(value, literal),
-    published: value === (config.publishedValue ?? 'published'),
+    color:
+      value === rules.published
+        ? 'success'
+        : value === rules.review
+          ? 'warning'
+          : 'neutral',
   }
 }
 
@@ -850,7 +869,7 @@ const footer = computed(() => {
 
               <UBadge
                 v-if="itemStatus(item)"
-                :color="itemStatus(item)!.published ? 'success' : 'neutral'"
+                :color="itemStatus(item)!.color"
                 variant="subtle"
                 class="shrink-0"
               >
@@ -1007,7 +1026,7 @@ const footer = computed(() => {
         <template #status-cell="{ row }">
           <UBadge
             v-if="itemStatus(row.original)"
-            :color="itemStatus(row.original)!.published ? 'success' : 'neutral'"
+            :color="itemStatus(row.original)!.color"
             variant="subtle"
           >
             {{ itemStatus(row.original)!.label }}

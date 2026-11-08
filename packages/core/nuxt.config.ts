@@ -121,14 +121,17 @@ export default defineNuxtConfig({
 
   // The scheduled tasks of Pluto (experimental in Nitro). `pluto:trash:purge` deletes the items
   // that are in the trash for more than 30 days. A host with no scheduled tasks (Netlify, a static
-  // site) skips it: opening a Trash purges too. To turn it off, an app sets
-  // `nitro.scheduledTasks['0 3 * * *']` to `[]`.
+  // site) skips it: opening a Trash purges too. `pluto:publish:scheduled` publishes the scheduled
+  // items whose time has come (a server read shows them at the time already; a static site needs
+  // the GitHub Actions workflow of the Deploy page). To turn one off, an app sets its cron key to
+  // `[]`.
   nitro: {
     experimental: {
       tasks: true,
     },
     scheduledTasks: {
       '0 3 * * *': ['pluto:trash:purge'],
+      '*/5 * * * *': ['pluto:publish:scheduled'],
     },
   },
 

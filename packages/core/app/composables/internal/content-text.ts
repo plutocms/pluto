@@ -121,8 +121,13 @@ export function createContentText(
     },
     fieldLabel,
     field,
+    // The type key, else the literal of the type, else the core key of a built-in value
+    // (`scheduled`, `review`), else the value.
     statusLabel: (value, literal) =>
-      pick(`${prefix()}.status.${value}`, literal ?? value),
+      pick(
+        `${prefix()}.status.${value}`,
+        literal ?? pick(`pluto.status.${value}`, value)
+      ),
   }
 }
 

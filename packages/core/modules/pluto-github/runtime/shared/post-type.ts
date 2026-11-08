@@ -102,6 +102,8 @@ export const plutoGithubPostType: PlutoContentType = {
       { label: 'Draft', value: 'draft' },
       { label: 'Published', value: 'published' },
     ],
+    // Schedule a post. Every editor of the Git CMS can publish (push access), so no review step.
+    schedule: true,
   },
   timestamps: { created: 'createdAt', updated: 'updatedAt' },
   capabilities: {

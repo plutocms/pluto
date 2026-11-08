@@ -79,6 +79,11 @@ policies shared by every project here.
   forever, Empty the trash), a purge after 30 days; the adapter `trash` contract; the Git CMS keeps
   the file in `<dir>/.trash/` (post, term and author types).
   A daily Nitro task (`pluto:trash:purge`) purges the trash with a system request (`createPlutoSystemEvent`).
+  Scheduled publish and review (`status.schedule`, `status.review`): Schedule with a date and time,
+  Publish now, Unschedule; Submit for review and Return to draft for a user without the publish
+  capability; a scheduled item is live at its time on a server read (`isLiveStatus`), and the Nitro
+  task `pluto:publish:scheduled` (every 5 minutes) publishes it (`adapter.publishDue`). The Git CMS
+  post type can be scheduled.
   Every form layout has one toolbar (title, save state, unsaved-changes dialog, Ctrl/Cmd+S, a View link
   from `previewUrl`), a form context for widgets (`usePlutoContentForm`), and a `canvas` layout with a left
   panel, a right panel with tabs, and `PlutoContentCanvasPanel`.

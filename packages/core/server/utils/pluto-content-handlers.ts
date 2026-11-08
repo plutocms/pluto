@@ -6,6 +6,7 @@ import {
   PLUTO_BACKUP_MAX_CHARS,
   PLUTO_BACKUP_TTL_MS,
 } from '../../shared/utils/content-backup'
+import { statusRules } from '../../shared/utils/content-status'
 import { validateContentPayload } from '../../shared/utils/content-validate'
 import {
   getContentAdapter,
@@ -336,6 +337,38 @@ export async function purgeExpiredTrash(
       result.failed.push(type.name)
       console.warn(
         `[pluto] The scheduled purge of the trash of "${type.name}" failed: ${(error as Error).message}`
+      )
+    }
+  }
+  return result
+}
+
+/**
+ * Publishes the scheduled items whose time has come, for every content type with
+ * `status.schedule`, with a system request. The scheduled task `pluto:publish:scheduled` calls it.
+ * A failed type only warns, so the other types still publish.
+ */
+export async function publishScheduledContent(
+  now: Date = new Date()
+): Promise<{ published: number; failed: string[] }> {
+  const adapter = getContentAdapter()
+  const result = { published: 0, failed: [] as string[] }
+  if (!adapter?.publishDue) {
+    return result
+  }
+  const event = createPlutoSystemEvent()
+  for (const type of listContentTypes().filter(
+    (one) => statusRules(one)?.scheduled
+  )) {
+    try {
+      result.published += await adapter.publishDue(
+        { event, type },
+        now.toISOString()
+      )
+    } catch (error) {
+      result.failed.push(type.name)
+      console.warn(
+        `[pluto] The scheduled publish of "${type.name}" failed: ${(error as Error).message}`
       )
     }
   }

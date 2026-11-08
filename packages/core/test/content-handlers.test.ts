@@ -1077,3 +1077,65 @@ describe('the scheduled purge', () => {
     expect(await purgeExpiredTrash()).toEqual({ purged: 0, failed: [] })
   })
 })
+
+describe('the scheduled publish', () => {
+  const schedule = {
+    values: [
+      { label: 'Draft', value: 'draft' },
+      { label: 'Published', value: 'published' },
+    ],
+    default: 'draft',
+    publishedValue: 'published',
+    publishedAtColumn: 'publishedAt',
+    schedule: true,
+  }
+
+  it('publishes every type with a schedule as a system request, and a failing type only warns', async () => {
+    const {
+      registerContentAdapter,
+      registerContentType,
+      publishScheduledContent,
+    } = await loadHandlers()
+    const { isPlutoSystemEvent } = await import('../server/utils/pluto-system')
+    const publishDue = vi.fn(async (ctx: PlutoContentContext, _now: string) => {
+      if (ctx.type.name === 'page') {
+        throw new Error('no token')
+      }
+      return 3
+    })
+    registerContentAdapter({ ...createMemoryContentAdapter(), publishDue })
+    registerContentType(contentType({ status: schedule }))
+    registerContentType(contentType({ name: 'page', status: schedule }))
+    // No schedule, or a schedule with no time column: skipped.
+    registerContentType(contentType({ name: 'note' }))
+    registerContentType(
+      contentType({
+        name: 'memo',
+        status: { ...schedule, publishedAtColumn: undefined },
+      })
+    )
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const result = await publishScheduledContent(
+      new Date('2026-03-31T00:00:00Z')
+    )
+
+    expect(result).toEqual({ published: 3, failed: ['page'] })
+    expect(publishDue).toHaveBeenCalledTimes(2)
+    const [ctx, now] = publishDue.mock.calls[0]!
+    expect(isPlutoSystemEvent(ctx.event)).toBe(true)
+    expect(now).toBe('2026-03-31T00:00:00.000Z')
+    expect(warn).toHaveBeenCalledOnce()
+    warn.mockRestore()
+  })
+
+  it('does nothing without publishDue on the adapter', async () => {
+    const { registerContentAdapter, publishScheduledContent } =
+      await loadHandlers()
+    registerContentAdapter(createMemoryContentAdapter())
+    expect(await publishScheduledContent()).toEqual({
+      published: 0,
+      failed: [],
+    })
+  })
+})
