@@ -1096,7 +1096,7 @@ reads public facts. The author does each change on GitHub in the GitHub settings
 
 ### The workflow
 
-`runtime/shared/pages-workflow.ts` (pure): `renderPagesWorkflow({ branch, packageManager })`,
+`runtime/shared/pages-workflow.ts` (pure): `renderPagesWorkflow({ branch, packageManager, dir })`,
 `detectPackageManager(files)` (the lock file: `bun.lock`/`bun.lockb`, `pnpm-lock.yaml`, `yarn.lock`,
 else npm), `defaultPagesUrl(repo)` and `PAGES_WORKFLOW_PATH` (`.github/workflows/pluto-pages.yml`).
 The workflow runs on a push to the branch and by hand (`workflow_dispatch`, so the workflow page has
@@ -1107,6 +1107,19 @@ The workflow runs on a push to the branch and by hand (`workflow_dispatch`, so t
 `build`: Nuxt Icon sees a static build only through `nuxt generate`. Then it reads icons from the
 Iconify API and bundles the custom collections. With `nuxt build` it asks the missing
 `/api/_nuxt_icon` route, and the icons of a page opened in the browser stay blank.
+
+**Scheduled posts on GitHub Pages.** A static site has no server task, so the workflow also runs
+every hour (`schedule: cron '17 * * * *'`). The `publish` job (only on the schedule, `contents:
+write`) checks out the branch and runs `PUBLISH_SCHEDULED_SCRIPT` with plain Node (no install): every
+`.md` file under `PLUTO_CONTENT_DIR` (`plutoGithub.dir`; dot folders skipped) with `status: scheduled`
+and a `publishedAt` that has come gets `status: published` (only that line changes), and it writes
+`published=<n>`. Then it commits (`content: publish <n> scheduled`, as `github-actions[bot]`) and
+pushes. The `build` job needs `publish` and runs on a push, by hand, or on the schedule only when
+`published` is not 0; it checks out the branch, so it builds the new commit (a push with the token
+of the workflow starts no other workflow). The keys are the ones of the built-in post type. A
+branch with a protection rule that refuses the push of the bot stops the publish. The Deploy page
+shows an older workflow as old (`workflow.current`), so a site gets the new file with **Add the
+workflow** (local mode) or by copy.
 
 ### Routes
 

@@ -147,7 +147,11 @@ async function buildStatus(
   const packageManager = detectPackageManager(
     local ? await rootFiles(root) : []
   )
-  const text = renderPagesWorkflow({ branch: config.branch, packageManager })
+  const text = renderPagesWorkflow({
+    branch: config.branch,
+    packageManager,
+    dir: config.dir,
+  })
   const status: PlutoDeployStatus = {
     repo: config.repo,
     branch: config.branch,
@@ -202,6 +206,7 @@ export async function handleSetupPages(
   const text = renderPagesWorkflow({
     branch: config.branch,
     packageManager: detectPackageManager(await rootFiles(config.fsRoot)),
+    dir: config.dir,
   })
 
   let committed = false
