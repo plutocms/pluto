@@ -13,7 +13,7 @@ import {
   isSameProps,
   renderInlineProps,
   renderYamlProps,
-} from './mdc-props'
+} from '#layers/pluto/shared/utils/blocks/mdc-props'
 import { flatChildren } from './tree'
 
 /** Puts the indent before each non-blank line but the first. */

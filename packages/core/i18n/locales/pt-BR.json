@@ -1115,6 +1115,21 @@
     "status": {
       "scheduled": "Agendado",
       "review": "Em revisão"
+    },
+    "blocks": {
+      "insert": "Inserir um componente",
+      "chipLabel": "Componente {name}. Abrir as configurações",
+      "unknown": "Não encontrado",
+      "unknownHelp": "Este site não tem o componente \"{name}\". A página não mostra nada aqui. Confira o nome no modo Markdown, ou remova o bloco.",
+      "noProps": "Este componente não tem configurações.",
+      "remove": "Remover",
+      "changeImage": "Trocar",
+      "chooseImage": "Escolher na biblioteca de mídia",
+      "default": "Padrão",
+      "iconHelp": "O nome de um ícone, por exemplo i-lucide-rocket.",
+      "imageUrlPlaceholder": "Ou cole a URL de uma imagem",
+      "linkPlaceholder": "/pagina ou https://…",
+      "removeImage": "Remover"
     }
   },
   "content": {

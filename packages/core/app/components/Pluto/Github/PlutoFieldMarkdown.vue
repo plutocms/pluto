@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PlutoBlockInsertMenu from '../Block/PlutoBlockInsertMenu.vue'
 import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 
 // The `richtext` widget of the standalone CMS. It edits a Markdown string with
@@ -74,12 +75,19 @@ const frame = computed(() =>
       }
 )
 
-// The toolbar items are shared: `usePlutoMarkdownToolbar`. The link and image
-// buttons are slots. The image button shows when the app has a media library.
+// The toolbar items are shared: `usePlutoMarkdownToolbar`. The link, image and
+// component buttons are slots. The image button shows when the app has a media
+// library, the component menu when the site has block components.
+const components = usePlutoContentComponents()
 const items = usePlutoMarkdownToolbar({
   link: true,
   image: usePlutoMedia().enabled,
+  component: components.list.value.length > 0,
 })
+
+// A content component (`::name{props}` then `::`) shows as a chip. See the
+// content-components skill.
+const extensions = [PlutoContentComponentNode]
 </script>
 
 <template>
@@ -141,6 +149,7 @@ const items = usePlutoMarkdownToolbar({
       :placeholder="placeholder"
       :image="true"
       :mention="false"
+      :extensions="extensions"
       :ui="
         canvas
           ? {
@@ -180,6 +189,9 @@ const items = usePlutoMarkdownToolbar({
           </template>
           <template #image>
             <PlutoMediaEditorButton :editor="editor" />
+          </template>
+          <template #component>
+            <PlutoBlockInsertMenu :editor="editor" />
           </template>
         </UEditorToolbar>
       </UTheme>

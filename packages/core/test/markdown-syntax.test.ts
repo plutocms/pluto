@@ -43,6 +43,19 @@ describe('findUnsafeMarkdown', () => {
     expect(kinds('  :::tabs\n')).toContain('mdc-block')
   })
 
+  it('keeps an empty top-level component: the visual editor has a chip for it', () => {
+    expect(
+      findUnsafeMarkdown(`Text\n\n::my-card{title="Hi" :n='2'}\n::\n\nMore\n`)
+    ).toEqual([])
+    expect(findUnsafeMarkdown('::rule\n\n::\n')).toEqual([])
+    // With content, with an indent, or not closed, it is still an MDC block.
+    expect(kinds('::note\nHello\n::\n')).toEqual(['mdc-block'])
+    expect(kinds('  ::card\n  ::\n')).toEqual(['mdc-block'])
+    expect(kinds('::card\n')).toEqual(['mdc-block'])
+    // An empty component inside another one: the outer lines are unsafe.
+    expect(kinds('::outer\n::inner\n::\n::\n')).toEqual(['mdc-block'])
+  })
+
   it('finds an inline MDC component', () => {
     expect(kinds('Use :icon{name="i-lucide-x"} here')).toEqual(['mdc-inline'])
     expect(kinds(':badge[New]{color=primary}')).toContain('mdc-inline')

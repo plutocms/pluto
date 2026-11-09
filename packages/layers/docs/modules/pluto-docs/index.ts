@@ -1,22 +1,12 @@
-import type { Nuxt } from '@nuxt/schema'
 import type { PlutoDocsOptions } from './options'
 import { join } from 'node:path'
 import {
-  addImports,
   addServerHandler,
-  addVitePlugin,
   createResolver,
   defineNuxtModule,
   useLogger,
 } from '@nuxt/kit'
 import { PREVIEW_PATH } from '../../shared/utils/blocks/preview-protocol'
-import {
-  BLOCK_MACRO,
-  BlockCatalog,
-  blocksModuleSource,
-  CONTENT_COMPONENTS_DIR,
-  MACRO_KEY,
-} from './blocks'
 import { buildContentManifest, manifestModuleSource } from './manifest'
 import { resolvePlutoDocsOptions } from './options'
 
@@ -43,7 +33,7 @@ export default defineNuxtModule<PlutoDocsOptions>({
       nuxt.options as { plutoGithub?: { enabled?: boolean | 'auto' } }
     ).plutoGithub
 
-    const { enabled, render, runtimeMaxAge, types, blocks, errors } =
+    const { enabled, render, runtimeMaxAge, types, errors } =
       resolvePlutoDocsOptions(options, {
         cmsEnabled: cms?.enabled !== false,
       })
@@ -51,17 +41,6 @@ export default defineNuxtModule<PlutoDocsOptions>({
     for (const error of errors) {
       logger.error(error)
     }
-    // `definePlutoBlock(...)` in a component file. A typed no-op at run time: the build reads the call.
-    addImports({
-      name: BLOCK_MACRO,
-      from: createResolver(import.meta.url).resolve(
-        '../../shared/utils/blocks/define'
-      ),
-    })
-
-    // The editor imports the virtual module even when the layer is off, so it always exists.
-    setupBlockDiscovery(nuxt, logger, enabled && blocks.discover)
-
     if (!enabled) {
       return
     }
@@ -142,89 +121,3 @@ export default defineNuxtModule<PlutoDocsOptions>({
     }
   },
 })
-
-/**
- * The component layer of the block editor. The virtual module `#pluto-docs/blocks` holds the blocks
- * of the `components/content/` folders. Only the two lazy editor roots import it, so it stays out of
- * the public pages. The server build gets an empty object: the editor never renders on the server.
- * The cost comes when the editor first loads, not at start-up. A change to a component file makes
- * the module load again, and the catalog parses only the file that changed.
- */
-function setupBlockDiscovery(
-  nuxt: Nuxt,
-  logger: ReturnType<typeof useLogger>,
-  discover: boolean
-) {
-  const id = '#pluto-docs/blocks'
-  // The `\0` prefix marks a virtual id. No `#` in it: a browser URL ends at the `#`.
-  const resolved = '\0pluto-docs-blocks'
-  // The app first, then its layers (the order of priority).
-  const dirs = () =>
-    nuxt.options._layers.map((layer) =>
-      join(layer.config.srcDir, CONTENT_COMPONENTS_DIR)
-    )
-
-  // The cache of the parser names a file from the text after the last slash, so give it slashes.
-  const slashes = (path: string) => path.replaceAll('\\', '/')
-
-  type Reader = typeof import('nuxt-component-meta/parser').getComponentMeta
-  let getComponentMeta: Reader | undefined
-  const catalog = new BlockCatalog(
-    dirs,
-    (file) =>
-      getComponentMeta!(slashes(file), {
-        rootDir: nuxt.options.rootDir,
-        cache: true,
-        cacheDir: join(nuxt.options.buildDir, 'cache/pluto-blocks'),
-        extendMetaFunctions: [
-          { name: BLOCK_MACRO, transform: (arg) => ({ [MACRO_KEY]: arg }) },
-        ],
-      }) as never,
-    logger
-  )
-
-  const isBlockFile = (file: string) =>
-    file.endsWith('.vue') &&
-    dirs().some((dir) => slashes(file).startsWith(slashes(dir)))
-
-  addVitePlugin({
-    name: 'pluto-docs:blocks',
-    enforce: 'pre',
-    resolveId(source) {
-      return source === id ? resolved : undefined
-    },
-    async load(loaded, options) {
-      if (loaded !== resolved) {
-        return undefined
-      }
-      if (options?.ssr || !discover) {
-        return blocksModuleSource({})
-      }
-      // The parser loads here, not at start-up, because it brings the TypeScript compiler.
-      getComponentMeta ||= (await import('nuxt-component-meta/parser'))
-        .getComponentMeta
-      return blocksModuleSource(catalog.collect())
-    },
-    configureServer(server) {
-      const invalidate = (file: string) => {
-        if (!isBlockFile(file)) {
-          return
-        }
-        const module = server.moduleGraph.getModuleById(resolved)
-        if (module) {
-          server.moduleGraph.invalidateModule(module)
-          server.ws.send({ type: 'full-reload' })
-        }
-      }
-      server.watcher.on('add', invalidate)
-      server.watcher.on('unlink', invalidate)
-    },
-    handleHotUpdate({ file, server }) {
-      if (!isBlockFile(file)) {
-        return undefined
-      }
-      const module = server.moduleGraph.getModuleById(resolved)
-      return module ? [module] : undefined
-    },
-  })
-}

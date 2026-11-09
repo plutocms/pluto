@@ -142,39 +142,23 @@ The type of a prop gives the widget. `undefined` and `null` are removed first.
 
 ## Discovery
 
-The component layer is built at build time. The code is in `modules/pluto-docs/blocks.ts` (Node, no Nuxt
-import) and `modules/pluto-docs/index.ts` (`setupBlockDiscovery`).
+The component layer comes from core: the `pluto-blocks` module of `@plutocms/core` finds the files of
+`components/content/` that call `definePlutoBlock(...)`, reads their props and slots from the
+TypeScript types, and gives the virtual module `#pluto-blocks`. See the content-components skill of
+pluto (`.claude/skills/content-components/SKILL.md`, "Discovery"). The post editor of core uses the
+same catalog for its content components.
 
-- Opt-in. A component in `components/content/` is a block only when its file calls
-  `definePlutoBlock(...)`. The call can be `definePlutoBlock({})`: the props and slots still come from
-  the types. A file without the call is not read, and it is not in the palette. A `plutoBlocks` entry in
-  `app.config.ts` can still add any component.
-- The folders are `components/content/` of the app and of every layer (the same folders as Nuxt
-  Content), with the app first. When two files have the same name, the first one wins. `Prose*` files
-  and `.client` / `.server` variants are skipped.
-- A cheap text check (`hasBlockMacro`) runs before the parser. Only a file that passes is parsed, with
-  `getComponentMeta` of `nuxt-component-meta/parser` and the `extendMetaFunctions` hook. The module does
-  NOT install the `nuxt-component-meta` module, so there are no `/api/component-meta` routes.
-  `nuxt-component-meta` is a direct dependency, pinned to the version of `@nuxt/content`.
-- `definePlutoBlock` is an auto-import. At run time it returns its argument, so it does nothing. The
-  parser reads the call as a statement: an object literal, with constants imported from a file. A local
-  variable of the setup is not read. A parse error, or an argument that is not read, gives one warning
-  with the file name, and no block for that file. The rest of the build goes on.
-- `BlockCatalog` caches by file text. A changed file is parsed again, the others are not. The parser
-  also keeps a disk cache in `<buildDir>/cache/pluto-blocks`. It does not see a change in a file that
-  the component imports (a shared type). Delete that folder after such a change.
-- The Vite virtual module `#pluto-docs/blocks` holds the layer. Only `PlutoBlockEditor.vue` and
-  `PlutoBlockMarkdownSplit.vue` import it, and pass it to `usePlutoBlockSources(componentBlocks)`. So it
-  is in the lazy editor chunk, not in the public pages. The server build gets `{}`. In dev it loads when
-  the editor first loads, and a changed or new component file loads it again. The resolved id has no
-  `#`, because a browser URL stops at the `#`.
-- The module registers the virtual module and the auto-import even when the layer is off, so the editor
-  files always resolve.
-- Option `plutoDocs.blocks.discover` (default `true`). `false` makes the module empty.
-- Time: the first parse in a run costs about 1 s (the TypeScript checker starts). Each next component
-  costs about 0.5 s, because the parser makes a new checker for each call. Debug level logs the time of
-  each component and the total. A shared checker would be faster, but `nuxt-component-meta` does not
-  export the pieces for it.
+- Only `PlutoBlockEditor.vue` and `PlutoBlockMarkdownSplit.vue` import `#pluto-blocks`, and pass it
+  to `usePlutoBlockSources(componentBlocks)`. So it is in the lazy editor chunk.
+- The definition types (`PlutoBlockDefinition`, `PlutoBlockPatch`, the prop types...), `blockKey`,
+  `humanizeName`, `mergeBlockPatch`, `BLOCK_COLORS`, the MDC props (`mdc-props.ts`) and the meta
+  reader (`component-meta.ts`) are in core, `shared/utils/blocks/`. The layer imports them with the
+  alias `#layers/pluto/...` (`types.ts` re-exports the types). `vitest.config.ts` gives the same alias
+  to plain Vitest.
+- **Shared labels:** the meta reader of core gives no label. `resolveBlockDefinition` puts the label of
+  a preset prop or slot with the same name (`docs.blocks.props.icon`, `docs.blocks.slots.default`) on
+  a prop or a slot of the component layer that has no label (`withSharedLabels` in `registry.ts`).
+  The label of the macro wins.
 
 ## Tests
 
@@ -184,13 +168,8 @@ import) and `modules/pluto-docs/index.ts` (`setupBlockDiscovery`).
   and every operation leaves a text that parses again and writes the same bytes.
 - `test/blocks-parse.test.ts`, `test/blocks-history.test.ts`, `test/blocks-registry.test.ts` (the
   layers, the merge, the names, the palette), `test/blocks-preview-protocol.test.ts`.
-- `test/blocks-discovery.test.ts`: the pure code of `blocks.ts` with a fake reader (the macro check, the
-  folders, the warnings, the cache). `test/blocks-discovery-parser.test.ts`: the real parser on
-  `test/fixtures/discovery/` (an app folder and a layer folder; a macro, no macro, a local variable, a
-  `Prose` file, an imported constant). It is the slow test (about 4 s).
-- `test/blocks-component-meta.test.ts`: the type table and the macro. The fixtures are the real
-  parser output for three docs-site components, in `test/fixtures/component-meta/`
-  (`nuxt-component-meta` 0.18.0, the version that `@nuxt/content` pins).
+- `test/blocks-component-layer.test.ts`: the component layer of core in this editor (the shared
+  labels, the kebab props of a page, `false` slots). The discovery and the meta tests are in core.
 
 ## Pinned versions
 

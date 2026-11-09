@@ -1,17 +1,16 @@
 // Make a block definition from the meta of a Vue component and the optional
-// `definePlutoBlock({...})` call in its file. Pure: the build step (a later
-// change) parses the files with `nuxt-component-meta` and passes the result in.
-// The result is the "component layer" of one component. Opt-in: the build step
-// calls this only for a component that has the macro.
+// `definePlutoBlock({...})` call in its file. Pure: the build step (modules/pluto-blocks) parses
+// the files with `nuxt-component-meta` and passes the result in. The result is the "component
+// layer" of one component. Opt-in: the build step calls this only for a component that has the
+// macro. A prop or a slot gets no label here: an editor shows its own label, else the name.
 
 import type {
   PlutoBlockPatch,
   PlutoBlockPropDefinition,
   PlutoBlockPropPatch,
   PlutoBlockSlotDefinition,
-} from './types'
-import { BLOCK_COLORS, BLOCK_PRESETS } from './presets'
-import { blockKey, mergeBlockPatch } from './registry'
+} from './definition'
+import { BLOCK_COLORS, blockKey, mergeBlockPatch } from './definition'
 
 // The parts of the output of `getComponentMeta` that this file reads. The real output has more.
 export interface PlutoMetaSchema {
@@ -174,45 +173,6 @@ export function parseDefault(
   return literal && !literal[2]!.includes(literal[1]!) ? literal[2] : undefined
 }
 
-// --- Shared labels ----------------------------------------------------------------
-
-function sharedKeys(
-  pick: (block: (typeof BLOCK_PRESETS)[string]) => Array<string | undefined>,
-  prefix: string
-): Set<string> {
-  const names = new Set<string>()
-  for (const preset of Object.values(BLOCK_PRESETS)) {
-    for (const label of pick(preset)) {
-      if (label?.startsWith(prefix)) {
-        names.add(label.slice(prefix.length))
-      }
-    }
-  }
-  return names
-}
-
-const PROP_PREFIX = 'docs.blocks.props.'
-const SLOT_PREFIX = 'docs.blocks.slots.'
-let sharedProps: Set<string> | undefined
-let sharedSlots: Set<string> | undefined
-
-/** The shared label key of a prop (`icon`, `to`, `title`...) when the presets have one. */
-function propLabelKey(name: string): string | undefined {
-  sharedProps ??= sharedKeys(
-    (preset) => Object.values(preset.props ?? {}).map((prop) => prop.label),
-    PROP_PREFIX
-  )
-  return sharedProps.has(name) ? `${PROP_PREFIX}${name}` : undefined
-}
-
-function slotLabelKey(name: string): string | undefined {
-  sharedSlots ??= sharedKeys(
-    (preset) => Object.values(preset.slots ?? {}).map((slot) => slot.label),
-    SLOT_PREFIX
-  )
-  return sharedSlots.has(name) ? `${SLOT_PREFIX}${name}` : undefined
-}
-
 // --- The block --------------------------------------------------------------------
 
 function propFromMeta(prop: PlutoMetaProp): PlutoBlockPropPatch | undefined {
@@ -220,11 +180,9 @@ function propFromMeta(prop: PlutoMetaProp): PlutoBlockPropPatch | undefined {
   if (!widget) {
     return undefined
   }
-  const label = propLabelKey(prop.name)
   const fallback = parseDefault(prop.default)
   return {
     ...widget,
-    ...(label ? { label } : {}),
     ...(prop.description ? { description: prop.description.trim() } : {}),
     ...(fallback !== undefined ? { default: fallback } : {}),
   }
@@ -242,9 +200,7 @@ function hasUnwrap(slot: PlutoMetaSlot): boolean {
 }
 
 function slotFromMeta(slot: PlutoMetaSlot): PlutoBlockSlotDefinition {
-  const label = slotLabelKey(slot.name)
   return {
-    ...(label ? { label } : {}),
     ...(hasUnwrap(slot) ? { content: 'inline' as const } : {}),
   }
 }

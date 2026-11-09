@@ -10,12 +10,12 @@ import type {
   PlutoComponentBlock,
   PlutoPropValue,
 } from '../../../../../shared/utils/blocks/types'
+import PlutoBlockPropControl from '#layers/pluto/app/components/Pluto/Block/PlutoBlockPropControl.vue'
 import {
   resolveSlotMode,
   slotMarkdown,
 } from '../../../../../shared/utils/blocks/editor'
 import { blockMarkdown } from '../../../../../shared/utils/blocks/operations'
-import PlutoBlockPropControl from './PlutoBlockPropControl.vue'
 import PlutoBlockRawEditor from './PlutoBlockRawEditor.vue'
 import PlutoBlockTextEditor from './PlutoBlockTextEditor.vue'
 

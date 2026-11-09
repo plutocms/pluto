@@ -12,26 +12,9 @@ describe('resolvePlutoDocsOptions', () => {
       enabled: true,
       render: 'hybrid',
       runtimeMaxAge: 10,
-      blocks: { discover: true },
       types: [],
       errors: [],
     })
-  })
-
-  it('checks blocks.discover', () => {
-    const ctx = { cmsEnabled: true }
-    expect(
-      resolvePlutoDocsOptions({ blocks: { discover: false } }, ctx).blocks
-    ).toEqual({ discover: false })
-    const bad = resolvePlutoDocsOptions(
-      { blocks: { discover: 'no' as never } },
-      ctx
-    )
-    expect(bad.blocks).toEqual({ discover: true })
-    expect(bad.errors).toHaveLength(1)
-    expect(
-      resolvePlutoDocsOptions({ blocks: 3 as never }, ctx).errors
-    ).toHaveLength(1)
   })
 
   it('is off with an error when the CMS is off', () => {
@@ -43,7 +26,6 @@ describe('resolvePlutoDocsOptions', () => {
       enabled: false,
       render: 'build',
       runtimeMaxAge: 10,
-      blocks: { discover: false },
       types: [],
       errors: [CMS_OFF_ERROR],
     })

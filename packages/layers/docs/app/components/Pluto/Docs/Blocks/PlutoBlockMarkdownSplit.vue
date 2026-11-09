@@ -10,7 +10,7 @@
 import type { SplitterItem } from '@nuxt/ui'
 import type { PlutoMarkdownCodeEditor as CodeEditor } from '#components'
 // The component layer. Only the two editor roots import it, so it stays out of the public pages.
-import componentBlocks from '#pluto-docs/blocks'
+import componentBlocks from '#pluto-blocks'
 import { findBlock } from '../../../../../shared/utils/blocks/tree'
 import PlutoMdcInsertMenu from '../PlutoMdcInsertMenu.vue'
 import PlutoBlockModeSwitch from './PlutoBlockModeSwitch.vue'

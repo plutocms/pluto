@@ -1,4 +1,5 @@
 import { ELEMENT_NODE, parse, renderSync, TEXT_NODE } from 'ultrahtml'
+import { PLUTO_COMPONENT_ATTRIBUTE, readComponentMarker } from '../markdown/component'
 import { decodeEntitiesOnce } from '../markdown/sanitize-html'
 
 /**
@@ -116,6 +117,7 @@ export type PlutoHtmlPart =
     }
   | { kind: 'text'; text: string }
   | { kind: 'embed'; href: string; inner: string }
+  | { kind: 'component'; name: string; props: Record<string, unknown> }
 
 /** Decodes the entities that the sanitizer writes in a text or an attribute value. */
 export const decodeHtmlEntities = decodeEntitiesOnce
@@ -142,18 +144,24 @@ function firstHref(node: HtmlNode): string | undefined {
   return undefined
 }
 
-/** True when the HTML has an embed paragraph. A quick test before `splitEmbedHtml`. */
+/** True when the HTML has an embed paragraph. A quick test before `splitBodyHtml`. */
 export function hasEmbedParagraph(html: string): boolean {
   return html.includes('data-pluto-embed')
 }
 
+/** True when the HTML has the mark of a content component. A quick test before `splitBodyHtml`. */
+export function hasComponentMarker(html: string): boolean {
+  return html.includes(PLUTO_COMPONENT_ATTRIBUTE)
+}
+
 /**
  * Splits sanitized body HTML into its top-level parts, so `PlutoHtml` can put a provider
- * component in place of an embed paragraph and keep every other element as it is (its inner HTML
- * stays a string). The top level stays flat, so the direct-child rules of `.pluto-prose` still
- * apply. Whitespace between the elements goes.
+ * component in place of an embed paragraph, and a site component in place of the mark of a content
+ * component (`div[data-pluto-component]`, see shared/markdown/component.ts), and keep every other
+ * element as it is (its inner HTML stays a string). The top level stays flat, so the direct-child
+ * rules of `.pluto-prose` still apply. Whitespace between the elements goes.
  */
-export function splitEmbedHtml(html: string): PlutoHtmlPart[] {
+export function splitBodyHtml(html: string): PlutoHtmlPart[] {
   const root = parse(html) as HtmlNode
   const parts: PlutoHtmlPart[] = []
   for (const node of root.children ?? []) {
@@ -174,6 +182,12 @@ export function splitEmbedHtml(html: string): PlutoHtmlPart[] {
     const href = firstHref(node)
     if (node.name === 'p' && 'data-pluto-embed' in attributes && href) {
       parts.push({ kind: 'embed', href: decodeHtmlEntities(href), inner })
+      continue
+    }
+    const marker =
+      node.name === 'div' ? readComponentMarker(attributes) : undefined
+    if (marker) {
+      parts.push({ kind: 'component', ...marker })
       continue
     }
     parts.push({

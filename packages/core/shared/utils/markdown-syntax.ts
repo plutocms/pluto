@@ -1,3 +1,5 @@
+import { matchEmptyComponent } from '../markdown/component'
+
 /** The kind of Markdown syntax that the visual editor (CommonMark and strikethrough) cannot keep. */
 export type UnsafeMarkdownKind =
   | 'mdc-block'
@@ -13,6 +15,28 @@ export interface UnsafeMarkdownIssue {
   kind: UnsafeMarkdownKind
   /** The first line (1-based) where this kind appears. */
   line: number
+}
+
+/**
+ * The last line index of an empty component that opens at `index` with no indent (`::name{props}`,
+ * blank lines, `::`): the visual editor keeps it as a component chip. Else `undefined`.
+ */
+function emptyComponentEnd(
+  lines: string[],
+  index: number
+): number | undefined {
+  if (!/^:{2,}[a-z]/i.test(lines[index]!)) {
+    return undefined
+  }
+  let end = index + 1
+  while (end < lines.length && !lines[end]!.trim()) {
+    end++
+  }
+  if (end >= lines.length || !/^:{2,}[ \t]*$/.test(lines[end]!)) {
+    return undefined
+  }
+  const text = `${lines.slice(index, end + 1).join('\n')}\n`
+  return matchEmptyComponent(text)?.raw.length === text.length ? end : undefined
 }
 
 /** A fence info string that the visual editor keeps: nothing, or one language name. */
@@ -55,7 +79,9 @@ function openingFence(line: string):
 
 /**
  * Finds Markdown syntax that the visual editor would lose on save: MDC
- * blocks (`::note`) and inline components (`:icon{name=x}`), attributes
+ * blocks (`::note`, but not an empty component with inline props at the top
+ * level: the editor keeps it as a content component) and inline components
+ * (`:icon{name=x}`), attributes
  * after a link or code (`[a](b){.c}`), HTML tags, GFM tables, task lists,
  * footnotes, and a code fence with more than a language in its info string.
  * Text inside a code fence or an inline code span is plain code, so it is
@@ -112,9 +138,14 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
     })
   })
 
+  // The lines of an empty component (a content component) are safe.
+  let safeUntil = -1
   for (const [index, line] of blanked.entries()) {
     const number = index + 1
-    if (MDC_BLOCK.test(line)) {
+    if (index > safeUntil) {
+      safeUntil = emptyComponentEnd(blanked, index) ?? -1
+    }
+    if (index > safeUntil && MDC_BLOCK.test(line)) {
       add('mdc-block', number)
     }
     if (MDC_INLINE.test(line)) {

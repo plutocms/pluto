@@ -3,6 +3,11 @@
 import type { Tokens } from 'marked'
 import { Marked } from 'marked'
 import { ELEMENT_NODE, parse, TEXT_NODE, walkSync } from 'ultrahtml'
+import {
+  componentMarkerHtml,
+  componentStart,
+  matchEmptyComponent,
+} from './component'
 import { sanitizeHtml } from './sanitize-html'
 
 /** The attribute of an embed paragraph. See `isEmbedParagraph`. */
@@ -30,8 +35,11 @@ export function isEmbedParagraph(tokens: Tokens.Generic[]): boolean {
 // so raw HTML in a post never reaches the output. The sanitizer still runs
 // on the result, as a second guard. A paragraph that can be an embed gets
 // `data-pluto-embed`; it stays a plain paragraph with a link for any client.
+// An empty component (`::name{props}` then `::`) becomes the mark of a content
+// component (see ./component.ts).
 const marked = new Marked({
   gfm: true,
+  extensions: [plutoComponentExtension()],
   renderer: {
     html: () => '',
     paragraph(token) {
@@ -42,6 +50,38 @@ const marked = new Marked({
     },
   },
 })
+
+/**
+ * The marked extension of a content component: an empty component at the top level becomes its
+ * mark (`componentMarkerHtml`). The Markdown path of a layer (supabase-blog) uses it too.
+ */
+export function plutoComponentExtension() {
+  return {
+    name: 'plutoComponent',
+    level: 'block' as const,
+    start: (src: string) => {
+      const index = componentStart(src)
+      return index < 0 ? undefined : index
+    },
+    tokenizer(src: string) {
+      const match = matchEmptyComponent(src)
+      return match
+        ? {
+            type: 'plutoComponent',
+            raw: match.raw,
+            name: match.name,
+            props: match.props,
+          }
+        : undefined
+    },
+    renderer(token: Tokens.Generic) {
+      return componentMarkerHtml(
+        String(token.name),
+        (token.props ?? {}) as Record<string, unknown>
+      )
+    },
+  }
+}
 
 const FENCE = /^\s*(`{3,}|~{3,})/
 const BLOCK_OPEN = /^\s*:{2,}[a-z][\w-]*(?:\{[^}]*\})?\s*$/i
@@ -58,10 +98,27 @@ function stripInlineMdc(line: string): string {
 }
 
 /**
+ * The index of the closing line of an empty component that opens at `index` (`matchEmptyComponent`),
+ * else `undefined`.
+ */
+function emptyComponentEnd(lines: string[], index: number): number | undefined {
+  let end = index + 1
+  while (end < lines.length && !lines[end]!.trim()) {
+    end++
+  }
+  if (end >= lines.length) {
+    return undefined
+  }
+  const text = `${lines.slice(index, end + 1).join('\n')}\n`
+  return matchEmptyComponent(text)?.raw.length === text.length ? end : undefined
+}
+
+/**
  * Removes the MDC syntax of Nuxt Content from Markdown and keeps the text in it, so a page that
  * uses components renders as plain Markdown: the `::name` and `::` lines of a block component go,
  * with the YAML props block (`---` … `---`) right after an open line, the `#slot` lines inside a
- * component, inline components, and `{…}` attributes. Code in a fence does not change.
+ * component, inline components, and `{…}` attributes. Code in a fence does not change. An empty
+ * component at the top level (`::name{props}` then `::`) stays: it is a content component.
  */
 export function stripMdc(markdown: string): string {
   const lines = markdown.split(/\r?\n/)
@@ -71,7 +128,8 @@ export function stripMdc(markdown: string): string {
   let inProps = false
   let afterOpen = false
 
-  for (const line of lines) {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index]!
     const fenceMatch = FENCE.exec(line)
     if (fence) {
       out.push(line)
@@ -98,6 +156,15 @@ export function stripMdc(markdown: string): string {
       fence = fenceMatch[1]
       out.push(line)
       continue
+    }
+    // An empty component at the top level stays: the renderer makes it a content component.
+    if (depth === 0 && BLOCK_OPEN.test(line)) {
+      const empty = emptyComponentEnd(lines, index)
+      if (empty !== undefined) {
+        out.push(line, ...lines.slice(index + 1, empty + 1))
+        index = empty
+        continue
+      }
     }
     if (BLOCK_OPEN.test(line)) {
       depth++

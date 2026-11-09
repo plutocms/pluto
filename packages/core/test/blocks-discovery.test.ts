@@ -2,7 +2,7 @@ import type {
   BlockLog,
   MetaReader,
   ParsedComponent,
-} from '../modules/pluto-docs/blocks'
+} from '../modules/pluto-blocks/catalog'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -13,7 +13,7 @@ import {
   findContentComponents,
   hasBlockMacro,
   readBlockEntry,
-} from '../modules/pluto-docs/blocks'
+} from '../modules/pluto-blocks/catalog'
 
 const fixture = join(__dirname, 'fixtures', 'discovery')
 const appDir = join(fixture, 'app', 'components', 'content')

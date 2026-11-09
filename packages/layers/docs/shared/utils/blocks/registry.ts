@@ -7,17 +7,24 @@ import type {
   PlutoBlock,
   PlutoBlockDefinition,
   PlutoBlockOverride,
-  PlutoBlockPatch,
   PlutoBlockPropDefinition,
   PlutoBlocksConfig,
   PlutoBlockSlotDefinition,
   PlutoBlockSources,
   PlutoComponentBlock,
 } from './types'
+import {
+  blockKey,
+  camelKey,
+  humanizeName,
+  mergeBlockPatch,
+  sameKey,
+} from '#layers/pluto/shared/utils/blocks/definition'
 import { BLOCK_GROUPS, BLOCK_PRESETS, HIDDEN_PROP_NAMES } from './presets'
 
-// The typed identity helper is in its own file, so a component file that auto-imports it does not load the registry.
-export { definePlutoBlock } from './define'
+// The key helpers and the patch join are in core: the content components of the post editor use
+// them too.
+export { blockKey, camelKey, humanizeName, mergeBlockPatch }
 
 export interface ResolveOptions {
   /** The layers: the component layer and the `plutoBlocks` value of the app config. */
@@ -26,43 +33,7 @@ export interface ResolveOptions {
   block?: PlutoComponentBlock
 }
 
-/** A readable name from a component name: `pluto-hero` gives `Pluto hero`, `starCount` gives `Star count`. */
-export function humanizeName(name: string): string {
-  const text = name
-    .replace(/^u-/, '')
-    .replace(
-      /([a-z0-9])([A-Z])/g,
-      (_, before: string, letter: string) => `${before} ${letter.toLowerCase()}`
-    )
-    .replace(/[-_]+/g, ' ')
-    .trim()
-  return text ? text[0]!.toUpperCase() + text.slice(1) : name
-}
 
-/**
- * The key of a component in the sources: the kebab name that `pascalCase` turns back into the
- * component name. `PlutoHero` gives `pluto-hero`, and `UPageCTA` gives `u-page-c-t-a`. A name that
- * is already kebab case stays as it is.
- */
-export function blockKey(name: string): string {
-  return name.replace(/(?<!^|-)[A-Z]/g, (letter) => `-${letter}`).toLowerCase()
-}
-
-/** `star-count` gives `starCount`. */
-export function camelKey(name: string): string {
-  return name.replace(/-+([a-z0-9])/gi, (_, letter: string) =>
-    letter.toUpperCase()
-  )
-}
-
-/** The key of `map` that means `key`: the same key, else the same name in kebab or camel case. */
-function sameKey(map: object, key: string): string {
-  if (key in map) {
-    return key
-  }
-  const camel = camelKey(key)
-  return Object.keys(map).find((other) => camelKey(other) === camel) ?? key
-}
 
 function automaticDefinition(name: string): PlutoBlockDefinition {
   return {
@@ -85,6 +56,73 @@ function propFromValue(value: unknown): PlutoBlockPropDefinition {
   return {
     type: typeof value === 'string' && !text.includes('\n') ? 'string' : 'text',
     advanced: true,
+  }
+}
+
+// --- Shared labels ----------------------------------------------------------------
+// The meta reader of core gives no label. A prop or a slot of the component layer with the name of
+// a preset prop or slot (`icon`, `to`, `title`...) takes its shared label here.
+
+function sharedKeys(
+  pick: (block: (typeof BLOCK_PRESETS)[string]) => Array<string | undefined>,
+  prefix: string
+): Set<string> {
+  const names = new Set<string>()
+  for (const preset of Object.values(BLOCK_PRESETS)) {
+    for (const label of pick(preset)) {
+      if (label?.startsWith(prefix)) {
+        names.add(label.slice(prefix.length))
+      }
+    }
+  }
+  return names
+}
+
+const PROP_PREFIX = 'docs.blocks.props.'
+const SLOT_PREFIX = 'docs.blocks.slots.'
+let sharedProps: Set<string> | undefined
+let sharedSlots: Set<string> | undefined
+
+/** The shared label key of a prop (`icon`, `to`, `title`...) when the presets have one. */
+function propLabelKey(name: string): string | undefined {
+  sharedProps ??= sharedKeys(
+    (preset) => Object.values(preset.props ?? {}).map((prop) => prop.label),
+    PROP_PREFIX
+  )
+  return sharedProps.has(name) ? `${PROP_PREFIX}${name}` : undefined
+}
+
+function slotLabelKey(name: string): string | undefined {
+  sharedSlots ??= sharedKeys(
+    (preset) => Object.values(preset.slots ?? {}).map((slot) => slot.label),
+    SLOT_PREFIX
+  )
+  return sharedSlots.has(name) ? `${SLOT_PREFIX}${name}` : undefined
+}
+
+/** The component layer with the shared labels on the props and the slots that have no label. */
+function withSharedLabels(
+  layer: PlutoBlockOverride | undefined
+): PlutoBlockOverride | undefined {
+  if (!layer) {
+    return layer
+  }
+  const props = Object.fromEntries(
+    Object.entries(layer.props ?? {}).map(([name, prop]) => {
+      const label = prop && !prop.label ? propLabelKey(name) : undefined
+      return [name, label && prop ? { ...prop, label } : prop]
+    })
+  )
+  const slots = Object.fromEntries(
+    Object.entries(layer.slots ?? {}).map(([name, slot]) => {
+      const label = slot && !slot.label ? slotLabelKey(name) : undefined
+      return [name, label && slot ? { ...slot, label } : slot]
+    })
+  )
+  return {
+    ...layer,
+    ...(layer.props ? { props } : {}),
+    ...(layer.slots ? { slots } : {}),
   }
 }
 
@@ -127,25 +165,6 @@ function mergeEntries<T extends object>(
   return out
 }
 
-/** The same join for two patches: `false` stays in the result, so a layer above can still remove. */
-function mergePatchEntries<T extends object>(
-  base: Record<string, Partial<T> | false | undefined> | undefined,
-  patch: Record<string, Partial<T> | false | undefined> | undefined
-): Record<string, Partial<T> | false | undefined> {
-  const out = { ...base }
-  for (const [key, value] of Object.entries(patch ?? {})) {
-    if (value === undefined) {
-      continue
-    }
-    const target = sameKey(out, key)
-    const current = out[target]
-    out[target] =
-      value === false || current === undefined || current === false
-        ? value
-        : { ...current, ...value }
-  }
-  return out
-}
 
 /**
  * Put a layer over a definition. The fields of the layer replace the fields of the base. Props and
@@ -171,29 +190,6 @@ function mergeDefinition(
   }
 }
 
-/**
- * Put one patch over another, for example the in-file macro over the block made from the
- * component meta. The result is still a patch: `false` for a prop or a slot stays in it.
- */
-export function mergeBlockPatch(
-  base: PlutoBlockPatch,
-  over: PlutoBlockPatch | false | undefined
-): PlutoBlockPatch {
-  if (over === undefined) {
-    return base
-  }
-  if (over === false) {
-    return { ...base, hidden: true }
-  }
-  const props = mergePatchEntries(base.props, over.props)
-  const slots = mergePatchEntries(base.slots, over.slots)
-  return {
-    ...base,
-    ...over,
-    ...(Object.keys(props).length ? { props } : {}),
-    ...(Object.keys(slots).length ? { slots } : {}),
-  } as PlutoBlockPatch
-}
 
 /** The slot content kind for a slot that no definition lists. */
 function slotFromChildren(children: PlutoBlock[]): PlutoBlockSlotDefinition {
@@ -222,7 +218,7 @@ export function resolveBlockDefinition(
   const merged = mergeDefinition(
     mergeDefinition(
       BLOCK_PRESETS[key] ?? automaticDefinition(key),
-      layerFor(components, key)
+      withSharedLabels(layerFor(components, key))
     ),
     layerFor(overrides, key)
   )

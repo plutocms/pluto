@@ -41,16 +41,6 @@ export interface PlutoDocsOptions {
    * It is short, so a save shows soon. `0` turns the cache header into `no-store`.
    */
   runtimeMaxAge?: number
-  /** How the block editor finds the block components of the site. */
-  blocks?: PlutoDocsBlocksOptions
-}
-
-export interface PlutoDocsBlocksOptions {
-  /**
-   * Read `components/content/` of the app and of its layers. A component that calls
-   * `definePlutoBlock(...)` becomes a block. Default `true`. `false` turns the search off.
-   */
-  discover?: boolean
 }
 
 export interface PlutoDocsResolveContext {
@@ -62,7 +52,6 @@ export interface PlutoDocsResolveResult {
   enabled: boolean
   render: PlutoDocsRender
   runtimeMaxAge: number
-  blocks: { discover: boolean }
   types: PlutoDocsTypeOptions[]
   errors: string[]
 }
@@ -121,7 +110,6 @@ export function resolvePlutoDocsOptions(
       enabled: false,
       render: 'build',
       runtimeMaxAge: DEFAULT_RUNTIME_MAX_AGE,
-      blocks: { discover: false },
       types: [],
       errors: [CMS_OFF_ERROR],
     }
@@ -152,21 +140,6 @@ export function resolvePlutoDocsOptions(
       errors.push(
         `plutoDocs.runtimeMaxAge must be a whole number of seconds, 0 or more. Using ${DEFAULT_RUNTIME_MAX_AGE}.`
       )
-    }
-  }
-
-  let discover = true
-  if (options.blocks !== undefined) {
-    if (!isRecord(options.blocks)) {
-      errors.push('plutoDocs.blocks must be an object.')
-    } else if (options.blocks.discover !== undefined) {
-      if (typeof options.blocks.discover === 'boolean') {
-        discover = options.blocks.discover
-      } else {
-        errors.push(
-          'plutoDocs.blocks.discover must be true or false. Using true.'
-        )
-      }
     }
   }
 
@@ -251,7 +224,6 @@ export function resolvePlutoDocsOptions(
     enabled: true,
     render,
     runtimeMaxAge,
-    blocks: { discover },
     types,
     errors,
   }

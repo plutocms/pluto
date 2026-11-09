@@ -10,7 +10,7 @@ import type {
   PlutoComponentBlock,
   PlutoPropValue,
 } from './types'
-import { completeOrder } from './mdc-props'
+import { completeOrder } from '#layers/pluto/shared/utils/blocks/mdc-props'
 import { dedent, parseBlocks } from './parse'
 import { renderBlock } from './serialize'
 import { findBlock, flatChildren, newBlockId, pathOf } from './tree'

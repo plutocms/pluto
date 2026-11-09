@@ -7,7 +7,7 @@ import {
   matchVimeoUrl,
   matchYoutubeUrl,
   resolveEmbed,
-  splitEmbedHtml,
+  splitBodyHtml,
 } from '../shared/utils/embed'
 
 const youtube = (href: string) => matchYoutubeUrl(new URL(href))
@@ -122,13 +122,13 @@ describe('matchVimeoUrl', () => {
   })
 })
 
-describe('splitEmbedHtml', () => {
+describe('splitBodyHtml', () => {
   it('gives the top-level parts, flat, with the embed URL decoded', () => {
     const html = renderMarkdown(
       '# Title\n\nSome *text* & more.\n\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ&t=5\n\n- a\n- b'
     )
     expect(hasEmbedParagraph(html)).toBe(true)
-    const parts = splitEmbedHtml(html)
+    const parts = splitBodyHtml(html)
 
     expect(parts.map((part) => part.kind)).toEqual([
       'element',
