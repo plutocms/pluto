@@ -42,7 +42,7 @@ works.
   `PLUTO_USE_LOCAL=false`. A relative root resolves from the current working directory.
 - `PLUTO_LAYER_PATHS` maps each layer (the package name without the scope) to its checkout under
   the root. Two repos are monorepos: `pluto` (`core` is `pluto/packages/core`, `docs` is
-  `pluto/packages/layers/docs`, `3d` is `pluto/packages/layers/addons/3d`) and `supabase`
+  `pluto/packages/layers/docs`, `3d`, `shop` and `seo` are `pluto/packages/layers/addons/<name>`) and `supabase`
   (`supabase`, `supabase-shop` and `supabase-blog` are `supabase/packages/<name>`). A layer that is
   not in the map has a folder of its name.
 - A checkout exists when its `nuxt.config.ts` exists.

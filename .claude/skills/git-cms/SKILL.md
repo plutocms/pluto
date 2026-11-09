@@ -1007,8 +1007,7 @@ Media: the GitHub driver of the core media library stores each file and its reco
 (`public/media/`, `<dir>/media/<id>.md`). The post type has a `cover` field. See the media
 skill.
 
-Planned for v2: revision history, settings stored in the repository, a password
-provider, scheduled posts, and configurable collections.
+Planned: settings stored in the repository, a password provider, and configurable collections.
 
 ## Users page
 

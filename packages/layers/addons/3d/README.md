@@ -1,5 +1,7 @@
 # @plutocms/3d
 
+**Docs:** [3D](https://pluto.vulmix.dev/docs/layers/3d)
+
 An add-on layer for [Pluto](https://pluto.vulmix.dev). It adds 3D models (`.glb`) to the media
 library of Pluto, for every backend (Git CMS or Supabase):
 
