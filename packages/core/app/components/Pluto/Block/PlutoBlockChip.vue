@@ -11,7 +11,7 @@ import type {
   PlutoPropValue,
 } from '../../../../shared/utils/blocks/definition'
 import { NodeViewWrapper } from '@tiptap/vue-3'
-import { camelKey } from '../../../../shared/utils/blocks/definition'
+import { camelKey } from '#layers/pluto/shared/utils/blocks/definition'
 import PlutoBlockPropControl from './PlutoBlockPropControl.vue'
 
 const props = defineProps<NodeViewProps>()

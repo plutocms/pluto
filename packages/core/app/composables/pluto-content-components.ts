@@ -2,11 +2,11 @@ import type {
   PlutoBlockOverride,
   PlutoBlockPropDefinition,
 } from '../../shared/utils/blocks/definition'
-import blocks from '#pluto-blocks'
 import {
   blockKey,
   humanizeName,
-} from '../../shared/utils/blocks/definition'
+} from '#layers/pluto/shared/utils/blocks/definition'
+import blocks from '#pluto-blocks'
 
 /**
  * A content component as the post editor shows it: a block component of the site (a file of

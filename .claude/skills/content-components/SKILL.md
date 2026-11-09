@@ -53,6 +53,13 @@ The MDC block form of Nuxt Content, with inline props and no content:
   `PlutoBlockPropControl.vue` (one setting; the docs layer uses it too).
 - Texts: `pluto.blocks.*`.
 
+**Imports from `shared/` in app code.** The server build keeps a `shared/` file external, and
+Rollup writes an external with a relative source as a path relative to the output folder, which
+breaks the Nitro build (`Could not resolve "../../../../../packages/core/shared/..."`). So app code
+imports a value from a `shared/` file that is not auto-imported (`shared/utils/blocks/`,
+`shared/markdown/`) with the layer alias: `#layers/pluto/shared/...`. A type import can stay
+relative.
+
 ## Discovery
 
 - Opt-in. A component in `components/content/` is a block only when its file calls

@@ -8,7 +8,7 @@ import {
   PLUTO_COMPONENT_ATTRIBUTE,
   PLUTO_COMPONENT_PROPS_ATTRIBUTE,
   writeEmptyComponent,
-} from '../../shared/markdown/component'
+} from '#layers/pluto/shared/markdown/component'
 import PlutoBlockChip from '../components/Pluto/Block/PlutoBlockChip.vue'
 import { requestPlutoContentComponentOpen } from '../composables/pluto-content-components'
 

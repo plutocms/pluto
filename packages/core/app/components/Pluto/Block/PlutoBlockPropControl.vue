@@ -6,7 +6,7 @@
 // post editor use it. See the content-components skill.
 import type { PlutoBlockPropDefinition } from '../../../../shared/utils/blocks/definition'
 import { parse, stringify } from 'yaml'
-import { humanizeName } from '../../../../shared/utils/blocks/definition'
+import { humanizeName } from '#layers/pluto/shared/utils/blocks/definition'
 
 const props = defineProps<{
   /** The name of the prop in the Markdown. */

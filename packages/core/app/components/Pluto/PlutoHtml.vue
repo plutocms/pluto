@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { Component } from 'vue'
+import { blockKey } from '#layers/pluto/shared/utils/blocks/definition'
 import blockComponents from '#pluto-block-components'
-import { blockKey } from '../../../shared/utils/blocks/definition'
 
 // One async component per name for the whole app, so a new render reuses the loaded one.
 const loaded = new Map<string, Component | null>()
