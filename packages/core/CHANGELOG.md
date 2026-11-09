@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.66.0](https://github.com/plutocms/pluto/compare/v0.65.0...v0.66.0) (2026-11-09)
+
+
+### Features
+
+* **core:** content components in posts, and the block catalog in core ([#492](https://github.com/plutocms/pluto/issues/492)) ([da8dd0f](https://github.com/plutocms/pluto/commit/da8dd0f9466468e8ec353542ed42b0d2a923da9c))
+
 ## [0.65.0](https://github.com/plutocms/pluto/compare/v0.64.0...v0.65.0) (2026-11-08)
 
 
