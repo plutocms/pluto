@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.66.1](https://github.com/plutocms/pluto/compare/v0.66.0...v0.66.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* **core:** plutoLayer finds the shop and seo add-ons; skills and READMEs match the code ([#498](https://github.com/plutocms/pluto/issues/498)) ([8eb6921](https://github.com/plutocms/pluto/commit/8eb692179834868a3ffbbf58af10796f0380c79c))
+
 ## [0.66.0](https://github.com/plutocms/pluto/compare/v0.65.0...v0.66.0) (2026-11-09)
 
 
