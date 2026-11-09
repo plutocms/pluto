@@ -752,7 +752,7 @@ cover: true, // or { field: 'hero' }; default field 'cover'
   request for the ids of the loaded rows.
 - **Site SEO:** `usePlutoPublicItem` uses `cover` for `og:image` first, then the first media
   field; `excerpt` for the description.
-- The built-in Git CMS post type and the supabase-blog post type turn both on.
+- The built-in Git CMS post type turns both on. The supabase-blog post type turns on `cover` only (the table has no excerpt column; its `toPublic` hook adds the excerpt).
 
 ## Embeds
 

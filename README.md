@@ -66,6 +66,7 @@ Read [Layers](https://pluto.vulmix.dev/docs/extend/layers) to see how they fit t
 | Folder                        | Package          |
 | ----------------------------- | ---------------- |
 | `packages/core`               | `@plutocms/core` |
+| `packages/layers/docs`        | `@plutocms/docs` |
 | `packages/layers/addons/3d`   | `@plutocms/3d`   |
 | `packages/layers/addons/seo`  | `@plutocms/seo`  |
 | `packages/layers/addons/shop` | `@plutocms/shop` |

@@ -1,5 +1,7 @@
 # @plutocms/shop
 
+**Docs:** [Shop](https://pluto.vulmix.dev/docs/layers/shop)
+
 An add-on layer for [Pluto](https://pluto.vulmix.dev) shops, for every backend (Git CMS or
 Supabase):
 
