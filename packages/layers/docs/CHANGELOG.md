@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.0](https://github.com/plutocms/pluto/compare/docs-v0.22.0...docs-v0.23.0) (2026-11-09)
+
+
+### Features
+
+* **core:** content components in posts, and the block catalog in core ([#492](https://github.com/plutocms/pluto/issues/492)) ([da8dd0f](https://github.com/plutocms/pluto/commit/da8dd0f9466468e8ec353542ed42b0d2a923da9c))
+
+
+### Bug Fixes
+
+* **docs:** require core 0.66, which holds the block catalog ([#496](https://github.com/plutocms/pluto/issues/496)) ([c8c264a](https://github.com/plutocms/pluto/commit/c8c264a87f29ff566c0168065797d3667e5a708e))
+
 ## [0.22.0](https://github.com/plutocms/pluto/compare/docs-v0.21.1...docs-v0.22.0) (2026-11-08)
 
 
