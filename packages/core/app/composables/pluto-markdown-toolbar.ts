@@ -8,13 +8,16 @@ import type { EditorToolbarItem } from '@nuxt/ui'
  *
  * The result follows the admin language. Pass `{ link: true }` to add a `link`
  * slot at the end. The caller fills that slot with its own link button, for
- * example `PlutoGithubEditorLink`.
+ * example `PlutoGithubEditorLink`. `{ component: true }` adds a `component` slot for
+ * `PlutoBlockInsertMenu` (the content components of the site).
  */
 export function usePlutoMarkdownToolbar(
   options: {
     link?: boolean
     /** The image button: a `slot: 'image'` item (`PlutoMediaEditorButton`). */
     image?: boolean
+    /** The component menu: a `slot: 'component'` item (`PlutoBlockInsertMenu`). */
+    component?: boolean
   } = {}
 ) {
   const { t } = usePlutoI18n()
@@ -99,6 +102,9 @@ export function usePlutoMarkdownToolbar(
       },
       ...(options.link ? [{ slot: 'link', icon: 'i-lucide-link' }] : []),
       ...(options.image ? [{ slot: 'image', icon: 'i-lucide-image' }] : []),
+      ...(options.component
+        ? [{ slot: 'component', icon: 'i-lucide-puzzle' }]
+        : []),
     ],
   ])
 }

@@ -5,7 +5,7 @@ import {
   BLOCK_MACRO,
   BlockCatalog,
   MACRO_KEY,
-} from '../modules/pluto-docs/blocks'
+} from '../modules/pluto-blocks/catalog'
 
 // The real parser (nuxt-component-meta, with the TypeScript checker). It takes about a second for
 // each component, so this file is the one slow test.

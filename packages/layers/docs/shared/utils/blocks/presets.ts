@@ -12,6 +12,7 @@ import type {
   PlutoBlockSlotContent,
   PlutoBlockSlotDefinition,
 } from './types'
+import { BLOCK_COLORS } from '#layers/pluto/shared/utils/blocks/definition'
 import { MDC_SNIPPETS } from '../mdc-snippets'
 
 /** The group ids of the palette, in order. A site can use any other text as a group. */
@@ -38,16 +39,6 @@ export function groupLabelKey(group: string): string {
     : group
 }
 
-/** The theme colors of Nuxt UI. */
-export const BLOCK_COLORS = [
-  'primary',
-  'secondary',
-  'success',
-  'info',
-  'warning',
-  'error',
-  'neutral',
-]
 const TARGETS = ['_self', '_blank']
 
 function prop(

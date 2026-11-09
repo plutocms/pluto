@@ -5,6 +5,7 @@ import type {
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { definePlutoBlock } from "#layers/pluto/shared/utils/blocks/define"
 import { buildPalette } from '../shared/utils/blocks/editor'
 import { parseBlocks } from '../shared/utils/blocks/parse'
 import {
@@ -15,7 +16,6 @@ import {
 } from '../shared/utils/blocks/presets'
 import {
   blockKey,
-  definePlutoBlock,
   humanizeName,
   insertTextFor,
   listPaletteBlocks,

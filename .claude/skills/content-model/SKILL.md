@@ -773,7 +773,7 @@ writes) is an embed. Core owns the block and the security; providers plug in.
   `@nuxt/scripts`, a core module): a thumbnail and a play button (`PlutoEmbedPlay`); the player
   loads on a click (`youtube-nocookie.com`; Vimeo with `dnt`). Other providers (X, Instagram,
   Bluesky) belong in an add-on layer.
-- **Show** (`PlutoHtml`): with no embed paragraph, `innerHTML` as before. With one, `splitEmbedHtml`
+- **Show** (`PlutoHtml`): with no embed paragraph, `innerHTML` as before. With one, `splitBodyHtml`
   (`shared/utils/embed.ts`) gives the top-level parts; each element keeps its inner HTML, an embed
   paragraph becomes the component of the first matching provider (`resolveEmbed`, the root gets
   `data-pluto-embed="<provider id>"`), or stays the link. The top level stays flat for the

@@ -1115,6 +1115,21 @@
     "status": {
       "scheduled": "Scheduled",
       "review": "In review"
+    },
+    "blocks": {
+      "insert": "Insert a component",
+      "chipLabel": "Component {name}. Open its settings",
+      "unknown": "Not found",
+      "unknownHelp": "This site has no component \"{name}\". The page shows nothing here. Check the name in Markdown mode, or remove the block.",
+      "noProps": "This component has no settings.",
+      "remove": "Remove",
+      "changeImage": "Change",
+      "chooseImage": "Choose from the media library",
+      "default": "Default",
+      "iconHelp": "An icon name, for example i-lucide-rocket.",
+      "imageUrlPlaceholder": "Or paste the URL of an image",
+      "linkPlaceholder": "/page or https://…",
+      "removeImage": "Remove"
     }
   },
   "content": {

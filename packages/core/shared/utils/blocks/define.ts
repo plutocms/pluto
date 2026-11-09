@@ -1,4 +1,4 @@
-import type { PlutoBlockPatch } from './types'
+import type { PlutoBlockPatch } from './definition'
 
 /**
  * Describes a block in `app.config.ts`, or in a component file of `components/content/`.

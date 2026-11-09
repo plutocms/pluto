@@ -28,8 +28,8 @@ policies shared by every project here.
   @.claude/skills/block-model/SKILL.md.
 - Block discovery: a component in `components/content/` (the app or a layer) that calls
   `definePlutoBlock({...})` becomes a block in the palette, with its props and slots read from its
-  TypeScript types. Opt-in. The option `plutoDocs.blocks.discover` turns it off. See
-  @.claude/skills/block-model/SKILL.md.
+  TypeScript types. Opt-in. Core finds the components (the content-components skill of pluto); the
+  palette adds the shared labels of the presets. See @.claude/skills/block-model/SKILL.md.
 - Block editor: the visual editor for the page body. A live preview, the block list, the palette, and
   the controls of the selected block, with no raw MDC. See @.claude/skills/block-editor/SKILL.md.
 - Image block (`::pluto-figure`): an image of the media library (the `media` prop type: a picker that

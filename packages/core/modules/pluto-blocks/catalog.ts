@@ -7,11 +7,14 @@ import type { PlutoComponentMeta } from '../../shared/utils/blocks/component-met
 import type {
   PlutoBlockPatch,
   PlutoBlocksConfig,
-} from '../../shared/utils/blocks/types'
+} from '../../shared/utils/blocks/definition'
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import { blockFromComponentMeta } from '../../shared/utils/blocks/component-meta'
+import {
+  blockFromComponentMeta,
+  componentBlockName,
+} from '../../shared/utils/blocks/component-meta'
 
 /** The name of the macro. A component file calls it in `<script setup>`. */
 export const BLOCK_MACRO = 'definePlutoBlock'
@@ -214,4 +217,36 @@ export class BlockCatalog {
 /** The source of the Vite virtual module for a component layer. */
 export function blocksModuleSource(blocks: PlutoBlocksConfig): string {
   return `export default ${JSON.stringify(blocks)}\n`
+}
+
+/**
+ * The block component files: the files of `findContentComponents` that call the macro. A text check,
+ * no parse, so the server build can list them at once. The name is the block key (kebab case).
+ */
+export function blockComponentFiles(dirs: string[]): BlockFile[] {
+  const files: BlockFile[] = []
+  for (const item of findContentComponents(dirs)) {
+    let text: string
+    try {
+      text = readFileSync(item.file, 'utf8')
+    } catch {
+      continue
+    }
+    if (hasBlockMacro(text)) {
+      files.push({ name: componentBlockName(item.name), file: item.file })
+    }
+  }
+  return files
+}
+
+/**
+ * The source of the Vite virtual module of the loaders: `{ 'kebab-name': () => import(file) }`. A
+ * component loads only when a page shows it.
+ */
+export function componentsModuleSource(files: BlockFile[]): string {
+  const entries = files.map(
+    ({ name, file }) =>
+      `  ${JSON.stringify(name)}: () => import(${JSON.stringify(file)}),`
+  )
+  return `export default {\n${entries.join('\n')}\n}\n`
 }

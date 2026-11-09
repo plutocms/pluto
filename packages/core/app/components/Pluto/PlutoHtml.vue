@@ -1,3 +1,22 @@
+<script lang="ts">
+import type { Component } from 'vue'
+import blockComponents from '#pluto-block-components'
+import { blockKey } from '../../../shared/utils/blocks/definition'
+
+// One async component per name for the whole app, so a new render reuses the loaded one.
+const loaded = new Map<string, Component | null>()
+
+/** The component of a content component name, or `null` when no block component has that name. */
+function contentComponent(name: string): Component | null {
+  const key = blockKey(name)
+  if (!loaded.has(key)) {
+    const loader = blockComponents[key]
+    loaded.set(key, loader ? defineAsyncComponent(loader) : null)
+  }
+  return loaded.get(key) ?? null
+}
+</script>
+
 <script setup lang="ts">
 // Shows the `html` of a public item (the public API of Pluto), with readable prose styles. It
 // works with every backend: the Git CMS and `@plutocms/supabase-blog` both send the body as
@@ -16,6 +35,10 @@
 // the component of the first embed provider that matches its URL (`embedProviders` of the
 // registry). With no provider, it stays the link. The top level stays flat for `.pluto-prose`.
 // See the content-model skill ("Embeds").
+//
+// Content components: the mark of a component (`div[data-pluto-component]`) becomes the component
+// of the site with that name and its props, when the component calls `definePlutoBlock`
+// (`#pluto-block-components`). Another name renders nothing. See the content-components skill.
 const props = withDefaults(
   defineProps<{
     html: string
@@ -33,13 +56,16 @@ const registry = usePlutoRegistry()
 const providers = computed(() => registry.embedProviders.list.value)
 
 const parts = computed(() => {
-  if (!hasEmbedParagraph(body.value) || providers.value.length === 0) {
+  const embeds = hasEmbedParagraph(body.value) && providers.value.length > 0
+  if (!embeds && !hasComponentMarker(body.value)) {
     return null
   }
-  return splitEmbedHtml(body.value).map((part) =>
+  return splitBodyHtml(body.value).map((part) =>
     part.kind === 'embed'
       ? { ...part, resolved: resolveEmbed(providers.value, part.href) }
-      : part
+      : part.kind === 'component'
+        ? { ...part, component: contentComponent(part.name) }
+        : part
   )
 })
 </script>
@@ -59,6 +85,14 @@ const parts = computed(() => {
         :data-pluto-embed="part.resolved.provider.id"
       />
       <p v-else-if="part.kind === 'embed'" :innerHTML="part.inner" />
+      <template v-else-if="part.kind === 'component'">
+        <component
+          :is="part.component"
+          v-if="part.component"
+          v-bind="part.props"
+          :data-pluto-component="part.name"
+        />
+      </template>
       <template v-else-if="part.kind === 'text'">{{ part.text }}</template>
       <component
         :is="part.tag"

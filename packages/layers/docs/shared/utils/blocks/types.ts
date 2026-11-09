@@ -1,3 +1,7 @@
+// The definition types (the props, the slots, the patch of `definePlutoBlock`) are in core.
+import type { PlutoPropValue } from '#layers/pluto/shared/utils/blocks/definition'
+export type * from '#layers/pluto/shared/utils/blocks/definition'
+
 // Types of the block model. The model has no Nuxt import, so a package can
 // own it later. The truth stays the Markdown string: a block with `original`
 // is written back byte for byte.
@@ -34,8 +38,6 @@ export interface PlutoCodeBlock extends PlutoBlockBase {
   /** Without the indent of the parent component. */
   code: string
 }
-
-export type PlutoPropValue = unknown
 
 export type PlutoPropsStyle = 'inline' | 'yaml'
 
@@ -94,108 +96,4 @@ export interface PlutoBlockLocation {
   slot?: string
   /** The index in the list of the document, or in the slot. */
   index: number
-}
-
-// Block definitions: what the editor shows for a component.
-
-export type PlutoBlockPropType =
-  | 'string'
-  | 'text'
-  | 'boolean'
-  | 'number'
-  | 'select'
-  | 'icon'
-  | 'color'
-  | 'link'
-  | 'media'
-
-export interface PlutoBlockPropOption {
-  value: string
-  /** A plain text or an i18n key. */
-  label?: string
-}
-
-export interface PlutoBlockPropDefinition {
-  type: PlutoBlockPropType
-  /** A plain text or an i18n key. */
-  label?: string
-  description?: string
-  options?: Array<string | PlutoBlockPropOption>
-  /** A prop in the Advanced section of the panel. */
-  advanced?: boolean
-  /**
-   * A slot with the same text, for example the `default` slot of a button and its `label`. The
-   * panel shows one field for both: it edits the slot when the block has text in it (the slot wins
-   * on the site), else the prop. The slot does not show in the Content section.
-   */
-  slot?: string
-  /**
-   * The value the component uses when the prop is missing. The control shows it as the
-   * placeholder (or in the "Default" item of a choice). It never goes into the Markdown.
-   */
-  default?: string | number | boolean
-  /**
-   * For a `media` prop: the other props that a choice from the media library also sets, from the
-   * record of the file: `width`, `height`, and `alt` (only while that prop is empty).
-   */
-  fills?: { width?: string; height?: string; alt?: string }
-}
-
-/** The editor for the content of a slot. */
-export type PlutoBlockSlotContent = 'rich' | 'inline' | 'blocks'
-
-export interface PlutoBlockSlotDefinition {
-  label?: string
-  content?: PlutoBlockSlotContent
-  /** For `blocks`: the component names that the slot accepts. */
-  accepts?: string[]
-}
-
-export interface PlutoBlockDefinition {
-  name: string
-  /** A plain text or an i18n key. */
-  label: string
-  /** A plain text or an i18n key. */
-  description?: string
-  icon: string
-  group: string
-  props?: Record<string, PlutoBlockPropDefinition>
-  slots?: Record<string, PlutoBlockSlotDefinition>
-  /** The Markdown that the palette inserts. */
-  insert?: string
-  /** `false` shows a placeholder card instead of the component in the preview. */
-  preview?: boolean
-  /** Not in the palette. The block still shows with its label. */
-  hidden?: boolean
-}
-
-/** A change to one prop: a partial prop definition. A prop with no `type` is a `string`. */
-export type PlutoBlockPropPatch = Partial<PlutoBlockPropDefinition>
-
-/**
- * A partial block definition: one layer of the sources (the component layer, or the site
- * override). `Props` is the prop interface of a component, so `definePlutoBlock<Props>()` can
- * check the keys of `props`. A prop or a slot set to `false` is removed from the layers below.
- */
-export interface PlutoBlockPatch<
-  Props extends object = Record<string, unknown>,
-> extends Partial<Omit<PlutoBlockDefinition, 'name' | 'props' | 'slots'>> {
-  props?: { [Key in keyof Props & string]?: PlutoBlockPropPatch | false }
-  slots?: Record<string, PlutoBlockSlotDefinition | false>
-}
-
-/** One layer for one block: a partial definition, or `false` to hide the block from the palette. */
-export type PlutoBlockOverride = PlutoBlockPatch | false
-
-/** The blocks of one layer, by component name (kebab case). */
-export type PlutoBlocksConfig = Record<string, PlutoBlockOverride>
-
-/**
- * The layers that join the preset into a block definition. The component layer comes from the
- * component files (it is empty until the build step fills it). The overrides are `plutoBlocks`
- * in `app.config.ts`, and they win.
- */
-export interface PlutoBlockSources {
-  components?: PlutoBlocksConfig
-  overrides?: PlutoBlocksConfig
 }

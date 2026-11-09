@@ -252,17 +252,10 @@
       "editAsMarkdown": "Edit as Markdown",
       "backToControls": "Back to the controls",
       "applyMarkdown": "Apply",
-      "default": "Default",
-      "iconHelp": "An icon name, for example i-lucide-rocket.",
-      "linkPlaceholder": "/page or https://…",
       "parseErrorTitle": "The visual editor cannot open this page",
       "parseError": "The Markdown has a part that the visual editor cannot read. Use the Markdown editor to fix it.",
       "switchToMarkdown": "Open the Markdown editor",
-      "addItem": "Add {name}",
-      "chooseImage": "Choose from the media library",
-      "changeImage": "Change",
-      "removeImage": "Remove",
-      "imageUrlPlaceholder": "Or paste the URL of an image"
+      "addItem": "Add {name}"
     }
   }
 }

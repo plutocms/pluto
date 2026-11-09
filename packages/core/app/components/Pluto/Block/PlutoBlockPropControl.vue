@@ -2,10 +2,11 @@
 // One setting of a component: a field with the right control for the type of
 // the prop (text, long text, switch, number, choice, icon, color, link, image). A
 // prop with an object or a list shows as YAML. An empty value removes the prop,
-// so the Markdown stays short.
-import type { PlutoBlockPropDefinition } from '../../../../../shared/utils/blocks/types'
+// so the Markdown stays short. The block editor of the docs layer and the component chip of the
+// post editor use it. See the content-components skill.
+import type { PlutoBlockPropDefinition } from '../../../../shared/utils/blocks/definition'
 import { parse, stringify } from 'yaml'
-import { humanizeName } from '../../../../../shared/utils/blocks/registry'
+import { humanizeName } from '../../../../shared/utils/blocks/definition'
 
 const props = defineProps<{
   /** The name of the prop in the Markdown. */
@@ -113,8 +114,8 @@ const selectItems = computed(() => {
   // "Default (slow)": the item shows the value that the component uses.
   const fallback = items.find((item) => item.value === defaultText.value)
   const defaultLabel = defaultText.value
-    ? `${t('docs.editor.default')} (${fallback?.label ?? defaultText.value})`
-    : t('docs.editor.default')
+    ? `${t('pluto.blocks.default')} (${fallback?.label ?? defaultText.value})`
+    : t('pluto.blocks.default')
   return [{ value: DEFAULT, label: defaultLabel }, ...items]
 })
 
@@ -194,7 +195,7 @@ const iconPreview = computed(() =>
     :label="label"
     :description="description"
     :error="yamlError ?? undefined"
-    :help="type === 'icon' ? t('docs.editor.iconHelp') : undefined"
+    :help="type === 'icon' ? t('pluto.blocks.iconHelp') : undefined"
     class="w-full"
   >
     <USwitch
@@ -273,7 +274,7 @@ const iconPreview = computed(() =>
       v-else-if="type === 'link'"
       :model-value="text"
       :disabled="disabled"
-      :placeholder="defaultText ?? t('docs.editor.linkPlaceholder')"
+      :placeholder="defaultText ?? t('pluto.blocks.linkPlaceholder')"
       icon="i-lucide-link"
       autocomplete="off"
       class="w-full"
@@ -291,7 +292,7 @@ const iconPreview = computed(() =>
         <UButton
           v-if="mediaLibrary.enabled"
           :label="
-            text ? t('docs.editor.changeImage') : t('docs.editor.chooseImage')
+            text ? t('pluto.blocks.changeImage') : t('pluto.blocks.chooseImage')
           "
           :disabled="disabled"
           icon="i-lucide-image"
@@ -302,7 +303,7 @@ const iconPreview = computed(() =>
         />
         <UButton
           v-if="text"
-          :label="t('docs.editor.removeImage')"
+          :label="t('pluto.blocks.removeImage')"
           :disabled="disabled"
           icon="i-lucide-x"
           color="neutral"
@@ -314,7 +315,7 @@ const iconPreview = computed(() =>
       <UInput
         :model-value="text"
         :disabled="disabled"
-        :placeholder="t('docs.editor.imageUrlPlaceholder')"
+        :placeholder="t('pluto.blocks.imageUrlPlaceholder')"
         :aria-label="label"
         icon="i-lucide-link"
         autocomplete="off"

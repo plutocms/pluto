@@ -2,7 +2,6 @@ import type {
   PlutoComponentMeta,
   PlutoMetaProp,
 } from '../shared/utils/blocks/component-meta'
-import type { PlutoComponentBlock } from '../shared/utils/blocks/types'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -11,11 +10,9 @@ import {
   componentBlockName,
   parseDefault,
 } from '../shared/utils/blocks/component-meta'
-import { parseBlocks } from '../shared/utils/blocks/parse'
-import { resolveBlockDefinition } from '../shared/utils/blocks/registry'
 
 // The fixtures are the output of `getComponentMeta` (nuxt-component-meta 0.18.0) for three
-// components of the docs site, with the `global` and `tags` keys and the extras taken out.
+// components of a docs site, with the `global` and `tags` keys and the extras taken out.
 
 function fixture(name: string): PlutoComponentMeta {
   return JSON.parse(
@@ -65,10 +62,7 @@ describe('prop type to widget', () => {
   })
 
   it('maps an icon and a link by name', () => {
-    expect(widget('icon', 'string')).toMatchObject({
-      type: 'icon',
-      label: 'docs.blocks.props.icon',
-    })
+    expect(widget('icon', 'string')).toEqual({ type: 'icon' })
     expect(widget('trailingIcon', 'string | undefined')).toMatchObject({
       type: 'icon',
     })
@@ -157,13 +151,13 @@ describe('defaults, descriptions and labels', () => {
     const meta = propOf('title', 'string', { description: ' The title.\n' })
     expect(blockFromComponentMeta('X', meta).definition.props!.title).toEqual({
       type: 'string',
-      label: 'docs.blocks.props.title',
       description: 'The title.',
     })
   })
 
-  it('has no label for a prop that the presets do not know', () => {
+  it('gives no label: an editor shows its own, else the name', () => {
     expect(widget('starCount', 'number')).not.toHaveProperty('label')
+    expect(widget('title', 'string')).not.toHaveProperty('label')
   })
 })
 
@@ -177,11 +171,7 @@ describe('real meta fixtures', () => {
     expect(definition).toEqual({
       props: {
         starCount: { type: 'number', default: 300 },
-        color: {
-          type: 'string',
-          label: 'docs.blocks.props.color',
-          default: 'var(--ui-primary)',
-        },
+        color: { type: 'string', default: 'var(--ui-primary)' },
         speed: {
           type: 'select',
           options: [{ value: 'normal' }, { value: 'slow' }, { value: 'fast' }],
@@ -198,11 +188,11 @@ describe('real meta fixtures', () => {
     )
     expect(name).toBe('pluto-chip')
     expect(definition.props).toEqual({
-      icon: { type: 'icon', label: 'docs.blocks.props.icon' },
+      icon: { type: 'icon' },
       center: { type: 'boolean', default: false },
     })
     expect(definition.slots).toEqual({
-      default: { label: 'docs.blocks.slots.default', content: 'inline' },
+      default: { content: 'inline' },
     })
   })
 
@@ -226,19 +216,6 @@ describe('real meta fixtures', () => {
     expect(definition.slots!.notice).toMatchObject({ content: 'inline' })
   })
 
-  it('makes a definition that resolves, and keeps the kebab prop of a page', () => {
-    const { name, definition } = blockFromComponentMeta(
-      'StarsBg',
-      fixture('StarsBg')
-    )
-    const doc = parseBlocks('::stars-bg{star-count="160"}\n::\n')
-    const resolved = resolveBlockDefinition(name, {
-      sources: { components: { [name]: definition } },
-      block: doc.blocks[0] as PlutoComponentBlock,
-    })
-    expect(Object.keys(resolved.props!)).toContain('star-count')
-    expect(Object.keys(resolved.props!)).not.toContain('starCount')
-  })
 })
 
 describe('the macro', () => {
@@ -277,17 +254,13 @@ describe('the macro', () => {
     expect(definition.props!.size).toEqual({ type: 'text' })
   })
 
-  it('removes a slot with false, and keeps the false for the layers above', () => {
+  it('keeps a slot set to false, for the layers above', () => {
     const { definition } = blockFromComponentMeta(
       'PlutoHero',
       fixture('PlutoHero'),
       { slots: { notice: false } }
     )
     expect(definition.slots!.notice).toBe(false)
-    const resolved = resolveBlockDefinition('pluto-hero', {
-      sources: { components: { 'pluto-hero': definition } },
-    })
-    expect(resolved.slots).not.toHaveProperty('notice')
   })
 
   it('works with no meta and with a macro of {}', () => {

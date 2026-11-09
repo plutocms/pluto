@@ -252,17 +252,10 @@
       "editAsMarkdown": "Editar como Markdown",
       "backToControls": "Voltar para os controles",
       "applyMarkdown": "Aplicar",
-      "default": "Padrão",
-      "iconHelp": "O nome de um ícone, por exemplo i-lucide-rocket.",
-      "linkPlaceholder": "/pagina ou https://…",
       "parseErrorTitle": "O editor visual não consegue abrir esta página",
       "parseError": "O Markdown tem uma parte que o editor visual não consegue ler. Use o editor de Markdown para corrigir.",
       "switchToMarkdown": "Abrir o editor de Markdown",
-      "addItem": "Adicionar {name}",
-      "chooseImage": "Escolher na biblioteca de mídia",
-      "changeImage": "Trocar",
-      "removeImage": "Remover",
-      "imageUrlPlaceholder": "Ou cole a URL de uma imagem"
+      "addItem": "Adicionar {name}"
     }
   },
   "content": {

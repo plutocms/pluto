@@ -12,12 +12,9 @@ The layer edits the pages of a Nuxt Content site in the Pluto admin. The app tur
   the repo from the env or the git remote). See the `git-cms` skill in pluto.
 - `modules/pluto-docs/index.ts` — the Nuxt module. Config key `plutoDocs`.
 - `modules/pluto-docs/manifest.ts` — the build manifest of the hybrid mode (Node).
-- `modules/pluto-docs/blocks.ts` — the discovery of the block components (Node, no Nuxt import). See the
-  block-model skill, "Discovery".
 - `modules/pluto-docs/options.ts` — pure helpers: `resolvePlutoDocsOptions`,
   `isValidSource`, `normalizeRoutePrefix`. No Nuxt import, so plain Vitest tests them.
 - `shared/types/docs.d.ts` — the `@nuxt/schema` types for the config key.
-- `shared/types/pluto-blocks.d.ts` — the types of the virtual module `#pluto-docs/blocks`.
 - `app/plugins/pluto-docs.ts` — the client plugin.
 - `server/plugins/pluto-docs.ts` — the Nitro plugin.
 - `test/module-options.test.ts` — the unit tests.
@@ -29,7 +26,6 @@ plutoDocs: {
   types: [{ preset: 'docs', name: 'doc', source: '', label?, labelPlural?, exclude?, routePrefix?, navGroup?, icon? }],
   render: 'hybrid', // default; or 'build', or 'runtime'
   runtimeMaxAge: 10, // seconds of the public cache of the layer routes
-  blocks: { discover: true }, // read components/content/ for definePlutoBlock (default); false turns it off
 }
 ```
 
@@ -45,10 +41,8 @@ plutoDocs: {
 - `render` is `'hybrid'` (default), `'build'` or `'runtime'`. A bad value gives one error and uses `'hybrid'`. See
   "Render modes".
 - `runtimeMaxAge` is a whole number of seconds, 0 or more (default 10). A bad value gives one error and uses 10.
-- `blocks.discover` is `true` or `false` (default `true`). A bad value gives one error and uses `true`. With
-  `true`, a component in `components/content/` (the app or a layer) that calls `definePlutoBlock(...)`
-  shows in the block palette. The module adds `definePlutoBlock` as an auto-import. See the block-model
-  skill, "Discovery".
+- The block components (`definePlutoBlock` in `components/content/`) are found by core, always. See
+  the block-model skill, "Discovery".
 
 ## Render modes
 

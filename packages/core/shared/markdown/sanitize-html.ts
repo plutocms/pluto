@@ -1,5 +1,13 @@
 import type { ElementNode } from 'ultrahtml'
 import { ELEMENT_NODE, parse, renderSync, walkSync } from 'ultrahtml'
+import {
+  PLUTO_COMPONENT_ATTRIBUTE,
+  PLUTO_COMPONENT_PROPS_ATTRIBUTE,
+  readComponentMarker,
+} from './component'
+import { decodeEntitiesOnce, isSafeUrl } from './url-safety'
+
+export { decodeEntitiesOnce, isSafeUrl } from './url-safety'
 
 // This file is the trust boundary for `PlutoMarkdown`. Everything it lets
 // through ends up in a `v-html` on a public page. Keep it an allowlist,
@@ -78,94 +86,6 @@ const DROP_ELEMENTS = new Set([
 
 const LANGUAGE_CLASS = /^language-[\w+#.-]+$/
 const TH_TD_ALIGN = new Set(['left', 'center', 'right'])
-
-// `data:` images this sanitizer allows in `src`. `data:image/svg+xml` is
-// rejected on purpose — an SVG payload can carry a `<script>`.
-const SAFE_DATA_IMAGE_PREFIXES = [
-  'data:image/png',
-  'data:image/jpeg',
-  'data:image/gif',
-  'data:image/webp',
-  'data:image/avif',
-]
-
-// Named character references this sanitizer decodes before it checks a
-// URL scheme. Keep this list short — it only needs to cover entities an
-// attacker could use to hide a scheme such as "javascript:".
-const NAMED_ENTITIES: Record<string, string> = {
-  amp: '&',
-  quot: '"',
-  apos: "'",
-  lt: '<',
-  gt: '>',
-  nbsp: ' ',
-  colon: ':',
-  NewLine: '\n',
-  Tab: '\t',
-}
-
-/**
- * Decodes the HTML entities of a text or an attribute value once, as a browser does. A code point
- * out of range stays as it is (`String.fromCodePoint` would throw).
- */
-export function decodeEntitiesOnce(value: string): string {
-  return value.replace(
-    /&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,
-    (match, body: string) => {
-      if (body[0] === '#') {
-        const isHex = body[1] === 'x' || body[1] === 'X'
-        const codePoint = Number.parseInt(
-          isHex ? body.slice(2) : body.slice(1),
-          isHex ? 16 : 10
-        )
-        return Number.isNaN(codePoint) || codePoint > 0x10ffff
-          ? match
-          : String.fromCodePoint(codePoint)
-      }
-      return NAMED_ENTITIES[body] ?? match
-    }
-  )
-}
-
-/**
- * Check if a URL is safe to use in `href` or `src`.
- *
- * ultrahtml keeps attribute values raw. An attacker can hide a scheme
- * behind HTML entities (`java&#115;cript:`) or embedded whitespace
- * (`java&#x09;script:`). This function decodes entities and strips
- * embedded control characters first, then checks the resulting scheme.
- */
-export function isSafeUrl(value: string): boolean {
-  let decoded = value
-  for (let i = 0; i < 5; i += 1) {
-    const next = decodeEntitiesOnce(decoded)
-    if (next === decoded) {
-      break
-    }
-    decoded = next
-  }
-
-  // Browsers ignore tabs, newlines, and other control characters embedded
-  // inside a URL scheme, so strip them before the scheme check.
-  // eslint-disable-next-line no-control-regex -- intentional: strips every C0 control character before the scheme check
-  const stripped = decoded.replace(/[\u0000-\u0020]/g, '').toLowerCase()
-
-  // No scheme at all — a relative path, "#anchor", "?query", and so on.
-  // This is always safe.
-  if (!/^[a-z][a-z0-9+.-]*:/.test(stripped)) {
-    return true
-  }
-
-  if (
-    stripped.startsWith('http:') ||
-    stripped.startsWith('https:') ||
-    stripped.startsWith('mailto:')
-  ) {
-    return true
-  }
-
-  return SAFE_DATA_IMAGE_PREFIXES.some((prefix) => stripped.startsWith(prefix))
-}
 
 // ultrahtml's `renderSync` writes attribute values into `key="value"` with
 // no escaping of its own (see its `attrs()` helper). Every attribute value
@@ -304,6 +224,26 @@ export function sanitizeHtml(html: string): string {
     if (DROP_ELEMENTS.has(name)) {
       actions.push(() => dropNode(element))
       return
+    }
+
+    // The mark of a content component (see shared/markdown/component.ts): a `div` with a valid
+    // name keeps the name and the props (parsed, filtered and written again), and nothing else.
+    // It has no children: the site renders the component there.
+    if (name === 'div') {
+      const marker = readComponentMarker(element.attributes)
+      if (marker) {
+        actions.push(() => {
+          element.name = 'div'
+          element.attributes = {
+            [PLUTO_COMPONENT_ATTRIBUTE]: escapeAttributeValue(marker.name),
+            [PLUTO_COMPONENT_PROPS_ATTRIBUTE]: escapeAttributeValue(
+              JSON.stringify(marker.props)
+            ),
+          }
+          element.children = []
+        })
+        return
+      }
     }
 
     if (!ALLOWED_ELEMENTS.has(name)) {

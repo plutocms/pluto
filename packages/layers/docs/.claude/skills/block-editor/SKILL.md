@@ -52,8 +52,10 @@ The docs type uses the core `canvas` form layout (see the `admin-view-chrome` sk
     in the Visual mode. The split handle is the 6px handle of core (a 1px line, a 6px bar).
   - `PlutoBlockPalette.vue`: "Add a block". A `UCommandPalette` in a modal.
   - `PlutoBlockInspector.vue`: Content (one control for each slot), Settings, Advanced, actions.
-  - `PlutoBlockPropControl.vue`: one setting. The control follows the prop type. A prop `default`
-    shows as the placeholder, as "Default (value)" in a choice, and as the state of the switch.
+  - `PlutoBlockPropControl.vue` (in core, `app/components/Pluto/Block/`, imported with
+    `#layers/pluto/...`; the post editor of core uses it too): one setting. The control follows the
+    prop type. A prop `default` shows as the placeholder, as "Default (value)" in a choice, and as the
+    state of the switch. Its texts are `pluto.blocks.*` of core.
   - `PlutoBlockTextEditor.vue`: core `UEditor` with the shared `usePlutoMarkdownToolbar`. The
     Tiptap history is off. It writes only after the author acts (see "Byte for byte").
   - `PlutoBlockRawEditor.vue`: a Markdown box (`PlutoMarkdownSource`).
@@ -73,7 +75,7 @@ The docs type uses the core `canvas` form layout (see the `admin-view-chrome` sk
 block sources (`editor.sources`, a `PlutoBlockSources`). The palette, the preview frame and the
 labels read them from the state, not from the app config. `usePlutoBlockSources(componentBlocks)` gives the getter
 that the two root components pass in. They import `componentBlocks` from the virtual module
-`#pluto-docs/blocks` (the blocks of the site components, see the block-model skill). Only these two files
+`#pluto-blocks` of core (the blocks of the site components, see the block-model skill). Only these two files
 import it, so the data stays in the lazy editor chunk. Each action
 (insert, remove, duplicate, move, set prop, set slot, update text or code, replace with Markdown)
 builds a new doc, writes the text with `serializeBlocks`, and calls `emit`. It never calls `emit`

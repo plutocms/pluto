@@ -2,7 +2,7 @@
 // and the YAML block. A prop that did not change keeps its source text, so a
 // small edit does not rewrite the other props.
 
-import type { PlutoPropValue } from './types'
+import type { PlutoPropValue } from './definition'
 import { parseDocument, stringify } from 'yaml'
 
 export interface PropSource {

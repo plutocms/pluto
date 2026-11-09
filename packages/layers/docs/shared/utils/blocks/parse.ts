@@ -17,7 +17,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMdc from 'remark-mdc'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
-import { parseInlineProps, parseOpener, parseYamlProps } from './mdc-props'
+import { parseInlineProps, parseOpener, parseYamlProps } from '#layers/pluto/shared/utils/blocks/mdc-props'
 import { flatChildren } from './tree'
 
 interface MdNode {

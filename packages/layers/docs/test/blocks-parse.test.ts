@@ -7,7 +7,7 @@ import {
   parseYamlProps,
   renderInlineProps,
   renderInlineToken,
-} from '../shared/utils/blocks/mdc-props'
+} from '#layers/pluto/shared/utils/blocks/mdc-props'
 import { parseBlocks } from '../shared/utils/blocks/parse'
 import { serializeBlocks } from '../shared/utils/blocks/serialize'
 import { flatChildren } from '../shared/utils/blocks/tree'
