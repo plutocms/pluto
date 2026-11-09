@@ -26,6 +26,8 @@ export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
   'supabase-blog': 'supabase/packages/supabase-blog',
   docs: 'pluto/packages/layers/docs',
   '3d': 'pluto/packages/layers/addons/3d',
+  shop: 'pluto/packages/layers/addons/shop',
+  seo: 'pluto/packages/layers/addons/seo',
 }
 
 const SCOPE = '@plutocms/'

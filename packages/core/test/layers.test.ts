@@ -82,10 +82,18 @@ describe('plutoLayer', () => {
   it('finds the packages of the core repo in its packages folder', () => {
     checkout('pluto/packages/core')
     checkout('pluto/packages/layers/addons/3d')
+    checkout('pluto/packages/layers/addons/shop')
+    checkout('pluto/packages/layers/addons/seo')
     process.env.PLUTO_LOCAL_ROOT = root
 
     expect(plutoLayer('@plutocms/3d')).toBe(
       resolve(root, 'pluto/packages/layers/addons/3d')
+    )
+    expect(plutoLayer('@plutocms/shop')).toBe(
+      resolve(root, 'pluto/packages/layers/addons/shop')
+    )
+    expect(plutoLayer('@plutocms/seo')).toBe(
+      resolve(root, 'pluto/packages/layers/addons/seo')
     )
     expect(process.env.PLUTO_CORE_PATH).toBe(
       resolve(root, 'pluto/packages/core')
