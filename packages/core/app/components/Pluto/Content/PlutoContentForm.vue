@@ -776,12 +776,9 @@ async function onSave(statusOverride?: string, publishAt?: string) {
 
 const deleting = ref(false)
 
+// The dialog asks first. A type with a trash asks "Move to the trash?", and the toast after the
+// move offers Undo. Without a trash, the delete is final.
 function openDeleteModal() {
-  // A type with a trash moves the item there at once: the toast offers Undo.
-  if (contentType.value?.trash) {
-    void confirmDelete()
-    return
-  }
   isDeleteModalOpen.value = true
 }
 
@@ -898,11 +895,18 @@ const canvasFieldDef = computed(() =>
       )
     : undefined
 )
+// The fields that a canvas widget shows itself (`claimFields`): not in the right panel.
+const claimGetters = shallowRef<Array<() => string[]>>([])
+const claimedFields = computed(
+  () => new Set(claimGetters.value.flatMap((getter) => getter()))
+)
 const pageFields = computed(() =>
   (contentType.value?.fields ?? [])
     .filter(
       (field) =>
-        field.inForm !== false && field.name !== canvasFieldDef.value?.name
+        field.inForm !== false &&
+        field.name !== canvasFieldDef.value?.name &&
+        !claimedFields.value.has(field.name)
     )
     .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
 )
@@ -937,6 +941,14 @@ if (isCanvas.value) {
     },
     leftTarget,
     rightTarget: (id) => rightTargets[id] ?? null,
+    claimFields(getter) {
+      claimGetters.value = [...claimGetters.value, getter]
+      return () => {
+        claimGetters.value = claimGetters.value.filter(
+          (entry) => entry !== getter
+        )
+      }
+    },
   })
 }
 
@@ -1102,6 +1114,12 @@ provide(plutoContentFormKey, {
   onSaved,
   onFlush,
   openPanel,
+  updateField(name, value) {
+    const field = contentType.value?.fields.find((entry) => entry.name === name)
+    if (field) {
+      updateField(field, value)
+    }
+  },
 })
 
 // --- Registry content actions --------------------------------------------------
@@ -1701,11 +1719,21 @@ const asideTitle = computed(() =>
 
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
     <ModalHeader @close="closeDeleteModal">
-      {{ t('pluto.form.removeTitle', { label: text.label }) }}
+      {{
+        contentType?.trash
+          ? t('pluto.list.trash.moveTitle')
+          : t('pluto.form.removeTitle', { label: text.label })
+      }}
     </ModalHeader>
 
     <ModalContent>
-      <p>{{ t('pluto.content.removeConfirm') }}</p>
+      <p>
+        {{
+          contentType?.trash
+            ? t('pluto.list.trash.moveConfirm')
+            : t('pluto.content.removeConfirm')
+        }}
+      </p>
     </ModalContent>
 
     <ModalFooter>
@@ -1725,7 +1753,11 @@ const asideTitle = computed(() =>
           color="error"
           @click="confirmDelete"
         >
-          {{ t('pluto.common.remove') }}
+          {{
+            contentType?.trash
+              ? t('pluto.list.trash.move')
+              : t('pluto.common.remove')
+          }}
         </UButton>
       </div>
     </ModalFooter>

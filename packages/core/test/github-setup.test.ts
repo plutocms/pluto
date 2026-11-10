@@ -667,7 +667,7 @@ describe('the callback route', () => {
       )
       expect(file).toContain('NUXT_PLUTO_GITHUB_SESSION_PASSWORD=')
       expect(file).toContain('PLUTO_GITHUB_APP_SLUG=acme-cms')
-      expect(html).toContain('saved in the .env file')
+      expect(html).toContain('saved in the <code>.env</code> file')
       expect(html).not.toContain('could not write')
       expect(html).not.toContain('does not ignore')
     })

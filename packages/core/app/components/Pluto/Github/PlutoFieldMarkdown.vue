@@ -19,10 +19,10 @@ const props = defineProps<{
   modelValue: unknown
   disabled?: boolean
   /**
-   * The post editor (`post-canvas`) shows this widget as its Visual mode. It fills the compose
-   * panel: no label, no mode switch (the post editor has its own), a full-height box that
-   * scrolls its own text, like the Markdown mode. No padding: the post editor sets the space
-   * around it.
+   * The post editor (`post-canvas`) shows this widget as its Visual mode. No label, no mode switch
+   * (the post editor has its own), no border: the compose panel has the background of the text.
+   * The toolbar is a separate rounded bar that stays at the top while the panel scrolls, and the
+   * text fills the rest of the height. No padding: the post editor sets the space around it.
    */
   canvas?: boolean
 }>()
@@ -63,7 +63,7 @@ const frame = computed(() =>
   props.canvas
     ? {
         is: 'div',
-        attrs: { class: 'flex h-full min-h-0 flex-col' },
+        attrs: { class: 'flex flex-col' },
       }
     : {
         is: UFormField,
@@ -139,8 +139,9 @@ const extensions = [PlutoContentComponentNode]
       @update:model-value="emit('update:modelValue', $event)"
     />
 
-    <!-- The editor root is a bordered box. The editable area has a minimum
-         height, so a click anywhere in the box puts the cursor in the text. -->
+    <!-- Outside the canvas, the editor root is a bordered box. The editable area has a minimum
+         height (in the canvas: the rest of the panel), so a click anywhere in it puts the cursor
+         in the text. -->
     <UEditor
       v-else
       v-slot="{ editor }"
@@ -153,9 +154,9 @@ const extensions = [PlutoContentComponentNode]
       :ui="
         canvas
           ? {
-              root: 'flex min-h-0 w-full flex-1 flex-col',
-              content: 'min-h-0 flex-1 cursor-text overflow-y-auto',
-              base: 'min-h-full px-4 py-3 sm:px-4',
+              root: 'flex w-full flex-1 flex-col',
+              content: 'flex flex-1 cursor-text flex-col',
+              base: 'flex-1 px-4 py-3 sm:px-4',
             }
           : {
               root: 'w-full',
@@ -163,8 +164,9 @@ const extensions = [PlutoContentComponentNode]
               base: 'min-h-96 px-4 py-3 sm:px-4',
             }
       "
+      :class="canvas ? 'flex-1' : 'border-default rounded-md border'"
       content-type="markdown"
-      class="border-default bg-default w-full rounded-md border"
+      class="bg-default w-full"
       @update:model-value="emit('update:modelValue', $event as string)"
     >
       <!-- The menus of the toolbar (Heading, the link popover) open on top of the editor box,
@@ -175,14 +177,17 @@ const extensions = [PlutoContentComponentNode]
           popover: { content: 'dark:bg-neutral-950' },
         }"
       >
-        <UEditorToolbar
+        <!-- One row: the buttons that do not fit go into the More popover (PlutoMarkdownToolbar). -->
+        <PlutoMarkdownToolbar
           :editor="editor"
           :items="items"
           :aria-label="t('pluto.github.editor.toolbar')"
           :class="
-            canvas ? 'shrink-0 flex-wrap' : 'sticky top-0 z-10 overflow-x-auto'
+            canvas
+              ? 'bg-pluto-toolbar sticky top-2 z-10 shrink-0 rounded-lg border shadow-xs'
+              : 'bg-default sticky top-0 z-10 rounded-t-md border-b'
           "
-          class="border-default bg-default rounded-t-md border-b px-2 py-1.5"
+          class="border-default px-2 py-1.5"
         >
           <template #link>
             <PlutoGithubEditorLink :editor="editor" />
@@ -193,7 +198,7 @@ const extensions = [PlutoContentComponentNode]
           <template #component>
             <PlutoBlockInsertMenu :editor="editor" />
           </template>
-        </UEditorToolbar>
+        </PlutoMarkdownToolbar>
       </UTheme>
     </UEditor>
   </component>

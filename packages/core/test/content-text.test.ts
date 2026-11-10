@@ -4,8 +4,9 @@ import { computed, ref, toValue } from 'vue'
 import { createContentText } from '../app/composables/internal/content-text'
 import { createI18nStub } from './fixtures/i18n-stub'
 
+// The name has no key in the locale files of core (the stub loads them), so the literals show.
 const type: PlutoContentType = {
-  name: 'post',
+  name: 'article',
   label: 'Post',
   labelPlural: 'Posts',
   source: 'posts',
@@ -67,11 +68,11 @@ describe('createContentText', () => {
     const text = createContentText(
       () => type,
       withMessages({
-        'content.post.label': 'Artigo',
-        'content.post.labelPlural': 'Artigos',
-        'content.post.new': 'Novo artigo',
-        'content.post.status.draft': 'Rascunho',
-        'content.post.fields.title.label': 'Título',
+        'content.article.label': 'Artigo',
+        'content.article.labelPlural': 'Artigos',
+        'content.article.new': 'Novo artigo',
+        'content.article.status.draft': 'Rascunho',
+        'content.article.fields.title.label': 'Título',
       })
     )
 
@@ -88,13 +89,13 @@ describe('createContentText', () => {
     expect(
       createContentText(
         () => type,
-        withMessages({ 'content.post.label': 'Artigo' })
+        withMessages({ 'content.article.label': 'Artigo' })
       ).newLabel
     ).toBe('New Artigo')
     expect(
       createContentText(
         () => type,
-        withMessages({ 'content.post.label': 'Artigo' }, 'pt-BR')
+        withMessages({ 'content.article.label': 'Artigo' }, 'pt-BR')
       ).newLabel
     ).toBe('Criar Artigo')
   })
@@ -103,10 +104,10 @@ describe('createContentText', () => {
     const text = createContentText(
       () => type,
       withMessages({
-        'content.post.fields.title.label': 'Título',
-        'content.post.fields.title.description': 'O título.',
-        'content.post.fields.title.placeholder': 'Digite um título',
-        'content.post.fields.kind.options.news': 'Notícia',
+        'content.article.fields.title.label': 'Título',
+        'content.article.fields.title.description': 'O título.',
+        'content.article.fields.title.placeholder': 'Digite um título',
+        'content.article.fields.kind.options.news': 'Notícia',
       })
     )
 
@@ -176,7 +177,7 @@ describe('usePlutoContentText', () => {
     vi.stubGlobal('computed', computed)
     vi.stubGlobal('toValue', toValue)
     vi.stubGlobal('usePlutoI18n', () =>
-      withMessages({ 'content.post.labelPlural': 'Artigos' })
+      withMessages({ 'content.article.labelPlural': 'Artigos' })
     )
     const { usePlutoContentText } =
       await import('../app/composables/pluto-content-text')

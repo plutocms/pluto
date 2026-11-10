@@ -60,6 +60,11 @@ const props = withDefaults(
     minLines?: number
     /** Show all the text in the monospace font (14px), like a code editor. Default: the UI font. */
     monospace?: boolean
+    /**
+     * No box around the text: the toolbar is a separate rounded bar, and the text sits on the
+     * background of the parent (the post editor). Default: one bordered box.
+     */
+    bare?: boolean
   }>(),
   {
     minLines: 18,
@@ -429,13 +434,21 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    :class="fill ? 'flex h-full min-h-0 flex-col' : undefined"
-    class="border-default bg-default w-full rounded-md border"
+    :class="[
+      fill ? 'flex h-full min-h-0 flex-col' : undefined,
+      bare ? 'gap-2' : 'border-default bg-default rounded-md border',
+    ]"
+    class="w-full"
   >
     <div
       :aria-label="t('pluto.markdown.formatting')"
+      :class="
+        bare
+          ? 'bg-pluto-toolbar rounded-lg border shadow-xs'
+          : 'bg-default rounded-t-md border-b'
+      "
       role="toolbar"
-      class="border-default flex shrink-0 flex-wrap items-center gap-0.5 rounded-t-md border-b px-2 py-1.5"
+      class="border-default flex shrink-0 flex-wrap items-center gap-0.5 px-2 py-1.5"
     >
       <UTooltip
         v-for="item in FORMATS"

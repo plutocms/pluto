@@ -137,3 +137,59 @@
 :root[data-pluto-admin].dark body {
   color-scheme: dark;
 }
+
+/*
+ * The background of the side panels of a canvas form (the Outline of a post, the Blocks of a
+ * docs page): white in light mode, #0b0b0b in dark. One utility, so every layer that adds a panel
+ * matches. `PlutoViewSidePanel` uses it.
+ */
+@utility bg-pluto-panel {
+  background-color: var(--color-white);
+
+  :where(.dark) & {
+    background-color: #0b0b0b;
+  }
+}
+
+/*
+ * The rail of a canvas form (`PlutoViewAdminPanel` `#rail`): dark in both modes, like the
+ * navbar. Light mode is not white only. The rail also carries `data-pluto-admin-dark`, so its
+ * buttons take the dark tokens. In dark mode it has the color of the side panels.
+ */
+@utility bg-pluto-rail {
+  background-color: var(--pluto-admin-navbar);
+
+  :where(.dark) & {
+    background-color: #0b0b0b;
+  }
+}
+
+/*
+ * The toolbar bar of a rich text editor (the post editor): one step darker than the text in both
+ * modes, so the bar stands apart from the page it sits on.
+ */
+@utility bg-pluto-toolbar {
+  background-color: var(--ui-bg-elevated);
+
+  :where(.dark) & {
+    background-color: var(--pluto-admin-sidebar);
+  }
+}
+
+/*
+ * Inline code in the admin: an env var, a path, a command (`PlutoCodeText` makes it from the
+ * backticks of a translated string). A light box in the admin theme. In `@layer base`, so a utility
+ * class (`text-xs`, `break-all`) wins; the element selector beats the reset of Tailwind (`*`, also in
+ * base). Code inside `pre` keeps the style of its block.
+ */
+@layer base {
+  :where(:root[data-pluto-admin], [data-pluto-admin-scope]) code:not(pre code) {
+    border: 1px solid var(--ui-border-accented);
+    border-radius: var(--radius-sm);
+    background-color: var(--ui-bg-elevated);
+    padding: 0.0625rem 0.3125rem;
+    color: var(--ui-text-highlighted);
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+}

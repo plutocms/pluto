@@ -4,10 +4,11 @@
 // save skips it), so a draft that was never public in this page shows nothing:
 // a spinner while the site builds,
 // a check mark when it is live, and an error icon when the build failed. The
-// Info button opens the details, with a link to each Action or build.
+// state itself ("Live") is the button that opens the details, with a link to each
+// Action or build.
 // The CMS plugin registers it only for GitHub storage with `skipDeploy` off.
 // A type with `liveOnSave` shows a save at once: "Live" right after the save, a
-// small spinner by the Info button while the static build runs, and a warning
+// small spinner by the state while the static build runs, and a warning
 // in the popover when that build fails (the site then serves the change at run time).
 import type {
   PlutoBuildItem,
@@ -156,45 +157,43 @@ const commitTime = computed(() => ago(status.value?.committedAt))
 
 <template>
   <div v-if="summary && everPublic" class="flex items-center gap-1">
-    <!-- A live region: a screen reader hears the change. -->
-    <div
-      role="status"
-      aria-live="polite"
-      class="flex items-center gap-1.5 text-sm"
-    >
-      <UIcon
-        :name="summary.icon"
-        :class="summary.iconClass"
-        class="size-4 shrink-0"
-        aria-hidden="true"
-      />
-      <span :class="summary.textClass" class="hidden md:inline">{{
-        summary.label
-      }}</span>
-      <span class="sr-only md:hidden">{{ summary.label }}</span>
-    </div>
-
-    <!-- A small spinner by the Info button while the static build runs. -->
-    <UIcon
-      v-if="staticBuilding"
-      :title="t('pluto.github.build.staticBuilding')"
-      name="i-lucide-loader-circle"
-      class="text-muted size-3.5 shrink-0 animate-spin"
-      aria-hidden="true"
-    />
-    <span v-if="staticBuilding" class="sr-only" role="status">{{
-      t('pluto.github.build.staticBuilding')
-    }}</span>
-
+    <!-- The state (icon and label). With details, it is the button that opens them. The state is
+         a live region: a screen reader hears the change. -->
     <UPopover v-if="status" :content="{ align: 'end' }">
       <UTooltip :text="t('pluto.github.build.details')">
         <UButton
-          :aria-label="t('pluto.github.build.details')"
           :color="staticFailed ? 'warning' : 'neutral'"
-          icon="lucide:info"
           variant="ghost"
-          square
-        />
+          class="gap-1.5 px-2"
+        >
+          <span
+            role="status"
+            aria-live="polite"
+            class="flex items-center gap-1.5"
+          >
+            <UIcon
+              :name="summary.icon"
+              :class="summary.iconClass"
+              class="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            <span :class="summary.textClass" class="hidden md:inline">{{
+              summary.label
+            }}</span>
+            <span class="sr-only md:hidden">{{ summary.label }}</span>
+          </span>
+          <span class="sr-only">{{ t('pluto.github.build.details') }}</span>
+          <!-- A small spinner by the state while the static build runs. -->
+          <UIcon
+            v-if="staticBuilding"
+            name="i-lucide-loader-circle"
+            class="text-muted size-3.5 shrink-0 animate-spin"
+            aria-hidden="true"
+          />
+          <span v-if="staticBuilding" class="sr-only" role="status">{{
+            t('pluto.github.build.staticBuilding')
+          }}</span>
+        </UButton>
       </UTooltip>
 
       <template #content>
@@ -269,5 +268,24 @@ const commitTime = computed(() => ago(status.value?.committedAt))
         </div>
       </template>
     </UPopover>
+
+    <!-- No details yet: the state only. -->
+    <div
+      v-else
+      role="status"
+      aria-live="polite"
+      class="flex items-center gap-1.5 text-sm"
+    >
+      <UIcon
+        :name="summary.icon"
+        :class="summary.iconClass"
+        class="size-4 shrink-0"
+        aria-hidden="true"
+      />
+      <span :class="summary.textClass" class="hidden md:inline">{{
+        summary.label
+      }}</span>
+      <span class="sr-only md:hidden">{{ summary.label }}</span>
+    </div>
   </div>
 </template>

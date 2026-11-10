@@ -153,7 +153,7 @@ async function copyCallback() {
       v-if="variant === 'settings' && current.canCreateApp && isDev"
       class="text-muted text-sm"
     >
-      {{ t('pluto.github.setup.devNote') }}
+      <PlutoCodeText :text="t('pluto.github.setup.devNote')" />
     </p>
 
     <UCollapsible v-if="checks.length > 0" v-model:open="checklistOpen">
@@ -203,7 +203,9 @@ async function copyCallback() {
                 }}</span>
               </p>
               <p v-if="!check.ok" class="text-muted text-sm">
-                {{ t(`pluto.github.setup.checks.${check.id}.fix`) }}
+                <PlutoCodeText
+                  :text="t(`pluto.github.setup.checks.${check.id}.fix`)"
+                />
               </p>
             </div>
           </li>

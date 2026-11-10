@@ -57,6 +57,12 @@ export interface PlutoContentFormContext {
   onFlush: (callback: () => void) => () => void
   /** Opens the right panel and shows the tab with this `PlutoContentCanvasPanel` id. 'canvas' layout only. */
   openPanel: (id: string) => void
+  /**
+   * Sets the value of one field by name, with the rules of the form (a change of the slug field
+   * stops the slug from following the title). For a widget that edits a field other than its own,
+   * such as the title above the post editor.
+   */
+  updateField: (name: string, value: unknown) => void
 }
 
 /** One panel that a widget adds to the 'canvas' layout. See `PlutoContentCanvasPanel`. */
@@ -79,6 +85,11 @@ export interface PlutoCanvasHost {
   leftTarget: Ref<RendererElement | null>
   /** The element of one right tab. `null` before the tab mounts. */
   rightTarget: (id: string) => RendererElement | null
+  /**
+   * Takes fields out of the right panel, because the widget shows them itself (the post editor
+   * shows the title above the text). It returns a function that gives them back.
+   */
+  claimFields: (names: () => string[]) => () => void
 }
 
 /** One button of `PlutoContentFormHeader`. */

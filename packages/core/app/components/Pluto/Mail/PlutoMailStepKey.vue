@@ -90,7 +90,7 @@ const result = computed(() => {
           resend.com/api-keys
         </ULink>
       </li>
-      <li>{{ t('pluto.mail.key.stepAdd') }}</li>
+      <li><PlutoCodeText :text="t('pluto.mail.key.stepAdd')" /></li>
       <li>{{ t('pluto.mail.key.stepRestart') }}</li>
     </ol>
 
