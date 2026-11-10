@@ -249,12 +249,15 @@ function onLayout(sizes: number[]) {
               <div
                 v-if="mode === 'visual' && visualWidget"
                 ref="visual"
-                class="size-full min-h-0 overflow-x-hidden overflow-y-auto"
+                class="@container size-full min-h-0 overflow-x-hidden overflow-y-auto"
               >
-                <!-- With no preview, the text keeps a readable width in the middle. -->
-                <!-- A gutter at the left for the block buttons of the editor, and 16px at the right. -->
+                <!-- A gutter at the left for the block buttons of the editor, and 16px at the right.
+                     With no preview, the text keeps a readable width in the middle. When the panel
+                     has room for the buttons beside that column (55rem: 48rem and 3.5rem on each
+                     side), the padding is the same on both sides, so the column stays centered and
+                     the buttons use the free space at its left. -->
                 <div
-                  :class="!showPreview && 'mx-auto max-w-3xl'"
+                  :class="!showPreview && 'mx-auto max-w-3xl @min-[55rem]:ps-4'"
                   class="flex min-h-full flex-col py-2 ps-14 pe-4"
                 >
                   <PlutoPostTitle

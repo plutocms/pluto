@@ -647,7 +647,12 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   button (`PlutoMediaEditorButton`, the media picker) shows when the app has a media library. The
   mention extension is off.
 - Blocks, like the other editors: a bubble toolbar over a selection (`usePlutoMarkdownBubbleItems`:
-  the marks and the link slot). The compose panel has a left gutter (`ps-14`) and `pe-4`; the text
+  the marks and the link slot). The compose panel has a left gutter (`ps-14`) and `pe-4`. With the preview off, the column is
+  centered (`max-w-3xl`); when the panel has room for the buttons beside it (an `@container`,
+  `@min-[55rem]`), the padding is `ps-4` on both sides and the buttons use the free space, so the
+  column stays in the middle. The editor element reaches into the gutter (`-ms-14 ps-14`): Tiptap
+  hides the handle when the pointer leaves the editor, so without it the buttons vanished on the
+  way to them. The text
   has no side padding, so it starts at the left edge of the toolbar, under the title. In the gutter,
   `UEditorDragHandle` (the default `left-start` placement, no flip, its `hover` event) shows the grip of a block
   (drag to move; a click opens Duplicate and Delete, `pluto.github.editor.duplicate`, `remove`), or the

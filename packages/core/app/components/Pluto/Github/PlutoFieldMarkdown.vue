@@ -244,7 +244,9 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
 
     <!-- Outside the canvas, the editor root is a bordered box. The editable area has a minimum
          height (in the canvas: the rest of the panel), so a click anywhere in it puts the cursor
-         in the text. -->
+         in the text. In the canvas, the editor element reaches into the gutter at its left
+         (`-ms-14 ps-14`): the block buttons sit there, and the pointer stays in the editor on its
+         way to them (Tiptap hides the handle when the pointer leaves the editor). -->
     <UEditor
       v-else
       v-slot="{ editor }"
@@ -260,7 +262,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           ? {
               root: 'flex w-full flex-1 flex-col',
               content: 'flex flex-1 cursor-text flex-col',
-              base: 'flex-1 px-0 pt-12 pb-3 sm:px-0',
+              base: 'flex-1 -ms-14 ps-14 pe-0 pt-12 pb-3 sm:ps-14 sm:pe-0',
             }
           : {
               root: 'w-full',
