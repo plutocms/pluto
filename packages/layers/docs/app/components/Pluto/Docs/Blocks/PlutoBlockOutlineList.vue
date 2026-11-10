@@ -167,7 +167,15 @@ onMounted(async () => {
     return
   }
   sortable = Sortable.create(list.value, {
-    handle: '[data-block-handle]',
+    // The whole row is the handle. The buttons in it (the chevron, the menu) do not start a drag,
+    // and a click selects: a drag starts after a move of 4px. On touch, a short press starts it,
+    // so a swipe still scrolls the list.
+    handle: '[data-block-drag]',
+    filter: '[data-block-nodrag]',
+    preventOnFilter: false,
+    fallbackTolerance: 4,
+    delay: 200,
+    delayOnTouchOnly: true,
     draggable: 'li',
     animation: 150,
     ghostClass: 'opacity-40',
@@ -205,13 +213,12 @@ onBeforeUnmount(() => sortable?.destroy())
 
 <template>
   <!--
-    A row: the drag handle (16px), the chevron (16px, only in a list with children), the icon,
-    the title, the dots menu. The vertical line of a child list sits under the center of the
-    chevron: 2px row padding + 16px handle + 2px gap + 8px = 28px (`ms-7`).
+    A row: the chevron (16px, only in a list with children), the icon, the title, the dots menu.
+    The whole row is the drag handle. The vertical line of a child list sits under the center of
+    the chevron: 2px row padding + 8px = 10px (`ms-2.5`).
 
-    The drag handle and the dots menu show on row hover. They keep their place (opacity only), so
-    the rows do not move. A device without hover, the keyboard focus and an open menu keep them
-    visible.
+    The dots menu shows on row hover. It keeps its place (opacity only), so the rows do not move.
+    A device without hover, the keyboard focus and an open menu keep it visible.
   -->
   <ul ref="list" :data-level="level" class="flex flex-col gap-0.5">
     <li v-for="(block, index) in blocks" :key="block.id">
@@ -224,15 +231,8 @@ onBeforeUnmount(() => sortable?.destroy())
               : 'hover:bg-elevated/60'
         "
         class="group flex items-center gap-0.5 rounded-md pe-0.5 ps-0.5 transition-colors"
+        data-block-drag
       >
-        <span
-          class="flex h-8 w-4 shrink-0 cursor-grab touch-none items-center justify-center rounded text-dimmed opacity-60 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 active:cursor-grabbing [@media(hover:hover)]:opacity-0"
-          aria-hidden="true"
-          data-block-handle
-        >
-          <UIcon name="i-lucide-grip-vertical" class="size-4" />
-        </span>
-
         <!-- Opens and closes the children of a component. A block with no children keeps the space. -->
         <button
           v-if="childLists(block).length"
@@ -247,6 +247,7 @@ onBeforeUnmount(() => sortable?.destroy())
           "
           type="button"
           class="flex size-4 shrink-0 items-center justify-center rounded text-muted hover:text-highlighted focus-visible:outline-2 focus-visible:outline-primary"
+          data-block-nodrag
           @click="editor.toggleCollapsed(block.id)"
         >
           <UIcon
@@ -273,7 +274,15 @@ onBeforeUnmount(() => sortable?.destroy())
           @keydown="onKeydown($event, block)"
         >
           <UIcon :name="info(block).icon" class="size-4 shrink-0 text-muted" />
-          <span class="min-w-0 flex-1 truncate">
+          <!-- The title shows the whole text when the row truncates it. -->
+          <span
+            :title="
+              info(block).excerpt
+                ? `${info(block).label}: ${info(block).excerpt}`
+                : info(block).label
+            "
+            class="min-w-0 flex-1 truncate"
+          >
             <span class="text-highlighted">{{ info(block).label }}</span>
             <span v-if="info(block).excerpt" class="text-muted">
               : {{ info(block).excerpt }}
@@ -298,6 +307,7 @@ onBeforeUnmount(() => sortable?.destroy())
             variant="ghost"
             size="xs"
             class="shrink-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 [@media(hover:hover)]:opacity-0"
+            data-block-nodrag
           />
         </UDropdownMenu>
       </div>
@@ -306,7 +316,7 @@ onBeforeUnmount(() => sortable?.destroy())
         v-if="
           childLists(block).length && !editor.collapsedIds.value.has(block.id)
         "
-        class="ms-7 border-s border-default ps-1"
+        class="ms-2.5 border-s border-default ps-1"
       >
         <div
           v-for="child in childLists(block)"
