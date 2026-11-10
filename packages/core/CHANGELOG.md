@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.67.0](https://github.com/plutocms/pluto/compare/v0.66.1...v0.67.0) (2026-11-10)
+
+
+### Features
+
+* **core:** admin UI round 3: post editor, breadcrumbs, trash dialog, inline code, translations ([#503](https://github.com/plutocms/pluto/issues/503)) ([dc43b66](https://github.com/plutocms/pluto/commit/dc43b664dbe2caa636051d7f68a3df00321c7dd9))
+* **core:** admin UI round 4: shell, canvas sheet, post editor polish ([#505](https://github.com/plutocms/pluto/issues/505)) ([351cac7](https://github.com/plutocms/pluto/commit/351cac73af6499debc952a1888dcee71145fb418))
+
 ## [0.66.1](https://github.com/plutocms/pluto/compare/v0.66.0...v0.66.1) (2026-11-09)
 
 
