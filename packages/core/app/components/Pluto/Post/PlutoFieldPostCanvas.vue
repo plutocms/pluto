@@ -3,6 +3,7 @@ import type PlutoMarkdownCodeEditor from '../Markdown/PlutoMarkdownCodeEditor.vu
 import PlutoPostModeSwitch from './PlutoPostModeSwitch.vue'
 import PlutoPostOutline from './PlutoPostOutline.vue'
 import PlutoPostPreviewFrame from './PlutoPostPreviewFrame.vue'
+import PlutoPostTitle from './PlutoPostTitle.vue'
 
 // The `post-canvas` widget: the body of a post (a Markdown `richtext` field) in the
 // canvas layout of the content form, like the page editor of the docs layer.
@@ -18,6 +19,12 @@ import PlutoPostPreviewFrame from './PlutoPostPreviewFrame.vue'
 //   when the author opens Markdown mode.
 //
 // The left panel of the form shows the outline (the headings).
+//
+// The compose panel has the background of the text. The title of the item (the `titleField` of
+// the type) shows above the editor as a large field (`PlutoPostTitle`), not in the right panel
+// (`claimFields`). In Visual mode the title, the toolbar of the widget and the text scroll
+// together; the widget keeps its toolbar at the top (sticky), and its text fills the rest of the
+// height, so a click below the text puts the cursor in it.
 //
 // Markdown that the visual editor cannot keep (`findUnsafeMarkdown`) turns Visual
 // off. A cookie keeps the last mode. Outside a canvas form it shows the visual widget.
@@ -37,7 +44,42 @@ const MarkdownEditor = defineAsyncComponent(
 
 const { t } = usePlutoI18n()
 const form = usePlutoContentForm()
+const host = inject(plutoCanvasHostKey, null)
 const isDesktop = useMediaQuery('(min-width: 64rem)')
+
+// The title field of the type. In a canvas form it shows above the editor, so the right panel
+// leaves it out.
+const titleField = computed(() => {
+  const type = form?.type.value
+  return type?.titleField
+    ? type.fields.find(
+        (field) => field.name === type.titleField && field.inForm !== false
+      )
+    : undefined
+})
+if (host) {
+  const release = host.claimFields(() =>
+    titleField.value ? [titleField.value.name] : []
+  )
+  onBeforeUnmount(release)
+}
+const typeText = usePlutoContentText(() => form?.type.value)
+const titleValue = computed(() => {
+  const value = titleField.value
+    ? form?.item.value[titleField.value.name]
+    : undefined
+  return typeof value === 'string' ? value : ''
+})
+const titleError = computed(() =>
+  titleField.value
+    ? form?.errorsByField.value[titleField.value.name]
+    : undefined
+)
+function setTitle(value: string) {
+  if (titleField.value) {
+    form?.updateField(titleField.value.name, value)
+  }
+}
 
 const value = computed(() =>
   typeof props.modelValue === 'string' ? props.modelValue : ''
@@ -88,6 +130,15 @@ const source =
   useTemplateRef<InstanceType<typeof PlutoMarkdownCodeEditor>>('source')
 const preview =
   useTemplateRef<InstanceType<typeof PlutoPostPreviewFrame>>('preview')
+
+/** Enter in the title: the cursor goes to the text. */
+function focusText() {
+  if (mode.value === 'markdown') {
+    source.value?.focus()
+    return
+  }
+  visualEl.value?.querySelector<HTMLElement>('.ProseMirror')?.focus()
+}
 
 /** Jumps to a heading: in the editor of the mode, and in the preview. */
 function goToHeading(index: number) {
@@ -186,14 +237,14 @@ function onLayout(sizes: number[]) {
         @dragging="(_index: number, value: boolean) => (dragging = value)"
       >
         <template #compose>
-          <div class="flex size-full min-h-0 flex-col">
-            <!-- The editor of the mode, 8px from the edges. While the left panel is closed, its
-                 open button floats at the top left, so the editor moves right to keep it free. -->
+          <div class="bg-default flex size-full min-h-0 flex-col">
+            <!-- The editor of the mode. While the left panel is closed, its open button floats at
+                 the top left, so the editor moves right to keep it free. -->
             <div
               :class="toggles.left && 'ps-12'"
-              class="min-h-0 flex-1 p-2 transition-[padding] duration-200"
+              class="min-h-0 flex-1 transition-[padding] duration-200"
             >
-              <!-- Visual: the rich text widget scrolls its own content. -->
+              <!-- Visual: the title, the toolbar and the text scroll together. -->
               <div
                 v-if="mode === 'visual' && visualWidget"
                 ref="visual"
@@ -202,32 +253,58 @@ function onLayout(sizes: number[]) {
                 <!-- With no preview, the text keeps a readable width in the middle. -->
                 <div
                   :class="!showPreview && 'mx-auto max-w-3xl'"
-                  class="min-h-full"
+                  class="flex min-h-full flex-col p-2"
                 >
+                  <PlutoPostTitle
+                    v-if="titleField"
+                    :model-value="titleValue"
+                    :label="typeText.fieldLabel(titleField)"
+                    :error="titleError"
+                    :disabled="disabled"
+                    class="pt-6 pb-3"
+                    @update:model-value="setTitle"
+                    @next="focusText"
+                  />
                   <component
                     :is="visualWidget"
                     :field="visualField"
                     :model-value="value"
                     :disabled="disabled"
+                    class="flex-1"
                     canvas
                     @update:model-value="emit('update:modelValue', $event)"
                   />
                 </div>
               </div>
 
-              <MarkdownEditor
-                v-else
-                ref="source"
-                :model-value="value"
-                :disabled="disabled"
-                :placeholder="
-                  field.placeholder ?? t('pluto.github.editor.placeholder')
-                "
-                :aria-label="field.label"
-                fill
-                monospace
-                @update:model-value="emit('update:modelValue', $event)"
-              />
+              <!-- Markdown: the title, then the code editor fills the rest. -->
+              <div v-else class="flex size-full min-h-0 flex-col p-2">
+                <PlutoPostTitle
+                  v-if="titleField"
+                  :model-value="titleValue"
+                  :label="typeText.fieldLabel(titleField)"
+                  :error="titleError"
+                  :disabled="disabled"
+                  class="shrink-0 pt-6 pb-3"
+                  @update:model-value="setTitle"
+                  @next="focusText"
+                />
+                <div class="min-h-0 flex-1">
+                  <MarkdownEditor
+                    ref="source"
+                    :model-value="value"
+                    :disabled="disabled"
+                    :placeholder="
+                      field.placeholder ?? t('pluto.github.editor.placeholder')
+                    "
+                    :aria-label="field.label"
+                    fill
+                    monospace
+                    bare
+                    @update:model-value="emit('update:modelValue', $event)"
+                  />
+                </div>
+              </div>
             </div>
 
             <div

@@ -895,11 +895,18 @@ const canvasFieldDef = computed(() =>
       )
     : undefined
 )
+// The fields that a canvas widget shows itself (`claimFields`): not in the right panel.
+const claimGetters = shallowRef<Array<() => string[]>>([])
+const claimedFields = computed(
+  () => new Set(claimGetters.value.flatMap((getter) => getter()))
+)
 const pageFields = computed(() =>
   (contentType.value?.fields ?? [])
     .filter(
       (field) =>
-        field.inForm !== false && field.name !== canvasFieldDef.value?.name
+        field.inForm !== false &&
+        field.name !== canvasFieldDef.value?.name &&
+        !claimedFields.value.has(field.name)
     )
     .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
 )
@@ -934,6 +941,14 @@ if (isCanvas.value) {
     },
     leftTarget,
     rightTarget: (id) => rightTargets[id] ?? null,
+    claimFields(getter) {
+      claimGetters.value = [...claimGetters.value, getter]
+      return () => {
+        claimGetters.value = claimGetters.value.filter(
+          (entry) => entry !== getter
+        )
+      }
+    },
   })
 }
 
@@ -1099,6 +1114,12 @@ provide(plutoContentFormKey, {
   onSaved,
   onFlush,
   openPanel,
+  updateField(name, value) {
+    const field = contentType.value?.fields.find((entry) => entry.name === name)
+    if (field) {
+      updateField(field, value)
+    }
+  },
 })
 
 // --- Registry content actions --------------------------------------------------

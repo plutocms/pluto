@@ -129,6 +129,18 @@ put the radius in `@theme`: it would reach the public site of the app.
 transition at all. Transforms and keyframe animations are not touched. To keep a transition on
 purpose, use the important modifier (`before:duration-150!`), as the resize handles do.
 
+## Admin surfaces
+
+Light mode is not white only. The `@utility` classes of `pluto-layer.css`:
+
+- `bg-pluto-panel`: the side panels of a canvas form (`PlutoViewSidePanel`): white, `#0b0b0b` in
+  dark mode.
+- `bg-pluto-rail`: the rail of a canvas form: the navbar color (`--pluto-admin-navbar`) in light
+  mode, `#0b0b0b` in dark mode. Put `data-pluto-admin-dark` on a dark surface, so its text and
+  buttons take the dark tokens.
+- `bg-pluto-toolbar`: the toolbar bar of a rich text editor: one step darker than the text
+  (`--ui-bg-elevated` in light mode, `--pluto-admin-sidebar` in dark mode).
+
 ## Inline code
 
 Every `<code>` of the admin (not inside `pre`) is a small box: the accented border, the elevated

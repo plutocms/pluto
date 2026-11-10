@@ -52,8 +52,8 @@ The outer shell for one view. Props:
   a closed side panel (see "The canvas layout"). Use it with `v-model:aside-open`. With a `#rail`
   slot, the left panel has no floating button: the rail opens it.
 - `#rail` slot — the action rail (desktop only): a column of icon buttons (`w-12`, `border-e`, a
-  `nav` with the label "Editor actions") at the left edge of the row. It has the background of the
-  side panels (`bg-pluto-panel`). The content form fills it
+  `nav` with the label "Editor actions") at the left edge of the row. It is dark in both modes, like
+  the navbar (`bg-pluto-rail`, with `data-pluto-admin-dark` for the button colors). The content form fills it
   in the canvas layout: one button for the left panel (its `icon` and `label`, `soft`/`primary`
   and `aria-pressed` while open). It is the place for more actions of the view later (a layer,
   an AI assistant).
@@ -308,17 +308,18 @@ const form = usePlutoContentForm()
 form?.onSaved((saved) => refetchMedia(saved.id)) // after each save that worked
 ```
 
-| Key                       | Meaning                                                                                                                                                                                                                                                    |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`, `item`, `editing` | the content type, the item (owned by the form), edit mode                                                                                                                                                                                                  |
-| `loading`                 | true while the item of an edit page loads. The form and its toolbar items mount before the item is there: code that reads the saved item waits for `editing && !loading`                                                                                   |
-| `saving`, `dirty`         | a save runs, the item has unsaved changes                                                                                                                                                                                                                  |
-| `errorsByField`           | the validation message of each field that failed the last save                                                                                                                                                                                             |
-| `layout`, `canvas`        | the layout, and true for 'canvas'                                                                                                                                                                                                                          |
-| `onFlush(callback)`       | runs synchronously before a save builds its payload, and before each backup write (also when the page hides). A widget that holds edits outside `modelValue` (an editor with a debounce) writes them to the model there. Returns a stop function.          |
-| `onSaved(callback)`       | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope.                                                                                                                                       |
-| `openPanel(id)`           | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only)                                                                                                                                                                                 |
-| `panelToggles`            | `{ left, right }`: true while that panel is closed and its open button floats at the top of that side (desktop). `left` is always false in a canvas (the rail opens the left panel). A canvas widget keeps the corner free (the post preview adds `pe-12`) |
+| Key                        | Meaning                                                                                                                                                                                                                                                    |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`, `item`, `editing`  | the content type, the item (owned by the form), edit mode                                                                                                                                                                                                  |
+| `loading`                  | true while the item of an edit page loads. The form and its toolbar items mount before the item is there: code that reads the saved item waits for `editing && !loading`                                                                                   |
+| `saving`, `dirty`          | a save runs, the item has unsaved changes                                                                                                                                                                                                                  |
+| `errorsByField`            | the validation message of each field that failed the last save                                                                                                                                                                                             |
+| `layout`, `canvas`         | the layout, and true for 'canvas'                                                                                                                                                                                                                          |
+| `onFlush(callback)`        | runs synchronously before a save builds its payload, and before each backup write (also when the page hides). A widget that holds edits outside `modelValue` (an editor with a debounce) writes them to the model there. Returns a stop function.          |
+| `onSaved(callback)`        | runs after each save that worked, with the saved item. Returns a stop function. Vue stops it with the calling scope.                                                                                                                                       |
+| `updateField(name, value)` | sets one field by name, with the rules of the form (a change of the slug field stops the auto slug). For a widget that edits a field other than its own (the post title)                                                                                   |
+| `openPanel(id)`            | opens the right panel on one `PlutoContentCanvasPanel` tab ('canvas' only)                                                                                                                                                                                 |
+| `panelToggles`             | `{ left, right }`: true while that panel is closed and its open button floats at the top of that side (desktop). `left` is always false in a canvas (the rail opens the left panel). A canvas widget keeps the corner free (the post preview adds `pe-12`) |
 
 ## Skeletons and scroll
 
@@ -357,7 +358,11 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   the type ("Post", "Page"), else "Page" (`pluto.canvas.page`). `region` does not matter in this
   layout.
 - The core post editor (`widget: 'post-canvas'`, see the git-cms skill) is a canvas widget: an
-  outline in the left panel, and a Visual mode or a Markdown mode with a preview of the site.
+  outline in the left panel, the title above the text, and a Visual mode or a Markdown mode with a
+  preview of the site.
+- A canvas widget that shows another field itself (the post editor shows the title) calls
+  `claimFields(() => [name])` of the canvas host (`inject(plutoCanvasHostKey)`): the right panel
+  leaves that field out. The call returns a function that gives it back (call it on unmount).
 - A widget adds panels with `PlutoContentCanvasPanel` (props `side: 'left' | 'right'`, `id`,
   `label?`, `icon?`; slot: the panel content):
   - `left`: the content stacks in the left panel. Put `PlutoViewLeftCollapse` in its header.

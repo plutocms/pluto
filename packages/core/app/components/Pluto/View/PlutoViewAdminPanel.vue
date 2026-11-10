@@ -196,13 +196,14 @@ const items = computed<SplitterItem[]>(() => [
         The action rail (desktop): a narrow column of icon buttons at the left edge, for the left
         panels (the Outline of the post editor) and other actions of the view. It takes the place
         of the floating button that opens a closed left panel. On a narrow screen the toolbar
-        opens the left panel as a slideover. It has the background of the side panels
-        (`bg-pluto-panel`, see PlutoViewSidePanel).
+        opens the left panel as a slideover. It is dark in both modes (`bg-pluto-rail`), and
+        `data-pluto-admin-dark` gives its buttons the dark tokens, like the navbar.
       -->
       <nav
         v-if="hasRailSlot && isDesktop"
         :aria-label="t('pluto.canvas.actions')"
-        class="border-default bg-pluto-panel flex w-12 shrink-0 flex-col items-center gap-1 border-e py-2"
+        class="border-default bg-pluto-rail flex w-12 shrink-0 flex-col items-center gap-1 border-e py-2"
+        data-pluto-admin-dark
       >
         <slot name="rail" />
       </nav>

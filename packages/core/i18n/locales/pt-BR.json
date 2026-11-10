@@ -967,7 +967,8 @@
       "previewLoading": "Carregando a prévia…",
       "previewFailedTitle": "A prévia não carregou",
       "previewFailed": "A página de prévia do site não respondeu. Verifique se o site está no ar e tente de novo.",
-      "previewSwitch": "Prévia"
+      "previewSwitch": "Prévia",
+      "titlePlaceholder": "Adicione um título"
     },
     "markdown": {
       "formatting": "Formatação",
@@ -982,7 +983,8 @@
         "number": "Lista numerada",
         "quote": "Citação",
         "codeblock": "Bloco de código"
-      }
+      },
+      "moreTools": "Mais ferramentas"
     },
     "media": {
       "search": "Buscar arquivos",

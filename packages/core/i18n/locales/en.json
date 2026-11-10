@@ -967,7 +967,8 @@
       "previewLoading": "Loading the preview…",
       "previewFailedTitle": "The preview did not load",
       "previewFailed": "The preview page of the site did not answer. Check that the site runs, then try again.",
-      "previewSwitch": "Preview"
+      "previewSwitch": "Preview",
+      "titlePlaceholder": "Add a title"
     },
     "markdown": {
       "formatting": "Formatting",
@@ -982,7 +983,8 @@
         "number": "Numbered list",
         "quote": "Quote",
         "codeblock": "Code block"
-      }
+      },
+      "moreTools": "More tools"
     },
     "media": {
       "search": "Search the files",

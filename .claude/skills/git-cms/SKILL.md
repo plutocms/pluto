@@ -649,8 +649,15 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
   a click anywhere in the box puts the cursor in the text. The post type shows the widget through
   the post editor (see below).
-- With the `canvas` prop, the widget has no label, no border and no mode switch. It is a centered
-  column (`max-w-3xl`) that fills the canvas. The post editor uses it for the Visual mode.
+- With the `canvas` prop, the widget has no label, no border and no mode switch. The toolbar is a
+  separate rounded bar (`bg-pluto-toolbar`, one step darker than the text in both modes, sticky at
+  `top-2`), and the text fills the rest of the height of the compose panel (it does not scroll on
+  its own: the compose panel scrolls). The post editor uses it for the Visual mode.
+- The toolbar is `PlutoMarkdownToolbar` (`app/components/Pluto/Markdown/`): one row. The buttons
+  that do not fit go into a **More tools** popover (`i-lucide-ellipsis`, `pluto.markdown.moreTools`)
+  at the end of the row, as the same buttons; the item slots (link, image, component) work in both
+  places. It measures one button and one separator, then counts (`useElementSize`). A layer can use
+  it for its own Tiptap editor (props `editor`, `items`, `ariaLabel`; the item slots).
 - The text comes from `pluto.github.editor.*` in `en.json` and `pt-BR.json`.
 - The client plugin registers the widget as a `contentFieldWidgets` entry for
   `fieldType: 'richtext'`, in CMS mode only. It uses `defineAsyncComponent`, so Tiptap loads on the
@@ -703,11 +710,20 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 - The left panel (the Outline) starts closed. The rail of the form (the `#rail` slot of
   `PlutoViewAdminPanel`, see the admin-view-chrome skill) has its button (`i-lucide-list-tree`),
   and its header has an X (`PlutoViewLeftCollapse`).
+- The compose panel has the background of the text (`bg-default`). Above the editor (both modes)
+  is the title of the item: `PlutoPostTitle`, a large bold field (`UTextarea`, `variant="none"`,
+  `autoresize`) with no label, no border and the placeholder "Add a title"
+  (`pluto.post.titlePlaceholder`). Enter goes to the text. A validation message shows under it.
+  The widget takes the `titleField` of the type out of the right panel (`claimFields` of the
+  canvas host), and writes it with `usePlutoContentForm().updateField`, so the slug still follows
+  the title on a new item.
 - **Visual** mode shows the `richtext` widget of the app
-  (`usePlutoContentFieldWidget({ ...field, widget: undefined })`) with the `canvas` prop. A
-  `richtext` widget of a layer must accept `canvas`: no label, and a full-height box that
-  scrolls its own text (`p-4` around it, like the Markdown mode).
-- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`fill`), loaded on demand. See "Markdown
+  (`usePlutoContentFieldWidget({ ...field, widget: undefined })`) with the `canvas` prop. The
+  title, the widget toolbar and the text scroll together in the compose panel. A `richtext`
+  widget of a layer must accept `canvas`: no label, no border, a sticky toolbar bar, and a root
+  that grows (`flex-1`) so the text fills the rest of the height.
+- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`fill`, `bare`: the toolbar is a separate
+  rounded bar and the text has no box), loaded on demand. See "Markdown
   code editor" below.
 - Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
   widget. The cookie `pluto-post-editor-mode` keeps the last mode.
