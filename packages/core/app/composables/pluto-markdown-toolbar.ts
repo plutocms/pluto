@@ -40,6 +40,7 @@ export function usePlutoMarkdownToolbar(
         icon: 'i-lucide-heading',
         tooltip: { text: t('pluto.github.editor.headings') },
         content: { align: 'start' },
+        arrow: true,
         // Paragraph first: it turns a heading back into plain text.
         items: [
           {
@@ -59,6 +60,7 @@ export function usePlutoMarkdownToolbar(
         icon: 'i-lucide-list',
         tooltip: { text: t('pluto.github.editor.lists') },
         content: { align: 'start' },
+        arrow: true,
         items: [
           {
             kind: 'bulletList',
