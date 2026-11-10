@@ -9,16 +9,21 @@
  * appear after the portal looks for it. Pass `portalTarget ?? true` to the
  * `portal` prop of `UDropdownMenu`.
  *
- * The menus look like the bar: the target also carries `data-pluto-admin-dark`
- * (the dark tokens in both color modes), and a menu sets the bar color
- * (`bg-(--pluto-admin-navbar)`, also on its arrow) and `sideOffset: 2`.
+ * By default the menus look like the bar: the target also carries
+ * `data-pluto-admin-dark` (the dark tokens in both color modes), and a menu sets
+ * the bar color (`bg-(--pluto-admin-navbar)`, also on its arrow) and
+ * `sideOffset: 2`. With `{ dark: false }` the menu has the surface of the admin
+ * popovers, in the color mode of the admin (the user menu).
  */
-export function usePlutoAdminPortal() {
+export function usePlutoAdminPortal(options: { dark?: boolean } = {}) {
+  const { dark = true } = options
   const portalTarget = shallowRef<HTMLElement>()
   onMounted(() => {
     const el = document.createElement('div')
     el.setAttribute('data-pluto-admin-scope', '')
-    el.setAttribute('data-pluto-admin-dark', '')
+    if (dark) {
+      el.setAttribute('data-pluto-admin-dark', '')
+    }
     document.body.append(el)
     portalTarget.value = el
   })

@@ -33,6 +33,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
       align: 'start',
       onCloseAutoFocus: (event: Event) => event.preventDefault(),
     }"
+    arrow
   >
     <UTooltip :text="t('pluto.blocks.insert')">
       <UButton

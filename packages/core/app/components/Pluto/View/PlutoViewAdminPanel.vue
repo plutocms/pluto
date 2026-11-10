@@ -84,6 +84,15 @@ const leftResizable = computed(
     rowWidth.value > 0 && hasLeftSlot.value && leftOpen.value && isDesktop.value
 )
 const leftSlideover = computed(() => hasLeftSlot.value && !isDesktop.value)
+// On a narrow screen, Back (or the back swipe) closes the left slideover.
+usePlutoBackClose(
+  computed({
+    get: () => leftSlideover.value && leftOpen.value,
+    set: (value: boolean) => {
+      leftOpen.value = value
+    },
+  })
+)
 
 // The collapse button in the header of the left panel (PlutoViewLeftCollapse).
 const leftCollapseButtons = ref(0)
@@ -154,6 +163,12 @@ function onDragging(_index: number, dragging: boolean) {
   }
 }
 
+// The sheet: a view with the rail (a canvas form on desktop) shows its light panels (the left
+// panel and the main region) as one sheet with rounded top corners, on the frame color
+// (`bg-pluto-frame`) of the toolbar and the rail. No border under the toolbar, beside the rail or
+// before the aside: only the line between the left panel and the main region stays.
+const sheet = computed(() => hasRailSlot.value && isDesktop.value)
+
 // `id` and `order` let the splitter add and remove a side panel as it
 // opens and closes. The order is left, main, aside.
 const items = computed<SplitterItem[]>(() => [
@@ -163,13 +178,24 @@ const items = computed<SplitterItem[]>(() => [
           id: 'pluto-view-left',
           slot: 'left',
           order: 1,
+          class: sheet.value ? 'rounded-ss-xl' : undefined,
           defaultSize: leftDefault.value,
           minSize: toPercent(LEFT_MIN),
           maxSize: toPercent(LEFT_MAX),
         },
       ]
     : []),
-  { id: 'pluto-view-main', slot: 'main', order: 2 },
+  {
+    id: 'pluto-view-main',
+    slot: 'main',
+    order: 2,
+    // The top left corner is the corner of the sheet when no left panel is open.
+    class: sheet.value
+      ? leftResizable.value
+        ? 'rounded-se-xl'
+        : 'rounded-ss-xl rounded-se-xl'
+      : undefined,
+  },
   ...(resizable.value
     ? [
         {
@@ -186,8 +212,12 @@ const items = computed<SplitterItem[]>(() => [
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col overflow-hidden" data-pluto-view>
-    <div class="shrink-0">
+  <div
+    :class="sheet && 'bg-pluto-frame'"
+    class="flex h-full min-h-0 flex-col overflow-hidden"
+    data-pluto-view
+  >
+    <div :class="sheet && '*:border-b-transparent'" class="shrink-0">
       <slot name="toolbar" />
     </div>
 
@@ -196,14 +226,13 @@ const items = computed<SplitterItem[]>(() => [
         The action rail (desktop): a narrow column of icon buttons at the left edge, for the left
         panels (the Outline of the post editor) and other actions of the view. It takes the place
         of the floating button that opens a closed left panel. On a narrow screen the toolbar
-        opens the left panel as a slideover. It is dark in both modes (`bg-pluto-rail`), and
-        `data-pluto-admin-dark` gives its buttons the dark tokens, like the navbar.
+        opens the left panel as a slideover. It is part of the frame of the sheet (`bg-pluto-rail`: the
+        frame color in both modes), with no border.
       -->
       <nav
         v-if="hasRailSlot && isDesktop"
         :aria-label="t('pluto.canvas.actions')"
-        class="border-default bg-pluto-rail flex w-12 shrink-0 flex-col items-center gap-1 border-e py-2"
-        data-pluto-admin-dark
+        class="bg-pluto-rail flex w-12 shrink-0 flex-col items-center gap-1 py-2"
       >
         <slot name="rail" />
       </nav>
@@ -218,13 +247,20 @@ const items = computed<SplitterItem[]>(() => [
       <USplitter
         :items="items"
         :ui="{
-          root: 'min-h-0 flex-1',
+          // In the sheet with no aside open, 16px of frame at the right of the sheet.
+          root: sheet && !resizable ? 'min-h-0 flex-1 pe-4' : 'min-h-0 flex-1',
+          // In the sheet, a panel clips its content at its rounded corners.
+          panel: sheet ? 'overflow-hidden' : undefined,
           // A 1px line. A `::before` 2.5px wider on each side is the 6px grab
           // area, and the 6px haze-400 bar: it fades in after 300ms of hover, and
           // shows at once while dragging. The `!` keeps the duration and the
           // delay against the no-transition rule of the admin (pluto-layer.css).
-          handle:
-            'w-px bg-border before:absolute before:inset-y-0 before:inset-x-[-2.5px] before:z-10 before:transition-colors before:duration-150! hover:before:bg-haze-400 hover:before:delay-300! data-[resize-handle-state=drag]:before:bg-haze-400 data-[resize-handle-state=drag]:before:delay-0!',
+          handle: [
+            sheet
+              ? 'bg-transparent [#pluto-view-left+&]:bg-border'
+              : 'bg-border',
+            'w-px before:absolute before:inset-y-0 before:inset-x-[-2.5px] before:z-10 before:transition-colors before:duration-150! hover:before:bg-haze-400 hover:before:delay-300! data-[resize-handle-state=drag]:before:bg-haze-400 data-[resize-handle-state=drag]:before:delay-0!',
+          ].join(' '),
         }"
         @dragging="onDragging"
       >
@@ -302,11 +338,12 @@ const items = computed<SplitterItem[]>(() => [
         >
           <UButton
             :aria-label="t('pluto.common.showPanel')"
+            :class="sheet ? 'right-6' : 'right-4'"
             icon="lucide:panel-right-open"
             color="neutral"
             variant="outline"
             size="sm"
-            class="absolute top-2.5 right-4 z-10 shadow-sm"
+            class="absolute top-2.5 z-10 shadow-sm"
             square
             @click="asideOpen = true"
           />

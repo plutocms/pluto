@@ -23,24 +23,35 @@ const { t } = usePlutoI18n()
 
 <template>
   <div class="flex flex-col gap-1">
-    <!-- The text size is set for `md` too: the size of the textarea sets `md:text-sm`. -->
-    <UTextarea
-      :model-value="modelValue"
-      :placeholder="t('pluto.post.titlePlaceholder')"
-      :aria-label="label"
-      :aria-invalid="error ? true : undefined"
-      :disabled="disabled"
-      :rows="1"
-      :ui="{
-        root: 'w-full',
-        base: 'resize-none px-4 py-0 text-3xl/tight font-bold text-highlighted placeholder:text-dimmed sm:px-4 md:text-3xl/tight',
-      }"
-      variant="none"
-      autoresize
-      @update:model-value="emit('update:modelValue', String($event ?? ''))"
-      @keydown.enter.prevent="emit('next')"
-    />
-    <p v-if="error" class="text-error px-4 text-sm" role="alert">
+    <div class="group relative flex flex-col">
+      <!-- A hint that the title is a field: a pencil in the gutter at the left (where the block
+         buttons of the editor show), on hover only. It hides while the title has the focus. -->
+      <UIcon
+        name="i-lucide-pencil"
+        class="text-dimmed pointer-events-none absolute -inset-s-9 top-3.5 size-4 opacity-0 transition-opacity group-focus-within:opacity-0! group-hover:opacity-100"
+        aria-hidden="true"
+      />
+      <!-- The text size is set for `md` too: the size of the textarea sets `md:text-sm`. A soft
+         background on hover and on focus; the negative margin keeps the text in line with the
+         toolbar. -->
+      <UTextarea
+        :model-value="modelValue"
+        :placeholder="t('pluto.post.titlePlaceholder')"
+        :aria-label="label"
+        :aria-invalid="error ? true : undefined"
+        :disabled="disabled"
+        :rows="1"
+        :ui="{
+          root: '-mx-2',
+          base: 'cursor-pointer resize-none rounded-md px-2 py-1 text-3xl/tight font-bold text-highlighted opacity-70 transition placeholder:text-dimmed hover:opacity-100 focus:cursor-text focus:bg-elevated/60 focus:opacity-100 sm:px-2 md:text-3xl/tight',
+        }"
+        variant="none"
+        autoresize
+        @update:model-value="emit('update:modelValue', String($event ?? ''))"
+        @keydown.enter.prevent="emit('next')"
+      />
+    </div>
+    <p v-if="error" class="text-error text-sm" role="alert">
       {{ error }}
     </p>
   </div>

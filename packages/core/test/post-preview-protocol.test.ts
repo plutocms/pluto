@@ -43,6 +43,20 @@ describe('post preview protocol', () => {
     }
   })
 
+  it('parses a color-mode message with light or dark only', () => {
+    const message = plutoPostPreviewMessage('color-mode', { mode: 'dark' })
+    expect(parsePlutoPostPreviewMessage(message, 'to-frame')).toEqual(message)
+    expect(
+      parsePlutoPostPreviewMessage({ ...message, mode: 'light' }, 'to-frame')
+    ).toEqual({ ...message, mode: 'light' })
+    for (const mode of ['system', '', undefined, 1]) {
+      expect(
+        parsePlutoPostPreviewMessage({ ...message, mode }, 'to-frame')
+      ).toBeUndefined()
+    }
+    expect(parsePlutoPostPreviewMessage(message, 'from-frame')).toBeUndefined()
+  })
+
   it('rejects a wrong source, version, direction or field', () => {
     const ready = plutoPostPreviewMessage('ready', {})
     expect(parsePlutoPostPreviewMessage(ready, 'from-frame')).toEqual(ready)

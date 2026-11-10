@@ -2,8 +2,8 @@
 import { isAdminPath } from '../../../composables/internal/admin-shell'
 
 // The core admin navbar: the 40px bar, the menu button for small screens, the
-// logo, the site name chip, "View site", the actions of the layers, the color
-// mode button and the user menu. It has no top-level await, so it renders from
+// logo, the site name chip, "View site", the actions of the layers, the backend
+// badge and the user menu (with the theme). It has no top-level await, so it renders from
 // the state of the auth driver. See the admin-shell skill.
 const route = useRoute()
 const isSidebarOpen = usePlutoAdminMenuOpen()
@@ -84,23 +84,7 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
           action room inside the clip, without moving them.
         -->
         <div class="-mx-1 h-full min-w-0 overflow-hidden px-1">
-          <ul class="flex h-full min-w-0 items-center gap-x-1 text-sm">
-            <!-- Where the content goes: Git or a database. Admin pages only. -->
-            <ClientOnly>
-              <li v-if="isAdmin" class="h-full shrink-0">
-                <PlutoAdminBackendBadge />
-              </li>
-            </ClientOnly>
-
-            <PlutoNavbarButton
-              v-if="isAdmin"
-              :label="t('pluto.navbar.viewSite')"
-              :title="t('pluto.navbar.visitSite', { domain: siteDomain })"
-              :to="siteUrl"
-              icon="lucide:external-link"
-              target="_blank"
-            />
-
+          <ul class="flex h-full min-w-0 items-center gap-x-0.5 text-sm">
             <ClientOnly>
               <template #fallback>
                 <li class="h-full">
@@ -118,12 +102,27 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
 
               <PlutoNavbarAdminActions />
             </ClientOnly>
+
+            <!-- After the actions: New Post first, then View site. -->
+            <PlutoNavbarButton
+              v-if="isAdmin"
+              :label="t('pluto.navbar.viewSite')"
+              :title="t('pluto.navbar.visitSite', { domain: siteDomain })"
+              :to="siteUrl"
+              icon="lucide:external-link"
+              target="_blank"
+            />
           </ul>
         </div>
       </div>
 
       <div class="flex shrink-0 items-center gap-1 lg:gap-3">
-        <PlutoAdminColorModeButton />
+        <!-- Where the content goes: Git or a database. Admin pages only, next to the user. -->
+        <ClientOnly>
+          <div v-if="isAdmin" class="h-full shrink-0">
+            <PlutoAdminBackendBadge />
+          </div>
+        </ClientOnly>
 
         <!--
           The user is known in the browser only. On a public page the server

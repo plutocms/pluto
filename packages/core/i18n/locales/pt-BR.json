@@ -36,7 +36,11 @@
       "signedOut": "Você saiu",
       "administrator": "Administrador",
       "adminBadge": "Admin",
-      "help": "Ajuda"
+      "help": "Ajuda",
+      "theme": "Tema",
+      "themeLight": "Claro",
+      "themeDark": "Escuro",
+      "themeSystem": "Sistema"
     },
     "nav": {
       "home": "Início",
@@ -402,6 +406,7 @@
         "undo": "Desfazer",
         "redo": "Refazer",
         "headings": "Títulos",
+        "paragraph": "Parágrafo",
         "heading1": "Título 1",
         "heading2": "Título 2",
         "heading3": "Título 3",
@@ -425,7 +430,13 @@
         "visual": "Visual",
         "source": "Código",
         "unsafe": "Este texto tem uma sintaxe que o editor visual não consegue manter (MDC, HTML, tabelas, listas de tarefas ou notas de rodapé). Edite no modo Código.",
-        "mode": "Modo do editor"
+        "mode": "Modo do editor",
+        "style": "Estilo",
+        "insert": "Inserir",
+        "addBlock": "Adicionar um bloco",
+        "blockHandle": "Arraste para mover. Clique para o menu do bloco.",
+        "duplicate": "Duplicar",
+        "remove": "Excluir"
       },
       "capabilities": {
         "readDrafts": "Ler rascunhos de posts",

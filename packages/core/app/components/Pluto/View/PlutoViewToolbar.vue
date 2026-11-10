@@ -29,7 +29,11 @@ const { t } = usePlutoI18n()
     :title="title"
     :icon="icon"
     :toggle="false"
-    :ui="{ root: 'h-12 border-muted sm:px-3' }"
+    :ui="{
+      root: backTo
+        ? 'h-12 border-muted ps-2 pe-3 sm:ps-2 sm:pe-3'
+        : 'h-12 border-muted sm:px-3',
+    }"
   >
     <template v-if="$slots.left" #left>
       <slot name="left" />

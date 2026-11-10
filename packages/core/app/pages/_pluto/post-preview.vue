@@ -156,6 +156,13 @@ function onMessage(event: MessageEvent) {
     rendered.value = true
   } else if (message?.type === 'scroll-to') {
     scrollToHeading(message.heading)
+  } else if (message?.type === 'color-mode') {
+    // The mode of the admin, on this page only: the class on <html>, not the stored preference,
+    // which the admin shares (same origin) and may keep as "system".
+    const root = document.documentElement
+    root.classList.remove('light', 'dark')
+    root.classList.add(message.mode)
+    root.style.colorScheme = message.mode
   } else if (message?.type === 'inset') {
     // Space at the right of the page, for the open button of the closed right panel.
     document.documentElement.style.paddingInlineEnd = message.end

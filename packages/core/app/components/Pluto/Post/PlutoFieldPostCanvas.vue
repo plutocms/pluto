@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Editor } from '@tiptap/vue-3'
 import type PlutoMarkdownCodeEditor from '../Markdown/PlutoMarkdownCodeEditor.vue'
 import PlutoPostModeSwitch from './PlutoPostModeSwitch.vue'
 import PlutoPostOutline from './PlutoPostOutline.vue'
@@ -15,16 +16,19 @@ import PlutoPostTitle from './PlutoPostTitle.vue'
 // - Visual: the rich text widget that the app has for `richtext` (the Git CMS
 //   Markdown editor, or the editor of a layer), with `canvas`, so it fills the
 //   height and has no label.
-// - Markdown: `PlutoMarkdownCodeEditor` (CodeMirror, with syntax colors). It loads
-//   when the author opens Markdown mode.
+// - Markdown: `PlutoMarkdownCodeEditor` (CodeMirror, with syntax colors), `bare`: no
+//   toolbar (a bubble toolbar over a selection), and it grows with the text. It loads when
+//   the author opens Markdown mode.
 //
-// The left panel of the form shows the outline (the headings).
+// The left panel of the form shows the outline (the headings). A click on a heading puts the caret
+// at the end of it and scrolls it under the sticky toolbar; the heading that has the caret is the
+// active item of the outline.
 //
 // The compose panel has the background of the text. The title of the item (the `titleField` of
 // the type) shows above the editor as a large field (`PlutoPostTitle`), not in the right panel
-// (`claimFields`). In Visual mode the title, the toolbar of the widget and the text scroll
-// together; the widget keeps its toolbar at the top (sticky), and its text fills the rest of the
-// height, so a click below the text puts the cursor in it.
+// (`claimFields`). In both modes the title and the text scroll together, in the same column; the
+// Visual widget keeps its toolbar at the top (sticky). The text fills the rest of the height, so a
+// click below the text puts the cursor in it.
 //
 // Markdown that the visual editor cannot keep (`findUnsafeMarkdown`) turns Visual
 // off. A cookie keeps the last mode. Outside a canvas form it shows the visual widget.
@@ -63,6 +67,19 @@ if (host) {
   )
   onBeforeUnmount(release)
 }
+
+// The alerts of the form show above the title, in the column of the text, as wide as the toolbar.
+const alertsEl = useTemplateRef<HTMLElement>('alerts')
+let releaseAlerts: (() => void) | undefined
+watch(
+  alertsEl,
+  (element) => {
+    releaseAlerts?.()
+    releaseAlerts = element && host ? host.claimAlerts(element) : undefined
+  },
+  { flush: 'post', immediate: true }
+)
+onBeforeUnmount(() => releaseAlerts?.())
 const typeText = usePlutoContentText(() => form?.type.value)
 const titleValue = computed(() => {
   const value = titleField.value
@@ -125,7 +142,8 @@ const toggles = computed(
   () => form?.panelToggles.value ?? { left: false, right: false }
 )
 
-const visualEl = useTemplateRef<HTMLElement>('visual')
+// The scroll area of the compose panel: the title and the text of both modes.
+const scrollEl = useTemplateRef<HTMLElement>('scroller')
 const source =
   useTemplateRef<InstanceType<typeof PlutoMarkdownCodeEditor>>('source')
 const preview =
@@ -137,7 +155,46 @@ function focusText() {
     source.value?.focus()
     return
   }
-  visualEl.value?.querySelector<HTMLElement>('.ProseMirror')?.focus()
+  scrollEl.value?.querySelector<HTMLElement>('.ProseMirror')?.focus()
+}
+
+// The heading that has the caret: the active item of the outline. -1: none.
+const activeHeading = ref(-1)
+watch(mode, () => {
+  activeHeading.value = -1
+})
+
+const HEADING_SELECTOR = 'h1, h2, h3, h4, h5, h6'
+
+/** The headings of the Visual editor, in the order of `headings`. */
+function visualHeadings(): HTMLElement[] {
+  const root = scrollEl.value?.querySelector('.ProseMirror')
+  return root ? [...root.querySelectorAll<HTMLElement>(HEADING_SELECTOR)] : []
+}
+
+/**
+ * Scrolls the Visual panel so the element shows under the sticky toolbar of the widget (the
+ * `data-pluto-editor-toolbar` element), with a small gap.
+ */
+function scrollUnderToolbar(element: HTMLElement) {
+  const container = scrollEl.value
+  if (!container) {
+    return
+  }
+  const toolbar = container.querySelector<HTMLElement>(
+    '[data-pluto-editor-toolbar]'
+  )
+  const covered = toolbar
+    ? toolbar.offsetHeight +
+      (Number.parseFloat(getComputedStyle(toolbar).top) || 0)
+    : 0
+  const top =
+    element.getBoundingClientRect().top -
+    container.getBoundingClientRect().top +
+    container.scrollTop -
+    covered -
+    16
+  container.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' })
 }
 
 /** Jumps to a heading: in the editor of the mode, and in the preview. */
@@ -146,22 +203,64 @@ function goToHeading(index: number) {
   if (!heading) {
     return
   }
+  activeHeading.value = index
   preview.value?.scrollToHeading(index)
   if (mode.value === 'markdown') {
     source.value?.goToLine(heading.line)
     return
   }
-  const element = visualEl.value?.querySelectorAll(
-    '.ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4, .ProseMirror h5, .ProseMirror h6'
-  )[index]
-  element?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  const element = visualHeadings()[index]
+  if (!element) {
+    return
+  }
+  // Tiptap puts the editor on its editable element. The caret goes to the end of the heading; the
+  // panel scrolls on its own, so the focus does not scroll.
+  const editor = (
+    element.closest('.ProseMirror') as
+      (HTMLElement & { editor?: Editor }) | null
+  )?.editor
+  if (editor && !editor.isDestroyed) {
+    const start = editor.view.posAtDOM(element, 0)
+    const end = start + editor.state.doc.resolve(start).parent.content.size
+    editor.commands.focus(end, { scrollIntoView: false })
+  }
+  scrollUnderToolbar(element)
 }
 
+/** Visual: the caret moved. The heading around it, if any. A caret outside the editor changes nothing. */
+function onSelectionChange() {
+  if (mode.value !== 'visual') {
+    return
+  }
+  const root = scrollEl.value?.querySelector('.ProseMirror')
+  const node = document.getSelection()?.anchorNode
+  if (!root || !node || !root.contains(node)) {
+    return
+  }
+  const element = node instanceof Element ? node : node.parentElement
+  const heading = element?.closest<HTMLElement>(HEADING_SELECTOR)
+  activeHeading.value =
+    heading && root.contains(heading) ? visualHeadings().indexOf(heading) : -1
+}
+
+/** Markdown: the line of the caret (from 0). */
+function onSourceCursor(line: number) {
+  activeHeading.value = headings.value.findIndex(
+    (heading) => heading.line === line
+  )
+}
+
+onMounted(() => document.addEventListener('selectionchange', onSelectionChange))
+onBeforeUnmount(() =>
+  document.removeEventListener('selectionchange', onSelectionChange)
+)
+
 // The preview can be off, so the editor gets the room. A switch in the footer of the compose
-// panel turns it on and off. On desktop a cookie keeps the choice (on by default); on a narrow
-// screen it starts off, because the stacked split leaves little room to write.
+// panel turns it on and off. On desktop a cookie keeps the choice (off by default: the editor gets
+// the room; the docs editor keeps its own preview on); on a narrow screen it starts off, because the
+// stacked split leaves little room to write.
 const previewCookie = useCookie<boolean>('pluto-post-preview', {
-  default: () => true,
+  default: () => false,
   maxAge: 60 * 60 * 24 * 365,
   sameSite: 'lax',
 })
@@ -176,6 +275,15 @@ const showPreview = computed({
     }
   },
 })
+
+// The column of the text, in both modes: a gutter at the left for the block buttons of the Visual
+// editor, and 16px at the right. With no preview: a readable width in the middle; when the panel has room for
+// the buttons beside that column (55rem: 48rem and 3.5rem on each side), the padding is the same on
+// both sides, so the column stays centered and the buttons use the free space at its left.
+const columnClass = computed(() => [
+  'ps-14 pe-4',
+  !showPreview.value && 'mx-auto max-w-3xl @min-[55rem]:ps-4',
+])
 
 // The split between the compose panel and the preview. The cookie keeps the sizes.
 const split = useCookie<number[]>('pluto-post-split', {
@@ -221,7 +329,11 @@ function onLayout(sizes: number[]) {
         side="left"
         icon="i-lucide-list-tree"
       >
-        <PlutoPostOutline :headings="headings" @select="goToHeading" />
+        <PlutoPostOutline
+          :headings="headings"
+          :active="activeHeading"
+          @select="goToHeading"
+        />
       </PlutoContentCanvasPanel>
 
       <!-- The compose panel and the preview of the site, side by side (stacked on a narrow screen). -->
@@ -238,23 +350,31 @@ function onLayout(sizes: number[]) {
       >
         <template #compose>
           <div class="bg-default flex size-full min-h-0 flex-col">
+            <!-- The alerts of the form, in the column of the text: the same width as the column
+                 below (the same container, padding and scrollbar room), and as wide as the toolbar
+                 (`-mx-2`). Empty: no space. -->
+            <div
+              :class="toggles.left && 'ps-12'"
+              class="@container shrink-0 scrollbar-gutter-stable overflow-hidden"
+            >
+              <div :class="columnClass">
+                <div ref="alerts" class="-mx-2 pt-4 empty:hidden" />
+              </div>
+            </div>
+
             <!-- The editor of the mode. While the left panel is closed, its open button floats at
-                 the top left, so the editor moves right to keep it free. -->
+                 the top left, so the editor moves right to keep it free. The title and the text
+                 scroll together, in the same column in both modes. -->
             <div
               :class="toggles.left && 'ps-12'"
               class="min-h-0 flex-1 transition-[padding] duration-200"
             >
-              <!-- Visual: the title, the toolbar and the text scroll together. -->
               <div
-                v-if="mode === 'visual' && visualWidget"
-                ref="visual"
-                class="size-full min-h-0 overflow-x-hidden overflow-y-auto"
+                ref="scroller"
+                class="@container size-full min-h-0 scrollbar-thumb-(--ui-border-accented) scrollbar-gutter-stable overflow-x-hidden overflow-y-auto"
               >
-                <!-- With no preview, the text keeps a readable width in the middle. -->
-                <div
-                  :class="!showPreview && 'mx-auto max-w-3xl'"
-                  class="flex min-h-full flex-col p-2"
-                >
+                <!-- The column of the text (`columnClass`). -->
+                <div :class="columnClass" class="flex min-h-full flex-col py-2">
                   <PlutoPostTitle
                     v-if="titleField"
                     :model-value="titleValue"
@@ -265,8 +385,10 @@ function onLayout(sizes: number[]) {
                     @update:model-value="setTitle"
                     @next="focusText"
                   />
+                  <!-- Visual: the widget keeps its toolbar at the top (sticky). -->
                   <component
                     :is="visualWidget"
+                    v-if="mode === 'visual' && visualWidget"
                     :field="visualField"
                     :model-value="value"
                     :disabled="disabled"
@@ -274,23 +396,10 @@ function onLayout(sizes: number[]) {
                     canvas
                     @update:model-value="emit('update:modelValue', $event)"
                   />
-                </div>
-              </div>
-
-              <!-- Markdown: the title, then the code editor fills the rest. -->
-              <div v-else class="flex size-full min-h-0 flex-col p-2">
-                <PlutoPostTitle
-                  v-if="titleField"
-                  :model-value="titleValue"
-                  :label="typeText.fieldLabel(titleField)"
-                  :error="titleError"
-                  :disabled="disabled"
-                  class="shrink-0 pt-6 pb-3"
-                  @update:model-value="setTitle"
-                  @next="focusText"
-                />
-                <div class="min-h-0 flex-1">
+                  <!-- Markdown: no toolbar (a bubble toolbar over a selection); the text grows,
+                       and the column scrolls. -->
                   <MarkdownEditor
+                    v-else
                     ref="source"
                     :model-value="value"
                     :disabled="disabled"
@@ -298,10 +407,11 @@ function onLayout(sizes: number[]) {
                       field.placeholder ?? t('pluto.github.editor.placeholder')
                     "
                     :aria-label="field.label"
-                    fill
+                    class="flex-1 pt-2"
                     monospace
                     bare
                     @update:model-value="emit('update:modelValue', $event)"
+                    @cursor-line="onSourceCursor"
                   />
                 </div>
               </div>

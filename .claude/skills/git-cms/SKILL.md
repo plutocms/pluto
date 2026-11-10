@@ -639,19 +639,40 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
 - It uses `UEditor` (Nuxt UI, Tiptap) with `content-type="markdown"`. The model value is a
   Markdown string. The editor sends `editor.getMarkdown()` on each change. The adapter stores that
   string as the file body.
-- `UEditorToolbar` has the built-in items: undo, redo, headings 1 to 4, bulleted and numbered
+- `UEditorToolbar` has the built-in items: undo, redo, Paragraph and headings 1 to 4 (one menu), bulleted and numbered
   lists, quote, code block, bold, italic, strikethrough and inline code. The items come from
   `usePlutoMarkdownToolbar({ link, image })` (`app/composables/pluto-markdown-toolbar.ts`), so
   another editor can share them. The link button is a slot (`PlutoGithubEditorLink.vue`, a
   popover with the URL). The image extension is on, so an image in the Markdown stays. The image
   button (`PlutoMediaEditorButton`, the media picker) shows when the app has a media library. The
   mention extension is off.
+- Blocks, like the other editors: a bubble toolbar over a selection (`usePlutoMarkdownBubbleItems`:
+  the marks and the link slot). The compose panel has a left gutter (`ps-14`) and `pe-4`. With the preview off, the column is
+  centered (`max-w-3xl`); when the panel has room for the buttons beside it (an `@container`,
+  `@min-[55rem]`), the padding is `ps-4` on both sides and the buttons use the free space, so the
+  column stays in the middle. The editor element reaches into the gutter (`-ms-14 ps-14`): Tiptap
+  hides the handle when the pointer leaves the editor, so without it the buttons vanished on the
+  way to them. The text
+  has no side padding, so it starts at the left edge of the toolbar, under the title. In the gutter,
+  `UEditorDragHandle` (the default `left-start` placement, no flip, its `hover` event) shows the grip of a block
+  (drag to move; a click opens Duplicate and Delete, `pluto.github.editor.duplicate`, `remove`), or the
+  "+" of an empty line. The "+" opens a dropdown with the block items (paragraph, headings 1 to 4,
+  lists, quote, code block, the site components) and runs the chosen item on that line. No "/" is
+  typed. `/` in an empty line
+  opens `UEditorSuggestionMenu` (`usePlutoMarkdownSuggestionItems`: paragraph, headings 1 to 4,
+  lists, quote, code block, then the content components with the `plutoComponent` handler, passed
+  to `UEditor` with `handlers`). `PlutoTrailingParagraph` (`app/utils/`) keeps an empty line at the
+  end (not in the undo history), and the widget trims the blank lines at the end of the Markdown, so
+  an open post stays unchanged. The text has `pt-12`, so the bubble toolbar of the first line does
+  not sit under the main toolbar. Core sets `vite.resolve.dedupe` for the ProseMirror packages: a
+  nested copy of `prosemirror-model` broke the slash menu.
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
   a click anywhere in the box puts the cursor in the text. The post type shows the widget through
   the post editor (see below).
-- With the `canvas` prop, the widget has no label, no border and no mode switch. The toolbar is a
-  separate rounded bar (`bg-pluto-toolbar`, one step darker than the text in both modes, sticky at
-  `top-2`), and the text fills the rest of the height of the compose panel (it does not scroll on
+- With the `canvas` prop, the widget has no label, no border and no mode switch. The toolbar is `-mx-2` (as wide as the focused title) and a
+  separate rounded bar (white with a soft shadow in light mode, the dark sidebar color in dark mode;
+  see the admin-theme skill), sticky at `top-2`. The text has `pt-8` under it, and fills the rest
+  of the height of the compose panel (it does not scroll on
   its own: the compose panel scrolls). The post editor uses it for the Visual mode.
 - The toolbar is `PlutoMarkdownToolbar` (`app/components/Pluto/Markdown/`): one row. The buttons
   that do not fit go into a **More tools** popover (`i-lucide-ellipsis`, `pluto.markdown.moreTools`)
@@ -701,19 +722,27 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 - `PlutoFieldPostCanvas.vue` is the widget. Core registers it by name only
   (`widget: 'post-canvas'`), so it never competes for `richtext`. Outside a canvas form it shows
   the `richtext` widget as a normal field.
+- One scroll area and one text column serve both the Visual and the Markdown mode. The column is
+  `ps-14 pe-4`, and centered at `max-w-3xl` when the preview is off. The scrollbars of the editor and
+  of the aside have no track (`scrollbar-thumb-(--ui-border-accented)`). The editor keeps the room of
+  the scrollbar (`scrollbar-gutter-stable`).
 - The canvas is one `USplitter` in both modes (stacked under `lg`): the compose panel and the
   preview. The cookie `pluto-post-split` keeps the sizes. The compose panel has a footer with
   the Visual/Markdown switch (`PlutoPostModeSwitch.vue`) and, at the end, the **Preview** switch
   (`USwitch`). With the preview off, the splitter has the compose panel alone (its size is not
   saved) and the Visual editor keeps a readable width (`max-w-3xl`, in the middle). On desktop
-  the cookie `pluto-post-preview` keeps the choice (default on); under `lg` it starts off.
+  the cookie `pluto-post-preview` keeps the choice (default off: the editor gets the room; the docs editor keeps its preview on); under `lg` it starts off.
 - The left panel (the Outline) starts closed. The rail of the form (the `#rail` slot of
   `PlutoViewAdminPanel`, see the admin-view-chrome skill) has its button (`i-lucide-list-tree`),
   and its header has an X (`PlutoViewLeftCollapse`).
 - The compose panel has the background of the text (`bg-default`). Above the editor (both modes)
   is the title of the item: `PlutoPostTitle`, a large bold field (`UTextarea`, `variant="none"`,
-  `autoresize`) with no label, no border and the placeholder "Add a title"
-  (`pluto.post.titlePlaceholder`). Enter goes to the text. A validation message shows under it.
+  `autoresize`) with no label, no border, no side padding (it starts at the left edge of the
+  toolbar) and the placeholder "Add a title"
+  (`pluto.post.titlePlaceholder`). Enter goes to the text. A validation message shows under it. The title hints that it is
+  editable: the text is at 70% opacity (100% on hover and focus), a soft background shows only on
+  focus, the cursor is a pointer at rest, and a pencil icon shows in the left gutter on hover (hidden
+  on focus). The alerts of the form show above it (`claimAlerts`).
   The widget takes the `titleField` of the type out of the right panel (`claimFields` of the
   canvas host), and writes it with `usePlutoContentForm().updateField`, so the slug still follows
   the title on a new item.
@@ -722,16 +751,19 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   title, the widget toolbar and the text scroll together in the compose panel. A `richtext`
   widget of a layer must accept `canvas`: no label, no border, a sticky toolbar bar, and a root
   that grows (`flex-1`) so the text fills the rest of the height.
-- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`fill`, `bare`: the toolbar is a separate
-  rounded bar and the text has no box), loaded on demand. See "Markdown
+- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`fill`, `bare`: no toolbar, no box, no side
+  padding; the editor grows with the text and the parent scrolls), loaded on demand. See "Markdown
   code editor" below.
 - Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
   widget. The cookie `pluto-post-editor-mode` keeps the last mode.
-- The left panel (`PlutoPostOutline.vue`, in the `PlutoViewSidePanel` shell) lists the headings (`plutoMarkdownHeadings(text)` in
+- The left panel (`PlutoPostOutline.vue`, in the `PlutoViewSidePanel` shell) lists the headings, each with the icon of its level (`i-lucide-heading-1` to `-6`) (`plutoMarkdownHeadings(text)` in
   `shared/utils/markdown-headings.ts`: ATX and setext headings, not in a code fence, in the order
   of the rendered `h1` to `h6`). A click scrolls the preview to the heading, and goes to it in the
-  editor: in Markdown mode the caret goes to its line (`goToLine`); in Visual mode the editor
-  scrolls to the nth heading of `.ProseMirror`.
+  editor: the caret goes to the end of the heading, and the heading scrolls 16px under the sticky
+  toolbar of the widget (the widget marks its toolbar with `data-pluto-editor-toolbar`). In Markdown
+  mode the caret goes to its line (`goToLine`); in Visual mode the editor uses the nth heading of
+  `.ProseMirror`. The heading that holds the caret is the active item of the outline
+  (`aria-current="location"`).
 - The other fields are in the right panel.
 
 #### Markdown code editor
@@ -746,7 +778,12 @@ formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts
 - Props: `modelValue`, `disabled`, `placeholder`, `ariaLabel`, `fill`, `minLines` (18),
   `monospace` (all the text in the monospace font at 14px; the post editor sets it). Slots:
   `toolbar` (slot props `insert`, `focus`) and `toolbar-end`. Exposed: `insert`, `focus`,
-  `reveal(start, end)` and `goToLine(line)`.
+  `reveal(start, end)` and `goToLine(line)` (the caret goes to the end of the line, from 0).
+- Event `cursorLine`: the line of the caret, from 0.
+- With `bare`, the editor has no toolbar, no box and no side padding, and it grows with the text (the
+  parent scrolls). A bubble toolbar (bold, italic, strike, code, link) shows over a selection. The
+  `.cm-scroller` keeps the room of the scrollbar only with `fill`. The docs layer does not use
+  `bare` and keeps the toolbar.
 - It uses `markdownLanguage`, not `markdown()`, which would add the HTML, CSS and JavaScript
   languages.
 - Load it on demand (`defineAsyncComponent`, or `LazyPlutoMarkdownCodeEditor`): CodeMirror is
@@ -766,8 +803,10 @@ that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
   sanitizer), the same code as the public API. The render waits 150 ms after a change. A frame
   that does not answer in 12 s shows an error with a retry.
 - The protocol is in `shared/utils/post-preview-protocol.ts`. The parent sends `render`
-  (`contentType`, `item` without the body, `markdown`), `scroll-to` (a heading index) and `inset`
-  (`end`, 0 to 200 px). The frame sends `ready`. Both sides accept a message only from the same
+  (`contentType`, `item` without the body, `markdown`), `scroll-to` (a heading index), `inset`
+  (`end`, 0 to 200 px) and `color-mode` (`mode`: `light` or `dark`, the resolved mode of the admin,
+  on `ready` and on each change; the page sets the class and `color-scheme` of `<html>`, not the
+  stored preference, which the admin shares). The frame sends `ready`. Both sides accept a message only from the same
   origin, and only from the parent window or the frame.
 - While the right panel is closed (`panelToggles.right`), the editor sends `inset` `{ end: 40 }`:
   the page sets `padding-inline-end` on `<html>`, so the open button floats over the margin of

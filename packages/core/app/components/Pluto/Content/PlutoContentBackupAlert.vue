@@ -9,8 +9,6 @@ const props = defineProps<{
   offer: PlutoBackupOffer
   /** The changes that a restore makes, from `diffFields`. */
   changes: PlutoFieldChange[]
-  /** The canvas layout gives the alert its own margin. */
-  canvas?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -44,8 +42,7 @@ function restore() {
 </script>
 
 <template>
-  <!-- A div, because the alert is `w-full`: a margin on it would push it out of the canvas. -->
-  <div :class="canvas ? 'shrink-0 p-4' : undefined">
+  <div>
     <UAlert
       :title="t('pluto.backup.title')"
       color="warning"

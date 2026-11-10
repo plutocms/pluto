@@ -100,10 +100,12 @@ Run the checks again before you change a slot.
 
 ## Fonts
 
-The admin text is Public Sans (`--font-sans` under the admin selectors). Page titles (`h1`: the
-dashboard, Settings, the sign-in card) use Fredoka, the rounded face of the wordmark, through
-`--pluto-admin-font-display`. Both are literals, like the colors. `@nuxt/fonts` finds them in
-the stylesheet and serves them.
+The admin has one font, Public Sans (`--font-sans` under the admin selectors), a literal like the
+colors. `@nuxt/fonts` finds it in the stylesheet and serves it. Page titles (`h1`: the dashboard,
+Settings, the sign-in card) are semibold with tighter letter spacing: a sober face. Fredoka, the
+rounded face of the wordmark, is for the public site only (`pluto-site-theme.css`). The `h1` rule
+reads `--pluto-admin-font-display` first, so a brand can set its own title font (`fontDisplay`);
+the theme does not declare it.
 
 `pluto-layer.css` still declares `--font-outfit` (the font of the admin before the Pluto tokens)
 in `@theme`. Some sites use `font-outfit` for their own text, so it stays until they move.
@@ -133,13 +135,20 @@ purpose, use the important modifier (`before:duration-150!`), as the resize hand
 
 Light mode is not white only. The `@utility` classes of `pluto-layer.css`:
 
-- `bg-pluto-panel`: the side panels of a canvas form (`PlutoViewSidePanel`): white, `#0b0b0b` in
-  dark mode.
-- `bg-pluto-rail`: the rail of a canvas form: the navbar color (`--pluto-admin-navbar`) in light
-  mode, `#0b0b0b` in dark mode. Put `data-pluto-admin-dark` on a dark surface, so its text and
-  buttons take the dark tokens.
-- `bg-pluto-toolbar`: the toolbar bar of a rich text editor: one step darker than the text
-  (`--ui-bg-elevated` in light mode, `--pluto-admin-sidebar` in dark mode).
+- The admin sidebar (`app/layouts/admin.vue`): the navbar color in both modes
+  (`bg-(--pluto-admin-navbar)`), with `data-pluto-admin-dark`. It has no border.
+- `bg-pluto-panel`: the side panels of a canvas form (`PlutoViewSidePanel`, the Outline): `--ui-bg`
+  in both modes, the background of the editor.
+- `bg-pluto-rail`: the rail of a canvas form and the right panel (`PlutoViewAside`, desktop):
+  `--ui-bg-muted` in light mode, transparent in dark mode. Neither is a dark panel.
+- `bg-pluto-frame`: the frame around the canvas "sheet" (see the admin-view-chrome skill):
+  `--ui-bg-muted` in light mode, `--pluto-admin-canvas` in dark mode.
+- Put `data-pluto-admin-dark` on a dark surface, so its text and buttons take the dark tokens. A
+  menu or a popover that opens from it teleports to `<body>` and keeps the normal tokens.
+
+The toolbar bar of the post editor uses plain Tailwind classes, the same in core and in
+supabase-blog: `border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:border-default dark:bg-(--pluto-admin-sidebar)`. White with a soft shadow and a thin border in light mode, the dark sidebar
+color in dark mode (the shadow stays).
 
 ## Inline code
 
