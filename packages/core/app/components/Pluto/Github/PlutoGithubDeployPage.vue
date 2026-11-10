@@ -248,7 +248,9 @@ const cloudflare = {
               </span>
             </div>
             <p class="text-muted grow text-sm">
-              {{ t(`pluto.github.deploy.hosts.${host.id}.description`) }}
+              <PlutoCodeText
+                :text="t(`pluto.github.deploy.hosts.${host.id}.description`)"
+              />
             </p>
             <UButton
               :label="t(`pluto.github.deploy.hosts.${host.id}.action`)"
@@ -263,7 +265,7 @@ const cloudflare = {
         </UCard>
       </div>
       <p class="text-muted text-sm">
-        {{ t('pluto.github.deploy.full.after') }}
+        <PlutoCodeText :text="t('pluto.github.deploy.full.after')" />
       </p>
     </section>
 

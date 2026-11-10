@@ -440,7 +440,7 @@
         "callbackUrl": "URL de callback",
         "callbackHint": "O GitHub App usa esta URL para devolver o editor depois do login. O botão Criar já configura isso.",
         "copy": "Copiar",
-        "devNote": "Em desenvolvimento, o botão Criar salva as chaves no seu arquivo .env. Reinicie o servidor de desenvolvimento depois.",
+        "devNote": "Em desenvolvimento, o botão Criar salva as chaves no seu arquivo `.env`. Reinicie o servidor de desenvolvimento depois.",
         "create": "Criar o GitHub App",
         "install": "Instalar o App",
         "docs": "Abrir o guia rápido",
@@ -451,27 +451,27 @@
         "checks": {
           "repo": {
             "title": "O repositório de conteúdo está definido",
-            "fix": "Defina PLUTO_GITHUB_REPO como dono/nome, por exemplo acme/site."
+            "fix": "Defina `PLUTO_GITHUB_REPO` como `dono/nome`, por exemplo `acme/site`."
           },
           "sessionPassword": {
             "title": "A senha de sessão está definida",
-            "fix": "Defina NUXT_PLUTO_GITHUB_SESSION_PASSWORD com um texto aleatório de 32 caracteres ou mais. O botão Criar gera uma."
+            "fix": "Defina `NUXT_PLUTO_GITHUB_SESSION_PASSWORD` com um texto aleatório de 32 caracteres ou mais. O botão Criar gera uma."
           },
           "appId": {
             "title": "O ID do GitHub App está definido",
-            "fix": "Defina NUXT_PLUTO_GITHUB_APP_ID. O botão Criar define."
+            "fix": "Defina `NUXT_PLUTO_GITHUB_APP_ID`. O botão Criar define."
           },
           "clientId": {
             "title": "O client ID está definido",
-            "fix": "Defina NUXT_PLUTO_GITHUB_CLIENT_ID. O botão Criar define."
+            "fix": "Defina `NUXT_PLUTO_GITHUB_CLIENT_ID`. O botão Criar define."
           },
           "clientSecret": {
             "title": "O client secret está definido",
-            "fix": "Defina NUXT_PLUTO_GITHUB_CLIENT_SECRET. O botão Criar define."
+            "fix": "Defina `NUXT_PLUTO_GITHUB_CLIENT_SECRET`. O botão Criar define."
           },
           "privateKey": {
             "title": "A chave privada é válida",
-            "fix": "Defina NUXT_PLUTO_GITHUB_PRIVATE_KEY com a chave PEM, ou com o base64 dela. O botão Criar define."
+            "fix": "Defina `NUXT_PLUTO_GITHUB_PRIVATE_KEY` com a chave PEM, ou com o base64 dela. O botão Criar define."
           },
           "installation": {
             "title": "O App está instalado no repositório",
@@ -494,19 +494,19 @@
             "secretNote": "Esta página mostra segredos. O site não os guarda. Feche esta página quando terminar.",
             "step1": "Salve as configurações",
             "step1Prod": "Copie este bloco. Cole nas variáveis de ambiente da sua hospedagem.",
-            "step1Dev": "O bloco abaixo tem os mesmos valores que o site escreveu no seu arquivo .env.",
+            "step1Dev": "O bloco abaixo tem os mesmos valores que o site escreveu no seu arquivo `.env`.",
             "blockLabel": "Variáveis de ambiente",
             "copy": "Copiar",
             "copied": "Copiado",
-            "envSaved": "Os valores foram salvos no arquivo .env.",
-            "envFailed": "O site não conseguiu escrever o arquivo .env. Copie o bloco abaixo e cole no .env.",
-            "envNotIgnored": "Atenção: o .gitignore não ignora o .env. Não faça commit deste arquivo.",
+            "envSaved": "Os valores foram salvos no arquivo `.env`.",
+            "envFailed": "O site não conseguiu escrever o arquivo `.env`. Copie o bloco abaixo e cole no `.env`.",
+            "envNotIgnored": "Atenção: o `.gitignore` não ignora o `.env`. Não faça commit deste arquivo.",
             "step2": "Instale o App no repositório",
             "step2Body": "Escolha somente o repositório de conteúdo. O App não consegue salvar posts até você instalar.",
             "install": "Instalar o App",
             "step3": "Reinicie e entre",
             "step3Prod": "Cole o bloco na sua hospedagem (na Vercel: Settings, Environment Variables, e cole o bloco). Faça um novo deploy do site. Depois entre.",
-            "step3Dev": "Reinicie o servidor de desenvolvimento para ler o arquivo .env. Depois entre.",
+            "step3Dev": "Reinicie o servidor de desenvolvimento para ler o arquivo `.env`. Depois entre.",
             "signIn": "Ir para a página de login"
           },
           "error": {
@@ -555,7 +555,7 @@
         "title": "Usuários",
         "description": "As pessoas com acesso de escrita a {repo} no GitHub podem entrar no admin. O GitHub controla o acesso: adicione ou remova pessoas lá.",
         "manage": "Gerenciar o acesso no GitHub",
-        "restricted": "NUXT_PLUTO_GITHUB_ALLOWED_USERS está definido: só os usuários dessa lista podem entrar.",
+        "restricted": "`NUXT_PLUTO_GITHUB_ALLOWED_USERS` está definido: só os usuários dessa lista podem entrar.",
         "error": "Não foi possível carregar os usuários",
         "empty": "Ninguém tem acesso de escrita ao repositório.",
         "you": "Você",
@@ -583,7 +583,7 @@
           },
           "noRepo": {
             "title": "Nenhum repositório do GitHub",
-            "description": "O Pluto não sabe qual é o repositório do GitHub deste site. Defina PLUTO_GITHUB_REPO ou adicione um remote do GitHub chamado origin."
+            "description": "O Pluto não sabe qual é o repositório do GitHub deste site. Defina `PLUTO_GITHUB_REPO` ou adicione um remote do GitHub chamado `origin`."
           },
           "appError": {
             "title": "O GitHub App não consegue ler o repositório",
@@ -598,7 +598,7 @@
         "full": {
           "title": "O site e o admin",
           "description": "Estes hosts rodam o app inteiro. Os editores entram no site no ar com o GitHub, e um salvamento fica no ar em segundos.",
-          "after": "Depois da primeira publicação, abra /admin no site no ar. Ele mostra como criar o GitHub App que os editores usam para entrar."
+          "after": "Depois da primeira publicação, abra `/admin` no site no ar. Ele mostra como criar o GitHub App que os editores usam para entrar."
         },
         "hosts": {
           "vercel": {
@@ -613,7 +613,7 @@
           },
           "node": {
             "name": "Um host Node",
-            "description": "Qualquer host que rode Node.js. Compile com nuxt build e inicie .output/server/index.mjs.",
+            "description": "Qualquer host que rode Node.js. Compile com `nuxt build` e inicie `.output/server/index.mjs`.",
             "action": "Ler o guia"
           }
         },
@@ -849,7 +849,7 @@
         "title": "Adicione a chave de API",
         "description": "A chave deixa este site enviar pela sua conta do Resend. Ela fica no servidor, nunca no navegador.",
         "stepCreate": "No Resend, crie uma chave de API com acesso total em",
-        "stepAdd": "Adicione esta linha ao ambiente do servidor. No seu computador, use o arquivo .env. Em uma hospedagem, use as configurações de ambiente dela.",
+        "stepAdd": "Adicione esta linha ao ambiente do servidor. No seu computador, use o arquivo `.env`. Em uma hospedagem, use as configurações de ambiente dela.",
         "stepRestart": "Reinicie o servidor.",
         "envHint": "Troque re_your_key_here pela sua chave. O Pluto nunca guarda a chave e nunca a mostra de novo.",
         "check": "Verificar a chave",

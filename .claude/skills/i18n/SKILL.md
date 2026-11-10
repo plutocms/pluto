@@ -187,6 +187,13 @@ test.
 `t(key, count)` takes a number as the plural count. It also sets `{count}`. Example:
 `"drafts": "draft | drafts"`. Use three forms (`zero | one | other`) when 0 needs its own text.
 
+### Code in a string
+
+Put an env var, a file name, a path or a command between backticks: "Set `PLUTO_GITHUB_REPO` in
+`.env`." Render the string with `PlutoCodeText`, which makes `<code>` of those parts. A place that
+shows plain text (a toast, a title) uses `plutoPlainCodeText` to drop the backticks. See the
+admin-theme skill ("Inline code").
+
 ## Content type text: `usePlutoContentText`
 
 A content type keeps English literals. `usePlutoContentText(type)` takes a type (or a ref, or a

@@ -129,6 +129,19 @@ put the radius in `@theme`: it would reach the public site of the app.
 transition at all. Transforms and keyframe animations are not touched. To keep a transition on
 purpose, use the important modifier (`before:duration-150!`), as the resize handles do.
 
+## Inline code
+
+Every `<code>` of the admin (not inside `pre`) is a small box: the accented border, the elevated
+background, the highlighted text and the mono font at 0.875em. The rule is in `pluto-layer.css`, in
+`@layer base`, so a utility class on the element (`text-xs`, `break-all`) and the styles of an
+editor win. Do not style a `<code>` again in a component.
+
+`PlutoCodeText` (`app/components/Pluto/`) renders a translated string with code: the parts between
+backticks become `<code>` (`plutoCodeTextParts` in `shared/utils/code-text.ts`; no `v-html`).
+Mark an env var, a file, a path or a command in a string with backticks, and render the string with
+`<PlutoCodeText :text="t('...')" />`. The GitHub setup pages of the server do the same with
+`escapeCodeText`. Test: `test/code-text.test.ts`.
+
 ## The search overlay
 
 The admin search (`UDashboardSearch`) gets `ui.modal: 'pluto-admin-search'`. A rule in

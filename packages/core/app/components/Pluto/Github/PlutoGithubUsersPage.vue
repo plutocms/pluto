@@ -87,11 +87,14 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
 
       <UAlert
         v-if="answer?.restricted"
-        :description="t('pluto.github.users.restricted')"
         color="info"
         icon="i-lucide-filter"
         variant="subtle"
-      />
+      >
+        <template #description>
+          <PlutoCodeText :text="t('pluto.github.users.restricted')" />
+        </template>
+      </UAlert>
 
       <!-- Loading -->
       <div
@@ -124,7 +127,6 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
       <UAlert
         v-else-if="answer?.reason"
         :title="t(`pluto.github.users.reason.${reasonKey}.title`)"
-        :description="t(`pluto.github.users.reason.${reasonKey}.description`)"
         :actions="
           answer.reason !== 'no-repo'
             ? [
@@ -140,7 +142,13 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
         color="neutral"
         icon="i-lucide-info"
         variant="subtle"
-      />
+      >
+        <template #description>
+          <PlutoCodeText
+            :text="t(`pluto.github.users.reason.${reasonKey}.description`)"
+          />
+        </template>
+      </UAlert>
 
       <UEmpty
         v-else-if="users.length === 0"

@@ -23,6 +23,11 @@ export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => ESCAPES[char]!)
 }
 
+/** Escapes text for an HTML body, and makes `<code>` of the parts between backticks. */
+export function escapeCodeText(value: string): string {
+  return escapeHtml(value).replace(/`([^`]+)`/g, '<code>$1</code>')
+}
+
 const STYLES = `
 :root{color-scheme:light dark;--bg:#f6f7f9;--card:#fff;--text:#14171a;--muted:#5b6670;--border:#dfe3e8;--accent:#16a34a;--accent-text:#fff;--code:#f0f2f5;--warn:#92400e;--warn-bg:#fef3c7}
 @media (prefers-color-scheme:dark){:root{--bg:#0e1013;--card:#171a1f;--text:#eceff2;--muted:#9aa5b1;--border:#2a2f36;--accent:#22c55e;--accent-text:#04210f;--code:#0e1013;--warn:#fcd34d;--warn-bg:#3b2a08}}
@@ -116,13 +121,13 @@ export interface ResultPageInput {
 export function renderResultPage(input: ResultPageInput): string {
   const { t } = input
   const saved = input.envSaved
-    ? `<p class="ok">${escapeHtml(t('pluto.github.setup.page.result.envSaved'))}</p>`
+    ? `<p class="ok">${escapeCodeText(t('pluto.github.setup.page.result.envSaved'))}</p>`
     : ''
   const failed = input.envFailed
-    ? `<div class="note">${escapeHtml(t('pluto.github.setup.page.result.envFailed'))}</div>`
+    ? `<div class="note">${escapeCodeText(t('pluto.github.setup.page.result.envFailed'))}</div>`
     : ''
   const ignored = input.envNotIgnored
-    ? `<div class="note">${escapeHtml(t('pluto.github.setup.page.result.envNotIgnored'))}</div>`
+    ? `<div class="note">${escapeCodeText(t('pluto.github.setup.page.result.envNotIgnored'))}</div>`
     : ''
   const lastStep = input.dev
     ? t('pluto.github.setup.page.result.step3Dev')
@@ -136,7 +141,7 @@ export function renderResultPage(input: ResultPageInput): string {
 <span class="num">1</span>
 <div>
 <h2>${escapeHtml(t('pluto.github.setup.page.result.step1'))}</h2>
-<p>${escapeHtml(input.dev ? t('pluto.github.setup.page.result.step1Dev') : t('pluto.github.setup.page.result.step1Prod'))}</p>
+<p>${escapeCodeText(input.dev ? t('pluto.github.setup.page.result.step1Dev') : t('pluto.github.setup.page.result.step1Prod'))}</p>
 ${saved}${failed}${ignored}
 <textarea id="env" readonly spellcheck="false" rows="7" aria-label="${escapeHtml(t('pluto.github.setup.page.result.blockLabel'))}">${escapeHtml(input.envBlock)}</textarea>
 <div class="row"><button class="btn" type="button" id="copy" data-copied="${escapeHtml(t('pluto.github.setup.page.result.copied'))}">${escapeHtml(t('pluto.github.setup.page.result.copy'))}</button></div>
@@ -156,7 +161,7 @@ ${saved}${failed}${ignored}
 <span class="num">3</span>
 <div>
 <h2>${escapeHtml(t('pluto.github.setup.page.result.step3'))}</h2>
-<p>${escapeHtml(lastStep)}</p>
+<p>${escapeCodeText(lastStep)}</p>
 <div class="row"><a class="btn" href="${escapeHtml(input.signInUrl)}">${escapeHtml(t('pluto.github.setup.page.result.signIn'))}</a></div>
 </div>
 </section>

@@ -150,3 +150,21 @@
     background-color: #0b0b0b;
   }
 }
+
+/*
+ * Inline code in the admin: an env var, a path, a command (`PlutoCodeText` makes it from the
+ * backticks of a translated string). A light box in the admin theme. In `@layer base`, so a utility
+ * class (`text-xs`, `break-all`) wins; the element selector beats the reset of Tailwind (`*`, also in
+ * base). Code inside `pre` keeps the style of its block.
+ */
+@layer base {
+  :where(:root[data-pluto-admin], [data-pluto-admin-scope]) code:not(pre code) {
+    border: 1px solid var(--ui-border-accented);
+    border-radius: var(--radius-sm);
+    background-color: var(--ui-bg-elevated);
+    padding: 0.0625rem 0.3125rem;
+    color: var(--ui-text-highlighted);
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+}
