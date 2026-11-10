@@ -1,4 +1,4 @@
-import type { EditorToolbarItem } from '@nuxt/ui'
+import type { EditorSuggestionMenuItem, EditorToolbarItem } from '@nuxt/ui'
 
 /**
  * The toolbar items of the Markdown editor (the Nuxt UI editor, Tiptap): undo
@@ -117,4 +117,116 @@ export function usePlutoMarkdownToolbar(
         : []),
     ],
   ])
+}
+
+/**
+ * The bubble toolbar of the Markdown editor: it shows over a text selection. The text marks, and
+ * the link button (a `slot: 'link'` item, filled by the caller).
+ */
+export function usePlutoMarkdownBubbleItems() {
+  const { t } = usePlutoI18n()
+
+  return computed<EditorToolbarItem[][]>(() => [
+    [
+      {
+        kind: 'mark',
+        mark: 'bold',
+        icon: 'i-lucide-bold',
+        tooltip: { text: t('pluto.github.editor.bold') },
+      },
+      {
+        kind: 'mark',
+        mark: 'italic',
+        icon: 'i-lucide-italic',
+        tooltip: { text: t('pluto.github.editor.italic') },
+      },
+      {
+        kind: 'mark',
+        mark: 'strike',
+        icon: 'i-lucide-strikethrough',
+        tooltip: { text: t('pluto.github.editor.strike') },
+      },
+      {
+        kind: 'mark',
+        mark: 'code',
+        icon: 'i-lucide-code',
+        tooltip: { text: t('pluto.github.editor.code') },
+      },
+      { slot: 'link', icon: 'i-lucide-link' },
+    ],
+  ])
+}
+
+/** A content component of the site in the slash menu. */
+export interface PlutoMarkdownSuggestionComponent {
+  name: string
+  label: string
+  icon?: string
+}
+
+/**
+ * The block menu of the Markdown editor: the slash menu (`/` in an empty line) and the "+" of
+ * the drag handle. The blocks that Markdown keeps, then the content components of the site (the
+ * `plutoComponent` handler of `PlutoFieldMarkdown` inserts one and opens its settings).
+ */
+export function usePlutoMarkdownSuggestionItems(
+  components: MaybeRefOrGetter<PlutoMarkdownSuggestionComponent[]> = []
+) {
+  const { t } = usePlutoI18n()
+
+  return computed<EditorSuggestionMenuItem[][]>(() => {
+    const list = toValue(components)
+    return [
+      [
+        { type: 'label', label: t('pluto.github.editor.style') },
+        {
+          kind: 'paragraph',
+          icon: 'i-lucide-type',
+          label: t('pluto.github.editor.paragraph'),
+        },
+        ...([1, 2, 3, 4] as const).map((level) => ({
+          kind: 'heading' as const,
+          level,
+          icon: `i-lucide-heading-${level}`,
+          label: t(`pluto.github.editor.heading${level}`),
+        })),
+        {
+          kind: 'bulletList',
+          icon: 'i-lucide-list',
+          label: t('pluto.github.editor.bulletList'),
+        },
+        {
+          kind: 'orderedList',
+          icon: 'i-lucide-list-ordered',
+          label: t('pluto.github.editor.orderedList'),
+        },
+        {
+          kind: 'blockquote',
+          icon: 'i-lucide-text-quote',
+          label: t('pluto.github.editor.blockquote'),
+        },
+        {
+          kind: 'codeBlock',
+          icon: 'i-lucide-square-code',
+          label: t('pluto.github.editor.codeBlock'),
+        },
+      ],
+      ...(list.length > 0
+        ? [
+            [
+              {
+                type: 'label' as const,
+                label: t('pluto.github.editor.insert'),
+              },
+              ...list.map((component) => ({
+                kind: 'plutoComponent',
+                name: component.name,
+                icon: component.icon ?? 'i-lucide-puzzle',
+                label: component.label,
+              })),
+            ],
+          ]
+        : []),
+    ] as EditorSuggestionMenuItem[][]
+  })
 }

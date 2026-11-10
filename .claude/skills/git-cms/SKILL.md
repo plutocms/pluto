@@ -646,6 +646,15 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   popover with the URL). The image extension is on, so an image in the Markdown stays. The image
   button (`PlutoMediaEditorButton`, the media picker) shows when the app has a media library. The
   mention extension is off.
+- Blocks, like the other editors: a bubble toolbar over a selection (`usePlutoMarkdownBubbleItems`:
+  the marks and the link slot); at the left of each block, in the gutter of the text (`ps-16`),
+  `UEditorDragHandle` with "+" (the suggestion handler: the block menu under the block) and a grip
+  (drag to move; a click opens Duplicate and Delete, `pluto.github.editor.duplicate`, `remove`);
+  `/` in an empty line opens `UEditorSuggestionMenu` (`usePlutoMarkdownSuggestionItems`: paragraph,
+  headings 1 to 4, lists, quote, code block, then the content components with the
+  `plutoComponent` handler, passed to `UEditor` with `handlers`). Core sets
+  `vite.resolve.dedupe` for the ProseMirror packages: a nested copy of `prosemirror-model` broke the
+  slash menu ("multiple versions of prosemirror-model were loaded").
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
   a click anywhere in the box puts the cursor in the text. The post type shows the widget through
   the post editor (see below).

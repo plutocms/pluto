@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
+import type { Editor, JSONContent } from '@tiptap/vue-3'
 import PlutoBlockInsertMenu from '../Block/PlutoBlockInsertMenu.vue'
 import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 
@@ -88,6 +90,74 @@ const items = usePlutoMarkdownToolbar({
 // A content component (`::name{props}` then `::`) shows as a chip. See the
 // content-components skill.
 const extensions = [PlutoContentComponentNode]
+
+// --- Blocks: the bubble toolbar, the drag handle and the slash menu ---------------------------
+//
+// Like the other editors of Pluto: a selection shows the bubble toolbar (the text marks and the
+// link); each block has a "+" (the block menu) and a grip (drag to move, click for Duplicate and
+// Delete) at its left; "/" in an empty line opens the block menu. The content components of the
+// site are in the block menu too.
+const bubbleItems = usePlutoMarkdownBubbleItems()
+const suggestionItems = usePlutoMarkdownSuggestionItems(() =>
+  components.list.value.map((component) => ({
+    name: component.name,
+    label: component.label,
+    icon: component.icon,
+  }))
+)
+
+// The `plutoComponent` kind of the block menu: inserts the component and opens its settings.
+const handlers = {
+  plutoComponent: {
+    canExecute: () => true,
+    execute: (editor: Editor, item: { name: string }) =>
+      editor.chain().focus().insertPlutoComponent(item.name),
+    isActive: () => false,
+    isDisabled: undefined,
+  },
+}
+
+// The block under the drag handle, from its `node-change` event.
+const handleNode = shallowRef<{ node: JSONContent; pos: number }>()
+
+/** The menu of the grip: Duplicate and Delete the block under the handle. */
+function blockMenu(editor: Editor): DropdownMenuItem[][] {
+  const current = handleNode.value
+  if (!current?.node?.type) {
+    return []
+  }
+  const node = editor.state.doc.nodeAt(current.pos)
+  if (!node) {
+    return []
+  }
+  return [
+    [
+      {
+        label: t('pluto.github.editor.duplicate'),
+        icon: 'i-lucide-copy',
+        onSelect: () => {
+          editor
+            .chain()
+            .focus()
+            .insertContentAt(current.pos + node.nodeSize, node.toJSON())
+            .run()
+        },
+      },
+      {
+        label: t('pluto.github.editor.remove'),
+        icon: 'i-lucide-trash',
+        color: 'error' as const,
+        onSelect: () => {
+          editor
+            .chain()
+            .focus()
+            .deleteRange({ from: current.pos, to: current.pos + node.nodeSize })
+            .run()
+        },
+      },
+    ],
+  ]
+}
 </script>
 
 <template>
@@ -144,24 +214,25 @@ const extensions = [PlutoContentComponentNode]
          in the text. -->
     <UEditor
       v-else
-      v-slot="{ editor }"
+      v-slot="{ editor, handlers: editorHandlers }"
       :model-value="value"
       :editable="!disabled"
       :placeholder="placeholder"
       :image="true"
       :mention="false"
       :extensions="extensions"
+      :handlers="handlers"
       :ui="
         canvas
           ? {
               root: 'flex w-full flex-1 flex-col',
               content: 'flex flex-1 cursor-text flex-col',
-              base: 'flex-1 px-4 pt-8 pb-3 sm:px-4',
+              base: 'flex-1 ps-16 pe-4 pt-8 pb-3',
             }
           : {
               root: 'w-full',
               content: 'min-h-96 cursor-text',
-              base: 'min-h-96 px-4 py-3 sm:px-4',
+              base: 'min-h-96 ps-16 pe-4 py-3',
             }
       "
       :class="canvas ? 'flex-1' : 'border-default rounded-md border'"
@@ -205,6 +276,74 @@ const extensions = [PlutoContentComponentNode]
             <PlutoBlockInsertMenu :editor="editor" />
           </template>
         </PlutoMarkdownToolbar>
+
+        <!-- Over a text selection: the marks and the link. -->
+        <UEditorToolbar
+          :editor="editor"
+          :items="bubbleItems"
+          :ui="{ base: 'dark:bg-neutral-950' }"
+          layout="bubble"
+        >
+          <template #link>
+            <PlutoGithubEditorLink :editor="editor" />
+          </template>
+        </UEditorToolbar>
+
+        <!-- At the left of each block, in the gutter of the text (`ps-16`): "+" opens the block
+             menu under the block, the grip drags it (a click opens Duplicate and Delete). The
+             buttons stay on the left (no flip), so the editor does not scroll sideways. -->
+        <UEditorDragHandle
+          v-slot="{ ui: handleUi, onClick }"
+          :editor="editor"
+          :options="{ flip: false }"
+          @node-change="handleNode = $event"
+        >
+          <UTooltip :text="t('pluto.github.editor.addBlock')">
+            <UButton
+              :aria-label="t('pluto.github.editor.addBlock')"
+              :class="handleUi.handle()"
+              icon="i-lucide-plus"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click="
+                (event: MouseEvent) => {
+                  event.stopPropagation()
+                  const selected = onClick()
+                  editorHandlers.suggestion
+                    ?.execute(editor, { pos: selected?.pos })
+                    .run()
+                }
+              "
+            />
+          </UTooltip>
+          <UDropdownMenu
+            :modal="false"
+            :items="blockMenu(editor)"
+            :content="{ side: 'left' }"
+            arrow
+            @update:open="
+              (open: boolean) =>
+                editor.chain().setMeta('lockDragHandle', open).run()
+            "
+          >
+            <UButton
+              :aria-label="t('pluto.github.editor.blockHandle')"
+              :class="handleUi.handle()"
+              icon="i-lucide-grip-vertical"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+            />
+          </UDropdownMenu>
+        </UEditorDragHandle>
+
+        <!-- "/" in an empty line, and the "+" of a block: the block menu. -->
+        <UEditorSuggestionMenu
+          :editor="editor"
+          :items="suggestionItems"
+          :ui="{ content: 'dark:bg-neutral-950' }"
+        />
       </UTheme>
     </UEditor>
   </component>
