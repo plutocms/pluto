@@ -158,10 +158,11 @@ function goToHeading(index: number) {
 }
 
 // The preview can be off, so the editor gets the room. A switch in the footer of the compose
-// panel turns it on and off. On desktop a cookie keeps the choice (on by default); on a narrow
-// screen it starts off, because the stacked split leaves little room to write.
+// panel turns it on and off. On desktop a cookie keeps the choice (off by default: the editor gets
+// the room; the docs editor keeps its own preview on); on a narrow screen it starts off, because the
+// stacked split leaves little room to write.
 const previewCookie = useCookie<boolean>('pluto-post-preview', {
-  default: () => true,
+  default: () => false,
   maxAge: 60 * 60 * 24 * 365,
   sameSite: 'lax',
 })
