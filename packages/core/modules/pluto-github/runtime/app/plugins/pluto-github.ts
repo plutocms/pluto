@@ -155,7 +155,8 @@ export default defineNuxtPlugin(() => {
       label: local
         ? 'pluto.github.backend.local'
         : 'pluto.github.backend.github',
-      icon: local ? 'i-pluto-git' : 'i-pluto-github',
+      // Official backends use a Lucide line icon (see the admin-shell skill).
+      icon: local ? 'i-lucide-git-branch' : 'i-lucide-github',
       count: () => (local ? localGit.ahead.value : 0),
       countLabel: 'pluto.github.local.aheadShort',
       details: PlutoGithubBackendDetails,

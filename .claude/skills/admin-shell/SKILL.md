@@ -314,10 +314,11 @@ It is `null` with no backend, and then no badge shows.
 - `kind`: `git` or `database`. It picks the first word ("Git", "Database",
   `pluto.backend.kind.*`) and the fallback icon (`i-lucide-git-branch`, `i-lucide-database`).
 - `label`: key-or-literal, the name after the kind.
-- `icon`: the icon of the provider, in the badge and in the popover header. The provider sets it,
-  so each backend shows its own logo: `i-pluto-github` (GitHub mode), `i-pluto-git` (local mode),
-  `pluto-supabase:logo` (the supabase layer). A new backend (MySQL, Turso, Neon, ...) ships its
-  own icon. Default: the icon of the kind.
+- `icon`: the icon of the provider, in the badge and in the popover header. The provider sets it.
+  The official backends follow one pattern, a Lucide line icon: `i-lucide-github` (GitHub mode),
+  `i-lucide-git-branch` (local mode), `i-lucide-database-zap` (the supabase layer). An official
+  backend added later (MySQL, Turso, Neon, ...) picks a Lucide line icon too. A community backend
+  can use any icon. Default: the icon of the kind.
 - `count()` and `countLabel`: a number on the badge as a warning pill, for example the commits that
   are not pushed. `countLabel` is a plural key-or-literal with `{count}`, used as the title of the
   pill and in the accessible name. 0 shows nothing.

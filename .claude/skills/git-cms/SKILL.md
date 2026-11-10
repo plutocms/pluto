@@ -1043,8 +1043,8 @@ so the page links to `https://github.com/<repo>/settings/access` (**Manage acces
 ## Backend badge
 
 The CMS client plugin registers the `backend` entry of the navbar badge (see the admin-shell
-skill): `kind: 'git'`, label "Local" (`fs` store, icon `i-pluto-git`) or "GitHub" (icon
-`i-pluto-github`), and the popover
+skill): `kind: 'git'`, label "Local" (`fs` store, icon `i-lucide-git-branch`) or "GitHub"
+(icon `i-lucide-github`), and the popover
 `PlutoGithubBackendDetails` (`app/components/Pluto/Github/`).
 
 - GitHub mode: the repo (with a Private or Public badge from the session), the branch, and links to
