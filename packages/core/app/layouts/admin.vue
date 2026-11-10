@@ -4,6 +4,8 @@
 const menu = usePlutoAdminMenu()
 const openGroups = usePlutoAdminMenuGroups()
 const isSidebarOpen = usePlutoAdminMenuOpen()
+// The navigation menu is a slideover on a narrow screen: Back (or the back swipe) closes it.
+usePlutoBackClose(isSidebarOpen, useMediaQuery('(max-width: 63.99rem)'))
 
 const commandGroups = usePlutoCommandPalette()
 const { t } = usePlutoI18n()
@@ -24,12 +26,18 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
 
 <template>
   <PlutoAdminTheme>
+    <!-- The group has the color of the bar and the sidebar, with no border between them: it shows
+         at the rounded top left corner of the page (`lg:rounded-ss-xl` on the panel). -->
     <UDashboardGroup
       :style="groupStyle"
+      class="bg-(--pluto-admin-navbar)"
       storage="cookie"
       storage-key="pluto-admin"
       unit="rem"
     >
+      <!-- The sidebar is dark in both modes, like the navbar: `data-pluto-admin-dark` gives its text
+           and buttons the dark tokens. The slideover of a narrow screen gets them from the slot
+           wrappers. -->
       <UDashboardSidebar
         id="admin"
         v-model:open="isSidebarOpen"
@@ -37,12 +45,13 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         :min-size="12"
         :max-size="24"
         :ui="{
-          root: 'min-h-0 bg-(--pluto-admin-sidebar)',
-          content: 'lg:hidden w-[min(18rem,85vw)] bg-(--pluto-admin-sidebar)',
+          root: 'min-h-0 border-e-0 bg-(--pluto-admin-navbar)',
+          content: 'lg:hidden w-[min(18rem,85vw)] bg-(--pluto-admin-navbar)',
           header: 'h-auto py-3',
           footer: 'max-lg:hidden',
         }"
         :collapsed-size="4"
+        data-pluto-admin-dark
         resizable
         collapsible
       >
@@ -82,7 +91,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
 
       <UDashboardPanel
         :ui="{
-          root: 'min-h-0 bg-(--pluto-admin-canvas)',
+          root: 'min-h-0 overflow-hidden bg-(--pluto-admin-canvas) lg:rounded-ss-xl',
           // The pages set their own padding. Nuxt UI also adds `sm:p-6` and
           // `sm:gap-6`, and the merge keeps a responsive class, so reset them too.
           // `scrollbar-gutter: stable` keeps the scrollbar space on a short page,

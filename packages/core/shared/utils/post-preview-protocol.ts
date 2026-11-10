@@ -41,8 +41,19 @@ export interface PlutoPostPreviewInset extends Envelope<'inset'> {
   end: number
 }
 
+/**
+ * The color mode of the admin. The editor sends it when the frame is ready and on each change, so
+ * the preview follows the light and dark switch of the admin.
+ */
+export interface PlutoPostPreviewColorMode extends Envelope<'color-mode'> {
+  mode: 'light' | 'dark'
+}
+
 export type PlutoPostPreviewToFrame =
-  PlutoPostPreviewRender | PlutoPostPreviewScrollTo | PlutoPostPreviewInset
+  | PlutoPostPreviewRender
+  | PlutoPostPreviewScrollTo
+  | PlutoPostPreviewInset
+  | PlutoPostPreviewColorMode
 
 // The frame to the editor
 
@@ -102,6 +113,11 @@ export function parsePlutoPostPreviewMessage(
   if (data.type === 'scroll-to') {
     return Number.isInteger(data.heading) && (data.heading as number) >= 0
       ? (data as unknown as PlutoPostPreviewScrollTo)
+      : undefined
+  }
+  if (data.type === 'color-mode') {
+    return data.mode === 'light' || data.mode === 'dark'
+      ? (data as unknown as PlutoPostPreviewColorMode)
       : undefined
   }
   if (data.type === 'inset') {

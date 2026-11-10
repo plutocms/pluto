@@ -139,6 +139,21 @@ export default defineNuxtConfig({
     },
   },
 
+  // One copy of each ProseMirror package in the bundle. A package manager can install a nested
+  // copy (prosemirror-state with its own prosemirror-model), and the editors then mix nodes of two
+  // copies: the slash menu fails with "multiple versions of prosemirror-model were loaded". The
+  // app gets this list from the layer.
+  vite: {
+    resolve: {
+      dedupe: [
+        'prosemirror-model',
+        'prosemirror-state',
+        'prosemirror-transform',
+        'prosemirror-view',
+      ],
+    },
+  },
+
   typescript: {
     // No `includeWorkspace`: in the monorepo it would read every package. Each package has its own typecheck.
     includeWorkspace: false,

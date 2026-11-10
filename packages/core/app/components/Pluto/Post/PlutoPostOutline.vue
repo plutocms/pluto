@@ -1,9 +1,12 @@
 <script setup lang="ts">
 // The left panel of the post editor: the outline of the post (its headings). A click on
-// a heading jumps to it in the editor and in the preview. The shell (header, background, scroll
+// a heading jumps to it in the editor and in the preview. The heading that has the caret of the
+// editor is the active item. The shell (header, background, scroll
 // area) is `PlutoViewSidePanel`, shared with the panels of other layers.
 const props = defineProps<{
   headings: PlutoMarkdownHeading[]
+  /** The index of the heading that has the caret, or -1. */
+  active?: number
 }>()
 
 const emit = defineEmits<{
@@ -27,15 +30,23 @@ const baseLevel = computed(() =>
         :style="{
           paddingInlineStart: `${0.5 + (heading.level - baseLevel) * 0.875}rem`,
         }"
-        :class="
+        :class="[
           heading.level === baseLevel
             ? 'text-highlighted font-medium'
-            : 'text-default'
-        "
+            : 'text-default',
+          index === active && 'bg-elevated text-highlighted',
+        ]"
+        :aria-current="index === active ? 'location' : undefined"
         type="button"
         class="hover:bg-elevated/60 focus-visible:outline-primary flex min-h-8 w-full items-center rounded-md py-1 pe-2 text-start text-sm focus-visible:outline-2 focus-visible:-outline-offset-2"
         @click="emit('select', index)"
       >
+        <!-- The icon of the heading level (H1 to H6). -->
+        <UIcon
+          :name="`i-lucide-heading-${heading.level}`"
+          class="text-dimmed me-2 size-4 shrink-0"
+          aria-hidden="true"
+        />
         <span class="min-w-0 truncate">{{ heading.text }}</span>
       </button>
     </nav>

@@ -31,16 +31,21 @@ The docs type uses the core `canvas` form layout (see the `admin-view-chrome` sk
     hide and show the blocks inside a component. A chevron before the icon does the same
     (`editor.collapsedIds`, `editor.toggleCollapsed`; not kept after a reload). A selection opens
     its collapsed parents, and a block selected in the preview scrolls its row into view.
-    The drag handle and the dots menu of a row show on row hover (`group`). They change only
-    `opacity`, so the rows do not move. On a device without hover
-    (`[@media(hover:hover)]:opacity-0` applies only with hover), with the keyboard focus in the row
-    (`group-focus-within`), and while the menu is open (`data-[state=open]`), they stay visible.
+    The whole row is the drag handle (`data-block-drag`); there is no grip icon. The chevron and the
+    menu button do not start a drag (`data-block-nodrag`, SortableJS `filter`). A drag starts after
+    a move of 4px (`fallbackTolerance`), so a click still selects. On touch, a press of 200 ms starts
+    it (`delayOnTouchOnly`), so a swipe still scrolls the list. The label has a `title` (the label and
+    the excerpt), so a truncated row can be read.
+    The dots menu of a row shows on row hover (`group`). It changes only `opacity`, so the rows do
+    not move. On a device without hover (`[@media(hover:hover)]:opacity-0` applies only with hover),
+    with the keyboard focus in the row (`group-focus-within`), and while the menu is open
+    (`data-[state=open]`), it stays visible.
     The "Add <child>" button of a child list is always visible.
-    A row: the handle (16px), the chevron (16px), the icon, the title, the menu. A list keeps the
-    chevron column only when one of its blocks has children (`hasChevrons`), so a list of leaves
-    (the cards of a slot) does not push its titles right. The line of a child list (`ms-7`, 28px)
-    is under the center of the chevron.
-    The panel is `bg-white` / `dark:bg-[#0b0b0b]`. The list scrolls in a Reka UI scroll area
+    A row: the chevron (16px), the icon, the title, the menu. A list keeps the chevron column only
+    when one of its blocks has children (`hasChevrons`), so a list of leaves (the cards of a slot)
+    does not push its titles right. The line of a child list (`ms-2.5`, 10px) is under the center
+    of the chevron.
+    The panel has the side panel surface of core (`bg-pluto-panel`: a light gray, `#0b0b0b` in dark). The list scrolls in a Reka UI scroll area
     (`ScrollAreaRoot` with `type="hover"`, a 10px scrollbar with a rounded thumb). `reka-ui` is a
     dependency of the layer, on the version that Nuxt UI uses.
     The docs type declares the panel (`form.leftPanel` with the label and the same background), so

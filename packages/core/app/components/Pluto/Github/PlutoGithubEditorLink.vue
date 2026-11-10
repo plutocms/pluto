@@ -75,7 +75,7 @@ function onKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-  <UPopover v-model:open="open" :ui="{ content: 'p-0.5' }">
+  <UPopover v-model:open="open" :ui="{ content: 'p-0.5' }" arrow>
     <UTooltip :text="t('pluto.github.editor.link')">
       <UButton
         :active="active"

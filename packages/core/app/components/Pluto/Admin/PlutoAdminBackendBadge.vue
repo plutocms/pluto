@@ -40,7 +40,7 @@ watch(open, (value) => {
   <UPopover
     v-if="backend"
     v-model:open="open"
-    :content="{ align: 'start', sideOffset: 4 }"
+    :content="{ align: 'end', sideOffset: 4 }"
   >
     <PlutoNavbarHit :label="buttonLabel" size="sm">
       <span class="flex items-center gap-x-1.5">

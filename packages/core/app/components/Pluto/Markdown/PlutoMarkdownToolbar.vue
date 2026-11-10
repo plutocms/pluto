@@ -110,7 +110,7 @@ const slotNames = computed(() => Object.keys(slots))
       </template>
     </UEditorToolbar>
 
-    <UPopover v-if="split.overflow.length" :content="{ align: 'end' }">
+    <UPopover v-if="split.overflow.length" :content="{ align: 'end' }" arrow>
       <UTooltip :text="t('pluto.markdown.moreTools')">
         <UButton
           :aria-label="t('pluto.markdown.moreTools')"

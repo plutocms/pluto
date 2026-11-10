@@ -81,7 +81,7 @@ describe('createDocsType', () => {
       canvasField: 'body',
       leftPanel: {
         label: 'docs.editor.blocks',
-        class: 'bg-white dark:bg-[#0b0b0b]',
+        class: 'bg-pluto-panel',
       },
     })
   })

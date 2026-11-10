@@ -51,9 +51,9 @@ The outer shell for one view. Props:
 - `panelToggles?: boolean` — default `false`. On desktop, draws a small floating button that opens
   a closed side panel (see "The canvas layout"). Use it with `v-model:aside-open`. With a `#rail`
   slot, the left panel has no floating button: the rail opens it.
-- `#rail` slot — the action rail (desktop only): a column of icon buttons (`w-12`, `border-e`, a
-  `nav` with the label "Editor actions") at the left edge of the row. It is dark in both modes, like
-  the navbar (`bg-pluto-rail`, with `data-pluto-admin-dark` for the button colors). The content form fills it
+- `#rail` slot — the action rail (desktop only): a column of icon buttons (`w-12`, no border, a
+  `nav` with the label "Editor actions") at the left edge of the row. It has the surface
+  `bg-pluto-rail` (`--ui-bg-muted` in light mode, transparent in dark mode). The content form fills it
   in the canvas layout: one button for the left panel (its `icon` and `label`, `soft`/`primary`
   and `aria-pressed` while open). It is the place for more actions of the view later (a layer,
   an AI assistant).
@@ -85,7 +85,7 @@ The toolbar row is `h-12`. Its buttons take the admin default size (`md`, see th
 skill), so a page button or a toolbar item of a layer fits the row without a `size`.
 
 Props: `title?: string`, `icon?: string`, `backTo?: string` (renders a back arrow button, with an `aria-label` and a tooltip "Back", before
-the title).
+the title; the left padding is then `ps-2`, so the back button lines up with the rail buttons).
 
 Slots: `#left` (replaces the whole leading area — icon, title, and trailing content — so only use
 it when you also want to replace the title), `#title`, default (a centered slot), `#right`,
@@ -93,6 +93,8 @@ it when you also want to replace the title), `#title`, default (a centered slot)
 a small button that belongs next to the title, like a refresh button).
 
 ### `PlutoViewAside`
+
+On desktop it has the `bg-pluto-rail` surface. It is not a dark panel.
 
 A right-hand panel bound to an `open` model (`v-model:open`). On a wide screen (`lg`, 64rem and
 up) it renders as a plain `<aside>` beside the main content. On a narrow screen it renders as a
@@ -243,7 +245,8 @@ pure, because the type is shared with the server. A function that throws shows n
 Every layout (`default`, `focus`, `canvas`) has the same toolbar, `PlutoContentFormHeader`. The body
 has no H1: the toolbar title is the heading. The toolbar shows, from left to right:
 
-- Back, then the breadcrumbs: "<Type plural> › • <item title> [status] <save state>". In edit
+- Back, then the breadcrumbs, in `text-sm`: "<Type plural> › • <item title> [status] <save state>".
+  The type label links to the list (`backTo`); the title is the current page (`aria-current`). In edit
   mode the title is the `titleField` value, or "Edit <type>" while it loads or when it is empty. A
   new item shows "New <type>". The type label hides below `sm` (40rem) and the title truncates.
   - Unsaved changes: a yellow dot before the title, with the tooltip "Unsaved changes" (no text).
@@ -360,6 +363,17 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
 - The core post editor (`widget: 'post-canvas'`, see the git-cms skill) is a canvas widget: an
   outline in the left panel, the title above the text, and a Visual mode or a Markdown mode with a
   preview of the site.
+- With the rail (canvas form, desktop), `PlutoViewAdminPanel` draws a "sheet". The root has
+  `bg-pluto-frame`. The left panel and the main region form the sheet, with rounded top corners
+  (`rounded-ss-xl` on the left panel, or on main when there is no left panel, and `rounded-se-xl` on
+  main). There is no border under the toolbar and no border on the rail. The splitter handle is
+  transparent, except the line after the left panel. With no aside open, the frame shows 16px at the
+  right (`pe-4`), and the floating "show panel" button is at `right-6`.
+- The alerts of the form (locked, recovery offer, backup conflict, other tab, other device,
+  validation errors) are one block. A widget can show it in its own element with
+  `claimAlerts(target)` of the canvas host (`PlutoCanvasHost`). The post editor shows it above the
+  title, in the text column. Without a claim, the block shows above the canvas, on the editor
+  background. `PlutoContentBackupAlert` has no `canvas` prop.
 - A canvas widget that shows another field itself (the post editor shows the title) calls
   `claimFields(() => [name])` of the canvas host (`inject(plutoCanvasHostKey)`): the right panel
   leaves that field out. The call returns a function that gives it back (call it on unmount).
@@ -381,12 +395,18 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   `v-model:aside-open`; `asideOpen` is a model now). The form toolbar shows no panel toggle on
   desktop, except the left one while the left panel is open and has no `PlutoViewLeftCollapse`.
 - A left panel uses `PlutoViewSidePanel` (`app/components/Pluto/View/`) as its shell, so every
-  panel of every layer looks the same as the rail: the `bg-pluto-panel` background (white, and
-  `#0b0b0b` in dark mode; an `@utility` in `pluto-layer.css`), a 48px header with the `title`
+  panel of every layer looks the same as the rail: the `bg-pluto-panel` background (`--ui-bg`, the editor
+  background; an `@utility` in `pluto-layer.css`), a 48px header with the `title`
   (hidden below `lg`), the `#actions` slot and `PlutoViewLeftCollapse` (`collapse`, default
   true), a body in a Reka UI scroll area with a thin scrollbar on hover (the default slot, no
   padding), and an optional `#footer` slot. The Outline of a post uses it.
-- Narrow screen: the toolbar toggles open the slideovers.
+- Narrow screen: the toolbar toggles open the slideovers. Back (or the back swipe of a phone)
+  closes an open slideover and keeps the page: `usePlutoBackClose(open, enabled?)`
+  (`app/composables/pluto-back-close.ts`) adds a history entry with the same URL (the state of Vue
+  Router plus one key) while it is open, and goes back once when the slideover closes from itself.
+  A navigation from the slideover keeps the entry. `PlutoViewAside`, the left slideover of
+  `PlutoViewAdminPanel` and the navigation menu of the admin layout use it. Use it for any new
+  overlay of a narrow screen that changes the view.
 - Below `lg`: the left panel is a slideover (a toggle), the right panel is a slideover (a toggle).
   Both start closed and keep no cookie (a saved "open" would cover the page on the first visit).
   On desktop the left state is the cookie `pluto-content-left-<typeName>` and the right state is
@@ -416,8 +436,8 @@ skill for the full `PlutoContentStatus` shape: `values`, `default`, `publishedVa
 
 - No `status` declared (`status` unset or `false`) — one plain "Save" button. Byte-identical to
   a content type with no publish workflow at all; `onSave()` is called with no argument.
-- `status` declared, current value is not `publishedValue` — a "Save draft" button plus a
-  "Publish" button. Publish calls `onSave(publishedValue)`. A save with no override is a plain
+- `status` declared, current value is not `publishedValue` — a "Save draft" button right before
+  the "Publish" button. With a schedule, "Schedule" (a `ghost` button) comes first. Publish calls `onSave(publishedValue)`. A save with no override is a plain
   "Saved" (the toast does not say "Unpublished").
 - `status` declared, current value is `publishedValue` — an "Update" button, plus an "Unpublish"
   entry in the overflow menu that calls `onSave(draftValue)`.

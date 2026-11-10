@@ -120,10 +120,15 @@ const stateText = computed(() => {
 
 <template>
   <PlutoViewToolbar :back-to="backTo">
+    <!-- The breadcrumbs, in a smaller font. The type label links to the list; the title is the
+         current page. -->
     <template #title>
-      <span class="text-muted hidden shrink-0 font-normal sm:inline">{{
-        typeLabel
-      }}</span>
+      <NuxtLink
+        :to="backTo"
+        class="text-muted hover:text-highlighted focus-visible:outline-primary hidden shrink-0 rounded-sm text-sm font-normal focus-visible:outline-2 sm:inline"
+      >
+        {{ typeLabel }}
+      </NuxtLink>
       <UIcon
         name="i-lucide-chevron-right"
         class="text-muted hidden size-4 shrink-0 sm:block"
@@ -135,7 +140,7 @@ const stateText = computed(() => {
           aria-hidden="true"
         />
       </UTooltip>
-      <span class="truncate">{{ title }}</span>
+      <span class="truncate text-sm" aria-current="page">{{ title }}</span>
     </template>
 
     <template #trailing>

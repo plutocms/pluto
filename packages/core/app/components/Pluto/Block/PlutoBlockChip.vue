@@ -131,6 +131,7 @@ function remove() {
     <UPopover
       v-model:open="open"
       :content="{ align: 'start', side: 'bottom', sideOffset: 6 }"
+      arrow
     >
       <button
         :aria-label="t('pluto.blocks.chipLabel', { name: label })"
@@ -162,10 +163,7 @@ function remove() {
           variant="subtle"
           size="sm"
         />
-        <UIcon
-          name="i-lucide-settings-2"
-          class="text-dimmed size-4 shrink-0"
-        />
+        <UIcon name="i-lucide-settings-2" class="text-dimmed size-4 shrink-0" />
       </button>
 
       <template #content>

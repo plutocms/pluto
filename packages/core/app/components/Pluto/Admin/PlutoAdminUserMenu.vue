@@ -6,9 +6,11 @@ import {
 } from '../../../composables/internal/admin-shell'
 
 // The user menu of the admin navbar: the avatar, the short name and a dropdown
-// with Settings, the items of the layers, the Pluto link and Sign out. An
-// administrator (the capability '*') gets a chip on the avatar and an "Admin"
-// badge in the menu header.
+// with the account (name, email or username), the theme (Light, Dark, System),
+// Settings, the items of the layers, the links and Sign out. An administrator
+// (the capability '*') gets a chip on the avatar and an "Admin" badge in the
+// account header. The menu has the surface of the admin popovers (it follows the
+// color mode), not the dark color of the navbar.
 const { t } = usePlutoI18n()
 const { user, signOut } = usePlutoAuth()
 const account = usePlutoAccountMenu()
@@ -70,6 +72,55 @@ const menuLabel = computed(() =>
     : name.value
 )
 const avatar = computed(() => user.value?.avatarUrl || undefined)
+// Under the name: the email, else the username when the name is not the username.
+const accountDetail = computed(() => {
+  if (user.value?.email) {
+    return user.value.email
+  }
+  return user.value?.username && user.value.username !== name.value
+    ? `@${user.value.username}`
+    : ''
+})
+
+// The theme of the admin: Light, Dark or System (the color mode of the device). A site that
+// forces a color mode has no theme row.
+const colorMode = useColorMode()
+type Theme = 'light' | 'dark' | 'system'
+const themes = computed<{ value: Theme; label: string; icon: string }[]>(() => [
+  {
+    value: 'light',
+    label: t('pluto.navbar.themeLight'),
+    icon: 'i-lucide-sun',
+  },
+  {
+    value: 'dark',
+    label: t('pluto.navbar.themeDark'),
+    icon: 'i-lucide-moon',
+  },
+  {
+    value: 'system',
+    label: t('pluto.navbar.themeSystem'),
+    icon: 'i-lucide-monitor',
+  },
+])
+const theme = computed<Theme>(() =>
+  colorMode.preference === 'light' || colorMode.preference === 'dark'
+    ? colorMode.preference
+    : 'system'
+)
+const currentTheme = computed(() =>
+  themes.value.find((option) => option.value === theme.value)!
+)
+function setTheme(value: Theme) {
+  colorMode.preference = value
+}
+/** The theme row as a menu item (Enter, or a click outside the buttons): the next theme. */
+function nextTheme(event: Event) {
+  // The menu stays open, so the author sees the new theme.
+  event.preventDefault()
+  const order: Theme[] = ['light', 'dark', 'system']
+  setTheme(order[(order.indexOf(theme.value) + 1) % order.length]!)
+}
 const buttonLabel = computed(() =>
   isAdmin.value
     ? `${t('pluto.navbar.openUserMenu')} (${t('pluto.navbar.administrator')})`
@@ -80,17 +131,24 @@ const items = computed<DropdownMenuItem[][]>(() => [
   [
     {
       label: menuLabel.value,
-      avatar: avatar.value
-        ? { src: avatar.value, alt: name.value }
-        : {
-            icon: 'lucide:user',
-            class: 'bg-primary',
-            ui: { icon: 'text-inverted text-sm' },
-          },
       type: 'label',
       slot: 'account' as const,
     },
   ],
+  ...(colorMode.forced
+    ? []
+    : [
+        [
+          {
+            label: t('pluto.navbar.theme'),
+            icon: currentTheme.value.icon,
+            slot: 'theme' as const,
+            // The item lines up its content at the top; the control is taller than the label.
+            class: 'items-center',
+            onSelect: nextTheme,
+          },
+        ],
+      ]),
   [
     {
       label: t('pluto.common.settings'),
@@ -128,21 +186,18 @@ const items = computed<DropdownMenuItem[][]>(() => [
 defineShortcuts(computed(() => extractShortcuts(items.value)))
 
 // The portal target gives the menu the admin theme on a public page too.
-const portalTarget = usePlutoAdminPortal()
+const portalTarget = usePlutoAdminPortal({ dark: false })
 </script>
 
 <template>
   <div class="h-full">
     <UDropdownMenu
       :items="items"
-      :content="{ sideOffset: 2 }"
-      :ui="{
-        content: 'w-64 bg-(--pluto-admin-navbar)',
-        arrow: 'fill-(--pluto-admin-navbar)',
-      }"
+      :content="{ align: 'end', sideOffset: 4 }"
+      :ui="{ content: 'w-72' }"
       :modal="false"
       :portal="portalTarget ?? true"
-      :arrow="{ width: 14, height: 7 }"
+      arrow
     >
       <!--
         The button fills the height of the bar. The pill inside it keeps the
@@ -176,16 +231,71 @@ const portalTarget = usePlutoAdminPortal()
         </div>
       </button>
 
-      <template #account-trailing>
-        <UBadge
-          v-if="isAdmin"
-          :label="t('pluto.navbar.adminBadge')"
-          :title="t('pluto.navbar.administrator')"
-          icon="lucide:shield-check"
-          color="warning"
-          variant="subtle"
-          size="sm"
-        />
+      <!-- The account: the avatar, the name, the email (or the username), the Admin badge. -->
+      <template #account>
+        <div class="flex w-full min-w-0 items-center gap-3 py-1">
+          <UAvatar
+            :src="avatar"
+            :alt="name"
+            :ui="{ root: 'rounded-xl', icon: 'text-inverted text-xl' }"
+            size="lg"
+            icon="lucide:user"
+            class="bg-primary shrink-0"
+          />
+          <div class="min-w-0 flex-1">
+            <p class="text-highlighted truncate text-sm font-semibold">
+              {{ name }}
+            </p>
+            <p
+              v-if="accountDetail"
+              class="text-muted truncate text-xs font-normal"
+            >
+              {{ accountDetail }}
+            </p>
+          </div>
+          <UBadge
+            v-if="isAdmin"
+            :label="t('pluto.navbar.adminBadge')"
+            :title="t('pluto.navbar.administrator')"
+            icon="lucide:shield-check"
+            color="warning"
+            variant="subtle"
+            size="sm"
+            class="shrink-0"
+          />
+        </div>
+      </template>
+
+      <!--
+        The theme: a segmented control of three icons. A click on an icon picks that theme; the
+        row is one menu item, so Enter (or a click outside the icons) moves to the next theme. The
+        icons are for the pointer only (`aria-hidden`): the item names the current theme.
+      -->
+      <template #theme="{ ui: menuUi }">
+        <UIcon :name="currentTheme.icon" :class="menuUi.itemLeadingIcon()" />
+        <span :class="menuUi.itemLabel()">
+          {{ t('pluto.navbar.theme') }}
+          <span class="sr-only">: {{ currentTheme.label }}</span>
+        </span>
+        <span
+          class="border-default ms-auto flex shrink-0 gap-0.5 rounded-md border p-0.5"
+          aria-hidden="true"
+        >
+          <span
+            v-for="option in themes"
+            :key="option.value"
+            :title="option.label"
+            :class="
+              option.value === theme
+                ? 'bg-elevated text-highlighted'
+                : 'text-dimmed hover:text-default'
+            "
+            class="flex size-6 items-center justify-center rounded-sm"
+            @click.stop="setTheme(option.value)"
+          >
+            <UIcon :name="option.icon" class="size-3.5" />
+          </span>
+        </span>
       </template>
     </UDropdownMenu>
   </div>

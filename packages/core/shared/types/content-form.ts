@@ -90,6 +90,13 @@ export interface PlutoCanvasHost {
    * shows the title above the text). It returns a function that gives them back.
    */
   claimFields: (names: () => string[]) => () => void
+  /**
+   * Shows the alerts of the form (a locked item, a recovery offer, a conflict, the errors of the
+   * last save) in this element, in the column of the widget (the post editor puts them above the
+   * title, as wide as its toolbar). It returns a function that gives them back: then the form shows
+   * them above the canvas.
+   */
+  claimAlerts: (target: RendererElement) => () => void
 }
 
 /** One button of `PlutoContentFormHeader`. */

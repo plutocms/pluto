@@ -48,6 +48,8 @@ const slideoverOpen = computed({
     open.value = value
   },
 })
+// On a narrow screen, Back (or the back swipe) closes the slideover.
+usePlutoBackClose(slideoverOpen)
 </script>
 
 <template>
@@ -59,7 +61,7 @@ const slideoverOpen = computed({
     v-if="open && isDesktop"
     :style="resizable ? undefined : { width: `${width}px` }"
     :class="resizable ? 'w-full' : 'border-default shrink-0 border-s'"
-    class="flex h-full flex-col"
+    class="bg-pluto-rail flex h-full flex-col"
   >
     <div
       class="border-default flex h-12 shrink-0 items-center justify-between gap-1.5 border-b px-4"
@@ -82,7 +84,10 @@ const slideoverOpen = computed({
         />
       </UTooltip>
     </div>
-    <div class="min-h-0 flex-1 overflow-y-auto p-4">
+    <!-- The scrollbar has no track of its own: the panel shows through. -->
+    <div
+      class="min-h-0 flex-1 scrollbar-thumb-(--ui-border-accented) overflow-y-auto p-4"
+    >
       <slot />
     </div>
   </aside>
