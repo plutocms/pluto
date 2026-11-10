@@ -137,9 +137,13 @@ Light mode is not white only. The `@utility` classes of `pluto-layer.css`:
 
 - `bg-pluto-panel`: the side panels of a canvas form (`PlutoViewSidePanel`): white, `#0b0b0b` in
   dark mode.
-- `bg-pluto-rail`: the rail of a canvas form: the navbar color (`--pluto-admin-navbar`) in light
-  mode, `#0b0b0b` in dark mode. Put `data-pluto-admin-dark` on a dark surface, so its text and
-  buttons take the dark tokens.
+- `bg-pluto-sidebar`: the admin sidebar (`app/layouts/admin.vue`): the navbar color in both modes.
+  The sidebar carries `data-pluto-admin-dark`.
+- `bg-pluto-rail`: the rail of a canvas form: kuiper-900 in light mode (one step lighter than the
+  navbar and the sidebar, so the dark surfaces do not merge), `#0b0b0b` in dark mode.
+- `bg-pluto-aside`: the right panel of an edit page (`PlutoViewAside`): one step darker than the
+  page (`--ui-bg-elevated` in light mode, `--pluto-admin-canvas` in dark mode).
+- Put `data-pluto-admin-dark` on a dark surface, so its text and buttons take the dark tokens.
 - `bg-pluto-toolbar`: the toolbar bar of a rich text editor: one step darker than the text
   (`--ui-bg-elevated` in light mode, `--pluto-admin-sidebar` in dark mode).
 

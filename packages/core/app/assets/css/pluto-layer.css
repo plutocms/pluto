@@ -152,16 +152,37 @@
 }
 
 /*
- * The rail of a canvas form (`PlutoViewAdminPanel` `#rail`): dark in both modes, like the
- * navbar. Light mode is not white only. The rail also carries `data-pluto-admin-dark`, so its
+ * The rail of a canvas form (`PlutoViewAdminPanel` `#rail`): dark in both modes. Light mode is
+ * not white only. In light mode it is one step lighter than the navbar and the sidebar (kuiper-900),
+ * so the three dark surfaces do not merge. The rail also carries `data-pluto-admin-dark`, so its
  * buttons take the dark tokens. In dark mode it has the color of the side panels.
  */
 @utility bg-pluto-rail {
-  background-color: var(--pluto-admin-navbar);
+  background-color: var(--color-kuiper-900);
 
   :where(.dark) & {
     background-color: #0b0b0b;
   }
+}
+
+/*
+ * The right panel of an edit page (`PlutoViewAside`, the fields of the item): one step darker than
+ * the page, so the panel stands apart. The fields inside keep their own background.
+ */
+@utility bg-pluto-aside {
+  background-color: var(--ui-bg-elevated);
+
+  :where(.dark) & {
+    background-color: var(--pluto-admin-canvas);
+  }
+}
+
+/*
+ * The admin sidebar (the navigation): the navbar color in both modes. The layout puts
+ * `data-pluto-admin-dark` on it, so its text and buttons take the dark tokens.
+ */
+@utility bg-pluto-sidebar {
+  background-color: var(--pluto-admin-navbar);
 }
 
 /*

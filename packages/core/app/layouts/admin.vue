@@ -30,15 +30,19 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
       storage-key="pluto-admin"
       unit="rem"
     >
+      <!-- The sidebar is dark in both modes, like the navbar: `data-pluto-admin-dark` gives its text
+           and buttons the dark tokens. The slideover of a narrow screen gets them from the slot
+           wrappers. -->
       <UDashboardSidebar
         id="admin"
         v-model:open="isSidebarOpen"
+        data-pluto-admin-dark
         :default-size="16"
         :min-size="12"
         :max-size="24"
         :ui="{
-          root: 'min-h-0 bg-(--pluto-admin-sidebar)',
-          content: 'lg:hidden w-[min(18rem,85vw)] bg-(--pluto-admin-sidebar)',
+          root: 'bg-pluto-sidebar min-h-0',
+          content: 'bg-pluto-sidebar lg:hidden w-[min(18rem,85vw)]',
           header: 'h-auto py-3',
           footer: 'max-lg:hidden',
         }"

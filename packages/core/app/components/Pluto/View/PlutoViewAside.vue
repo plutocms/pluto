@@ -59,7 +59,7 @@ const slideoverOpen = computed({
     v-if="open && isDesktop"
     :style="resizable ? undefined : { width: `${width}px` }"
     :class="resizable ? 'w-full' : 'border-default shrink-0 border-s'"
-    class="flex h-full flex-col"
+    class="bg-pluto-aside flex h-full flex-col"
   >
     <div
       class="border-default flex h-12 shrink-0 items-center justify-between gap-1.5 border-b px-4"
