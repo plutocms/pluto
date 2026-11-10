@@ -100,10 +100,12 @@ Run the checks again before you change a slot.
 
 ## Fonts
 
-The admin text is Public Sans (`--font-sans` under the admin selectors). Page titles (`h1`: the
-dashboard, Settings, the sign-in card) use Fredoka, the rounded face of the wordmark, through
-`--pluto-admin-font-display`. Both are literals, like the colors. `@nuxt/fonts` finds them in
-the stylesheet and serves them.
+The admin has one font, Public Sans (`--font-sans` under the admin selectors), a literal like the
+colors. `@nuxt/fonts` finds it in the stylesheet and serves it. Page titles (`h1`: the dashboard,
+Settings, the sign-in card) are semibold with tighter letter spacing: a sober face. Fredoka, the
+rounded face of the wordmark, is for the public site only (`pluto-site-theme.css`). The `h1` rule
+reads `--pluto-admin-font-display` first, so a brand can set its own title font (`fontDisplay`);
+the theme does not declare it.
 
 `pluto-layer.css` still declares `--font-outfit` (the font of the admin before the Pluto tokens)
 in `@theme`. Some sites use `font-outfit` for their own text, so it stays until they move.

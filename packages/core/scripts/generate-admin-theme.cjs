@@ -183,8 +183,9 @@ const css = `/*
  *
  * The colors are the Pluto UI tokens (pluto-tokens.css): primary tholin,
  * secondary and info haze, neutral kuiper. The status colors come from
- * Tailwind: green, amber, rose. The fonts are Public Sans for text and
- * Fredoka for page titles.
+ * Tailwind: green, amber, rose. The admin has one font, Public Sans: a page
+ * title is semibold with tighter letter spacing. The rounded Fredoka is for
+ * the public site only (pluto-site-theme.css).
  *
  * Every value is a literal. The consumer app styles its public site through
  * its own app.config colors and @theme. Both reach the admin unless the admin
@@ -218,9 +219,8 @@ ${chart(chartLight, 600)}
   --pluto-admin-sidebar: ${v('kuiper-50')};
   --pluto-admin-navbar: ${v('kuiper-950')};
 
-  /* The Pluto fonts, as literals like the colors (see pluto-tokens.css). */
+  /* The Pluto font, a literal like the colors (see pluto-tokens.css). */
   --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
-  --pluto-admin-font-display: "Fredoka", "Public Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root[data-pluto-admin].dark,
@@ -252,11 +252,14 @@ ${chart(chartDark, 500)}
   color: var(--ui-text);
 }
 
-/* Page titles (h1 only) use the rounded face of the wordmark, as on the docs site. */
+/* Page titles (h1 only): the text font, semibold, with tighter letter spacing. A sober face for
+   the admin; the rounded Fredoka stays on the public site. A brand can set its own title font
+   (fontDisplay, --pluto-admin-font-display). */
 :root[data-pluto-admin] h1,
 [data-pluto-admin-scope] h1 {
-  font-family: var(--pluto-admin-font-display);
-  letter-spacing: -0.01em;
+  font-family: var(--pluto-admin-font-display, var(--font-sans));
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 `
 fs.writeFileSync('app/assets/css/admin-theme.css', css)
