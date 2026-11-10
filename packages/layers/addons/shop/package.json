@@ -1,7 +1,7 @@
 {
   "name": "@plutocms/shop",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "An add-on layer for Pluto shops: a cart saved in the browser, and the price helpers, for every backend",
   "author": "Victor Ribeiro",
   "license": "MIT",
