@@ -135,8 +135,8 @@ purpose, use the important modifier (`before:duration-150!`), as the resize hand
 
 Light mode is not white only. The `@utility` classes of `pluto-layer.css`:
 
-- `bg-pluto-sidebar`: the admin sidebar (`app/layouts/admin.vue`): the navbar color in both modes.
-  The sidebar carries `data-pluto-admin-dark`.
+- The admin sidebar (`app/layouts/admin.vue`): the navbar color in both modes
+  (`bg-(--pluto-admin-navbar)`), with `data-pluto-admin-dark`.
 - `bg-pluto-aside`: the right panel of an edit page (`PlutoViewAside`, desktop): dark in both modes,
   kuiper-900 in light mode (lighter than the sidebar), `--pluto-admin-canvas` in dark mode. It
   carries `data-pluto-admin-dark`. Not kuiper-800: the dark border token has that color, so the

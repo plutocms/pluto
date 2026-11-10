@@ -42,8 +42,8 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         :min-size="12"
         :max-size="24"
         :ui="{
-          root: 'bg-pluto-sidebar min-h-0',
-          content: 'bg-pluto-sidebar lg:hidden w-[min(18rem,85vw)]',
+          root: 'min-h-0 bg-(--pluto-admin-navbar)',
+          content: 'lg:hidden w-[min(18rem,85vw)] bg-(--pluto-admin-navbar)',
           header: 'h-auto py-3',
           footer: 'max-lg:hidden',
         }"
