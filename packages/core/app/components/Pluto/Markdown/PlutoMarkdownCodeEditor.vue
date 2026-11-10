@@ -444,12 +444,11 @@ onBeforeUnmount(() => {
       :aria-label="t('pluto.markdown.formatting')"
       :class="
         bare
-          ? 'bg-pluto-toolbar rounded-lg border shadow-xs'
-          : 'bg-default rounded-t-md border-b'
+          ? 'dark:border-default rounded-lg border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:bg-(--pluto-admin-sidebar)'
+          : 'border-default bg-default rounded-t-md border-b'
       "
-      :data-pluto-admin-dark="bare || undefined"
       role="toolbar"
-      class="border-default flex shrink-0 flex-wrap items-center gap-0.5 px-2 py-1.5"
+      class="flex shrink-0 flex-wrap items-center gap-0.5 px-2 py-1.5"
     >
       <UTooltip
         v-for="item in FORMATS"

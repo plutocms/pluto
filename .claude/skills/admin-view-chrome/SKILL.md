@@ -243,7 +243,8 @@ pure, because the type is shared with the server. A function that throws shows n
 Every layout (`default`, `focus`, `canvas`) has the same toolbar, `PlutoContentFormHeader`. The body
 has no H1: the toolbar title is the heading. The toolbar shows, from left to right:
 
-- Back, then the breadcrumbs: "<Type plural> › • <item title> [status] <save state>". In edit
+- Back, then the breadcrumbs, in `text-sm`: "<Type plural> › • <item title> [status] <save state>".
+  The type label links to the list (`backTo`); the title is the current page (`aria-current`). In edit
   mode the title is the `titleField` value, or "Edit <type>" while it loads or when it is empty. A
   new item shows "New <type>". The type label hides below `sm` (40rem) and the title truncates.
   - Unsaved changes: a yellow dot before the title, with the tooltip "Unsaved changes" (no text).

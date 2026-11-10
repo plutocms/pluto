@@ -650,8 +650,9 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   a click anywhere in the box puts the cursor in the text. The post type shows the widget through
   the post editor (see below).
 - With the `canvas` prop, the widget has no label, no border and no mode switch. The toolbar is a
-  separate rounded bar (`bg-pluto-toolbar`, one step darker than the text in both modes, sticky at
-  `top-2`), and the text fills the rest of the height of the compose panel (it does not scroll on
+  separate rounded bar (white with a soft shadow in light mode, the dark sidebar color in dark mode;
+  see the admin-theme skill), sticky at `top-2`. The text has `pt-8` under it, and fills the rest
+  of the height of the compose panel (it does not scroll on
   its own: the compose panel scrolls). The post editor uses it for the Visual mode.
 - The toolbar is `PlutoMarkdownToolbar` (`app/components/Pluto/Markdown/`): one row. The buttons
   that do not fit go into a **More tools** popover (`i-lucide-ellipsis`, `pluto.markdown.moreTools`)
@@ -712,7 +713,8 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   and its header has an X (`PlutoViewLeftCollapse`).
 - The compose panel has the background of the text (`bg-default`). Above the editor (both modes)
   is the title of the item: `PlutoPostTitle`, a large bold field (`UTextarea`, `variant="none"`,
-  `autoresize`) with no label, no border and the placeholder "Add a title"
+  `autoresize`) with no label, no border, no side padding (it starts at the left edge of the
+  toolbar) and the placeholder "Add a title"
   (`pluto.post.titlePlaceholder`). Enter goes to the text. A validation message shows under it.
   The widget takes the `titleField` of the type out of the right panel (`claimFields` of the
   canvas host), and writes it with `usePlutoContentForm().updateField`, so the slug still follows

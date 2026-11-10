@@ -140,12 +140,12 @@
 
 /*
  * The background of the side panels of a canvas form (the Outline of a post, the Blocks of a
- * docs page) and of the rail next to them: a light gray in light mode (`--ui-bg-elevated`),
+ * docs page) and of the rail next to them: a very light gray in light mode (`--ui-bg-muted`),
  * #0b0b0b in dark. One utility, so every layer that adds a panel matches. `PlutoViewSidePanel`
  * uses it.
  */
 @utility bg-pluto-panel {
-  background-color: var(--ui-bg-elevated);
+  background-color: var(--ui-bg-muted);
 
   :where(.dark) & {
     background-color: #0b0b0b;
@@ -157,7 +157,7 @@
  * to it (`bg-pluto-panel`).
  */
 @utility bg-pluto-rail {
-  background-color: var(--ui-bg-elevated);
+  background-color: var(--ui-bg-muted);
 
   :where(.dark) & {
     background-color: #0b0b0b;
@@ -183,18 +183,6 @@
  */
 @utility bg-pluto-sidebar {
   background-color: var(--pluto-admin-navbar);
-}
-
-/*
- * The toolbar bar of a rich text editor (the post editor): a dark bar in both modes (kuiper-900 in
- * light mode), with `data-pluto-admin-dark` on it for light buttons. It stands apart from the text.
- */
-@utility bg-pluto-toolbar {
-  background-color: var(--color-kuiper-900);
-
-  :where(.dark) & {
-    background-color: var(--pluto-admin-sidebar);
-  }
 }
 
 /*

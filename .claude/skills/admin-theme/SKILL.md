@@ -141,13 +141,15 @@ Light mode is not white only. The `@utility` classes of `pluto-layer.css`:
   kuiper-900 in light mode (lighter than the sidebar), `--pluto-admin-canvas` in dark mode. It
   carries `data-pluto-admin-dark`. Not kuiper-800: the dark border token has that color, so the
   borders of the fields would not show.
-- `bg-pluto-toolbar`: the toolbar bar of a rich text editor in the post editor: kuiper-900 in light
-  mode, `--pluto-admin-sidebar` in dark mode, with `data-pluto-admin-dark` (light buttons).
 - `bg-pluto-panel`: the side panels of a canvas form (`PlutoViewSidePanel`, the Outline):
-  `--ui-bg-elevated` (a light gray) in light mode, `#0b0b0b` in dark mode.
+  `--ui-bg-muted` (a very light gray, not white) in light mode, `#0b0b0b` in dark mode.
 - `bg-pluto-rail`: the rail of a canvas form, the same surface as the side panels.
 - Put `data-pluto-admin-dark` on a dark surface, so its text and buttons take the dark tokens. A
   menu or a popover that opens from it teleports to `<body>` and keeps the normal tokens.
+
+The toolbar bar of the post editor uses plain Tailwind classes, the same in core and in
+supabase-blog: `border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:border-default dark:bg-(--pluto-admin-sidebar)`. White with a soft shadow and a thin border in light mode, the dark sidebar
+color in dark mode (the shadow stays).
 
 ## Inline code
 

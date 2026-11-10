@@ -33,14 +33,14 @@ const { t } = usePlutoI18n()
       :rows="1"
       :ui="{
         root: 'w-full',
-        base: 'resize-none px-4 py-0 text-3xl/tight font-bold text-highlighted placeholder:text-dimmed sm:px-4 md:text-3xl/tight',
+        base: 'resize-none p-0 text-3xl/tight font-bold text-highlighted placeholder:text-dimmed sm:px-0 md:text-3xl/tight',
       }"
       variant="none"
       autoresize
       @update:model-value="emit('update:modelValue', String($event ?? ''))"
       @keydown.enter.prevent="emit('next')"
     />
-    <p v-if="error" class="text-error px-4 text-sm" role="alert">
+    <p v-if="error" class="text-error text-sm" role="alert">
       {{ error }}
     </p>
   </div>

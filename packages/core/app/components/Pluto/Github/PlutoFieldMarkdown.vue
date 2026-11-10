@@ -156,7 +156,7 @@ const extensions = [PlutoContentComponentNode]
           ? {
               root: 'flex w-full flex-1 flex-col',
               content: 'flex flex-1 cursor-text flex-col',
-              base: 'flex-1 px-4 py-3 sm:px-4',
+              base: 'flex-1 px-4 pt-8 pb-3 sm:px-4',
             }
           : {
               root: 'w-full',
@@ -190,11 +190,10 @@ const extensions = [PlutoContentComponentNode]
           :aria-label="t('pluto.github.editor.toolbar')"
           :class="
             canvas
-              ? 'bg-pluto-toolbar sticky top-2 z-10 shrink-0 rounded-lg border shadow-xs'
-              : 'bg-default sticky top-0 z-10 rounded-t-md border-b'
+              ? 'dark:border-default sticky top-2 z-10 shrink-0 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:bg-(--pluto-admin-sidebar)'
+              : 'border-default bg-default sticky top-0 z-10 rounded-t-md border-b'
           "
-          :data-pluto-admin-dark="canvas || undefined"
-          class="border-default px-2 py-1.5"
+          class="px-2 py-1.5"
         >
           <template #link>
             <PlutoGithubEditorLink :editor="editor" />
