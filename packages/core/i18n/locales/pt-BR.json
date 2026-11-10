@@ -36,7 +36,11 @@
       "signedOut": "Você saiu",
       "administrator": "Administrador",
       "adminBadge": "Admin",
-      "help": "Ajuda"
+      "help": "Ajuda",
+      "theme": "Tema",
+      "themeLight": "Claro",
+      "themeDark": "Escuro",
+      "themeSystem": "Sistema"
     },
     "nav": {
       "home": "Início",
