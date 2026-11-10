@@ -1206,19 +1206,7 @@ const headerButtons = computed<PlutoFormHeaderButton[]>(() => {
       variant: 'solid',
     })
   }
-  if (canSave.value && statusConfig.value && !isPublished.value) {
-    // A scheduled or a review item keeps its status on a plain save.
-    buttons.push({
-      id: 'save',
-      label:
-        isScheduled.value || isReview.value
-          ? t('pluto.common.save')
-          : t('pluto.form.saveDraft'),
-      icon: 'lucide:save',
-      variant: 'subtle',
-      secondary: true,
-    })
-  }
+  // Schedule first, as a ghost button; Save draft next to Publish.
   if (
     canPublishNow.value &&
     scheduledValue.value !== undefined &&
@@ -1230,6 +1218,19 @@ const headerButtons = computed<PlutoFormHeaderButton[]>(() => {
         ? t('pluto.form.reschedule')
         : t('pluto.form.schedule'),
       icon: 'lucide:calendar-clock',
+      variant: 'ghost',
+      secondary: true,
+    })
+  }
+  if (canSave.value && statusConfig.value && !isPublished.value) {
+    // A scheduled or a review item keeps its status on a plain save.
+    buttons.push({
+      id: 'save',
+      label:
+        isScheduled.value || isReview.value
+          ? t('pluto.common.save')
+          : t('pluto.form.saveDraft'),
+      icon: 'lucide:save',
       variant: 'subtle',
       secondary: true,
     })

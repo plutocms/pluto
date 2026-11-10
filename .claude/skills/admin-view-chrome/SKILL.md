@@ -416,8 +416,8 @@ skill for the full `PlutoContentStatus` shape: `values`, `default`, `publishedVa
 
 - No `status` declared (`status` unset or `false`) — one plain "Save" button. Byte-identical to
   a content type with no publish workflow at all; `onSave()` is called with no argument.
-- `status` declared, current value is not `publishedValue` — a "Save draft" button plus a
-  "Publish" button. Publish calls `onSave(publishedValue)`. A save with no override is a plain
+- `status` declared, current value is not `publishedValue` — a "Save draft" button right before
+  the "Publish" button. With a schedule, "Schedule" (a `ghost` button) comes first. Publish calls `onSave(publishedValue)`. A save with no override is a plain
   "Saved" (the toast does not say "Unpublished").
 - `status` declared, current value is `publishedValue` — an "Update" button, plus an "Unpublish"
   entry in the overflow menu that calls `onSave(draftValue)`.
