@@ -611,20 +611,15 @@ async function moveToTrash(ids: Array<string | number>) {
   }
 }
 
-/** Remove of one row: to the trash at once, or the final delete with the dialog. */
+/**
+ * Remove of one row. The dialog asks first: "Move to the trash?" for a type with a trash (the
+ * toast then offers Undo), else the final delete.
+ */
 function removeItem(id: string | number) {
-  if (trashEnabled.value) {
-    void moveToTrash([id])
-  } else {
-    openDeleteModal(id)
-  }
+  openDeleteModal(id)
 }
 
 function openBulkRemove() {
-  if (trashEnabled.value) {
-    void moveToTrash(selectedItems.value.map((item) => item.id))
-    return
-  }
   bulkRemove.value = true
   isDeleteModalOpen.value = true
 }
@@ -646,6 +641,18 @@ function closeDeleteModal() {
 
 async function confirmDelete() {
   if (deleting.value) {
+    return
+  }
+  if (trashEnabled.value) {
+    const ids = bulkRemove.value
+      ? selectedItems.value.map((item) => item.id)
+      : pendingDeleteId.value === null
+        ? []
+        : [pendingDeleteId.value]
+    closeDeleteModal()
+    if (ids.length > 0) {
+      await moveToTrash(ids)
+    }
     return
   }
   if (bulkRemove.value) {
@@ -1173,20 +1180,28 @@ const footer = computed(() => {
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
     <ModalHeader @close="closeDeleteModal">
       {{
-        bulkRemove
-          ? t('pluto.list.bulk.removeTitle')
-          : t('pluto.list.removeTitle')
+        trashEnabled
+          ? t('pluto.list.trash.moveTitle')
+          : bulkRemove
+            ? t('pluto.list.bulk.removeTitle')
+            : t('pluto.list.removeTitle')
       }}
     </ModalHeader>
 
     <ModalContent>
       <p>
         {{
-          bulkRemove
-            ? t('pluto.list.bulk.removeConfirm', {
-                count: n(selectedItems.length),
-              })
-            : t('pluto.content.removeConfirm')
+          trashEnabled
+            ? bulkRemove
+              ? t('pluto.list.trash.moveManyConfirm', {
+                  count: n(selectedItems.length),
+                })
+              : t('pluto.list.trash.moveConfirm')
+            : bulkRemove
+              ? t('pluto.list.bulk.removeConfirm', {
+                  count: n(selectedItems.length),
+                })
+              : t('pluto.content.removeConfirm')
         }}
       </p>
     </ModalContent>
@@ -1209,7 +1224,9 @@ const footer = computed(() => {
           color="error"
           @click="confirmDelete"
         >
-          {{ t('pluto.common.remove') }}
+          {{
+            trashEnabled ? t('pluto.list.trash.move') : t('pluto.common.remove')
+          }}
         </UButton>
       </div>
     </ModalFooter>

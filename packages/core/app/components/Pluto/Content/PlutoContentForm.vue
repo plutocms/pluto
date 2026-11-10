@@ -776,12 +776,9 @@ async function onSave(statusOverride?: string, publishAt?: string) {
 
 const deleting = ref(false)
 
+// The dialog asks first. A type with a trash asks "Move to the trash?", and the toast after the
+// move offers Undo. Without a trash, the delete is final.
 function openDeleteModal() {
-  // A type with a trash moves the item there at once: the toast offers Undo.
-  if (contentType.value?.trash) {
-    void confirmDelete()
-    return
-  }
   isDeleteModalOpen.value = true
 }
 
@@ -1701,11 +1698,21 @@ const asideTitle = computed(() =>
 
   <Modal v-model="isDeleteModalOpen" :custom-size="480">
     <ModalHeader @close="closeDeleteModal">
-      {{ t('pluto.form.removeTitle', { label: text.label }) }}
+      {{
+        contentType?.trash
+          ? t('pluto.list.trash.moveTitle')
+          : t('pluto.form.removeTitle', { label: text.label })
+      }}
     </ModalHeader>
 
     <ModalContent>
-      <p>{{ t('pluto.content.removeConfirm') }}</p>
+      <p>
+        {{
+          contentType?.trash
+            ? t('pluto.list.trash.moveConfirm')
+            : t('pluto.content.removeConfirm')
+        }}
+      </p>
     </ModalContent>
 
     <ModalFooter>
@@ -1725,7 +1732,11 @@ const asideTitle = computed(() =>
           color="error"
           @click="confirmDelete"
         >
-          {{ t('pluto.common.remove') }}
+          {{
+            contentType?.trash
+              ? t('pluto.list.trash.move')
+              : t('pluto.common.remove')
+          }}
         </UButton>
       </div>
     </ModalFooter>

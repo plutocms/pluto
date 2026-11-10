@@ -713,8 +713,9 @@ the id again. `purgeBefore` purges in one commit (`purge N from the trash`); a f
 
 The admin (`PlutoContentList`): for a type with `trash` and the delete capability, the tabs All and
 Trash with the count (`PlutoContentListTabs`; the Trash tab is `?trash=1` of the same page, not a
-path, because an id can be "trash"). Remove is **Move to trash**: no dialog, one toast with Undo
-(one item, bulk, and the edit form, which opens the item again on Undo). The Trash tab
+path, because an id can be "trash"). Remove is **Move to trash**: a dialog asks first (`pluto.list.trash.moveTitle`, `moveConfirm`,
+`moveManyConfirm`), then one toast with Undo (one item, bulk, and the edit form, which opens the
+item again on Undo). The Trash tab
 (`PlutoContentTrash`, `usePlutoContentTrash`): a search, up to 100 rows, Restore and Delete forever
 for one row or the selected rows, **Empty the trash**, and the note about 30 days. Delete forever
 and Empty the trash ask first.
