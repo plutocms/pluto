@@ -414,6 +414,11 @@ export interface PlutoBackendInfo extends PlutoEntry {
   kind: 'git' | 'database'
   /** A translation key or literal: the name in the badge ("GitHub", "Supabase"). */
   label: string
+  /**
+   * The icon of the provider, in the badge and the popover: for example `i-pluto-github`,
+   * `i-pluto-git`, or the logo of a database. Without one, the badge shows a generic icon for
+   * the `kind`.
+   */
   icon?: string
   /** A number on the badge, for example the commits that are not pushed. 0 shows none. */
   count?: () => number | null | undefined

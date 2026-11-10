@@ -155,7 +155,7 @@ export default defineNuxtPlugin(() => {
       label: local
         ? 'pluto.github.backend.local'
         : 'pluto.github.backend.github',
-      icon: local ? 'i-lucide-hard-drive' : 'i-pluto-github',
+      icon: local ? 'i-pluto-git' : 'i-pluto-github',
       count: () => (local ? localGit.ahead.value : 0),
       countLabel: 'pluto.github.local.aheadShort',
       details: PlutoGithubBackendDetails,

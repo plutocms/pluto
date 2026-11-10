@@ -312,9 +312,12 @@ It is `null` with no backend, and then no badge shows.
 `PlutoBackendInfo`:
 
 - `kind`: `git` or `database`. It picks the first word ("Git", "Database",
-  `pluto.backend.kind.*`) and the icon (`i-lucide-git-branch`, `i-lucide-database`).
+  `pluto.backend.kind.*`) and the fallback icon (`i-lucide-git-branch`, `i-lucide-database`).
 - `label`: key-or-literal, the name after the kind.
-- `icon`: the icon of the popover header. Default: the icon of the kind.
+- `icon`: the icon of the provider, in the badge and in the popover header. The provider sets it,
+  so each backend shows its own logo: `i-pluto-github` (GitHub mode), `i-pluto-git` (local mode),
+  `pluto-supabase:logo` (the supabase layer). A new backend (MySQL, Turso, Neon, ...) ships its
+  own icon. Default: the icon of the kind.
 - `count()` and `countLabel`: a number on the badge as a warning pill, for example the commits that
   are not pushed. `countLabel` is a plural key-or-literal with `{count}`, used as the title of the
   pill and in the accessible name. 0 shows nothing.
@@ -322,7 +325,7 @@ It is `null` with no backend, and then no badge shows.
 - `onOpen()`: called when the popover opens, for example to read the state again.
 
 `PlutoAdminBackendBadge` (`app/components/Pluto/Admin/`) is a `PlutoNavbarHit` in a `UPopover`.
-Below `md` only the kind icon and the count show. The popover has the label, one line for the
+Below `md` only the icon and the count show. The popover has the label, one line for the
 mode (`pluto.backend.gitMode`, `databaseMode`) and the `details` component. The Git CMS and the
 supabase layer register one each. Tests: `test/auth-driver.test.ts` ("backend"),
 `test/async-component.test.ts`.

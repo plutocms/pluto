@@ -14,10 +14,13 @@ const kindLabel = computed(() =>
     ? t('pluto.backend.kind.database')
     : t('pluto.backend.kind.git')
 )
-const kindIcon = computed(() =>
-  backend.value?.kind === 'database'
-    ? 'i-lucide-database'
-    : 'i-lucide-git-branch'
+// The icon of the provider (GitHub, Git, Supabase, ...), else a generic one for the kind.
+const kindIcon = computed(
+  () =>
+    backend.value?.icon ||
+    (backend.value?.kind === 'database'
+      ? 'i-lucide-database'
+      : 'i-lucide-git-branch')
 )
 const buttonLabel = computed(() => {
   const name = `${kindLabel.value} · ${backend.value?.label ?? ''}`
@@ -60,10 +63,7 @@ watch(open, (value) => {
     <template #content>
       <div class="w-80 max-w-[calc(100vw-2rem)] p-4 text-sm">
         <div class="mb-3 flex items-center gap-x-2">
-          <UIcon
-            :name="backend.icon || kindIcon"
-            class="text-highlighted size-5 shrink-0"
-          />
+          <UIcon :name="kindIcon" class="text-highlighted size-5 shrink-0" />
           <div class="min-w-0">
             <p class="text-highlighted truncate font-semibold">
               {{ backend.label }}
