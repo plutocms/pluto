@@ -243,16 +243,19 @@ pure, because the type is shared with the server. A function that throws shows n
 Every layout (`default`, `focus`, `canvas`) has the same toolbar, `PlutoContentFormHeader`. The body
 has no H1: the toolbar title is the heading. The toolbar shows, from left to right:
 
-- Back, then "<Type plural> › <item title>". In edit mode the title is the `titleField` value, or
-  "Edit <type>" while it loads or when it is empty. A new item shows "New <type>". The type label
-  hides below `sm` (40rem) and the title truncates.
-- The save state, in a live region (`role="status"`):
-  - "Unsaved changes" (a dot, the text from `md`).
-  - "Saving…".
-  - "Saved just now", then "Saved 2 minutes ago" (`Intl.RelativeTimeFormat`, the admin locale, a
-    30 second tick). It shows after a save while the form has no new change.
-  - "Save failed." with a "Retry" button, which repeats the same save (Publish stays Publish).
-- The status badge (when the type has a `status` workflow), the "View" link, the
+- Back, then the breadcrumbs: "<Type plural> › • <item title> [status] <save state>". In edit
+  mode the title is the `titleField` value, or "Edit <type>" while it loads or when it is empty. A
+  new item shows "New <type>". The type label hides below `sm` (40rem) and the title truncates.
+  - Unsaved changes: a yellow dot before the title, with the tooltip "Unsaved changes" (no text).
+  - The status badge (when the type has a `status` workflow), after the title, from `sm`. The
+    badge and the save state are in the `#trailing` slot of `PlutoViewToolbar`
+    (`UDashboardNavbar`), so they sit right after the title.
+  - The save state after the badge, in a live region (`role="status"`; the dirty state is
+    `sr-only` text there): "Saving…" (a spinner); "Saved just now", then "Saved 2 minutes ago"
+    (`Intl.RelativeTimeFormat`, the admin locale, a 30 second tick, the text from `md`), after a
+    save while the form has no new change; "Save failed." with a "Retry" button, which repeats the
+    same save (Publish stays Publish).
+- On the right: the "View" link, the
   `contentToolbarItems` of the layers (a status or an indicator), the `contentActions` of the layer, the save and publish buttons (see "The publish workflow"), the overflow menu, and
   the panel toggles.
 - Below `sm`: the "View" link moves into the overflow menu, and a secondary button (a content

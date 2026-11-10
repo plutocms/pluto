@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // The toolbar of `PlutoContentForm`. Every layout uses it, so every edit page
-// has the same top row: back, "Type > title", the save state, the status
-// badge, the View link, the toolbar items of the layers, the buttons of the
-// layers, Save or Publish, the
-// overflow menu, and the panel toggles. It holds no form logic. The form passes
-// the data in and handles the events.
+// has the same top row: back, the breadcrumbs ("Type > • title [status] Saved
+// just now"), then the View link, the toolbar items of the layers, the buttons
+// of the layers, Save or Publish, the overflow menu, and the panel toggles.
+// Unsaved changes show as a yellow dot before the title, with a tooltip. It
+// holds no form logic. The form passes the data in and handles the events.
 
 const props = defineProps<{
   backTo: string
@@ -128,24 +128,36 @@ const stateText = computed(() => {
         name="i-lucide-chevron-right"
         class="text-muted hidden size-4 shrink-0 sm:block"
       />
+      <!-- Unsaved changes: a yellow dot before the title. The live region after the title says it. -->
+      <UTooltip v-if="saveState === 'dirty'" :text="stateText">
+        <span
+          class="bg-warning size-2 shrink-0 rounded-full"
+          aria-hidden="true"
+        />
+      </UTooltip>
       <span class="truncate">{{ title }}</span>
     </template>
 
-    <template #right>
-      <!-- The state is a live region: a screen reader hears it change. -->
+    <template #trailing>
+      <UBadge
+        v-if="status"
+        :color="status.color ?? (status.published ? 'success' : 'neutral')"
+        :title="status.title"
+        variant="subtle"
+        class="ms-1 hidden shrink-0 sm:inline-flex"
+      >
+        {{ status.label }}
+      </UBadge>
+
+      <!-- The save state is a live region: a screen reader hears it change. -->
       <div
         role="status"
         aria-live="polite"
-        class="flex items-center gap-1.5 text-sm"
+        class="flex shrink-0 items-center gap-1.5 text-sm font-normal"
       >
-        <template v-if="saveState === 'dirty'">
-          <span
-            class="bg-warning size-2 shrink-0 rounded-full"
-            aria-hidden="true"
-          />
-          <span class="text-muted hidden md:inline">{{ stateText }}</span>
-          <span class="sr-only md:hidden">{{ stateText }}</span>
-        </template>
+        <span v-if="saveState === 'dirty'" class="sr-only">{{
+          stateText
+        }}</span>
 
         <template v-else-if="saveState === 'saving'">
           <UIcon
@@ -158,11 +170,6 @@ const stateText = computed(() => {
         </template>
 
         <template v-else-if="saveState === 'saved'">
-          <UIcon
-            name="i-lucide-check"
-            class="text-success size-4 shrink-0"
-            aria-hidden="true"
-          />
           <span class="text-muted hidden md:inline">{{ stateText }}</span>
           <span class="sr-only md:hidden">{{ stateText }}</span>
         </template>
@@ -185,17 +192,9 @@ const stateText = computed(() => {
           />
         </template>
       </div>
+    </template>
 
-      <UBadge
-        v-if="status"
-        :color="status.color ?? (status.published ? 'success' : 'neutral')"
-        :title="status.title"
-        variant="subtle"
-        class="hidden sm:inline-flex"
-      >
-        {{ status.label }}
-      </UBadge>
-
+    <template #right>
       <UButton
         v-if="viewUrl && isSm"
         :to="viewUrl"
