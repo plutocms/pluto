@@ -48,6 +48,8 @@ const slideoverOpen = computed({
     open.value = value
   },
 })
+// On a narrow screen, Back (or the back swipe) closes the slideover.
+usePlutoBackClose(slideoverOpen)
 </script>
 
 <template>

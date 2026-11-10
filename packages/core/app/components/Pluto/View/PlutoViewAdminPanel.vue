@@ -84,6 +84,15 @@ const leftResizable = computed(
     rowWidth.value > 0 && hasLeftSlot.value && leftOpen.value && isDesktop.value
 )
 const leftSlideover = computed(() => hasLeftSlot.value && !isDesktop.value)
+// On a narrow screen, Back (or the back swipe) closes the left slideover.
+usePlutoBackClose(
+  computed({
+    get: () => leftSlideover.value && leftOpen.value,
+    set: (value: boolean) => {
+      leftOpen.value = value
+    },
+  })
+)
 
 // The collapse button in the header of the left panel (PlutoViewLeftCollapse).
 const leftCollapseButtons = ref(0)

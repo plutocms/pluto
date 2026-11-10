@@ -386,7 +386,13 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   (hidden below `lg`), the `#actions` slot and `PlutoViewLeftCollapse` (`collapse`, default
   true), a body in a Reka UI scroll area with a thin scrollbar on hover (the default slot, no
   padding), and an optional `#footer` slot. The Outline of a post uses it.
-- Narrow screen: the toolbar toggles open the slideovers.
+- Narrow screen: the toolbar toggles open the slideovers. Back (or the back swipe of a phone)
+  closes an open slideover and keeps the page: `usePlutoBackClose(open, enabled?)`
+  (`app/composables/pluto-back-close.ts`) adds a history entry with the same URL (the state of Vue
+  Router plus one key) while it is open, and goes back once when the slideover closes from itself.
+  A navigation from the slideover keeps the entry. `PlutoViewAside`, the left slideover of
+  `PlutoViewAdminPanel` and the navigation menu of the admin layout use it. Use it for any new
+  overlay of a narrow screen that changes the view.
 - Below `lg`: the left panel is a slideover (a toggle), the right panel is a slideover (a toggle).
   Both start closed and keep no cookie (a saved "open" would cover the page on the first visit).
   On desktop the left state is the cookie `pluto-content-left-<typeName>` and the right state is

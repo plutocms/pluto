@@ -4,6 +4,8 @@
 const menu = usePlutoAdminMenu()
 const openGroups = usePlutoAdminMenuGroups()
 const isSidebarOpen = usePlutoAdminMenuOpen()
+// The navigation menu is a slideover on a narrow screen: Back (or the back swipe) closes it.
+usePlutoBackClose(isSidebarOpen, useMediaQuery('(max-width: 63.99rem)'))
 
 const commandGroups = usePlutoCommandPalette()
 const { t } = usePlutoI18n()
