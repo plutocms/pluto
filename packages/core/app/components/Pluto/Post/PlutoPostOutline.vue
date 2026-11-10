@@ -36,6 +36,12 @@ const baseLevel = computed(() =>
         class="hover:bg-elevated/60 focus-visible:outline-primary flex min-h-8 w-full items-center rounded-md py-1 pe-2 text-start text-sm focus-visible:outline-2 focus-visible:-outline-offset-2"
         @click="emit('select', index)"
       >
+        <!-- The icon of the heading level (H1 to H6). -->
+        <UIcon
+          :name="`i-lucide-heading-${heading.level}`"
+          class="text-dimmed me-2 size-4 shrink-0"
+          aria-hidden="true"
+        />
         <span class="min-w-0 truncate">{{ heading.text }}</span>
       </button>
     </nav>

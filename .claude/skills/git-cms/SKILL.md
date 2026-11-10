@@ -727,7 +727,7 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   code editor" below.
 - Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
   widget. The cookie `pluto-post-editor-mode` keeps the last mode.
-- The left panel (`PlutoPostOutline.vue`, in the `PlutoViewSidePanel` shell) lists the headings (`plutoMarkdownHeadings(text)` in
+- The left panel (`PlutoPostOutline.vue`, in the `PlutoViewSidePanel` shell) lists the headings, each with the icon of its level (`i-lucide-heading-1` to `-6`) (`plutoMarkdownHeadings(text)` in
   `shared/utils/markdown-headings.ts`: ATX and setext headings, not in a code fence, in the order
   of the rendered `h1` to `h6`). A click scrolls the preview to the heading, and goes to it in the
   editor: in Markdown mode the caret goes to its line (`goToLine`); in Visual mode the editor
