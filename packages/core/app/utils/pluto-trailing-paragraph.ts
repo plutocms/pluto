@@ -19,15 +19,18 @@ function ensureTrailingParagraph(editor: Editor) {
 
 /**
  * Keeps an empty line at the end of the post editor, so the "+" of the block menu always has a
- * place below the last block. The Markdown of the editor drops it (`PlutoFieldMarkdown` trims the
- * trailing blank lines), so it never reaches the file.
+ * place below the last block. The Markdown of the editor drops it (the editor trims the trailing
+ * blank lines), so it never reaches the file. It runs after each change of the document, also one
+ * that emits no update (`setContent` with `emitUpdate: false`, when an editor loads its text).
  */
 export const PlutoTrailingParagraph = Extension.create({
   name: 'plutoTrailingParagraph',
   onCreate() {
     ensureTrailingParagraph(this.editor)
   },
-  onUpdate() {
-    ensureTrailingParagraph(this.editor)
+  onTransaction({ transaction }) {
+    if (transaction.docChanged) {
+      ensureTrailingParagraph(this.editor)
+    }
   },
 })
