@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.24.0](https://github.com/plutocms/pluto/compare/docs-v0.23.0...docs-v0.24.0) (2026-11-10)
+
+
+### Features
+
+* **core:** admin UI round 4: shell, canvas sheet, post editor polish ([#505](https://github.com/plutocms/pluto/issues/505)) ([351cac7](https://github.com/plutocms/pluto/commit/351cac73af6499debc952a1888dcee71145fb418))
+
+
+### Bug Fixes
+
+* **docs:** needs core 0.67.0 ([#508](https://github.com/plutocms/pluto/issues/508)) ([277633f](https://github.com/plutocms/pluto/commit/277633ff83d1d6949d3254aa8e14d08f98ffc875))
+
 ## [0.23.0](https://github.com/plutocms/pluto/compare/docs-v0.22.0...docs-v0.23.0) (2026-11-09)
 
 
