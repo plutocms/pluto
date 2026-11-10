@@ -61,8 +61,9 @@ const props = withDefaults(
     /** Show all the text in the monospace font (14px), like a code editor. Default: the UI font. */
     monospace?: boolean
     /**
-     * No box around the text: the toolbar is a separate rounded bar, and the text sits on the
-     * background of the parent (the post editor). Default: one bordered box.
+     * No box and no toolbar: the text sits on the background of the parent (the post editor), with
+     * no side padding, and grows to fill the height that the parent gives it. A selection shows the
+     * inline formats in a bubble toolbar above it. Default: one bordered box with the toolbar.
      */
     bare?: boolean
   }>(),
@@ -73,6 +74,8 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  /** The caret moved: its line (from 0). The outline of the post editor follows it. */
+  cursorLine: [line: number]
 }>()
 
 defineSlots<{
@@ -205,7 +208,9 @@ const theme = EditorView.theme({
     fontSize: 'var(--pluto-cm-font-size, 15px)',
   },
   '&.cm-focused': { outline: 'none' },
+  // The scrollbar has no track of its own. With `fill`, it also keeps its room (the host class).
   '.cm-scroller': {
+    scrollbarColor: 'var(--ui-border-accented) transparent',
     fontFamily: 'var(--pluto-cm-font, inherit)',
     lineHeight: '1.7',
   },
@@ -330,23 +335,72 @@ function reveal(start: number, end: number): void {
 }
 
 /**
- * Puts the caret at the start of a line (from 0), and scrolls that line to the top of the
- * editor. The outline of the post editor uses it to jump to a heading.
+ * Puts the caret at the end of a line (from 0), and scrolls that line to the top of the editor.
+ * The outline of the post editor uses it to jump to a heading.
  */
 function goToLine(line: number): void {
   if (!view) {
     return
   }
   const { doc } = view.state
-  const from = doc.line(Math.min(Math.max(line, 0) + 1, doc.lines)).from
+  const target = doc.line(Math.min(Math.max(line, 0) + 1, doc.lines))
   view.dispatch({
-    selection: EditorSelection.cursor(from),
-    effects: EditorView.scrollIntoView(from, { y: 'start', yMargin: 12 }),
+    selection: EditorSelection.cursor(target.to),
+    effects: EditorView.scrollIntoView(target.from, {
+      y: 'start',
+      yMargin: 12,
+    }),
   })
   view.focus()
 }
 
 defineExpose({ insert, focus, reveal, goToLine })
+
+// --- Bubble toolbar (`bare`) ---------------------------------------------------------------
+
+// The inline formats, like the bubble toolbar of the Visual editor.
+const BUBBLE_FORMATS = FORMATS.filter((item) =>
+  ['bold', 'italic', 'strike', 'code', 'link'].includes(item.format)
+)
+
+// Where the bubble shows (viewport px: the middle of the start of the selection), or null.
+const bubble = ref<{ top: number; left: number } | null>(null)
+
+/** Measures the selection and places the bubble above it. No selection, no focus: no bubble. */
+function placeBubble() {
+  if (!view || !props.bare) {
+    return
+  }
+  view.requestMeasure({
+    key: 'pluto-bubble',
+    read: (current) => {
+      const selection = current.state.selection.main
+      if (selection.empty || !current.hasFocus || props.disabled) {
+        return null
+      }
+      const start = current.coordsAtPos(selection.from)
+      const end = current.coordsAtPos(selection.to)
+      if (!start || !end) {
+        return null
+      }
+      // One line: the middle of the selection. More lines: above the start.
+      const left =
+        Math.abs(start.top - end.top) < 2
+          ? (start.left + end.left) / 2
+          : start.left
+      return { top: start.top, left }
+    },
+    write: (position) => {
+      bubble.value = position
+    },
+  })
+}
+
+// The page scrolls the editor (it grows with the text): the bubble follows.
+useEventListener('scroll', () => bubble.value && placeBubble(), {
+  capture: true,
+  passive: true,
+})
 
 // --- Setup -------------------------------------------------------------------------
 
@@ -394,6 +448,21 @@ onMounted(() => {
           ) {
             emit('update:modelValue', update.state.doc.toString())
           }
+          if (
+            props.bare &&
+            (update.selectionSet ||
+              update.focusChanged ||
+              update.geometryChanged)
+          ) {
+            placeBubble()
+          }
+          if (update.selectionSet || update.docChanged) {
+            const { state } = update
+            emit(
+              'cursorLine',
+              state.doc.lineAt(state.selection.main.head).number - 1
+            )
+          }
         }),
         theme,
       ],
@@ -436,19 +505,15 @@ onBeforeUnmount(() => {
   <div
     :class="[
       fill ? 'flex h-full min-h-0 flex-col' : undefined,
-      bare ? 'gap-2' : 'border-default bg-default rounded-md border',
+      bare ? 'flex flex-col' : 'border-default bg-default rounded-md border',
     ]"
     class="w-full"
   >
     <div
+      v-if="!bare"
       :aria-label="t('pluto.markdown.formatting')"
-      :class="
-        bare
-          ? 'dark:border-default rounded-lg border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:bg-(--pluto-admin-sidebar)'
-          : 'border-default bg-default rounded-t-md border-b'
-      "
       role="toolbar"
-      class="flex shrink-0 flex-wrap items-center gap-0.5 px-2 py-1.5"
+      class="border-default bg-default flex shrink-0 flex-wrap items-center gap-0.5 rounded-t-md border-b px-2 py-1.5"
     >
       <UTooltip
         v-for="item in FORMATS"
@@ -477,11 +542,21 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
+    <!-- `fill`: the editor scrolls inside, and keeps the room of its scrollbar. `bare`: the editor
+         fills the height that the parent gives it, with no side padding. -->
     <div
       ref="host"
-      :class="fill ? 'min-h-0 flex-1 [&_.cm-editor]:h-full' : undefined"
+      :class="
+        fill
+          ? 'min-h-0 flex-1 [&_.cm-editor]:h-full [&_.cm-scroller]:scrollbar-gutter-stable'
+          : bare
+            ? 'flex flex-1 flex-col [&_.cm-content]:px-0! [&_.cm-editor]:flex-1 [&_.cm-line]:px-0!'
+            : undefined
+      "
       :style="[
-        fill ? undefined : { minHeight: `${minLines * 1.7 * 15 + 24}px` },
+        fill || bare
+          ? undefined
+          : { minHeight: `${minLines * 1.7 * 15 + 24}px` },
         monospace
           ? {
               '--pluto-cm-font': 'var(--font-mono, ui-monospace, monospace)',
@@ -491,5 +566,33 @@ onBeforeUnmount(() => {
       ]"
       class="pluto-markdown-code-editor"
     />
+
+    <!-- `bare`: the inline formats over a selection, like the bubble toolbar of the Visual editor.
+         A button keeps the focus in the text (`mousedown.prevent`), so the selection stays. -->
+    <div
+      v-if="bare && bubble"
+      :aria-label="t('pluto.markdown.formatting')"
+      :style="{ top: `${bubble.top - 8}px`, left: `${bubble.left}px` }"
+      role="toolbar"
+      class="bg-default border-default fixed z-50 flex -translate-x-1/2 -translate-y-full gap-0.5 rounded-lg border p-1 shadow-lg dark:bg-neutral-950"
+      @mousedown.prevent
+    >
+      <UTooltip
+        v-for="item in BUBBLE_FORMATS"
+        :key="item.format"
+        :text="t(`pluto.markdown.format.${item.format}`)"
+        :kbds="item.keys"
+      >
+        <UButton
+          :aria-label="t(`pluto.markdown.format.${item.format}`)"
+          :icon="item.icon"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          square
+          @click="format(item.format)"
+        />
+      </UTooltip>
+    </div>
   </div>
 </template>

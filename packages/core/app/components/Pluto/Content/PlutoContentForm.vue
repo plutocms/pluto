@@ -929,6 +929,9 @@ function setRightTarget(id: string, el: unknown) {
   rightTargets[id] = (el as HTMLElement | null) ?? null
 }
 
+// The element of a widget that shows the alerts of the form (`claimAlerts`), or null.
+const alertsTarget = shallowRef<HTMLElement | null>(null)
+
 if (isCanvas.value) {
   provide(plutoCanvasHostKey, {
     registerPanel(getter) {
@@ -947,6 +950,16 @@ if (isCanvas.value) {
         claimGetters.value = claimGetters.value.filter(
           (entry) => entry !== getter
         )
+      }
+    },
+    claimAlerts(element) {
+      // The host type is DOM-free (shared): the element is an HTMLElement in the browser.
+      const target = element as HTMLElement
+      alertsTarget.value = target
+      return () => {
+        if (alertsTarget.value === target) {
+          alertsTarget.value = null
+        }
       }
     },
   })
@@ -1384,92 +1397,102 @@ const asideTitle = computed(() =>
       />
     </template>
 
-    <div
-      v-if="lockedForWriter && !loadFailed"
-      :class="isCanvas ? 'shrink-0 p-4' : undefined"
-    >
-      <UAlert
-        :title="t('pluto.form.lockedTitle')"
-        :description="t('pluto.form.lockedHint')"
-        color="neutral"
-        variant="subtle"
-        icon="lucide:lock"
-      />
-    </div>
-
-    <PlutoContentBackupAlert
-      v-if="backupOffer"
-      :type="contentType"
-      :offer="backupOffer"
-      :changes="backupChanges"
-      :canvas="isCanvas"
-      @restore="restoreBackup"
-      @discard="discardBackup"
-    />
-
-    <div v-if="backupConflict" :class="isCanvas ? 'shrink-0 p-4' : undefined">
-      <UAlert
-        :title="t('pluto.backup.conflict.title')"
-        color="warning"
-        variant="subtle"
-        icon="lucide:triangle-alert"
-        role="alert"
+    <!--
+      The alerts of the form. In the canvas layout, a widget can show them in its own column
+      (`claimAlerts` of the canvas host: the post editor puts them above the title). Else they
+      show above the canvas, on the background of the editor. Outside the canvas the wrapper is
+      `contents`, so each alert is a child of the field list. `empty:hidden`: no alert, no space.
+    -->
+    <Teleport :to="alertsTarget ?? 'body'" :disabled="!alertsTarget">
+      <div
+        :class="
+          isCanvas
+            ? alertsTarget
+              ? 'flex flex-col gap-3'
+              : 'bg-default flex shrink-0 flex-col gap-3 p-4'
+            : 'contents'
+        "
+        class="empty:hidden"
       >
-        <template #description>
-          <p>{{ t('pluto.backup.conflict.description') }}</p>
-          <div class="mt-3">
-            <UButton
-              :label="t('pluto.backup.conflict.reload')"
-              :loading="backupMerging"
-              icon="lucide:git-merge"
-              size="xs"
-              color="warning"
-              @click="reloadBackupConflict"
-            />
-          </div>
-        </template>
-      </UAlert>
-    </div>
+        <UAlert
+          v-if="lockedForWriter && !loadFailed"
+          :title="t('pluto.form.lockedTitle')"
+          :description="t('pluto.form.lockedHint')"
+          color="neutral"
+          variant="subtle"
+          icon="lucide:lock"
+        />
 
-    <div v-if="backupOtherTab" :class="isCanvas ? 'shrink-0 p-4' : undefined">
-      <UAlert
-        :title="t('pluto.backup.otherTab')"
-        color="warning"
-        variant="subtle"
-        icon="lucide:copy"
-        close
-        @update:open="backupOtherTab = false"
-      />
-    </div>
+        <PlutoContentBackupAlert
+          v-if="backupOffer"
+          :type="contentType"
+          :offer="backupOffer"
+          :changes="backupChanges"
+          @restore="restoreBackup"
+          @discard="discardBackup"
+        />
 
-    <div
-      v-if="backupOtherDevice"
-      :class="isCanvas ? 'shrink-0 p-4' : undefined"
-    >
-      <UAlert
-        :title="t('pluto.backup.otherDevice')"
-        color="warning"
-        variant="subtle"
-        icon="lucide:monitor-smartphone"
-        close
-        @update:open="backupOtherDevice = false"
-      />
-    </div>
+        <UAlert
+          v-if="backupConflict"
+          :title="t('pluto.backup.conflict.title')"
+          color="warning"
+          variant="subtle"
+          icon="lucide:triangle-alert"
+          role="alert"
+        >
+          <template #description>
+            <p>{{ t('pluto.backup.conflict.description') }}</p>
+            <div class="mt-3">
+              <UButton
+                :label="t('pluto.backup.conflict.reload')"
+                :loading="backupMerging"
+                icon="lucide:git-merge"
+                size="xs"
+                color="warning"
+                @click="reloadBackupConflict"
+              />
+            </div>
+          </template>
+        </UAlert>
 
-    <UAlert
-      v-if="validationErrors.length > 0"
-      :title="t('pluto.form.fixErrors')"
-      :class="isCanvas ? 'm-4 shrink-0' : undefined"
-      color="error"
-    >
-      <template #description>
-        <ul class="list-disc pl-4">
-          <li v-for="fieldError in validationErrors" :key="fieldError.field">
-            {{ validationText(fieldError) }}
-          </li>
-        </ul>
-      </template>
-    </UAlert>
+        <UAlert
+          v-if="backupOtherTab"
+          :title="t('pluto.backup.otherTab')"
+          color="warning"
+          variant="subtle"
+          icon="lucide:copy"
+          close
+          @update:open="backupOtherTab = false"
+        />
+
+        <UAlert
+          v-if="backupOtherDevice"
+          :title="t('pluto.backup.otherDevice')"
+          color="warning"
+          variant="subtle"
+          icon="lucide:monitor-smartphone"
+          close
+          @update:open="backupOtherDevice = false"
+        />
+
+        <UAlert
+          v-if="validationErrors.length > 0"
+          :title="t('pluto.form.fixErrors')"
+          color="error"
+        >
+          <template #description>
+            <ul class="list-disc pl-4">
+              <li
+                v-for="fieldError in validationErrors"
+                :key="fieldError.field"
+              >
+                {{ validationText(fieldError) }}
+              </li>
+            </ul>
+          </template>
+        </UAlert>
+      </div>
+    </Teleport>
 
     <!-- The item did not load. Show the error and a retry button, and no fields. -->
     <UEmpty

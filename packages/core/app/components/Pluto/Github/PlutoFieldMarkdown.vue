@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, EditorCustomHandlers } from '@nuxt/ui'
 import type { Editor, JSONContent } from '@tiptap/vue-3'
 import PlutoBlockInsertMenu from '../Block/PlutoBlockInsertMenu.vue'
 import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
@@ -108,9 +108,10 @@ function onEditorUpdate(markdown: string) {
 //
 // Like the other editors of Pluto: a selection shows the bubble toolbar (the text marks and the
 // link). In the gutter at the left of the text, a block has a grip (drag to move, click for
-// Duplicate and Delete), and an empty line has a "+" that opens the block menu there. "/" in an
-// empty line opens the same menu. The content components of the site are in it too. The editor
-// always ends with an empty line, so the "+" has a place after the last block.
+// Duplicate and Delete), and an empty line has a "+" that opens the block menu for that line (a
+// dropdown: no "/" goes into the text). "/" in an empty line opens the same items as a suggestion
+// menu. The content components of the site are in it too. The editor always ends with an empty
+// line, so the "+" has a place after the last block.
 const bubbleItems = usePlutoMarkdownBubbleItems()
 const suggestionItems = usePlutoMarkdownSuggestionItems(() =>
   components.list.value.map((component) => ({
@@ -139,23 +140,58 @@ const handleOnEmptyLine = computed(
     !handleNode.value.node.content?.length
 )
 
-/** The "+" of an empty line: the cursor goes there, and "/" opens the block menu. */
-function openBlockMenu(editor: Editor) {
-  const current = handleNode.value
-  if (!current) {
-    return
+// The block of the open menu of the handle. The pointer can hover other blocks while the menu is
+// open; the menu acts on the block where it opened.
+const menuNode = shallowRef<{ node: JSONContent; pos: number }>()
+function onHandleMenu(editor: Editor, open: boolean) {
+  if (open) {
+    menuNode.value = handleNode.value
   }
-  editor
-    .chain()
-    .focus()
-    .setTextSelection(current.pos + 1)
-    .insertContent('/')
-    .run()
+  editor.chain().setMeta('lockDragHandle', open).run()
+}
+
+/**
+ * The menu of the "+" of an empty line: the items of the block menu (`suggestionItems`). An item
+ * puts the caret in that line and runs its handler there, like the "/" menu, with no "/" to remove.
+ */
+function insertMenu(
+  editor: Editor,
+  editorHandlers: EditorCustomHandlers
+): DropdownMenuItem[][] {
+  return suggestionItems.value.map((group) =>
+    group.map((item): DropdownMenuItem => {
+      if ('type' in item && item.type) {
+        return { type: item.type, label: item.label }
+      }
+      const { kind, label, icon } = item as {
+        kind: string
+        label?: string
+        icon?: string
+      }
+      return {
+        label,
+        icon,
+        onSelect: () => {
+          const current = menuNode.value ?? handleNode.value
+          const handler = editorHandlers[kind]
+          if (!current || !handler) {
+            return
+          }
+          editor
+            .chain()
+            .focus()
+            .setTextSelection(current.pos + 1)
+            .run()
+          handler.execute(editor, item).run()
+        },
+      }
+    })
+  )
 }
 
 /** The menu of the grip: Duplicate and Delete the block under the handle. */
 function blockMenu(editor: Editor): DropdownMenuItem[][] {
-  const current = handleNode.value
+  const current = menuNode.value ?? handleNode.value
   if (!current?.node?.type) {
     return []
   }
@@ -249,7 +285,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
          way to them (Tiptap hides the handle when the pointer leaves the editor). -->
     <UEditor
       v-else
-      v-slot="{ editor }"
+      v-slot="{ editor, handlers: editorHandlers }"
       :model-value="value"
       :editable="!disabled"
       :placeholder="placeholder"
@@ -296,10 +332,11 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           :aria-label="t('pluto.github.editor.toolbar')"
           :class="
             canvas
-              ? 'dark:border-default sticky top-2 z-10 shrink-0 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:bg-(--pluto-admin-sidebar)'
+              ? 'dark:border-default sticky top-2 z-10 -mx-2 shrink-0 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:bg-(--pluto-admin-sidebar)'
               : 'border-default bg-default sticky top-0 z-10 rounded-t-md border-b'
           "
           class="px-2 py-1.5"
+          data-pluto-editor-toolbar
         >
           <template #link>
             <PlutoGithubEditorLink :editor="editor" />
@@ -333,9 +370,14 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           :options="{ flip: false }"
           @hover="handleNode = $event"
         >
-          <UTooltip
+          <UDropdownMenu
             v-if="handleOnEmptyLine"
-            :text="t('pluto.github.editor.addBlock')"
+            :modal="false"
+            :items="insertMenu(editor, editorHandlers)"
+            :content="{ side: 'bottom', align: 'start' }"
+            :ui="{ content: 'max-h-80' }"
+            arrow
+            @update:open="(open: boolean) => onHandleMenu(editor, open)"
           >
             <UButton
               :aria-label="t('pluto.github.editor.addBlock')"
@@ -344,19 +386,15 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
               color="neutral"
               variant="ghost"
               size="sm"
-              @click.stop="openBlockMenu(editor)"
             />
-          </UTooltip>
+          </UDropdownMenu>
           <UDropdownMenu
             v-else
             :modal="false"
             :items="blockMenu(editor)"
             :content="{ side: 'left' }"
             arrow
-            @update:open="
-              (open: boolean) =>
-                editor.chain().setMeta('lockDragHandle', open).run()
-            "
+            @update:open="(open: boolean) => onHandleMenu(editor, open)"
           >
             <UButton
               :aria-label="t('pluto.github.editor.blockHandle')"
@@ -369,7 +407,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </UDropdownMenu>
         </UEditorDragHandle>
 
-        <!-- "/" in an empty line, and the "+" of a block: the block menu. -->
+        <!-- "/" in an empty line: the block menu. -->
         <UEditorSuggestionMenu
           :editor="editor"
           :items="suggestionItems"

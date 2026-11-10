@@ -140,37 +140,33 @@
 
 /*
  * The background of the side panels of a canvas form (the Outline of a post, the Blocks of a
- * docs page) and of the rail next to them: a very light gray in light mode (`--ui-bg-muted`),
- * #0b0b0b in dark. One utility, so every layer that adds a panel matches. `PlutoViewSidePanel`
- * uses it.
+ * docs page): the background of the editor next to them, in both modes. One utility, so every
+ * layer that adds a panel matches. `PlutoViewSidePanel` uses it.
  */
 @utility bg-pluto-panel {
-  background-color: var(--ui-bg-muted);
-
-  :where(.dark) & {
-    background-color: #0b0b0b;
-  }
+  background-color: var(--ui-bg);
 }
 
 /*
- * The rail of a canvas form (`PlutoViewAdminPanel` `#rail`): the surface of the side panels next
- * to it (`bg-pluto-panel`).
+ * The rail of a canvas form (`PlutoViewAdminPanel` `#rail`) and the right panel of an edit page
+ * (`PlutoViewAside`): a very light gray in light mode (`--ui-bg-muted`); no background in dark
+ * mode, so they take the surface behind them.
  */
 @utility bg-pluto-rail {
   background-color: var(--ui-bg-muted);
 
   :where(.dark) & {
-    background-color: #0b0b0b;
+    background-color: transparent;
   }
 }
 
 /*
- * The right panel of an edit page (`PlutoViewAside`, the fields of the item): a dark surface in
- * both modes. In light mode it is kuiper-900, lighter than the sidebar (the navbar color), and the
- * panel carries `data-pluto-admin-dark`, so its text and fields take the dark tokens.
+ * The frame around the sheet of a canvas form (`PlutoViewAdminPanel` with a rail): the toolbar,
+ * the rail and the corners of the sheet. The rail color in light mode (`--ui-bg-muted`), the
+ * canvas of the admin in dark mode.
  */
-@utility bg-pluto-aside {
-  background-color: var(--color-kuiper-900);
+@utility bg-pluto-frame {
+  background-color: var(--ui-bg-muted);
 
   :where(.dark) & {
     background-color: var(--pluto-admin-canvas);
