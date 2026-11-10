@@ -22,7 +22,7 @@ Nuxt UI and Nuxt Content: a site that uses it needs Tailwind and Nuxt UI.
 `ColorModeButton` (core, unprefixed): one `<button>` with the `pluto-color-mode-button` class and a
 `UIcon` (1em). It is in `ClientOnly` with no fallback slot, so before the mount Nuxt renders an
 empty `<span>` with the attributes of the caller (the same size). Hidden when the color mode is
-forced. The admin navbar uses `PlutoAdminColorModeButton` (a `PlutoNavbarHit`) instead.
+forced.
 
 Not in the list: the unprefixed core helpers (`Container`, `ScrollArea`, `Modal*`). They use
 Tailwind classes with `twMerge`, and they serve the admin.

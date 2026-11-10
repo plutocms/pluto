@@ -51,9 +51,9 @@ The outer shell for one view. Props:
 - `panelToggles?: boolean` — default `false`. On desktop, draws a small floating button that opens
   a closed side panel (see "The canvas layout"). Use it with `v-model:aside-open`. With a `#rail`
   slot, the left panel has no floating button: the rail opens it.
-- `#rail` slot — the action rail (desktop only): a column of icon buttons (`w-12`, `border-e`, a
-  `nav` with the label "Editor actions") at the left edge of the row. It has the surface of the side panels
-  (`bg-pluto-rail`: a light gray in light mode, `#0b0b0b` in dark mode). The content form fills it
+- `#rail` slot — the action rail (desktop only): a column of icon buttons (`w-12`, no border, a
+  `nav` with the label "Editor actions") at the left edge of the row. It has the surface
+  `bg-pluto-rail` (`--ui-bg-muted` in light mode, transparent in dark mode). The content form fills it
   in the canvas layout: one button for the left panel (its `icon` and `label`, `soft`/`primary`
   and `aria-pressed` while open). It is the place for more actions of the view later (a layer,
   an AI assistant).
@@ -85,7 +85,7 @@ The toolbar row is `h-12`. Its buttons take the admin default size (`md`, see th
 skill), so a page button or a toolbar item of a layer fits the row without a `size`.
 
 Props: `title?: string`, `icon?: string`, `backTo?: string` (renders a back arrow button, with an `aria-label` and a tooltip "Back", before
-the title).
+the title; the left padding is then `ps-2`, so the back button lines up with the rail buttons).
 
 Slots: `#left` (replaces the whole leading area — icon, title, and trailing content — so only use
 it when you also want to replace the title), `#title`, default (a centered slot), `#right`,
@@ -93,6 +93,8 @@ it when you also want to replace the title), `#title`, default (a centered slot)
 a small button that belongs next to the title, like a refresh button).
 
 ### `PlutoViewAside`
+
+On desktop it has the `bg-pluto-rail` surface. It is not a dark panel.
 
 A right-hand panel bound to an `open` model (`v-model:open`). On a wide screen (`lg`, 64rem and
 up) it renders as a plain `<aside>` beside the main content. On a narrow screen it renders as a
@@ -361,6 +363,17 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
 - The core post editor (`widget: 'post-canvas'`, see the git-cms skill) is a canvas widget: an
   outline in the left panel, the title above the text, and a Visual mode or a Markdown mode with a
   preview of the site.
+- With the rail (canvas form, desktop), `PlutoViewAdminPanel` draws a "sheet". The root has
+  `bg-pluto-frame`. The left panel and the main region form the sheet, with rounded top corners
+  (`rounded-ss-xl` on the left panel, or on main when there is no left panel, and `rounded-se-xl` on
+  main). There is no border under the toolbar and no border on the rail. The splitter handle is
+  transparent, except the line after the left panel. With no aside open, the frame shows 16px at the
+  right (`pe-4`), and the floating "show panel" button is at `right-6`.
+- The alerts of the form (locked, recovery offer, backup conflict, other tab, other device,
+  validation errors) are one block. A widget can show it in its own element with
+  `claimAlerts(target)` of the canvas host (`PlutoCanvasHost`). The post editor shows it above the
+  title, in the text column. Without a claim, the block shows above the canvas, on the editor
+  background. `PlutoContentBackupAlert` has no `canvas` prop.
 - A canvas widget that shows another field itself (the post editor shows the title) calls
   `claimFields(() => [name])` of the canvas host (`inject(plutoCanvasHostKey)`): the right panel
   leaves that field out. The call returns a function that gives it back (call it on unmount).
@@ -382,8 +395,8 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   `v-model:aside-open`; `asideOpen` is a model now). The form toolbar shows no panel toggle on
   desktop, except the left one while the left panel is open and has no `PlutoViewLeftCollapse`.
 - A left panel uses `PlutoViewSidePanel` (`app/components/Pluto/View/`) as its shell, so every
-  panel of every layer looks the same as the rail: the `bg-pluto-panel` background (a light gray, and
-  `#0b0b0b` in dark mode; an `@utility` in `pluto-layer.css`), a 48px header with the `title`
+  panel of every layer looks the same as the rail: the `bg-pluto-panel` background (`--ui-bg`, the editor
+  background; an `@utility` in `pluto-layer.css`), a 48px header with the `title`
   (hidden below `lg`), the `#actions` slot and `PlutoViewLeftCollapse` (`collapse`, default
   true), a body in a Reka UI scroll area with a thin scrollbar on hover (the default slot, no
   padding), and an optional `#footer` slot. The Outline of a post uses it.

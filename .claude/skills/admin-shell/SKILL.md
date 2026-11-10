@@ -288,21 +288,27 @@ order:
 
 At the right end:
 
-5. The color mode button, `PlutoAdminColorModeButton` (a `PlutoNavbarHit`). `ColorModeButton`
-   is the plain one for a site (see the public-components skill).
-6. The backend badge, on `/admin/**` only, in `ClientOnly`, next to the user. Its popover aligns
+5. The backend badge, on `/admin/**` only, in `ClientOnly`, next to the user. Its popover aligns
    to the end. See "The backend badge".
-7. `PlutoAdminUserMenu`, only when a driver is registered. It is `ClientOnly`, with an avatar
+6. `PlutoAdminUserMenu`, only when a driver is registered. It is `ClientOnly`, with an avatar
    skeleton as the fallback.
+
+The navbar has no border under it, and the sidebar has no border. The dashboard group has the navbar
+color, and the dashboard panel has `lg:rounded-ss-xl overflow-hidden`. The bar and the sidebar read as
+one shape with a rounded inner corner. The action list has `gap-x-0.5`.
 
 The user menu has the avatar and the short name. An administrator (`usePlutoPermissions().isAdmin`:
 the capability `'*'`) gets a warning chip on the avatar, an "Admin" badge (`pluto.navbar.adminBadge`,
 title `pluto.navbar.administrator`) at the end of the dropdown header (the `account` item slot,
 `#account-trailing`), and "Administrator" in the accessible name of the button. The badge is not in
 the bar: it pushed the avatar out on narrow widths. The supabase `admin` role and a GitHub user with
-admin or maintain access hold `'*'`. The dropdown has a header (`Name (username)`),
-Settings (`meta+,`), the `accountMenu` items, the brand links ("Help" from `brand.helpUrl`, the agency from `brand.url`), "Pluto on GitHub" (`plutocms/pluto`, hidden with `brand.plutoLinks: false`) and Sign out
-(`meta+shift+q`). Shortcuts use `defineShortcuts(extractShortcuts(items))`.
+admin or maintain access hold `'*'`. The dropdown has an account header (avatar, name, the email or `@username`, and the Admin badge), a
+Theme row (`pluto.navbar.theme`), Settings (`meta+,`), the `accountMenu` items, the brand links ("Help" from `brand.helpUrl`, the agency from `brand.url`), "Pluto on GitHub" (`plutocms/pluto`, hidden with `brand.plutoLinks: false`) and Sign out
+(`meta+shift+q`). The Theme row is a Light/Dark/System segmented control
+(`pluto.navbar.themeLight`, `themeDark`, `themeSystem`). A click on an icon sets the mode. Enter on the
+row cycles the mode. The row is hidden when the color mode is forced. The menu follows the admin color
+mode (`usePlutoAdminPortal({ dark: false })`). The default of `usePlutoAdminPortal()` is dark, and the
+content bar actions menu uses it. Shortcuts use `defineShortcuts(extractShortcuts(items))`.
 `PlutoAdminNavbarProvider` shows the bar when `usePlutoAdminBar().visible` is true.
 
 ## The backend badge
@@ -337,7 +343,7 @@ supabase layer register one each. Tests: `test/auth-driver.test.ts` ("backend"),
 
 ### Full-height click area
 
-Each control in the bar fills the full height of the bar (39px, plus the 1px bottom border).
+Each control in the bar fills the full height of the bar (39px).
 `PlutoNavbarHit` does this. It is a link (with `to`) or a button (without) that is `h-full`.
 The visible pill is a ghost `UButton` rendered as a `<span>` inside it. The span takes no
 pointer events. It gets the hover, active and focus-visible look from the `group` classes of the
