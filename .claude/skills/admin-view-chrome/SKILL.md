@@ -52,7 +52,8 @@ The outer shell for one view. Props:
   a closed side panel (see "The canvas layout"). Use it with `v-model:aside-open`. With a `#rail`
   slot, the left panel has no floating button: the rail opens it.
 - `#rail` slot — the action rail (desktop only): a column of icon buttons (`w-12`, `border-e`, a
-  `nav` with the label "Editor actions") at the left edge of the row. The content form fills it
+  `nav` with the label "Editor actions") at the left edge of the row. It has the background of the
+  side panels (`bg-pluto-panel`). The content form fills it
   in the canvas layout: one button for the left panel (its `icon` and `label`, `soft`/`primary`
   and `aria-pressed` while open). It is the place for more actions of the view later (a layer,
   an AI assistant).
@@ -371,6 +372,12 @@ a right panel. `defineContentType` warns in dev when `canvasField` names no fiel
   `PlutoViewAdminPanel` draws them with `panel-toggles` (the form sets it, with
   `v-model:aside-open`; `asideOpen` is a model now). The form toolbar shows no panel toggle on
   desktop, except the left one while the left panel is open and has no `PlutoViewLeftCollapse`.
+- A left panel uses `PlutoViewSidePanel` (`app/components/Pluto/View/`) as its shell, so every
+  panel of every layer looks the same as the rail: the `bg-pluto-panel` background (white, and
+  `#0b0b0b` in dark mode; an `@utility` in `pluto-layer.css`), a 48px header with the `title`
+  (hidden below `lg`), the `#actions` slot and `PlutoViewLeftCollapse` (`collapse`, default
+  true), a body in a Reka UI scroll area with a thin scrollbar on hover (the default slot, no
+  padding), and an optional `#footer` slot. The Outline of a post uses it.
 - Narrow screen: the toolbar toggles open the slideovers.
 - Below `lg`: the left panel is a slideover (a toggle), the right panel is a slideover (a toggle).
   Both start closed and keep no cookie (a saved "open" would cover the page on the first visit).

@@ -137,3 +137,16 @@
 :root[data-pluto-admin].dark body {
   color-scheme: dark;
 }
+
+/*
+ * The background of the side panels of a canvas form (the Outline of a post, the Blocks of a
+ * docs page) and of the rail next to them: white in light mode, #0b0b0b in dark. One utility, so
+ * every layer that adds a panel matches. `PlutoViewSidePanel` and the rail use it.
+ */
+@utility bg-pluto-panel {
+  background-color: var(--color-white);
+
+  :where(.dark) & {
+    background-color: #0b0b0b;
+  }
+}

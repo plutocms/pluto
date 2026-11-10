@@ -711,7 +711,7 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   code editor" below.
 - Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
   widget. The cookie `pluto-post-editor-mode` keeps the last mode.
-- The left panel (`PlutoPostOutline.vue`) lists the headings (`plutoMarkdownHeadings(text)` in
+- The left panel (`PlutoPostOutline.vue`, in the `PlutoViewSidePanel` shell) lists the headings (`plutoMarkdownHeadings(text)` in
   `shared/utils/markdown-headings.ts`: ATX and setext headings, not in a code fence, in the order
   of the rendered `h1` to `h6`). A click scrolls the preview to the heading, and goes to it in the
   editor: in Markdown mode the caret goes to its line (`goToLine`); in Visual mode the editor
@@ -1042,7 +1042,8 @@ so the page links to `https://github.com/<repo>/settings/access` (**Manage acces
 ## Backend badge
 
 The CMS client plugin registers the `backend` entry of the navbar badge (see the admin-shell
-skill): `kind: 'git'`, label "Local" (`fs` store) or "GitHub", and the popover
+skill): `kind: 'git'`, label "Local" (`fs` store, icon `i-pluto-git`) or "GitHub" (icon
+`i-pluto-github`), and the popover
 `PlutoGithubBackendDetails` (`app/components/Pluto/Github/`).
 
 - GitHub mode: the repo (with a Private or Public badge from the session), the branch, and links to
