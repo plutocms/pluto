@@ -173,8 +173,14 @@ const extensions = [PlutoContentComponentNode]
            which has the same background in dark mode. A darker background sets them apart. -->
       <UTheme
         :ui="{
-          dropdownMenu: { content: 'dark:bg-neutral-950' },
-          popover: { content: 'dark:bg-neutral-950' },
+          dropdownMenu: {
+            content: 'dark:bg-neutral-950',
+            arrow: 'dark:fill-neutral-950',
+          },
+          popover: {
+            content: 'dark:bg-neutral-950',
+            arrow: 'dark:fill-neutral-950',
+          },
         }"
       >
         <!-- One row: the buttons that do not fit go into the More popover (PlutoMarkdownToolbar). -->
@@ -187,6 +193,7 @@ const extensions = [PlutoContentComponentNode]
               ? 'bg-pluto-toolbar sticky top-2 z-10 shrink-0 rounded-lg border shadow-xs'
               : 'bg-default sticky top-0 z-10 rounded-t-md border-b'
           "
+          :data-pluto-admin-dark="canvas || undefined"
           class="border-default px-2 py-1.5"
         >
           <template #link>

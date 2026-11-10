@@ -135,17 +135,19 @@ purpose, use the important modifier (`before:duration-150!`), as the resize hand
 
 Light mode is not white only. The `@utility` classes of `pluto-layer.css`:
 
-- `bg-pluto-panel`: the side panels of a canvas form (`PlutoViewSidePanel`): white, `#0b0b0b` in
-  dark mode.
 - `bg-pluto-sidebar`: the admin sidebar (`app/layouts/admin.vue`): the navbar color in both modes.
   The sidebar carries `data-pluto-admin-dark`.
-- `bg-pluto-rail`: the rail of a canvas form: kuiper-900 in light mode (one step lighter than the
-  navbar and the sidebar, so the dark surfaces do not merge), `#0b0b0b` in dark mode.
-- `bg-pluto-aside`: the right panel of an edit page (`PlutoViewAside`): one step darker than the
-  page (`--ui-bg-elevated` in light mode, `--pluto-admin-canvas` in dark mode).
-- Put `data-pluto-admin-dark` on a dark surface, so its text and buttons take the dark tokens.
-- `bg-pluto-toolbar`: the toolbar bar of a rich text editor: one step darker than the text
-  (`--ui-bg-elevated` in light mode, `--pluto-admin-sidebar` in dark mode).
+- `bg-pluto-aside`: the right panel of an edit page (`PlutoViewAside`, desktop): dark in both modes,
+  kuiper-900 in light mode (lighter than the sidebar), `--pluto-admin-canvas` in dark mode. It
+  carries `data-pluto-admin-dark`. Not kuiper-800: the dark border token has that color, so the
+  borders of the fields would not show.
+- `bg-pluto-toolbar`: the toolbar bar of a rich text editor in the post editor: kuiper-900 in light
+  mode, `--pluto-admin-sidebar` in dark mode, with `data-pluto-admin-dark` (light buttons).
+- `bg-pluto-panel`: the side panels of a canvas form (`PlutoViewSidePanel`, the Outline):
+  `--ui-bg-elevated` (a light gray) in light mode, `#0b0b0b` in dark mode.
+- `bg-pluto-rail`: the rail of a canvas form, the same surface as the side panels.
+- Put `data-pluto-admin-dark` on a dark surface, so its text and buttons take the dark tokens. A
+  menu or a popover that opens from it teleports to `<body>` and keeps the normal tokens.
 
 ## Inline code
 

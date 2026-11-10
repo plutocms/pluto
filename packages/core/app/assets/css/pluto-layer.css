@@ -140,11 +140,12 @@
 
 /*
  * The background of the side panels of a canvas form (the Outline of a post, the Blocks of a
- * docs page): white in light mode, #0b0b0b in dark. One utility, so every layer that adds a panel
- * matches. `PlutoViewSidePanel` uses it.
+ * docs page) and of the rail next to them: a light gray in light mode (`--ui-bg-elevated`),
+ * #0b0b0b in dark. One utility, so every layer that adds a panel matches. `PlutoViewSidePanel`
+ * uses it.
  */
 @utility bg-pluto-panel {
-  background-color: var(--color-white);
+  background-color: var(--ui-bg-elevated);
 
   :where(.dark) & {
     background-color: #0b0b0b;
@@ -152,13 +153,11 @@
 }
 
 /*
- * The rail of a canvas form (`PlutoViewAdminPanel` `#rail`): dark in both modes. Light mode is
- * not white only. In light mode it is one step lighter than the navbar and the sidebar (kuiper-900),
- * so the three dark surfaces do not merge. The rail also carries `data-pluto-admin-dark`, so its
- * buttons take the dark tokens. In dark mode it has the color of the side panels.
+ * The rail of a canvas form (`PlutoViewAdminPanel` `#rail`): the surface of the side panels next
+ * to it (`bg-pluto-panel`).
  */
 @utility bg-pluto-rail {
-  background-color: var(--color-kuiper-900);
+  background-color: var(--ui-bg-elevated);
 
   :where(.dark) & {
     background-color: #0b0b0b;
@@ -166,11 +165,12 @@
 }
 
 /*
- * The right panel of an edit page (`PlutoViewAside`, the fields of the item): one step darker than
- * the page, so the panel stands apart. The fields inside keep their own background.
+ * The right panel of an edit page (`PlutoViewAside`, the fields of the item): a dark surface in
+ * both modes. In light mode it is kuiper-900, lighter than the sidebar (the navbar color), and the
+ * panel carries `data-pluto-admin-dark`, so its text and fields take the dark tokens.
  */
 @utility bg-pluto-aside {
-  background-color: var(--ui-bg-elevated);
+  background-color: var(--color-kuiper-900);
 
   :where(.dark) & {
     background-color: var(--pluto-admin-canvas);
@@ -186,11 +186,11 @@
 }
 
 /*
- * The toolbar bar of a rich text editor (the post editor): one step darker than the text in both
- * modes, so the bar stands apart from the page it sits on.
+ * The toolbar bar of a rich text editor (the post editor): a dark bar in both modes (kuiper-900 in
+ * light mode), with `data-pluto-admin-dark` on it for light buttons. It stands apart from the text.
  */
 @utility bg-pluto-toolbar {
-  background-color: var(--ui-bg-elevated);
+  background-color: var(--color-kuiper-900);
 
   :where(.dark) & {
     background-color: var(--pluto-admin-sidebar);

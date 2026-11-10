@@ -447,6 +447,7 @@ onBeforeUnmount(() => {
           ? 'bg-pluto-toolbar rounded-lg border shadow-xs'
           : 'bg-default rounded-t-md border-b'
       "
+      :data-pluto-admin-dark="bare || undefined"
       role="toolbar"
       class="border-default flex shrink-0 flex-wrap items-center gap-0.5 px-2 py-1.5"
     >
