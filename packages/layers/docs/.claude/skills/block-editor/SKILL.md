@@ -45,7 +45,7 @@ The docs type uses the core `canvas` form layout (see the `admin-view-chrome` sk
     when one of its blocks has children (`hasChevrons`), so a list of leaves (the cards of a slot)
     does not push its titles right. The line of a child list (`ms-2.5`, 10px) is under the center
     of the chevron.
-    The panel is `bg-white` / `dark:bg-[#0b0b0b]`. The list scrolls in a Reka UI scroll area
+    The panel has the side panel surface of core (`bg-pluto-panel`: a light gray, `#0b0b0b` in dark). The list scrolls in a Reka UI scroll area
     (`ScrollAreaRoot` with `type="hover"`, a 10px scrollbar with a rounded thumb). `reka-ui` is a
     dependency of the layer, on the version that Nuxt UI uses.
     The docs type declares the panel (`form.leftPanel` with the label and the same background), so

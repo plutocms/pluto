@@ -3,7 +3,7 @@
 // with Undo, Redo and Add. The list has the drag handle, the block menu, and
 // the blocks inside a container. The mode switch (Visual or Markdown) sits at
 // the bottom. The list scrolls in a Reka UI scroll area, with a thin scrollbar
-// that shows on hover. The panel is white in light mode and #0b0b0b in dark.
+// that shows on hover. The panel has the surface of the side panels of core (`bg-pluto-panel`).
 import {
   ScrollAreaRoot,
   ScrollAreaScrollbar,
@@ -46,7 +46,7 @@ watch(
 <template>
   <div
     :aria-label="t('docs.editor.blocks')"
-    class="flex min-h-0 flex-1 flex-col bg-white dark:bg-[#0b0b0b]"
+    class="bg-pluto-panel flex min-h-0 flex-1 flex-col"
     role="region"
     data-block-outline
     data-pluto-block-ui
