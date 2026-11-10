@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/plutocms/pluto/compare/3d-v0.4.0...3d-v0.4.1) (2026-11-10)
+
+
+### Bug Fixes
+
+* **core:** plutoLayer finds the shop and seo add-ons; skills and READMEs match the code ([#498](https://github.com/plutocms/pluto/issues/498)) ([8eb6921](https://github.com/plutocms/pluto/commit/8eb692179834868a3ffbbf58af10796f0380c79c))
+
 ## [0.4.0](https://github.com/plutocms/pluto/compare/3d-v0.3.0...3d-v0.4.0) (2026-11-02)
 
 
