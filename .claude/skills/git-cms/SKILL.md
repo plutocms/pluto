@@ -639,7 +639,7 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
 - It uses `UEditor` (Nuxt UI, Tiptap) with `content-type="markdown"`. The model value is a
   Markdown string. The editor sends `editor.getMarkdown()` on each change. The adapter stores that
   string as the file body.
-- `UEditorToolbar` has the built-in items: undo, redo, headings 1 to 4, bulleted and numbered
+- `UEditorToolbar` has the built-in items: undo, redo, Paragraph and headings 1 to 4 (one menu), bulleted and numbered
   lists, quote, code block, bold, italic, strikethrough and inline code. The items come from
   `usePlutoMarkdownToolbar({ link, image })` (`app/composables/pluto-markdown-toolbar.ts`), so
   another editor can share them. The link button is a slot (`PlutoGithubEditorLink.vue`, a

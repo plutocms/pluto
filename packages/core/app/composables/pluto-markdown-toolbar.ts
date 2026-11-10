@@ -40,12 +40,20 @@ export function usePlutoMarkdownToolbar(
         icon: 'i-lucide-heading',
         tooltip: { text: t('pluto.github.editor.headings') },
         content: { align: 'start' },
-        items: ([1, 2, 3, 4] as const).map((level) => ({
-          kind: 'heading' as const,
-          level,
-          icon: `i-lucide-heading-${level}`,
-          label: t(`pluto.github.editor.heading${level}`),
-        })),
+        // Paragraph first: it turns a heading back into plain text.
+        items: [
+          {
+            kind: 'paragraph' as const,
+            icon: 'i-lucide-type',
+            label: t('pluto.github.editor.paragraph'),
+          },
+          ...([1, 2, 3, 4] as const).map((level) => ({
+            kind: 'heading' as const,
+            level,
+            icon: `i-lucide-heading-${level}`,
+            label: t(`pluto.github.editor.heading${level}`),
+          })),
+        ],
       },
       {
         icon: 'i-lucide-list',
