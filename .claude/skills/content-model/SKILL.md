@@ -1146,7 +1146,7 @@ optional fields to `PlutoContentType`, and one more field to `PlutoContentTypeCa
   "View" link when it returns a value.
 - `liveOnSave?: boolean` — the public site shows a save at once, because it reads this type at run
   time (a layer that serves from the content store). A deploy may still run. The build indicator of the
-  edit form (Git CMS) then shows "Live" right after a save, a small spinner by the Info button while
+  edit form (Git CMS) then shows "Live" right after a save, a small spinner by the state while
   the static build runs, and a warning in the popover when that build fails. Default false: the indicator
   shows "Publishing…" until the build passes.
 - `capabilities.publish?: string` — the capability required to publish. Falls back to

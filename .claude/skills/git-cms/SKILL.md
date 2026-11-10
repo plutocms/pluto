@@ -957,14 +957,15 @@ registers it, lazy, only when `showBuildStatus` is true.
 
 - A type with `liveOnSave` (see the content-model skill) shows a save at once: after a save the item
   shows the check and "Live" without waiting for the first answer. While the state is `pending` a
-  small spinner shows by the Info button, and the popover says "Static build in progress". When the
-  build fails, the item keeps "Live", the Info icon gets a warning tint, and the popover says "The
+  small spinner shows by the state, and the popover says "Static build in progress". When the
+  build fails, the item keeps "Live", the state button gets a warning tint, and the popover says "The
   static build failed. The site serves the change at run time until a build passes." On open, the item
   shows "Live" once the status is known. Without `liveOnSave` nothing changes. The post type sets
   `liveOnSave`: the site reads the posts at run time.
 - Pending: a spinner and "Publishing…". Success: a check mark and "Live". Failure: an error icon
   and "Build failed". `none`, and a failed read: nothing. The text hides below `md`.
-- The Info button opens a popover (`UPopover`): the commit (short sha, message, time) and each
+- The state ("Live", "Publishing…", ...) is the button that opens a popover (`UPopover`), with no
+  separate Info icon: the commit (short sha, message, time) and each
   item with its state, time, description and a link button ("View the Action" for a check run,
   "View the build" for a status or a deployment). `unavailable` adds a hint about the App
   permissions.
