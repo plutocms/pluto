@@ -1145,6 +1145,9 @@
         "title": {
           "label": "Name"
         },
+        "slug": {
+          "label": "Slug"
+        },
         "description": {
           "label": "Description"
         }
@@ -1157,6 +1160,9 @@
         "title": {
           "label": "Name"
         },
+        "slug": {
+          "label": "Slug"
+        },
         "description": {
           "label": "Description"
         }
@@ -1164,11 +1170,51 @@
     },
     "post": {
       "fields": {
-        "tags": {
-          "label": "Tags"
+        "title": {
+          "label": "Title"
+        },
+        "slug": {
+          "label": "Slug"
+        },
+        "authors": {
+          "label": "Authors"
+        },
+        "excerpt": {
+          "label": "Excerpt"
+        },
+        "cover": {
+          "label": "Cover image"
         },
         "categories": {
           "label": "Categories"
+        },
+        "tags": {
+          "label": "Tags"
+        },
+        "content": {
+          "label": "Content"
+        }
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published"
+      }
+    },
+    "author": {
+      "label": "Author",
+      "labelPlural": "Authors",
+      "fields": {
+        "name": {
+          "label": "Name"
+        },
+        "slug": {
+          "label": "Slug"
+        },
+        "bio": {
+          "label": "Bio"
+        },
+        "avatar": {
+          "label": "Avatar"
         }
       }
     }
