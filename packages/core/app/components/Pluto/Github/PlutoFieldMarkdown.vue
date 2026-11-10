@@ -107,7 +107,7 @@ function onEditorUpdate(markdown: string) {
 // --- Blocks: the bubble toolbar, the drag handle and the slash menu ---------------------------
 //
 // Like the other editors of Pluto: a selection shows the bubble toolbar (the text marks and the
-// link). In the gutter at the right of the text, a block has a grip (drag to move, click for
+// link). In the gutter at the left of the text, a block has a grip (drag to move, click for
 // Duplicate and Delete), and an empty line has a "+" that opens the block menu there. "/" in an
 // empty line opens the same menu. The content components of the site are in it too. The editor
 // always ends with an empty line, so the "+" has a place after the last block.
@@ -265,7 +265,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           : {
               root: 'w-full',
               content: 'min-h-96 cursor-text',
-              base: 'min-h-96 ps-4 pe-14 py-3 sm:ps-4 sm:pe-14',
+              base: 'min-h-96 ps-14 pe-4 py-3 sm:ps-14 sm:pe-4',
             }
       "
       :class="canvas ? 'flex-1' : 'border-default rounded-md border'"
@@ -322,13 +322,13 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </template>
         </UEditorToolbar>
 
-        <!-- In the gutter at the right of the text: the grip of a block (drag to move; a click opens
+        <!-- In the gutter at the left of the text: the grip of a block (drag to move; a click opens
              Duplicate and Delete), or the "+" of an empty line (the block menu there). No flip:
              the buttons stay in the gutter, so the editor does not scroll sideways. -->
         <UEditorDragHandle
           v-slot="{ ui: handleUi }"
           :editor="editor"
-          :options="{ placement: 'right-start', flip: false }"
+          :options="{ flip: false }"
           @hover="handleNode = $event"
         >
           <UTooltip
@@ -349,7 +349,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
             v-else
             :modal="false"
             :items="blockMenu(editor)"
-            :content="{ side: 'right' }"
+            :content="{ side: 'left' }"
             arrow
             @update:open="
               (open: boolean) =>
