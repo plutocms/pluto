@@ -89,14 +89,28 @@ const items = usePlutoMarkdownToolbar({
 
 // A content component (`::name{props}` then `::`) shows as a chip. See the
 // content-components skill.
-const extensions = [PlutoContentComponentNode]
+const extensions = [PlutoContentComponentNode, PlutoTrailingParagraph]
+
+/**
+ * The Markdown of the editor, without the blank lines at the end: the empty last line of the editor
+ * (`PlutoTrailingParagraph`) never reaches the file, and an open post stays unchanged.
+ */
+function trimEnd(markdown: string): string {
+  return markdown.replace(/(?:\s|&nbsp;)+$/u, '')
+}
+function onEditorUpdate(markdown: string) {
+  if (trimEnd(markdown) !== trimEnd(value.value)) {
+    emit('update:modelValue', trimEnd(markdown))
+  }
+}
 
 // --- Blocks: the bubble toolbar, the drag handle and the slash menu ---------------------------
 //
 // Like the other editors of Pluto: a selection shows the bubble toolbar (the text marks and the
-// link); each block has a "+" (the block menu) and a grip (drag to move, click for Duplicate and
-// Delete) at its left; "/" in an empty line opens the block menu. The content components of the
-// site are in the block menu too.
+// link). In the gutter at the right of the text, a block has a grip (drag to move, click for
+// Duplicate and Delete), and an empty line has a "+" that opens the block menu there. "/" in an
+// empty line opens the same menu. The content components of the site are in it too. The editor
+// always ends with an empty line, so the "+" has a place after the last block.
 const bubbleItems = usePlutoMarkdownBubbleItems()
 const suggestionItems = usePlutoMarkdownSuggestionItems(() =>
   components.list.value.map((component) => ({
@@ -117,8 +131,27 @@ const handlers = {
   },
 }
 
-// The block under the drag handle, from its `node-change` event.
+// The block under the drag handle, from its `hover` event.
 const handleNode = shallowRef<{ node: JSONContent; pos: number }>()
+const handleOnEmptyLine = computed(
+  () =>
+    handleNode.value?.node.type === 'paragraph' &&
+    !handleNode.value.node.content?.length
+)
+
+/** The "+" of an empty line: the cursor goes there, and "/" opens the block menu. */
+function openBlockMenu(editor: Editor) {
+  const current = handleNode.value
+  if (!current) {
+    return
+  }
+  editor
+    .chain()
+    .focus()
+    .setTextSelection(current.pos + 1)
+    .insertContent('/')
+    .run()
+}
 
 /** The menu of the grip: Duplicate and Delete the block under the handle. */
 function blockMenu(editor: Editor): DropdownMenuItem[][] {
@@ -214,7 +247,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
          in the text. -->
     <UEditor
       v-else
-      v-slot="{ editor, handlers: editorHandlers }"
+      v-slot="{ editor }"
       :model-value="value"
       :editable="!disabled"
       :placeholder="placeholder"
@@ -227,18 +260,18 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           ? {
               root: 'flex w-full flex-1 flex-col',
               content: 'flex flex-1 cursor-text flex-col',
-              base: 'flex-1 ps-16 pe-4 pt-8 pb-3',
+              base: 'flex-1 px-0 pt-12 pb-3 sm:px-0',
             }
           : {
               root: 'w-full',
               content: 'min-h-96 cursor-text',
-              base: 'min-h-96 ps-16 pe-4 py-3',
+              base: 'min-h-96 ps-4 pe-14 py-3 sm:ps-4 sm:pe-14',
             }
       "
       :class="canvas ? 'flex-1' : 'border-default rounded-md border'"
       content-type="markdown"
       class="bg-default w-full"
-      @update:model-value="emit('update:modelValue', $event as string)"
+      @update:model-value="onEditorUpdate($event as string)"
     >
       <!-- The menus of the toolbar (Heading, the link popover) open on top of the editor box,
            which has the same background in dark mode. A darker background sets them apart. -->
@@ -289,16 +322,19 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </template>
         </UEditorToolbar>
 
-        <!-- At the left of each block, in the gutter of the text (`ps-16`): "+" opens the block
-             menu under the block, the grip drags it (a click opens Duplicate and Delete). The
-             buttons stay on the left (no flip), so the editor does not scroll sideways. -->
+        <!-- In the gutter at the right of the text: the grip of a block (drag to move; a click opens
+             Duplicate and Delete), or the "+" of an empty line (the block menu there). No flip:
+             the buttons stay in the gutter, so the editor does not scroll sideways. -->
         <UEditorDragHandle
-          v-slot="{ ui: handleUi, onClick }"
+          v-slot="{ ui: handleUi }"
           :editor="editor"
-          :options="{ flip: false }"
-          @node-change="handleNode = $event"
+          :options="{ placement: 'right-start', flip: false }"
+          @hover="handleNode = $event"
         >
-          <UTooltip :text="t('pluto.github.editor.addBlock')">
+          <UTooltip
+            v-if="handleOnEmptyLine"
+            :text="t('pluto.github.editor.addBlock')"
+          >
             <UButton
               :aria-label="t('pluto.github.editor.addBlock')"
               :class="handleUi.handle()"
@@ -306,21 +342,14 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
               color="neutral"
               variant="ghost"
               size="sm"
-              @click="
-                (event: MouseEvent) => {
-                  event.stopPropagation()
-                  const selected = onClick()
-                  editorHandlers.suggestion
-                    ?.execute(editor, { pos: selected?.pos })
-                    .run()
-                }
-              "
+              @click.stop="openBlockMenu(editor)"
             />
           </UTooltip>
           <UDropdownMenu
+            v-else
             :modal="false"
             :items="blockMenu(editor)"
-            :content="{ side: 'left' }"
+            :content="{ side: 'right' }"
             arrow
             @update:open="
               (open: boolean) =>

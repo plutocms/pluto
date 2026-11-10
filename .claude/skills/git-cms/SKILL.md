@@ -647,14 +647,18 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   button (`PlutoMediaEditorButton`, the media picker) shows when the app has a media library. The
   mention extension is off.
 - Blocks, like the other editors: a bubble toolbar over a selection (`usePlutoMarkdownBubbleItems`:
-  the marks and the link slot); at the left of each block, in the gutter of the text (`ps-16`),
-  `UEditorDragHandle` with "+" (the suggestion handler: the block menu under the block) and a grip
-  (drag to move; a click opens Duplicate and Delete, `pluto.github.editor.duplicate`, `remove`);
-  `/` in an empty line opens `UEditorSuggestionMenu` (`usePlutoMarkdownSuggestionItems`: paragraph,
-  headings 1 to 4, lists, quote, code block, then the content components with the
-  `plutoComponent` handler, passed to `UEditor` with `handlers`). Core sets
-  `vite.resolve.dedupe` for the ProseMirror packages: a nested copy of `prosemirror-model` broke the
-  slash menu ("multiple versions of prosemirror-model were loaded").
+  the marks and the link slot). The compose panel has `ps-4` and a right gutter (`pe-14`); the text
+  has no side padding, so it starts at the left edge of the toolbar, under the title. In the gutter,
+  `UEditorDragHandle` (`placement: right-start`, no flip, its `hover` event) shows the grip of a block
+  (drag to move; a click opens Duplicate and Delete, `pluto.github.editor.duplicate`, `remove`), or the
+  "+" of an empty line (the cursor goes there and "/" opens the block menu). `/` in an empty line
+  opens `UEditorSuggestionMenu` (`usePlutoMarkdownSuggestionItems`: paragraph, headings 1 to 4,
+  lists, quote, code block, then the content components with the `plutoComponent` handler, passed
+  to `UEditor` with `handlers`). `PlutoTrailingParagraph` (`app/utils/`) keeps an empty line at the
+  end (not in the undo history), and the widget trims the blank lines at the end of the Markdown, so
+  an open post stays unchanged. The text has `pt-12`, so the bubble toolbar of the first line does
+  not sit under the main toolbar. Core sets `vite.resolve.dedupe` for the ProseMirror packages: a
+  nested copy of `prosemirror-model` broke the slash menu.
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
   a click anywhere in the box puts the cursor in the text. The post type shows the widget through
   the post editor (see below).

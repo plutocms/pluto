@@ -252,9 +252,10 @@ function onLayout(sizes: number[]) {
                 class="size-full min-h-0 overflow-x-hidden overflow-y-auto"
               >
                 <!-- With no preview, the text keeps a readable width in the middle. -->
+                <!-- 16px at the left, and a gutter at the right for the block buttons of the editor. -->
                 <div
                   :class="!showPreview && 'mx-auto max-w-3xl'"
-                  class="flex min-h-full flex-col p-2"
+                  class="flex min-h-full flex-col ps-4 pe-14 py-2"
                 >
                   <PlutoPostTitle
                     v-if="titleField"
@@ -279,7 +280,10 @@ function onLayout(sizes: number[]) {
               </div>
 
               <!-- Markdown: the title, then the code editor fills the rest. -->
-              <div v-else class="flex size-full min-h-0 flex-col p-2">
+              <div
+                v-else
+                class="flex size-full min-h-0 flex-col ps-4 pe-14 py-2"
+              >
                 <PlutoPostTitle
                   v-if="titleField"
                   :model-value="titleValue"
