@@ -63,6 +63,19 @@ function sendInset() {
 }
 watch(() => props.gutterEnd, sendInset)
 
+// The preview follows the light and dark mode of the admin.
+const colorMode = useColorMode()
+function sendColorMode() {
+  if (ready.value) {
+    send(
+      plutoPostPreviewMessage('color-mode', {
+        mode: colorMode.value === 'dark' ? 'dark' : 'light',
+      })
+    )
+  }
+}
+watch(() => colorMode.value, sendColorMode)
+
 function onMessage(event: MessageEvent) {
   if (
     event.source !== frame.value?.contentWindow ||
@@ -76,6 +89,7 @@ function onMessage(event: MessageEvent) {
     ready.value = true
     timedOut.value = false
     sendInset()
+    sendColorMode()
     render()
   }
 }

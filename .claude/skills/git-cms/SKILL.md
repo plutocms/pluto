@@ -766,8 +766,10 @@ that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
   sanitizer), the same code as the public API. The render waits 150 ms after a change. A frame
   that does not answer in 12 s shows an error with a retry.
 - The protocol is in `shared/utils/post-preview-protocol.ts`. The parent sends `render`
-  (`contentType`, `item` without the body, `markdown`), `scroll-to` (a heading index) and `inset`
-  (`end`, 0 to 200 px). The frame sends `ready`. Both sides accept a message only from the same
+  (`contentType`, `item` without the body, `markdown`), `scroll-to` (a heading index), `inset`
+  (`end`, 0 to 200 px) and `color-mode` (`mode`: `light` or `dark`, the resolved mode of the admin,
+  on `ready` and on each change; the page sets the class and `color-scheme` of `<html>`, not the
+  stored preference, which the admin shares). The frame sends `ready`. Both sides accept a message only from the same
   origin, and only from the parent window or the frame.
 - While the right panel is closed (`panelToggles.right`), the editor sends `inset` `{ end: 40 }`:
   the page sets `padding-inline-end` on `<html>`, so the open button floats over the margin of
