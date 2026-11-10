@@ -85,22 +85,6 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
         -->
         <div class="-mx-1 h-full min-w-0 overflow-hidden px-1">
           <ul class="flex h-full min-w-0 items-center gap-x-1 text-sm">
-            <!-- Where the content goes: Git or a database. Admin pages only. -->
-            <ClientOnly>
-              <li v-if="isAdmin" class="h-full shrink-0">
-                <PlutoAdminBackendBadge />
-              </li>
-            </ClientOnly>
-
-            <PlutoNavbarButton
-              v-if="isAdmin"
-              :label="t('pluto.navbar.viewSite')"
-              :title="t('pluto.navbar.visitSite', { domain: siteDomain })"
-              :to="siteUrl"
-              icon="lucide:external-link"
-              target="_blank"
-            />
-
             <ClientOnly>
               <template #fallback>
                 <li class="h-full">
@@ -118,12 +102,29 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
 
               <PlutoNavbarAdminActions />
             </ClientOnly>
+
+            <!-- After the actions: New Post first, then View site. -->
+            <PlutoNavbarButton
+              v-if="isAdmin"
+              :label="t('pluto.navbar.viewSite')"
+              :title="t('pluto.navbar.visitSite', { domain: siteDomain })"
+              :to="siteUrl"
+              icon="lucide:external-link"
+              target="_blank"
+            />
           </ul>
         </div>
       </div>
 
       <div class="flex shrink-0 items-center gap-1 lg:gap-3">
         <PlutoAdminColorModeButton />
+
+        <!-- Where the content goes: Git or a database. Admin pages only, next to the user. -->
+        <ClientOnly>
+          <div v-if="isAdmin" class="h-full shrink-0">
+            <PlutoAdminBackendBadge />
+          </div>
+        </ClientOnly>
 
         <!--
           The user is known in the browser only. On a public page the server

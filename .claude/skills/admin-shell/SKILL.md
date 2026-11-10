@@ -281,13 +281,17 @@ order:
    and the chip is hidden. From `sm` the logo has the wordmark, and the site name shows as a
    rounded chip. The name is `site.name()`, else `runtimeConfig.public.websiteName`. The chip is
    hidden when the name is empty or `Untitled`.
-3. The backend badge, on `/admin/**` only, in `ClientOnly`. See "The backend badge".
+3. The navbar actions, inside `ClientOnly` with a spinner fallback. Core adds one: the content
+   bar actions (see "Content buttons"), for example "New Post".
 4. "View site", on `/admin/**` only. It opens `site.url()`, else `/`. The title is
    "Visit {domain}".
-5. The navbar actions, inside `ClientOnly` with a spinner fallback. Core adds one: the content
-   bar actions (see "Content buttons").
-6. The color mode button, `PlutoAdminColorModeButton` (a `PlutoNavbarHit`). `ColorModeButton`
+
+At the right end:
+
+5. The color mode button, `PlutoAdminColorModeButton` (a `PlutoNavbarHit`). `ColorModeButton`
    is the plain one for a site (see the public-components skill).
+6. The backend badge, on `/admin/**` only, in `ClientOnly`, next to the user. Its popover aligns
+   to the end. See "The backend badge".
 7. `PlutoAdminUserMenu`, only when a driver is registered. It is `ClientOnly`, with an avatar
    skeleton as the fallback.
 

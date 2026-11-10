@@ -36,7 +36,6 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
       <UDashboardSidebar
         id="admin"
         v-model:open="isSidebarOpen"
-        data-pluto-admin-dark
         :default-size="16"
         :min-size="12"
         :max-size="24"
@@ -47,6 +46,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           footer: 'max-lg:hidden',
         }"
         :collapsed-size="4"
+        data-pluto-admin-dark
         resizable
         collapsible
       >
