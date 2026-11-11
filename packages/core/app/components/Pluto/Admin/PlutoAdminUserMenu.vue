@@ -152,7 +152,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
   [
     {
       label: t('pluto.common.settings'),
-      icon: 'i-lucide-cog',
+      icon: 'lucide:settings',
       type: 'link',
       to: '/admin/settings',
       kbds: ['meta', ','],
