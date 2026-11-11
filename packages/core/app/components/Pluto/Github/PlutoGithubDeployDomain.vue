@@ -117,7 +117,7 @@ const CHECK_ICONS = {
 <template>
   <section class="flex flex-col gap-y-3">
     <div>
-      <h3 class="font-semibold">{{ t('pluto.github.deploy.domain.title') }}</h3>
+      <h2 class="font-semibold">{{ t('pluto.github.deploy.domain.title') }}</h2>
       <p class="text-muted text-sm">
         {{ t('pluto.github.deploy.domain.description') }}
       </p>
@@ -190,7 +190,9 @@ const CHECK_ICONS = {
 
         <UFormField
           :label="t('pluto.github.deploy.domain.pages.label')"
-          :error="invalid ? t('pluto.github.deploy.domain.errors.invalid') : false"
+          :error="
+            invalid ? t('pluto.github.deploy.domain.errors.invalid') : false
+          "
           class="sm:max-w-sm"
         >
           <UInput

@@ -284,8 +284,8 @@ const items = computed<SplitterItem[]>(() => [
             class="min-h-0 w-full"
           >
             <!--
-              'container' matches AdminView's own padding/gap classes, so a view
-              moving from AdminView to this panel looks the same. 'full' adds
+              'container' gives the padding and the gap of every admin page, so a
+              page needs no wrapper of its own. 'full' adds
               none — a focus-layout consumer (e.g. a rich text editor) supplies
               its own padding instead.
             -->

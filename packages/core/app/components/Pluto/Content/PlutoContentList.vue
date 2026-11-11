@@ -721,7 +721,7 @@ const footer = computed(() => {
         </template>
       </PlutoViewToolbar>
       <!-- The tabs of the menu item that holds this list (for example Pages). -->
-      <PlutoAdminNavTabs variant="toolbar" />
+      <PlutoAdminNavTabs />
       <PlutoContentListTabs
         v-if="trashEnabled"
         :view="trashView ? 'trash' : 'all'"

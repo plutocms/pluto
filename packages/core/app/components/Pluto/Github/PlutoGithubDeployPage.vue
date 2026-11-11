@@ -203,15 +203,10 @@ const cloudflare = {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-8">
-    <div>
-      <h2 class="text-xl font-semibold">
-        {{ t('pluto.settings.tabs.deploy') }}
-      </h2>
-      <p class="text-muted text-sm">
-        {{ t('pluto.github.deploy.intro') }}
-      </p>
-    </div>
+  <div class="flex flex-col gap-y-6 lg:gap-y-8">
+    <p class="text-muted text-sm">
+      {{ t('pluto.github.deploy.intro') }}
+    </p>
 
     <UAlert
       v-if="loadError"
@@ -233,7 +228,7 @@ const cloudflare = {
     <!-- The whole app: the site and the admin. -->
     <section class="flex flex-col gap-y-3">
       <div>
-        <h3 class="font-semibold">{{ t('pluto.github.deploy.full.title') }}</h3>
+        <h2 class="font-semibold">{{ t('pluto.github.deploy.full.title') }}</h2>
         <p class="text-muted text-sm">
           {{ t('pluto.github.deploy.full.description') }}
         </p>
@@ -272,9 +267,9 @@ const cloudflare = {
     <!-- A static site: the admin stays on the computer. -->
     <section class="flex flex-col gap-y-3">
       <div>
-        <h3 class="font-semibold">
+        <h2 class="font-semibold">
           {{ t('pluto.github.deploy.static.title') }}
-        </h3>
+        </h2>
         <p class="text-muted text-sm">
           {{ t('pluto.github.deploy.static.description') }}
         </p>

@@ -1,17 +1,9 @@
 <script setup lang="ts">
-// The tabs of the section of the page: the children of the menu item whose
-// submenu holds the page (usePlutoAdminNavTabs). The "new" child of the
-// section is a button at the end of the tabs, not a tab. Nothing shows when the
-// page is in no submenu. `page`: under the title of a page (Settings, Users).
-// `toolbar`: a bar under the toolbar of a list page.
+// The tabs of the section of the page: the children of the menu item whose submenu holds the page
+// (usePlutoAdminNavTabs), in a bar under the toolbar of the page (`#toolbar` of
+// PlutoViewAdminPanel, after the PlutoViewToolbar). The "new" child of the section is a button at
+// the end of the tabs, not a tab. Nothing shows when the page is in no submenu.
 import type { NavigationMenuItem } from '@nuxt/ui'
-
-withDefaults(
-  defineProps<{
-    variant?: 'page' | 'toolbar'
-  }>(),
-  { variant: 'page' }
-)
 
 const { tabs, action, label } = usePlutoAdminNavTabs()
 
@@ -29,49 +21,24 @@ const items = computed<NavigationMenuItem[]>(() =>
 </script>
 
 <template>
-  <template v-if="items.length > 0">
-    <UDashboardToolbar
-      v-if="variant === 'toolbar'"
-      :ui="{ root: 'border-muted' }"
-    >
-      <UNavigationMenu
-        :items="items"
-        :aria-label="label"
-        orientation="horizontal"
-        variant="link"
-        class="-mx-1 min-w-0 flex-1 overflow-x-auto"
-        highlight
-      />
-      <UButton
-        v-if="action"
-        :to="action.to"
-        :label="action.label"
-        icon="i-lucide-plus"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        class="shrink-0"
-      />
-    </UDashboardToolbar>
-
-    <div v-else class="border-default -mt-2 flex items-center gap-2 border-b">
-      <UNavigationMenu
-        :items="items"
-        :aria-label="label"
-        orientation="horizontal"
-        variant="link"
-        class="min-w-0 flex-1 overflow-x-auto"
-      />
-      <UButton
-        v-if="action"
-        :to="action.to"
-        :label="action.label"
-        icon="i-lucide-plus"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        class="shrink-0"
-      />
-    </div>
-  </template>
+  <UDashboardToolbar v-if="items.length > 0" :ui="{ root: 'border-muted' }">
+    <UNavigationMenu
+      :items="items"
+      :aria-label="label"
+      orientation="horizontal"
+      variant="link"
+      class="-mx-1 min-w-0 flex-1 overflow-x-auto"
+      highlight
+    />
+    <UButton
+      v-if="action"
+      :to="action.to"
+      :label="action.label"
+      icon="i-lucide-plus"
+      color="neutral"
+      variant="ghost"
+      size="sm"
+      class="shrink-0"
+    />
+  </UDashboardToolbar>
 </template>

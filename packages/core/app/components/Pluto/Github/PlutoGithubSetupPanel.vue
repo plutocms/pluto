@@ -113,7 +113,11 @@ async function copyCallback() {
         (installCheck && !installCheck.ok && installUrl) ||
         !current.ready
       "
-      class="flex flex-col gap-y-2"
+      :class="
+        variant === 'login'
+          ? 'flex flex-col gap-y-2'
+          : 'flex flex-wrap items-center gap-2'
+      "
     >
       <UButton
         v-if="current.canCreateApp"
@@ -121,31 +125,31 @@ async function copyCallback() {
         :label="t('pluto.github.setup.create')"
         :color="current.ready ? 'neutral' : 'primary'"
         :variant="current.ready ? 'outline' : 'solid'"
+        :class="variant === 'login' && 'w-full justify-center'"
         icon="pluto:github"
-        class="w-full justify-center"
         external
       />
       <UButton
         v-if="installCheck && !installCheck.ok && installUrl"
         :to="installUrl"
         :label="t('pluto.github.setup.install')"
+        :class="variant === 'login' && 'w-full justify-center'"
         icon="lucide:external-link"
         target="_blank"
         rel="noopener noreferrer"
         color="neutral"
         variant="outline"
-        class="w-full justify-center"
       />
       <UButton
         v-if="!current.ready"
         :to="DOCS_URL"
         :label="t('pluto.github.setup.docs')"
+        :class="variant === 'login' && 'justify-center'"
         icon="lucide:book-open"
         target="_blank"
         rel="noopener noreferrer"
         color="neutral"
         variant="link"
-        class="justify-center"
       />
     </div>
 
@@ -220,7 +224,7 @@ async function copyCallback() {
       <label for="pluto-github-callback-url" class="text-sm font-medium">{{
         t('pluto.github.setup.callbackUrl')
       }}</label>
-      <div class="flex gap-x-2">
+      <div class="flex max-w-2xl gap-x-2">
         <UInput
           id="pluto-github-callback-url"
           :model-value="current.callbackUrl"
