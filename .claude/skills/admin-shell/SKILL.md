@@ -493,6 +493,16 @@ the color mode is forced; the user menu has the full theme choice). Both have `p
 icons line up with the menu icons. In the rail they stack with `flex-col-reverse`: the collapse
 button stays at the bottom.
 
+The footer has a top border (`border-default`). Collapsed, it is transparent (`in-data-[collapsed=true]`),
+not removed, so the footer keeps its height.
+
+The body of the sidebar does not scroll (`ui.body`: `overflow-hidden p-0`). `PlutoAdminSidebarScroll`
+does: a Reka UI `ScrollArea` (`type="hover"`, 1s hide delay) with the padding of the old body
+(`px-4 py-2`), a light thumb for the dark sidebar, and a 10px scrollbar over the 16px right padding
+(the gutter), so the rows never move and the bar never covers them. The scrollbar is `force-mount`
+so its opacity fades (`duration-300!` against the no-transition rule). The viewport child is
+`block`, not Reka's `display: table`, so a long label truncates.
+
 ## The "+" in the sidebar
 
 `PlutoAdminNavMenu` wraps `UNavigationMenu` (the sidebar and the small-screen slideover use it). Each

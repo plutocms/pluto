@@ -49,7 +49,12 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           root: 'min-h-0 border-e-0 bg-(--pluto-admin-navbar)',
           content: 'lg:hidden w-[min(18rem,85vw)] bg-(--pluto-admin-navbar)',
           header: 'h-auto py-3',
-          footer: 'max-lg:hidden',
+          // The body does not scroll: PlutoAdminSidebarScroll does, with its own padding.
+          body: 'gap-0 overflow-hidden p-0 sm:px-0',
+          // A line above the footer, open sidebar only. Collapsed, the line is transparent, not
+          // gone: the footer keeps its height, so its buttons stay put.
+          footer:
+            'border-default max-lg:hidden border-t in-data-[collapsed=true]:border-transparent',
         }"
         :collapsed-size="4.5"
         data-pluto-admin-dark
@@ -73,16 +78,18 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           popover lists the children of a group. Nuxt UI keeps the state in the group cookie.
         -->
         <template #default="{ collapsed }">
-          <PlutoAdminNavMenu
-            v-model="openGroups"
-            :items="menu"
-            :collapsed="collapsed"
-            orientation="vertical"
-            variant="pill"
-            class="data-[orientation=vertical]:w-full"
-            tooltip
-            popover
-          />
+          <PlutoAdminSidebarScroll>
+            <PlutoAdminNavMenu
+              v-model="openGroups"
+              :items="menu"
+              :collapsed="collapsed"
+              orientation="vertical"
+              variant="pill"
+              class="data-[orientation=vertical]:w-full"
+              tooltip
+              popover
+            />
+          </PlutoAdminSidebarScroll>
         </template>
 
         <!-- The collapse button, and a light/dark button (the user menu has the full theme
