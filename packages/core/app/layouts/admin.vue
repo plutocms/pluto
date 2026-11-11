@@ -50,7 +50,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           header: 'h-auto py-3',
           footer: 'max-lg:hidden',
         }"
-        :collapsed-size="4"
+        :collapsed-size="4.5"
         data-pluto-admin-dark
         resizable
         collapsible
@@ -62,7 +62,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         <template #header="{ collapsed }">
           <UDashboardSearchButton
             :collapsed="collapsed"
-            :class="collapsed ? undefined : 'w-full'"
+            :class="collapsed ? 'px-2.5' : 'w-full'"
             variant="soft"
           />
         </template>
@@ -85,7 +85,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         </template>
 
         <template #footer>
-          <UDashboardSidebarCollapse color="neutral" variant="ghost" />
+          <UDashboardSidebarCollapse color="neutral" variant="ghost" class="px-2.5" />
         </template>
       </UDashboardSidebar>
 
