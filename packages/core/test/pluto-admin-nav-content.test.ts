@@ -402,8 +402,12 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
     expect(entry?.to).toBe('/admin/content/post')
     expect(entry?.label).toBe('Posts')
     expect(entry?.children).toEqual([
-      { label: 'All Posts', to: '/admin/content/post' },
-      { label: 'Create new Post', to: '/admin/content/post/new' },
+      { label: 'All Posts', to: '/admin/content/post', icon: 'lucide:list' },
+      {
+        label: 'Create new Post',
+        to: '/admin/content/post/new',
+        icon: 'lucide:plus',
+      },
     ])
   })
 
@@ -652,7 +656,7 @@ describe('usePlutoAdminNav — nav groups', () => {
       {
         label: 'Layouts',
         to: '/admin/content/layout',
-        icon: undefined,
+        icon: 'lucide:file',
         newTo: '/admin/content/layout/new',
         newLabel: 'New Layout',
       },

@@ -7,6 +7,13 @@ import { findNavGroup, splitByNavGroup } from './internal/nav-groups'
 // The id of core's Settings nav item (extension `pluto`, entry `settings`).
 const SETTINGS_NAV_ID = 'pluto:settings'
 
+// Every sub-item of the sidebar has an icon: the list of a section, its "new" page, and a content
+// type with no icon of its own in a group. A layer with its own list and create links uses the
+// same two icons (see the admin-shell skill).
+const PLUTO_NAV_LIST_ICON = 'lucide:list'
+const PLUTO_NAV_NEW_ICON = 'lucide:plus'
+const PLUTO_NAV_TYPE_ICON = 'lucide:file'
+
 /**
  * The admin sidebar nav. Merges two sources:
  *
@@ -105,10 +112,12 @@ export function usePlutoAdminNav() {
           {
             label: t('pluto.content.all', { labelPlural: text.labelPlural }),
             to: basePath,
+            icon: PLUTO_NAV_LIST_ICON,
           },
           {
             label: t('pluto.content.createNew', { label: text.label }),
             to: `${basePath}/new`,
+            icon: PLUTO_NAV_NEW_ICON,
           },
         ],
       }
@@ -128,7 +137,7 @@ export function usePlutoAdminNav() {
         children: types.map((type) => ({
           label: contentTextFor(type, i18n).labelPlural,
           to: basePathOf(type),
-          icon: type.icon,
+          icon: type.icon ?? PLUTO_NAV_TYPE_ICON,
           ...newLink(type),
         })),
         match: types.flatMap((type) =>

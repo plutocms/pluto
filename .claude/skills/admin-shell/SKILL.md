@@ -481,6 +481,18 @@ Static files for a site: `/img/pluto.svg` (the logo, black wordmark), `/img/plut
 wordmark, for dark backgrounds), `/img/pluto-icon.svg` and `/img/pluto-icon.png` (the planet,
 96 px, for a favicon). A site that extends Pluto serves them from the layer's `public/` folder.
 
+## Sidebar icons and footer
+
+Every row of the sidebar has an icon, the children too. `usePlutoAdminNav` gives the "All <type>"
+child `lucide:list` and the "New <type>" child `lucide:plus`; a type with no icon in a group gets
+`lucide:file`. A layer with its own list and create children uses the same two icons (the posts of
+supabase-blog, the products of supabase-shop).
+
+The footer of the sidebar holds the collapse button and a light/dark `UColorModeButton` (hidden when
+the color mode is forced; the user menu has the full theme choice). Both have `px-2.5`, so their
+icons line up with the menu icons. In the rail they stack with `flex-col-reverse`: the collapse
+button stays at the bottom.
+
 ## The "+" in the sidebar
 
 `PlutoAdminNavMenu` wraps `UNavigationMenu` (the sidebar and the small-screen slideover use it). Each
