@@ -93,7 +93,7 @@ const slotNames = computed(() => Object.keys(slots))
 </script>
 
 <template>
-  <div ref="row" class="flex w-full min-w-0 items-center gap-0.5">
+  <div ref="row" class="flex min-w-0 items-center gap-0.5">
     <UEditorToolbar
       :editor="editor"
       :items="split.visible"

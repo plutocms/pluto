@@ -282,7 +282,8 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
          height (in the canvas: the rest of the panel), so a click anywhere in it puts the cursor
          in the text. In the canvas, the editor element reaches into the gutter at its left
          (`-ms-14 ps-14`): the block buttons sit there, and the pointer stays in the editor on its
-         way to them (Tiptap hides the handle when the pointer leaves the editor). -->
+         way to them (Tiptap hides the handle when the pointer leaves the editor). Under `sm`,
+         Nuxt UI hides the handle, so there is no gutter. -->
     <UEditor
       v-else
       v-slot="{ editor, handlers: editorHandlers }"
@@ -298,12 +299,12 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           ? {
               root: 'flex w-full flex-1 flex-col',
               content: 'flex flex-1 cursor-text flex-col',
-              base: 'flex-1 -ms-14 ps-14 pe-0 pt-12 pb-3 sm:ps-14 sm:pe-0',
+              base: 'flex-1 px-0 pt-12 pb-3 sm:-ms-14 sm:ps-14 sm:pe-0',
             }
           : {
               root: 'w-full',
               content: 'min-h-96 cursor-text',
-              base: 'min-h-96 ps-14 pe-4 py-3 sm:ps-14 sm:pe-4',
+              base: 'min-h-96 px-4 py-3 sm:ps-14 sm:pe-4',
             }
       "
       :class="canvas ? 'flex-1' : 'border-default rounded-md border'"
@@ -407,10 +408,11 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </UDropdownMenu>
         </UEditorDragHandle>
 
-        <!-- "/" in an empty line: the block menu. -->
+        <!-- "/" in an empty line: the block menu. Not in code (plutoSlashMenuAllowed). -->
         <UEditorSuggestionMenu
           :editor="editor"
           :items="suggestionItems"
+          :suggestion="{ allow: plutoSlashMenuAllowed }"
           :ui="{ content: 'dark:bg-neutral-950' }"
         />
       </UTheme>

@@ -279,9 +279,11 @@ const showPreview = computed({
 // The column of the text, in both modes: a gutter at the left for the block buttons of the Visual
 // editor, and 16px at the right. With no preview: a readable width in the middle; when the panel has room for
 // the buttons beside that column (55rem: 48rem and 3.5rem on each side), the padding is the same on
-// both sides, so the column stays centered and the buttons use the free space at its left.
+// both sides, so the column stays centered and the buttons use the free space at its left. Under
+// `sm` the editor shows no block buttons (Nuxt UI hides the drag handle), so the column has no
+// gutter: 16px on both sides.
 const columnClass = computed(() => [
-  'ps-14 pe-4',
+  'px-4 sm:ps-14',
   !showPreview.value && 'mx-auto max-w-3xl @min-[55rem]:ps-4',
 ])
 
