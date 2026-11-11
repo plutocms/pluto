@@ -168,9 +168,11 @@
   --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* A tooltip is dark in both modes (pluto-layer.css gives it the navbar color). */
 :root[data-pluto-admin].dark,
 .dark [data-pluto-admin-scope],
-[data-pluto-admin-dark] {
+[data-pluto-admin-dark],
+[data-reka-popper-content-wrapper] > [data-slot='content']:has([role='tooltip']) {
   --ui-primary: var(--ui-color-primary-400);
   --ui-secondary: var(--ui-color-secondary-400);
   --ui-success: var(--ui-color-success-400);

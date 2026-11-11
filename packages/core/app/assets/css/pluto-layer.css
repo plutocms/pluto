@@ -213,6 +213,18 @@
 }
 
 /*
+ * A tooltip is dark in both modes: the near-black of the navbar, with the dark tokens
+ * (admin-theme.css). Outside a layer, so it beats `bg-default` and the `fill-bg` of the arrow.
+ */
+[data-reka-popper-content-wrapper] > [data-slot='content']:has([role='tooltip']) {
+  background-color: var(--pluto-admin-navbar);
+
+  & [data-slot='arrow'] {
+    fill: var(--pluto-admin-navbar);
+  }
+}
+
+/*
  * Inline code in the admin: an env var, a path, a command (`PlutoCodeText` makes it from the
  * backticks of a translated string). A light box in the admin theme. In `@layer base`, so a utility
  * class (`text-xs`, `break-all`) wins; the element selector beats the reset of Tailwind (`*`, also in
