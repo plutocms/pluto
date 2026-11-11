@@ -208,6 +208,11 @@ dropdown, context menu, select and combobox lists), every dialog (modal, slideov
 palette) and the editor menus (`/`, mention, emoji). Tooltips keep their small shadow. The core
 `Modal` component uses the utility directly.
 
+Tooltips are dark in both modes, for the same reason a CSS rule: the tooltip content
+(`[data-reka-popper-content-wrapper] > [data-slot='content']:has([role='tooltip'])`) is in the
+selector list of the dark tokens in `admin-theme.css` (text, borders, kbds), and `pluto-layer.css`
+gives it and its arrow the navbar color (`--pluto-admin-navbar`).
+
 `PlutoAdminTheme` gives them with `UTheme` (no element, provide/inject, so overlays opened
 from inside get them too). The admin layout, the auth layout and the admin bar
 (`PlutoNavbarAdmin`) wrap their content in it. Core has no `app.config`.
