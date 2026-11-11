@@ -11,6 +11,8 @@ const props = defineProps<{
   title?: string
   /** Key-or-literal. Replaces the driver's sign-in description. */
   description?: string
+  /** A wider card (32rem, not 25rem), for a longer form such as the setup of a backend. */
+  wide?: boolean
 }>()
 
 const slots = defineSlots<{
@@ -47,7 +49,7 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
 
 <template>
   <div class="flex min-h-dvh flex-col items-center justify-center gap-y-4 p-4">
-    <UCard class="w-full max-w-100">
+    <UCard :class="props.wide ? 'max-w-lg' : 'max-w-100'" class="w-full">
       <div class="flex flex-col gap-y-6">
         <div class="flex items-center gap-x-2">
           <template v-if="logoLight">
@@ -76,7 +78,7 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
 
         <template v-if="driver || slots.default">
           <div class="flex flex-col gap-y-1">
-            <h1 class="text-3xl font-bold">
+            <h1 class="text-2xl font-bold">
               {{ heading }}
             </h1>
             <p v-if="subheading" class="text-muted text-sm">
