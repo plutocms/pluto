@@ -134,7 +134,7 @@ async function copyCallback() {
         :to="installUrl"
         :label="t('pluto.github.setup.install')"
         :class="variant === 'login' && 'w-full justify-center'"
-        icon="lucide:external-link"
+        trailing-icon="i-lucide-arrow-up-right"
         target="_blank"
         rel="noopener noreferrer"
         color="neutral"
@@ -148,6 +148,7 @@ async function copyCallback() {
         icon="lucide:book-open"
         target="_blank"
         rel="noopener noreferrer"
+        trailing-icon="i-lucide-arrow-up-right"
         color="neutral"
         variant="link"
       />

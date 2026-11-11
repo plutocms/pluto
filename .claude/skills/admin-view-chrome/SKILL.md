@@ -48,6 +48,10 @@ the Git CMS, and the Users, Roles and Migrations pages of the Supabase layer.
   open it.
 - Each part of a page is a `UCard` with a header: `h2` (`font-semibold`) and a muted
   description. A group of cards has an `h2` + description above it (Deploy).
+- A link to another site ends with the external icon of Nuxt UI (`i-lucide-arrow-up-right`, the
+  icon its menus add to an item with `target: '_blank'`): `trailing-icon` on a button, and
+  `PlutoExternalLink` for a link in a sentence or a cell (it adds the icon and an "opens in a new
+  tab" text for screen readers). An icon-only button to another site uses the same icon.
 - No page wrapper: the `container` width gives the padding and the gap (the old `AdminView`
   component is gone).
 - A page before sign-in uses the `auth` layout and `PlutoAdminAuthCard` (the Supabase setup

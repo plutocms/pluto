@@ -38,7 +38,7 @@ const linkItems = computed<DropdownMenuItem[]>(() => [
             brand.value.name ||
             domainFromUrl(brand.value.url) ||
             brand.value.url,
-          icon: 'i-lucide-external-link',
+          icon: 'i-lucide-globe',
           type: 'link' as const,
           to: brand.value.url,
           target: '_blank',

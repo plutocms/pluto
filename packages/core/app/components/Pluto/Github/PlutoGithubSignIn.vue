@@ -72,7 +72,7 @@ const installUrl = computed(() =>
       v-if="errorKey === 'notInstalled' && installUrl"
       :to="installUrl"
       :label="t('pluto.github.login.installApp')"
-      icon="lucide:external-link"
+      trailing-icon="i-lucide-arrow-up-right"
       target="_blank"
       color="neutral"
       variant="outline"

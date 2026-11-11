@@ -76,7 +76,7 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
             color="neutral"
             icon="i-pluto-github"
             target="_blank"
-            trailing-icon="i-lucide-external-link"
+            trailing-icon="i-lucide-arrow-up-right"
             variant="ghost"
           />
         </template>
@@ -171,13 +171,12 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
             :alt="row.original.login"
             size="sm"
           />
-          <ULink
+          <PlutoExternalLink
             :to="row.original.url"
             class="text-highlighted truncate font-medium"
-            target="_blank"
           >
             {{ row.original.login }}
-          </ULink>
+          </PlutoExternalLink>
           <UBadge
             v-if="row.original.login.toLowerCase() === self"
             :label="t('pluto.github.users.you')"

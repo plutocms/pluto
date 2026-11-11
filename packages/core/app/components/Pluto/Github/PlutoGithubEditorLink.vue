@@ -115,7 +115,7 @@ function onKeydown(event: KeyboardEvent) {
             :disabled="!url"
             :title="t('pluto.github.editor.linkPopover.open')"
             :aria-label="t('pluto.github.editor.linkPopover.open')"
-            icon="i-lucide-external-link"
+            icon="i-lucide-arrow-up-right"
             color="neutral"
             variant="ghost"
             size="sm"

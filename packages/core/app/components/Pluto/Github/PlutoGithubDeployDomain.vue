@@ -148,7 +148,7 @@ const CHECK_ICONS = {
             :to="hostDomainSettingsUrl(detected, status.host.site)"
             class="self-start"
             target="_blank"
-            trailing-icon="i-lucide-external-link"
+            trailing-icon="i-lucide-arrow-up-right"
           />
         </template>
         <div v-else class="flex flex-wrap gap-2">
@@ -159,7 +159,7 @@ const CHECK_ICONS = {
             :to="host.to"
             color="neutral"
             target="_blank"
-            trailing-icon="i-lucide-external-link"
+            trailing-icon="i-lucide-arrow-up-right"
             variant="outline"
           />
         </div>
@@ -218,7 +218,7 @@ const CHECK_ICONS = {
                 color="neutral"
                 size="sm"
                 target="_blank"
-                trailing-icon="i-lucide-external-link"
+                trailing-icon="i-lucide-arrow-up-right"
                 variant="outline"
               />
             </div>
@@ -327,7 +327,7 @@ const CHECK_ICONS = {
                 color="neutral"
                 size="sm"
                 target="_blank"
-                trailing-icon="i-lucide-external-link"
+                trailing-icon="i-lucide-arrow-up-right"
                 variant="outline"
               />
             </div>

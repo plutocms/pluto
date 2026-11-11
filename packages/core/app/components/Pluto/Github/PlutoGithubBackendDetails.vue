@@ -92,9 +92,9 @@ async function push() {
         <template v-if="repo">
           <dt class="text-muted">{{ t('pluto.github.backend.repo') }}</dt>
           <dd class="truncate">
-            <ULink :to="repoUrl" target="_blank" class="font-mono text-xs/5">
+            <PlutoExternalLink :to="repoUrl" class="font-mono text-xs/5">
               {{ repo }}
-            </ULink>
+            </PlutoExternalLink>
           </dd>
         </template>
       </dl>
@@ -163,6 +163,7 @@ async function push() {
           icon="i-pluto-github"
           size="xs"
           target="_blank"
+          trailing-icon="i-lucide-arrow-up-right"
           variant="outline"
         />
         <UButton
@@ -172,6 +173,7 @@ async function push() {
           icon="i-lucide-history"
           size="xs"
           target="_blank"
+          trailing-icon="i-lucide-arrow-up-right"
           variant="outline"
         />
       </div>

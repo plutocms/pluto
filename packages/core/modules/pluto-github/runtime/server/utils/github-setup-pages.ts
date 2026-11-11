@@ -56,8 +56,12 @@ p{margin:0 0 12px;color:var(--muted)}
 textarea{width:100%;min-height:11rem;resize:vertical;background:var(--canvas);color:var(--strong);border:0;box-shadow:inset 0 0 0 1px var(--accented);border-radius:6px;padding:8px 10px;font:.8rem/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:4px 0 8px;white-space:pre;overflow:auto}
 .note{background:var(--warn-bg);box-shadow:inset 0 0 0 1px var(--warn-ring);color:var(--warn);border-radius:8px;padding:12px 16px;margin:0 0 12px;font-size:.875rem}
 .ok{color:var(--success)}
+.ext{width:1em;height:1em;flex:none}
 code{border:1px solid var(--accented);background:var(--elevated);color:var(--strong);padding:1px 5px;border-radius:4px;font:.875em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 `
+
+// The external icon of Nuxt UI (Lucide `arrow-up-right`), after a link that opens another site.
+const EXTERNAL_ICON = `<svg class="ext" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>`
 
 // The Pluto logo of the admin auth card: the black wordmark in light mode, the white one in dark
 // mode (core serves both from public/img).
@@ -166,7 +170,7 @@ ${saved}${failed}${ignored}
 <div>
 <h2>${escapeHtml(t('pluto.github.setup.page.result.step2'))}</h2>
 <p>${escapeHtml(t('pluto.github.setup.page.result.step2Body'))}</p>
-<div class="row"><a class="btn primary" href="${escapeHtml(input.installUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('pluto.github.setup.page.result.install'))}</a></div>
+<div class="row"><a class="btn primary" href="${escapeHtml(input.installUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('pluto.github.setup.page.result.install'))}${EXTERNAL_ICON}</a></div>
 </div>
 </section>
 

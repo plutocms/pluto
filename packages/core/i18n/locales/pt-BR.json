@@ -22,7 +22,8 @@
       "switchToLightMode": "Mudar para o tema claro",
       "switchToDarkMode": "Mudar para o tema escuro",
       "copy": "Copiar",
-      "copied": "Copiado"
+      "copied": "Copiado",
+      "opensInNewTab": "abre em uma nova aba"
     },
     "navbar": {
       "openNavigation": "Abrir a navegação",

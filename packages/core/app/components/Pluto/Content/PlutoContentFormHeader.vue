@@ -71,7 +71,7 @@ const menuItems = computed(() => [
       ? [
           {
             label: viewLabel.value,
-            icon: 'lucide:external-link',
+            icon: 'lucide:eye',
             to: props.viewUrl,
             target: '_blank',
           },
@@ -204,7 +204,7 @@ const stateText = computed(() => {
         v-if="viewUrl && isSm"
         :to="viewUrl"
         :label="viewLabel"
-        icon="lucide:external-link"
+        trailing-icon="i-lucide-arrow-up-right"
         color="neutral"
         variant="ghost"
         target="_blank"

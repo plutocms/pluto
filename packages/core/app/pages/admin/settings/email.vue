@@ -35,7 +35,7 @@ const { items: panels } = usePlutoMailPanels()
           to="https://resend.com/signup"
           target="_blank"
           rel="noopener noreferrer"
-          icon="lucide:external-link"
+          trailing-icon="i-lucide-arrow-up-right"
           color="neutral"
           variant="outline"
         >

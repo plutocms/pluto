@@ -254,7 +254,7 @@ const cloudflare = {
               :variant="host.id === 'node' ? 'outline' : 'solid'"
               class="self-start"
               target="_blank"
-              trailing-icon="i-lucide-external-link"
+              trailing-icon="i-lucide-arrow-up-right"
             />
           </div>
         </UCard>
@@ -296,7 +296,7 @@ const cloudflare = {
               :to="siteUrl"
               color="neutral"
               target="_blank"
-              trailing-icon="i-lucide-external-link"
+              trailing-icon="i-lucide-arrow-up-right"
               variant="outline"
             />
           </div>
@@ -387,7 +387,7 @@ const cloudflare = {
                     color="neutral"
                     size="sm"
                     target="_blank"
-                    trailing-icon="i-lucide-external-link"
+                    trailing-icon="i-lucide-arrow-up-right"
                     variant="outline"
                   />
                 </div>
@@ -450,7 +450,7 @@ const cloudflare = {
                       color="neutral"
                       size="sm"
                       target="_blank"
-                      trailing-icon="i-lucide-external-link"
+                      trailing-icon="i-lucide-arrow-up-right"
                       variant="ghost"
                     />
                   </div>
@@ -508,7 +508,7 @@ const cloudflare = {
                 target: '_blank',
                 color: 'neutral',
                 variant: 'outline',
-                trailingIcon: 'i-lucide-external-link',
+                trailingIcon: 'i-lucide-arrow-up-right',
               },
             ]"
             color="info"
@@ -590,7 +590,7 @@ const cloudflare = {
             class="self-start"
             color="neutral"
             target="_blank"
-            trailing-icon="i-lucide-external-link"
+            trailing-icon="i-lucide-arrow-up-right"
             variant="outline"
           />
         </div>
