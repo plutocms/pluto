@@ -36,7 +36,8 @@ export function usePlutoAdminTheme() {
 
 /**
  * The default props of the Nuxt UI components in the admin: the default size
- * of Nuxt UI (`md`) for every component that has a size. They live here, not
+ * of Nuxt UI (`md`) for every component that has a size, and an arrow on
+ * every tooltip, popover, dropdown menu and select list. They live here, not
  * in `app.config`, because `app.config` is global: a site's
  * `ui.button.defaultVariants.size` would reach the admin, and admin sizes
  * would reach every public site. A prop that a component sets itself wins.
@@ -55,14 +56,14 @@ export const PLUTO_ADMIN_UI_PROPS = {
   commandPalette: { size: 'md' },
   contextMenu: { size: 'md' },
   dashboardSearch: { size: 'md' },
-  dropdownMenu: { size: 'md' },
+  dropdownMenu: { size: 'md', arrow: true },
   empty: { size: 'md' },
   fieldGroup: { size: 'md' },
   fileUpload: { size: 'md' },
   formField: { size: 'md' },
   input: { size: 'md' },
   inputDate: { size: 'md' },
-  inputMenu: { size: 'md' },
+  inputMenu: { size: 'md', arrow: true },
   inputNumber: { size: 'md' },
   inputRating: { size: 'md' },
   inputTags: { size: 'md' },
@@ -70,17 +71,19 @@ export const PLUTO_ADMIN_UI_PROPS = {
   kbd: { size: 'md' },
   listbox: { size: 'md' },
   pinInput: { size: 'md' },
+  popover: { arrow: true },
   progress: { size: 'md' },
   progressGroup: { size: 'md' },
   radioGroup: { size: 'md' },
-  select: { size: 'md' },
-  selectMenu: { size: 'md' },
+  select: { size: 'md', arrow: true },
+  selectMenu: { size: 'md', arrow: true },
   slider: { size: 'md' },
   stepper: { size: 'md' },
   switch: { size: 'md' },
   tabs: { size: 'md' },
   textarea: { size: 'md' },
   timeline: { size: 'md' },
+  tooltip: { arrow: true },
   tree: { size: 'md' },
   user: { size: 'md' },
 } as const
@@ -90,6 +93,9 @@ export const PLUTO_ADMIN_UI_PROPS = {
  * admin font (admin-theme.css sets `--font-sans` under the admin selectors).
  * It comes after the `app.config` classes of the site, so a site's
  * `ui.button.slots.base: 'font-outfit'` does not reach the admin buttons.
+ * The shadow of the floating surfaces is a CSS rule (`shadow-pluto-elevated`
+ * in pluto-layer.css), not a slot class here: a component that sets its own
+ * `ui.content` replaces the slot class of the theme.
  */
 export const PLUTO_ADMIN_UI = {
   button: { base: 'font-sans' },

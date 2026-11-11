@@ -174,6 +174,45 @@
 }
 
 /*
+ * The shadow of a surface that floats over the page: a popover, a dropdown, a select list, a
+ * modal, a slideover. Strong, so the elevation shows in both modes. The ring of the surface stays:
+ * the value keeps the ring layers of Tailwind before its own.
+ */
+@utility shadow-pluto-elevated {
+  box-shadow:
+    var(--tw-inset-shadow, 0 0 #0000),
+    var(--tw-inset-ring-shadow, 0 0 #0000),
+    var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000),
+    0 20px 48px -12px rgb(0 0 0 / 0.28),
+    0 8px 16px -8px rgb(0 0 0 / 0.18);
+
+  :where(.dark) & {
+    box-shadow:
+      var(--tw-inset-shadow, 0 0 #0000),
+      var(--tw-inset-ring-shadow, 0 0 #0000),
+      var(--tw-ring-offset-shadow, 0 0 #0000),
+      var(--tw-ring-shadow, 0 0 #0000),
+      0 20px 48px -8px rgb(0 0 0 / 0.75),
+      0 8px 16px -6px rgb(0 0 0 / 0.55);
+  }
+}
+
+/*
+ * Every floating surface of Nuxt UI in the admin gets it: the content of a popper (popover,
+ * dropdown, context menu, select and combobox lists), a dialog (modal, slideover, command palette),
+ * and the menus of the editor (`/`, mention, emoji: a listbox in a plain floating div next to the
+ * editable element). Not a tooltip. Outside a layer, so it beats the `shadow-lg` of Nuxt UI
+ * whatever `ui.content` a component sets.
+ */
+[data-reka-popper-content-wrapper]
+  > [data-slot='content']:not(:has([role='tooltip'])),
+[role='dialog'][data-slot='content'],
+.ProseMirror ~ div > [role='listbox'][data-state] {
+  @apply shadow-pluto-elevated;
+}
+
+/*
  * Inline code in the admin: an env var, a path, a command (`PlutoCodeText` makes it from the
  * backticks of a translated string). A light box in the admin theme. In `@layer base`, so a utility
  * class (`text-xs`, `break-all`) wins; the element selector beats the reset of Tailwind (`*`, also in

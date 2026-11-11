@@ -43,13 +43,13 @@ const resolvedClasses = computed(() => {
       w-234 max-w-[calc(100vw-1rem)] h-fit
       rounded-lg
       my-2 mx-2 sm:my-4 sm:mx-4
-      shadow-2xl
       bg-default
       text-default
     `
 
   return twMerge([
     defaultClasses,
+    'shadow-pluto-elevated',
 
     !props.customSize && props.size && props.size === 'small'
       ? 'w-[320px]'
@@ -98,11 +98,9 @@ watchEffect(() => {
 // modal that opened last closes (see modal-stack.ts).
 const stackId = Symbol('modal')
 
-watch(
-  model,
-  (open) => (open ? pushModal(stackId) : removeModal(stackId)),
-  { immediate: true }
-)
+watch(model, (open) => (open ? pushModal(stackId) : removeModal(stackId)), {
+  immediate: true,
+})
 
 onBeforeUnmount(() => removeModal(stackId))
 
