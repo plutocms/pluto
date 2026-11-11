@@ -216,7 +216,8 @@
  * A tooltip is dark in both modes: the near-black of the navbar, with the dark tokens
  * (admin-theme.css). Outside a layer, so it beats `bg-default` and the `fill-bg` of the arrow.
  */
-[data-reka-popper-content-wrapper] > [data-slot='content']:has([role='tooltip']) {
+[data-reka-popper-content-wrapper]
+  > [data-slot='content']:has([role='tooltip']) {
   background-color: var(--pluto-admin-navbar);
 
   & [data-slot='arrow'] {

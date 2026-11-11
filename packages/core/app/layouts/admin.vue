@@ -85,7 +85,11 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         </template>
 
         <template #footer>
-          <UDashboardSidebarCollapse color="neutral" variant="ghost" class="px-2.5" />
+          <UDashboardSidebarCollapse
+            color="neutral"
+            variant="ghost"
+            class="px-2.5"
+          />
         </template>
       </UDashboardSidebar>
 

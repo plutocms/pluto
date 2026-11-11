@@ -16,7 +16,10 @@ export function plutoSlashMenuAllowed({
   if ($from.parent.type.spec.code) {
     return false
   }
-  const marks = [...$from.marks(), ...(state.doc.nodeAt(range.from)?.marks ?? [])]
+  const marks = [
+    ...$from.marks(),
+    ...(state.doc.nodeAt(range.from)?.marks ?? []),
+  ]
   if (marks.some((mark) => mark.type.spec.code)) {
     return false
   }
