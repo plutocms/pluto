@@ -9,6 +9,7 @@ usePlutoBackClose(isSidebarOpen, useMediaQuery('(max-width: 63.99rem)'))
 
 const commandGroups = usePlutoCommandPalette()
 const { t } = usePlutoI18n()
+const colorMode = useColorMode()
 
 // Banners from the layers (adminBanners), sorted by order. They show above the page.
 const banners = usePlutoRegistry().adminBanners.list
@@ -84,12 +85,27 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           />
         </template>
 
-        <template #footer>
-          <UDashboardSidebarCollapse
-            color="neutral"
-            variant="ghost"
-            class="px-2.5"
-          />
+        <!-- The collapse button, and a light/dark button (the user menu has the full theme
+             choice). In the rail the light/dark button goes above, so the collapse button stays put. -->
+        <template #footer="{ collapsed }">
+          <div
+            :class="[
+              'flex gap-1.5',
+              collapsed ? 'flex-col-reverse items-start' : 'items-center',
+            ]"
+          >
+            <UDashboardSidebarCollapse
+              color="neutral"
+              variant="ghost"
+              class="px-2.5"
+            />
+            <UColorModeButton
+              v-if="!colorMode.forced"
+              color="neutral"
+              variant="ghost"
+              class="px-2.5"
+            />
+          </div>
         </template>
       </UDashboardSidebar>
 
