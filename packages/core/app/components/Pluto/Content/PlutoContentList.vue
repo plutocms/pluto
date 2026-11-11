@@ -710,18 +710,10 @@ const footer = computed(() => {
 <template>
   <PlutoViewAdminPanel v-if="contentType" fill>
     <template #toolbar>
-      <PlutoViewToolbar :title="text.labelPlural">
-        <template v-if="!trashView" #trailing>
-          <UButton
-            :loading="pending"
-            :title="t('pluto.common.refresh')"
-            icon="lucide:refresh-ccw"
-            variant="ghost"
-            square
-            @click="retry"
-          />
-        </template>
-
+      <PlutoViewToolbar
+        :title="text.labelPlural"
+        :icon="contentType.icon ?? 'lucide:file'"
+      >
         <template v-if="canWrite" #right>
           <UButton :to="newPath" icon="lucide:plus" as="NuxtLink">
             {{ text.newLabel }}
@@ -842,6 +834,18 @@ const footer = computed(() => {
           variant="ghost"
           @click="clearFilters"
         />
+        <UTooltip :text="t('pluto.common.refresh')">
+          <UButton
+            :loading="pending"
+            :aria-label="t('pluto.common.refresh')"
+            icon="lucide:refresh-ccw"
+            color="neutral"
+            variant="ghost"
+            class="ms-auto"
+            square
+            @click="retry"
+          />
+        </UTooltip>
       </div>
 
       <PlutoSkeletonList
