@@ -462,15 +462,13 @@ const showPreview = computed({
 })
 
 // The column of the text, in both modes: a gutter at the left for the block buttons of the Visual
-// editor, and 16px at the right. With no preview: a readable width in the middle; when the panel has room for
+// editor, and 16px at the right. A readable width in the middle, with or without the preview (the
+// container is the compose panel, so a wide panel keeps the column); when the panel has room for
 // the buttons beside that column (55rem: 48rem and 3.5rem on each side), the padding is the same on
 // both sides, so the column stays centered and the buttons use the free space at its left. Under
 // `sm` the editor shows no block buttons (Nuxt UI hides the drag handle), so the column has no
 // gutter: 16px on both sides.
-const columnClass = computed(() => [
-  'px-4 sm:ps-14',
-  !showPreview.value && 'mx-auto max-w-3xl @min-[55rem]:ps-4',
-])
+const columnClass = 'mx-auto max-w-3xl px-4 sm:ps-14 @min-[55rem]:ps-4'
 
 // The split between the compose panel and the preview. The cookie keeps the sizes.
 const split = useCookie<number[]>('pluto-post-split', {
