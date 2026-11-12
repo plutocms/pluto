@@ -333,6 +333,7 @@
       "crossOrigin": "This request did not come from this site.",
       "invalidQuery": "The query parameter \"{name}\" is not valid.",
       "backupTooLarge": "The unsaved changes are too large to back up on the server.",
+      "previewTooLarge": "The post is too long to preview with the colors of its code.",
       "backupInvalid": "The backup is not valid.",
       "noTrash": "This content type has no trash.",
       "noTrashAdapter": "The content backend has no trash.",

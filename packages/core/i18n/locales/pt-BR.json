@@ -333,6 +333,7 @@
       "crossOrigin": "Esta requisição não veio deste site.",
       "invalidQuery": "O parâmetro \"{name}\" da consulta não é válido.",
       "backupTooLarge": "As alterações não salvas são grandes demais para o backup no servidor.",
+      "previewTooLarge": "O post é longo demais para a prévia com as cores do código.",
       "backupInvalid": "O backup não é válido.",
       "noTrash": "Este tipo de conteúdo não tem lixeira.",
       "noTrashAdapter": "O backend de conteúdo não tem lixeira.",

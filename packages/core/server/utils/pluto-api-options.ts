@@ -4,9 +4,18 @@ export interface PlutoApiConfig {
   cors: boolean | string[]
   /** `s-maxage` of a public answer, in seconds. `0` sends `no-store`. */
   maxAge: number
+  /**
+   * The code highlighter to try first (its `id`, see `definePlutoHighlighter`). Empty: the
+   * registered ones by `order`.
+   */
+  highlighter: string
 }
 
-export const PLUTO_API_DEFAULTS: PlutoApiConfig = { cors: true, maxAge: 60 }
+export const PLUTO_API_DEFAULTS: PlutoApiConfig = {
+  cors: true,
+  maxAge: 60,
+  highlighter: '',
+}
 
 /** Reads a CORS value. An env var gives text: `false`, `true`, or a JSON list of origins. */
 function corsValue(value: unknown): boolean | string[] {
@@ -40,5 +49,7 @@ export function resolvePlutoApiConfig(raw: unknown): PlutoApiConfig {
       Number.isFinite(maxAge) && maxAge >= 0
         ? Math.trunc(maxAge)
         : PLUTO_API_DEFAULTS.maxAge,
+    highlighter:
+      typeof value.highlighter === 'string' ? value.highlighter.trim() : '',
   }
 }

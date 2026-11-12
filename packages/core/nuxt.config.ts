@@ -67,10 +67,13 @@ export default defineNuxtConfig({
     },
     // The public API (`/api/pluto/v1/**`). `cors`: `true` (any origin), a list of origins, or
     // `false`. `maxAge`: the `s-maxage` of an answer in seconds (`0` = `no-store`). Env:
-    // `NUXT_PLUTO_API_CORS` (`false` or a JSON list) and `NUXT_PLUTO_API_MAX_AGE`.
+    // `NUXT_PLUTO_API_CORS` (`false` or a JSON list) and `NUXT_PLUTO_API_MAX_AGE`. `highlighter`: the
+    // code highlighter to try first, by its id (`lowlight`, `shiki`); empty: by `order`. Env:
+    // `NUXT_PLUTO_API_HIGHLIGHTER`. See server/utils/pluto-highlight.ts.
     plutoApi: {
       cors: true,
       maxAge: 60,
+      highlighter: '',
     },
     public: {
       websiteName,
