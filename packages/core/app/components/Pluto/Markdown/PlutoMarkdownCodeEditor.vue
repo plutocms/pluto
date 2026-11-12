@@ -14,6 +14,7 @@ import type { Extension, Range } from '@codemirror/state'
 // `formatMarkdown`, `minimalChange` and `mdcLineKinds` come from the auto-imports
 // (`shared/utils`). App code must not import `shared/` with a relative path: the
 // server build of pluto keeps its own `shared/` external.
+import type { MarkdownParser } from '@lezer/markdown'
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { PlutoMedia } from '../../../../shared/types/media'
 import type { PlutoMarkdownFormat } from '../../../../shared/utils/markdown-format'
@@ -31,10 +32,14 @@ import {
 import { markdownKeymap, markdownLanguage } from '@codemirror/lang-markdown'
 import {
   HighlightStyle,
+  Language,
+  LanguageDescription,
   LanguageSupport,
+  ParseContext,
   syntaxHighlighting,
   syntaxTree,
 } from '@codemirror/language'
+import { languages } from '@codemirror/language-data'
 import {
   highlightSelectionMatches,
   search,
@@ -56,6 +61,7 @@ import {
   ViewPlugin,
 } from '@codemirror/view'
 import { tags } from '@lezer/highlight'
+import { parseCode } from '@lezer/markdown'
 import { writeEmptyComponent } from '#layers/pluto/shared/markdown/component'
 import PlutoMarkdownToolbarEntry from './PlutoMarkdownToolbarEntry.vue'
 
@@ -175,11 +181,91 @@ const hybridStyle = HighlightStyle.define([
   },
 ])
 
+// The Markdown language, with the language of each code block (```ts): `@codemirror/language-data` loads a
+// language the first time a block names it, and the editor colors the block then. Built from
+// `markdownLanguage` (the same data, so the list commands still see Markdown), not with `markdown()`,
+// which adds the HTML language for raw HTML (70 KB gzip).
+function codeParser(info: string) {
+  const name = /\S*/.exec(info)?.[0]
+  const found = name
+    ? LanguageDescription.matchLanguageName(languages, name, true)
+    : null
+  if (!found) {
+    return null
+  }
+  return found.support
+    ? found.support.language.parser
+    : ParseContext.getSkippingParser(found.load())
+}
+
+const markdownWithCode = new Language(
+  markdownLanguage.data,
+  (markdownLanguage.parser as MarkdownParser).configure(
+    parseCode({ codeParser })
+  ),
+  [],
+  'markdown'
+)
+
+// The colors of the code in a block, from the palette of the admin (`--pluto-code-*`, the same as
+// the Visual mode).
+const codeStyle = HighlightStyle.define([
+  {
+    tag: [
+      tags.keyword,
+      tags.controlKeyword,
+      tags.moduleKeyword,
+      tags.bool,
+      tags.null,
+      tags.self,
+    ],
+    color: 'var(--pluto-code-keyword)',
+  },
+  {
+    tag: [tags.string, tags.special(tags.string), tags.regexp, tags.character],
+    color: 'var(--pluto-code-string)',
+  },
+  {
+    tag: [tags.number, tags.integer, tags.float],
+    color: 'var(--pluto-code-number)',
+  },
+  {
+    tag: [
+      tags.function(tags.variableName),
+      tags.function(tags.propertyName),
+      tags.macroName,
+    ],
+    color: 'var(--pluto-code-function)',
+  },
+  {
+    tag: [tags.typeName, tags.className, tags.namespace, tags.tagName],
+    color: 'var(--pluto-code-type)',
+  },
+  {
+    tag: [
+      tags.propertyName,
+      tags.attributeName,
+      tags.definition(tags.propertyName),
+    ],
+    color: 'var(--pluto-code-property)',
+  },
+  {
+    tag: [tags.lineComment, tags.blockComment, tags.docComment],
+    color: 'var(--pluto-code-comment)',
+    fontStyle: 'italic',
+  },
+])
+
 const LINE_CLASSES = {
   component: Decoration.line({ class: 'cm-pluto-component' }),
   slot: Decoration.line({ class: 'cm-pluto-slot' }),
   props: Decoration.line({ class: 'cm-pluto-props' }),
   code: Decoration.line({ class: 'cm-pluto-code' }),
+}
+// The first and the last line of a code block, for its rounded corners.
+const CODE_EDGES = {
+  first: Decoration.line({ class: 'cm-pluto-code-first' }),
+  last: Decoration.line({ class: 'cm-pluto-code-last' }),
 }
 
 // The MDC lines and the code blocks get their own look. A docs page has a few hundred lines,
@@ -202,10 +288,16 @@ const mdcLines = ViewPlugin.fromClass(
       const kinds = mdcLineKinds(view.state.doc.toString())
       const ranges: Range<Decoration>[] = []
       kinds.forEach((kind, index) => {
-        if (kind) {
-          ranges.push(
-            LINE_CLASSES[kind].range(view.state.doc.line(index + 1).from)
-          )
+        if (!kind) {
+          return
+        }
+        const from = view.state.doc.line(index + 1).from
+        ranges.push(LINE_CLASSES[kind].range(from))
+        if (kind === 'code' && kinds[index - 1] !== 'code') {
+          ranges.push(CODE_EDGES.first.range(from))
+        }
+        if (kind === 'code' && kinds[index + 1] !== 'code') {
+          ranges.push(CODE_EDGES.last.range(from))
         }
       })
       return Decoration.set(ranges)
@@ -338,17 +430,30 @@ const theme = EditorView.theme({
     fontFamily: 'var(--font-mono, ui-monospace, monospace)',
     backgroundColor: 'color-mix(in oklab, var(--ui-text) 5%, transparent)',
   },
-  // A component, slot, props or code line keeps its own look: no Markdown format inside it. A YAML
+  // A block: some room at its sides, and rounded corners. With `.cm-line`, to win over the padding
+  // of a `bare` editor.
+  '.cm-line.cm-pluto-code': { paddingInline: '12px' },
+  '.cm-line.cm-pluto-code-first': {
+    borderTopLeftRadius: '6px',
+    borderTopRightRadius: '6px',
+    paddingTop: '4px',
+  },
+  '.cm-line.cm-pluto-code-last': {
+    borderBottomLeftRadius: '6px',
+    borderBottomRightRadius: '6px',
+    paddingBottom: '4px',
+  },
+  // A component, slot or props line keeps its own look: no Markdown format inside it (a code line
+  // keeps the colors of its language). A YAML
   // line before a `---` line would read as a heading (a "setext" heading) and turn yellow.
-  '.cm-pluto-component *, .cm-pluto-slot *, .cm-pluto-props *, .cm-pluto-code *':
-    {
-      color: 'inherit !important',
-      fontWeight: 'inherit !important',
-      fontStyle: 'inherit !important',
-      textDecoration: 'none !important',
-      backgroundColor: 'transparent !important',
-      padding: '0 !important',
-    },
+  '.cm-pluto-component *, .cm-pluto-slot *, .cm-pluto-props *': {
+    color: 'inherit !important',
+    fontWeight: 'inherit !important',
+    fontStyle: 'inherit !important',
+    textDecoration: 'none !important',
+    backgroundColor: 'transparent !important',
+    padding: '0 !important',
+  },
   '.cm-panels': {
     backgroundColor: 'var(--ui-bg-elevated)',
     color: 'var(--ui-text)',
@@ -789,7 +894,8 @@ onMounted(() => {
         EditorView.lineWrapping,
         // Not `markdown()`: it adds the HTML, CSS and JavaScript languages for raw HTML in Markdown
         // (70 KB gzip). The pages have none, and the list commands need only `markdownLanguage`.
-        new LanguageSupport(markdownLanguage),
+        new LanguageSupport(markdownWithCode),
+        syntaxHighlighting(codeStyle),
         syntaxHighlighting(hybridStyle),
         mdcLines,
         markdownLook,

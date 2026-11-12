@@ -428,6 +428,8 @@
         "orderedList": "Lista numerada",
         "blockquote": "Citação",
         "codeBlock": "Bloco de código",
+        "codeLanguage": "Linguagem",
+        "codePlain": "Texto simples",
         "visual": "Visual",
         "source": "Código",
         "unsafe": "Este texto tem uma sintaxe que o editor visual não consegue manter (MDC, HTML, tabelas, listas de tarefas ou notas de rodapé). Edite no modo Código.",

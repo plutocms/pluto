@@ -93,6 +93,7 @@ const items = usePlutoMarkdownToolbar({
 const registry = usePlutoRegistry()
 const extensions = [
   PlutoContentComponentNode,
+  PlutoCodeBlock,
   PlutoEmbedNode,
   PlutoEmbedParagraph.configure({
     providers: () => registry.embedProviders.list.value,
@@ -339,6 +340,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
       :placeholder="placeholder"
       :image="true"
       :mention="false"
+      :starter-kit="{ codeBlock: false }"
       :extensions="extensions"
       :handlers="handlers"
       :ui="

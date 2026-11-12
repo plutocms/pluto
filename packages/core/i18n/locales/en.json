@@ -428,6 +428,8 @@
         "orderedList": "Numbered list",
         "blockquote": "Quote",
         "codeBlock": "Code block",
+        "codeLanguage": "Language",
+        "codePlain": "Plain text",
         "visual": "Visual",
         "source": "Source",
         "unsafe": "This text has syntax that the visual editor cannot keep (MDC, HTML, tables, task lists or footnotes). Edit it in Source.",

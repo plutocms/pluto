@@ -783,8 +783,19 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 types, and the marks stay visible, dimmed. Headings are bold and yellow (every line keeps one size).
 From the syntax tree of the visible lines (`markdownLook`): inline code is a tinted pill, its
 backticks too; a quote line has a bar at its left; a list mark is primary and semibold. MDC lines
-(components, slots, YAML props) and code blocks get their own color (`mdcLineKinds`,
-`shared/utils/mdc-lines.ts`), and nothing of the Markdown look shows inside them. A toolbar has the quick
+(components, slots, YAML props) get their own color (`mdcLineKinds`, `shared/utils/mdc-lines.ts`),
+and nothing of the Markdown look shows inside them. A code block is a tinted box with 12px at its
+sides and rounded corners (`cm-pluto-code-first`/`-last` on its first and last line), and its code
+has the colors of its language: the language is `markdownWithCode`, built from `markdownLanguage`
+with `parseCode` (`@lezer/markdown`) and `@codemirror/language-data`, which loads a language the
+first time a fence names it (not `markdown()`, which imports the HTML language). The colors are the
+`--pluto-code-*` variables of `pluto-layer.css` (`codeStyle`), the same as the Visual mode. The
+Visual mode has `PlutoCodeBlock` (`app/utils/pluto-code-block.ts`): `CodeBlockLowlight` (lowlight,
+the `common` grammars) with the node view `PlutoEditorCodeBlock`, a language select at its top
+right (shown on hover, or while the caret is in the block; `PLUTO_CODE_LANGUAGES`, an alias such
+as `ts` shows as its language and stays as written; Plain text is a fence with no info). The
+widget turns the code block of the StarterKit off (`starter-kit="{ codeBlock: false }"`). Pin
+`@tiptap/extension-code-block-lowlight` to the Tiptap version of core: it wants exact peers. A toolbar has the quick
 formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts`, tested in
 `test/markdown-format.test.ts`). It has search and history.
 

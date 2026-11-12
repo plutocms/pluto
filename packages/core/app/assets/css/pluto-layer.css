@@ -242,3 +242,78 @@
     font-size: 0.875em;
   }
 }
+
+/*
+ * The colors of code in the code blocks of the post editor: the Markdown mode (CodeMirror, with
+ * the language of the block) and the Visual mode (lowlight: the `hljs-*` classes). One palette, so
+ * a block looks the same in both modes.
+ */
+:root[data-pluto-admin],
+[data-pluto-admin-scope] {
+  --pluto-code-keyword: #7c3aed;
+  --pluto-code-string: #15803d;
+  --pluto-code-number: #b45309;
+  --pluto-code-function: #1d4ed8;
+  --pluto-code-type: #0e7490;
+  --pluto-code-property: #be123c;
+  --pluto-code-comment: var(--ui-text-dimmed);
+}
+
+:root[data-pluto-admin].dark,
+.dark [data-pluto-admin-scope] {
+  --pluto-code-keyword: #c4b5fd;
+  --pluto-code-string: #86efac;
+  --pluto-code-number: #fcd34d;
+  --pluto-code-function: #93c5fd;
+  --pluto-code-type: #67e8f9;
+  --pluto-code-property: #fda4af;
+}
+
+.ProseMirror
+  pre
+  :is(
+    .hljs-keyword,
+    .hljs-selector-tag,
+    .hljs-literal,
+    .hljs-built_in,
+    .hljs-meta
+  ) {
+  color: var(--pluto-code-keyword);
+}
+.ProseMirror
+  pre
+  :is(
+    .hljs-string,
+    .hljs-regexp,
+    .hljs-addition,
+    .hljs-template-tag,
+    .hljs-symbol
+  ) {
+  color: var(--pluto-code-string);
+}
+.ProseMirror pre :is(.hljs-number, .hljs-variable.constant_, .hljs-bullet) {
+  color: var(--pluto-code-number);
+}
+.ProseMirror pre :is(.hljs-title, .hljs-title.function_, .hljs-section) {
+  color: var(--pluto-code-function);
+}
+.ProseMirror
+  pre
+  :is(.hljs-type, .hljs-title.class_, .hljs-name, .hljs-selector-class) {
+  color: var(--pluto-code-type);
+}
+.ProseMirror
+  pre
+  :is(
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-property,
+    .hljs-selector-id,
+    .hljs-deletion
+  ) {
+  color: var(--pluto-code-property);
+}
+.ProseMirror pre :is(.hljs-comment, .hljs-quote) {
+  color: var(--pluto-code-comment);
+  font-style: italic;
+}
