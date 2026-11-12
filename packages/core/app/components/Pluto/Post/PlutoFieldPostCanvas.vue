@@ -158,6 +158,29 @@ function focusText() {
   scrollEl.value?.querySelector<HTMLElement>('.ProseMirror')?.focus()
 }
 
+// A new item: the text gets the focus as soon as its editor is there (both editors load on demand),
+// so the author can type at once. Up to 4 seconds; a click elsewhere meanwhile wins.
+function focusTextWhenReady(tries = 40) {
+  const active = document.activeElement
+  if (active && active !== document.body) {
+    return
+  }
+  const ready =
+    mode.value === 'markdown'
+      ? source.value
+      : scrollEl.value?.querySelector('.ProseMirror')
+  if (ready) {
+    focusText()
+  } else if (tries > 0) {
+    setTimeout(focusTextWhenReady, 100, tries - 1)
+  }
+}
+onMounted(() => {
+  if (form?.canvas.value && !form.editing.value) {
+    focusTextWhenReady()
+  }
+})
+
 // The heading that has the caret: the active item of the outline. -1: none.
 const activeHeading = ref(-1)
 watch(mode, () => {
