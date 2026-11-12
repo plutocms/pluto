@@ -198,16 +198,11 @@ An existing Nuxt Content v3 site (Docus, the Nuxt UI docs template) needs only
   type (one info line each). A resolved source has no `cwd`: the content dir is assumed.
 - **Render** is `'build'` then, unless the app sets it: the pages of a theme call `queryCollection`,
   not the composables of the layer. A save commits; in dev the Nuxt Content watcher shows it.
-- **The root.** When the resolved root component of the app (`app:resolve`) has no `<PlutoRoot`,
-  the module sets `app.rootComponent` to `modules/pluto-docs/runtime/PlutoDocsRoot.vue` and the
-  template `#build/pluto-docs/site-root.mjs` re-exports the original root. The admin and the preview
-  path get `PlutoRoot` + `NuxtPage` (never the site header, layout or its top-level awaits; under
-  Docus the admin was blank). A public page gets `<PlutoRoot bare>` around the site root: core adds
-  the admin bar in `ConfigProvider` + `TooltipProvider` only, because a second `UApp` would show each
-  toast and overlay twice (their state is global).
-- **The header offset** without the site CSS: the layer `app.config.ts` gives every `UHeader` the
-  class `pluto-header-offset`, and `PlutoDocsRoot` has the offset rules in plain CSS. See the
-  admin-bar-offset skill.
+- **The root and the header offset are core's** (the pluto-root module, see the admin-shell skill in
+  pluto): a root with no `PlutoRoot` is wrapped, the admin and the preview get `PlutoRoot` and the
+  page, a public page keeps the site root (Docus has its own `UApp`, so core adds only the admin
+  bar), and every `UHeader` sticks under the admin bar. Under Docus, the admin was blank before
+  the wrapping.
 - Not supported: a Nuxt Content v2 site (shadcn-docs-nuxt runs on a v2 fork), because the layer is
   built on the collections of v3.
 
@@ -215,11 +210,13 @@ An existing Nuxt Content v3 site (Docus, the Nuxt UI docs template) needs only
 
 - `content.config.ts` of the app (or of its theme layer) defines the collections. The layer
   defines none. With no `plutoDocs.types`, the types come from them (see "Zero config").
-- The CSS entry of the app has the single Tailwind build. It is optional. See the
-  [admin bar offset](../admin-bar-offset/SKILL.md) skill.
-- An app that writes its own root uses `PlutoRoot` in `app.vue`; the layer then leaves the root
-  alone. `PlutoRoot` renders a `NuxtLayout`, so a site that wraps its header and footer in
-  `app.vue` must not use a page layout for the docs sidebar. Put the sidebar in a component instead.
+- The CSS entry of the app has the single Tailwind build. It is optional.
+- The app root needs no `PlutoRoot`: core wraps it, and the root of the site decides its layout.
+  An app that writes `PlutoRoot` in `app.vue` keeps it as it is (`PlutoRoot` renders a
+  `NuxtLayout` then, so a site that wraps its header and footer in `app.vue` must not use a page
+  layout for the docs sidebar).
+- The header offset is core's: every `UHeader` gets `pluto-header-offset`, and the height comes
+  from the site's `--ui-header-height`. A header that is not a `UHeader` needs the class.
 - Pluto sets `eslint.config.standalone: false` and button, input and form field sizes `xl`. A
   site with its own ESLint config and the Nuxt UI default sizes sets them back in its own config.
 
