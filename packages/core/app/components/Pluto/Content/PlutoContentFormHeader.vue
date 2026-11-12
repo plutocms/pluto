@@ -55,6 +55,29 @@ const emit = defineEmits<{
 
 const { t } = usePlutoI18n()
 
+// While a save runs, the pressed button shows the spinner and the others are only disabled. A save
+// from the keyboard (Ctrl+S) has no pressed button: all are disabled, and the state line says it.
+const pressed = ref<string | null>(null)
+function press(id: string) {
+  pressed.value = id
+  emit('press', id)
+  // A press that starts no save (a check failed, or Schedule opens its dialog) forgets the button
+  // (the prop changes after the form renders: a tick later).
+  nextTick(() => {
+    if (!props.saving) {
+      pressed.value = null
+    }
+  })
+}
+watch(
+  () => props.saving,
+  (saving) => {
+    if (!saving) {
+      pressed.value = null
+    }
+  }
+)
+
 // Below `sm` (40rem) the row is tight: the View link moves into the overflow
 // menu, and a secondary button shows its icon only.
 const isSm = useMediaQuery('(min-width: 40rem)')
@@ -237,8 +260,9 @@ const stateText = computed(() => {
         :variant="button.variant"
         :color="button.color"
         :square="button.secondary && !isSm"
-        :loading="saving"
-        @click="emit('press', button.id)"
+        :loading="saving && pressed === button.id"
+        :disabled="saving && pressed !== button.id"
+        @click="press(button.id)"
       />
 
       <UDropdownMenu v-if="hasMenu" :items="menuItems">
