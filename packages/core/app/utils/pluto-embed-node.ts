@@ -4,10 +4,10 @@ import type { Tokens } from 'marked'
 import type { PlutoEmbedProvider } from '../../shared/types/registry'
 import { Extension, Node } from '@tiptap/core'
 import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state'
-import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { isEmbedParagraph } from '#layers/pluto/shared/markdown/render'
 import { resolveEmbed } from '#layers/pluto/shared/utils/embed'
 import PlutoEmbedNodeView from '../components/Pluto/Embed/PlutoEmbedNodeView.vue'
+import { plutoAtomNodeView } from './pluto-atom-node-view'
 
 /**
  * Embeds in the Visual editor. On the site, a top-level paragraph that is one URL alone shows as
@@ -116,7 +116,7 @@ export const PlutoEmbedNode = Node.create({
   },
 
   addNodeView(): NodeViewRenderer {
-    return VueNodeViewRenderer(PlutoEmbedNodeView)
+    return plutoAtomNodeView(PlutoEmbedNodeView)
   },
 })
 

@@ -15,7 +15,9 @@ import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 // widget in CMS mode only, and loads it with `defineAsyncComponent`, so
 // Tiptap loads on the edit page only.
 //
-// The visual editor knows the CommonMark parts and strikethrough. It has no
+// The visual editor knows the CommonMark parts and strikethrough. No underline (the StarterKit
+// mark is off, Ctrl+U too): Markdown has none, the editor wrote raw `<u>` HTML, which turned
+// Visual off, and underlined text reads as a link. It has no
 // node for MDC, a table, a task list or raw HTML, and it can lose that markup
 // when it saves. So the widget has a Source mode (`PlutoMarkdownSource`). The
 // `editor` option of the field picks the first mode: `auto` (default) opens
@@ -104,6 +106,7 @@ const extensions = [
   }),
   PlutoTrailingParagraph,
   PlutoThrottledState,
+  PlutoIgnoreAriaHidden,
   // The text goes to the form at once when the editor loses the focus (see flushEditorValue).
   Extension.create({
     name: 'plutoFlushOnBlur',
@@ -373,7 +376,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
       :placeholder="placeholder"
       :image="true"
       :mention="false"
-      :starter-kit="{ codeBlock: false }"
+      :starter-kit="{ codeBlock: false, underline: false }"
       :extensions="extensions"
       :handlers="handlers"
       :ui="
