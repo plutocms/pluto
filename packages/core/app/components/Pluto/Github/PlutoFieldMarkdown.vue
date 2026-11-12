@@ -106,7 +106,19 @@ const extensions = [
 function trimEnd(markdown: string): string {
   return markdown.replace(/(?:\s|&nbsp;)+$/u, '')
 }
+// The Markdown that the editor gave last, before the trim. UEditor compares its model value with its
+// own Markdown, and loads the value again when they differ: the trimmed value would reload the text
+// at each key, and a reload drops a space at the end (`## My `), so the caret jumped out of the line.
+// While the value is the trim of what the editor gave, the editor gets its own Markdown back.
+const lastMarkdown = ref<string | null>(null)
+const editorValue = computed(() =>
+  lastMarkdown.value !== null && trimEnd(lastMarkdown.value) === value.value
+    ? lastMarkdown.value
+    : value.value
+)
+
 function onEditorUpdate(markdown: string) {
+  lastMarkdown.value = markdown
   if (trimEnd(markdown) !== trimEnd(value.value)) {
     emit('update:modelValue', trimEnd(markdown))
   }
@@ -295,7 +307,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
     <UEditor
       v-else
       v-slot="{ editor, handlers: editorHandlers }"
-      :model-value="value"
+      :model-value="editorValue"
       :editable="!disabled"
       :placeholder="placeholder"
       :image="true"
