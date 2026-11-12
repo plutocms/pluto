@@ -8,6 +8,9 @@ policies shared by every project here.
 
 - Docs setup: the `plutoDocs` module, its options, and the plugins that register
   the types. See @.claude/skills/docs-setup/SKILL.md.
+- Zero config: an existing Nuxt Content v3 site (Docus) needs only `extends`. The types come from its page
+  collections and the render mode is `build`. Core wraps the root and keeps the header under the admin
+  bar. See @.claude/skills/docs-setup/SKILL.md.
 - Docs preset: the `docs` page type, the frontmatter hooks, and tree order. See
   @.claude/skills/docs-preset/SKILL.md.
 - MDC field: the `mdc` field widget. Visual mode (the block editor) and Markdown mode (with the
@@ -21,8 +24,6 @@ policies shared by every project here.
 - Page links: the View link of the form (`previewUrl`), the "New Page" and "Edit Page" buttons of the admin bar (core draws them from `adminBar`),
   `contentRoutePath`, `contentEditPath`, and `usePlutoContentEditLink`. See
   @.claude/skills/page-links/SKILL.md.
-- Admin bar offset: CSS that keeps a Nuxt UI header under the Pluto admin bar. See
-  @.claude/skills/admin-bar-offset/SKILL.md.
 - Block model: the pure model of the visual block editor (parse, serialize, edit, history,
   presets, registry, preview protocol). The text of an unedited block stays byte for byte. See
   @.claude/skills/block-model/SKILL.md.

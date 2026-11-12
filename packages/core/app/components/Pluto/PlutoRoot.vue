@@ -1,5 +1,19 @@
 <script setup lang="ts">
+import { ConfigProvider, TooltipProvider } from 'reka-ui'
 import { resolveSiteName } from '../../composables/internal/admin-shell'
+
+// An app needs no PlutoRoot of its own: the pluto-root module wraps a root that has none
+// (PlutoAppRoot), and sets these two props for a public page.
+const props = defineProps<{
+  /**
+   * The slot has its own `UApp` (the root of a theme such as Docus). On a public page PlutoRoot
+   * then adds only the admin bar, in the providers that it needs: a second `UApp` would show each
+   * toast and overlay twice, because their state is global.
+   */
+  ownApp?: boolean
+  /** The slot decides its layout (the root of the site): no `NuxtLayout` around it. */
+  ownLayout?: boolean
+}>()
 
 const adminBar = usePlutoAdminBar()
 
@@ -133,7 +147,18 @@ useHead({
 </script>
 
 <template>
-  <div class="pluto-root">
+  <template v-if="props.ownApp && !isAdmin">
+    <slot />
+
+    <ConfigProvider :use-id="() => useId()">
+      <TooltipProvider>
+        <PlutoAdminNavbarProvider />
+        <LazyPlutoNavbarAdminMenu v-if="adminBar.visible.value" />
+      </TooltipProvider>
+    </ConfigProvider>
+  </template>
+
+  <div v-else class="pluto-root">
     <UApp :locale="uiLocale">
       <NuxtRouteAnnouncer />
       <NuxtLoadingIndicator />
@@ -147,7 +172,8 @@ useHead({
       <LazyPlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
 
       <div class="pluto-root-page">
-        <NuxtLayout>
+        <slot v-if="props.ownLayout" />
+        <NuxtLayout v-else>
           <slot />
         </NuxtLayout>
       </div>
@@ -207,6 +233,31 @@ useHead({
 
 :where(:root[data-pluto-admin-bar]:not([data-pluto-admin])) {
   scroll-padding-top: var(--pluto-admin-bar-height);
+}
+
+/*
+ * The header of the site under the bar, with no CSS of the site. `--ui-header-height` is the height
+ * of the site header (4rem in Nuxt UI, or the value of the site). <body> keeps that height in
+ * `--pluto-site-header-height` (always, so a site can use it), and while the bar shows, `#__nuxt`
+ * adds the bar to `--ui-header-height`:
+ * the parts that stick under the header (the page aside, the table of contents, the anchor scroll
+ * margin) then stick under the bar too. Two elements, because a custom property that reads itself
+ * on one element is a cycle. A `UHeader` has the class `pluto-header-offset` (the app config of
+ * core): it sticks under the bar and keeps the height of the site header.
+ */
+:root:not([data-pluto-admin]) body {
+  --pluto-site-header-height: var(--ui-header-height, 4rem);
+}
+
+:root[data-pluto-admin-bar]:not([data-pluto-admin]) #__nuxt {
+  --ui-header-height: calc(
+    var(--pluto-site-header-height) + var(--pluto-admin-bar-height)
+  );
+}
+
+:root[data-pluto-admin-bar]:not([data-pluto-admin]) .pluto-header-offset {
+  top: var(--pluto-admin-bar-height);
+  height: var(--pluto-site-header-height);
 }
 
 :where(:root[data-pluto-admin-bar]:not([data-pluto-admin])) #__nuxt {

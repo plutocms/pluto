@@ -259,6 +259,33 @@ later page load has it in the first paint. If the capabilities load fails, the b
 - `--ui-header-height: 2.5rem` stays on `:root`, so an existing app does not change. A site with a
   taller header can set its own `--ui-header-height` (for example for the public pages only) and
   the admin bar keeps its height.
+- **The root (no `PlutoRoot` to write).** The `pluto-root` module (`modules/pluto-root`, config key
+  `plutoRoot`) reads the main component in `app:resolve` (`app.mainComponent`, the `app.vue`; not `app.rootComponent`, the internal `nuxt-root.vue`) (`inspectRootComponent`, a text
+  check for `<PlutoRoot` and `<UApp`, test `test/pluto-root.test.ts`). A root with `PlutoRoot`
+  stays as it is. Any other root (the `app.vue` of the app, of a theme layer such as Docus, or the
+  default one of Nuxt) is replaced by `modules/pluto-root/runtime/PlutoAppRoot.vue`, and the
+  template `#build/pluto/site-root.mjs` exports the original root and `siteHasApp`. The admin and
+  the preview path get `PlutoRoot` + `NuxtPage`: the site root, its header, layout and top-level
+  awaits never run there. A public page gets `<PlutoRoot own-layout :own-app="siteHasApp">` around
+  the site root. A dev log line says that the root is wrapped and whether it has its own `UApp`.
+  Options: `plutoRoot.wrap: false` (no wrapping), `plutoRoot.siteApp` (`'auto'`, or `true`/`false`
+  when the `UApp` of the site is in a layout or a component, which the text check cannot see).
+- `PlutoRoot` props: `ownLayout` renders the slot with no `NuxtLayout` (the site root decides its
+  layout). `ownApp` (the slot has its own `UApp`): on a public route PlutoRoot renders the slot, then
+  the admin bar (`PlutoAdminNavbarProvider`, the admin menu) in reka-ui `ConfigProvider` +
+  `TooltipProvider` only: a second `UApp` would show each toast and overlay twice, because their
+  state is global. The head, the html attributes and the plain `<style>` are the same. On an admin
+  route both change nothing.
+- **The header offset** is core's and needs no site CSS. `app/app.config.ts` gives every `UHeader`
+  the class `pluto-header-offset`. The plain `<style>` of `PlutoRoot` copies
+  the site's `--ui-header-height` to `--pluto-site-header-height` on `<body>` (always, outside the admin: a site uses it, the docs hero for one), and while the bar shows adds the bar to
+  `--ui-header-height` on `#__nuxt` (two elements: a property that reads itself on one element is
+  a cycle), and gives `.pluto-header-offset` `top: bar` and the site height. The page aside, the
+  table of contents and the anchor margin read `--ui-header-height`, so they stick under the bar
+  too. Limits: a header that is not a `UHeader` needs the class; a site that sets
+  `--ui-header-height` on an inner element (Docus `navigation.sub: 'header'`) keeps its own value
+  there, so its sticky parts are the bar height off; overlays teleported to `<body>` read the site
+  value.
 - `PlutoRoot` sets `data-pluto-admin-bar="true"` on `<html>` while
   `usePlutoAdminBar().visible` is `true`. It follows the bar, so it is in the server HTML when
   the hint puts the bar there. The server uses `useHead` `htmlAttrs`. The browser uses a watch
