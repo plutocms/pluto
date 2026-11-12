@@ -664,7 +664,11 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   lists, quote, code block, then the content components with the `plutoComponent` handler, passed
   to `UEditor` with `handlers`). `PlutoTrailingParagraph` (`app/utils/`) keeps an empty line at the
   end (not in the undo history), and the widget trims the blank lines at the end of the Markdown, so
-  an open post stays unchanged. The text has `pt-12`, so the bubble toolbar of the first line does
+  an open post stays unchanged. `UEditor` loads its model value again (`setContent`) whenever it
+  differs from its own `getMarkdown()`, so the widget gives it back its own last Markdown
+  (`editorValue`) while the value is the trim of it. Never bind the trimmed value: the editor
+  reloads at each key, a reload drops a space at the end of a line, and the caret leaves the line
+  (Backspace in a heading selected and deleted it). The text has `pt-12`, so the bubble toolbar of the first line does
   not sit under the main toolbar. Core sets `vite.resolve.dedupe` for the ProseMirror packages: a
   nested copy of `prosemirror-model` broke the slash menu.
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
