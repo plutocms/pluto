@@ -42,7 +42,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
       <UDashboardSidebar
         id="admin"
         v-model:open="isSidebarOpen"
-        :default-size="16"
+        :default-size="16.25"
         :min-size="12"
         :max-size="24"
         :ui="{

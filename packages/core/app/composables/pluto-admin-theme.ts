@@ -102,7 +102,13 @@ export const PLUTO_ADMIN_UI = {
   badge: { base: 'font-sans' },
   input: { root: 'w-full', base: 'font-sans' },
   textarea: { base: 'font-sans' },
-  select: { base: 'font-sans' },
-  selectMenu: { base: 'font-sans' },
+  // An open select shows the focus style of Nuxt UI (the primary ring and its soft outline): the
+  // list belongs to it.
+  select: {
+    base: 'font-sans data-[state=open]:outline-3 data-[state=open]:outline-primary/25 data-[state=open]:ring-primary',
+  },
+  selectMenu: {
+    base: 'font-sans data-[state=open]:outline-3 data-[state=open]:outline-primary/25 data-[state=open]:ring-primary',
+  },
   inputMenu: { base: 'font-sans' },
 } as const

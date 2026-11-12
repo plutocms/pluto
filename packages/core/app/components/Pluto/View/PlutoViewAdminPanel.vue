@@ -116,7 +116,7 @@ const LEFT_MAX = 400
 // Keep the side widths in px ourselves, so they stay the same when the
 // window size changes between visits.
 const asideWidth = useCookie<number>('pluto-view-aside-width', {
-  default: () => 320,
+  default: () => 300,
 })
 const leftWidth = useCookie<number>('pluto-view-left-width', {
   default: () => 260,

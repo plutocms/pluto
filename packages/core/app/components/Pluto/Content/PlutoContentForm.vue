@@ -1843,17 +1843,24 @@ const asideTitle = computed(() =>
     </ModalContent>
 
     <ModalFooter>
-      <div class="flex items-center gap-4">
+      <!-- Two buttons of the same size: the choice reads as one or the other. -->
+      <div class="grid w-full grid-cols-2 gap-3">
         <UButton
           icon="lucide:arrow-left"
-          variant="ghost"
+          variant="outline"
           color="neutral"
+          class="justify-center"
           @click="stayOnPage"
         >
           {{ t('pluto.form.stay') }}
         </UButton>
 
-        <UButton icon="lucide:log-out" color="error" @click="leavePage">
+        <UButton
+          icon="lucide:log-out"
+          color="error"
+          class="justify-center"
+          @click="leavePage"
+        >
           {{ t('pluto.form.leave') }}
         </UButton>
       </div>
