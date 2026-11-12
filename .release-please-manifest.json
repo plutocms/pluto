@@ -2,6 +2,6 @@
   "packages/core": "0.67.0",
   "packages/layers/addons/3d": "0.4.1",
   "packages/layers/addons/seo": "0.2.0",
-  "packages/layers/docs": "0.24.0",
+  "packages/layers/docs": "0.25.0",
   "packages/layers/addons/shop": "0.1.3"
 }

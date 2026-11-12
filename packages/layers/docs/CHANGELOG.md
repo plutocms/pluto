@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0](https://github.com/plutocms/pluto/compare/docs-v0.24.0...docs-v0.25.0) (2026-11-12)
+
+
+### Features
+
+* **core:** admin UI round 5: post editor, side groups, popovers, Zen mode ([#512](https://github.com/plutocms/pluto/issues/512)) ([bf139dd](https://github.com/plutocms/pluto/commit/bf139dd8413901280084a1136bdecbdec838ccb2))
+
 ## [0.24.0](https://github.com/plutocms/pluto/compare/docs-v0.23.0...docs-v0.24.0) (2026-11-10)
 
 
