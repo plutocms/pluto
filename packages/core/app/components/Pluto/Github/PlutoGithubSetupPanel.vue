@@ -232,13 +232,15 @@ async function copyCallback() {
           class="min-w-0 flex-1"
           readonly
         />
-        <UButton
-          :icon="copied ? 'lucide:check' : 'lucide:copy'"
-          :aria-label="t('pluto.github.setup.copy')"
-          color="neutral"
-          variant="outline"
-          @click="copyCallback"
-        />
+        <UTooltip :text="t('pluto.github.setup.copy')">
+          <UButton
+            :icon="copied ? 'lucide:check' : 'lucide:copy'"
+            :aria-label="t('pluto.github.setup.copy')"
+            color="neutral"
+            variant="outline"
+            @click="copyCallback"
+          />
+        </UTooltip>
       </div>
       <p class="text-muted text-sm">
         {{ t('pluto.github.setup.callbackHint') }}

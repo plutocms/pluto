@@ -46,16 +46,17 @@ onBeforeUnmount(() => host.value?.remove())
 <template>
   <span ref="anchor" class="size-5 shrink-0" aria-hidden="true" />
   <Teleport v-if="host" :to="host">
-    <UButton
-      :aria-label="label"
-      :title="label"
-      class="cursor-pointer"
-      icon="i-lucide-plus"
-      color="neutral"
-      variant="ghost"
-      size="xs"
-      square
-      @click="navigateTo(to)"
-    />
+    <UTooltip :text="label">
+      <UButton
+        :aria-label="label"
+        class="cursor-pointer"
+        icon="i-lucide-plus"
+        color="neutral"
+        variant="ghost"
+        size="xs"
+        square
+        @click="navigateTo(to)"
+      />
+    </UTooltip>
   </Teleport>
 </template>

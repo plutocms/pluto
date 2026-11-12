@@ -298,17 +298,21 @@ onBeforeUnmount(() => sortable?.destroy())
         </button>
 
         <UDropdownMenu :items="menu(block, index)" :content="{ align: 'end' }">
-          <UButton
-            :aria-label="
-              t('docs.editor.blockActions', { name: info(block).label })
-            "
-            icon="i-lucide-ellipsis"
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            class="shrink-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 [@media(hover:hover)]:opacity-0"
-            data-block-nodrag
-          />
+          <UTooltip
+            :text="t('docs.editor.blockActions', { name: info(block).label })"
+          >
+            <UButton
+              :aria-label="
+                t('docs.editor.blockActions', { name: info(block).label })
+              "
+              icon="i-lucide-ellipsis"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              class="shrink-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 [@media(hover:hover)]:opacity-0"
+              data-block-nodrag
+            />
+          </UTooltip>
         </UDropdownMenu>
       </div>
 

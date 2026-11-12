@@ -131,33 +131,39 @@ function move(index: number, step: -1 | 1) {
           class="absolute inset-x-1 bottom-1 flex justify-between gap-1 opacity-0 transition-opacity group-focus-within/tile:opacity-100 group-hover/tile:opacity-100"
         >
           <div class="flex gap-1">
-            <UButton
-              :aria-label="t('pluto.media.field.moveLeft')"
-              :disabled="index === 0"
-              icon="lucide:chevron-left"
-              color="neutral"
-              variant="solid"
-              size="xs"
-              @click="move(index, -1)"
-            />
-            <UButton
-              :aria-label="t('pluto.media.field.moveRight')"
-              :disabled="index === ids.length - 1"
-              icon="lucide:chevron-right"
-              color="neutral"
-              variant="solid"
-              size="xs"
-              @click="move(index, 1)"
-            />
+            <UTooltip :text="t('pluto.media.field.moveLeft')">
+              <UButton
+                :aria-label="t('pluto.media.field.moveLeft')"
+                :disabled="index === 0"
+                icon="lucide:chevron-left"
+                color="neutral"
+                variant="solid"
+                size="xs"
+                @click="move(index, -1)"
+              />
+            </UTooltip>
+            <UTooltip :text="t('pluto.media.field.moveRight')">
+              <UButton
+                :aria-label="t('pluto.media.field.moveRight')"
+                :disabled="index === ids.length - 1"
+                icon="lucide:chevron-right"
+                color="neutral"
+                variant="solid"
+                size="xs"
+                @click="move(index, 1)"
+              />
+            </UTooltip>
           </div>
-          <UButton
-            :aria-label="t('pluto.media.field.remove')"
-            icon="lucide:x"
-            color="error"
-            variant="solid"
-            size="xs"
-            @click="removeAt(index)"
-          />
+          <UTooltip :text="t('pluto.media.field.remove')">
+            <UButton
+              :aria-label="t('pluto.media.field.remove')"
+              icon="lucide:x"
+              color="error"
+              variant="solid"
+              size="xs"
+              @click="removeAt(index)"
+            />
+          </UTooltip>
         </div>
       </li>
       <li>

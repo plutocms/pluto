@@ -498,14 +498,19 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
             arrow
             @update:open="(open: boolean) => onHandleMenu(editor, open)"
           >
-            <UButton
-              :aria-label="t('pluto.github.editor.addBlock')"
-              :class="handleUi.handle()"
-              icon="i-lucide-plus"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-            />
+            <UTooltip
+              :text="t('pluto.github.editor.addBlock')"
+              :content="{ side: 'left' }"
+            >
+              <UButton
+                :aria-label="t('pluto.github.editor.addBlock')"
+                :class="handleUi.handle()"
+                icon="i-lucide-plus"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+              />
+            </UTooltip>
           </UDropdownMenu>
           <UDropdownMenu
             v-else
@@ -515,14 +520,19 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
             arrow
             @update:open="(open: boolean) => onHandleMenu(editor, open)"
           >
-            <UButton
-              :aria-label="t('pluto.github.editor.blockHandle')"
-              :class="handleUi.handle()"
-              icon="i-lucide-grip-vertical"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-            />
+            <UTooltip
+              :text="t('pluto.github.editor.blockHandle')"
+              :content="{ side: 'left' }"
+            >
+              <UButton
+                :aria-label="t('pluto.github.editor.blockHandle')"
+                :class="handleUi.handle()"
+                icon="i-lucide-grip-vertical"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+              />
+            </UTooltip>
           </UDropdownMenu>
         </UEditorDragHandle>
 

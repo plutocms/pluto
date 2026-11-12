@@ -558,30 +558,36 @@ const cloudflare = {
             </dt>
             <dd class="flex items-center gap-2">
               <code class="text-sm">{{ cloudflare.command }}</code>
-              <UButton
-                :aria-label="t('pluto.common.copy')"
-                :icon="
-                  copied === 'command' ? 'i-lucide-check' : 'i-lucide-copy'
-                "
-                color="neutral"
-                size="xs"
-                variant="ghost"
-                @click="copy('command', cloudflare.command)"
-              />
+              <UTooltip :text="t('pluto.common.copy')">
+                <UButton
+                  :aria-label="t('pluto.common.copy')"
+                  :icon="
+                    copied === 'command' ? 'i-lucide-check' : 'i-lucide-copy'
+                  "
+                  color="neutral"
+                  size="xs"
+                  variant="ghost"
+                  @click="copy('command', cloudflare.command)"
+                />
+              </UTooltip>
             </dd>
             <dt class="text-muted text-sm">
               {{ t('pluto.github.deploy.cloudflare.output') }}
             </dt>
             <dd class="flex items-center gap-2">
               <code class="text-sm">{{ cloudflare.output }}</code>
-              <UButton
-                :aria-label="t('pluto.common.copy')"
-                :icon="copied === 'output' ? 'i-lucide-check' : 'i-lucide-copy'"
-                color="neutral"
-                size="xs"
-                variant="ghost"
-                @click="copy('output', cloudflare.output)"
-              />
+              <UTooltip :text="t('pluto.common.copy')">
+                <UButton
+                  :aria-label="t('pluto.common.copy')"
+                  :icon="
+                    copied === 'output' ? 'i-lucide-check' : 'i-lucide-copy'
+                  "
+                  color="neutral"
+                  size="xs"
+                  variant="ghost"
+                  @click="copy('output', cloudflare.output)"
+                />
+              </UTooltip>
             </dd>
           </dl>
           <UButton

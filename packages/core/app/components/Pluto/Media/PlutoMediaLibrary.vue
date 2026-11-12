@@ -411,22 +411,26 @@ defineExpose({
         class="w-40"
       />
       <UFieldGroup>
-        <UButton
-          :aria-label="t('pluto.media.view.grid')"
-          :aria-pressed="view === 'grid'"
-          :variant="view === 'grid' ? 'soft' : 'ghost'"
-          icon="lucide:layout-grid"
-          color="neutral"
-          @click="view = 'grid'"
-        />
-        <UButton
-          :aria-label="t('pluto.media.view.list')"
-          :aria-pressed="view === 'list'"
-          :variant="view === 'list' ? 'soft' : 'ghost'"
-          icon="lucide:list"
-          color="neutral"
-          @click="view = 'list'"
-        />
+        <UTooltip :text="t('pluto.media.view.grid')">
+          <UButton
+            :aria-label="t('pluto.media.view.grid')"
+            :aria-pressed="view === 'grid'"
+            :variant="view === 'grid' ? 'soft' : 'ghost'"
+            icon="lucide:layout-grid"
+            color="neutral"
+            @click="view = 'grid'"
+          />
+        </UTooltip>
+        <UTooltip :text="t('pluto.media.view.list')">
+          <UButton
+            :aria-label="t('pluto.media.view.list')"
+            :aria-pressed="view === 'list'"
+            :variant="view === 'list' ? 'soft' : 'ghost'"
+            icon="lucide:list"
+            color="neutral"
+            @click="view = 'list'"
+          />
+        </UTooltip>
       </UFieldGroup>
       <template v-if="canUpload">
         <UButton
@@ -538,15 +542,17 @@ defineExpose({
             class="mt-1.5"
           />
         </div>
-        <UButton
-          v-if="entry.error"
-          :aria-label="t('pluto.common.close')"
-          icon="lucide:x"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          @click="forget(entry)"
-        />
+        <UTooltip :text="t('pluto.common.close')">
+          <UButton
+            v-if="entry.error"
+            :aria-label="t('pluto.common.close')"
+            icon="lucide:x"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            @click="forget(entry)"
+          />
+        </UTooltip>
       </li>
     </ul>
 
