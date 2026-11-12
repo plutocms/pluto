@@ -68,7 +68,7 @@ function restore() {
             icon="lucide:trash-2"
             size="xs"
             color="neutral"
-            variant="outline"
+            variant="soft"
             @click="emit('discard')"
           />
           <UButton
