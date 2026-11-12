@@ -55,6 +55,10 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           // gone: the footer keeps its height, so its buttons stay put.
           footer:
             'border-default max-lg:hidden border-t in-data-[collapsed=true]:border-transparent',
+          // The resize handle: the 6px haze-400 bar of the splitters of the admin shows on hover,
+          // after 300ms, and it is the grab area too (3px on each side of the edge).
+          handle:
+            'before:-inset-x-0.75 before:transition-colors before:duration-150! hover:before:bg-haze-400 hover:before:delay-300! active:before:bg-haze-400 active:before:delay-0!',
         }"
         :collapsed-size="4.5"
         data-pluto-admin-dark
