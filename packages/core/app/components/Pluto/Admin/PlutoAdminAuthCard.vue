@@ -17,7 +17,7 @@ const props = defineProps<{
 
 const slots = defineSlots<{
   default?: () => unknown
-  /** After the logo, such as an arrow and the logo of the service that the page connects to. */
+  /** After the logo, such as an arrow and the mark of the service that the page connects to. The Pluto logo is then the planet only. */
   partner?: () => unknown
 }>()
 
@@ -68,17 +68,14 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
           </template>
           <PlutoLogo
             v-else
+            :mark="Boolean(slots.partner)"
             aria-hidden="true"
             class="text-highlighted block h-8 w-auto"
           />
           <slot name="partner" />
           <span
             v-if="siteName"
-            :class="
-              slots.partner
-                ? 'text-muted ms-auto max-sm:hidden'
-                : 'text-highlighted'
-            "
+            :class="slots.partner ? 'text-muted ms-auto' : 'text-highlighted'"
             class="truncate text-sm font-semibold"
             >{{ siteName }}</span
           >
