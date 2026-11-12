@@ -571,7 +571,8 @@ production, both answer 404. The secrets only go to the browser that runs the fl
 
 - `name`: "<site name> CMS", 34 characters or less. The site name is `public.websiteName`, else the
   repo name. The author can change it on GitHub.
-- `url`: the origin. `hook_attributes`: `{ url: origin, active: false }`.
+- `url`: the origin. No `hook_attributes`: the App has no webhook, and GitHub refuses a local hook
+  URL even when the hook is off.
 - `redirect_url`: `<origin>/api/_pluto/github/setup/callback`.
 - `callback_urls`: `<origin>/api/_pluto/auth/github/callback`, plus
   `http://localhost:3000/api/_pluto/auth/github/callback` when the origin is not local.
