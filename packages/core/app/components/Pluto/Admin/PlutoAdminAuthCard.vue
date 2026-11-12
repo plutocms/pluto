@@ -17,6 +17,8 @@ const props = defineProps<{
 
 const slots = defineSlots<{
   default?: () => unknown
+  /** After the logo, such as an arrow and the logo of the service that the page connects to. */
+  partner?: () => unknown
 }>()
 
 const { t, tx } = usePlutoI18n()
@@ -69,9 +71,15 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
             aria-hidden="true"
             class="text-highlighted block h-8 w-auto"
           />
+          <slot name="partner" />
           <span
             v-if="siteName"
-            class="text-highlighted truncate text-sm font-semibold"
+            :class="
+              slots.partner
+                ? 'text-muted ms-auto max-sm:hidden'
+                : 'text-highlighted'
+            "
+            class="truncate text-sm font-semibold"
             >{{ siteName }}</span
           >
         </div>

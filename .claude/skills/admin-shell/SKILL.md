@@ -158,6 +158,10 @@ default slot, and the slot replaces the driver's form and links. The props `titl
 </PlutoAdminAuthCard>
 ```
 
+`wide` makes the card 32rem wide (a longer form). The `partner` slot goes after the logo, for a
+page that connects the site to a service (the database setup of the Supabase layer: an arrow and
+the Supabase logo). With it, the site name is muted at the end of the row, and hidden on a phone.
+
 With no driver and no slot, the card shows an alert: no sign-in method is set up. The texts are in
 `pluto.auth.*`, in English and Brazilian Portuguese.
 
