@@ -442,7 +442,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           :aria-label="t('pluto.github.editor.toolbar')"
           :class="
             canvas
-              ? 'dark:border-default sticky top-2 z-10 -mx-2 shrink-0 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:bg-(--pluto-admin-sidebar)'
+              ? 'dark:border-default pluto-sticky-toolbar sticky top-2 z-10 -mx-2 shrink-0 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white dark:bg-(--pluto-admin-sidebar)'
               : 'border-default bg-default sticky top-0 z-10 rounded-t-md border-b'
           "
           class="px-2 py-1.5"

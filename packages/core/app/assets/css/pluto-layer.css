@@ -384,3 +384,20 @@
 .dark .ProseMirror ~ div:has(> [role='listbox'][data-state])::before {
   background-color: var(--ui-color-neutral-950);
 }
+
+/*
+ * The sticky toolbar of the post editor (Visual and Markdown modes) sits 8px below the top of the
+ * scroll area. The text that scrolls under it showed in that gap, and the block handles showed at
+ * its left. Copies of its box in the color of the compose panel (`--ui-bg`), as shadows under it,
+ * fill the gap above, the gutter of the handles at its left (56px) and the edge at its right, and
+ * move with it. Its own soft shadow below comes first, so it stays on top.
+ */
+.pluto-sticky-toolbar {
+  box-shadow:
+    0 12px 15px -15px #0000007a,
+    0 -8px 0 0 var(--ui-bg),
+    -56px -8px 0 0 var(--ui-bg),
+    -56px 0 0 0 var(--ui-bg),
+    16px -8px 0 0 var(--ui-bg),
+    16px 0 0 0 var(--ui-bg);
+}

@@ -1076,7 +1076,7 @@ onBeforeUnmount(() => {
       v-if="bare"
       :aria-label="t('pluto.github.editor.toolbar')"
       role="toolbar"
-      class="dark:border-default sticky top-2 z-10 -mx-2 mb-6 flex shrink-0 items-center gap-0.5 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white px-2 py-1.5 shadow-[0px_12px_15px_-15px_#0000007a] dark:bg-(--pluto-admin-sidebar)"
+      class="dark:border-default pluto-sticky-toolbar sticky top-2 z-10 -mx-2 mb-6 flex shrink-0 items-center gap-0.5 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white px-2 py-1.5 dark:bg-(--pluto-admin-sidebar)"
       data-pluto-editor-toolbar
       @mousedown="
         ($event.target as HTMLElement).closest('button') &&
