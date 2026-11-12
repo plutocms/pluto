@@ -115,7 +115,7 @@
     },
     "packages/layers/docs": {
       "name": "@plutocms/docs",
-      "version": "0.25.0",
+      "version": "0.26.0",
       "dependencies": {
         "@nuxt/content": "^3.16.2",
         "@nuxtjs/mdc": "^0.23.2",
