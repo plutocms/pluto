@@ -66,7 +66,7 @@ function isOpen(group: PlutoContentSideGroup) {
       :icon="group.icon"
       color="neutral"
       variant="ghost"
-      class="text-highlighted w-full px-1 font-semibold"
+      class="text-highlighted bg-pluto-frame sticky -top-4 z-10 w-full rounded-none px-1 font-semibold"
     >
       <template #trailing>
         <UIcon
