@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.69.0](https://github.com/plutocms/pluto/compare/v0.68.0...v0.69.0) (2026-11-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **syntax-lowlight:** rename @plutocms/lowlight to @plutocms/syntax-lowlight ([#518](https://github.com/plutocms/pluto/issues/518))
+
+### Features
+
+* **core:** an app writes no PlutoRoot; feat(docs): zero config for a Nuxt Content site ([#522](https://github.com/plutocms/pluto/issues/522)) ([77f767d](https://github.com/plutocms/pluto/commit/77f767de258a317d62ca91cf15b45a649e7546d2))
+
+
+### Code Refactoring
+
+* **syntax-lowlight:** rename @plutocms/lowlight to @plutocms/syntax-lowlight ([#518](https://github.com/plutocms/pluto/issues/518)) ([0859360](https://github.com/plutocms/pluto/commit/0859360590f1a334baba7268ea28c8cd749e98b5))
+
 ## [0.68.0](https://github.com/plutocms/pluto/compare/v0.67.0...v0.68.0) (2026-11-12)
 
 
