@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/plutocms/pluto/compare/seo-v0.2.0...seo-v0.3.0) (2026-11-12)
+
+
+### Features
+
+* **core:** admin UI round 5: post editor, side groups, popovers, Zen mode ([#512](https://github.com/plutocms/pluto/issues/512)) ([bf139dd](https://github.com/plutocms/pluto/commit/bf139dd8413901280084a1136bdecbdec838ccb2))
+
 ## [0.2.0](https://github.com/plutocms/pluto/compare/seo-v0.1.0...seo-v0.2.0) (2026-11-07)
 
 
