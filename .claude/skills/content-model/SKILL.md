@@ -649,15 +649,15 @@ nothing. A missing widget should fail visibly and legibly, not disappear.
 
 Core ships eight widgets, under `app/components/Pluto/Content/fields/`:
 
-| `PlutoField.type`  | Widget                | Notes                                                                                                                                                                          |
-| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `text`, `textarea` | `PlutoFieldText`      | `UInput` for `text`. `UTextarea` for `textarea`: it grows with the text from `rows` (default 4) up to `maxRows` (default 14), then it scrolls. Both are optional on the field. |
+| `PlutoField.type`  | Widget                | Notes                                                                                                                                                                                                                        |
+| ------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`, `textarea` | `PlutoFieldText`      | `UInput` for `text`. `UTextarea` for `textarea`: it grows with the text from `rows` (default 4) up to `maxRows` (default 14), then it scrolls. Both are optional on the field.                                               |
 | `slug`             | `PlutoFieldSlug`      | The address line (`field.preview + modelValue`, or "Made from the title") and an edit button that shows the `UInput` (Enter, Escape or the check close it). Does **not** own auto-derivation from another field — see below. |
-| `number`           | `PlutoFieldNumber`    | `UInputNumber`                                                                                                                                                                 |
-| `boolean`          | `PlutoFieldBoolean`   | `USwitch`                                                                                                                                                                      |
-| `date`             | `PlutoFieldDate`      | `UInputDate`, converting to/from `@internationalized/date`'s `CalendarDate` at its own boundary — a content item stores a plain ISO date string                                |
-| `select`           | `PlutoFieldSelect`    | `USelect`, mapping `field.options` to `{ label, value }`                                                                                                                       |
-| `reference`        | `PlutoFieldReference` | `UInputMenu`, populated from `field.optionsUrl` when set                                                                                                                       |
+| `number`           | `PlutoFieldNumber`    | `UInputNumber`                                                                                                                                                                                                               |
+| `boolean`          | `PlutoFieldBoolean`   | `USwitch`                                                                                                                                                                                                                    |
+| `date`             | `PlutoFieldDate`      | `UInputDate`, converting to/from `@internationalized/date`'s `CalendarDate` at its own boundary — a content item stores a plain ISO date string                                                                              |
+| `select`           | `PlutoFieldSelect`    | `USelect`, mapping `field.options` to `{ label, value }`                                                                                                                                                                     |
+| `reference`        | `PlutoFieldReference` | `UInputMenu`, populated from `field.optionsUrl` when set                                                                                                                                                                     |
 
 The Git CMS Markdown widget reads `PlutoTextField.editor` (`'auto' | 'visual' | 'source'`,
 default `auto`) for a `richtext` field. It picks the first mode of the Visual/Source switch (see
@@ -803,7 +803,7 @@ writes) is an embed. Core owns the block and the security; providers plug in.
 
 Core colors no code: a code block of the public HTML is `<pre><code class="language-ts">` with plain
 text (the sanitizer keeps the `language-*` class). A highlighter is opt-in: an add-on layer
-(`@plutocms/lowlight`) or a Nitro plugin of the site (Shiki, Comark) registers one.
+(`@plutocms/syntax-lowlight`) or a Nitro plugin of the site (Shiki, Comark) registers one.
 
 - **Registry** (`server/utils/pluto-highlight.ts`, auto-imported on the server):
   `definePlutoHighlighter({ id, order?, highlight })`. `highlight({ code, lang })` returns the HTML of
@@ -824,7 +824,7 @@ text (the sanitizer keeps the `language-*` class). A highlighter is opt-in: an a
 - **Preview:** the post preview (`pages/_pluto/post-preview.vue`) posts its HTML to
   `POST /api/_pluto/highlight/<type>` (the write capability of the type) 300 ms after a change, and
   stops when the answer says `highlighted: false` (no highlighter).
-- **Themes** are opt-in CSS of the highlighter layer (`@plutocms/lowlight/theme.css`, on
+- **Themes** are opt-in CSS of the highlighter layer (`@plutocms/syntax-lowlight/theme.css`, on
   `--pluto-code-*` variables of `.pluto-prose`). The admin editor has its own colors
   (`--pluto-code-*` of the admin in pluto-layer.css): it never loads a site highlighter.
 - A new highlighter layer: a Nitro plugin with `definePlutoHighlighter`, its theme CSS, an entry in

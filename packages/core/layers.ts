@@ -28,7 +28,7 @@ export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
   '3d': 'pluto/packages/layers/addons/3d',
   shop: 'pluto/packages/layers/addons/shop',
   seo: 'pluto/packages/layers/addons/seo',
-  lowlight: 'pluto/packages/layers/addons/lowlight',
+  'syntax-lowlight': 'pluto/packages/layers/addons/syntax-lowlight',
 }
 
 const SCOPE = '@plutocms/'

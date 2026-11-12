@@ -1,15 +1,15 @@
 {
-  "name": "@plutocms/lowlight",
+  "name": "@plutocms/syntax-lowlight",
   "type": "module",
   "version": "0.0.0",
   "description": "An add-on layer for Pluto: colors the code blocks of the posts on the site with lowlight (highlight.js), for every backend",
   "author": "Victor Ribeiro",
   "license": "MIT",
-  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/layers/addons/lowlight#readme",
+  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/layers/addons/syntax-lowlight#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/plutocms/pluto.git",
-    "directory": "packages/layers/addons/lowlight"
+    "directory": "packages/layers/addons/syntax-lowlight"
   },
   "bugs": {
     "url": "https://github.com/plutocms/pluto/issues"
