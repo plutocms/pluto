@@ -421,7 +421,16 @@
           "placeholder": "Paste a link",
           "apply": "Apply the link",
           "open": "Open the link",
-          "remove": "Remove the link"
+          "remove": "Remove the link",
+          "url": "Address",
+          "text": "Text",
+          "textPlaceholder": "The text of the link"
+        },
+        "embedPopover": {
+          "url": "Video address",
+          "open": "Open the video",
+          "remove": "Remove the video",
+          "invalid": "The site has no video player for this address."
         },
         "lists": "Lists",
         "bulletList": "Bulleted list",

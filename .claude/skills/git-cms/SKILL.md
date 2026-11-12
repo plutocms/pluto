@@ -648,7 +648,13 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   button (`PlutoMediaEditorButton`, the media picker) shows when the app has a media library. The
   mention extension is off.
 - Blocks, like the other editors: a bubble toolbar over a selection (`usePlutoMarkdownBubbleItems`:
-  the marks and the link slot). The compose panel has a left gutter (`ps-14`) and `pe-4`. With the preview off, the column is
+  the marks and the link slot; `bubbleShouldShow` keeps the rule of Tiptap, but not for a selected
+  block). A caret in a link opens the link popover (`PlutoEditorLinkMenu`, a `BubbleMenu`): its
+  address and its text, applied on Enter or when a field loses the focus, Open, and Remove (the text
+  stays). Popovers open at `bottom-start`: a centered one can overflow a narrow column, and focusing
+  its field scrolls the column sideways. The menus take `Editor` from `@tiptap/core` and find a
+  mark range by hand: `getMarkRange` of core types against another copy of `prosemirror-model`.
+  The compose panel has a left gutter (`ps-14`) and `pe-4`. With the preview off, the column is
   centered (`max-w-3xl`); when the panel has room for the buttons beside it (an `@container`,
   `@min-[55rem]`), the padding is `ps-4` on both sides and the buttons use the free space, so the
   column stays in the middle. The editor element reaches into the gutter (`-ms-14 ps-14`): Tiptap

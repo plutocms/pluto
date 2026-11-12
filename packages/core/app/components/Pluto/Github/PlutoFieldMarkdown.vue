@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, EditorCustomHandlers } from '@nuxt/ui'
+import type { Editor as CoreEditor } from '@tiptap/core'
 import type { Editor, JSONContent } from '@tiptap/vue-3'
 import { Extension } from '@tiptap/core'
+import { NodeSelection } from '@tiptap/pm/state'
 import PlutoBlockInsertMenu from '../Block/PlutoBlockInsertMenu.vue'
+import PlutoEditorEmbedMenu from '../Editor/PlutoEditorEmbedMenu.vue'
+import PlutoEditorLinkMenu from '../Editor/PlutoEditorLinkMenu.vue'
 import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 
 // The `richtext` widget of the standalone CMS. It edits a Markdown string with
@@ -161,6 +165,35 @@ onBeforeUnmount(flushEditorValue)
 // menu. The content components of the site are in it too. The editor always ends with an empty
 // line, so the "+" has a place after the last block.
 const bubbleItems = usePlutoMarkdownBubbleItems()
+
+/**
+ * The rule of Tiptap for the bubble toolbar (some text selected, the focus in the editor or in the
+ * toolbar), but not for a selected block: a video has its own popover (`PlutoEditorEmbedMenu`).
+ */
+function bubbleShouldShow({
+  editor,
+  element,
+  view,
+  state,
+  from,
+  to,
+}: {
+  editor: CoreEditor
+  element: HTMLElement
+  view: CoreEditor['view']
+  state: CoreEditor['state']
+  from: number
+  to: number
+}) {
+  const { selection } = state
+  if (selection instanceof NodeSelection || selection.empty) {
+    return false
+  }
+  const focused = view.hasFocus() || element.contains(document.activeElement)
+  return (
+    editor.isEditable && focused && state.doc.textBetween(from, to).length > 0
+  )
+}
 const suggestionItems = usePlutoMarkdownSuggestionItems(() =>
   components.list.value.map((component) => ({
     name: component.name,
@@ -399,10 +432,12 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </template>
         </PlutoMarkdownToolbar>
 
-        <!-- Over a text selection: the marks and the link. -->
+        <!-- Over a text selection: the marks and the link. Not over a selected block (a video):
+             that one has its own popover. -->
         <UEditorToolbar
           :editor="editor"
           :items="bubbleItems"
+          :should-show="bubbleShouldShow"
           :ui="{ base: 'dark:bg-neutral-950' }"
           layout="bubble"
         >
@@ -410,6 +445,10 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
             <PlutoGithubEditorLink :editor="editor" />
           </template>
         </UEditorToolbar>
+
+        <!-- A click on a link: its address and text. A click on a video: its address. -->
+        <PlutoEditorLinkMenu :editor="editor" />
+        <PlutoEditorEmbedMenu :editor="editor" />
 
         <!-- In the gutter at the left of the text: the grip of a block (drag to move; a click opens
              Duplicate and Delete), or the "+" of an empty line (the block menu there). No flip:

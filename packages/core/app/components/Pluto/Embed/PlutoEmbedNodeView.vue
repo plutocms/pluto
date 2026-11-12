@@ -12,6 +12,15 @@ const props = defineProps<NodeViewProps>()
 const { tx } = usePlutoI18n()
 const registry = usePlutoRegistry()
 
+// A click selects the block, so its popover (PlutoEditorEmbedMenu) opens. Not on mousedown: that
+// starts a drag of the block.
+function select() {
+  const position = props.getPos()
+  if (props.editor.isEditable && typeof position === 'number') {
+    props.editor.chain().focus().setNodeSelection(position).run()
+  }
+}
+
 const url = computed(() => String(props.node.attrs.url ?? ''))
 const resolved = computed(() =>
   resolveEmbed(registry.embedProviders.list.value, url.value)
@@ -27,6 +36,7 @@ const resolved = computed(() =>
     "
     class="pluto-embed-node my-4 overflow-hidden rounded-lg transition-shadow"
     data-drag-handle
+    @click="select"
   >
     <div
       v-if="resolved"

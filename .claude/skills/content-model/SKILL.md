@@ -790,9 +790,12 @@ writes) is an embed. Core owns the block and the security; providers plug in.
   turns each top-level one into the block; a nested one (a quote, a list) stays a link, as on the
   site. The block writes its source text back (bare, `<url>` or `[url](url)`), so an open post
   stays unchanged. A provider URL pasted alone into an empty top-level line becomes the block, with
-  an empty line after it. Never register a parser under the `paragraph` token: the Markdown writer
-  finds the writer of a node by its token name first, and a parser with no writer empties every
-  paragraph.
+  an empty line after it. A click selects the block (on `click`, not `mousedown`, which starts a
+  drag), and its popover (`PlutoEditorEmbedMenu`, a Tiptap `BubbleMenu`, `bottom-start`) edits the
+  address: a new one that no provider matches shows a message and changes nothing; a matching one
+  is written alone on its line (no source). Open and Remove too. Never register a parser under the
+  `paragraph` token: the Markdown writer finds the writer of a node by its token name first, and a
+  parser with no writer empties every paragraph.
 - The sanitizer writes each kept attribute value decoded once and escaped once (`keptValue`), so
   a `&` in a URL is `&amp;`, not `&amp;amp;`.
 

@@ -421,7 +421,16 @@
           "placeholder": "Cole um link",
           "apply": "Aplicar o link",
           "open": "Abrir o link",
-          "remove": "Remover o link"
+          "remove": "Remover o link",
+          "url": "Endereço",
+          "text": "Texto",
+          "textPlaceholder": "O texto do link"
+        },
+        "embedPopover": {
+          "url": "Endereço do vídeo",
+          "open": "Abrir o vídeo",
+          "remove": "Remover o vídeo",
+          "invalid": "O site não tem um player de vídeo para este endereço."
         },
         "lists": "Listas",
         "bulletList": "Lista com marcadores",
