@@ -2,7 +2,7 @@
   "packages/core": "0.69.0",
   "packages/layers/addons/3d": "0.4.1",
   "packages/layers/addons/seo": "0.3.0",
-  "packages/layers/docs": "0.25.0",
+  "packages/layers/docs": "0.26.0",
   "packages/layers/addons/shop": "0.1.3",
   "packages/layers/addons/syntax-lowlight": "0.1.0"
 }

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.26.0](https://github.com/plutocms/pluto/compare/docs-v0.25.0...docs-v0.26.0) (2026-11-12)
+
+
+### Features
+
+* **core:** an app writes no PlutoRoot; feat(docs): zero config for a Nuxt Content site ([#522](https://github.com/plutocms/pluto/issues/522)) ([77f767d](https://github.com/plutocms/pluto/commit/77f767de258a317d62ca91cf15b45a649e7546d2))
+
+
+### Bug Fixes
+
+* **docs:** needs core 0.69.0 ([#525](https://github.com/plutocms/pluto/issues/525)) ([fbbfa66](https://github.com/plutocms/pluto/commit/fbbfa66da04f3f43a52e08937afb9c55851104f4))
+
 ## [0.25.0](https://github.com/plutocms/pluto/compare/docs-v0.24.0...docs-v0.25.0) (2026-11-12)
 
 
