@@ -654,7 +654,7 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   stays). The link popover never takes the focus (a click in a link is for its text). A click on a
   video (a pointerdown on `.pluto-embed-node` less than 1 s before `onShow`) focuses the address
   of its popover with the text selected; a block selected with the keys keeps the focus in the text.
-  Escape in a field goes back to the text. Popovers open at `bottom-start`: a centered one can overflow a narrow column, and focusing
+  Escape in a field goes back to the text. A click on an image opens its popover (`PlutoEditorImageMenu`): alt text, Replace (media picker), Open, Remove. The link, video and image popovers share `PlutoEditorBubble` (a `BubbleMenu` with the panel and an arrow that it places after each move, `onUpdate`, on the side and at the start of the target). Every floating thing of the editor has an arrow: Reka poppers by the admin defaults; the bubble toolbar (`placement: top`, `flip: false`) and the Markdown bubble with `.pluto-editor-arrow-bottom`; the "/" menu (it ignores its `ui` prop) by CSS on `.ProseMirror ~ div > [role=listbox]`, `flip: false` and a `size` that shortens it near the bottom. Popovers open at `bottom-start`: a centered one can overflow a narrow column, and focusing
   its field scrolls the column sideways. The menus take `Editor` from `@tiptap/core` and find a
   mark range by hand: `getMarkRange` of core types against another copy of `prosemirror-model`.
   The compose panel has a left gutter (`ps-14`) and `pe-4`. With the preview off, the column is

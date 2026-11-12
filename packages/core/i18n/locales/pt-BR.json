@@ -427,6 +427,13 @@
           "text": "Texto",
           "textPlaceholder": "O texto do link"
         },
+        "imagePopover": {
+          "alt": "Texto alternativo",
+          "altPlaceholder": "O que a imagem mostra, para quem não pode vê-la",
+          "replace": "Substituir",
+          "open": "Abrir a imagem",
+          "remove": "Remover a imagem"
+        },
         "embedPopover": {
           "url": "Endereço do vídeo",
           "open": "Abrir o vídeo",

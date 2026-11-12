@@ -427,6 +427,13 @@
           "text": "Text",
           "textPlaceholder": "The text of the link"
         },
+        "imagePopover": {
+          "alt": "Alt text",
+          "altPlaceholder": "What the image shows, for people who cannot see it",
+          "replace": "Replace",
+          "open": "Open the image",
+          "remove": "Remove the image"
+        },
         "embedPopover": {
           "url": "Video address",
           "open": "Open the video",

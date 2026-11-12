@@ -6,6 +6,7 @@ import { Extension } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
 import PlutoBlockInsertMenu from '../Block/PlutoBlockInsertMenu.vue'
 import PlutoEditorEmbedMenu from '../Editor/PlutoEditorEmbedMenu.vue'
+import PlutoEditorImageMenu from '../Editor/PlutoEditorImageMenu.vue'
 import PlutoEditorLinkMenu from '../Editor/PlutoEditorLinkMenu.vue'
 import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 
@@ -168,6 +169,29 @@ onBeforeUnmount(flushEditorValue)
 // menu. The content components of the site are in it too. The editor always ends with an empty
 // line, so the "+" has a place after the last block.
 const bubbleItems = usePlutoMarkdownBubbleItems()
+
+// The "/" menu always opens below the caret (its arrow points up at it, pluto-layer.css): near the
+// bottom of the screen it gets shorter and scrolls, it does not flip above.
+const suggestionOptions = {
+  placement: 'bottom-start' as const,
+  offset: 10,
+  flip: false,
+  size: {
+    padding: 8,
+    apply({
+      availableHeight,
+      elements,
+    }: {
+      availableHeight: number
+      elements: { floating: HTMLElement }
+    }) {
+      const box = elements.floating.firstElementChild as HTMLElement | null
+      if (box) {
+        box.style.maxHeight = `${Math.max(Math.min(availableHeight, 384), 120)}px`
+      }
+    },
+  },
+}
 
 /**
  * The rule of Tiptap for the bubble toolbar (some text selected, the focus in the editor or in the
@@ -441,7 +465,8 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           :editor="editor"
           :items="bubbleItems"
           :should-show="bubbleShouldShow"
-          :ui="{ base: 'dark:bg-neutral-950' }"
+          :options="{ placement: 'top', flip: false, offset: 10 }"
+          :ui="{ base: 'pluto-editor-arrow-bottom dark:bg-neutral-950' }"
           layout="bubble"
         >
           <template #link>
@@ -449,9 +474,11 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </template>
         </UEditorToolbar>
 
-        <!-- A click on a link: its address and text. A click on a video: its address. -->
+        <!-- A click on a link: its address and text. A click on a video: its address. A click on an
+             image: its alt text, Replace, Open and Remove. -->
         <PlutoEditorLinkMenu :editor="editor" />
         <PlutoEditorEmbedMenu :editor="editor" />
+        <PlutoEditorImageMenu :editor="editor" />
 
         <!-- In the gutter at the left of the text: the grip of a block (drag to move; a click opens
              Duplicate and Delete), or the "+" of an empty line (the block menu there). No flip:
@@ -504,7 +531,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           :editor="editor"
           :items="suggestionItems"
           :suggestion="{ allow: plutoSlashMenuAllowed }"
-          :ui="{ content: 'dark:bg-neutral-950' }"
+          :options="suggestionOptions"
         />
       </UTheme>
     </UEditor>

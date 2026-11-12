@@ -1133,9 +1133,9 @@ onBeforeUnmount(() => {
     <div
       v-if="bare && bubble"
       :aria-label="t('pluto.markdown.formatting')"
-      :style="{ top: `${bubble.top - 8}px`, left: `${bubble.left}px` }"
+      :style="{ top: `${bubble.top - 12}px`, left: `${bubble.left}px` }"
       role="toolbar"
-      class="bg-default border-default fixed z-50 flex -translate-x-1/2 -translate-y-full gap-0.5 rounded-lg border p-1 shadow-lg dark:bg-neutral-950"
+      class="pluto-editor-arrow-bottom bg-default border-default fixed z-50 flex -translate-x-1/2 -translate-y-full gap-0.5 rounded-lg border p-1 shadow-lg dark:bg-neutral-950"
       @mousedown.prevent
     >
       <UTooltip

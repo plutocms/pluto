@@ -6,8 +6,8 @@
 import type { Editor as CoreEditor } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import { NodeSelection } from '@tiptap/pm/state'
-import { BubbleMenu } from '@tiptap/vue-3/menus'
 import { resolveEmbed } from '#layers/pluto/shared/utils/embed'
+import PlutoEditorBubble from './PlutoEditorBubble.vue'
 
 const props = defineProps<{
   editor: Editor
@@ -135,16 +135,13 @@ function remove() {
 </script>
 
 <template>
-  <BubbleMenu
+  <PlutoEditorBubble
     :editor="editor"
     :should-show="shouldShow"
-    :options="{ placement: 'bottom-start', offset: 8, onShow }"
     plugin-key="plutoEmbedMenu"
+    @show="onShow"
   >
-    <div
-      ref="panel"
-      class="bg-default ring-default flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2 rounded-lg p-2 shadow-lg ring dark:bg-neutral-950"
-    >
+    <div ref="panel" class="flex w-80 max-w-[calc(100vw-3rem)] flex-col gap-2">
       <UInput
         v-model="url"
         :aria-label="t('pluto.github.editor.embedPopover.url')"
@@ -183,5 +180,5 @@ function remove() {
         />
       </div>
     </div>
-  </BubbleMenu>
+  </PlutoEditorBubble>
 </template>
