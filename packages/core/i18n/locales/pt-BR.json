@@ -70,6 +70,9 @@
       "untitled": "Sem título"
     },
     "form": {
+      "slugEdit": "Editar o slug",
+      "slugDone": "Pronto",
+      "slugFromTitle": "Criado a partir do título",
       "published": "Publicado",
       "unpublished": "Não publicado",
       "saved": "Salvo",
