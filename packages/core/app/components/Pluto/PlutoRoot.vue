@@ -1,5 +1,15 @@
 <script setup lang="ts">
+import { ConfigProvider, TooltipProvider } from 'reka-ui'
 import { resolveSiteName } from '../../composables/internal/admin-shell'
+
+const props = defineProps<{
+  /**
+   * The page in the slot has its own `UApp` and `NuxtLayout` (the root of a site theme that a layer
+   * wraps, such as the docs layer with Docus). On a public page PlutoRoot then adds only the admin
+   * bar, in the providers that it needs. A second `UApp` would show each toast and overlay twice.
+   */
+  bare?: boolean
+}>()
 
 const adminBar = usePlutoAdminBar()
 
@@ -133,7 +143,18 @@ useHead({
 </script>
 
 <template>
-  <div class="pluto-root">
+  <template v-if="props.bare && !isAdmin">
+    <slot />
+
+    <ConfigProvider :use-id="() => useId()">
+      <TooltipProvider>
+        <PlutoAdminNavbarProvider />
+        <LazyPlutoNavbarAdminMenu v-if="adminBar.visible.value" />
+      </TooltipProvider>
+    </ConfigProvider>
+  </template>
+
+  <div v-else class="pluto-root">
     <UApp :locale="uiLocale">
       <NuxtRouteAnnouncer />
       <NuxtLoadingIndicator />

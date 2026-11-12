@@ -29,10 +29,14 @@ apply to them.
 
 ## In the app
 
+- The layer `app.config.ts` gives every `UHeader` the class `pluto-header-offset`
+  (`ui.header.slots.root`), so a theme header (Docus) needs no change.
+- A site with no CSS entry of its own (zero config, see the docs-setup skill) gets rule 1, 2 and 4
+  in plain CSS from `PlutoDocsRoot` (`modules/pluto-docs/runtime`). A site with a CSS entry has them
+  from `@plutocms/css` too; the two copies are the same.
 - The CSS entry of the app sets `:root:not([data-pluto-admin]) { --ui-header-height: 4rem }`, after
   `@import '@plutocms/css'`. Pluto sets `--ui-header-height: 2.5rem` for the admin.
-- The header gets the class: `<AppHeader class="pluto-header-offset" />`. If the app lints
-  Tailwind class names, add `pluto-header-offset` to the ignore list of the rule.
+- If the app lints Tailwind class names, add `pluto-header-offset` to the ignore list of the rule.
 
 ## Limits
 

@@ -8,6 +8,10 @@ policies shared by every project here.
 
 - Docs setup: the `plutoDocs` module, its options, and the plugins that register
   the types. See @.claude/skills/docs-setup/SKILL.md.
+- Zero config: an existing Nuxt Content v3 site (Docus) needs only `extends`. The types come from its page
+  collections, the render mode is `build`, the layer wraps a root with no `PlutoRoot` (the admin and the
+  preview get `PlutoRoot`, a public page gets the site root and the admin bar), and every `UHeader` stays
+  under the admin bar. See @.claude/skills/docs-setup/SKILL.md.
 - Docs preset: the `docs` page type, the frontmatter hooks, and tree order. See
   @.claude/skills/docs-preset/SKILL.md.
 - MDC field: the `mdc` field widget. Visual mode (the block editor) and Markdown mode (with the

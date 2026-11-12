@@ -259,6 +259,12 @@ later page load has it in the first paint. If the capabilities load fails, the b
 - `--ui-header-height: 2.5rem` stays on `:root`, so an existing app does not change. A site with a
   taller header can set its own `--ui-header-height` (for example for the public pages only) and
   the admin bar keeps its height.
+- `PlutoRoot` has a `bare` prop for a page that has its own `UApp` and `NuxtLayout` (the root of a
+  site theme that a layer wraps; the docs layer wraps Docus, see its docs-setup skill). On a public
+  route it renders the slot, then the admin bar (`PlutoAdminNavbarProvider`, the admin menu) in
+  reka-ui `ConfigProvider` + `TooltipProvider` only: a second `UApp` would show each toast and
+  overlay twice, because their state is global. The head, the html attributes and the plain
+  `<style>` are the same. On an admin route `bare` changes nothing.
 - `PlutoRoot` sets `data-pluto-admin-bar="true"` on `<html>` while
   `usePlutoAdminBar().visible` is `true`. It follows the bar, so it is in the server HTML when
   the hint puts the bar there. The server uses `useHead` `htmlAttrs`. The browser uses a watch

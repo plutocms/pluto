@@ -13,19 +13,20 @@ repository, and each save is a commit.
 npm install @plutocms/docs
 ```
 
+An existing Nuxt Content site, such as [Docus](https://docus.dev), needs one line:
+
 ```ts
 // nuxt.config.ts
 export default defineNuxtConfig({
-  extends: ['@plutocms/docs'],
-
-  plutoDocs: {
-    types: [{ preset: 'docs', name: 'doc', source: '' }],
-  },
+  extends: ['docus', '@plutocms/docs'],
 })
 ```
 
-The layer brings `@plutocms/core`. It needs Node 22.5 or newer. The docs show the rest of the
-setup: the collections, the CSS entry, `PlutoRoot`, and the GitHub App.
+The layer reads the page collections of the site and makes one content type for each. It leaves
+the site as it is, adds the admin at `/admin`, and shows the admin bar to signed-in editors.
+
+The layer brings `@plutocms/core`. It needs Node 22.5 or newer. The docs show how to choose the
+types yourself (`plutoDocs.types`), the render modes, and the GitHub App.
 
 ## What you get
 

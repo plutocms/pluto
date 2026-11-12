@@ -180,14 +180,46 @@ shared config.
   (`defineAsyncComponent`), and the admin bar actions. The module also adds the route rules of the
   preview page `/_pluto/preview` (see the block editor skill).
 
+## Zero config
+
+An existing Nuxt Content v3 site (Docus, the Nuxt UI docs template) needs only
+`extends: [..., '@plutocms/docs']`. Tested with Docus 5.15.
+
+- **Types from the collections.** With no `plutoDocs.types`, the module reads the collections that
+  Nuxt Content resolved, in the `modules:done` hook: the `options.manifest.collections` of Nuxt
+  Content's template `content/manifest.ts` (an internal of Nuxt Content; when it is missing, the
+  module warns and has no type). `collectionTypes` (`modules/pluto-docs/collections.ts`, test
+  `test/collection-types.test.ts`) maps them: a page collection with a glob (`docs/**`) is a type
+  (source = the fixed folder, `routePrefix` = the resolved prefix, `exclude` from its excludes; a
+  type excludes the folder of a nested type); a one-file collection (`index.md`, the Docus landing
+  page) joins the type of its folder, else makes a type of its folder (for `index.md` its prefix is
+  the folder route). The name is the collection name (`docs_en` → `docs-en`). A root type is
+  `Page`/`Pages`. Data and private collections, remote sources, other globs and bad names give no
+  type (one info line each). A resolved source has no `cwd`: the content dir is assumed.
+- **Render** is `'build'` then, unless the app sets it: the pages of a theme call `queryCollection`,
+  not the composables of the layer. A save commits; in dev the Nuxt Content watcher shows it.
+- **The root.** When the resolved root component of the app (`app:resolve`) has no `<PlutoRoot`,
+  the module sets `app.rootComponent` to `modules/pluto-docs/runtime/PlutoDocsRoot.vue` and the
+  template `#build/pluto-docs/site-root.mjs` re-exports the original root. The admin and the preview
+  path get `PlutoRoot` + `NuxtPage` (never the site header, layout or its top-level awaits; under
+  Docus the admin was blank). A public page gets `<PlutoRoot bare>` around the site root: core adds
+  the admin bar in `ConfigProvider` + `TooltipProvider` only, because a second `UApp` would show each
+  toast and overlay twice (their state is global).
+- **The header offset** without the site CSS: the layer `app.config.ts` gives every `UHeader` the
+  class `pluto-header-offset`, and `PlutoDocsRoot` has the offset rules in plain CSS. See the
+  admin-bar-offset skill.
+- Not supported: a Nuxt Content v2 site (shadcn-docs-nuxt runs on a v2 fork), because the layer is
+  built on the collections of v3.
+
 ## The app side
 
-- `content.config.ts` of the app defines the collections. The layer defines none.
-- The CSS entry of the app has the single Tailwind build. See the
+- `content.config.ts` of the app (or of its theme layer) defines the collections. The layer
+  defines none. With no `plutoDocs.types`, the types come from them (see "Zero config").
+- The CSS entry of the app has the single Tailwind build. It is optional. See the
   [admin bar offset](../admin-bar-offset/SKILL.md) skill.
-- The app uses `PlutoRoot` in `app.vue`. `PlutoRoot` renders a `NuxtLayout`, so a site that wraps
-  its header and footer in `app.vue` must not use a page layout for the docs sidebar. Put the
-  sidebar in a component instead.
+- An app that writes its own root uses `PlutoRoot` in `app.vue`; the layer then leaves the root
+  alone. `PlutoRoot` renders a `NuxtLayout`, so a site that wraps its header and footer in
+  `app.vue` must not use a page layout for the docs sidebar. Put the sidebar in a component instead.
 - Pluto sets `eslint.config.standalone: false` and button, input and form field sizes `xl`. A
   site with its own ESLint config and the Nuxt UI default sizes sets them back in its own config.
 
