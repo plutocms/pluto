@@ -773,6 +773,14 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 - **Markdown** mode shows `PlutoMarkdownCodeEditor` (`bare`: the toolbar of the Visual editor, no
   box, no side padding; the editor grows with the text and the parent scrolls), loaded on demand.
   See "Markdown code editor" below.
+- The caret is one unit for both modes: its offset in the Markdown (`app/utils/pluto-caret.ts`). Visual to
+  Markdown: a private-use marker at the caret, the document written as Markdown, the marker found
+  (`plutoMarkdownCaret`). Markdown to Visual: the marker in the text, parsed, the same text block
+  of the editor (video lines do not count) at the same offset (`plutoVisualCaret`). A switch of mode
+  keeps the caret; localStorage (`pluto-caret:<type>:<id>`) keeps it between visits as an offset
+  and the 24 characters before it (`plutoCaretAnchor`, `plutoFindCaret`: the file on disk can be
+  written a little differently from the editor), saved a second after the caret stops, on a switch
+  and on `pagehide`; an item opens with the caret there and the focus. A new item focuses its text.
 - Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
   widget. The cookie `pluto-post-editor-mode` keeps the last mode.
 - The left panel (`PlutoPostOutline.vue`, in the `PlutoViewSidePanel` shell) lists the headings, each with the icon of its level (`i-lucide-heading-1` to `-6`) (`plutoMarkdownHeadings(text)` in

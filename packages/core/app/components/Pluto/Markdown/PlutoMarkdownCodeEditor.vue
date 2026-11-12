@@ -594,7 +594,25 @@ function goToLine(line: number): void {
   view.focus()
 }
 
-defineExpose({ insert, focus, reveal, goToLine })
+/** The offset of the caret in the text (the post editor keeps it across modes and reloads). */
+function caret(): number {
+  return view?.state.selection.main.head ?? 0
+}
+
+/** Puts the caret at an offset of the text, in the middle of the editor, and focuses it. */
+function setCaret(offset: number): void {
+  if (!view) {
+    return
+  }
+  const at = Math.min(Math.max(Math.trunc(offset), 0), view.state.doc.length)
+  view.dispatch({
+    selection: EditorSelection.cursor(at),
+    effects: EditorView.scrollIntoView(at, { y: 'center' }),
+  })
+  view.focus()
+}
+
+defineExpose({ insert, focus, reveal, goToLine, caret, setCaret })
 
 // --- Toolbar (`bare`) --------------------------------------------------------------------
 //

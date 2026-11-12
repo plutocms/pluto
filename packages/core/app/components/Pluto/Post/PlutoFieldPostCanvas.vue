@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
+import type { PlutoCaretAnchor } from '../../../utils/pluto-caret'
 import type PlutoMarkdownCodeEditor from '../Markdown/PlutoMarkdownCodeEditor.vue'
 import PlutoPostModeSwitch from './PlutoPostModeSwitch.vue'
 import PlutoPostOutline from './PlutoPostOutline.vue'
@@ -125,8 +126,19 @@ const mode = computed<Mode>(() =>
 )
 
 function setMode(next: Mode) {
+  if (next === mode.value) {
+    chosen.value = next
+    saved.value = next
+    return
+  }
+  // The caret goes with the text: the other mode puts it at the same place.
+  const offset = currentCaret(true)
+  saveCaret(offset)
   chosen.value = next
   saved.value = next
+  if (offset !== null) {
+    nextTick(() => whenTextReady(() => placeCaret(offset)))
+  }
 }
 
 // The preview gets the other fields of the item, so it can show the title and the date.
@@ -158,32 +170,154 @@ function focusText() {
   scrollEl.value?.querySelector<HTMLElement>('.ProseMirror')?.focus()
 }
 
-// A new item: the text gets the focus as soon as its editor is there (both editors load on demand),
-// so the author can type at once. Up to 4 seconds; a click in a field meanwhile wins.
-function focusTextWhenReady(tries = 40) {
-  // A field of the form that has the focus wins (the author clicked it). The link that opened the
-  // page (a client-side navigation keeps its focus) does not.
+/** The Visual editor (Tiptap puts it on its editable element). */
+function visualEditor(): Editor | undefined {
+  const element = scrollEl.value?.querySelector('.ProseMirror') as
+    (HTMLElement & { editor?: Editor }) | null
+  return element?.editor && !element.editor.isDestroyed
+    ? element.editor
+    : undefined
+}
+
+/**
+ * The caret of the mode that shows, as an offset of the Markdown (`plutoMarkdownCaret`), or null.
+ * `fresh`: against the Markdown of the Visual editor now (a switch of mode: the editor gives that
+ * text when it closes), else against the value of the form.
+ */
+function currentCaret(fresh = false): number | null {
+  if (mode.value === 'markdown') {
+    return source.value ? source.value.caret() : null
+  }
+  const editor = visualEditor()
+  if (!editor) {
+    return null
+  }
+  return plutoMarkdownCaret(
+    editor,
+    fresh
+      ? (editor.markdown?.serialize(editor.getJSON()) ?? value.value)
+      : value.value
+  )
+}
+
+/** Puts the caret of the mode that shows at an offset of the Markdown, focused. */
+function placeCaret(offset: number) {
+  if (mode.value === 'markdown') {
+    source.value?.setCaret(offset)
+    return
+  }
+  const editor = visualEditor()
+  if (!editor) {
+    return
+  }
+  const position = plutoVisualCaret(editor, value.value, offset)
+  editor
+    .chain()
+    .focus(position ?? 'start')
+    .scrollIntoView()
+    .run()
+}
+
+// The caret of an item is kept in this browser (localStorage), as an offset of the Markdown: a
+// reload, or the next visit, puts it back. Saved after the caret stops for a second, on a switch of
+// mode, and when the page closes.
+const caretKey = computed(() => {
+  const id = form?.item.value?.id
+  return form?.editing.value && id !== undefined && id !== null
+    ? `pluto-caret:${contentType.value}:${String(id)}`
+    : ''
+})
+function saveCaret(offset = currentCaret()) {
+  if (!caretKey.value || offset === null) {
+    return
+  }
+  try {
+    localStorage.setItem(
+      caretKey.value,
+      JSON.stringify(plutoCaretAnchor(value.value, offset))
+    )
+  } catch {
+    // No storage (a private window): the caret is not kept.
+  }
+}
+function savedCaret(): number | null {
+  try {
+    const stored = caretKey.value ? localStorage.getItem(caretKey.value) : null
+    const anchor = stored
+      ? (JSON.parse(stored) as Partial<PlutoCaretAnchor>)
+      : null
+    return anchor && typeof anchor.offset === 'number'
+      ? plutoFindCaret(value.value, {
+          offset: anchor.offset,
+          before: typeof anchor.before === 'string' ? anchor.before : '',
+        })
+      : null
+  } catch {
+    return null
+  }
+}
+let caretTimer: ReturnType<typeof setTimeout> | undefined
+function saveCaretSoon() {
+  clearTimeout(caretTimer)
+  caretTimer = setTimeout(saveCaret, 1000)
+}
+function onPageHide() {
+  saveCaret()
+}
+onMounted(() => window.addEventListener('pagehide', onPageHide))
+onBeforeUnmount(() => {
+  clearTimeout(caretTimer)
+  saveCaret()
+  window.removeEventListener('pagehide', onPageHide)
+})
+
+/**
+ * Runs `run` once the editor of the mode is there (both editors load on demand) and, for an item,
+ * its text has loaded. Up to 4 seconds. A field of the form that has the focus meanwhile wins (the
+ * author clicked it); the link that opened the page (a client-side navigation keeps its focus) does
+ * not.
+ */
+function whenTextReady(run: () => void, tries = 40) {
   const active = document.activeElement
   if (
     active &&
+    active !== scrollEl.value?.querySelector('.ProseMirror') &&
+    !active.closest('.cm-editor') &&
     scrollEl.value?.closest('[data-pluto-view]')?.contains(active)
   ) {
     return
   }
   const ready =
-    mode.value === 'markdown'
+    (mode.value === 'markdown'
       ? source.value
-      : scrollEl.value?.querySelector('.ProseMirror')
+      : scrollEl.value?.querySelector('.ProseMirror')) &&
+    (!form?.editing.value || value.value !== '')
   if (ready) {
-    focusText()
+    run()
   } else if (tries > 0) {
-    setTimeout(focusTextWhenReady, 100, tries - 1)
+    setTimeout(whenTextReady, 100, run, tries - 1)
   }
 }
+
+// A new item: the text gets the focus, so the author can type at once. An item: the caret goes
+// back where it was (`savedCaret`), if this browser has it.
+function focusTextWhenReady(tries = 40) {
+  whenTextReady(focusText, tries)
+}
 onMounted(() => {
-  if (form?.canvas.value && !form.editing.value) {
-    focusTextWhenReady()
+  if (!form?.canvas.value) {
+    return
   }
+  if (!form.editing.value) {
+    focusTextWhenReady()
+    return
+  }
+  whenTextReady(() => {
+    const offset = savedCaret()
+    if (offset !== null) {
+      placeCaret(offset)
+    }
+  })
 })
 
 // The heading that has the caret: the active item of the outline. -1: none.
@@ -265,6 +399,7 @@ function onSelectionChange() {
   if (!root || !node || !root.contains(node)) {
     return
   }
+  saveCaretSoon()
   const element = node instanceof Element ? node : node.parentElement
   const heading = element?.closest<HTMLElement>(HEADING_SELECTOR)
   activeHeading.value =
@@ -273,6 +408,7 @@ function onSelectionChange() {
 
 /** Markdown: the line of the caret (from 0). */
 function onSourceCursor(line: number) {
+  saveCaretSoon()
   activeHeading.value = headings.value.findIndex(
     (heading) => heading.line === line
   )
