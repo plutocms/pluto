@@ -1004,7 +1004,11 @@
       "previewFailedTitle": "A prévia não carregou",
       "previewFailed": "A página de prévia do site não respondeu. Verifique se o site está no ar e tente de novo.",
       "previewSwitch": "Prévia",
-      "titlePlaceholder": "Adicione um título"
+      "titlePlaceholder": "Adicione um título",
+      "zen": "Modo zen",
+      "zenExit": "Sair do modo zen",
+      "zenHideToolbar": "Ocultar a barra de ferramentas",
+      "zenShowToolbar": "Mostrar a barra de ferramentas"
     },
     "markdown": {
       "formatting": "Formatação",

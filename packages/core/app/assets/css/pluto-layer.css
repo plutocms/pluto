@@ -401,3 +401,8 @@
     16px -8px 0 0 var(--ui-bg),
     16px 0 0 0 var(--ui-bg);
 }
+
+/* Zen mode with the toolbar hidden (PlutoFieldPostCanvas, pluto-zen.ts): the editor toolbar goes. */
+[data-pluto-zen-toolbar='hidden'] [data-pluto-editor-toolbar] {
+  display: none;
+}

@@ -1004,7 +1004,11 @@
       "previewFailedTitle": "The preview did not load",
       "previewFailed": "The preview page of the site did not answer. Check that the site runs, then try again.",
       "previewSwitch": "Preview",
-      "titlePlaceholder": "Add a title"
+      "titlePlaceholder": "Add a title",
+      "zen": "Zen mode",
+      "zenExit": "Leave Zen mode",
+      "zenHideToolbar": "Hide the toolbar",
+      "zenShowToolbar": "Show the toolbar"
     },
     "markdown": {
       "formatting": "Formatting",

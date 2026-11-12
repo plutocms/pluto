@@ -23,6 +23,17 @@ usePlutoAdminTheme()
 // in @nuxt/ui 4.12 a replacer only runs for themes with slots, and the
 // group theme has only `base`, so the replacer was silently ignored.
 const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
+
+// Zen mode of the post editor collapses the sidebar (see pluto-zen.ts).
+const sidebarCollapsed = ref(false)
+usePlutoZenPanel(
+  computed({
+    get: () => !sidebarCollapsed.value,
+    set: (open) => {
+      sidebarCollapsed.value = !open
+    },
+  })
+)
 </script>
 
 <template>
@@ -42,6 +53,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
       <UDashboardSidebar
         id="admin"
         v-model:open="isSidebarOpen"
+        v-model:collapsed="sidebarCollapsed"
         :default-size="16.25"
         :min-size="12"
         :max-size="24"

@@ -48,6 +48,8 @@ const MarkdownEditor = defineAsyncComponent(
 )
 
 const { t } = usePlutoI18n()
+// Zen mode: the panels around the text close, and the toolbar can hide (pluto-zen.ts).
+const zen = usePlutoZen()
 const form = usePlutoContentForm()
 const host = inject(plutoCanvasHostKey, null)
 const isDesktop = useMediaQuery('(min-width: 64rem)')
@@ -516,7 +518,10 @@ function onLayout(sizes: number[]) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
+  <div
+    :data-pluto-zen-toolbar="zen.active.value && zen.hideToolbar.value ? 'hidden' : undefined"
+    class="flex h-full min-h-0 flex-col"
+  >
     <template v-if="form?.canvas.value">
       <PlutoContentCanvasPanel
         id="outline"
@@ -639,6 +644,51 @@ function onLayout(sizes: number[]) {
                 :visual-blocked="visualBlocked || !visualWidget"
                 @update:mode="setMode"
               />
+              <UTooltip
+                :text="zen.active.value ? t('pluto.post.zenExit') : t('pluto.post.zen')"
+              >
+                <UButton
+                  :aria-label="
+                    zen.active.value ? t('pluto.post.zenExit') : t('pluto.post.zen')
+                  "
+                  :aria-pressed="zen.active.value"
+                  :icon="zen.active.value ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'"
+                  :color="zen.active.value ? 'primary' : 'neutral'"
+                  :variant="zen.active.value ? 'soft' : 'ghost'"
+                  size="xs"
+                  square
+                  @mousedown.prevent
+                  @click="zen.active.value = !zen.active.value"
+                />
+              </UTooltip>
+              <UTooltip
+                v-if="zen.active.value"
+                :text="
+                  zen.hideToolbar.value
+                    ? t('pluto.post.zenShowToolbar')
+                    : t('pluto.post.zenHideToolbar')
+                "
+              >
+                <UButton
+                  :aria-label="
+                    zen.hideToolbar.value
+                      ? t('pluto.post.zenShowToolbar')
+                      : t('pluto.post.zenHideToolbar')
+                  "
+                  :aria-pressed="zen.hideToolbar.value"
+                  :icon="
+                    zen.hideToolbar.value
+                      ? 'i-lucide-panel-top-open'
+                      : 'i-lucide-panel-top-close'
+                  "
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  square
+                  @mousedown.prevent
+                  @click="zen.hideToolbar.value = !zen.hideToolbar.value"
+                />
+              </UTooltip>
               <USwitch
                 v-model="showPreview"
                 :label="t('pluto.post.previewSwitch')"

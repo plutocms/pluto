@@ -756,11 +756,24 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   of the aside have no track (`scrollbar-thumb-(--ui-border-accented)`). The editor keeps the room of
   the scrollbar (`scrollbar-gutter-stable`).
 - The canvas is one `USplitter` in both modes (stacked under `lg`): the compose panel and the
-  preview. The cookie `pluto-post-split` keeps the sizes. The compose panel has a footer with
-  the Visual/Markdown switch (`PlutoPostModeSwitch.vue`) and, at the end, the **Preview** switch
-  (`USwitch`). With the preview off, the splitter has the compose panel alone (its size is not
-  saved) and the Visual editor keeps a readable width (`max-w-3xl`, in the middle). On desktop
+  preview. The cookie `pluto-post-split` keeps the sizes; the items read it only when the preview
+  opens (`splitStart`): items rebuilt from the cookie at each move gave the splitter new default
+  sizes, which ended the drag after one pixel. The compose panel has a footer with
+  the Visual/Markdown switch (`PlutoPostModeSwitch.vue`, `@mousedown.prevent` so the text keeps
+  the focus; a switch focuses the other mode at the caret, `whenTextReady(..., force)`), the Zen
+  buttons, and, at the end, the **Preview** switch (`USwitch`). While the editor of a mode loads,
+  a skeleton (toolbar and lines, `textReady`) covers its area. With the preview off, the splitter
+  has the compose panel alone (its size is not saved). The text keeps a readable width
+  (`max-w-3xl`, in the middle) with or without the preview (`columnClass`, a container query on
+  the compose panel). On desktop
   the cookie `pluto-post-preview` keeps the choice (default off: the editor gets the room; the docs editor keeps its preview on); under `lg` it starts off.
+- Zen mode (`app/composables/pluto-zen.ts`): `usePlutoZen()` gives `active` (`useState`, for the
+  page) and `hideToolbar` (cookie `pluto-zen-toolbar`). `usePlutoZenPanel(open)` closes a panel
+  while it is on and opens it again after if it was open (a panel opened during Zen stays open);
+  the admin layout uses it for the sidebar (`v-model:collapsed`), the form for its left panel and
+  its aside. The form ends Zen mode when it unmounts, after its panels restore (so no closed state
+  stays in their cookies). With `hideToolbar`, the canvas root has
+  `data-pluto-zen-toolbar="hidden"` and `pluto-layer.css` hides `[data-pluto-editor-toolbar]`.
 - The left panel (the Outline) starts closed. The rail of the form (the `#rail` slot of
   `PlutoViewAdminPanel`, see the admin-view-chrome skill) has its button (`i-lucide-list-tree`),
   and its header has an X (`PlutoViewLeftCollapse`).

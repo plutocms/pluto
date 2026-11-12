@@ -1024,6 +1024,14 @@ const asideModel = computed({
   },
 })
 
+// Zen mode of the post editor closes both panels, and ends when the form closes (pluto-zen.ts).
+usePlutoZenPanel(leftOpen)
+usePlutoZenPanel(asideModel)
+const zen = usePlutoZen()
+onBeforeUnmount(() => {
+  zen.active.value = false
+})
+
 const hasLeft = computed(
   () => isCanvas.value && leftPanels.value.length > 0 && !loadFailed.value
 )
