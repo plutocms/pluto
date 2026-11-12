@@ -26,14 +26,16 @@ const { t } = usePlutoI18n()
         data-pluto-admin-scope
       >
         <div class="flex shrink-0 justify-end p-2">
-          <UButton
-            :aria-label="t('pluto.common.close')"
-            icon="lucide:x"
-            color="neutral"
-            variant="ghost"
-            square
-            @click="open = false"
-          />
+          <UTooltip :text="t('pluto.common.close')">
+            <UButton
+              :aria-label="t('pluto.common.close')"
+              icon="lucide:x"
+              color="neutral"
+              variant="ghost"
+              square
+              @click="open = false"
+            />
+          </UTooltip>
         </div>
 
         <div class="min-h-0 flex-1 overflow-y-auto px-2 pb-4">

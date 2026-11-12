@@ -18,7 +18,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "bun run --cwd packages/core typecheck && bun run --cwd packages/layers/docs typecheck && bun run --cwd packages/layers/addons/3d typecheck && bun run --cwd packages/layers/addons/shop typecheck && bun run --cwd packages/layers/addons/seo typecheck",
-    "test": "bun run --cwd packages/core test && bun run --cwd packages/layers/docs test && bun run --cwd packages/layers/addons/3d test && bun run --cwd packages/layers/addons/shop test && bun run --cwd packages/layers/addons/seo test"
+    "test": "bun run --cwd packages/core test && bun run --cwd packages/layers/docs test && bun run --cwd packages/layers/addons/3d test && bun run --cwd packages/layers/addons/shop test && bun run --cwd packages/layers/addons/seo test && bun run --cwd packages/layers/addons/lowlight test"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^10.0.0",

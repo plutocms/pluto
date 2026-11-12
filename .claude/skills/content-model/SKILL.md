@@ -652,7 +652,7 @@ Core ships eight widgets, under `app/components/Pluto/Content/fields/`:
 | `PlutoField.type`  | Widget                | Notes                                                                                                                                                                          |
 | ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `text`, `textarea` | `PlutoFieldText`      | `UInput` for `text`. `UTextarea` for `textarea`: it grows with the text from `rows` (default 4) up to `maxRows` (default 14), then it scrolls. Both are optional on the field. |
-| `slug`             | `PlutoFieldSlug`      | A plain `UInput` plus a `field.preview + modelValue` preview line. Does **not** own auto-derivation from another field — see below.                                            |
+| `slug`             | `PlutoFieldSlug`      | The address line (`field.preview + modelValue`, or "Made from the title") and an edit button that shows the `UInput` (Enter, Escape or the check close it). Does **not** own auto-derivation from another field — see below. |
 | `number`           | `PlutoFieldNumber`    | `UInputNumber`                                                                                                                                                                 |
 | `boolean`          | `PlutoFieldBoolean`   | `USwitch`                                                                                                                                                                      |
 | `date`             | `PlutoFieldDate`      | `UInputDate`, converting to/from `@internationalized/date`'s `CalendarDate` at its own boundary — a content item stores a plain ISO date string                                |
@@ -780,9 +780,55 @@ writes) is an embed. Core owns the block and the security; providers plug in.
   `data-pluto-embed="<provider id>"`), or stays the link. The top level stays flat for the
   direct-child rules of `.pluto-prose`. The server renders the players (SSR).
 - The post preview of the admin uses `PlutoHtml`, so the live preview of the editor shows the
-  players. The Visual editor shows the URL as a link (an embed card there is later).
+  players.
+- **Visual editor** (`app/utils/pluto-embed-node.ts`, added by `PlutoFieldMarkdown`): a top-level
+  embed shows as the `plutoEmbed` block (`PlutoEmbedNodeView`): the provider component, inert (a
+  click selects the block, it never plays), and the provider and the URL under it.
+  `PlutoEmbedParagraph` has its own block token, `plutoEmbedLine` (a URL alone between blank
+  lines). It parses the line as a paragraph, with the source text in `plutoEmbedSource` when
+  `isEmbedParagraph` and a provider match it. A pass (`onCreate`, `appendTransaction`, not in Undo)
+  turns each top-level one into the block; a nested one (a quote, a list) stays a link, as on the
+  site. The block writes its source text back (bare, `<url>` or `[url](url)`), so an open post
+  stays unchanged. A provider URL pasted alone into an empty top-level line becomes the block, with
+  an empty line after it. A click selects the block (on `click`, not `mousedown`, which starts a
+  drag), and its popover (`PlutoEditorEmbedMenu`, a Tiptap `BubbleMenu`, `bottom-start`) edits the
+  address: a new one that no provider matches shows a message and changes nothing; a matching one
+  is written alone on its line (no source). Open and Remove too. Never register a parser under the
+  `paragraph` token: the Markdown writer finds the writer of a node by its token name first, and a
+  parser with no writer empties every paragraph.
 - The sanitizer writes each kept attribute value decoded once and escaped once (`keptValue`), so
   a `&` in a URL is `&amp;`, not `&amp;amp;`.
+
+## Code highlighters
+
+Core colors no code: a code block of the public HTML is `<pre><code class="language-ts">` with plain
+text (the sanitizer keeps the `language-*` class). A highlighter is opt-in: an add-on layer
+(`@plutocms/lowlight`) or a Nitro plugin of the site (Shiki, Comark) registers one.
+
+- **Registry** (`server/utils/pluto-highlight.ts`, auto-imported on the server):
+  `definePlutoHighlighter({ id, order?, highlight })`. `highlight({ code, lang })` returns the HTML of
+  the block (the inside of `<code>`, or a whole `<pre>` like Shiki), or nothing for a language it
+  does not know. It may be async. The same `id` again replaces it.
+- **Choice:** `runtimeConfig.plutoApi.highlighter` (env `NUXT_PLUTO_API_HIGHLIGHTER`) names the one
+  to try first; the others follow by `order` (default 100), then by `id`. A missing name warns once
+  and uses the order. So several highlighters can be installed, and a partial one (one language)
+  still helps.
+- **Where:** `toPublicData` (server/utils/pluto-public-api.ts) runs `highlightPlutoHtml` on the `html`
+  of an item, after `hooks.toPublic`: every backend, SSR and the static build. A block with no
+  language, or that no highlighter knows, stays as it is. A failing highlighter warns once and the
+  next one tries. The blocks are cached by the chain, the language and the code (500).
+- **Safety:** the output goes through `sanitizeHighlightHtml` (shared/markdown/sanitize-highlight.ts):
+  `pre`, `code`, `span`; classes that are plain names; `style` with colors, font style and weight,
+  text decoration and custom properties (`--shiki-*`), never `url(` or `expression(`; `tabindex="0"`
+  on `pre`; script-like elements and links drop, other elements unwrap. Tests: `test/highlight.test.ts`.
+- **Preview:** the post preview (`pages/_pluto/post-preview.vue`) posts its HTML to
+  `POST /api/_pluto/highlight/<type>` (the write capability of the type) 300 ms after a change, and
+  stops when the answer says `highlighted: false` (no highlighter).
+- **Themes** are opt-in CSS of the highlighter layer (`@plutocms/lowlight/theme.css`, on
+  `--pluto-code-*` variables of `.pluto-prose`). The admin editor has its own colors
+  (`--pluto-code-*` of the admin in pluto-layer.css): it never loads a site highlighter.
+- A new highlighter layer: a Nitro plugin with `definePlutoHighlighter`, its theme CSS, an entry in
+  `PLUTO_LAYER_PATHS` (layers.ts) and in release-please-config.json.
 
 ## Scheduled publish and review
 
@@ -981,6 +1027,21 @@ validation through `validateContentPayload` before it ever calls `save()` — th
 again regardless (wave 2), so this is a UX nicety, not the enforcement point. On a successful
 create, it shows a success toast and navigates to the new item's edit URL; on a successful update,
 it shows a success toast and stays put.
+
+### Side groups
+
+The side column (and the "Page" tab of a canvas form) can split its fields into collapsible
+groups. A type lists them in `sideGroups` (`PlutoContentSideGroup`: `id`, `label` as a key or a
+literal, `icon`, `order` default 100, `defaultOpen` default `true`). A field joins one with
+`group: '<id>'`. `PlutoContentSideFields` renders the column: the fields with no group (or an
+unknown group id) first, with no header, then each group that has fields, by `order`, as a
+`UCollapsible` with a header button. The pure split is `plutoSideFieldLayout` (shared util, test:
+`test/content-side-groups.test.ts`). The open state lives in the component for the visit only.
+
+A layer that adds fields to a type adds its group in the same content type extension, so its
+fields stay together under its name. The SEO add-on is the example: `PLUTO_SEO_GROUP` (id `seo`,
+label `seo.group`, `lucide:search`, order 900, closed on load), and `group: 'seo'` on each SEO
+field. It does not add the group when the type has a group `seo` already.
 
 In edit mode, the toolbar title (every layout has the same toolbar and no body H1, see the
 admin-view-chrome skill) and the browser tab title show the value of the type's `titleField`. While the item loads, or when the title is empty, they show "Edit <type>". If the

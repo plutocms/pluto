@@ -8,9 +8,16 @@ export default defineNuxtConfig({
     '@plutocms/3d',
     '@plutocms/shop',
     '@plutocms/seo',
+    '@plutocms/lowlight',
   ],
 
   css: ['~/assets/css/main.css'],
+
+  runtimeConfig: {
+    public: {
+      websiteName: 'Pluto playground',
+    },
+  },
 
   compatibilityDate: '2025-07-15',
 })

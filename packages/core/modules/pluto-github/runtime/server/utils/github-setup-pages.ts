@@ -28,28 +28,44 @@ export function escapeCodeText(value: string): string {
   return escapeHtml(value).replace(/`([^`]+)`/g, '<code>$1</code>')
 }
 
+// The look of the admin auth pages (the `auth` layout and PlutoAdminAuthCard): the colors of the
+// admin theme (app/assets/css/admin-theme.css, OKLCH literals, light and dark), the canvas, a
+// card with the logo, and the buttons, alerts and inline code of the admin. Public Sans when the
+// browser has it, else the system font: the page loads no font file.
 const STYLES = `
-:root{color-scheme:light dark;--bg:#f6f7f9;--card:#fff;--text:#14171a;--muted:#5b6670;--border:#dfe3e8;--accent:#16a34a;--accent-text:#fff;--code:#f0f2f5;--warn:#92400e;--warn-bg:#fef3c7}
-@media (prefers-color-scheme:dark){:root{--bg:#0e1013;--card:#171a1f;--text:#eceff2;--muted:#9aa5b1;--border:#2a2f36;--accent:#22c55e;--accent-text:#04210f;--code:#0e1013;--warn:#fcd34d;--warn-bg:#3b2a08}}
+:root{color-scheme:light dark;--canvas:#fff;--card:#fff;--text:oklch(39.7% .05 273.48);--strong:oklch(24.1% .041 272.8);--muted:oklch(56% .049 273.45);--border:oklch(91% .016 269.97);--accented:oklch(83.3% .025 270.3);--elevated:oklch(95.5% .008 271.33);--primary:oklch(58.7% .184 36.16);--on-primary:#fff;--success:oklch(72.3% .219 149.579);--warn:oklch(76.9% .188 70.08);--warn-bg:oklch(76.9% .188 70.08/.1);--warn-ring:oklch(76.9% .188 70.08/.25)}
+@media (prefers-color-scheme:dark){:root{--canvas:oklch(24.1% .041 272.8);--card:oklch(28% .042 273);--text:oklch(91% .016 269.97);--strong:#fff;--muted:oklch(68.5% .039 271.84);--border:oklch(31.2% .048 273.43);--accented:oklch(39.7% .05 273.48);--elevated:oklch(31.2% .048 273.43);--primary:oklch(72.8% .165 40.63);--on-primary:oklch(24.1% .041 272.8);--success:oklch(79.2% .209 151.711);--warn:oklch(82.8% .189 84.429);--warn-bg:oklch(82.8% .189 84.429/.1);--warn-ring:oklch(82.8% .189 84.429/.25)}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:32px 16px}
-main{max-width:40rem;margin:0 auto}
-h1{font-size:1.6rem;line-height:1.25;margin:0 0 .5rem}
-h2{font-size:1.05rem;margin:0 0 .35rem}
-p{margin:.25rem 0 .75rem;color:var(--muted)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin:16px 0}
+body{margin:0;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--canvas);color:var(--text);font:14px/1.5 "Public Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px}
+main{width:100%;max-width:40rem;display:flex;flex-direction:column;gap:16px;padding:24px 0}
+.logo{display:block;height:32px;width:auto}
+h1{color:var(--strong);font-size:1.875rem;line-height:1.2;font-weight:600;letter-spacing:-.02em;margin:0}
+h2{color:var(--strong);font-size:1rem;font-weight:600;margin:0 0 4px}
+p{margin:0 0 12px;color:var(--muted)}
+.lead{margin:-8px 0 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px}
 .step{display:flex;gap:12px}
-.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-text);font-weight:700;display:grid;place-items:center;font-size:.9rem}
+.num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--elevated);color:var(--strong);font-weight:600;display:grid;place-items:center;font-size:.75rem;margin-top:-1px}
 .step>div{min-width:0;flex:1}
-.btn{display:inline-block;border:1px solid var(--border);background:var(--card);color:var(--text);padding:9px 16px;border-radius:8px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
-.btn:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:0;box-shadow:inset 0 0 0 1px var(--accented);background:transparent;color:var(--text);padding:6px 10px;border-radius:6px;font:inherit;font-weight:500;cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--elevated)}
+.btn.primary{background:var(--primary);box-shadow:none;color:var(--on-primary)}
+.btn.primary:hover{background:color-mix(in oklch,var(--primary) 85%,var(--canvas))}
+.btn:focus-visible,textarea:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-textarea{width:100%;min-height:11rem;resize:vertical;background:var(--code);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px;font:.8rem/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:8px 0;white-space:pre;overflow:auto}
-.note{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 12px;margin:12px 0;font-size:.92rem}
-.ok{color:var(--accent)}
-code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.9em}
+textarea{width:100%;min-height:11rem;resize:vertical;background:var(--canvas);color:var(--strong);border:0;box-shadow:inset 0 0 0 1px var(--accented);border-radius:6px;padding:8px 10px;font:.8rem/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:4px 0 8px;white-space:pre;overflow:auto}
+.note{background:var(--warn-bg);box-shadow:inset 0 0 0 1px var(--warn-ring);color:var(--warn);border-radius:8px;padding:12px 16px;margin:0 0 12px;font-size:.875rem}
+.ok{color:var(--success)}
+.ext{width:1em;height:1em;flex:none}
+code{border:1px solid var(--accented);background:var(--elevated);color:var(--strong);padding:1px 5px;border-radius:4px;font:.875em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 `
+
+// The external icon of Nuxt UI (Lucide `arrow-up-right`), after a link that opens another site.
+const EXTERNAL_ICON = `<svg class="ext" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>`
+
+// The Pluto logo of the admin auth card: the black wordmark in light mode, the white one in dark
+// mode (core serves both from public/img).
+const LOGO = `<picture><source srcset="/img/pluto.png" media="(prefers-color-scheme: dark)"><img class="logo" src="/img/pluto.svg" alt="Pluto"></picture>`
 
 function layout(lang: string | undefined, title: string, body: string): string {
   return `<!doctype html>
@@ -64,6 +80,7 @@ function layout(lang: string | undefined, title: string, body: string): string {
 </head>
 <body>
 <main>
+${LOGO}
 ${body}
 </main>
 </body>
@@ -89,7 +106,7 @@ export interface StartPageInput {
 export function renderStartPage(input: StartPageInput): string {
   const { t } = input
   const body = `<h1>${escapeHtml(t('pluto.github.setup.page.start.title'))}</h1>
-<p>${escapeHtml(t('pluto.github.setup.page.start.body', { name: input.appName }))}</p>
+<p class="lead">${escapeHtml(t('pluto.github.setup.page.start.body', { name: input.appName }))}</p>
 <form id="setup-form" class="card" method="post" action="${escapeHtml(input.action)}">
 <input type="hidden" name="manifest" value="${escapeHtml(input.manifest)}">
 <div class="row"><button class="btn primary" type="submit">${escapeHtml(t('pluto.github.setup.page.start.button'))}</button></div>
@@ -134,7 +151,7 @@ export function renderResultPage(input: ResultPageInput): string {
     : t('pluto.github.setup.page.result.step3Prod')
 
   const body = `<h1>${escapeHtml(t('pluto.github.setup.page.result.title'))}</h1>
-<p>${escapeHtml(t('pluto.github.setup.page.result.intro', { name: input.appName }))}</p>
+<p class="lead">${escapeHtml(t('pluto.github.setup.page.result.intro', { name: input.appName }))}</p>
 <div class="note">${escapeHtml(t('pluto.github.setup.page.result.secretNote'))}</div>
 
 <section class="card step">
@@ -153,7 +170,7 @@ ${saved}${failed}${ignored}
 <div>
 <h2>${escapeHtml(t('pluto.github.setup.page.result.step2'))}</h2>
 <p>${escapeHtml(t('pluto.github.setup.page.result.step2Body'))}</p>
-<div class="row"><a class="btn primary" href="${escapeHtml(input.installUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('pluto.github.setup.page.result.install'))}</a></div>
+<div class="row"><a class="btn primary" href="${escapeHtml(input.installUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('pluto.github.setup.page.result.install'))}${EXTERNAL_ICON}</a></div>
 </div>
 </section>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {PlutoReferenceOption} from '../../../../composables/internal/reference-options';
+import type { PlutoReferenceOption } from '../../../../composables/internal/reference-options'
 // The core `reference` widget. The value is one id, or a list of ids in order (`multiple`).
 // The choices come from one of two sources:
 // - `field.target`: the items of another content type, from the generic admin route (see
@@ -9,8 +9,8 @@ import type {PlutoReferenceOption} from '../../../../composables/internal/refere
 // An id with no option (a deleted item) shows its text, so the value is not lost. See the
 // tags-and-categories skill.
 import {
-  
-  withUnknownIds
+  referenceImageField,
+  withUnknownIds,
 } from '../../../../composables/internal/reference-options'
 
 const props = defineProps<{
@@ -77,7 +77,71 @@ const ids = computed(() => referenceValue(props.modelValue))
 const baseOptions = computed(() =>
   usesTarget.value ? targetOptions.options.value : urlOptions.value
 )
-const items = computed(() => withUnknownIds(baseOptions.value, ids.value))
+// The icon of the target type leads the input. An option of a type with an image (the avatar of an
+// author) shows it: the media records of the options load in one request.
+const icon = computed(() => (target.value ? byName(target.value)?.icon : undefined))
+const mediaApi = usePlutoMedia()
+const imageUrls = ref(new Map<string, string>())
+
+watch(
+  () => baseOptions.value.map((option) => option.image),
+  async (images) => {
+    const missing = [
+      ...new Set(
+        images.filter(
+          (id): id is string => id !== undefined && !imageUrls.value.has(id)
+        )
+      ),
+    ]
+    if (missing.length === 0 || !mediaApi.enabled) {
+      return
+    }
+    try {
+      const next = new Map(imageUrls.value)
+      for (const record of await mediaApi.get(missing)) {
+        const url =
+          record.preview?.url ??
+          (record.mimeType.startsWith('image/') ? record.url : undefined)
+        if (url) {
+          next.set(record.id, url)
+        }
+      }
+      imageUrls.value = next
+    } catch {
+      // No avatars: the menu works the same.
+    }
+  },
+  { immediate: true }
+)
+
+// A type with an image field gives every option an avatar: the image, else the initials.
+const hasImages = computed(() =>
+  Boolean(target.value && referenceImageField(byName(target.value)))
+)
+type MenuOption = PlutoReferenceOption & {
+  avatar?: {
+    src?: string
+    alt: string
+  }
+}
+const items = computed<MenuOption[]>(() =>
+  withUnknownIds(baseOptions.value, ids.value).map((option) => {
+    if (!hasImages.value) {
+      return option
+    }
+    const src = option.image ? imageUrls.value.get(option.image) : undefined
+    return { ...option, avatar: { src, alt: option.label } }
+  })
+)
+
+/** The option of a tag of the menu (the tag holds the id). */
+function tagOption(tag: unknown) {
+  const value =
+    typeof tag === 'object' && tag !== null && 'value' in tag
+      ? (tag as { value: unknown }).value
+      : tag
+  return items.value.find((option) => option.value === value)
+}
 const pending = computed(() =>
   usesTarget.value ? targetOptions.pending.value : urlPending.value
 )
@@ -150,12 +214,24 @@ async function onCreate(text: string) {
       :multiple="field.multiple"
       :create-item="canCreate ? 'always' : false"
       :placeholder="t('pluto.fields.reference.placeholder')"
+      :icon="icon"
       value-key="value"
       label-key="label"
       class="w-full"
       @update:model-value="onUpdate"
       @create="onCreate"
     >
+      <template #tags-item-text="{ item }">
+        <span class="inline-flex items-center gap-1">
+          <UAvatar
+            v-if="tagOption(item)?.avatar"
+            v-bind="tagOption(item)?.avatar"
+            size="3xs"
+          />
+          {{ tagOption(item)?.label ?? item }}
+        </span>
+      </template>
+
       <template #empty>
         {{ t('pluto.fields.reference.empty') }}
       </template>

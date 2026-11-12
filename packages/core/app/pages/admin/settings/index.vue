@@ -27,6 +27,8 @@ onMounted(() => {
       :title="t('pluto.settings.noStorage')"
       :description="t('pluto.settings.noStorageHint')"
       color="warning"
+      variant="subtle"
+      icon="lucide:database-zap"
     />
 
     <template v-else>

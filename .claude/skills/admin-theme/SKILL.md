@@ -194,9 +194,24 @@ Now the admin defaults are in `app/composables/pluto-admin-theme.ts`:
 - `PLUTO_ADMIN_UI_PROPS`: the default size of Nuxt UI (`md`) for every component that has a
   size. The admin pins it, so a site's `defaultVariants.size` does not reach the admin. Do not
   set `size="md"` on a component: it is the default. Set a size only for a component that must
-  be smaller or larger (an `xs` icon button in a toolbar).
+  be smaller or larger (an `xs` icon button in a toolbar). It also sets `arrow: true` on the
+  tooltip, the popover, the dropdown menu, the select, the select menu and the input menu: every
+  floating surface points to its trigger. A component that sets `:arrow` itself wins.
 - `PLUTO_ADMIN_UI`: `font-sans` on the base of the form components (the admin font), after the
   classes of the site, so tailwind-merge drops a site font class.
+
+The elevation is not a slot class: Nuxt UI merges a component's own `ui` over the theme `ui` with
+`defu`, so a component that sets `ui.content` (the editor menus, the user menu) would drop it. A
+rule in `pluto-layer.css`, outside any layer, gives `shadow-pluto-elevated` (a strong shadow,
+stronger in dark mode, that keeps the ring of the surface) to every popper content (popover,
+dropdown, context menu, select and combobox lists), every dialog (modal, slideover, command
+palette) and the editor menus (`/`, mention, emoji). Tooltips keep their small shadow. The core
+`Modal` component uses the utility directly.
+
+Tooltips are dark in both modes, for the same reason a CSS rule: the tooltip content
+(`[data-reka-popper-content-wrapper] > [data-slot='content']:has([role='tooltip'])`) is in the
+selector list of the dark tokens in `admin-theme.css` (text, borders, kbds), and `pluto-layer.css`
+gives it and its arrow the navbar color (`--pluto-admin-navbar`).
 
 `PlutoAdminTheme` gives them with `UTheme` (no element, provide/inject, so overlays opened
 from inside get them too). The admin layout, the auth layout and the admin bar

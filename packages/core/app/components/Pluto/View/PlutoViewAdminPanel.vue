@@ -57,14 +57,23 @@ onBeforeUpdate(() => {
 const { t } = usePlutoI18n()
 const isDesktop = useMediaQuery('(min-width: 64rem)')
 
-// The splitter works in percentages of the row width. The side limits are in
-// px, so convert them against the measured row width. Do not use the
+// The splitter works in percentages of its own width: the row less the rail (the aside can be
+// outside the splitter for a moment, so the splitter itself is not measured). The side limits are
+// in px, so convert them against that width. Do not use the
 // splitter's `sizeUnit: 'px'`: when a panel joins with its side already open
 // (a reload), reka-ui skips the px conversion and reads the px value as a raw
 // size.
+interface SplitterPanelInstance {
+  resize: (size: number) => void
+}
+const splitter = useTemplateRef<{
+  panelsRef: Array<SplitterPanelInstance | null | undefined>
+}>('splitter')
 const rowEl = ref<HTMLElement>()
+const railEl = ref<HTMLElement>()
 const { width: rowWidth } = useElementSize(rowEl)
-const toPercent = (px: number) => Math.min(100, (px / rowWidth.value) * 100)
+const splitWidth = computed(() => rowWidth.value - (railEl.value?.offsetWidth ?? 0))
+const toPercent = (px: number) => Math.min(100, (px / splitWidth.value) * 100)
 
 // On mobile the aside is a slideover, so it needs no panel. Wait for the
 // row to have a width, so the px-to-percent conversion is correct.
@@ -116,7 +125,7 @@ const LEFT_MAX = 400
 // Keep the side widths in px ourselves, so they stay the same when the
 // window size changes between visits.
 const asideWidth = useCookie<number>('pluto-view-aside-width', {
-  default: () => 320,
+  default: () => 300,
 })
 const leftWidth = useCookie<number>('pluto-view-left-width', {
   default: () => 260,
@@ -130,26 +139,12 @@ const clamp = (px: number, min: number, max: number) =>
   Math.min(max, Math.max(min, px))
 const asideDefault = ref(0)
 const leftDefault = ref(0)
-watch(
-  resizable,
-  (value) => {
-    if (value) {
-      asideDefault.value = toPercent(
-        clamp(asideWidth.value, ASIDE_MIN, ASIDE_MAX)
-      )
-    }
-  },
-  { immediate: true }
-)
-watch(
-  leftResizable,
-  (value) => {
-    if (value) {
-      leftDefault.value = toPercent(clamp(leftWidth.value, LEFT_MIN, LEFT_MAX))
-    }
-  },
-  { immediate: true }
-)
+
+/** The width of a side panel in px: its box while it is open, else the stored width. */
+function sideWidth(el: HTMLElement | undefined, stored: number) {
+  const width = el?.getBoundingClientRect().width
+  return width && width > 0 ? width : stored
+}
 
 function onDragging(_index: number, dragging: boolean) {
   if (dragging) {
@@ -209,6 +204,51 @@ const items = computed<SplitterItem[]>(() => [
       ]
     : []),
 ])
+
+// When a side panel opens or closes, the splitter lays out its panels again from the
+// `defaultSize` that each one had when it joined: reka-ui reads it once, at mount. So the panel
+// that stays open went back to its first width (a width dragged since then was lost). The widths
+// in px are taken before the change (the panel that stays open: its box; the one that opens: its
+// stored width), and both panels get them back after the new layout.
+function restoreSideWidths(asidePx: number, leftPx: number) {
+  const panels = splitter.value?.panelsRef ?? []
+  const panelOf = (id: string) => {
+    const index = items.value.findIndex((item) => item.id === id)
+    return index < 0 ? undefined : panels[index]
+  }
+  if (resizable.value) {
+    panelOf('pluto-view-aside')?.resize(toPercent(asidePx))
+  }
+  if (leftResizable.value) {
+    panelOf('pluto-view-left')?.resize(toPercent(leftPx))
+  }
+}
+
+watch(
+  [resizable, leftResizable],
+  ([aside, left], previous) => {
+    const asidePx = clamp(
+      sideWidth(asideEl.value, asideWidth.value),
+      ASIDE_MIN,
+      ASIDE_MAX
+    )
+    const leftPx = clamp(
+      sideWidth(leftEl.value, leftWidth.value),
+      LEFT_MIN,
+      LEFT_MAX
+    )
+    if (aside) {
+      asideDefault.value = toPercent(asidePx)
+    }
+    if (left) {
+      leftDefault.value = toPercent(leftPx)
+    }
+    if (previous) {
+      nextTick(() => restoreSideWidths(asidePx, leftPx))
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -231,6 +271,7 @@ const items = computed<SplitterItem[]>(() => [
       -->
       <nav
         v-if="hasRailSlot && isDesktop"
+        ref="railEl"
         :aria-label="t('pluto.canvas.actions')"
         class="bg-pluto-rail flex w-12 shrink-0 flex-col items-center gap-1 py-2"
       >
@@ -245,7 +286,9 @@ const items = computed<SplitterItem[]>(() => [
         Without an id, reka-ui gives each handle its own unique id. The panels keep their `id`s.
       -->
       <USplitter
+        ref="splitter"
         :items="items"
+        :hit-area-margins="{ coarse: 15, fine: 2.5 }"
         :ui="{
           // In the sheet with no aside open, 16px of frame at the right of the sheet.
           root: sheet && !resizable ? 'min-h-0 flex-1 pe-4' : 'min-h-0 flex-1',
@@ -284,8 +327,8 @@ const items = computed<SplitterItem[]>(() => [
             class="min-h-0 w-full"
           >
             <!--
-              'container' matches AdminView's own padding/gap classes, so a view
-              moving from AdminView to this panel looks the same. 'full' adds
+              'container' gives the padding and the gap of every admin page, so a
+              page needs no wrapper of its own. 'full' adds
               none — a focus-layout consumer (e.g. a rich text editor) supplies
               its own padding instead.
             -->

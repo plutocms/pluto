@@ -203,15 +203,10 @@ const cloudflare = {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-8">
-    <div>
-      <h2 class="text-xl font-semibold">
-        {{ t('pluto.settings.tabs.deploy') }}
-      </h2>
-      <p class="text-muted text-sm">
-        {{ t('pluto.github.deploy.intro') }}
-      </p>
-    </div>
+  <div class="flex flex-col gap-y-6 lg:gap-y-8">
+    <p class="text-muted text-sm">
+      {{ t('pluto.github.deploy.intro') }}
+    </p>
 
     <UAlert
       v-if="loadError"
@@ -233,7 +228,7 @@ const cloudflare = {
     <!-- The whole app: the site and the admin. -->
     <section class="flex flex-col gap-y-3">
       <div>
-        <h3 class="font-semibold">{{ t('pluto.github.deploy.full.title') }}</h3>
+        <h2 class="font-semibold">{{ t('pluto.github.deploy.full.title') }}</h2>
         <p class="text-muted text-sm">
           {{ t('pluto.github.deploy.full.description') }}
         </p>
@@ -259,7 +254,7 @@ const cloudflare = {
               :variant="host.id === 'node' ? 'outline' : 'solid'"
               class="self-start"
               target="_blank"
-              trailing-icon="i-lucide-external-link"
+              trailing-icon="i-lucide-arrow-up-right"
             />
           </div>
         </UCard>
@@ -272,9 +267,9 @@ const cloudflare = {
     <!-- A static site: the admin stays on the computer. -->
     <section class="flex flex-col gap-y-3">
       <div>
-        <h3 class="font-semibold">
+        <h2 class="font-semibold">
           {{ t('pluto.github.deploy.static.title') }}
-        </h3>
+        </h2>
         <p class="text-muted text-sm">
           {{ t('pluto.github.deploy.static.description') }}
         </p>
@@ -301,7 +296,7 @@ const cloudflare = {
               :to="siteUrl"
               color="neutral"
               target="_blank"
-              trailing-icon="i-lucide-external-link"
+              trailing-icon="i-lucide-arrow-up-right"
               variant="outline"
             />
           </div>
@@ -392,7 +387,7 @@ const cloudflare = {
                     color="neutral"
                     size="sm"
                     target="_blank"
-                    trailing-icon="i-lucide-external-link"
+                    trailing-icon="i-lucide-arrow-up-right"
                     variant="outline"
                   />
                 </div>
@@ -455,7 +450,7 @@ const cloudflare = {
                       color="neutral"
                       size="sm"
                       target="_blank"
-                      trailing-icon="i-lucide-external-link"
+                      trailing-icon="i-lucide-arrow-up-right"
                       variant="ghost"
                     />
                   </div>
@@ -513,7 +508,7 @@ const cloudflare = {
                 target: '_blank',
                 color: 'neutral',
                 variant: 'outline',
-                trailingIcon: 'i-lucide-external-link',
+                trailingIcon: 'i-lucide-arrow-up-right',
               },
             ]"
             color="info"
@@ -563,30 +558,36 @@ const cloudflare = {
             </dt>
             <dd class="flex items-center gap-2">
               <code class="text-sm">{{ cloudflare.command }}</code>
-              <UButton
-                :aria-label="t('pluto.common.copy')"
-                :icon="
-                  copied === 'command' ? 'i-lucide-check' : 'i-lucide-copy'
-                "
-                color="neutral"
-                size="xs"
-                variant="ghost"
-                @click="copy('command', cloudflare.command)"
-              />
+              <UTooltip :text="t('pluto.common.copy')">
+                <UButton
+                  :aria-label="t('pluto.common.copy')"
+                  :icon="
+                    copied === 'command' ? 'i-lucide-check' : 'i-lucide-copy'
+                  "
+                  color="neutral"
+                  size="xs"
+                  variant="ghost"
+                  @click="copy('command', cloudflare.command)"
+                />
+              </UTooltip>
             </dd>
             <dt class="text-muted text-sm">
               {{ t('pluto.github.deploy.cloudflare.output') }}
             </dt>
             <dd class="flex items-center gap-2">
               <code class="text-sm">{{ cloudflare.output }}</code>
-              <UButton
-                :aria-label="t('pluto.common.copy')"
-                :icon="copied === 'output' ? 'i-lucide-check' : 'i-lucide-copy'"
-                color="neutral"
-                size="xs"
-                variant="ghost"
-                @click="copy('output', cloudflare.output)"
-              />
+              <UTooltip :text="t('pluto.common.copy')">
+                <UButton
+                  :aria-label="t('pluto.common.copy')"
+                  :icon="
+                    copied === 'output' ? 'i-lucide-check' : 'i-lucide-copy'
+                  "
+                  color="neutral"
+                  size="xs"
+                  variant="ghost"
+                  @click="copy('output', cloudflare.output)"
+                />
+              </UTooltip>
             </dd>
           </dl>
           <UButton
@@ -595,7 +596,7 @@ const cloudflare = {
             class="self-start"
             color="neutral"
             target="_blank"
-            trailing-icon="i-lucide-external-link"
+            trailing-icon="i-lucide-arrow-up-right"
             variant="outline"
           />
         </div>

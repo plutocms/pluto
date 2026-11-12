@@ -109,7 +109,7 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
               :label="t('pluto.navbar.viewSite')"
               :title="t('pluto.navbar.visitSite', { domain: siteDomain })"
               :to="siteUrl"
-              icon="lucide:external-link"
+              icon="i-lucide-arrow-up-right"
               target="_blank"
             />
           </ul>

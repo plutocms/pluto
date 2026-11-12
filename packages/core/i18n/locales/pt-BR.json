@@ -22,7 +22,8 @@
       "switchToLightMode": "Mudar para o tema claro",
       "switchToDarkMode": "Mudar para o tema escuro",
       "copy": "Copiar",
-      "copied": "Copiado"
+      "copied": "Copiado",
+      "opensInNewTab": "abre em uma nova aba"
     },
     "navbar": {
       "openNavigation": "Abrir a navegação",
@@ -69,6 +70,9 @@
       "untitled": "Sem título"
     },
     "form": {
+      "slugEdit": "Editar o slug",
+      "slugDone": "Pronto",
+      "slugFromTitle": "Criado a partir do título",
       "published": "Publicado",
       "unpublished": "Não publicado",
       "saved": "Salvo",
@@ -332,6 +336,7 @@
       "crossOrigin": "Esta requisição não veio deste site.",
       "invalidQuery": "O parâmetro \"{name}\" da consulta não é válido.",
       "backupTooLarge": "As alterações não salvas são grandes demais para o backup no servidor.",
+      "previewTooLarge": "O post é longo demais para a prévia com as cores do código.",
       "backupInvalid": "O backup não é válido.",
       "noTrash": "Este tipo de conteúdo não tem lixeira.",
       "noTrashAdapter": "O backend de conteúdo não tem lixeira.",
@@ -420,13 +425,32 @@
           "placeholder": "Cole um link",
           "apply": "Aplicar o link",
           "open": "Abrir o link",
-          "remove": "Remover o link"
+          "remove": "Remover o link",
+          "url": "Endereço",
+          "text": "Texto",
+          "textPlaceholder": "O texto do link",
+          "newTab": "Abrir em uma nova aba"
+        },
+        "imagePopover": {
+          "alt": "Texto alternativo",
+          "altPlaceholder": "O que a imagem mostra, para quem não pode vê-la",
+          "replace": "Substituir",
+          "open": "Abrir a imagem",
+          "remove": "Remover a imagem"
+        },
+        "embedPopover": {
+          "url": "Endereço do vídeo",
+          "open": "Abrir o vídeo",
+          "remove": "Remover o vídeo",
+          "invalid": "O site não tem um player de vídeo para este endereço."
         },
         "lists": "Listas",
         "bulletList": "Lista com marcadores",
         "orderedList": "Lista numerada",
         "blockquote": "Citação",
         "codeBlock": "Bloco de código",
+        "codeLanguage": "Linguagem",
+        "codePlain": "Texto simples",
         "visual": "Visual",
         "source": "Código",
         "unsafe": "Este texto tem uma sintaxe que o editor visual não consegue manter (MDC, HTML, tabelas, listas de tarefas ou notas de rodapé). Edite no modo Código.",
@@ -694,6 +718,7 @@
             "name": "GitHub Pages",
             "description": "O domínio fica nas configurações do Pages do repositório. Um arquivo CNAME não tem efeito: o GitHub o ignora quando uma Action gera o site.",
             "current": "O site usa o domínio {domain}.",
+            "subpath": "O site está em {url}: o GitHub serve um repositório sob o nome dele. Para servir o site na raiz de um endereço, adicione seu domínio abaixo. Um repositório chamado {repo} também é servido na raiz.",
             "label": "Seu domínio",
             "placeholder": "blog.exemplo.com",
             "steps": {
@@ -979,7 +1004,11 @@
       "previewFailedTitle": "A prévia não carregou",
       "previewFailed": "A página de prévia do site não respondeu. Verifique se o site está no ar e tente de novo.",
       "previewSwitch": "Prévia",
-      "titlePlaceholder": "Adicione um título"
+      "titlePlaceholder": "Adicione um título",
+      "zen": "Modo zen",
+      "zenExit": "Sair do modo zen",
+      "zenHideToolbar": "Ocultar a barra de ferramentas",
+      "zenShowToolbar": "Mostrar a barra de ferramentas"
     },
     "markdown": {
       "formatting": "Formatação",

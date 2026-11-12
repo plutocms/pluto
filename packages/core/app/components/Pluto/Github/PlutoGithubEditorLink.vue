@@ -101,36 +101,45 @@ function onKeydown(event: KeyboardEvent) {
         @keydown="onKeydown"
       >
         <div class="mr-0.5 flex items-center">
-          <UButton
-            :disabled="!url"
-            :title="t('pluto.github.editor.linkPopover.apply')"
-            :aria-label="t('pluto.github.editor.linkPopover.apply')"
-            icon="i-lucide-corner-down-left"
-            variant="ghost"
-            size="sm"
-            @click="setLink"
-          />
+          <UTooltip :text="t('pluto.github.editor.linkPopover.apply')">
+            <span class="inline-flex">
+              <UButton
+                :disabled="!url"
+                :aria-label="t('pluto.github.editor.linkPopover.apply')"
+                icon="i-lucide-corner-down-left"
+                variant="ghost"
+                size="sm"
+                @click="setLink"
+              />
+            </span>
+          </UTooltip>
           <USeparator orientation="vertical" class="mx-1 h-6" />
-          <UButton
-            :disabled="!url"
-            :title="t('pluto.github.editor.linkPopover.open')"
-            :aria-label="t('pluto.github.editor.linkPopover.open')"
-            icon="i-lucide-external-link"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            @click="openLink"
-          />
-          <UButton
-            :disabled="!active"
-            :title="t('pluto.github.editor.linkPopover.remove')"
-            :aria-label="t('pluto.github.editor.linkPopover.remove')"
-            icon="i-lucide-trash"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            @click="removeLink"
-          />
+          <UTooltip :text="t('pluto.github.editor.linkPopover.open')">
+            <span class="inline-flex">
+              <UButton
+                :disabled="!url"
+                :aria-label="t('pluto.github.editor.linkPopover.open')"
+                icon="i-lucide-arrow-up-right"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                @click="openLink"
+              />
+            </span>
+          </UTooltip>
+          <UTooltip :text="t('pluto.github.editor.linkPopover.remove')">
+            <span class="inline-flex">
+              <UButton
+                :disabled="!active"
+                :aria-label="t('pluto.github.editor.linkPopover.remove')"
+                icon="i-lucide-trash"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                @click="removeLink"
+              />
+            </span>
+          </UTooltip>
         </div>
       </UInput>
     </template>

@@ -6,6 +6,9 @@
 //
 // The `item-trailing` slot replaces the default trailing content, so this
 // component draws the chevron of a group again, with the classes of Nuxt UI.
+//
+// Collapsed, the `content` slot is the popover with the children of a group
+// (at least 160px wide). Expanded, it is the accordion content.
 defineProps<{
   collapsed?: boolean
 }>()
@@ -19,8 +22,9 @@ const appConfig = useAppConfig()
     :ui="{
       item: 'relative',
       childItem: 'relative',
-      link: 'gap-x-2.5 py-2',
+      link: 'min-h-9 gap-x-2.5 px-2.5 py-2',
       linkLeadingIcon: 'size-4.5',
+      content: collapsed ? 'min-w-40' : undefined,
     }"
   >
     <template #item-trailing="{ item, active, ui }">

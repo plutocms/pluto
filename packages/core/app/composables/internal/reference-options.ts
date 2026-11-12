@@ -16,6 +16,8 @@ export interface PlutoReferenceOption {
   value: string | number
   /** The slug of the item, when the target type has a slug field. */
   slug?: string
+  /** The media id of the image of the item (`referenceImageField`): the avatar of the option. */
+  image?: string
 }
 
 /** The name of the slug field of a type, if it has one. */
@@ -25,12 +27,29 @@ export function referenceSlugField(
   return type?.fields.find((field) => field.type === 'slug')?.name
 }
 
+/**
+ * The image field of a type, if it has one: its first `media` field of one image (`accept`
+ * empty or with an `image/` type). An author has its avatar; a term with a cover has the cover.
+ */
+export function referenceImageField(
+  type: PlutoContentType | undefined
+): string | undefined {
+  return type?.fields.find(
+    (field) =>
+      field.type === 'media' &&
+      !field.multiple &&
+      (!field.accept?.length ||
+        field.accept.some((accept) => accept.startsWith('image/')))
+  )?.name
+}
+
 /** The options of a list of items. An item with no title shows its id. */
 export function referenceOptionsFromItems(
   type: PlutoContentType | undefined,
   items: readonly PlutoContentItem[]
 ): PlutoReferenceOption[] {
   const slugField = referenceSlugField(type)
+  const imageField = referenceImageField(type)
   return items.map((item) => {
     const title = type?.titleField ? item[type.titleField] : undefined
     const label =
@@ -38,10 +57,13 @@ export function referenceOptionsFromItems(
         ? String(title).trim()
         : ''
     const slug = slugField ? item[slugField] : undefined
+    const imageValue = imageField ? item[imageField] : undefined
+    const image = Array.isArray(imageValue) ? imageValue[0] : imageValue
     return {
       label: label || String(item.id),
       value: item.id,
       ...(typeof slug === 'string' && slug !== '' && { slug }),
+      ...(typeof image === 'string' && image !== '' && { image }),
     }
   })
 }

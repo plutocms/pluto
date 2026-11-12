@@ -1,0 +1,95 @@
+/*
+ * The default theme of @plutocms/lowlight: the colors of the `hljs-*` classes in the code blocks of
+ * a post (`.pluto-prose`). Opt-in: import it in the CSS of the site, after Tailwind if the site has
+ * it:
+ *
+ *   @import '@plutocms/lowlight/theme.css';
+ *
+ * The colors are variables: a site sets `--pluto-code-*` on `.pluto-prose` (or `:root`) for its
+ * own palette. Light by default, and dark under a `.dark` ancestor (the class of Nuxt color mode).
+ * Every selector is in `:where()` (zero specificity) and in the `components` layer, so a rule of
+ * the site wins. The palette is the one of the code blocks of the Pluto editor.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  :where(.pluto-prose) {
+    --pluto-code-keyword: #7c3aed;
+    --pluto-code-string: #15803d;
+    --pluto-code-number: #b45309;
+    --pluto-code-function: #1d4ed8;
+    --pluto-code-type: #0e7490;
+    --pluto-code-property: #be123c;
+    --pluto-code-comment: #6b7280;
+  }
+
+  :where(.dark .pluto-prose) {
+    --pluto-code-keyword: #c4b5fd;
+    --pluto-code-string: #86efac;
+    --pluto-code-number: #fcd34d;
+    --pluto-code-function: #93c5fd;
+    --pluto-code-type: #67e8f9;
+    --pluto-code-property: #fda4af;
+    --pluto-code-comment: #9ca3af;
+  }
+
+  :where(.pluto-prose pre)
+    :where(
+      .hljs-keyword,
+      .hljs-selector-tag,
+      .hljs-literal,
+      .hljs-built_in,
+      .hljs-meta
+    ) {
+    color: var(--pluto-code-keyword);
+  }
+
+  :where(.pluto-prose pre)
+    :where(
+      .hljs-string,
+      .hljs-regexp,
+      .hljs-addition,
+      .hljs-template-tag,
+      .hljs-symbol
+    ) {
+    color: var(--pluto-code-string);
+  }
+
+  :where(.pluto-prose pre) :where(.hljs-number, .hljs-bullet) {
+    color: var(--pluto-code-number);
+  }
+
+  :where(.pluto-prose pre) :where(.hljs-title, .hljs-section) {
+    color: var(--pluto-code-function);
+  }
+
+  :where(.pluto-prose pre)
+    :where(.hljs-type, .hljs-title.class_, .hljs-name, .hljs-selector-class) {
+    color: var(--pluto-code-type);
+  }
+
+  :where(.pluto-prose pre)
+    :where(
+      .hljs-attr,
+      .hljs-attribute,
+      .hljs-property,
+      .hljs-selector-id,
+      .hljs-variable,
+      .hljs-deletion
+    ) {
+    color: var(--pluto-code-property);
+  }
+
+  :where(.pluto-prose pre) :where(.hljs-comment, .hljs-quote) {
+    color: var(--pluto-code-comment);
+    font-style: italic;
+  }
+
+  :where(.pluto-prose pre) :where(.hljs-emphasis) {
+    font-style: italic;
+  }
+
+  :where(.pluto-prose pre) :where(.hljs-strong) {
+    font-weight: 700;
+  }
+}

@@ -168,9 +168,12 @@
   --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* A tooltip and a toast are dark in both modes (pluto-layer.css gives them the navbar color). */
 :root[data-pluto-admin].dark,
 .dark [data-pluto-admin-scope],
-[data-pluto-admin-dark] {
+[data-pluto-admin-dark],
+[data-reka-popper-content-wrapper] > [data-slot='content']:has([role='tooltip']),
+:root[data-pluto-admin] ol[data-slot='viewport'] > [data-slot='base'] {
   --ui-primary: var(--ui-color-primary-400);
   --ui-secondary: var(--ui-color-secondary-400);
   --ui-success: var(--ui-color-success-400);

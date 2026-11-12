@@ -63,160 +63,160 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
 </script>
 
 <template>
-  <main>
-    <AdminView>
-      <h1 class="text-3xl font-bold lg:text-4xl">
-        {{ t('pluto.github.users.title') }}
-      </h1>
-
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <p class="text-muted max-w-2xl text-sm">
-          {{ t('pluto.github.users.description', { repo: repo || 'GitHub' }) }}
-        </p>
-        <UButton
-          v-if="accessUrl"
-          :label="t('pluto.github.users.manage')"
-          :to="accessUrl"
-          color="neutral"
-          icon="i-pluto-github"
-          target="_blank"
-          trailing-icon="i-lucide-external-link"
-          variant="outline"
-        />
-      </div>
-
-      <UAlert
-        v-if="answer?.restricted"
-        color="info"
-        icon="i-lucide-filter"
-        variant="subtle"
+  <PlutoViewAdminPanel>
+    <template #toolbar>
+      <PlutoViewToolbar
+        :title="t('pluto.github.users.title')"
+        icon="lucide:users"
       >
-        <template #description>
-          <PlutoCodeText :text="t('pluto.github.users.restricted')" />
-        </template>
-      </UAlert>
-
-      <!-- Loading -->
-      <div
-        v-if="status === 'loading'"
-        class="flex flex-col gap-y-3"
-        aria-busy="true"
-      >
-        <USkeleton v-for="row in 3" :key="row" class="h-12 w-full" />
-      </div>
-
-      <!-- Error -->
-      <UAlert
-        v-else-if="status === 'error'"
-        :title="t('pluto.github.users.error')"
-        :description="loadError"
-        :actions="[
-          {
-            label: t('pluto.common.tryAgain'),
-            color: 'neutral',
-            variant: 'outline',
-            onClick: load,
-          },
-        ]"
-        color="error"
-        icon="i-lucide-circle-x"
-        variant="subtle"
-      />
-
-      <!-- Local mode with no GitHub App or an App that cannot read, or no repo -->
-      <UAlert
-        v-else-if="answer?.reason"
-        :title="t(`pluto.github.users.reason.${reasonKey}.title`)"
-        :actions="
-          answer.reason !== 'no-repo'
-            ? [
-                {
-                  label: t(`pluto.github.users.reason.${reasonKey}.action`),
-                  to: '/admin/settings/github',
-                  color: 'neutral',
-                  variant: 'outline',
-                },
-              ]
-            : []
-        "
-        color="neutral"
-        icon="i-lucide-info"
-        variant="subtle"
-      >
-        <template #description>
-          <PlutoCodeText
-            :text="t(`pluto.github.users.reason.${reasonKey}.description`)"
+        <template v-if="accessUrl" #right>
+          <UButton
+            :label="t('pluto.github.users.manage')"
+            :to="accessUrl"
+            color="neutral"
+            icon="i-pluto-github"
+            target="_blank"
+            trailing-icon="i-lucide-arrow-up-right"
+            variant="ghost"
           />
         </template>
-      </UAlert>
+      </PlutoViewToolbar>
+    </template>
 
-      <UEmpty
-        v-else-if="users.length === 0"
-        :title="t('pluto.github.users.empty')"
-        icon="i-lucide-users"
-      />
+    <p class="text-muted max-w-2xl text-sm">
+      {{ t('pluto.github.users.description', { repo: repo || 'GitHub' }) }}
+    </p>
 
-      <UTable
-        v-else
-        :data="users"
-        :columns="columns"
-        class="border-default rounded-lg border"
-      >
-        <template #user-cell="{ row }">
-          <div class="flex min-w-0 items-center gap-3">
-            <UAvatar
-              :src="row.original.avatarUrl || undefined"
-              :alt="row.original.login"
-              size="sm"
-            />
-            <ULink
-              :to="row.original.url"
-              class="text-highlighted truncate font-medium"
-              target="_blank"
-            >
-              {{ row.original.login }}
-            </ULink>
-            <UBadge
-              v-if="row.original.login.toLowerCase() === self"
-              :label="t('pluto.github.users.you')"
-              color="primary"
-              size="sm"
-              variant="subtle"
-            />
-          </div>
-        </template>
+    <UAlert
+      v-if="answer?.restricted"
+      color="info"
+      icon="i-lucide-filter"
+      variant="subtle"
+    >
+      <template #description>
+        <PlutoCodeText :text="t('pluto.github.users.restricted')" />
+      </template>
+    </UAlert>
 
-        <template #role-cell="{ row }">
+    <!-- Loading -->
+    <div
+      v-if="status === 'loading'"
+      class="flex flex-col gap-y-3"
+      aria-busy="true"
+    >
+      <USkeleton v-for="row in 3" :key="row" class="h-12 w-full" />
+    </div>
+
+    <!-- Error -->
+    <UAlert
+      v-else-if="status === 'error'"
+      :title="t('pluto.github.users.error')"
+      :description="loadError"
+      :actions="[
+        {
+          label: t('pluto.common.tryAgain'),
+          color: 'neutral',
+          variant: 'outline',
+          onClick: load,
+        },
+      ]"
+      color="error"
+      icon="i-lucide-circle-x"
+      variant="subtle"
+    />
+
+    <!-- Local mode with no GitHub App or an App that cannot read, or no repo -->
+    <UAlert
+      v-else-if="answer?.reason"
+      :title="t(`pluto.github.users.reason.${reasonKey}.title`)"
+      :actions="
+        answer.reason !== 'no-repo'
+          ? [
+              {
+                label: t(`pluto.github.users.reason.${reasonKey}.action`),
+                to: '/admin/settings/github',
+                color: 'neutral',
+                variant: 'outline',
+              },
+            ]
+          : []
+      "
+      color="neutral"
+      icon="i-lucide-info"
+      variant="subtle"
+    >
+      <template #description>
+        <PlutoCodeText
+          :text="t(`pluto.github.users.reason.${reasonKey}.description`)"
+        />
+      </template>
+    </UAlert>
+
+    <UEmpty
+      v-else-if="users.length === 0"
+      :title="t('pluto.github.users.empty')"
+      icon="i-lucide-users"
+    />
+
+    <UTable
+      v-else
+      :data="users"
+      :columns="columns"
+      class="border-default rounded-lg border"
+    >
+      <template #user-cell="{ row }">
+        <div class="flex min-w-0 items-center gap-3">
+          <UAvatar
+            :src="row.original.avatarUrl || undefined"
+            :alt="row.original.login"
+            size="sm"
+          />
+          <PlutoExternalLink
+            :to="row.original.url"
+            class="text-highlighted truncate font-medium"
+          >
+            {{ row.original.login }}
+          </PlutoExternalLink>
           <UBadge
-            :label="t(`pluto.github.users.roles.${row.original.role}`)"
-            :color="row.original.role === 'write' ? 'neutral' : 'primary'"
+            v-if="row.original.login.toLowerCase() === self"
+            :label="t('pluto.github.users.you')"
+            color="primary"
+            size="sm"
             variant="subtle"
           />
-        </template>
+        </div>
+      </template>
 
-        <template #access-cell="{ row }">
-          <div class="flex flex-col items-start gap-1">
-            <span class="text-sm">
-              {{
-                row.original.role === 'write'
-                  ? t('pluto.github.users.access.editor')
-                  : t('pluto.github.users.access.admin')
-              }}
-            </span>
-            <UBadge
-              v-if="!row.original.canSignIn"
-              :label="t('pluto.github.users.blocked')"
-              color="warning"
-              size="sm"
-              variant="subtle"
-            />
-          </div>
-        </template>
-      </UTable>
+      <template #role-cell="{ row }">
+        <UBadge
+          :label="t(`pluto.github.users.roles.${row.original.role}`)"
+          :color="row.original.role === 'write' ? 'neutral' : 'primary'"
+          variant="subtle"
+        />
+      </template>
 
-      <p class="text-muted text-xs">
-        {{ t('pluto.github.users.footnote') }}
-      </p>
-    </AdminView>
-  </main>
+      <template #access-cell="{ row }">
+        <div class="flex flex-col items-start gap-1">
+          <span class="text-sm">
+            {{
+              row.original.role === 'write'
+                ? t('pluto.github.users.access.editor')
+                : t('pluto.github.users.access.admin')
+            }}
+          </span>
+          <UBadge
+            v-if="!row.original.canSignIn"
+            :label="t('pluto.github.users.blocked')"
+            color="warning"
+            size="sm"
+            variant="subtle"
+          />
+        </div>
+      </template>
+    </UTable>
+
+    <p class="text-muted text-xs">
+      {{ t('pluto.github.users.footnote') }}
+    </p>
+  </PlutoViewAdminPanel>
 </template>

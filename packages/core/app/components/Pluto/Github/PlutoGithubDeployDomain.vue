@@ -52,6 +52,26 @@ const currentDomain = computed(() => {
   }
 })
 
+/**
+ * The address of a project site, which GitHub serves under `/<repo>/`. A custom domain, or a repo
+ * named `<owner>.github.io`, serves the site at the root: the workflow then builds it for the root.
+ */
+const subpathUrl = computed(() => {
+  const url = props.status.deploy.url
+  if (!url || currentDomain.value) {
+    return ''
+  }
+  try {
+    return new URL(url).pathname.replace(/\/+$/, '') ? url : ''
+  } catch {
+    return ''
+  }
+})
+
+const userSiteRepo = computed(
+  () => `${props.status.repo.split('/')[0]?.toLowerCase() ?? ''}.github.io`
+)
+
 const domainInput = ref(currentDomain.value)
 watch(currentDomain, (value) => {
   if (value && !domainInput.value) {
@@ -117,7 +137,7 @@ const CHECK_ICONS = {
 <template>
   <section class="flex flex-col gap-y-3">
     <div>
-      <h3 class="font-semibold">{{ t('pluto.github.deploy.domain.title') }}</h3>
+      <h2 class="font-semibold">{{ t('pluto.github.deploy.domain.title') }}</h2>
       <p class="text-muted text-sm">
         {{ t('pluto.github.deploy.domain.description') }}
       </p>
@@ -148,7 +168,7 @@ const CHECK_ICONS = {
             :to="hostDomainSettingsUrl(detected, status.host.site)"
             class="self-start"
             target="_blank"
-            trailing-icon="i-lucide-external-link"
+            trailing-icon="i-lucide-arrow-up-right"
           />
         </template>
         <div v-else class="flex flex-wrap gap-2">
@@ -159,7 +179,7 @@ const CHECK_ICONS = {
             :to="host.to"
             color="neutral"
             target="_blank"
-            trailing-icon="i-lucide-external-link"
+            trailing-icon="i-lucide-arrow-up-right"
             variant="outline"
           />
         </div>
@@ -186,11 +206,21 @@ const CHECK_ICONS = {
               })
             }}
           </p>
+          <p v-else-if="subpathUrl" class="mt-1 text-sm">
+            {{
+              t('pluto.github.deploy.domain.pages.subpath', {
+                url: subpathUrl,
+                repo: userSiteRepo,
+              })
+            }}
+          </p>
         </div>
 
         <UFormField
           :label="t('pluto.github.deploy.domain.pages.label')"
-          :error="invalid ? t('pluto.github.deploy.domain.errors.invalid') : false"
+          :error="
+            invalid ? t('pluto.github.deploy.domain.errors.invalid') : false
+          "
           class="sm:max-w-sm"
         >
           <UInput
@@ -216,7 +246,7 @@ const CHECK_ICONS = {
                 color="neutral"
                 size="sm"
                 target="_blank"
-                trailing-icon="i-lucide-external-link"
+                trailing-icon="i-lucide-arrow-up-right"
                 variant="outline"
               />
             </div>
@@ -325,7 +355,7 @@ const CHECK_ICONS = {
                 color="neutral"
                 size="sm"
                 target="_blank"
-                trailing-icon="i-lucide-external-link"
+                trailing-icon="i-lucide-arrow-up-right"
                 variant="outline"
               />
             </div>

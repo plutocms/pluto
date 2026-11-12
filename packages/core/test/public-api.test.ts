@@ -309,14 +309,22 @@ describe('listPublicContent and getPublicContent', () => {
 
 describe('config and CORS', () => {
   it('resolves the config with defaults', () => {
-    expect(resolvePlutoApiConfig(undefined)).toEqual({ cors: true, maxAge: 60 })
+    expect(resolvePlutoApiConfig(undefined)).toEqual({
+      cors: true,
+      maxAge: 60,
+      highlighter: '',
+    })
     expect(resolvePlutoApiConfig({ cors: 'false', maxAge: '0' })).toEqual({
       cors: false,
       maxAge: 0,
+      highlighter: '',
     })
     expect(
       resolvePlutoApiConfig({ cors: ['https://a.dev', 3, ''], maxAge: -1 })
-    ).toEqual({ cors: ['https://a.dev'], maxAge: 60 })
+    ).toEqual({ cors: ['https://a.dev'], maxAge: 60, highlighter: '' })
+    expect(resolvePlutoApiConfig({ highlighter: ' shiki ' }).highlighter).toBe(
+      'shiki'
+    )
   })
 
   it('matches the public API paths only', () => {
@@ -401,7 +409,9 @@ describe('drafts for an editor', () => {
     const api = await load(type, leakyAdapter({ authorize }))
     const { ev, headers } = headerEvent()
 
-    const answer = await api.getPublicContent(ev, 'post', 'two', { drafts: true })
+    const answer = await api.getPublicContent(ev, 'post', 'two', {
+      drafts: true,
+    })
 
     expect(answer).toMatchObject({ data: { id: 2 }, meta: { draft: true } })
     expect(authorize).toHaveBeenCalledWith(ev, 'posts:read_drafts')
@@ -437,7 +447,10 @@ describe('drafts for an editor', () => {
 
     vi.resetModules()
     // No capability to check: drafts stay closed, even with an authorize that lets all through.
-    const open = await load(postType(), leakyAdapter({ authorize: async () => {} }))
+    const open = await load(
+      postType(),
+      leakyAdapter({ authorize: async () => {} })
+    )
     await expect(
       open.getPublicContent(event(), 'post', 'two', { drafts: true })
     ).rejects.toMatchObject({ statusCode: 404 })

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
+import type { PlutoCaretAnchor } from '../../../utils/pluto-caret'
 import type PlutoMarkdownCodeEditor from '../Markdown/PlutoMarkdownCodeEditor.vue'
 import PlutoPostModeSwitch from './PlutoPostModeSwitch.vue'
 import PlutoPostOutline from './PlutoPostOutline.vue'
@@ -16,9 +17,9 @@ import PlutoPostTitle from './PlutoPostTitle.vue'
 // - Visual: the rich text widget that the app has for `richtext` (the Git CMS
 //   Markdown editor, or the editor of a layer), with `canvas`, so it fills the
 //   height and has no label.
-// - Markdown: `PlutoMarkdownCodeEditor` (CodeMirror, with syntax colors), `bare`: no
-//   toolbar (a bubble toolbar over a selection), and it grows with the text. It loads when
-//   the author opens Markdown mode.
+// - Markdown: `PlutoMarkdownCodeEditor` (CodeMirror, with syntax colors), `bare`: the toolbar
+//   of the Visual editor (sticky, acting on the Markdown) and a bubble toolbar over a selection;
+//   it grows with the text. It loads when the author opens Markdown mode.
 //
 // The left panel of the form shows the outline (the headings). A click on a heading puts the caret
 // at the end of it and scrolls it under the sticky toolbar; the heading that has the caret is the
@@ -47,6 +48,8 @@ const MarkdownEditor = defineAsyncComponent(
 )
 
 const { t } = usePlutoI18n()
+// Zen mode: the panels around the text close, and the toolbar can hide (pluto-zen.ts).
+const zen = usePlutoZen()
 const form = usePlutoContentForm()
 const host = inject(plutoCanvasHostKey, null)
 const isDesktop = useMediaQuery('(min-width: 64rem)')
@@ -125,8 +128,21 @@ const mode = computed<Mode>(() =>
 )
 
 function setMode(next: Mode) {
+  if (next === mode.value) {
+    chosen.value = next
+    saved.value = next
+    return
+  }
+  // The caret goes with the text: the other mode puts it at the same place.
+  const offset = currentCaret(true)
+  saveCaret(offset)
   chosen.value = next
   saved.value = next
+  // The focus goes to the text of the other mode, at the caret (the start when there was none),
+  // even from the button of the switch.
+  nextTick(() =>
+    whenTextReady(() => placeCaret(offset ?? savedCaret() ?? 0), 40, true)
+  )
 }
 
 // The preview gets the other fields of the item, so it can show the title and the date.
@@ -158,10 +174,179 @@ function focusText() {
   scrollEl.value?.querySelector<HTMLElement>('.ProseMirror')?.focus()
 }
 
+/** The Visual editor (Tiptap puts it on its editable element). */
+function visualEditor(): Editor | undefined {
+  const element = scrollEl.value?.querySelector('.ProseMirror') as
+    (HTMLElement & { editor?: Editor }) | null
+  return element?.editor && !element.editor.isDestroyed
+    ? element.editor
+    : undefined
+}
+
+/**
+ * The caret of the mode that shows, as an offset of the Markdown (`plutoMarkdownCaret`), or null.
+ * `fresh`: against the Markdown of the Visual editor now (a switch of mode: the editor gives that
+ * text when it closes), else against the value of the form.
+ */
+function currentCaret(fresh = false): number | null {
+  if (mode.value === 'markdown') {
+    return source.value ? source.value.caret() : null
+  }
+  const editor = visualEditor()
+  if (!editor) {
+    return null
+  }
+  return plutoMarkdownCaret(
+    editor,
+    fresh
+      ? (editor.markdown?.serialize(editor.getJSON()) ?? value.value)
+      : value.value
+  )
+}
+
+/** Puts the caret of the mode that shows at an offset of the Markdown, focused. */
+function placeCaret(offset: number) {
+  if (mode.value === 'markdown') {
+    source.value?.setCaret(offset)
+    return
+  }
+  const editor = visualEditor()
+  if (!editor) {
+    return
+  }
+  const position = plutoVisualCaret(editor, value.value, offset)
+  editor
+    .chain()
+    .focus(position ?? 'start')
+    .scrollIntoView()
+    .run()
+}
+
+// The caret of an item is kept in this browser (localStorage), as an offset of the Markdown: a
+// reload, or the next visit, puts it back. Saved after the caret stops for a second, on a switch of
+// mode, and when the page closes.
+const caretKey = computed(() => {
+  const id = form?.item.value?.id
+  return form?.editing.value && id !== undefined && id !== null
+    ? `pluto-caret:${contentType.value}:${String(id)}`
+    : ''
+})
+function saveCaret(offset = currentCaret()) {
+  if (!caretKey.value || offset === null) {
+    return
+  }
+  try {
+    localStorage.setItem(
+      caretKey.value,
+      JSON.stringify(plutoCaretAnchor(value.value, offset))
+    )
+  } catch {
+    // No storage (a private window): the caret is not kept.
+  }
+}
+function savedCaret(): number | null {
+  try {
+    const stored = caretKey.value ? localStorage.getItem(caretKey.value) : null
+    const anchor = stored
+      ? (JSON.parse(stored) as Partial<PlutoCaretAnchor>)
+      : null
+    return anchor && typeof anchor.offset === 'number'
+      ? plutoFindCaret(value.value, {
+          offset: anchor.offset,
+          before: typeof anchor.before === 'string' ? anchor.before : '',
+        })
+      : null
+  } catch {
+    return null
+  }
+}
+let caretTimer: ReturnType<typeof setTimeout> | undefined
+function saveCaretSoon() {
+  clearTimeout(caretTimer)
+  caretTimer = setTimeout(saveCaret, 1000)
+}
+function onPageHide() {
+  saveCaret()
+}
+onMounted(() => window.addEventListener('pagehide', onPageHide))
+onBeforeUnmount(() => {
+  clearTimeout(caretTimer)
+  saveCaret()
+  window.removeEventListener('pagehide', onPageHide)
+})
+
+/**
+ * Runs `run` once the editor of the mode is there (both editors load on demand) and, for an item,
+ * its text has loaded. Up to 4 seconds. A field of the form that has the focus meanwhile wins (the
+ * author clicked it); the link that opened the page (a client-side navigation keeps its focus) does
+ * not. `force`: the focus does not matter (a switch of mode moves it on purpose).
+ */
+function whenTextReady(run: () => void, tries = 40, force = false) {
+  const active = document.activeElement
+  if (
+    !force &&
+    active &&
+    active !== scrollEl.value?.querySelector('.ProseMirror') &&
+    !active.closest('.cm-editor') &&
+    scrollEl.value?.closest('[data-pluto-view]')?.contains(active)
+  ) {
+    return
+  }
+  const ready =
+    (mode.value === 'markdown'
+      ? source.value
+      : scrollEl.value?.querySelector('.ProseMirror')) &&
+    (!form?.editing.value || value.value !== '')
+  if (ready) {
+    run()
+  } else if (tries > 0) {
+    setTimeout(whenTextReady, 100, run, tries - 1, force)
+  }
+}
+
+// A new item: the text gets the focus, so the author can type at once. An item: the caret goes
+// back where it was (`savedCaret`), if this browser has it.
+function focusTextWhenReady(tries = 40) {
+  whenTextReady(focusText, tries)
+}
+onMounted(() => {
+  if (!form?.canvas.value) {
+    return
+  }
+  if (!form.editing.value) {
+    focusTextWhenReady()
+    return
+  }
+  whenTextReady(() => {
+    const offset = savedCaret()
+    if (offset !== null) {
+      placeCaret(offset)
+    }
+  })
+})
+
+// The editor of the mode loads on demand: a skeleton shows until its text is in the page (up to
+// 4 seconds), on the first load and after each switch of mode.
+const textReady = ref(false)
+let readyTimer: ReturnType<typeof setTimeout> | undefined
+function checkTextReady(tries = 80) {
+  clearTimeout(readyTimer)
+  const selector = mode.value === 'markdown' ? '.cm-editor' : '.ProseMirror'
+  if (scrollEl.value?.querySelector(selector) || tries <= 0) {
+    textReady.value = true
+    return
+  }
+  readyTimer = setTimeout(checkTextReady, 50, tries - 1)
+}
+onMounted(() => checkTextReady())
+onBeforeUnmount(() => clearTimeout(readyTimer))
+
 // The heading that has the caret: the active item of the outline. -1: none.
 const activeHeading = ref(-1)
 watch(mode, () => {
   activeHeading.value = -1
+  textReady.value = false
+  nextTick(() => checkTextReady())
 })
 
 const HEADING_SELECTOR = 'h1, h2, h3, h4, h5, h6'
@@ -237,6 +422,7 @@ function onSelectionChange() {
   if (!root || !node || !root.contains(node)) {
     return
   }
+  saveCaretSoon()
   const element = node instanceof Element ? node : node.parentElement
   const heading = element?.closest<HTMLElement>(HEADING_SELECTOR)
   activeHeading.value =
@@ -245,6 +431,7 @@ function onSelectionChange() {
 
 /** Markdown: the line of the caret (from 0). */
 function onSourceCursor(line: number) {
+  saveCaretSoon()
   activeHeading.value = headings.value.findIndex(
     (heading) => heading.line === line
   )
@@ -277,13 +464,13 @@ const showPreview = computed({
 })
 
 // The column of the text, in both modes: a gutter at the left for the block buttons of the Visual
-// editor, and 16px at the right. With no preview: a readable width in the middle; when the panel has room for
+// editor, and 16px at the right. A readable width in the middle, with or without the preview (the
+// container is the compose panel, so a wide panel keeps the column); when the panel has room for
 // the buttons beside that column (55rem: 48rem and 3.5rem on each side), the padding is the same on
-// both sides, so the column stays centered and the buttons use the free space at its left.
-const columnClass = computed(() => [
-  'ps-14 pe-4',
-  !showPreview.value && 'mx-auto max-w-3xl @min-[55rem]:ps-4',
-])
+// both sides, so the column stays centered and the buttons use the free space at its left. Under
+// `sm` the editor shows no block buttons (Nuxt UI hides the drag handle), so the column has no
+// gutter: 16px on both sides.
+const columnClass = 'mx-auto max-w-3xl px-4 sm:ps-14 @min-[55rem]:ps-4'
 
 // The split between the compose panel and the preview. The cookie keeps the sizes.
 const split = useCookie<number[]>('pluto-post-split', {
@@ -292,26 +479,36 @@ const split = useCookie<number[]>('pluto-post-split', {
   sameSite: 'lax',
 })
 const dragging = ref(false)
-const splitItems = computed(() =>
-  showPreview.value
-    ? [
-        {
-          id: 'compose',
-          slot: 'compose',
-          order: 1,
-          defaultSize: split.value[0] ?? 50,
-          minSize: 25,
-        },
-        {
-          id: 'preview',
-          slot: 'preview',
-          order: 2,
-          defaultSize: split.value[1] ?? 50,
-          minSize: 25,
-        },
-      ]
-    : [{ id: 'compose', slot: 'compose', order: 1, defaultSize: 100 }]
-)
+// The sizes read from the cookie when the preview opens, not at each move: new items while the
+// handle moves end the drag (the splitter takes new default sizes) after one pixel.
+const splitStart = shallowRef([...split.value])
+watch(showPreview, (open) => {
+  if (open) {
+    splitStart.value = [...split.value]
+  }
+})
+const splitItems = computed(() => {
+  if (!showPreview.value) {
+    return [{ id: 'compose', slot: 'compose', order: 1, defaultSize: 100 }]
+  }
+  const [compose, preview] = splitStart.value
+  return [
+    {
+      id: 'compose',
+      slot: 'compose',
+      order: 1,
+      defaultSize: compose ?? 50,
+      minSize: 25,
+    },
+    {
+      id: 'preview',
+      slot: 'preview',
+      order: 2,
+      defaultSize: preview ?? 50,
+      minSize: 25,
+    },
+  ]
+})
 function onLayout(sizes: number[]) {
   // Only the split with the preview: the compose panel alone is always 100.
   if (sizes.length === 2) {
@@ -321,7 +518,10 @@ function onLayout(sizes: number[]) {
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
+  <div
+    :data-pluto-zen-toolbar="zen.active.value && zen.hideToolbar.value ? 'hidden' : undefined"
+    class="flex h-full min-h-0 flex-col"
+  >
     <template v-if="form?.canvas.value">
       <PlutoContentCanvasPanel
         id="outline"
@@ -339,6 +539,7 @@ function onLayout(sizes: number[]) {
       <!-- The compose panel and the preview of the site, side by side (stacked on a narrow screen). -->
       <USplitter
         :items="splitItems"
+        :hit-area-margins="{ coarse: 15, fine: 2.5 }"
         :orientation="isDesktop ? 'horizontal' : 'vertical'"
         :ui="{
           root: 'h-full min-h-0',
@@ -385,6 +586,22 @@ function onLayout(sizes: number[]) {
                     @update:model-value="setTitle"
                     @next="focusText"
                   />
+                  <div class="relative flex flex-1 flex-col">
+                  <!-- The editor of the mode loads: the shape of the toolbar and the text. -->
+                  <div
+                    v-if="!textReady"
+                    class="bg-default absolute inset-0 z-10 flex flex-col gap-4"
+                    aria-hidden="true"
+                  >
+                    <USkeleton class="h-11 w-full rounded-lg" />
+                    <USkeleton class="mt-6 h-4 w-full" />
+                    <USkeleton class="h-4 w-11/12" />
+                    <USkeleton class="h-4 w-3/4" />
+                    <USkeleton class="mt-4 h-6 w-2/5" />
+                    <USkeleton class="h-4 w-full" />
+                    <USkeleton class="h-4 w-5/6" />
+                    <USkeleton class="h-4 w-2/3" />
+                  </div>
                   <!-- Visual: the widget keeps its toolbar at the top (sticky). -->
                   <component
                     :is="visualWidget"
@@ -396,7 +613,7 @@ function onLayout(sizes: number[]) {
                     canvas
                     @update:model-value="emit('update:modelValue', $event)"
                   />
-                  <!-- Markdown: no toolbar (a bubble toolbar over a selection); the text grows,
+                  <!-- Markdown: the toolbar of the Visual mode (sticky); the text grows,
                        and the column scrolls. -->
                   <MarkdownEditor
                     v-else
@@ -407,12 +624,13 @@ function onLayout(sizes: number[]) {
                       field.placeholder ?? t('pluto.github.editor.placeholder')
                     "
                     :aria-label="field.label"
-                    class="flex-1 pt-2"
+                    class="flex-1"
                     monospace
                     bare
                     @update:model-value="emit('update:modelValue', $event)"
                     @cursor-line="onSourceCursor"
                   />
+                  </div>
                 </div>
               </div>
             </div>
@@ -426,6 +644,51 @@ function onLayout(sizes: number[]) {
                 :visual-blocked="visualBlocked || !visualWidget"
                 @update:mode="setMode"
               />
+              <UTooltip
+                :text="zen.active.value ? t('pluto.post.zenExit') : t('pluto.post.zen')"
+              >
+                <UButton
+                  :aria-label="
+                    zen.active.value ? t('pluto.post.zenExit') : t('pluto.post.zen')
+                  "
+                  :aria-pressed="zen.active.value"
+                  :icon="zen.active.value ? 'i-lucide-minimize-2' : 'i-lucide-maximize-2'"
+                  :color="zen.active.value ? 'primary' : 'neutral'"
+                  :variant="zen.active.value ? 'soft' : 'ghost'"
+                  size="xs"
+                  square
+                  @mousedown.prevent
+                  @click="zen.active.value = !zen.active.value"
+                />
+              </UTooltip>
+              <UTooltip
+                v-if="zen.active.value"
+                :text="
+                  zen.hideToolbar.value
+                    ? t('pluto.post.zenShowToolbar')
+                    : t('pluto.post.zenHideToolbar')
+                "
+              >
+                <UButton
+                  :aria-label="
+                    zen.hideToolbar.value
+                      ? t('pluto.post.zenShowToolbar')
+                      : t('pluto.post.zenHideToolbar')
+                  "
+                  :aria-pressed="zen.hideToolbar.value"
+                  :icon="
+                    zen.hideToolbar.value
+                      ? 'i-lucide-panel-top-open'
+                      : 'i-lucide-panel-top-close'
+                  "
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  square
+                  @mousedown.prevent
+                  @click="zen.hideToolbar.value = !zen.hideToolbar.value"
+                />
+              </UTooltip>
               <USwitch
                 v-model="showPreview"
                 :label="t('pluto.post.previewSwitch')"

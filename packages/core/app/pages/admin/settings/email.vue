@@ -16,14 +16,9 @@ const { items: panels } = usePlutoMailPanels()
 
 <template>
   <div class="flex flex-col gap-y-6 lg:gap-y-8">
-    <div>
-      <h2 class="text-xl font-semibold">
-        {{ t('pluto.mail.page.title') }}
-      </h2>
-      <p class="text-muted text-sm">
-        {{ t('pluto.mail.page.intro') }}
-      </p>
-    </div>
+    <p class="text-muted text-sm">
+      {{ t('pluto.mail.page.intro') }}
+    </p>
 
     <LazyPlutoMailStatusCard />
 
@@ -40,7 +35,7 @@ const { items: panels } = usePlutoMailPanels()
           to="https://resend.com/signup"
           target="_blank"
           rel="noopener noreferrer"
-          icon="lucide:external-link"
+          trailing-icon="i-lucide-arrow-up-right"
           color="neutral"
           variant="outline"
         >

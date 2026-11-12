@@ -220,7 +220,7 @@ async function remove() {
       <UButton
         :to="href"
         :label="t('pluto.media.details.open')"
-        icon="lucide:external-link"
+        trailing-icon="i-lucide-arrow-up-right"
         target="_blank"
         color="neutral"
         variant="ghost"

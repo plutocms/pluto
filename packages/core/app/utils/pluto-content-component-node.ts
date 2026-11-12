@@ -1,7 +1,6 @@
 import type { NodeViewRenderer } from '@tiptap/core'
 import type { PlutoPropValue } from '../../shared/utils/blocks/definition'
 import { Node } from '@tiptap/core'
-import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import {
   componentStart,
   matchEmptyComponent,
@@ -11,6 +10,7 @@ import {
 } from '#layers/pluto/shared/markdown/component'
 import PlutoBlockChip from '../components/Pluto/Block/PlutoBlockChip.vue'
 import { requestPlutoContentComponentOpen } from '../composables/pluto-content-components'
+import { plutoAtomNodeView } from './pluto-atom-node-view'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -58,7 +58,11 @@ export const PlutoContentComponentNode: Node = Node.create({
             const parsed: unknown = JSON.parse(
               element.getAttribute(PLUTO_COMPONENT_PROPS_ATTRIBUTE) ?? '{}'
             )
-            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            if (
+              parsed &&
+              typeof parsed === 'object' &&
+              !Array.isArray(parsed)
+            ) {
               props = parsed as Record<string, PlutoPropValue>
             }
           } catch {
@@ -75,7 +79,9 @@ export const PlutoContentComponentNode: Node = Node.create({
       'div',
       {
         [PLUTO_COMPONENT_ATTRIBUTE]: node.attrs.name,
-        [PLUTO_COMPONENT_PROPS_ATTRIBUTE]: JSON.stringify(node.attrs.props ?? {}),
+        [PLUTO_COMPONENT_PROPS_ATTRIBUTE]: JSON.stringify(
+          node.attrs.props ?? {}
+        ),
       },
     ]
   },
@@ -123,7 +129,7 @@ export const PlutoContentComponentNode: Node = Node.create({
   },
 
   addNodeView(): NodeViewRenderer {
-    return VueNodeViewRenderer(PlutoBlockChip)
+    return plutoAtomNodeView(PlutoBlockChip)
   },
 
   addCommands() {

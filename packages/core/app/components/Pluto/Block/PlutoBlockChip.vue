@@ -75,6 +75,10 @@ const summary = computed(() =>
 )
 
 const open = ref(false)
+// The popover points at the icon of the chip: the chip is as wide as the text, and an arrow at
+// its center would be out of the popover (aligned to the start), so it would not show. The offset
+// counts the padding and the border of the chip (9px) around the icon.
+const iconEl = useTemplateRef<HTMLElement>('icon')
 // A new component from the insert menu opens its props form, one frame later, after the menu has
 // closed.
 onMounted(() => {
@@ -130,7 +134,8 @@ function remove() {
   >
     <UPopover
       v-model:open="open"
-      :content="{ align: 'start', side: 'bottom', sideOffset: 6 }"
+      :content="{ align: 'start', side: 'bottom', sideOffset: 15 }"
+      :reference="iconEl ?? undefined"
       arrow
     >
       <button
@@ -144,6 +149,7 @@ function remove() {
         class="bg-elevated/60 flex w-full max-w-full items-center gap-3 rounded-lg border px-3 py-2 text-start text-sm transition-colors"
       >
         <span
+          ref="icon"
           class="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-md"
         >
           <UIcon :name="info.icon" class="size-4" />

@@ -58,18 +58,20 @@ See [Public API](https://pluto.vulmix.dev/docs/build/public-api).
 | `@plutocms/3d`            | 3D models in the media library, and a viewer.            |
 | `@plutocms/shop`          | A cart saved in the browser, and the price helpers.      |
 | `@plutocms/seo`           | SEO fields, head tags, a sitemap, robots.txt and a feed. |
+| `@plutocms/lowlight`      | Colors for the code blocks of the posts on the site.     |
 
 Read [Layers](https://pluto.vulmix.dev/docs/extend/layers) to see how they fit together.
 
 ## This repository
 
-| Folder                        | Package          |
-| ----------------------------- | ---------------- |
-| `packages/core`               | `@plutocms/core` |
-| `packages/layers/docs`        | `@plutocms/docs` |
-| `packages/layers/addons/3d`   | `@plutocms/3d`   |
-| `packages/layers/addons/seo`  | `@plutocms/seo`  |
-| `packages/layers/addons/shop` | `@plutocms/shop` |
+| Folder                            | Package              |
+| --------------------------------- | -------------------- |
+| `packages/core`                   | `@plutocms/core`     |
+| `packages/layers/docs`            | `@plutocms/docs`     |
+| `packages/layers/addons/3d`       | `@plutocms/3d`       |
+| `packages/layers/addons/seo`      | `@plutocms/seo`      |
+| `packages/layers/addons/shop`     | `@plutocms/shop`     |
+| `packages/layers/addons/lowlight` | `@plutocms/lowlight` |
 
 ## Links
 

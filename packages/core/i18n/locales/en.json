@@ -22,7 +22,8 @@
       "switchToLightMode": "Switch to light mode",
       "switchToDarkMode": "Switch to dark mode",
       "copy": "Copy",
-      "copied": "Copied"
+      "copied": "Copied",
+      "opensInNewTab": "opens in a new tab"
     },
     "navbar": {
       "openNavigation": "Open navigation",
@@ -69,6 +70,9 @@
       "untitled": "Untitled"
     },
     "form": {
+      "slugEdit": "Edit the slug",
+      "slugDone": "Done",
+      "slugFromTitle": "Made from the title",
       "published": "Published",
       "unpublished": "Unpublished",
       "saved": "Saved",
@@ -332,6 +336,7 @@
       "crossOrigin": "This request did not come from this site.",
       "invalidQuery": "The query parameter \"{name}\" is not valid.",
       "backupTooLarge": "The unsaved changes are too large to back up on the server.",
+      "previewTooLarge": "The post is too long to preview with the colors of its code.",
       "backupInvalid": "The backup is not valid.",
       "noTrash": "This content type has no trash.",
       "noTrashAdapter": "The content backend has no trash.",
@@ -420,13 +425,32 @@
           "placeholder": "Paste a link",
           "apply": "Apply the link",
           "open": "Open the link",
-          "remove": "Remove the link"
+          "remove": "Remove the link",
+          "url": "Address",
+          "text": "Text",
+          "textPlaceholder": "The text of the link",
+          "newTab": "Open in a new tab"
+        },
+        "imagePopover": {
+          "alt": "Alt text",
+          "altPlaceholder": "What the image shows, for people who cannot see it",
+          "replace": "Replace",
+          "open": "Open the image",
+          "remove": "Remove the image"
+        },
+        "embedPopover": {
+          "url": "Video address",
+          "open": "Open the video",
+          "remove": "Remove the video",
+          "invalid": "The site has no video player for this address."
         },
         "lists": "Lists",
         "bulletList": "Bulleted list",
         "orderedList": "Numbered list",
         "blockquote": "Quote",
         "codeBlock": "Code block",
+        "codeLanguage": "Language",
+        "codePlain": "Plain text",
         "visual": "Visual",
         "source": "Source",
         "unsafe": "This text has syntax that the visual editor cannot keep (MDC, HTML, tables, task lists or footnotes). Edit it in Source.",
@@ -694,6 +718,7 @@
             "name": "GitHub Pages",
             "description": "The domain is in the Pages settings of the repo. A CNAME file has no effect: GitHub ignores it when an Action builds the site.",
             "current": "The site uses the domain {domain}.",
+            "subpath": "The site is at {url}: GitHub serves a repo under its name. To serve the site at the root of an address, add your domain below. A repo named {repo} is also served at the root.",
             "label": "Your domain",
             "placeholder": "blog.example.com",
             "steps": {
@@ -979,7 +1004,11 @@
       "previewFailedTitle": "The preview did not load",
       "previewFailed": "The preview page of the site did not answer. Check that the site runs, then try again.",
       "previewSwitch": "Preview",
-      "titlePlaceholder": "Add a title"
+      "titlePlaceholder": "Add a title",
+      "zen": "Zen mode",
+      "zenExit": "Leave Zen mode",
+      "zenHideToolbar": "Hide the toolbar",
+      "zenShowToolbar": "Show the toolbar"
     },
     "markdown": {
       "formatting": "Formatting",

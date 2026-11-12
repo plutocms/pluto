@@ -158,6 +158,11 @@ default slot, and the slot replaces the driver's form and links. The props `titl
 </PlutoAdminAuthCard>
 ```
 
+`wide` makes the card 32rem wide (a longer form). The `partner` slot goes after the logo, for a
+page that connects the site to a service (the database setup of the Supabase layer: an arrow and
+the Supabase mark). With it, the Pluto logo is the planet only (`PlutoLogo mark`), and the site name is
+muted at the end of the row. A white-label logo stays as it is.
+
 With no driver and no slot, the card shows an alert: no sign-in method is set up. The texts are in
 `pluto.auth.*`, in English and Brazilian Portuguese.
 
@@ -480,6 +485,28 @@ use it with `aria-hidden="true"`, because the site name is next to it.
 Static files for a site: `/img/pluto.svg` (the logo, black wordmark), `/img/pluto.png` (white
 wordmark, for dark backgrounds), `/img/pluto-icon.svg` and `/img/pluto-icon.png` (the planet,
 96 px, for a favicon). A site that extends Pluto serves them from the layer's `public/` folder.
+
+## Sidebar icons and footer
+
+Every row of the sidebar has an icon, the children too. `usePlutoAdminNav` gives the "All <type>"
+child `lucide:list` and the "New <type>" child `lucide:plus`; a type with no icon in a group gets
+`lucide:file`. A layer with its own list and create children uses the same two icons (the posts of
+supabase-blog, the products of supabase-shop).
+
+The footer of the sidebar holds the collapse button and a light/dark `UColorModeButton` (hidden when
+the color mode is forced; the user menu has the full theme choice). Both have `px-2.5`, so their
+icons line up with the menu icons. In the rail they stack with `flex-col-reverse`: the collapse
+button stays at the bottom.
+
+The footer has a top border (`border-default`). Collapsed, it is transparent (`in-data-[collapsed=true]`),
+not removed, so the footer keeps its height.
+
+The body of the sidebar does not scroll (`ui.body`: `overflow-hidden p-0`). `PlutoAdminSidebarScroll`
+does: a Reka UI `ScrollArea` (`type="hover"`, 1s hide delay) with the padding of the old body
+(`px-4 py-2`), a light thumb for the dark sidebar, and a 10px scrollbar over the 16px right padding
+(the gutter), so the rows never move and the bar never covers them. The scrollbar is `force-mount`
+so its opacity fades (`duration-300!` against the no-transition rule). The viewport child is
+`block`, not Reka's `display: table`, so a long label truncates.
 
 ## The "+" in the sidebar
 

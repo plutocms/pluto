@@ -207,7 +207,9 @@ const selectedRevision = computed(() =>
               >
                 <UAvatar
                   :src="revision.author?.avatarUrl"
-                  :alt="revision.author?.name || t('pluto.history.unknownAuthor')"
+                  :alt="
+                    revision.author?.name || t('pluto.history.unknownAuthor')
+                  "
                   size="sm"
                   class="mt-0.5 shrink-0"
                 />
@@ -225,7 +227,9 @@ const selectedRevision = computed(() =>
                     />
                   </span>
                   <span class="text-muted block truncate text-xs">
-                    {{ revision.author?.name || t('pluto.history.unknownAuthor') }}
+                    {{
+                      revision.author?.name || t('pluto.history.unknownAuthor')
+                    }}
                     · {{ timeOf(revision) }}
                   </span>
                 </span>
@@ -266,22 +270,25 @@ const selectedRevision = computed(() =>
             <div
               class="border-default flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-3"
             >
-              <UButton
-                v-if="!isDesktop"
-                :aria-label="t('pluto.history.back')"
-                icon="lucide:arrow-left"
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                square
-                @click="selectedId = undefined"
-              />
+              <UTooltip :text="t('pluto.history.back')">
+                <UButton
+                  v-if="!isDesktop"
+                  :aria-label="t('pluto.history.back')"
+                  icon="lucide:arrow-left"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  square
+                  @click="selectedId = undefined"
+                />
+              </UTooltip>
               <div class="min-w-0 flex-1">
                 <p
                   v-if="selectedRevision"
                   class="text-highlighted truncate text-sm font-medium"
                 >
-                  {{ titleOf(selectedRevision) }} · {{ timeOf(selectedRevision) }}
+                  {{ titleOf(selectedRevision) }} ·
+                  {{ timeOf(selectedRevision) }}
                 </p>
                 <p v-if="selectedItem" class="text-muted text-xs">
                   {{ t('pluto.history.changes', changes.length) }}

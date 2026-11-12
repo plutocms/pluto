@@ -13,6 +13,7 @@ import { getPlutoApiConfig } from './pluto-api-config'
 import { getContentType, listContentTypes } from './pluto-content'
 import { requireContentAdapter } from './pluto-content-handlers'
 import { createPlutoError } from './pluto-error'
+import { highlightPlutoHtml } from './pluto-highlight'
 import { expandPublicMedia } from './pluto-media-public'
 import { markPublicRead } from './pluto-public-read'
 import {
@@ -185,7 +186,7 @@ export function isPublishedItem(
 
 /**
  * The public answer for one item: the allow-list, then `adapter.toPublic`, then the standard keys
- * (`withStandardPublicKeys`), then `hooks.toPublic`.
+ * (`withStandardPublicKeys`), then `hooks.toPublic`, then the code highlighters on `html`.
  */
 export async function toPublicData(
   ctx: PlutoContentContext,
@@ -222,6 +223,14 @@ export async function toPublicData(
   data = withStandardPublicKeys(ctx.type, data, item)
   if (ctx.type.hooks?.toPublic) {
     data = await ctx.type.hooks.toPublic(ctx, data, { view, item, batch })
+  }
+  // The code blocks of the body get the colors of the code highlighters of the site, if it has
+  // one (an add-on layer, or a Nitro plugin of the site). See pluto-highlight.ts.
+  if (view === 'item' && typeof data.html === 'string') {
+    data.html = await highlightPlutoHtml(
+      data.html,
+      getPlutoApiConfig().highlighter
+    )
   }
   return data
 }

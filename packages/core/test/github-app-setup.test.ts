@@ -66,7 +66,6 @@ describe('buildAppManifest', () => {
     expect(manifest).toEqual({
       name: 'Acme CMS',
       url: 'https://acme.com',
-      hook_attributes: { url: 'https://acme.com', active: false },
       redirect_url: 'https://acme.com/api/_pluto/github/setup/callback',
       callback_urls: [
         'https://acme.com/api/_pluto/auth/github/callback',
@@ -97,6 +96,7 @@ describe('buildAppManifest', () => {
     expect(manifest.redirect_url).toBe(
       'http://localhost:3140/api/_pluto/github/setup/callback'
     )
+    expect(manifest).not.toHaveProperty('hook_attributes')
   })
 })
 

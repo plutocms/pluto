@@ -174,6 +174,67 @@
 }
 
 /*
+ * The shadow of a surface that floats over the page: a popover, a dropdown, a select list, a
+ * modal, a slideover. Strong, so the elevation shows in both modes. The ring of the surface stays:
+ * the value keeps the ring layers of Tailwind before its own.
+ */
+@utility shadow-pluto-elevated {
+  box-shadow:
+    var(--tw-inset-shadow, 0 0 #0000),
+    var(--tw-inset-ring-shadow, 0 0 #0000),
+    var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000),
+    0 20px 48px -12px rgb(0 0 0 / 0.28),
+    0 8px 16px -8px rgb(0 0 0 / 0.18);
+
+  :where(.dark) & {
+    box-shadow:
+      var(--tw-inset-shadow, 0 0 #0000),
+      var(--tw-inset-ring-shadow, 0 0 #0000),
+      var(--tw-ring-offset-shadow, 0 0 #0000),
+      var(--tw-ring-shadow, 0 0 #0000),
+      0 20px 48px -8px rgb(0 0 0 / 0.75),
+      0 8px 16px -6px rgb(0 0 0 / 0.55);
+  }
+}
+
+/*
+ * Every floating surface of Nuxt UI in the admin gets it: the content of a popper (popover,
+ * dropdown, context menu, select and combobox lists), a dialog (modal, slideover, command palette),
+ * and the menus of the editor (`/`, mention, emoji: a listbox in a plain floating div next to the
+ * editable element). Not a tooltip. Outside a layer, so it beats the `shadow-lg` of Nuxt UI
+ * whatever `ui.content` a component sets.
+ */
+[data-reka-popper-content-wrapper]
+  > [data-slot='content']:not(:has([role='tooltip'])),
+[role='dialog'][data-slot='content'],
+.ProseMirror ~ div > [role='listbox'][data-state] {
+  @apply shadow-pluto-elevated;
+}
+
+/*
+ * A tooltip is dark in both modes: the near-black of the navbar, with the dark tokens
+ * (admin-theme.css). Outside a layer, so it beats `bg-default` and the `fill-bg` of the arrow.
+ */
+[data-reka-popper-content-wrapper]
+  > [data-slot='content']:has([role='tooltip']) {
+  background-color: var(--pluto-admin-navbar);
+
+  & [data-slot='arrow'] {
+    fill: var(--pluto-admin-navbar);
+  }
+}
+
+/*
+ * A toast of the admin is dark in both modes too, like a tooltip: the near-black of the navbar, with
+ * the dark tokens (admin-theme.css), so it stands apart from the cards and the menus. Outside a
+ * layer, so it beats the `bg-default` of Nuxt UI.
+ */
+:root[data-pluto-admin] ol[data-slot='viewport'] > [data-slot='base'] {
+  background-color: var(--pluto-admin-navbar);
+}
+
+/*
  * Inline code in the admin: an env var, a path, a command (`PlutoCodeText` makes it from the
  * backticks of a translated string). A light box in the admin theme. In `@layer base`, so a utility
  * class (`text-xs`, `break-all`) wins; the element selector beats the reset of Tailwind (`*`, also in
@@ -189,4 +250,159 @@
     font-family: var(--font-mono);
     font-size: 0.875em;
   }
+}
+
+/*
+ * The colors of code in the code blocks of the post editor: the Markdown mode (CodeMirror, with
+ * the language of the block) and the Visual mode (lowlight: the `hljs-*` classes). One palette, so
+ * a block looks the same in both modes.
+ */
+:root[data-pluto-admin],
+[data-pluto-admin-scope] {
+  --pluto-code-keyword: #7c3aed;
+  --pluto-code-string: #15803d;
+  --pluto-code-number: #b45309;
+  --pluto-code-function: #1d4ed8;
+  --pluto-code-type: #0e7490;
+  --pluto-code-property: #be123c;
+  --pluto-code-comment: var(--ui-text-dimmed);
+}
+
+:root[data-pluto-admin].dark,
+.dark [data-pluto-admin-scope] {
+  --pluto-code-keyword: #c4b5fd;
+  --pluto-code-string: #86efac;
+  --pluto-code-number: #fcd34d;
+  --pluto-code-function: #93c5fd;
+  --pluto-code-type: #67e8f9;
+  --pluto-code-property: #fda4af;
+}
+
+.ProseMirror
+  pre
+  :is(
+    .hljs-keyword,
+    .hljs-selector-tag,
+    .hljs-literal,
+    .hljs-built_in,
+    .hljs-meta
+  ) {
+  color: var(--pluto-code-keyword);
+}
+.ProseMirror
+  pre
+  :is(
+    .hljs-string,
+    .hljs-regexp,
+    .hljs-addition,
+    .hljs-template-tag,
+    .hljs-symbol
+  ) {
+  color: var(--pluto-code-string);
+}
+.ProseMirror pre :is(.hljs-number, .hljs-variable.constant_, .hljs-bullet) {
+  color: var(--pluto-code-number);
+}
+.ProseMirror pre :is(.hljs-title, .hljs-title.function_, .hljs-section) {
+  color: var(--pluto-code-function);
+}
+.ProseMirror
+  pre
+  :is(.hljs-type, .hljs-title.class_, .hljs-name, .hljs-selector-class) {
+  color: var(--pluto-code-type);
+}
+.ProseMirror
+  pre
+  :is(
+    .hljs-attr,
+    .hljs-attribute,
+    .hljs-property,
+    .hljs-selector-id,
+    .hljs-deletion
+  ) {
+  color: var(--pluto-code-property);
+}
+.ProseMirror pre :is(.hljs-comment, .hljs-quote) {
+  color: var(--pluto-code-comment);
+  font-style: italic;
+}
+
+/*
+ * The arrows of the floating toolbars and menus of the post editor that are not Reka poppers (Reka
+ * gives the others theirs): the bubble toolbar over a selection always opens above it (an arrow at
+ * the bottom, in the middle), the "/" menu always below the caret (an arrow at the top, at its
+ * start). The arrow takes the background of its box and the color of its ring.
+ */
+/* In the components layer: a `fixed` or `absolute` utility of the box wins. */
+@layer components {
+  .pluto-editor-arrow-bottom,
+  .pluto-editor-arrow-top {
+    position: relative;
+  }
+}
+
+.pluto-editor-arrow-bottom::after,
+.pluto-editor-arrow-top::before,
+.ProseMirror ~ div:has(> [role='listbox'][data-state])::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  border: 0 solid var(--ui-border);
+  pointer-events: none;
+}
+
+.pluto-editor-arrow-bottom::after {
+  bottom: -6px;
+  left: 50%;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.pluto-editor-arrow-top::before,
+.ProseMirror ~ div:has(> [role='listbox'][data-state])::before {
+  top: -6px;
+  left: 14px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+  transform: rotate(45deg);
+}
+
+/*
+ * The "/" menu of the editor (UEditorSuggestionMenu) ignores its `ui` prop: its box is the
+ * `[role=listbox]` next to the editable element. Dark mode gives it the darker background of the
+ * other editor menus, and its arrow (above) sits on its wrapper, which does not clip.
+ */
+.ProseMirror ~ div:has(> [role='listbox'][data-state])::before {
+  z-index: 1;
+  background: var(--ui-bg);
+}
+
+.dark .ProseMirror ~ div > [role='listbox'][data-state],
+.dark .ProseMirror ~ div:has(> [role='listbox'][data-state])::before {
+  background-color: var(--ui-color-neutral-950);
+}
+
+/*
+ * The sticky toolbar of the post editor (Visual and Markdown modes) sits 8px below the top of the
+ * scroll area. The text that scrolls under it showed in that gap, and the block handles showed at
+ * its left. Copies of its box in the color of the compose panel (`--ui-bg`), as shadows under it,
+ * fill the gap above, the gutter of the handles at its left (56px) and the edge at its right, and
+ * move with it. Its own soft shadow below comes first, so it stays on top.
+ */
+.pluto-sticky-toolbar {
+  box-shadow:
+    0 12px 15px -15px #0000007a,
+    0 -8px 0 0 var(--ui-bg),
+    -56px -8px 0 0 var(--ui-bg),
+    -56px 0 0 0 var(--ui-bg),
+    16px -8px 0 0 var(--ui-bg),
+    16px 0 0 0 var(--ui-bg);
+}
+
+/* Zen mode with the toolbar hidden (PlutoFieldPostCanvas, pluto-zen.ts): the editor toolbar goes. */
+[data-pluto-zen-toolbar='hidden'] [data-pluto-editor-toolbar] {
+  display: none;
 }

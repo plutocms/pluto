@@ -99,6 +99,22 @@ describe('plutoSeoWithFields', () => {
     expect(extended.api).toEqual({ public: true })
   })
 
+  it('adds the SEO side group, closed on load, once', () => {
+    const extended = plutoSeoWithFields(postType())
+    expect(extended.sideGroups).toEqual([
+      expect.objectContaining({ id: 'seo', defaultOpen: false }),
+    ])
+    expect(
+      extended.fields
+        .filter((field: any) => field.name.startsWith('seo'))
+        .every((field: any) => field.group === 'seo')
+    ).toBe(true)
+    const own = { id: 'seo', label: 'Own' }
+    expect(
+      plutoSeoWithFields(postType({ sideGroups: [own] })).sideGroups
+    ).toEqual([own])
+  })
+
   it('keeps a field the owner declares, and warns in dev', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const own = { name: 'seoTitle', type: 'text', label: 'Own title' }

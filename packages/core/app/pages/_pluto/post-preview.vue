@@ -135,6 +135,35 @@ const preview = computed(() =>
   )
 )
 
+// The code blocks get the colors of the code highlighter of the site, from the server (the same as
+// the public API), 300 ms after the last change. A site with no highlighter answers so once, and the
+// preview stops asking. The plain HTML shows meanwhile.
+let siteHighlights = true
+let highlightTimer: ReturnType<typeof setTimeout> | undefined
+function highlightPreview() {
+  clearTimeout(highlightTimer)
+  if (!siteHighlights || !html.value.includes('<pre><code class="language-')) {
+    return
+  }
+  highlightTimer = setTimeout(async () => {
+    const plain = html.value
+    try {
+      const result = await $fetch<{ html: string; highlighted: boolean }>(
+        `/api/_pluto/highlight/${encodeURIComponent(contentType.value)}`,
+        { method: 'POST', body: { html: plain } }
+      )
+      siteHighlights = result.highlighted
+      // A newer render came meanwhile: it asks again.
+      if (html.value === plain) {
+        html.value = result.html
+      }
+    } catch {
+      // The preview keeps the plain code.
+    }
+  }, 300)
+}
+onBeforeUnmount(() => clearTimeout(highlightTimer))
+
 function scrollToHeading(index: number) {
   const body = document.querySelector('[data-pluto-post-body]') ?? document.body
   const heading = body.querySelectorAll('h1, h2, h3, h4, h5, h6')[index]
@@ -154,6 +183,7 @@ function onMessage(event: MessageEvent) {
     item.value = message.item
     html.value = plutoPostPreviewHtml(message.markdown)
     rendered.value = true
+    highlightPreview()
   } else if (message?.type === 'scroll-to') {
     scrollToHeading(message.heading)
   } else if (message?.type === 'color-mode') {

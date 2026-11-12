@@ -13,18 +13,16 @@ useHead({
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-6">
-    <div>
-      <h2 class="text-xl font-semibold">
+  <UCard>
+    <template #header>
+      <h2 class="font-semibold">
         {{ t('pluto.github.setup.page.settings.title') }}
       </h2>
       <p class="text-muted text-sm">
         {{ t('pluto.github.setup.page.settings.intro') }}
       </p>
-    </div>
+    </template>
 
-    <UCard class="max-w-2xl">
-      <PlutoGithubSetupPanel variant="settings" />
-    </UCard>
-  </div>
+    <PlutoGithubSetupPanel variant="settings" />
+  </UCard>
 </template>

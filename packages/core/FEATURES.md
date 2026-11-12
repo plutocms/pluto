@@ -49,6 +49,7 @@ policies shared by every project here.
   (`plutoApi.cors`: any origin, a list, or off) and the composables `usePlutoPublicList` and
   `usePlutoPublicItem`. Internal routes are `/api/_pluto/<area>/...`, and core blocks a cross-site
   write to them for every layer. @.claude/skills/content-model/SKILL.md
+- Code highlighters: core colors no code; a layer or the site registers a highlighter on the server (`definePlutoHighlighter({ id, order, highlight })`), the public API colors the code blocks of an item with it (every backend, SSR and static builds), `plutoApi.highlighter` picks the one to try first, its output goes through a code-only allowlist, and the post preview uses it (`POST /api/_pluto/highlight/<type>`). `@plutocms/lowlight` is the first one. @.claude/skills/content-model/SKILL.md
 - Tags and categories (many-to-many references): a `reference` field with `target` and `multiple` stores
   term ids; the public API expands them to `{ id, label, slug }`, filters by id or slug
   (`filter[tags]=<slug>`) and takes `ids`; the Git CMS registers the `tag` and `category` types

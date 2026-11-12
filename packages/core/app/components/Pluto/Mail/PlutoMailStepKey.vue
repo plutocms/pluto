@@ -81,14 +81,12 @@ const result = computed(() => {
     <ol class="text-muted list-decimal space-y-1 pl-5 text-sm">
       <li>
         {{ t('pluto.mail.key.stepCreate') }}
-        <ULink
+        <PlutoExternalLink
           to="https://resend.com/api-keys"
-          target="_blank"
-          rel="noopener noreferrer"
           class="text-primary"
         >
           resend.com/api-keys
-        </ULink>
+        </PlutoExternalLink>
       </li>
       <li><PlutoCodeText :text="t('pluto.mail.key.stepAdd')" /></li>
       <li>{{ t('pluto.mail.key.stepRestart') }}</li>

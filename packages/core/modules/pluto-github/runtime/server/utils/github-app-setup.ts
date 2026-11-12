@@ -54,10 +54,6 @@ export function isLocalOrigin(origin: string): boolean {
 export interface AppManifest {
   name: string
   url: string
-  hook_attributes: {
-    url: string
-    active: boolean
-  }
   redirect_url: string
   callback_urls: string[]
   public: boolean
@@ -80,7 +76,8 @@ export function buildAppManifest(options: {
   return {
     name: manifestAppName(options.siteName),
     url: origin,
-    hook_attributes: { url: origin, active: false },
+    // No `hook_attributes`: the App uses no webhook. GitHub checks a hook URL even when the hook is
+    // off, and refuses a local one ("isn't reachable over the public Internet").
     redirect_url: `${origin}${SETUP_CALLBACK_PATH}`,
     callback_urls: callbacks,
     public: false,

@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, EditorCustomHandlers } from '@nuxt/ui'
+import type { Editor as CoreEditor } from '@tiptap/core'
 import type { Editor, JSONContent } from '@tiptap/vue-3'
+import { Extension } from '@tiptap/core'
+import { NodeSelection } from '@tiptap/pm/state'
 import PlutoBlockInsertMenu from '../Block/PlutoBlockInsertMenu.vue'
+import PlutoEditorEmbedMenu from '../Editor/PlutoEditorEmbedMenu.vue'
+import PlutoEditorImageMenu from '../Editor/PlutoEditorImageMenu.vue'
+import PlutoEditorLinkMenu from '../Editor/PlutoEditorLinkMenu.vue'
 import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 
 // The `richtext` widget of the standalone CMS. It edits a Markdown string with
@@ -10,7 +16,9 @@ import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 // widget in CMS mode only, and loads it with `defineAsyncComponent`, so
 // Tiptap loads on the edit page only.
 //
-// The visual editor knows the CommonMark parts and strikethrough. It has no
+// The visual editor knows the CommonMark parts and strikethrough. No underline (the StarterKit
+// mark is off, Ctrl+U too): Markdown has none, the editor wrote raw `<u>` HTML, which turned
+// Visual off, and underlined text reads as a link. It has no
 // node for MDC, a table, a task list or raw HTML, and it can lose that markup
 // when it saves. So the widget has a Source mode (`PlutoMarkdownSource`). The
 // `editor` option of the field picks the first mode: `auto` (default) opens
@@ -88,8 +96,25 @@ const items = usePlutoMarkdownToolbar({
 })
 
 // A content component (`::name{props}` then `::`) shows as a chip. See the
-// content-components skill.
-const extensions = [PlutoContentComponentNode, PlutoTrailingParagraph]
+// content-components skill. A video URL alone on its line shows as its thumbnail (PlutoEmbedNode).
+const registry = usePlutoRegistry()
+const extensions = [
+  PlutoLink,
+  PlutoContentComponentNode,
+  PlutoCodeBlock,
+  PlutoEmbedNode,
+  PlutoEmbedParagraph.configure({
+    providers: () => registry.embedProviders.list.value,
+  }),
+  PlutoTrailingParagraph,
+  PlutoThrottledState,
+  PlutoIgnoreAriaHidden,
+  // The text goes to the form at once when the editor loses the focus (see flushEditorValue).
+  Extension.create({
+    name: 'plutoFlushOnBlur',
+    onBlur: () => flushEditorValue(),
+  }),
+]
 
 /**
  * The Markdown of the editor, without the blank lines at the end: the empty last line of the editor
@@ -98,11 +123,43 @@ const extensions = [PlutoContentComponentNode, PlutoTrailingParagraph]
 function trimEnd(markdown: string): string {
   return markdown.replace(/(?:\s|&nbsp;)+$/u, '')
 }
-function onEditorUpdate(markdown: string) {
-  if (trimEnd(markdown) !== trimEnd(value.value)) {
-    emit('update:modelValue', trimEnd(markdown))
+// The text goes to the form at most every 200 ms while the author types, and at once when the
+// editor loses the focus (a click on Save takes it) or closes. Each value renders the form, the
+// outline and this widget, so a value at each key made fast typing lag.
+//
+// UEditor compares its model value with its own Markdown, and loads the value again when they
+// differ. So while the value is one that this widget gave, the editor gets its own last Markdown
+// back (before the trim, and maybe some keys ahead of the value): it never reloads while the author
+// types. A reload drops a space at the end of a line (`## My `), so the caret left the line. The
+// two are plain variables: they change at each key, and must not render anything.
+const EMIT_INTERVAL = 200
+let lastMarkdown: string | null = null
+let emitted: string | null = null
+let emitTimer: ReturnType<typeof setTimeout> | undefined
+
+const editorValue = computed(() =>
+  lastMarkdown !== null && value.value === emitted ? lastMarkdown : value.value
+)
+
+function flushEditorValue() {
+  clearTimeout(emitTimer)
+  emitTimer = undefined
+  if (lastMarkdown === null) {
+    return
+  }
+  const next = trimEnd(lastMarkdown)
+  if (next !== trimEnd(value.value)) {
+    emitted = next
+    emit('update:modelValue', next)
   }
 }
+
+function onEditorUpdate(markdown: string) {
+  lastMarkdown = markdown
+  emitTimer ??= setTimeout(flushEditorValue, EMIT_INTERVAL)
+}
+
+onBeforeUnmount(flushEditorValue)
 
 // --- Blocks: the bubble toolbar, the drag handle and the slash menu ---------------------------
 //
@@ -113,6 +170,58 @@ function onEditorUpdate(markdown: string) {
 // menu. The content components of the site are in it too. The editor always ends with an empty
 // line, so the "+" has a place after the last block.
 const bubbleItems = usePlutoMarkdownBubbleItems()
+
+// The "/" menu always opens below the caret (its arrow points up at it, pluto-layer.css): near the
+// bottom of the screen it gets shorter and scrolls, it does not flip above.
+const suggestionOptions = {
+  placement: 'bottom-start' as const,
+  offset: 10,
+  flip: false,
+  size: {
+    padding: 8,
+    apply({
+      availableHeight,
+      elements,
+    }: {
+      availableHeight: number
+      elements: { floating: HTMLElement }
+    }) {
+      const box = elements.floating.firstElementChild as HTMLElement | null
+      if (box) {
+        box.style.maxHeight = `${Math.max(Math.min(availableHeight, 384), 120)}px`
+      }
+    },
+  },
+}
+
+/**
+ * The rule of Tiptap for the bubble toolbar (some text selected, the focus in the editor or in the
+ * toolbar), but not for a selected block: a video has its own popover (`PlutoEditorEmbedMenu`).
+ */
+function bubbleShouldShow({
+  editor,
+  element,
+  view,
+  state,
+  from,
+  to,
+}: {
+  editor: CoreEditor
+  element: HTMLElement
+  view: CoreEditor['view']
+  state: CoreEditor['state']
+  from: number
+  to: number
+}) {
+  const { selection } = state
+  if (selection instanceof NodeSelection || selection.empty) {
+    return false
+  }
+  const focused = view.hasFocus() || element.contains(document.activeElement)
+  return (
+    editor.isEditable && focused && state.doc.textBetween(from, to).length > 0
+  )
+}
 const suggestionItems = usePlutoMarkdownSuggestionItems(() =>
   components.list.value.map((component) => ({
     name: component.name,
@@ -282,15 +391,17 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
          height (in the canvas: the rest of the panel), so a click anywhere in it puts the cursor
          in the text. In the canvas, the editor element reaches into the gutter at its left
          (`-ms-14 ps-14`): the block buttons sit there, and the pointer stays in the editor on its
-         way to them (Tiptap hides the handle when the pointer leaves the editor). -->
+         way to them (Tiptap hides the handle when the pointer leaves the editor). Under `sm`,
+         Nuxt UI hides the handle, so there is no gutter. -->
     <UEditor
       v-else
       v-slot="{ editor, handlers: editorHandlers }"
-      :model-value="value"
+      :model-value="editorValue"
       :editable="!disabled"
       :placeholder="placeholder"
       :image="true"
       :mention="false"
+      :starter-kit="{ codeBlock: false, underline: false, link: false }"
       :extensions="extensions"
       :handlers="handlers"
       :ui="
@@ -298,12 +409,12 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           ? {
               root: 'flex w-full flex-1 flex-col',
               content: 'flex flex-1 cursor-text flex-col',
-              base: 'flex-1 -ms-14 ps-14 pe-0 pt-12 pb-3 sm:ps-14 sm:pe-0',
+              base: 'flex-1 px-0 pt-12 pb-3 sm:-ms-14 sm:ps-14 sm:pe-0',
             }
           : {
               root: 'w-full',
               content: 'min-h-96 cursor-text',
-              base: 'min-h-96 ps-14 pe-4 py-3 sm:ps-14 sm:pe-4',
+              base: 'min-h-96 px-4 py-3 sm:ps-14 sm:pe-4',
             }
       "
       :class="canvas ? 'flex-1' : 'border-default rounded-md border'"
@@ -332,7 +443,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           :aria-label="t('pluto.github.editor.toolbar')"
           :class="
             canvas
-              ? 'dark:border-default sticky top-2 z-10 -mx-2 shrink-0 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white shadow-[0px_12px_15px_-15px_#0000007a] dark:bg-(--pluto-admin-sidebar)'
+              ? 'dark:border-default pluto-sticky-toolbar sticky top-2 z-10 -mx-2 shrink-0 rounded-lg border border-[oklch(0_0_0/0.19)] bg-white dark:bg-(--pluto-admin-sidebar)'
               : 'border-default bg-default sticky top-0 z-10 rounded-t-md border-b'
           "
           class="px-2 py-1.5"
@@ -349,17 +460,26 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </template>
         </PlutoMarkdownToolbar>
 
-        <!-- Over a text selection: the marks and the link. -->
+        <!-- Over a text selection: the marks and the link. Not over a selected block (a video):
+             that one has its own popover. -->
         <UEditorToolbar
           :editor="editor"
           :items="bubbleItems"
-          :ui="{ base: 'dark:bg-neutral-950' }"
+          :should-show="bubbleShouldShow"
+          :options="{ placement: 'top', flip: false, offset: 10 }"
+          :ui="{ base: 'pluto-editor-arrow-bottom dark:bg-neutral-950' }"
           layout="bubble"
         >
           <template #link>
             <PlutoGithubEditorLink :editor="editor" />
           </template>
         </UEditorToolbar>
+
+        <!-- A click on a link: its address and text. A click on a video: its address. A click on an
+             image: its alt text, Replace, Open and Remove. -->
+        <PlutoEditorLinkMenu :editor="editor" />
+        <PlutoEditorEmbedMenu :editor="editor" />
+        <PlutoEditorImageMenu :editor="editor" />
 
         <!-- In the gutter at the left of the text: the grip of a block (drag to move; a click opens
              Duplicate and Delete), or the "+" of an empty line (the block menu there). No flip:
@@ -379,14 +499,19 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
             arrow
             @update:open="(open: boolean) => onHandleMenu(editor, open)"
           >
-            <UButton
-              :aria-label="t('pluto.github.editor.addBlock')"
-              :class="handleUi.handle()"
-              icon="i-lucide-plus"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-            />
+            <UTooltip
+              :text="t('pluto.github.editor.addBlock')"
+              :content="{ side: 'left' }"
+            >
+              <UButton
+                :aria-label="t('pluto.github.editor.addBlock')"
+                :class="handleUi.handle()"
+                icon="i-lucide-plus"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+              />
+            </UTooltip>
           </UDropdownMenu>
           <UDropdownMenu
             v-else
@@ -396,22 +521,28 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
             arrow
             @update:open="(open: boolean) => onHandleMenu(editor, open)"
           >
-            <UButton
-              :aria-label="t('pluto.github.editor.blockHandle')"
-              :class="handleUi.handle()"
-              icon="i-lucide-grip-vertical"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-            />
+            <UTooltip
+              :text="t('pluto.github.editor.blockHandle')"
+              :content="{ side: 'left' }"
+            >
+              <UButton
+                :aria-label="t('pluto.github.editor.blockHandle')"
+                :class="handleUi.handle()"
+                icon="i-lucide-grip-vertical"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+              />
+            </UTooltip>
           </UDropdownMenu>
         </UEditorDragHandle>
 
-        <!-- "/" in an empty line: the block menu. -->
+        <!-- "/" in an empty line: the block menu. Not in code (plutoSlashMenuAllowed). -->
         <UEditorSuggestionMenu
           :editor="editor"
           :items="suggestionItems"
-          :ui="{ content: 'dark:bg-neutral-950' }"
+          :suggestion="{ allow: plutoSlashMenuAllowed }"
+          :options="suggestionOptions"
         />
       </UTheme>
     </UEditor>

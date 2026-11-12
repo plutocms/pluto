@@ -375,7 +375,6 @@ describe('the start route', () => {
         statuses: 'read',
         deployments: 'read',
       },
-      hook_attributes: { url: 'https://acme.com', active: false },
       default_events: [],
       request_oauth_on_install: false,
     })

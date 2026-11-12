@@ -49,15 +49,17 @@ const note = computed(() => {
         <h2 class="font-semibold">
           {{ t('pluto.mail.status.title') }}
         </h2>
-        <UButton
-          :loading="statusPending"
-          :aria-label="t('pluto.mail.status.refresh')"
-          icon="lucide:refresh-cw"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          @click="load"
-        />
+        <UTooltip :text="t('pluto.mail.status.refresh')">
+          <UButton
+            :loading="statusPending"
+            :aria-label="t('pluto.mail.status.refresh')"
+            icon="lucide:refresh-cw"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            @click="load"
+          />
+        </UTooltip>
       </div>
     </template>
 

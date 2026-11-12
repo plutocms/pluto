@@ -38,7 +38,7 @@ const linkItems = computed<DropdownMenuItem[]>(() => [
             brand.value.name ||
             domainFromUrl(brand.value.url) ||
             brand.value.url,
-          icon: 'i-lucide-external-link',
+          icon: 'i-lucide-globe',
           type: 'link' as const,
           to: brand.value.url,
           target: '_blank',
@@ -152,7 +152,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
   [
     {
       label: t('pluto.common.settings'),
-      icon: 'i-lucide-cog',
+      icon: 'lucide:settings',
       type: 'link',
       to: '/admin/settings',
       kbds: ['meta', ','],

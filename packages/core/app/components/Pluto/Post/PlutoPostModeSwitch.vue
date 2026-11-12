@@ -22,7 +22,14 @@ function pick(mode: 'visual' | 'markdown') {
 </script>
 
 <template>
-  <div :aria-label="t('pluto.post.mode')" class="flex gap-1" role="group">
+  <!-- A press on a button does not take the focus from the text: the caret stays and shows, and
+       the other mode gets it. -->
+  <div
+    :aria-label="t('pluto.post.mode')"
+    class="flex gap-1"
+    role="group"
+    @mousedown.prevent
+  >
     <UTooltip
       :text="t('pluto.post.visualBlocked')"
       :disabled="!visualBlocked"

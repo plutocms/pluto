@@ -9,6 +9,7 @@ usePlutoBackClose(isSidebarOpen, useMediaQuery('(max-width: 63.99rem)'))
 
 const commandGroups = usePlutoCommandPalette()
 const { t } = usePlutoI18n()
+const colorMode = useColorMode()
 
 // Banners from the layers (adminBanners), sorted by order. They show above the page.
 const banners = usePlutoRegistry().adminBanners.list
@@ -22,6 +23,17 @@ usePlutoAdminTheme()
 // in @nuxt/ui 4.12 a replacer only runs for themes with slots, and the
 // group theme has only `base`, so the replacer was silently ignored.
 const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
+
+// Zen mode of the post editor collapses the sidebar (see pluto-zen.ts).
+const sidebarCollapsed = ref(false)
+usePlutoZenPanel(
+  computed({
+    get: () => !sidebarCollapsed.value,
+    set: (open) => {
+      sidebarCollapsed.value = !open
+    },
+  })
+)
 </script>
 
 <template>
@@ -41,16 +53,26 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
       <UDashboardSidebar
         id="admin"
         v-model:open="isSidebarOpen"
-        :default-size="16"
+        v-model:collapsed="sidebarCollapsed"
+        :default-size="16.25"
         :min-size="12"
         :max-size="24"
         :ui="{
           root: 'min-h-0 border-e-0 bg-(--pluto-admin-navbar)',
           content: 'lg:hidden w-[min(18rem,85vw)] bg-(--pluto-admin-navbar)',
           header: 'h-auto py-3',
-          footer: 'max-lg:hidden',
+          // The body does not scroll: PlutoAdminSidebarScroll does, with its own padding.
+          body: 'gap-0 overflow-hidden p-0 sm:px-0',
+          // A line above the footer, open sidebar only. Collapsed, the line is transparent, not
+          // gone: the footer keeps its height, so its buttons stay put.
+          footer:
+            'border-default max-lg:hidden border-t in-data-[collapsed=true]:border-transparent',
+          // The resize handle: the 6px haze-400 bar of the splitters of the admin shows on hover,
+          // after 300ms, and it is the grab area too (3px on each side of the edge).
+          handle:
+            'before:-inset-x-0.75 before:transition-colors before:duration-150! hover:before:bg-haze-400 hover:before:delay-300! active:before:bg-haze-400 active:before:delay-0!',
         }"
-        :collapsed-size="4"
+        :collapsed-size="4.5"
         data-pluto-admin-dark
         resizable
         collapsible
@@ -62,7 +84,7 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
         <template #header="{ collapsed }">
           <UDashboardSearchButton
             :collapsed="collapsed"
-            :class="collapsed ? undefined : 'w-full'"
+            :class="collapsed ? 'px-2.5' : 'w-full'"
             variant="soft"
           />
         </template>
@@ -72,20 +94,41 @@ const groupStyle = { top: 'var(--pluto-admin-bar-height)' }
           popover lists the children of a group. Nuxt UI keeps the state in the group cookie.
         -->
         <template #default="{ collapsed }">
-          <PlutoAdminNavMenu
-            v-model="openGroups"
-            :items="menu"
-            :collapsed="collapsed"
-            orientation="vertical"
-            variant="pill"
-            class="data-[orientation=vertical]:w-full"
-            tooltip
-            popover
-          />
+          <PlutoAdminSidebarScroll>
+            <PlutoAdminNavMenu
+              v-model="openGroups"
+              :items="menu"
+              :collapsed="collapsed"
+              orientation="vertical"
+              variant="pill"
+              class="data-[orientation=vertical]:w-full"
+              tooltip
+              popover
+            />
+          </PlutoAdminSidebarScroll>
         </template>
 
-        <template #footer>
-          <UDashboardSidebarCollapse color="neutral" variant="ghost" />
+        <!-- The collapse button, and a light/dark button (the user menu has the full theme
+             choice). In the rail the light/dark button goes above, so the collapse button stays put. -->
+        <template #footer="{ collapsed }">
+          <div
+            :class="[
+              'flex gap-1.5',
+              collapsed ? 'flex-col-reverse items-start' : 'items-center',
+            ]"
+          >
+            <UDashboardSidebarCollapse
+              color="neutral"
+              variant="ghost"
+              class="px-2.5"
+            />
+            <UColorModeButton
+              v-if="!colorMode.forced"
+              color="neutral"
+              variant="ghost"
+              class="px-2.5"
+            />
+          </div>
         </template>
       </UDashboardSidebar>
 

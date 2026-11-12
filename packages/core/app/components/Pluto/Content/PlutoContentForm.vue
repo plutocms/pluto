@@ -1024,6 +1024,14 @@ const asideModel = computed({
   },
 })
 
+// Zen mode of the post editor closes both panels, and ends when the form closes (pluto-zen.ts).
+usePlutoZenPanel(leftOpen)
+usePlutoZenPanel(asideModel)
+const zen = usePlutoZen()
+onBeforeUnmount(() => {
+  zen.active.value = false
+})
+
 const hasLeft = computed(
   () => isCanvas.value && leftPanels.value.length > 0 && !loadFailed.value
 )
@@ -1559,25 +1567,15 @@ const asideTitle = computed(() =>
         {{ t('pluto.common.settings') }}
       </h2>
 
-      <template v-if="itemPending">
-        <PlutoSkeletonField
-          v-for="field in sideFields"
-          :key="field.name"
-          :field="field"
-        />
-      </template>
-
-      <template v-else>
-        <PlutoContentField
-          v-for="field in sideFields"
-          :key="field.name"
-          :type="type"
-          :field="field"
-          :model-value="item[field.name]"
-          :disabled="!canWrite || saving"
-          @update:model-value="updateField(field, $event)"
-        />
-      </template>
+      <PlutoContentSideFields
+        :fields="sideFields"
+        :groups="contentType?.sideGroups"
+        :item="item"
+        :type="type"
+        :disabled="!canWrite || saving"
+        :pending="itemPending"
+        @update="updateField"
+      />
     </section>
 
     <!-- The rail of the canvas layout: one button for the left panel (its icon and label), the
@@ -1635,48 +1633,28 @@ const asideTitle = computed(() =>
           />
 
           <div v-show="activeTab === 'page'" class="flex flex-col gap-6">
-            <template v-if="itemPending">
-              <PlutoSkeletonField
-                v-for="field in pageFields"
-                :key="field.name"
-                :field="field"
-              />
-            </template>
-
-            <template v-else>
-              <PlutoContentField
-                v-for="field in pageFields"
-                :key="field.name"
-                :type="type"
-                :field="field"
-                :model-value="item[field.name]"
-                :disabled="!canWrite || saving"
-                @update:model-value="updateField(field, $event)"
-              />
-            </template>
+            <PlutoContentSideFields
+              :fields="pageFields"
+              :groups="contentType?.sideGroups"
+              :item="item"
+              :type="type"
+              :disabled="!canWrite || saving"
+              :pending="itemPending"
+              @update="updateField"
+            />
           </div>
         </div>
 
         <div v-else class="flex flex-col gap-6">
-          <template v-if="itemPending">
-            <PlutoSkeletonField
-              v-for="field in sideFields"
-              :key="field.name"
-              :field="field"
-            />
-          </template>
-
-          <template v-else>
-            <PlutoContentField
-              v-for="field in sideFields"
-              :key="field.name"
-              :type="type"
-              :field="field"
-              :model-value="item[field.name]"
-              :disabled="!canWrite || saving"
-              @update:model-value="updateField(field, $event)"
-            />
-          </template>
+          <PlutoContentSideFields
+            :fields="sideFields"
+            :groups="contentType?.sideGroups"
+            :item="item"
+            :type="type"
+            :disabled="!canWrite || saving"
+            :pending="itemPending"
+            @update="updateField"
+          />
         </div>
       </PlutoViewAside>
     </template>
@@ -1843,17 +1821,24 @@ const asideTitle = computed(() =>
     </ModalContent>
 
     <ModalFooter>
-      <div class="flex items-center gap-4">
+      <!-- Two buttons of the same size: the choice reads as one or the other. -->
+      <div class="grid w-full grid-cols-2 gap-3">
         <UButton
           icon="lucide:arrow-left"
-          variant="ghost"
+          variant="outline"
           color="neutral"
+          class="justify-center"
           @click="stayOnPage"
         >
           {{ t('pluto.form.stay') }}
         </UButton>
 
-        <UButton icon="lucide:log-out" color="error" @click="leavePage">
+        <UButton
+          icon="lucide:log-out"
+          color="error"
+          class="justify-center"
+          @click="leavePage"
+        >
           {{ t('pluto.form.leave') }}
         </UButton>
       </div>

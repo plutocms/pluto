@@ -35,6 +35,35 @@ own content renders inside the layout's body slot.
 They give one page (a content list, a content form, or any other admin page) its own local
 toolbar and optional aside, inside the space the global layout already gives it.
 
+### The rules of an admin page
+
+Every admin page uses the three primitives: the content lists and forms, Media, Settings (the
+parent `pages/admin/settings.vue` draws the frame, a tab is only its content), the Users page of
+the Git CMS, and the Users, Roles and Migrations pages of the Supabase layer.
+
+- The title is in `PlutoViewToolbar`, with the icon of the menu item. No big `h1` in the body.
+  The page actions go in `#right` (ghost or solid buttons, natural width).
+- The tabs of a section are `PlutoAdminNavTabs` in `#toolbar`, after the toolbar.
+- A tab does not repeat its name as a heading. One muted intro line (`text-muted text-sm`) may
+  open it.
+- Each part of a page is a `UCard` with a header: `h2` (`font-semibold`) and a muted
+  description. A group of cards has an `h2` + description above it (Deploy).
+- A link to another site ends with the external icon of Nuxt UI (`i-lucide-arrow-up-right`, the
+  icon its menus add to an item with `target: '_blank'`): `trailing-icon` on a button, and
+  `PlutoExternalLink` for a link in a sentence or a cell (it adds the icon and an "opens in a new
+  tab" text for screen readers). An icon-only button to another site uses the same icon.
+- Every icon-only button has a tooltip that says what it does (`UTooltip :text`), with the same
+  text as its `aria-label`. The trigger of a menu or a popover puts the tooltip inside the menu,
+  around the button (`PlutoBlockInsertMenu`). A button with a visible label needs none. This holds
+  for every layer and every admin surface: toolbars, cards, lists, the editor, the navbar. To find
+  the ones that miss it, look for a `UButton` with `icon` and no `label` and no text inside that
+  no `UTooltip` wraps.
+- No page wrapper: the `container` width gives the padding and the gap (the old `AdminView`
+  component is gone).
+- A page before sign-in uses the `auth` layout and `PlutoAdminAuthCard` (the Supabase setup
+  wizard too). The server-rendered GitHub App setup pages copy that look in plain CSS
+  (`github-setup-pages.ts`).
+
 ### `PlutoViewAdminPanel`
 
 The outer shell for one view. Props:
@@ -89,8 +118,8 @@ the title; the left padding is then `ps-2`, so the back button lines up with the
 
 Slots: `#left` (replaces the whole leading area — icon, title, and trailing content — so only use
 it when you also want to replace the title), `#title`, default (a centered slot), `#right`,
-`#trailing` (renders right after the title, inside the same leading area — the natural place for
-a small button that belongs next to the title, like a refresh button).
+`#trailing` (renders right after the title, inside the same leading area, for a small status
+next to the title). A content list keeps its Refresh button at the end of the search row.
 
 ### `PlutoViewAside`
 

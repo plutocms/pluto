@@ -253,7 +253,7 @@ const commitTime = computed(() => ago(status.value?.committedAt))
                 "
                 target="_blank"
                 rel="noopener noreferrer"
-                trailing-icon="lucide:external-link"
+                trailing-icon="i-lucide-arrow-up-right"
                 color="neutral"
                 variant="outline"
                 size="xs"

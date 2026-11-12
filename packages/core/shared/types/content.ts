@@ -55,6 +55,27 @@ export interface PlutoFieldBase {
   widget?: string
   /** Which column of the generic form this field renders in. Default 'main'. */
   region?: 'main' | 'side'
+  /**
+   * The id of a group of `sideGroups` of the type: a field of the side column shows in that
+   * collapsible group. None (or an id the type does not have): it shows above the groups.
+   */
+  group?: string
+}
+
+/**
+ * A collapsible group of the side column of the form (`PlutoContentType.sideGroups`). A layer that
+ * adds fields to a type adds its group with them (a content type extension), so its fields stay
+ * together, under its name.
+ */
+export interface PlutoContentSideGroup {
+  id: string
+  /** A translation key or a literal. */
+  label: string
+  icon?: string
+  /** Lower comes first. Default 100. */
+  order?: number
+  /** Open when the form loads. Default `true`. */
+  defaultOpen?: boolean
 }
 
 export interface PlutoTextField extends PlutoFieldBase {
@@ -282,6 +303,8 @@ export interface PlutoContentType {
   /** `false` disables created/updated timestamps entirely for this content type. */
   timestamps?: PlutoContentTimestamps | false
   capabilities?: PlutoContentTypeCapabilities
+  /** The collapsible groups of the side column of the form. A field joins one with `group`. */
+  sideGroups?: PlutoContentSideGroup[]
   defaultSort?: {
     field: string
     direction: 'asc' | 'desc'

@@ -571,7 +571,8 @@ production, both answer 404. The secrets only go to the browser that runs the fl
 
 - `name`: "<site name> CMS", 34 characters or less. The site name is `public.websiteName`, else the
   repo name. The author can change it on GitHub.
-- `url`: the origin. `hook_attributes`: `{ url: origin, active: false }`.
+- `url`: the origin. No `hook_attributes`: the App has no webhook, and GitHub refuses a local hook
+  URL even when the hook is off.
 - `redirect_url`: `<origin>/api/_pluto/github/setup/callback`.
 - `callback_urls`: `<origin>/api/_pluto/auth/github/callback`, plus
   `http://localhost:3000/api/_pluto/auth/github/callback` when the origin is not local.
@@ -647,7 +648,26 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   button (`PlutoMediaEditorButton`, the media picker) shows when the app has a media library. The
   mention extension is off.
 - Blocks, like the other editors: a bubble toolbar over a selection (`usePlutoMarkdownBubbleItems`:
-  the marks and the link slot). The compose panel has a left gutter (`ps-14`) and `pe-4`. With the preview off, the column is
+  the marks and the link slot; `bubbleShouldShow` keeps the rule of Tiptap, but not for a selected
+  block). A caret in a link opens the link popover (`PlutoEditorLinkMenu`, a `BubbleMenu`): its
+  address and its text, applied on Enter or when a field loses the focus, the "Open in a new tab"
+  box, Open, and Remove (the text stays). The box sets the `target` of the link mark; the caret
+  stays. The link is `PlutoLink` (app/utils/pluto-link.ts), in place of the starter kit link
+  (`link: false`): it has no default target (the starter kit gives every link `_blank`, which
+  Markdown cannot hold), a pasted link keeps only `_blank`, and it reads and writes the MDC
+  attribute `[text](url){target="_blank"}` (an inline tokenizer, and the mark closing). The shared
+  matcher is `shared/markdown/link-target.ts`: `renderMarkdown` keeps the attribute through
+  `stripMdc` (other forms such as `{target=_blank .x}` too) and renders `target="_blank"` with
+  `rel="noopener noreferrer"` (`plutoBlankLinkExtension`); the sanitizer keeps `target` only as
+  `_blank` and sets that `rel`; `findUnsafeMarkdown` does not count the exact form as attributes, so
+  the post stays in Visual mode. Test: `test/markdown-link-target.test.ts`. The link popover never
+  takes the focus (a click in a link is for its text). A click on a
+  video (a pointerdown on `.pluto-embed-node` less than 1 s before `onShow`) focuses the address
+  of its popover with the text selected; a block selected with the keys keeps the focus in the text.
+  Escape in a field goes back to the text. A click on an image opens its popover (`PlutoEditorImageMenu`): alt text, Replace (media picker), Open, Remove. The link, video and image popovers share `PlutoEditorBubble` (a `BubbleMenu` with the panel and an arrow that it places after each move, `onUpdate`, on the side and at the start of the target). Every floating thing of the editor has an arrow: Reka poppers by the admin defaults; the bubble toolbar (`placement: top`, `flip: false`) and the Markdown bubble with `.pluto-editor-arrow-bottom`; the "/" menu (it ignores its `ui` prop) by CSS on `.ProseMirror ~ div > [role=listbox]`, `flip: false` and a `size` that shortens it near the bottom. Popovers open at `bottom-start`: a centered one can overflow a narrow column, and focusing
+  its field scrolls the column sideways. The menus take `Editor` from `@tiptap/core` and find a
+  mark range by hand: `getMarkRange` of core types against another copy of `prosemirror-model`.
+  The compose panel has a left gutter (`ps-14`) and `pe-4`. With the preview off, the column is
   centered (`max-w-3xl`); when the panel has room for the buttons beside it (an `@container`,
   `@min-[55rem]`), the padding is `ps-4` on both sides and the buttons use the free space, so the
   column stays in the middle. The editor element reaches into the gutter (`-ms-14 ps-14`): Tiptap
@@ -663,7 +683,16 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   lists, quote, code block, then the content components with the `plutoComponent` handler, passed
   to `UEditor` with `handlers`). `PlutoTrailingParagraph` (`app/utils/`) keeps an empty line at the
   end (not in the undo history), and the widget trims the blank lines at the end of the Markdown, so
-  an open post stays unchanged. The text has `pt-12`, so the bubble toolbar of the first line does
+  an open post stays unchanged. `UEditor` loads its model value again (`setContent`) whenever it
+  differs from its own `getMarkdown()`, so the widget gives it back its own last Markdown
+  (`editorValue`) while the value is one that the widget gave. The widget gives the value at most
+  every 200 ms while the author types, and at once on blur (`plutoFlushOnBlur`) and unmount; the
+  Markdown code editor does the same (`flushValue`, `emitted`). `PlutoThrottledState` (`app/utils/`)
+  swaps the `reactiveState` ref of the Tiptap Vue editor for one that renders at most every 120 ms
+  (the state itself stays current): every toolbar button reads it, so each key rendered both
+  toolbars again (63 ms a key on a long post; 7 ms after). Never bind the trimmed value: the editor
+  reloads at each key, a reload drops a space at the end of a line, and the caret leaves the line
+  (Backspace in a heading selected and deleted it). The text has `pt-12`, so the bubble toolbar of the first line does
   not sit under the main toolbar. Core sets `vite.resolve.dedupe` for the ProseMirror packages: a
   nested copy of `prosemirror-model` broke the slash menu.
 - The editable area has a minimum height (`min-h-96`) in a bordered box with a sticky toolbar, so
@@ -727,11 +756,24 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   of the aside have no track (`scrollbar-thumb-(--ui-border-accented)`). The editor keeps the room of
   the scrollbar (`scrollbar-gutter-stable`).
 - The canvas is one `USplitter` in both modes (stacked under `lg`): the compose panel and the
-  preview. The cookie `pluto-post-split` keeps the sizes. The compose panel has a footer with
-  the Visual/Markdown switch (`PlutoPostModeSwitch.vue`) and, at the end, the **Preview** switch
-  (`USwitch`). With the preview off, the splitter has the compose panel alone (its size is not
-  saved) and the Visual editor keeps a readable width (`max-w-3xl`, in the middle). On desktop
+  preview. The cookie `pluto-post-split` keeps the sizes; the items read it only when the preview
+  opens (`splitStart`): items rebuilt from the cookie at each move gave the splitter new default
+  sizes, which ended the drag after one pixel. The compose panel has a footer with
+  the Visual/Markdown switch (`PlutoPostModeSwitch.vue`, `@mousedown.prevent` so the text keeps
+  the focus; a switch focuses the other mode at the caret, `whenTextReady(..., force)`), the Zen
+  buttons, and, at the end, the **Preview** switch (`USwitch`). While the editor of a mode loads,
+  a skeleton (toolbar and lines, `textReady`) covers its area. With the preview off, the splitter
+  has the compose panel alone (its size is not saved). The text keeps a readable width
+  (`max-w-3xl`, in the middle) with or without the preview (`columnClass`, a container query on
+  the compose panel). On desktop
   the cookie `pluto-post-preview` keeps the choice (default off: the editor gets the room; the docs editor keeps its preview on); under `lg` it starts off.
+- Zen mode (`app/composables/pluto-zen.ts`): `usePlutoZen()` gives `active` (`useState`, for the
+  page) and `hideToolbar` (cookie `pluto-zen-toolbar`). `usePlutoZenPanel(open)` closes a panel
+  while it is on and opens it again after if it was open (a panel opened during Zen stays open);
+  the admin layout uses it for the sidebar (`v-model:collapsed`), the form for its left panel and
+  its aside. The form ends Zen mode when it unmounts, after its panels restore (so no closed state
+  stays in their cookies). With `hideToolbar`, the canvas root has
+  `data-pluto-zen-toolbar="hidden"` and `pluto-layer.css` hides `[data-pluto-editor-toolbar]`.
 - The left panel (the Outline) starts closed. The rail of the form (the `#rail` slot of
   `PlutoViewAdminPanel`, see the admin-view-chrome skill) has its button (`i-lucide-list-tree`),
   and its header has an X (`PlutoViewLeftCollapse`).
@@ -751,9 +793,17 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   title, the widget toolbar and the text scroll together in the compose panel. A `richtext`
   widget of a layer must accept `canvas`: no label, no border, a sticky toolbar bar, and a root
   that grows (`flex-1`) so the text fills the rest of the height.
-- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`fill`, `bare`: no toolbar, no box, no side
-  padding; the editor grows with the text and the parent scrolls), loaded on demand. See "Markdown
-  code editor" below.
+- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`bare`: the toolbar of the Visual editor, no
+  box, no side padding; the editor grows with the text and the parent scrolls), loaded on demand.
+  See "Markdown code editor" below.
+- The caret is one unit for both modes: its offset in the Markdown (`app/utils/pluto-caret.ts`). Visual to
+  Markdown: a private-use marker at the caret, the document written as Markdown, the marker found
+  (`plutoMarkdownCaret`). Markdown to Visual: the marker in the text, parsed, the same text block
+  of the editor (video lines do not count) at the same offset (`plutoVisualCaret`). A switch of mode
+  keeps the caret; localStorage (`pluto-caret:<type>:<id>`) keeps it between visits as an offset
+  and the 24 characters before it (`plutoCaretAnchor`, `plutoFindCaret`: the file on disk can be
+  written a little differently from the editor), saved a second after the caret stops, on a switch
+  and on `pagehide`; an item opens with the caret there and the focus. A new item focuses its text.
 - Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
   widget. The cookie `pluto-post-editor-mode` keeps the last mode.
 - The left panel (`PlutoPostOutline.vue`, in the `PlutoViewSidePanel` shell) lists the headings, each with the icon of its level (`i-lucide-heading-1` to `-6`) (`plutoMarkdownHeadings(text)` in
@@ -770,8 +820,24 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 
 `app/components/Pluto/Markdown/PlutoMarkdownCodeEditor.vue` is the Markdown editor on CodeMirror 6
 (it came from the docs layer, which uses it too). The text shows its format as the author
-types, and the marks stay visible, dimmed. MDC lines (components, slots, YAML props) and code
-blocks get their own color (`mdcLineKinds`, `shared/utils/mdc-lines.ts`). A toolbar has the quick
+types, and the marks stay visible, dimmed. Headings are bold and yellow (every line keeps one size).
+From the syntax tree of the visible lines (`markdownLook`): inline code is a tinted pill, its
+backticks too; a quote line has a bar at its left; a list mark is primary and semibold. MDC lines
+(components, slots, YAML props) are colored like code (`mdcLineKinds` and `mdcLineTokens`,
+`shared/utils/mdc-lines.ts`, tested in `test/markdown-format.test.ts`): dimmed colons, braces and
+`=`, the component name in primary, attribute and prop keys, string and literal values and slot
+names in the `--pluto-code-*` colors; nothing of the Markdown look shows inside them. A code block is a tinted box with 12px at its
+sides and rounded corners (`cm-pluto-code-first`/`-last` on its first and last line), and its code
+has the colors of its language: the language is `markdownWithCode`, built from `markdownLanguage`
+with `parseCode` (`@lezer/markdown`) and `@codemirror/language-data`, which loads a language the
+first time a fence names it (not `markdown()`, which imports the HTML language). The colors are the
+`--pluto-code-*` variables of `pluto-layer.css` (`codeStyle`), the same as the Visual mode. The
+Visual mode has `PlutoCodeBlock` (`app/utils/pluto-code-block.ts`): `CodeBlockLowlight` (lowlight,
+the `common` grammars) with the node view `PlutoEditorCodeBlock`, a language select at its top
+right (shown on hover, or while the caret is in the block; `PLUTO_CODE_LANGUAGES`, an alias such
+as `ts` shows as its language and stays as written; Plain text is a fence with no info). The
+widget turns the code block of the StarterKit off (`starter-kit="{ codeBlock: false }"`). Pin
+`@tiptap/extension-code-block-lowlight` to the Tiptap version of core: it wants exact peers. A toolbar has the quick
 formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts`, tested in
 `test/markdown-format.test.ts`). It has search and history.
 
@@ -780,10 +846,18 @@ formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts
   `toolbar` (slot props `insert`, `focus`) and `toolbar-end`. Exposed: `insert`, `focus`,
   `reveal(start, end)` and `goToLine(line)` (the caret goes to the end of the line, from 0).
 - Event `cursorLine`: the line of the caret, from 0.
-- With `bare`, the editor has no toolbar, no box and no side padding, and it grows with the text (the
-  parent scrolls). A bubble toolbar (bold, italic, strike, code, link) shows over a selection. The
-  `.cm-scroller` keeps the room of the scrollbar only with `fill`. The docs layer does not use
-  `bare` and keeps the toolbar.
+- With `bare`, the editor has no box and no side padding (a CodeMirror theme with `Prec.high`, not a
+  Tailwind `!` class: a layered important utility beats every unlayered rule, and a quote line
+  needs its own padding), and it grows with the text (the parent scrolls). Its toolbar is the one
+  of the Visual editor, in the same sticky rounded bar (`data-pluto-editor-toolbar`), with the same
+  groups, icons and `pluto.github.editor.*` labels: undo and redo (off with no step), the headings
+  menu (Paragraph, H1 to H4: `headingMarkdown`), the lists menu, quote, code block, the inline
+  formats and link, the image (the media picker, `![alt](url)` as a block) and the component menu
+  (`writeEmptyComponent` as a block). The entries are data (`PlutoMarkdownToolbarItem`, rendered by
+  `PlutoMarkdownToolbarEntry`); the ones that do not fit go into a More popover, like
+  `PlutoMarkdownToolbar`. A bubble toolbar (bold, italic, strike, code, link) shows over a
+  selection. The `.cm-scroller` keeps the room of the scrollbar only with `fill`. The docs layer
+  does not use `bare` and keeps the quick formats toolbar.
 - It uses `markdownLanguage`, not `markdown()`, which would add the HTML, CSS and JavaScript
   languages.
 - Load it on demand (`defineAsyncComponent`, or `LazyPlutoMarkdownCodeEditor`): CodeMirror is

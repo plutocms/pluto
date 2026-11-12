@@ -66,7 +66,11 @@ build logs a warning. See the git-cms skill ("Static build").
 ## Fields and storage
 
 `PLUTO_SEO_FIELDS` has five fields. Each is in the side column, out of the list, with the orders 900
-to 904, so the SEO group comes last. The preview comes first, as the heading of the group.
+to 904, and in the side group `seo` (`group: 'seo'`). `plutoSeoWithFields` adds the group itself
+(`PLUTO_SEO_GROUP`: label `seo.group`, `lucide:search`, order 900, `defaultOpen: false`), so the
+fields show in a collapsible "SEO" section, closed when the form loads. A type that has a group
+`seo` already keeps its own. The preview comes first in the group. See "Side groups" in the
+content-model skill.
 
 | Field            | Type                                       | Supabase column (`posts`)                    | Git CMS file      | Flat key (Git hooks) |
 | ---------------- | ------------------------------------------ | -------------------------------------------- | ----------------- | -------------------- |
