@@ -341,6 +341,7 @@ function onLayout(sizes: number[]) {
       <!-- The compose panel and the preview of the site, side by side (stacked on a narrow screen). -->
       <USplitter
         :items="splitItems"
+        :hit-area-margins="{ coarse: 15, fine: 2.5 }"
         :orientation="isDesktop ? 'horizontal' : 'vertical'"
         :ui="{
           root: 'h-full min-h-0',

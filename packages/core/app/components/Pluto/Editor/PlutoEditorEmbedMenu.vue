@@ -89,13 +89,15 @@ function apply(focus: boolean) {
   }
 }
 
-// A click in the text that opens the popover gives the focus to its first field, with the text
-// selected, so a paste or a new address replaces it. A caret moved with the keys keeps the focus in
-// the text: the popover shows, and typing goes on. Escape in a field goes back to the text.
+// A click on the video gives the focus to the address, with the text selected, so a paste or a new
+// address replaces it. A block selected another way (the keys) keeps the focus in the text. Escape
+// in the field goes back to the text.
 const panel = useTemplateRef<HTMLElement>('panel')
 let clickedAt = 0
-function onPointerDown() {
-  clickedAt = performance.now()
+function onPointerDown(event: PointerEvent) {
+  if ((event.target as Element | null)?.closest('.pluto-embed-node')) {
+    clickedAt = performance.now()
+  }
 }
 
 watch(

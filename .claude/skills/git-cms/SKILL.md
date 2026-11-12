@@ -651,9 +651,10 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   the marks and the link slot; `bubbleShouldShow` keeps the rule of Tiptap, but not for a selected
   block). A caret in a link opens the link popover (`PlutoEditorLinkMenu`, a `BubbleMenu`): its
   address and its text, applied on Enter or when a field loses the focus, Open, and Remove (the text
-  stays). A popover opened by a click (a pointerdown in the text less than 1 s before `onShow`)
-  focuses its first field with the text selected; a caret moved with the keys keeps the focus in the
-  text. A field selects its text on focus, and Escape goes back to the text. Popovers open at `bottom-start`: a centered one can overflow a narrow column, and focusing
+  stays). The link popover never takes the focus (a click in a link is for its text). A click on a
+  video (a pointerdown on `.pluto-embed-node` less than 1 s before `onShow`) focuses the address
+  of its popover with the text selected; a block selected with the keys keeps the focus in the text.
+  Escape in a field goes back to the text. Popovers open at `bottom-start`: a centered one can overflow a narrow column, and focusing
   its field scrolls the column sideways. The menus take `Editor` from `@tiptap/core` and find a
   mark range by hand: `getMarkRange` of core types against another copy of `prosemirror-model`.
   The compose panel has a left gutter (`ps-14`) and `pe-4`. With the preview off, the column is

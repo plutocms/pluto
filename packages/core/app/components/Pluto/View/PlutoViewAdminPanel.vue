@@ -246,6 +246,7 @@ const items = computed<SplitterItem[]>(() => [
       -->
       <USplitter
         :items="items"
+        :hit-area-margins="{ coarse: 15, fine: 2.5 }"
         :ui="{
           // In the sheet with no aside open, 16px of frame at the right of the sheet.
           root: sheet && !resizable ? 'min-h-0 flex-1 pe-4' : 'min-h-0 flex-1',

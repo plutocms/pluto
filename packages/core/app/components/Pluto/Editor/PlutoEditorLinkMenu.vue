@@ -131,40 +131,8 @@ function apply(focus: boolean) {
   link = { from: link.from, to: link.from + label.length, href, text: label }
 }
 
-// A click in the text that opens the popover gives the focus to its first field, with the text
-// selected, so a paste or a new address replaces it. A caret moved with the keys keeps the focus in
-// the text: the popover shows, and typing goes on. Escape in a field goes back to the text.
-const panel = useTemplateRef<HTMLElement>('panel')
-let clickedAt = 0
-function onPointerDown() {
-  clickedAt = performance.now()
-}
-
-watch(
-  () => props.editor,
-  (editor, _previous, onCleanup) => {
-    const dom = editor.isDestroyed ? null : editor.view.dom
-    dom?.addEventListener('pointerdown', onPointerDown)
-    onCleanup(() => dom?.removeEventListener('pointerdown', onPointerDown))
-  },
-  { immediate: true }
-)
-
-function onShow() {
-  if (performance.now() - clickedAt > 1000) {
-    return
-  }
-  requestAnimationFrame(() => {
-    const input = panel.value?.querySelector('input')
-    input?.focus()
-    input?.select()
-  })
-}
-
-function selectAll(event: FocusEvent) {
-  ;(event.target as HTMLInputElement | null)?.select()
-}
-
+// The popover never takes the focus: a click in a link puts the caret there, to edit the text.
+// Escape in a field goes back to the text.
 function backToText() {
   if (link) {
     props.editor.chain().focus().setTextSelection(link.to).run()
@@ -189,11 +157,10 @@ function remove() {
   <BubbleMenu
     :editor="editor"
     :should-show="shouldShow"
-    :options="{ placement: 'bottom-start', offset: 6, onShow }"
+    :options="{ placement: 'bottom-start', offset: 6 }"
     plugin-key="plutoLinkMenu"
   >
     <div
-      ref="panel"
       class="bg-default ring-default flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2 rounded-lg p-2 shadow-lg ring dark:bg-neutral-950"
     >
       <UInput
@@ -206,7 +173,6 @@ function remove() {
         spellcheck="false"
         @keydown.enter.prevent="apply(true)"
         @keydown.esc.prevent="backToText"
-        @focus="selectAll"
         @change="apply(false)"
       />
       <UInput
@@ -218,7 +184,6 @@ function remove() {
         autocomplete="off"
         @keydown.enter.prevent="apply(true)"
         @keydown.esc.prevent="backToText"
-        @focus="selectAll"
         @change="apply(false)"
       />
       <div class="flex items-center justify-end gap-1">
