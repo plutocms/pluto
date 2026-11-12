@@ -130,22 +130,29 @@ const clamp = (px: number, min: number, max: number) =>
   Math.min(max, Math.max(min, px))
 const asideDefault = ref(0)
 const leftDefault = ref(0)
+
+/** The width of a side panel in px: its box while it is open, else the stored width. */
+function sideWidth(el: HTMLElement | undefined, stored: number) {
+  const width = el?.getBoundingClientRect().width
+  return width && width > 0 ? width : stored
+}
+
+// When a side panel opens or closes, the splitter lays out its panels again from their
+// `defaultSize`. A percentage taken when the other panel opened is of the row width of that moment
+// (a page can still be settling then), so the other panel jumped to another width. Both are taken
+// again from their px widths of now: the panel that stays open keeps its width.
 watch(
-  resizable,
-  (value) => {
-    if (value) {
+  [resizable, leftResizable],
+  ([aside, left]) => {
+    if (aside) {
       asideDefault.value = toPercent(
-        clamp(asideWidth.value, ASIDE_MIN, ASIDE_MAX)
+        clamp(sideWidth(asideEl.value, asideWidth.value), ASIDE_MIN, ASIDE_MAX)
       )
     }
-  },
-  { immediate: true }
-)
-watch(
-  leftResizable,
-  (value) => {
-    if (value) {
-      leftDefault.value = toPercent(clamp(leftWidth.value, LEFT_MIN, LEFT_MAX))
+    if (left) {
+      leftDefault.value = toPercent(
+        clamp(sideWidth(leftEl.value, leftWidth.value), LEFT_MIN, LEFT_MAX)
+      )
     }
   },
   { immediate: true }
