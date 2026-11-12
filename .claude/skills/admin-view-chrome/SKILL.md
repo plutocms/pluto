@@ -52,6 +52,12 @@ the Git CMS, and the Users, Roles and Migrations pages of the Supabase layer.
   icon its menus add to an item with `target: '_blank'`): `trailing-icon` on a button, and
   `PlutoExternalLink` for a link in a sentence or a cell (it adds the icon and an "opens in a new
   tab" text for screen readers). An icon-only button to another site uses the same icon.
+- Every icon-only button has a tooltip that says what it does (`UTooltip :text`), with the same
+  text as its `aria-label`. The trigger of a menu or a popover puts the tooltip inside the menu,
+  around the button (`PlutoBlockInsertMenu`). A button with a visible label needs none. This holds
+  for every layer and every admin surface: toolbars, cards, lists, the editor, the navbar. To find
+  the ones that miss it, look for a `UButton` with `icon` and no `label` and no text inside that
+  no `UTooltip` wraps.
 - No page wrapper: the `container` width gives the padding and the gap (the old `AdminView`
   component is gone).
 - A page before sign-in uses the `auth` layout and `PlutoAdminAuthCard` (the Supabase setup
