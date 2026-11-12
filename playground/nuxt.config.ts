@@ -12,5 +12,11 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    public: {
+      websiteName: 'Pluto playground',
+    },
+  },
+
   compatibilityDate: '2025-07-15',
 })

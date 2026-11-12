@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title">
+  <title id="title">Hello, world</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#18181b" />
+      <stop offset="1" stop-color="#3f3f46" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.18" r="0.6">
+      <stop offset="0" stop-color="#f59e0b" stop-opacity="0.55" />
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#sky)" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+  <circle cx="960" cy="150" r="70" fill="#fbbf24" />
+  <circle cx="1060" cy="250" r="6" fill="#fafafa" opacity="0.7" />
+  <circle cx="820" cy="300" r="4" fill="#fafafa" opacity="0.5" />
+  <circle cx="1110" cy="420" r="5" fill="#fafafa" opacity="0.6" />
+  <text x="90" y="350" fill="#fafafa" font-family="ui-sans-serif, system-ui, sans-serif" font-size="110" font-weight="700" letter-spacing="-3">Hello, world</text>
+  <text x="94" y="430" fill="#a1a1aa" font-family="ui-sans-serif, system-ui, sans-serif" font-size="40">The first post of your new blog</text>
+</svg>
