@@ -780,7 +780,19 @@ writes) is an embed. Core owns the block and the security; providers plug in.
   `data-pluto-embed="<provider id>"`), or stays the link. The top level stays flat for the
   direct-child rules of `.pluto-prose`. The server renders the players (SSR).
 - The post preview of the admin uses `PlutoHtml`, so the live preview of the editor shows the
-  players. The Visual editor shows the URL as a link (an embed card there is later).
+  players.
+- **Visual editor** (`app/utils/pluto-embed-node.ts`, added by `PlutoFieldMarkdown`): a top-level
+  embed shows as the `plutoEmbed` block (`PlutoEmbedNodeView`): the provider component, inert (a
+  click selects the block, it never plays), and the provider and the URL under it.
+  `PlutoEmbedParagraph` has its own block token, `plutoEmbedLine` (a URL alone between blank
+  lines). It parses the line as a paragraph, with the source text in `plutoEmbedSource` when
+  `isEmbedParagraph` and a provider match it. A pass (`onCreate`, `appendTransaction`, not in Undo)
+  turns each top-level one into the block; a nested one (a quote, a list) stays a link, as on the
+  site. The block writes its source text back (bare, `<url>` or `[url](url)`), so an open post
+  stays unchanged. A provider URL pasted alone into an empty top-level line becomes the block, with
+  an empty line after it. Never register a parser under the `paragraph` token: the Markdown writer
+  finds the writer of a node by its token name first, and a parser with no writer empties every
+  paragraph.
 - The sanitizer writes each kept attribute value decoded once and escaped once (`keptValue`), so
   a `&` in a URL is `&amp;`, not `&amp;amp;`.
 

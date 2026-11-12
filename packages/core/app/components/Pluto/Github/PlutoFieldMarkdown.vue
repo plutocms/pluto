@@ -88,8 +88,16 @@ const items = usePlutoMarkdownToolbar({
 })
 
 // A content component (`::name{props}` then `::`) shows as a chip. See the
-// content-components skill.
-const extensions = [PlutoContentComponentNode, PlutoTrailingParagraph]
+// content-components skill. A video URL alone on its line shows as its thumbnail (PlutoEmbedNode).
+const registry = usePlutoRegistry()
+const extensions = [
+  PlutoContentComponentNode,
+  PlutoEmbedNode,
+  PlutoEmbedParagraph.configure({
+    providers: () => registry.embedProviders.list.value,
+  }),
+  PlutoTrailingParagraph,
+]
 
 /**
  * The Markdown of the editor, without the blank lines at the end: the empty last line of the editor

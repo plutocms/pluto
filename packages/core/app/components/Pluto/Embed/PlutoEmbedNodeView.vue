@@ -1,0 +1,53 @@
+<script setup lang="ts">
+// The embed block of the Visual editor (the node view of `PlutoEmbedNode`): the component of the
+// provider, as the site shows it before a click (the thumbnail and the play button), and the
+// provider and the URL under it. The player is inert: a click selects the block, it never plays.
+// With no provider for the URL any more, the block shows the URL.
+import type { NodeViewProps } from '@tiptap/vue-3'
+import { NodeViewWrapper } from '@tiptap/vue-3'
+import { resolveEmbed } from '#layers/pluto/shared/utils/embed'
+
+const props = defineProps<NodeViewProps>()
+
+const { tx } = usePlutoI18n()
+const registry = usePlutoRegistry()
+
+const url = computed(() => String(props.node.attrs.url ?? ''))
+const resolved = computed(() =>
+  resolveEmbed(registry.embedProviders.list.value, url.value)
+)
+</script>
+
+<template>
+  <NodeViewWrapper
+    :class="
+      selected
+        ? 'ring-primary ring-2'
+        : 'ring-default hover:ring-accented ring-1'
+    "
+    class="pluto-embed-node my-4 overflow-hidden rounded-lg transition-shadow"
+    data-drag-handle
+  >
+    <div
+      v-if="resolved"
+      class="pointer-events-none select-none [&_.pluto-embed]:m-0 [&_.pluto-embed\_\_player]:rounded-none"
+      inert
+    >
+      <component
+        :is="resolved.provider.component"
+        :url="url"
+        :match="resolved.match"
+      />
+    </div>
+
+    <div
+      class="bg-elevated/60 text-muted flex items-center gap-2 px-3 py-2 text-xs"
+    >
+      <UIcon name="i-lucide-play" class="size-3.5 shrink-0" />
+      <span v-if="resolved" class="text-highlighted shrink-0 font-medium">
+        {{ tx(resolved.provider.label) }}
+      </span>
+      <span class="min-w-0 truncate">{{ url }}</span>
+    </div>
+  </NodeViewWrapper>
+</template>
