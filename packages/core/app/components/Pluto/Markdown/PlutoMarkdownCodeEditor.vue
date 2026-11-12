@@ -262,6 +262,17 @@ const LINE_CLASSES = {
   props: Decoration.line({ class: 'cm-pluto-props' }),
   code: Decoration.line({ class: 'cm-pluto-code' }),
 }
+// The parts of an MDC line (`mdcLineTokens`): the colons and braces, the name of a component, its
+// attributes and their values, the name of a slot, the keys and the values of the YAML props.
+const MDC_MARKS = {
+  punct: Decoration.mark({ class: 'cm-mdc-punct' }),
+  name: Decoration.mark({ class: 'cm-mdc-name' }),
+  attr: Decoration.mark({ class: 'cm-mdc-attr' }),
+  string: Decoration.mark({ class: 'cm-mdc-string' }),
+  literal: Decoration.mark({ class: 'cm-mdc-literal' }),
+  slot: Decoration.mark({ class: 'cm-mdc-slot' }),
+}
+
 // The first and the last line of a code block, for its rounded corners.
 const CODE_EDGES = {
   first: Decoration.line({ class: 'cm-pluto-code-first' }),
@@ -291,8 +302,16 @@ const mdcLines = ViewPlugin.fromClass(
         if (!kind) {
           return
         }
-        const from = view.state.doc.line(index + 1).from
+        const line = view.state.doc.line(index + 1)
+        const from = line.from
         ranges.push(LINE_CLASSES[kind].range(from))
+        for (const token of mdcLineTokens(line.text, kind)) {
+          if (token.to > token.from) {
+            ranges.push(
+              MDC_MARKS[token.kind].range(from + token.from, from + token.to)
+            )
+          }
+        }
         if (kind === 'code' && kinds[index - 1] !== 'code') {
           ranges.push(CODE_EDGES.first.range(from))
         }
@@ -300,7 +319,7 @@ const mdcLines = ViewPlugin.fromClass(
           ranges.push(CODE_EDGES.last.range(from))
         }
       })
-      return Decoration.set(ranges)
+      return Decoration.set(ranges, true)
     }
   },
   { decorations: (plugin) => plugin.decorations }
@@ -414,13 +433,12 @@ const theme = EditorView.theme({
     paddingInlineStart: '12px !important',
   },
   '.cm-pluto-component': {
-    color: 'var(--ui-primary)',
+    color: 'var(--ui-text-muted)',
     fontFamily: 'var(--font-mono, ui-monospace, monospace)',
   },
   '.cm-pluto-slot': {
-    color: 'var(--ui-secondary, var(--ui-primary))',
+    color: 'var(--ui-text-muted)',
     fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-    fontWeight: '600',
   },
   '.cm-pluto-props': {
     color: 'var(--ui-text-muted)',
@@ -446,13 +464,28 @@ const theme = EditorView.theme({
   // A component, slot or props line keeps its own look: no Markdown format inside it (a code line
   // keeps the colors of its language). A YAML
   // line before a `---` line would read as a heading (a "setext" heading) and turn yellow.
-  '.cm-pluto-component *, .cm-pluto-slot *, .cm-pluto-props *': {
-    color: 'inherit !important',
-    fontWeight: 'inherit !important',
-    fontStyle: 'inherit !important',
-    textDecoration: 'none !important',
-    backgroundColor: 'transparent !important',
-    padding: '0 !important',
+  '.cm-pluto-component :not([class*="cm-mdc-"]), .cm-pluto-slot :not([class*="cm-mdc-"]), .cm-pluto-props :not([class*="cm-mdc-"])':
+    {
+      color: 'inherit !important',
+      fontWeight: 'inherit !important',
+      fontStyle: 'inherit !important',
+      textDecoration: 'none !important',
+      backgroundColor: 'transparent !important',
+      padding: '0 !important',
+    },
+  // The colors of the MDC parts: the palette of the code of the admin (`--pluto-code-*`), the name
+  // of a component in the primary color. `!important` and two classes: they win over the reset above.
+  '.cm-line .cm-mdc-punct': { color: 'var(--ui-text-dimmed) !important' },
+  '.cm-line .cm-mdc-name': {
+    color: 'var(--ui-primary) !important',
+    fontWeight: '600 !important',
+  },
+  '.cm-line .cm-mdc-attr': { color: 'var(--pluto-code-property) !important' },
+  '.cm-line .cm-mdc-string': { color: 'var(--pluto-code-string) !important' },
+  '.cm-line .cm-mdc-literal': { color: 'var(--pluto-code-number) !important' },
+  '.cm-line .cm-mdc-slot': {
+    color: 'var(--pluto-code-keyword) !important',
+    fontWeight: '600 !important',
   },
   '.cm-panels': {
     backgroundColor: 'var(--ui-bg-elevated)',

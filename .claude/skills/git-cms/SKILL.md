@@ -792,8 +792,10 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 types, and the marks stay visible, dimmed. Headings are bold and yellow (every line keeps one size).
 From the syntax tree of the visible lines (`markdownLook`): inline code is a tinted pill, its
 backticks too; a quote line has a bar at its left; a list mark is primary and semibold. MDC lines
-(components, slots, YAML props) get their own color (`mdcLineKinds`, `shared/utils/mdc-lines.ts`),
-and nothing of the Markdown look shows inside them. A code block is a tinted box with 12px at its
+(components, slots, YAML props) are colored like code (`mdcLineKinds` and `mdcLineTokens`,
+`shared/utils/mdc-lines.ts`, tested in `test/markdown-format.test.ts`): dimmed colons, braces and
+`=`, the component name in primary, attribute and prop keys, string and literal values and slot
+names in the `--pluto-code-*` colors; nothing of the Markdown look shows inside them. A code block is a tinted box with 12px at its
 sides and rounded corners (`cm-pluto-code-first`/`-last` on its first and last line), and its code
 has the colors of its language: the language is `markdownWithCode`, built from `markdownLanguage`
 with `parseCode` (`@lezer/markdown`) and `@codemirror/language-data`, which loads a language the

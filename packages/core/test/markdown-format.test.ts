@@ -5,7 +5,7 @@ import {
   headingMarkdown,
   minimalChange,
 } from '../shared/utils/markdown-format'
-import { mdcLineKinds } from '../shared/utils/mdc-lines'
+import { mdcLineKinds, mdcLineTokens } from '../shared/utils/mdc-lines'
 
 /** Applies a format to the text with the selection between `[` and `]`, and gives the new text and selection. */
 function apply(marked: string, format: PlutoMarkdownFormat): string {
@@ -171,5 +171,55 @@ describe('headingMarkdown', () => {
 
   it('keeps a hashtag that is not a heading mark', () => {
     expect(heading('#tag', 0, 0, 2).text).toBe('## #tag')
+  })
+})
+
+describe('mdcLineTokens', () => {
+  /** The text and kind of each token, to read the result at a glance. */
+  function parts(line: string, kind: Parameters<typeof mdcLineTokens>[1]) {
+    return mdcLineTokens(line, kind).map(
+      (token) => `${token.kind}:${line.slice(token.from, token.to)}`
+    )
+  }
+
+  it('colors a component line: colons, name, braces and attributes', () => {
+    expect(
+      parts('::callout{type="tip" :count=2 open title=\'Hi\'}', 'component')
+    ).toEqual([
+      'punct:::',
+      'name:callout',
+      'punct:{',
+      'attr:type',
+      'punct:=',
+      'string:"tip"',
+      'attr::count',
+      'punct:=',
+      'literal:2',
+      'attr:open',
+      'attr:title',
+      'punct:=',
+      "string:'Hi'",
+      'punct:}',
+    ])
+    expect(parts('  ::', 'component')).toEqual(['punct:::'])
+  })
+
+  it('colors a slot and a YAML prop', () => {
+    expect(parts('#title', 'slot')).toEqual(['punct:#', 'slot:title'])
+    expect(parts('---', 'props')).toEqual(['punct:---'])
+    expect(parts('icon: lucide:star', 'props')).toEqual([
+      'attr:icon',
+      'punct::',
+      'string:lucide:star',
+    ])
+    expect(parts('count: 3', 'props')).toEqual([
+      'attr:count',
+      'punct::',
+      'literal:3',
+    ])
+  })
+
+  it('gives nothing for a plain line', () => {
+    expect(mdcLineTokens('Some text', undefined)).toEqual([])
   })
 })
