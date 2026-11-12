@@ -159,10 +159,15 @@ function focusText() {
 }
 
 // A new item: the text gets the focus as soon as its editor is there (both editors load on demand),
-// so the author can type at once. Up to 4 seconds; a click elsewhere meanwhile wins.
+// so the author can type at once. Up to 4 seconds; a click in a field meanwhile wins.
 function focusTextWhenReady(tries = 40) {
+  // A field of the form that has the focus wins (the author clicked it). The link that opened the
+  // page (a client-side navigation keeps its focus) does not.
   const active = document.activeElement
-  if (active && active !== document.body) {
+  if (
+    active &&
+    scrollEl.value?.closest('[data-pluto-view]')?.contains(active)
+  ) {
     return
   }
   const ready =
