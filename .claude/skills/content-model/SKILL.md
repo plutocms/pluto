@@ -799,6 +799,37 @@ writes) is an embed. Core owns the block and the security; providers plug in.
 - The sanitizer writes each kept attribute value decoded once and escaped once (`keptValue`), so
   a `&` in a URL is `&amp;`, not `&amp;amp;`.
 
+## Code highlighters
+
+Core colors no code: a code block of the public HTML is `<pre><code class="language-ts">` with plain
+text (the sanitizer keeps the `language-*` class). A highlighter is opt-in: an add-on layer
+(`@plutocms/lowlight`) or a Nitro plugin of the site (Shiki, Comark) registers one.
+
+- **Registry** (`server/utils/pluto-highlight.ts`, auto-imported on the server):
+  `definePlutoHighlighter({ id, order?, highlight })`. `highlight({ code, lang })` returns the HTML of
+  the block (the inside of `<code>`, or a whole `<pre>` like Shiki), or nothing for a language it
+  does not know. It may be async. The same `id` again replaces it.
+- **Choice:** `runtimeConfig.plutoApi.highlighter` (env `NUXT_PLUTO_API_HIGHLIGHTER`) names the one
+  to try first; the others follow by `order` (default 100), then by `id`. A missing name warns once
+  and uses the order. So several highlighters can be installed, and a partial one (one language)
+  still helps.
+- **Where:** `toPublicData` (server/utils/pluto-public-api.ts) runs `highlightPlutoHtml` on the `html`
+  of an item, after `hooks.toPublic`: every backend, SSR and the static build. A block with no
+  language, or that no highlighter knows, stays as it is. A failing highlighter warns once and the
+  next one tries. The blocks are cached by the chain, the language and the code (500).
+- **Safety:** the output goes through `sanitizeHighlightHtml` (shared/markdown/sanitize-highlight.ts):
+  `pre`, `code`, `span`; classes that are plain names; `style` with colors, font style and weight,
+  text decoration and custom properties (`--shiki-*`), never `url(` or `expression(`; `tabindex="0"`
+  on `pre`; script-like elements and links drop, other elements unwrap. Tests: `test/highlight.test.ts`.
+- **Preview:** the post preview (`pages/_pluto/post-preview.vue`) posts its HTML to
+  `POST /api/_pluto/highlight/<type>` (the write capability of the type) 300 ms after a change, and
+  stops when the answer says `highlighted: false` (no highlighter).
+- **Themes** are opt-in CSS of the highlighter layer (`@plutocms/lowlight/theme.css`, on
+  `--pluto-code-*` variables of `.pluto-prose`). The admin editor has its own colors
+  (`--pluto-code-*` of the admin in pluto-layer.css): it never loads a site highlighter.
+- A new highlighter layer: a Nitro plugin with `definePlutoHighlighter`, its theme CSS, an entry in
+  `PLUTO_LAYER_PATHS` (layers.ts) and in release-please-config.json.
+
 ## Scheduled publish and review
 
 Two opt-in options of `status`. The rules are in `shared/utils/content-status.ts` (auto-imported):

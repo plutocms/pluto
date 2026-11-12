@@ -6,3 +6,4 @@
 @import '@nuxt/ui';
 @import '@plutocms/css';
 @import '@plutocms/css/base';
+@import '@plutocms/lowlight/theme.css';

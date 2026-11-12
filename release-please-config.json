@@ -30,6 +30,12 @@
       "component": "shop",
       "include-component-in-tag": true,
       "initial-version": "0.1.0"
+    },
+    "packages/layers/addons/lowlight": {
+      "package-name": "@plutocms/lowlight",
+      "component": "lowlight",
+      "include-component-in-tag": true,
+      "initial-version": "0.1.0"
     }
   }
 }

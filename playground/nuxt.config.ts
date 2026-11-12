@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     '@plutocms/3d',
     '@plutocms/shop',
     '@plutocms/seo',
+    '@plutocms/lowlight',
   ],
 
   css: ['~/assets/css/main.css'],

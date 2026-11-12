@@ -1,0 +1,45 @@
+{
+  "name": "@plutocms/lowlight",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "An add-on layer for Pluto: colors the code blocks of the posts on the site with lowlight (highlight.js), for every backend",
+  "author": "Victor Ribeiro",
+  "license": "MIT",
+  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/layers/addons/lowlight#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutocms/pluto.git",
+    "directory": "packages/layers/addons/lowlight"
+  },
+  "bugs": {
+    "url": "https://github.com/plutocms/pluto/issues"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt-layer",
+    "pluto",
+    "syntax-highlighting",
+    "lowlight",
+    "highlight.js"
+  ],
+  "main": "./nuxt.config.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "nuxt prepare ../../../../playground && vue-tsc --noEmit -p ../../../../playground/.nuxt/tsconfig.app.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@plutocms/core": ">=0.68.0 <1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@plutocms/core": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "hast-util-to-html": "^9.0.6",
+    "lowlight": "^3.3.0"
+  }
+}
