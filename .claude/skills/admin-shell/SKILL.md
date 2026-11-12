@@ -160,7 +160,7 @@ default slot, and the slot replaces the driver's form and links. The props `titl
 
 `wide` makes the card 32rem wide (a longer form). The `partner` slot goes after the logo, for a
 page that connects the site to a service (the database setup of the Supabase layer: an arrow and
-the Supabase mark). With it, the Pluto logo is the planet only (), and the site name is
+the Supabase mark). With it, the Pluto logo is the planet only (`PlutoLogo mark`), and the site name is
 muted at the end of the row. A white-label logo stays as it is.
 
 With no driver and no slot, the card shows an alert: no sign-in method is set up. The texts are in
