@@ -52,6 +52,26 @@ const currentDomain = computed(() => {
   }
 })
 
+/**
+ * The address of a project site, which GitHub serves under `/<repo>/`. A custom domain, or a repo
+ * named `<owner>.github.io`, serves the site at the root: the workflow then builds it for the root.
+ */
+const subpathUrl = computed(() => {
+  const url = props.status.deploy.url
+  if (!url || currentDomain.value) {
+    return ''
+  }
+  try {
+    return new URL(url).pathname.replace(/\/+$/, '') ? url : ''
+  } catch {
+    return ''
+  }
+})
+
+const userSiteRepo = computed(
+  () => `${props.status.repo.split('/')[0]?.toLowerCase() ?? ''}.github.io`
+)
+
 const domainInput = ref(currentDomain.value)
 watch(currentDomain, (value) => {
   if (value && !domainInput.value) {
@@ -183,6 +203,14 @@ const CHECK_ICONS = {
             {{
               t('pluto.github.deploy.domain.pages.current', {
                 domain: currentDomain,
+              })
+            }}
+          </p>
+          <p v-else-if="subpathUrl" class="mt-1 text-sm">
+            {{
+              t('pluto.github.deploy.domain.pages.subpath', {
+                url: subpathUrl,
+                repo: userSiteRepo,
               })
             }}
           </p>

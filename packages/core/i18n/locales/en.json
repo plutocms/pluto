@@ -695,6 +695,7 @@
             "name": "GitHub Pages",
             "description": "The domain is in the Pages settings of the repo. A CNAME file has no effect: GitHub ignores it when an Action builds the site.",
             "current": "The site uses the domain {domain}.",
+            "subpath": "The site is at {url}: GitHub serves a repo under its name. To serve the site at the root of an address, add your domain below. A repo named {repo} is also served at the root.",
             "label": "Your domain",
             "placeholder": "blog.example.com",
             "steps": {
