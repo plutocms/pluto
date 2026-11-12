@@ -160,7 +160,7 @@ function remove() {
       <p v-if="invalid" class="text-error text-xs">
         {{ t('pluto.github.editor.embedPopover.invalid') }}
       </p>
-      <div class="flex items-center justify-end gap-1">
+      <div class="flex items-center justify-between gap-1">
         <UButton
           :label="t('pluto.github.editor.embedPopover.open')"
           :to="url || undefined"

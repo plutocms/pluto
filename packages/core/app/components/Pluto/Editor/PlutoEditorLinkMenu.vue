@@ -223,7 +223,7 @@ function remove() {
         @update:model-value="setBlank"
       />
 
-      <div class="flex items-center justify-end gap-1">
+      <div class="flex items-center justify-between gap-1">
         <UButton
           :label="t('pluto.github.editor.linkPopover.open')"
           :to="url || undefined"

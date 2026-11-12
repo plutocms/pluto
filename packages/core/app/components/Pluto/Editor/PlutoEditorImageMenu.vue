@@ -127,7 +127,7 @@ function remove() {
         @keydown.esc.prevent="backToText"
         @change="applyAlt(false)"
       />
-      <div class="flex items-center justify-end gap-1">
+      <div class="flex items-center justify-between gap-1">
         <UButton
           v-if="media.enabled"
           :label="t('pluto.github.editor.imagePopover.replace')"

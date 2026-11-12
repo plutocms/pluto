@@ -136,9 +136,11 @@ function setMode(next: Mode) {
   saveCaret(offset)
   chosen.value = next
   saved.value = next
-  if (offset !== null) {
-    nextTick(() => whenTextReady(() => placeCaret(offset)))
-  }
+  // The focus goes to the text of the other mode, at the caret (the start when there was none),
+  // even from the button of the switch.
+  nextTick(() =>
+    whenTextReady(() => placeCaret(offset ?? savedCaret() ?? 0), 40, true)
+  )
 }
 
 // The preview gets the other fields of the item, so it can show the title and the date.
@@ -275,11 +277,12 @@ onBeforeUnmount(() => {
  * Runs `run` once the editor of the mode is there (both editors load on demand) and, for an item,
  * its text has loaded. Up to 4 seconds. A field of the form that has the focus meanwhile wins (the
  * author clicked it); the link that opened the page (a client-side navigation keeps its focus) does
- * not.
+ * not. `force`: the focus does not matter (a switch of mode moves it on purpose).
  */
-function whenTextReady(run: () => void, tries = 40) {
+function whenTextReady(run: () => void, tries = 40, force = false) {
   const active = document.activeElement
   if (
+    !force &&
     active &&
     active !== scrollEl.value?.querySelector('.ProseMirror') &&
     !active.closest('.cm-editor') &&
@@ -295,7 +298,7 @@ function whenTextReady(run: () => void, tries = 40) {
   if (ready) {
     run()
   } else if (tries > 0) {
-    setTimeout(whenTextReady, 100, run, tries - 1)
+    setTimeout(whenTextReady, 100, run, tries - 1, force)
   }
 }
 
@@ -320,10 +323,28 @@ onMounted(() => {
   })
 })
 
+// The editor of the mode loads on demand: a skeleton shows until its text is in the page (up to
+// 4 seconds), on the first load and after each switch of mode.
+const textReady = ref(false)
+let readyTimer: ReturnType<typeof setTimeout> | undefined
+function checkTextReady(tries = 80) {
+  clearTimeout(readyTimer)
+  const selector = mode.value === 'markdown' ? '.cm-editor' : '.ProseMirror'
+  if (scrollEl.value?.querySelector(selector) || tries <= 0) {
+    textReady.value = true
+    return
+  }
+  readyTimer = setTimeout(checkTextReady, 50, tries - 1)
+}
+onMounted(() => checkTextReady())
+onBeforeUnmount(() => clearTimeout(readyTimer))
+
 // The heading that has the caret: the active item of the outline. -1: none.
 const activeHeading = ref(-1)
 watch(mode, () => {
   activeHeading.value = -1
+  textReady.value = false
+  nextTick(() => checkTextReady())
 })
 
 const HEADING_SELECTOR = 'h1, h2, h3, h4, h5, h6'
@@ -562,6 +583,22 @@ function onLayout(sizes: number[]) {
                     @update:model-value="setTitle"
                     @next="focusText"
                   />
+                  <div class="relative flex flex-1 flex-col">
+                  <!-- The editor of the mode loads: the shape of the toolbar and the text. -->
+                  <div
+                    v-if="!textReady"
+                    class="bg-default absolute inset-0 z-10 flex flex-col gap-4"
+                    aria-hidden="true"
+                  >
+                    <USkeleton class="h-11 w-full rounded-lg" />
+                    <USkeleton class="mt-6 h-4 w-full" />
+                    <USkeleton class="h-4 w-11/12" />
+                    <USkeleton class="h-4 w-3/4" />
+                    <USkeleton class="mt-4 h-6 w-2/5" />
+                    <USkeleton class="h-4 w-full" />
+                    <USkeleton class="h-4 w-5/6" />
+                    <USkeleton class="h-4 w-2/3" />
+                  </div>
                   <!-- Visual: the widget keeps its toolbar at the top (sticky). -->
                   <component
                     :is="visualWidget"
@@ -590,6 +627,7 @@ function onLayout(sizes: number[]) {
                     @update:model-value="emit('update:modelValue', $event)"
                     @cursor-line="onSourceCursor"
                   />
+                  </div>
                 </div>
               </div>
             </div>
