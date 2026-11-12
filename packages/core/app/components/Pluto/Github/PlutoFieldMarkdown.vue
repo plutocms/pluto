@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem, EditorCustomHandlers } from '@nuxt/ui'
 import type { Editor, JSONContent } from '@tiptap/vue-3'
+import { Extension } from '@tiptap/core'
 import PlutoBlockInsertMenu from '../Block/PlutoBlockInsertMenu.vue'
 import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 
@@ -97,6 +98,12 @@ const extensions = [
     providers: () => registry.embedProviders.list.value,
   }),
   PlutoTrailingParagraph,
+  PlutoThrottledState,
+  // The text goes to the form at once when the editor loses the focus (see flushEditorValue).
+  Extension.create({
+    name: 'plutoFlushOnBlur',
+    onBlur: () => flushEditorValue(),
+  }),
 ]
 
 /**
@@ -106,23 +113,43 @@ const extensions = [
 function trimEnd(markdown: string): string {
   return markdown.replace(/(?:\s|&nbsp;)+$/u, '')
 }
-// The Markdown that the editor gave last, before the trim. UEditor compares its model value with its
-// own Markdown, and loads the value again when they differ: the trimmed value would reload the text
-// at each key, and a reload drops a space at the end (`## My `), so the caret jumped out of the line.
-// While the value is the trim of what the editor gave, the editor gets its own Markdown back.
-const lastMarkdown = ref<string | null>(null)
+// The text goes to the form at most every 200 ms while the author types, and at once when the
+// editor loses the focus (a click on Save takes it) or closes. Each value renders the form, the
+// outline and this widget, so a value at each key made fast typing lag.
+//
+// UEditor compares its model value with its own Markdown, and loads the value again when they
+// differ. So while the value is one that this widget gave, the editor gets its own last Markdown
+// back (before the trim, and maybe some keys ahead of the value): it never reloads while the author
+// types. A reload drops a space at the end of a line (`## My `), so the caret left the line. The
+// two are plain variables: they change at each key, and must not render anything.
+const EMIT_INTERVAL = 200
+let lastMarkdown: string | null = null
+let emitted: string | null = null
+let emitTimer: ReturnType<typeof setTimeout> | undefined
+
 const editorValue = computed(() =>
-  lastMarkdown.value !== null && trimEnd(lastMarkdown.value) === value.value
-    ? lastMarkdown.value
-    : value.value
+  lastMarkdown !== null && value.value === emitted ? lastMarkdown : value.value
 )
 
-function onEditorUpdate(markdown: string) {
-  lastMarkdown.value = markdown
-  if (trimEnd(markdown) !== trimEnd(value.value)) {
-    emit('update:modelValue', trimEnd(markdown))
+function flushEditorValue() {
+  clearTimeout(emitTimer)
+  emitTimer = undefined
+  if (lastMarkdown === null) {
+    return
+  }
+  const next = trimEnd(lastMarkdown)
+  if (next !== trimEnd(value.value)) {
+    emitted = next
+    emit('update:modelValue', next)
   }
 }
+
+function onEditorUpdate(markdown: string) {
+  lastMarkdown = markdown
+  emitTimer ??= setTimeout(flushEditorValue, EMIT_INTERVAL)
+}
+
+onBeforeUnmount(flushEditorValue)
 
 // --- Blocks: the bubble toolbar, the drag handle and the slash menu ---------------------------
 //

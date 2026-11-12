@@ -755,6 +755,24 @@ useEventListener('scroll', () => bubble.value && placeBubble(), {
   passive: true,
 })
 
+// The text goes to the parent at most every 200 ms while the author types, and at once when the
+// editor loses the focus or closes: each value renders the form and the outline, so a value at each
+// key made fast typing lag. A value from the parent that this editor gave (`emitted`) is older than
+// the text, or the same: the watch below never puts it back.
+const EMIT_INTERVAL = 200
+let emitted: string | null = null
+let emitTimer: ReturnType<typeof setTimeout> | undefined
+
+function flushValue() {
+  clearTimeout(emitTimer)
+  emitTimer = undefined
+  const text = view?.state.doc.toString()
+  if (text !== undefined && text !== props.modelValue) {
+    emitted = text
+    emit('update:modelValue', text)
+  }
+}
+
 // --- Setup -------------------------------------------------------------------------
 
 onMounted(() => {
@@ -803,7 +821,10 @@ onMounted(() => {
               transaction.annotation(fromModel)
             )
           ) {
-            emit('update:modelValue', update.state.doc.toString())
+            emitTimer ??= setTimeout(flushValue, EMIT_INTERVAL)
+          }
+          if (update.focusChanged && !update.view.hasFocus) {
+            flushValue()
           }
           if (
             props.bare &&
@@ -838,9 +859,10 @@ onMounted(() => {
 watch(
   () => props.modelValue,
   (value) => {
-    if (!view || value === view.state.doc.toString()) {
+    if (!view || value === view.state.doc.toString() || value === emitted) {
       return
     }
+    emitted = null
     const caret = Math.min(view.state.selection.main.head, value.length)
     view.dispatch({
       changes: minimalChange(view.state.doc.toString(), value),
@@ -860,6 +882,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  flushValue()
   view?.destroy()
   view = null
 })

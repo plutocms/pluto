@@ -666,7 +666,12 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
   end (not in the undo history), and the widget trims the blank lines at the end of the Markdown, so
   an open post stays unchanged. `UEditor` loads its model value again (`setContent`) whenever it
   differs from its own `getMarkdown()`, so the widget gives it back its own last Markdown
-  (`editorValue`) while the value is the trim of it. Never bind the trimmed value: the editor
+  (`editorValue`) while the value is one that the widget gave. The widget gives the value at most
+  every 200 ms while the author types, and at once on blur (`plutoFlushOnBlur`) and unmount; the
+  Markdown code editor does the same (`flushValue`, `emitted`). `PlutoThrottledState` (`app/utils/`)
+  swaps the `reactiveState` ref of the Tiptap Vue editor for one that renders at most every 120 ms
+  (the state itself stays current): every toolbar button reads it, so each key rendered both
+  toolbars again (63 ms a key on a long post; 7 ms after). Never bind the trimmed value: the editor
   reloads at each key, a reload drops a space at the end of a line, and the caret leaves the line
   (Backspace in a heading selected and deleted it). The text has `pt-12`, so the bubble toolbar of the first line does
   not sit under the main toolbar. Core sets `vite.resolve.dedupe` for the ProseMirror packages: a
