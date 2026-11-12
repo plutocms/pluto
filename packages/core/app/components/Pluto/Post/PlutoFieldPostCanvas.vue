@@ -458,26 +458,36 @@ const split = useCookie<number[]>('pluto-post-split', {
   sameSite: 'lax',
 })
 const dragging = ref(false)
-const splitItems = computed(() =>
-  showPreview.value
-    ? [
-        {
-          id: 'compose',
-          slot: 'compose',
-          order: 1,
-          defaultSize: split.value[0] ?? 50,
-          minSize: 25,
-        },
-        {
-          id: 'preview',
-          slot: 'preview',
-          order: 2,
-          defaultSize: split.value[1] ?? 50,
-          minSize: 25,
-        },
-      ]
-    : [{ id: 'compose', slot: 'compose', order: 1, defaultSize: 100 }]
-)
+// The sizes read from the cookie when the preview opens, not at each move: new items while the
+// handle moves end the drag (the splitter takes new default sizes) after one pixel.
+const splitStart = shallowRef([...split.value])
+watch(showPreview, (open) => {
+  if (open) {
+    splitStart.value = [...split.value]
+  }
+})
+const splitItems = computed(() => {
+  if (!showPreview.value) {
+    return [{ id: 'compose', slot: 'compose', order: 1, defaultSize: 100 }]
+  }
+  const [compose, preview] = splitStart.value
+  return [
+    {
+      id: 'compose',
+      slot: 'compose',
+      order: 1,
+      defaultSize: compose ?? 50,
+      minSize: 25,
+    },
+    {
+      id: 'preview',
+      slot: 'preview',
+      order: 2,
+      defaultSize: preview ?? 50,
+      minSize: 25,
+    },
+  ]
+})
 function onLayout(sizes: number[]) {
   // Only the split with the preview: the compose panel alone is always 100.
   if (sizes.length === 2) {
