@@ -146,51 +146,6 @@ function sideWidth(el: HTMLElement | undefined, stored: number) {
   return width && width > 0 ? width : stored
 }
 
-// When a side panel opens or closes, the splitter lays out its panels again from the
-// `defaultSize` that each one had when it joined: reka-ui reads it once, at mount. So the panel
-// that stays open went back to its first width (a width dragged since then was lost). The widths
-// in px are taken before the change (the panel that stays open: its box; the one that opens: its
-// stored width), and both panels get them back after the new layout.
-function restoreSideWidths(asidePx: number, leftPx: number) {
-  const panels = splitter.value?.panelsRef ?? []
-  const panelOf = (id: string) => {
-    const index = items.value.findIndex((item) => item.id === id)
-    return index < 0 ? undefined : panels[index]
-  }
-  if (resizable.value) {
-    panelOf('pluto-view-aside')?.resize(toPercent(asidePx))
-  }
-  if (leftResizable.value) {
-    panelOf('pluto-view-left')?.resize(toPercent(leftPx))
-  }
-}
-
-watch(
-  [resizable, leftResizable],
-  ([aside, left], previous) => {
-    const asidePx = clamp(
-      sideWidth(asideEl.value, asideWidth.value),
-      ASIDE_MIN,
-      ASIDE_MAX
-    )
-    const leftPx = clamp(
-      sideWidth(leftEl.value, leftWidth.value),
-      LEFT_MIN,
-      LEFT_MAX
-    )
-    if (aside) {
-      asideDefault.value = toPercent(asidePx)
-    }
-    if (left) {
-      leftDefault.value = toPercent(leftPx)
-    }
-    if (previous) {
-      nextTick(() => restoreSideWidths(asidePx, leftPx))
-    }
-  },
-  { immediate: true }
-)
-
 function onDragging(_index: number, dragging: boolean) {
   if (dragging) {
     return
@@ -249,6 +204,51 @@ const items = computed<SplitterItem[]>(() => [
       ]
     : []),
 ])
+
+// When a side panel opens or closes, the splitter lays out its panels again from the
+// `defaultSize` that each one had when it joined: reka-ui reads it once, at mount. So the panel
+// that stays open went back to its first width (a width dragged since then was lost). The widths
+// in px are taken before the change (the panel that stays open: its box; the one that opens: its
+// stored width), and both panels get them back after the new layout.
+function restoreSideWidths(asidePx: number, leftPx: number) {
+  const panels = splitter.value?.panelsRef ?? []
+  const panelOf = (id: string) => {
+    const index = items.value.findIndex((item) => item.id === id)
+    return index < 0 ? undefined : panels[index]
+  }
+  if (resizable.value) {
+    panelOf('pluto-view-aside')?.resize(toPercent(asidePx))
+  }
+  if (leftResizable.value) {
+    panelOf('pluto-view-left')?.resize(toPercent(leftPx))
+  }
+}
+
+watch(
+  [resizable, leftResizable],
+  ([aside, left], previous) => {
+    const asidePx = clamp(
+      sideWidth(asideEl.value, asideWidth.value),
+      ASIDE_MIN,
+      ASIDE_MAX
+    )
+    const leftPx = clamp(
+      sideWidth(leftEl.value, leftWidth.value),
+      LEFT_MIN,
+      LEFT_MAX
+    )
+    if (aside) {
+      asideDefault.value = toPercent(asidePx)
+    }
+    if (left) {
+      leftDefault.value = toPercent(leftPx)
+    }
+    if (previous) {
+      nextTick(() => restoreSideWidths(asidePx, leftPx))
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
