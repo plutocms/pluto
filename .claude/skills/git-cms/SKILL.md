@@ -752,9 +752,9 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
   title, the widget toolbar and the text scroll together in the compose panel. A `richtext`
   widget of a layer must accept `canvas`: no label, no border, a sticky toolbar bar, and a root
   that grows (`flex-1`) so the text fills the rest of the height.
-- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`fill`, `bare`: no toolbar, no box, no side
-  padding; the editor grows with the text and the parent scrolls), loaded on demand. See "Markdown
-  code editor" below.
+- **Markdown** mode shows `PlutoMarkdownCodeEditor` (`bare`: the toolbar of the Visual editor, no
+  box, no side padding; the editor grows with the text and the parent scrolls), loaded on demand.
+  See "Markdown code editor" below.
 - Visual is off while `findUnsafeMarkdown` finds syntax, or when the app has no `richtext`
   widget. The cookie `pluto-post-editor-mode` keeps the last mode.
 - The left panel (`PlutoPostOutline.vue`, in the `PlutoViewSidePanel` shell) lists the headings, each with the icon of its level (`i-lucide-heading-1` to `-6`) (`plutoMarkdownHeadings(text)` in
@@ -771,8 +771,11 @@ editor (`app/components/Pluto/Post/`), so any layer with a Markdown `richtext` b
 
 `app/components/Pluto/Markdown/PlutoMarkdownCodeEditor.vue` is the Markdown editor on CodeMirror 6
 (it came from the docs layer, which uses it too). The text shows its format as the author
-types, and the marks stay visible, dimmed. MDC lines (components, slots, YAML props) and code
-blocks get their own color (`mdcLineKinds`, `shared/utils/mdc-lines.ts`). A toolbar has the quick
+types, and the marks stay visible, dimmed. Headings are bold and yellow (every line keeps one size).
+From the syntax tree of the visible lines (`markdownLook`): inline code is a tinted pill, its
+backticks too; a quote line has a bar at its left; a list mark is primary and semibold. MDC lines
+(components, slots, YAML props) and code blocks get their own color (`mdcLineKinds`,
+`shared/utils/mdc-lines.ts`), and nothing of the Markdown look shows inside them. A toolbar has the quick
 formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts`, tested in
 `test/markdown-format.test.ts`). It has search and history.
 
@@ -781,10 +784,18 @@ formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts
   `toolbar` (slot props `insert`, `focus`) and `toolbar-end`. Exposed: `insert`, `focus`,
   `reveal(start, end)` and `goToLine(line)` (the caret goes to the end of the line, from 0).
 - Event `cursorLine`: the line of the caret, from 0.
-- With `bare`, the editor has no toolbar, no box and no side padding, and it grows with the text (the
-  parent scrolls). A bubble toolbar (bold, italic, strike, code, link) shows over a selection. The
-  `.cm-scroller` keeps the room of the scrollbar only with `fill`. The docs layer does not use
-  `bare` and keeps the toolbar.
+- With `bare`, the editor has no box and no side padding (a CodeMirror theme with `Prec.high`, not a
+  Tailwind `!` class: a layered important utility beats every unlayered rule, and a quote line
+  needs its own padding), and it grows with the text (the parent scrolls). Its toolbar is the one
+  of the Visual editor, in the same sticky rounded bar (`data-pluto-editor-toolbar`), with the same
+  groups, icons and `pluto.github.editor.*` labels: undo and redo (off with no step), the headings
+  menu (Paragraph, H1 to H4: `headingMarkdown`), the lists menu, quote, code block, the inline
+  formats and link, the image (the media picker, `![alt](url)` as a block) and the component menu
+  (`writeEmptyComponent` as a block). The entries are data (`PlutoMarkdownToolbarItem`, rendered by
+  `PlutoMarkdownToolbarEntry`); the ones that do not fit go into a More popover, like
+  `PlutoMarkdownToolbar`. A bubble toolbar (bold, italic, strike, code, link) shows over a
+  selection. The `.cm-scroller` keeps the room of the scrollbar only with `fill`. The docs layer
+  does not use `bare` and keeps the quick formats toolbar.
 - It uses `markdownLanguage`, not `markdown()`, which would add the HTML, CSS and JavaScript
   languages.
 - Load it on demand (`defineAsyncComponent`, or `LazyPlutoMarkdownCodeEditor`): CodeMirror is

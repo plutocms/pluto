@@ -1,6 +1,10 @@
 import type { PlutoMarkdownFormat } from '../shared/utils/markdown-format'
 import { describe, expect, it } from 'vitest'
-import { formatMarkdown, minimalChange } from '../shared/utils/markdown-format'
+import {
+  formatMarkdown,
+  headingMarkdown,
+  minimalChange,
+} from '../shared/utils/markdown-format'
 import { mdcLineKinds } from '../shared/utils/mdc-lines'
 
 /** Applies a format to the text with the selection between `[` and `]`, and gives the new text and selection. */
@@ -137,5 +141,35 @@ describe('mdcLineKinds', () => {
       undefined,
       undefined,
     ])
+  })
+})
+
+describe('headingMarkdown', () => {
+  function heading(text: string, from: number, to: number, level: number) {
+    const edit = headingMarkdown(text, from, to, level)
+    return {
+      text: text.slice(0, edit.from) + edit.insert + text.slice(edit.to),
+      selection: edit.selection,
+    }
+  }
+
+  it('sets the level of the line of the caret, and keeps the caret at its end', () => {
+    expect(heading('Intro\nTitle\nEnd', 8, 8, 2)).toEqual({
+      text: 'Intro\n## Title\nEnd',
+      selection: { anchor: 14, head: 14 },
+    })
+  })
+
+  it('changes a level, and level 0 gives a paragraph', () => {
+    expect(heading('### Title', 4, 4, 1).text).toBe('# Title')
+    expect(heading('## Title', 4, 4, 0).text).toBe('Title')
+  })
+
+  it('sets every line of a selection', () => {
+    expect(heading('One\n## Two', 0, 9, 3).text).toBe('### One\n### Two')
+  })
+
+  it('keeps a hashtag that is not a heading mark', () => {
+    expect(heading('#tag', 0, 0, 2).text).toBe('## #tag')
   })
 })

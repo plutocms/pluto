@@ -175,6 +175,31 @@ function heading(text: string, from: number, to: number): PlutoFormatEdit {
   )
 }
 
+/**
+ * Sets the heading level of the lines of the selection: `level` 1 to 6 gives `#` to `######`, 0
+ * gives a paragraph (no `#`). The heading menu of the Markdown toolbar uses it. A caret alone stays
+ * at the end of its line; a selection selects the changed lines.
+ */
+export function headingMarkdown(
+  text: string,
+  from: number,
+  to: number,
+  level: number
+): PlutoFormatEdit {
+  const marks = '#'.repeat(Math.min(Math.max(Math.trunc(level), 0), 6))
+  const edit = editLines(text, from, to, (lines) =>
+    lines.map((line) => {
+      const body = line.replace(/^#{1,6}(?: |$)/, '')
+      return marks ? `${marks} ${body}` : body
+    })
+  )
+  if (from === to) {
+    const end = edit.from + edit.insert.length
+    edit.selection = { anchor: end, head: end }
+  }
+  return edit
+}
+
 function codeBlock(text: string, from: number, to: number): PlutoFormatEdit {
   if (
     from === to &&

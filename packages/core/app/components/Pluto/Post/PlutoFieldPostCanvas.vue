@@ -16,9 +16,9 @@ import PlutoPostTitle from './PlutoPostTitle.vue'
 // - Visual: the rich text widget that the app has for `richtext` (the Git CMS
 //   Markdown editor, or the editor of a layer), with `canvas`, so it fills the
 //   height and has no label.
-// - Markdown: `PlutoMarkdownCodeEditor` (CodeMirror, with syntax colors), `bare`: no
-//   toolbar (a bubble toolbar over a selection), and it grows with the text. It loads when
-//   the author opens Markdown mode.
+// - Markdown: `PlutoMarkdownCodeEditor` (CodeMirror, with syntax colors), `bare`: the toolbar
+//   of the Visual editor (sticky, acting on the Markdown) and a bubble toolbar over a selection;
+//   it grows with the text. It loads when the author opens Markdown mode.
 //
 // The left panel of the form shows the outline (the headings). A click on a heading puts the caret
 // at the end of it and scrolls it under the sticky toolbar; the heading that has the caret is the
@@ -398,7 +398,7 @@ function onLayout(sizes: number[]) {
                     canvas
                     @update:model-value="emit('update:modelValue', $event)"
                   />
-                  <!-- Markdown: no toolbar (a bubble toolbar over a selection); the text grows,
+                  <!-- Markdown: the toolbar of the Visual mode (sticky); the text grows,
                        and the column scrolls. -->
                   <MarkdownEditor
                     v-else
@@ -409,7 +409,7 @@ function onLayout(sizes: number[]) {
                       field.placeholder ?? t('pluto.github.editor.placeholder')
                     "
                     :aria-label="field.label"
-                    class="flex-1 pt-2"
+                    class="flex-1"
                     monospace
                     bare
                     @update:model-value="emit('update:modelValue', $event)"
