@@ -31,9 +31,9 @@
       "include-component-in-tag": true,
       "initial-version": "0.1.0"
     },
-    "packages/layers/addons/lowlight": {
-      "package-name": "@plutocms/lowlight",
-      "component": "lowlight",
+    "packages/layers/addons/syntax-lowlight": {
+      "package-name": "@plutocms/syntax-lowlight",
+      "component": "syntax-lowlight",
       "include-component-in-tag": true,
       "initial-version": "0.1.0"
     }

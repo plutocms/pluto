@@ -10,8 +10,8 @@
   "dependencies": {
     "@plutocms/3d": "workspace:*",
     "@plutocms/core": "workspace:*",
-    "@plutocms/lowlight": "workspace:*",
     "@plutocms/seo": "workspace:*",
-    "@plutocms/shop": "workspace:*"
+    "@plutocms/shop": "workspace:*",
+    "@plutocms/syntax-lowlight": "workspace:*"
   }
 }

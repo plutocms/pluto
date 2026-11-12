@@ -4,7 +4,7 @@ import { decodeEntitiesOnce } from '../../shared/markdown/url-safety'
 /**
  * A code highlighter of the public site: it colors the code blocks of the HTML of the public API
  * (a post body). Core has none: with none, a code block stays plain. An add-on layer registers
- * one in a Nitro plugin (`@plutocms/lowlight`), or the site does (Shiki). See the content-model
+ * one in a Nitro plugin (`@plutocms/syntax-lowlight`), or the site does (Shiki). See the content-model
  * skill ("Code highlighters").
  */
 export interface PlutoHighlighter {

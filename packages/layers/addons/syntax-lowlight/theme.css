@@ -1,9 +1,9 @@
 /*
- * The default theme of @plutocms/lowlight: the colors of the `hljs-*` classes in the code blocks of
+ * The default theme of @plutocms/syntax-lowlight: the colors of the `hljs-*` classes in the code blocks of
  * a post (`.pluto-prose`). Opt-in: import it in the CSS of the site, after Tailwind if the site has
  * it:
  *
- *   @import '@plutocms/lowlight/theme.css';
+ *   @import '@plutocms/syntax-lowlight/theme.css';
  *
  * The colors are variables: a site sets `--pluto-code-*` on `.pluto-prose` (or `:root`) for its
  * own palette. Light by default, and dark under a `.dark` ancestor (the class of Nuxt color mode).

@@ -1,4 +1,4 @@
-# @plutocms/lowlight
+# @plutocms/syntax-lowlight
 
 An add-on layer for [Pluto](https://pluto.vulmix.dev) sites, for every backend (Git CMS or
 Supabase), on a server or on a static site. It colors the code blocks of the posts with
@@ -15,7 +15,7 @@ Core has no highlighter: without this layer (or another highlighter), a code blo
 ## Install
 
 ```bash
-npm install @plutocms/lowlight
+npm install @plutocms/syntax-lowlight
 ```
 
 Add it next to the backend layer of your app. It does not bring Pluto: the app or the backend
@@ -23,7 +23,7 @@ layer does. It needs `@plutocms/core` 0.68.0 or newer.
 
 ```ts [nuxt.config.ts]
 export default defineNuxtConfig({
-  extends: ['@plutocms/core', '@plutocms/lowlight'],
+  extends: ['@plutocms/core', '@plutocms/syntax-lowlight'],
 })
 ```
 
@@ -33,7 +33,7 @@ The colors are an opt-in stylesheet. Import it in the CSS of your site, after Ta
 has it:
 
 ```css [app/assets/css/main.css]
-@import '@plutocms/lowlight/theme.css';
+@import '@plutocms/syntax-lowlight/theme.css';
 ```
 
 It colors the code of `.pluto-prose` (the post body of `PlutoHtml`), light by default and dark under

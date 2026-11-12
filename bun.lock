@@ -16,7 +16,7 @@
     },
     "packages/core": {
       "name": "@plutocms/core",
-      "version": "0.67.0",
+      "version": "0.68.0",
       "dependencies": {
         "@codemirror/commands": "^6.11.1",
         "@codemirror/lang-markdown": "^6.5.2",
@@ -79,23 +79,9 @@
         "@plutocms/core",
       ],
     },
-    "packages/layers/addons/lowlight": {
-      "name": "@plutocms/lowlight",
-      "version": "0.0.0",
-      "dependencies": {
-        "hast-util-to-html": "^9.0.6",
-        "lowlight": "^3.3.0",
-      },
-      "peerDependencies": {
-        "@plutocms/core": ">=0.68.0 <1.0.0",
-      },
-      "optionalPeers": [
-        "@plutocms/core",
-      ],
-    },
     "packages/layers/addons/seo": {
       "name": "@plutocms/seo",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "peerDependencies": {
         "@plutocms/core": ">=0.57.0 <1.0.0",
       },
@@ -113,9 +99,23 @@
         "@plutocms/core",
       ],
     },
+    "packages/layers/addons/syntax-lowlight": {
+      "name": "@plutocms/syntax-lowlight",
+      "version": "0.0.0",
+      "dependencies": {
+        "hast-util-to-html": "^9.0.6",
+        "lowlight": "^3.3.0",
+      },
+      "peerDependencies": {
+        "@plutocms/core": ">=0.68.0 <1.0.0",
+      },
+      "optionalPeers": [
+        "@plutocms/core",
+      ],
+    },
     "packages/layers/docs": {
       "name": "@plutocms/docs",
-      "version": "0.24.0",
+      "version": "0.25.0",
       "dependencies": {
         "@nuxt/content": "^3.16.2",
         "@nuxtjs/mdc": "^0.23.2",
@@ -151,9 +151,9 @@
       "dependencies": {
         "@plutocms/3d": "workspace:*",
         "@plutocms/core": "workspace:*",
-        "@plutocms/lowlight": "workspace:*",
         "@plutocms/seo": "workspace:*",
         "@plutocms/shop": "workspace:*",
+        "@plutocms/syntax-lowlight": "workspace:*",
       },
     },
   },
@@ -655,11 +655,11 @@
 
     "@plutocms/docs": ["@plutocms/docs@workspace:packages/layers/docs"],
 
-    "@plutocms/lowlight": ["@plutocms/lowlight@workspace:packages/layers/addons/lowlight"],
-
     "@plutocms/seo": ["@plutocms/seo@workspace:packages/layers/addons/seo"],
 
     "@plutocms/shop": ["@plutocms/shop@workspace:packages/layers/addons/shop"],
+
+    "@plutocms/syntax-lowlight": ["@plutocms/syntax-lowlight@workspace:packages/layers/addons/syntax-lowlight"],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 
