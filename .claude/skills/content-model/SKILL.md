@@ -1028,6 +1028,21 @@ again regardless (wave 2), so this is a UX nicety, not the enforcement point. On
 create, it shows a success toast and navigates to the new item's edit URL; on a successful update,
 it shows a success toast and stays put.
 
+### Side groups
+
+The side column (and the "Page" tab of a canvas form) can split its fields into collapsible
+groups. A type lists them in `sideGroups` (`PlutoContentSideGroup`: `id`, `label` as a key or a
+literal, `icon`, `order` default 100, `defaultOpen` default `true`). A field joins one with
+`group: '<id>'`. `PlutoContentSideFields` renders the column: the fields with no group (or an
+unknown group id) first, with no header, then each group that has fields, by `order`, as a
+`UCollapsible` with a header button. The pure split is `plutoSideFieldLayout` (shared util, test:
+`test/content-side-groups.test.ts`). The open state lives in the component for the visit only.
+
+A layer that adds fields to a type adds its group in the same content type extension, so its
+fields stay together under its name. The SEO add-on is the example: `PLUTO_SEO_GROUP` (id `seo`,
+label `seo.group`, `lucide:search`, order 900, closed on load), and `group: 'seo'` on each SEO
+field. It does not add the group when the type has a group `seo` already.
+
 In edit mode, the toolbar title (every layout has the same toolbar and no body H1, see the
 admin-view-chrome skill) and the browser tab title show the value of the type's `titleField`. While the item loads, or when the title is empty, they show "Edit <type>". If the
 item fetch fails (a 404 or a network error), the form shows an empty state (`UEmpty`) with a

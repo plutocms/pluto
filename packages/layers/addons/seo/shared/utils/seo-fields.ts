@@ -13,8 +13,17 @@ type Frontmatter = Record<string, unknown>
 /**
  * The SEO fields, in form order. The group comes last (orders 900 to 904). The preview has no
  * storage (`virtual`): it only shows the other fields. The columns are a contract with the
- * Supabase blog migration `006_post_seo.sql`: do not rename them.
+ * Supabase blog migration `006_post_seo.sql`: do not rename them. They show in the "SEO" group of
+ * the side column (`PLUTO_SEO_GROUP`), closed when the form loads.
  */
+export const PLUTO_SEO_GROUP: PlutoContentSideGroup = {
+  id: 'seo',
+  label: 'seo.group',
+  icon: 'lucide:search',
+  order: 900,
+  defaultOpen: false,
+}
+
 export const PLUTO_SEO_FIELDS: PlutoField[] = [
   {
     name: 'seoPreview',
@@ -25,6 +34,7 @@ export const PLUTO_SEO_FIELDS: PlutoField[] = [
     inList: false,
     order: 900,
     region: 'side',
+    group: 'seo',
   },
   {
     name: 'seoTitle',
@@ -36,6 +46,7 @@ export const PLUTO_SEO_FIELDS: PlutoField[] = [
     inList: false,
     order: 901,
     region: 'side',
+    group: 'seo',
   },
   {
     name: 'seoDescription',
@@ -48,6 +59,7 @@ export const PLUTO_SEO_FIELDS: PlutoField[] = [
     inList: false,
     order: 902,
     region: 'side',
+    group: 'seo',
   },
   {
     name: 'seoImage',
@@ -59,6 +71,7 @@ export const PLUTO_SEO_FIELDS: PlutoField[] = [
     inList: false,
     order: 903,
     region: 'side',
+    group: 'seo',
   },
   {
     name: 'seoNoindex',
@@ -70,6 +83,7 @@ export const PLUTO_SEO_FIELDS: PlutoField[] = [
     inList: false,
     order: 904,
     region: 'side',
+    group: 'seo',
   },
 ]
 
@@ -163,7 +177,8 @@ export function plutoSeoWriteFrontmatter(
 
 /**
  * Adds the SEO fields to a content type, and returns a new type. A field name that the type
- * already has stays as the owner declared it (a dev warning names it). When the type lists its
+ * already has stays as the owner declared it (a dev warning names it). The "SEO" side group joins
+ * the groups of the type, unless the type has a group `seo` already. When the type lists its
  * public fields (`api.fields`), the new stored fields join the list. The `files.frontmatter`
  * hooks of the type stay: the layer reads after the owner and writes before it.
  */
@@ -184,9 +199,13 @@ export function plutoSeoWithFields(type: PlutoContentType): PlutoContentType {
   }
 
   const owner = type.files?.frontmatter
+  const groups = type.sideGroups ?? []
   return {
     ...type,
     fields: [...type.fields, ...added],
+    sideGroups: groups.some((group) => group.id === PLUTO_SEO_GROUP.id)
+      ? groups
+      : [...groups, PLUTO_SEO_GROUP],
     ...(type.api?.fields && {
       api: {
         ...type.api,

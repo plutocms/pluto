@@ -1559,25 +1559,15 @@ const asideTitle = computed(() =>
         {{ t('pluto.common.settings') }}
       </h2>
 
-      <template v-if="itemPending">
-        <PlutoSkeletonField
-          v-for="field in sideFields"
-          :key="field.name"
-          :field="field"
-        />
-      </template>
-
-      <template v-else>
-        <PlutoContentField
-          v-for="field in sideFields"
-          :key="field.name"
-          :type="type"
-          :field="field"
-          :model-value="item[field.name]"
-          :disabled="!canWrite || saving"
-          @update:model-value="updateField(field, $event)"
-        />
-      </template>
+      <PlutoContentSideFields
+        :fields="sideFields"
+        :groups="contentType?.sideGroups"
+        :item="item"
+        :type="type"
+        :disabled="!canWrite || saving"
+        :pending="itemPending"
+        @update="updateField"
+      />
     </section>
 
     <!-- The rail of the canvas layout: one button for the left panel (its icon and label), the
@@ -1635,48 +1625,28 @@ const asideTitle = computed(() =>
           />
 
           <div v-show="activeTab === 'page'" class="flex flex-col gap-6">
-            <template v-if="itemPending">
-              <PlutoSkeletonField
-                v-for="field in pageFields"
-                :key="field.name"
-                :field="field"
-              />
-            </template>
-
-            <template v-else>
-              <PlutoContentField
-                v-for="field in pageFields"
-                :key="field.name"
-                :type="type"
-                :field="field"
-                :model-value="item[field.name]"
-                :disabled="!canWrite || saving"
-                @update:model-value="updateField(field, $event)"
-              />
-            </template>
+            <PlutoContentSideFields
+              :fields="pageFields"
+              :groups="contentType?.sideGroups"
+              :item="item"
+              :type="type"
+              :disabled="!canWrite || saving"
+              :pending="itemPending"
+              @update="updateField"
+            />
           </div>
         </div>
 
         <div v-else class="flex flex-col gap-6">
-          <template v-if="itemPending">
-            <PlutoSkeletonField
-              v-for="field in sideFields"
-              :key="field.name"
-              :field="field"
-            />
-          </template>
-
-          <template v-else>
-            <PlutoContentField
-              v-for="field in sideFields"
-              :key="field.name"
-              :type="type"
-              :field="field"
-              :model-value="item[field.name]"
-              :disabled="!canWrite || saving"
-              @update:model-value="updateField(field, $event)"
-            />
-          </template>
+          <PlutoContentSideFields
+            :fields="sideFields"
+            :groups="contentType?.sideGroups"
+            :item="item"
+            :type="type"
+            :disabled="!canWrite || saving"
+            :pending="itemPending"
+            @update="updateField"
+          />
         </div>
       </PlutoViewAside>
     </template>
