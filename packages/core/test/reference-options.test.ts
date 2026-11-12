@@ -4,6 +4,7 @@ import {
   findReferenceOption,
   isReferenceCacheFresh,
   referenceCreateBody,
+  referenceImageField,
   referenceOptionsFromItems,
   referenceSlugField,
   withUnknownIds,
@@ -39,6 +40,30 @@ describe('referenceOptionsFromItems', () => {
     expect(
       referenceOptionsFromItems(tagType, [{ id: 'a', title: '' }])
     ).toEqual([{ label: 'a', value: 'a' }])
+  })
+
+  it('gives the media id of the image field of the type', () => {
+    const authorType: PlutoContentType = {
+      ...tagType,
+      name: 'author',
+      fields: [
+        ...tagType.fields,
+        { name: 'files', type: 'media', label: 'Files', multiple: true },
+        { name: 'pdf', type: 'media', label: 'PDF', accept: ['application/pdf'] },
+        { name: 'avatar', type: 'media', label: 'Avatar', accept: ['image/*'] },
+      ],
+    }
+    expect(referenceImageField(authorType)).toBe('avatar')
+    expect(referenceImageField(tagType)).toBeUndefined()
+    expect(
+      referenceOptionsFromItems(authorType, [
+        { id: 'ana', title: 'Ana', avatar: 'm1' },
+        { id: 'bo', title: 'Bo', avatar: '' },
+      ])
+    ).toEqual([
+      { label: 'Ana', value: 'ana', image: 'm1' },
+      { label: 'Bo', value: 'bo' },
+    ])
   })
 })
 

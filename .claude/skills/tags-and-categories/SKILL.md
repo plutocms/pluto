@@ -101,7 +101,12 @@ on the client (`pluto-github.ts`).
   value, else one id. A `target` field reads `usePlutoReferenceOptions`; an `optionsUrl` field reads
   its URL (both support `multiple`). An id with no option shows the id as its text. The "Create
   “…”" entry shows only when the field has `create` and the user has the write capability of the
-  target type (`terms:manage` for the term types). A failed create shows a toast.
+  target type (`terms:manage` for the term types). A failed create shows a toast. The icon of the
+  target type leads the input. When the target type has an image field (`referenceImageField`: its
+  first `media` field of one image, the avatar of an author), each option has an avatar: the image
+  (the option carries its media id, `image`; the widget loads the records in one `usePlutoMedia().get`
+  call), else the initials. The chips show it too (`#tags-item-text`: a chip holds the id, so the
+  widget looks up the option).
 - **`PlutoContentReferenceCell.vue`**. In the list table and the mobile card, a `target` reference
   shows up to three badges (the labels, in the order of the stored ids), then "+N".
 - **Preview.** `post-preview.vue` reads each target of `previewReferenceTargets(type)` and passes the
