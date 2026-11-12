@@ -31,7 +31,7 @@ export function usePlutoAdminPages() {
           {
             id: `${navId}:new`,
             path: `${basePath}/new`,
-            title: t('pluto.content.createNew', { label: text.label }),
+            title: t('pluto.content.createNew', { label: text.labelLower }),
             parent: navId,
           },
         ]

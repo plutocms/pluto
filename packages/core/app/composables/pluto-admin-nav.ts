@@ -110,12 +110,14 @@ export function usePlutoAdminNav() {
         enabled: () => isVisible(type),
         children: [
           {
-            label: t('pluto.content.all', { labelPlural: text.labelPlural }),
+            label: t('pluto.content.all', {
+              labelPlural: text.labelPluralLower,
+            }),
             to: basePath,
             icon: PLUTO_NAV_LIST_ICON,
           },
           {
-            label: t('pluto.content.createNew', { label: text.label }),
+            label: t('pluto.content.createNew', { label: text.labelLower }),
             to: `${basePath}/new`,
             icon: PLUTO_NAV_NEW_ICON,
           },

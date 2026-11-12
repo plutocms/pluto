@@ -375,8 +375,8 @@ describe('usePlutoAdminNav — children', () => {
 
     expect(entries.map((entry) => entry.label)).toEqual(['Artigos', 'Pages'])
     expect(entries[0]?.children?.map((child) => child.label)).toEqual([
-      'All Artigos',
-      'Create new Artigo',
+      'All artigos',
+      'Create new artigo',
     ])
   })
 })
@@ -402,9 +402,9 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
     expect(entry?.to).toBe('/admin/content/post')
     expect(entry?.label).toBe('Posts')
     expect(entry?.children).toEqual([
-      { label: 'All Posts', to: '/admin/content/post', icon: 'lucide:list' },
+      { label: 'All posts', to: '/admin/content/post', icon: 'lucide:list' },
       {
-        label: 'Create new Post',
+        label: 'Create new post',
         to: '/admin/content/post/new',
         icon: 'lucide:plus',
       },
