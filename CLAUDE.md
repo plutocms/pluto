@@ -19,7 +19,9 @@ Run them at the root. The root scripts call the packages.
   `packages/core`. The published packages have no install script.
 - `bun run dev`: run the playground (`playground/`), an app that extends `@plutocms/core` and
   `@plutocms/3d`, `@plutocms/shop` and `@plutocms/seo` by name. The workspace links the names to `packages/`. Do not save content or
-  upload files in it with the Git CMS: the local Git commits go into this repo.
+  upload files in it with the Git CMS: the local Git commits go into this repo. Its site is plain on
+  purpose: `/` lists the posts, `/posts/<slug>` shows one (`PlutoHtml`), and `content/posts/hello-world.md`
+  uses every format of the editor, with a `Callout` content component.
 - `bun run test`: run the Vitest suites of core (`packages/core/test/`) and of the add-ons. The tests are plain Vitest, with no Nuxt
   environment. Mock the Nuxt imports (see `test/fixtures/`).
 - `bun run lint`, `bun run typecheck`, `bun run build`.
