@@ -218,7 +218,7 @@ describe('stripMdc', () => {
     expect(text).toContain('Small core. Big heart.')
     expect(text).toContain('A small CMS with a biiiig heart.')
     expect(text).toContain('Get started')
-    expect(text).toContain('Read the [docs](/docs) and  more.')
+    expect(text).toContain('Read the [docs](/docs){target="_blank"} and  more.')
     expect(text).not.toMatch(/^\s*::pluto-hero/m)
     expect(text).not.toContain('#headline')
     expect(text).not.toContain('to: /getting-started')

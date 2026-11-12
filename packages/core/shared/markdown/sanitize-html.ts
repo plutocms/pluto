@@ -5,6 +5,7 @@ import {
   PLUTO_COMPONENT_PROPS_ATTRIBUTE,
   readComponentMarker,
 } from './component'
+import { PLUTO_LINK_BLANK_REL } from './link-target'
 import { decodeEntitiesOnce, isSafeUrl } from './url-safety'
 
 export { decodeEntitiesOnce, isSafeUrl } from './url-safety'
@@ -138,6 +139,11 @@ function filterAttributes(element: ElementNode, name: string): void {
       }
       if (typeof attributes.title === 'string') {
         kept.title = keptValue(attributes.title)
+      }
+      // A new tab is the only target, always with a safe rel.
+      if (attributes.target === '_blank') {
+        kept.target = '_blank'
+        kept.rel = PLUTO_LINK_BLANK_REL
       }
       break
     }

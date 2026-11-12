@@ -8,6 +8,12 @@ import {
   componentStart,
   matchEmptyComponent,
 } from './component'
+import {
+  hasBlankTarget,
+  matchBlankLink,
+  PLUTO_LINK_BLANK,
+  PLUTO_LINK_BLANK_REL,
+} from './link-target'
 import { sanitizeHtml } from './sanitize-html'
 
 /** The attribute of an embed paragraph. See `isEmbedParagraph`. */
@@ -36,10 +42,10 @@ export function isEmbedParagraph(tokens: Tokens.Generic[]): boolean {
 // on the result, as a second guard. A paragraph that can be an embed gets
 // `data-pluto-embed`; it stays a plain paragraph with a link for any client.
 // An empty component (`::name{props}` then `::`) becomes the mark of a content
-// component (see ./component.ts).
+// component (see ./component.ts). A link with `{target="_blank"}` opens in a new tab.
 const marked = new Marked({
   gfm: true,
-  extensions: [plutoComponentExtension()],
+  extensions: [plutoComponentExtension(), plutoBlankLinkExtension()],
   renderer: {
     html: () => '',
     paragraph(token) {
@@ -83,17 +89,62 @@ export function plutoComponentExtension() {
   }
 }
 
+/**
+ * The marked extension of a link that opens in a new tab (`[text](url){target="_blank"}`, see
+ * ./link-target.ts): the link renders with `target="_blank"` and a safe `rel`. The Markdown path
+ * of a layer (supabase-blog) uses it too.
+ */
+export function plutoBlankLinkExtension() {
+  return {
+    name: 'plutoBlankLink',
+    level: 'inline' as const,
+    start: (src: string) => {
+      const index = src.indexOf('[')
+      return index < 0 ? undefined : index
+    },
+    tokenizer(
+      this: { lexer: { inlineTokens: (src: string) => Tokens.Generic[] } },
+      src: string
+    ) {
+      const match = matchBlankLink(src)
+      if (!match) {
+        return undefined
+      }
+      const tokens = this.lexer.inlineTokens(match.link)
+      if (tokens.length !== 1 || tokens[0]!.type !== 'link') {
+        return undefined
+      }
+      return { type: 'plutoBlankLink', raw: match.raw, tokens }
+    },
+    renderer(
+      this: { parser: { parseInline: (tokens: Tokens.Generic[]) => string } },
+      token: Tokens.Generic
+    ) {
+      return this.parser
+        .parseInline(token.tokens ?? [])
+        .replace(/^<a /, `<a target="_blank" rel="${PLUTO_LINK_BLANK_REL}" `)
+    },
+  }
+}
+
 const FENCE = /^\s*(`{3,}|~{3,})/
 const BLOCK_OPEN = /^\s*:{2,}[a-z][\w-]*(?:\{[^}]*\})?\s*$/i
 const BLOCK_CLOSE = /^\s*:{2,}\s*$/
 const SLOT = /^\s*#[a-z][\w-]*\s*$/i
 const PROPS_FENCE = /^\s*---\s*$/
 
-/** Inline MDC: components (`:icon{name="x"}`) and attributes (`[text]{.class}`, `[a](/b){target=_blank}`). */
+/**
+ * Inline MDC: components (`:icon{name="x"}`) and attributes (`[text]{.class}`, `[a](/b){.c}`). A link
+ * keeps one attribute, a new tab, in the form the editor writes (`{target="_blank"}`).
+ */
 function stripInlineMdc(line: string): string {
   return line
     .replace(/(^|[\s(]):[a-z][\w-]*\{[^}]*\}/gi, '$1')
-    .replace(/(\]\([^)]*\))\{[^}]*\}/g, '$1')
+    .replace(
+      /(\]\([^)]*\))\{([^}]*)\}/g,
+      (_match, link: string, attributes: string) =>
+        hasBlankTarget(attributes) ? link + PLUTO_LINK_BLANK : link
+    )
     .replace(/\[([^\]]*)\]\{[^}]*\}/g, '$1')
 }
 

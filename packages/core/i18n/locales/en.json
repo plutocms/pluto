@@ -428,7 +428,8 @@
           "remove": "Remove the link",
           "url": "Address",
           "text": "Text",
-          "textPlaceholder": "The text of the link"
+          "textPlaceholder": "The text of the link",
+          "newTab": "Open in a new tab"
         },
         "imagePopover": {
           "alt": "Alt text",

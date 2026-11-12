@@ -99,6 +99,7 @@ const items = usePlutoMarkdownToolbar({
 // content-components skill. A video URL alone on its line shows as its thumbnail (PlutoEmbedNode).
 const registry = usePlutoRegistry()
 const extensions = [
+  PlutoLink,
   PlutoContentComponentNode,
   PlutoCodeBlock,
   PlutoEmbedNode,
@@ -400,7 +401,7 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
       :placeholder="placeholder"
       :image="true"
       :mention="false"
-      :starter-kit="{ codeBlock: false, underline: false }"
+      :starter-kit="{ codeBlock: false, underline: false, link: false }"
       :extensions="extensions"
       :handlers="handlers"
       :ui="

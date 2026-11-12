@@ -428,7 +428,8 @@
           "remove": "Remover o link",
           "url": "Endereço",
           "text": "Texto",
-          "textPlaceholder": "O texto do link"
+          "textPlaceholder": "O texto do link",
+          "newTab": "Abrir em uma nova aba"
         },
         "imagePopover": {
           "alt": "Texto alternativo",

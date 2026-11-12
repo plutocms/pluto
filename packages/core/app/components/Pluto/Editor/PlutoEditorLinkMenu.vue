@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // The link popover of the Visual editor: it shows under a link while the caret is in it (a click on
 // a link puts the caret there). The address and the text of the link can change: Enter, or leaving
-// the field, applies them. Open the link in a new tab, or remove it (the text stays).
+// the field, applies them. The box makes the link open in a new tab on the site
+// (`{target="_blank"}`, see PlutoLink). Open the link in a new tab, or remove it (the text stays).
 import type { Editor as CoreEditor } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import PlutoEditorBubble from './PlutoEditorBubble.vue'
@@ -14,8 +15,15 @@ const { t } = usePlutoI18n()
 
 const url = ref('')
 const text = ref('')
+const blank = ref(false)
 // The link of the popover: its range in the document, and its address and text as they were.
-let link: { from: number; to: number; href: string; text: string } | null = null
+let link: {
+  from: number
+  to: number
+  href: string
+  text: string
+  blank: boolean
+} | null = null
 
 /** The link around the caret, or null. */
 function linkAtCaret(editor: CoreEditor) {
@@ -62,6 +70,7 @@ function linkAtCaret(editor: CoreEditor) {
     to,
     href: String(mark.attrs.href ?? ''),
     text: state.doc.textBetween(from, to),
+    blank: mark.attrs.target === '_blank',
   }
 }
 
@@ -82,6 +91,7 @@ function sync() {
     url.value = next.href
     text.value = next.text
   }
+  blank.value = next?.blank ?? false
   link = next
 }
 
@@ -128,7 +138,29 @@ function apply(focus: boolean) {
     chain.focus().setTextSelection(link.from + label.length)
   }
   chain.run()
-  link = { from: link.from, to: link.from + label.length, href, text: label }
+  link = {
+    ...link,
+    to: link.from + label.length,
+    href,
+    text: label,
+  }
+}
+
+/** Opens the link in a new tab on the site, or not. The caret stays. */
+function setBlank(value: boolean | 'indeterminate') {
+  if (!link) {
+    return
+  }
+  const target = value === true ? '_blank' : null
+  const caret = props.editor.state.selection.head
+  props.editor
+    .chain()
+    .setTextSelection({ from: link.from, to: link.to })
+    .updateAttributes('link', { target })
+    .setTextSelection(caret)
+    .run()
+  link = { ...link, blank: target !== null }
+  blank.value = link.blank
 }
 
 // The popover never takes the focus: a click in a link puts the caret there, to edit the text.
@@ -183,6 +215,14 @@ function remove() {
         @keydown.esc.prevent="backToText"
         @change="apply(false)"
       />
+      <UCheckbox
+        :model-value="blank"
+        :label="t('pluto.github.editor.linkPopover.newTab')"
+        size="sm"
+        class="px-1 py-0.5"
+        @update:model-value="setBlank"
+      />
+
       <div class="flex items-center justify-end gap-1">
         <UButton
           :label="t('pluto.github.editor.linkPopover.open')"

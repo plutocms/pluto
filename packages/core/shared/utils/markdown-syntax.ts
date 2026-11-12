@@ -1,4 +1,5 @@
 import { matchEmptyComponent } from '../markdown/component'
+import { withoutBlankLinkAttributes } from '../markdown/link-target'
 
 /** The kind of Markdown syntax that the visual editor (CommonMark and strikethrough) cannot keep. */
 export type UnsafeMarkdownKind =
@@ -151,7 +152,8 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
     if (MDC_INLINE.test(line)) {
       add('mdc-inline', number)
     }
-    if (/[\])]\{/.test(line)) {
+    // A link that opens in a new tab (`{target="_blank"}`) is safe: the editor keeps it.
+    if (/[\])]\{/.test(withoutBlankLinkAttributes(line))) {
       add('attributes', number)
     }
     if (HTML_TAG.test(line)) {

@@ -650,8 +650,18 @@ and the event `update:modelValue`. `PlutoContentField` gives it the translated f
 - Blocks, like the other editors: a bubble toolbar over a selection (`usePlutoMarkdownBubbleItems`:
   the marks and the link slot; `bubbleShouldShow` keeps the rule of Tiptap, but not for a selected
   block). A caret in a link opens the link popover (`PlutoEditorLinkMenu`, a `BubbleMenu`): its
-  address and its text, applied on Enter or when a field loses the focus, Open, and Remove (the text
-  stays). The link popover never takes the focus (a click in a link is for its text). A click on a
+  address and its text, applied on Enter or when a field loses the focus, the "Open in a new tab"
+  box, Open, and Remove (the text stays). The box sets the `target` of the link mark; the caret
+  stays. The link is `PlutoLink` (app/utils/pluto-link.ts), in place of the starter kit link
+  (`link: false`): it has no default target (the starter kit gives every link `_blank`, which
+  Markdown cannot hold), a pasted link keeps only `_blank`, and it reads and writes the MDC
+  attribute `[text](url){target="_blank"}` (an inline tokenizer, and the mark closing). The shared
+  matcher is `shared/markdown/link-target.ts`: `renderMarkdown` keeps the attribute through
+  `stripMdc` (other forms such as `{target=_blank .x}` too) and renders `target="_blank"` with
+  `rel="noopener noreferrer"` (`plutoBlankLinkExtension`); the sanitizer keeps `target` only as
+  `_blank` and sets that `rel`; `findUnsafeMarkdown` does not count the exact form as attributes, so
+  the post stays in Visual mode. Test: `test/markdown-link-target.test.ts`. The link popover never
+  takes the focus (a click in a link is for its text). A click on a
   video (a pointerdown on `.pluto-embed-node` less than 1 s before `onShow`) focuses the address
   of its popover with the text selected; a block selected with the keys keeps the focus in the text.
   Escape in a field goes back to the text. A click on an image opens its popover (`PlutoEditorImageMenu`): alt text, Replace (media picker), Open, Remove. The link, video and image popovers share `PlutoEditorBubble` (a `BubbleMenu` with the panel and an arrow that it places after each move, `onUpdate`, on the side and at the start of the target). Every floating thing of the editor has an arrow: Reka poppers by the admin defaults; the bubble toolbar (`placement: top`, `flip: false`) and the Markdown bubble with `.pluto-editor-arrow-bottom`; the "/" menu (it ignores its `ui` prop) by CSS on `.ProseMirror ~ div > [role=listbox]`, `flip: false` and a `size` that shortens it near the bottom. Popovers open at `bottom-start`: a centered one can overflow a narrow column, and focusing
