@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.70.0](https://github.com/plutocms/pluto/compare/v0.69.0...v0.70.0) (2026-11-13)
+
+
+### Features
+
+* **core:** singleton types ([#528](https://github.com/plutocms/pluto/issues/528)) ([f5639c8](https://github.com/plutocms/pluto/commit/f5639c862f0f6743e337a22e585c3f6066a13349))
+
 ## [0.69.0](https://github.com/plutocms/pluto/compare/v0.68.0...v0.69.0) (2026-11-12)
 
 
