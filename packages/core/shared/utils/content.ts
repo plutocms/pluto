@@ -1,9 +1,10 @@
 import type { PlutoContentType } from '../types/content'
 
 /**
- * Declares a content type. It returns `type` unchanged, and keeps the literal names and field
- * types for TypeScript. In development it warns about a mistake, such as a duplicate field name or
- * a `titleField` that no field has.
+ * Declares a content type. It returns `type` unchanged. TypeScript keeps the literal names and
+ * field types, and an option that the type does not set keeps its `PlutoContentType` type. In
+ * development it warns about a mistake, such as a duplicate field name or a `titleField` that no
+ * field has.
  * @example
  * export const eventType = defineContentType({
  *   name: 'event',
@@ -17,7 +18,7 @@ import type { PlutoContentType } from '../types/content'
  */
 export function defineContentType<const T extends PlutoContentType>(
   type: T
-): T {
+): T & Omit<PlutoContentType, keyof T> {
   if (import.meta.dev) {
     const prefix = `[pluto] content type "${type.name}":`
     const seen = new Set<string>()
