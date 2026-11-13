@@ -3,11 +3,7 @@
 // to see the posts of the Git CMS on a site while working on the layers.
 const site = usePlutoSite()
 
-const { item: contact } = usePlutoSingleton<{
-  email?: string
-  phone?: string
-  address?: string
-}>('contact')
+const { item: contact } = usePlutoSingleton('contact')
 </script>
 
 <template>

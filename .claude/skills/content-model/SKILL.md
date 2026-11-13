@@ -1282,6 +1282,10 @@ a home page with fixed sections (the options page of ACF).
   `pluto.errors.singletonExists`. `deleteContentItem` refuses with 400 `pluto.errors.singletonDelete`.
 - Admin paths: `contentTypeNewPath` and `contentTypeEditPath` give `basePath` (they win over
   `newPath` and `editPath`). `contentTypeAdminBar` gives no `new`.
+- Page: `PlutoContentSingletonIntro` above the form (the icon, the label, the `description` of the
+  type, then "Last saved <date>" from the updated timestamp, or "Not saved yet"), the fields in a
+  `UCard`, and the panel width `narrow` (`max-w-3xl`, a new value of `PlutoViewAdminPanel.width`).
+  `description` is a new option of every type (key `content.<name>.description`, `text.description`).
 - Admin: `/admin/content/<type>` renders `PlutoContentSingleton`: it lists one item (`limit=1`) and
   shows `PlutoContentForm` in edit mode, or in new mode before the first save. The form then emits
   `created` (it does not navigate: the page has no other address), and the wrapper shows the item.
@@ -1297,6 +1301,35 @@ a home page with fixed sections (the options page of ACF).
   needs `api.public: true`. Headless: `GET /api/pluto/v1/content/<type>?limit=1`, `data[0]`.
 - Tests: `test/content-singleton.test.ts` (helpers, paths, handlers, the Git adapter), and a nav case
   in `test/pluto-admin-nav-content.test.ts`. The playground has a `contact` singleton in its footer.
+
+## Item types
+
+The public item of a type comes from its definition, with no interface to write.
+
+- `defineContentType<const T extends PlutoContentType>(type: T): T` keeps the literal names, field
+  types and options. Do not annotate the export (`export const x: PlutoContentType = ...`): the
+  annotation widens `name` to `string`, and the type leaves the map.
+- `PlutoPublicItemOf<T>` (`shared/types/content-item.ts`): `id`, the timestamps, and each public
+  field (`api.fields`, else every field that is not `virtual`). A `required` field is always there;
+  the others are optional and can be `null`. Values: `number`, `boolean`, the option values of a
+  `select`, `PlutoPublicReference` (a list for `multiple`) for a `reference` with a `target`, else
+  the id, `PlutoPublicMedia` for `media`, else `string`. `excerpt` and the cover key when the
+  type sets them.
+- The global `PlutoContentTypes` map (name to type). The module `modules/pluto-content-types` reads
+  the auto-imports of the app and its layers (`imports:context`, `getImports()`), finds each
+  `export const x = defineContentType(...)` (`contentTypeExports` in `scan.ts`), and writes
+  `#build/types/pluto-content-types.d.ts` (nuxt, nitro and shared contexts): a union of
+  `typeof import(file)[export]`, mapped by `name`, that `PlutoContentTypes` extends. A change
+  in a `shared/` or `utils/` file writes it again in dev. Only top-level files of `shared/utils` are
+  auto-imported, so a type in a subfolder is not found. A layer or an app can add an entry by hand
+  (declaration merging).
+- `PlutoContentTypeName`, `PlutoItem<'contact'>` (the item by name) and `PlutoSingletonTypeName`
+  (the names of the singleton types).
+- `usePlutoSingleton` has two overloads: a `PlutoSingletonTypeName` (the editor suggests the
+  names, `item` is typed) and any `string` with a type argument.
+- Tests: `test/content-types-scan.test.ts`. The type mapping was checked with probes against the
+  playground and the supabase-blog and supabase-shop definitions (not kept as tests: the repo has no
+  type tests).
 
 ## Known limits, out of scope for this pass
 

@@ -2,6 +2,7 @@ export const contactType = defineContentType({
   name: 'contact',
   label: 'Contact info',
   labelPlural: 'Contact info',
+  description: 'The email, phone and address in the footer of every page.',
   icon: 'lucide:contact',
   source: 'settings',
   titleField: 'email',

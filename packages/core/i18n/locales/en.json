@@ -67,7 +67,11 @@
       "typeNotFound": "Content type not found",
       "typeNotFoundDescription": "No content type named \"{type}\" is registered.",
       "removeConfirm": "Do you really want to remove this item?",
-      "untitled": "Untitled"
+      "untitled": "Untitled",
+      "singleton": {
+        "lastSaved": "Last saved {date}",
+        "notSaved": "Not saved yet. The site shows its own text until you save."
+      }
     },
     "form": {
       "slugEdit": "Edit the slug",

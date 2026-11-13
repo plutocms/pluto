@@ -19,6 +19,7 @@ import {
   writeRemembered,
 } from '../../../composables/internal/form-initial-values'
 import { restorePlutoTrashItem } from '../../../composables/pluto-content-trash'
+import PlutoContentSingletonIntro from './PlutoContentSingletonIntro.vue'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
@@ -1387,7 +1388,9 @@ const asideTitle = computed(() =>
     v-model:left-open="leftOpen"
     :aside-open="asideSlot && asideModel"
     :left-title="leftTitle"
-    :width="layout === 'default' ? 'container' : 'full'"
+    :width="
+      layout !== 'default' ? 'full' : singleton ? 'narrow' : 'container'
+    "
     :fill="isCanvas"
     panel-toggles
     @update:aside-open="asideModel = $event"
@@ -1420,6 +1423,14 @@ const asideTitle = computed(() =>
         @toggle-left="leftOpen = !leftOpen"
       />
     </template>
+
+    <!-- A singleton type: its title, description and last save, above its one form. -->
+    <PlutoContentSingletonIntro
+      v-if="singleton && !isCanvas && contentType"
+      :type="contentType"
+      :item="editing && !itemPending ? item : undefined"
+      :pending="itemPending"
+    />
 
     <!--
       The alerts of the form. In the canvas layout, a widget can show them in its own column
@@ -1561,6 +1572,19 @@ const asideTitle = computed(() =>
         @update:model-value="updateField(canvasFieldDef, $event)"
       />
     </div>
+
+    <!-- A singleton type: the fields in a card, like a settings page. -->
+    <UCard v-else-if="singleton" :ui="{ body: 'flex flex-col gap-6' }">
+      <PlutoContentField
+        v-for="field in mainFields"
+        :key="field.name"
+        :type="type"
+        :field="field"
+        :model-value="item[field.name]"
+        :disabled="!canWrite || saving"
+        @update:model-value="updateField(field, $event)"
+      />
+    </UCard>
 
     <template v-else>
       <PlutoContentField

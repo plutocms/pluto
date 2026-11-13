@@ -82,7 +82,10 @@ policies shared by every project here.
   A daily Nitro task (`pluto:trash:purge`) purges the trash with a system request (`createPlutoSystemEvent`).
   Singleton types (`singleton: true`): one item, its form at `basePath` (`PlutoContentSingleton`), no
   list, no delete, no "New"; a second create is 409; the Git CMS file is `<source>/<id>.md`; the site
-  reads it with `usePlutoSingleton(type)` (public list, `limit=1`).
+  reads it with `usePlutoSingleton(type)` (public list, `limit=1`). The page has an intro (icon, label,
+  `description`, last save) and a card. Item types from the definitions: `defineContentType` keeps
+  literal types, `PlutoPublicItemOf<T>`, the generated `PlutoContentTypes` map (`modules/pluto-content-types`),
+  `PlutoItem<name>`, `PlutoSingletonTypeName` (the names that `usePlutoSingleton` suggests).
   Scheduled publish and review (`status.schedule`, `status.review`): Schedule with a date and time,
   Publish now, Unschedule; Submit for review and Return to draft for a user without the publish
   capability; a scheduled item is live at its time on a server read (`isLiveStatus`), and the Nitro

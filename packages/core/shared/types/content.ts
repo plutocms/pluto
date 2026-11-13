@@ -264,6 +264,12 @@ export interface PlutoContentType {
   name: string
   label: string
   labelPlural: string
+  /**
+   * One sentence about the type, for the editor: what it holds and where the site shows it. The
+   * page of a singleton type shows it under its title. A translation key
+   * (`content.<name>.description`) wins over it.
+   */
+  description?: string
   icon?: string
   /** Table or view name this content type reads and writes. */
   source: string

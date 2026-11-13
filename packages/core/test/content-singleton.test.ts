@@ -20,9 +20,7 @@ afterEach(() => {
 
 const event = {} as H3Event
 
-function contact(
-  overrides: Partial<PlutoContentType> = {}
-): PlutoContentType {
+function contact(overrides: Partial<PlutoContentType> = {}): PlutoContentType {
   return {
     name: 'contact',
     label: 'Contact info',
@@ -44,9 +42,7 @@ describe('singleton helpers', () => {
     expect(isSingletonType(contact({ singleton: false }))).toBe(false)
     expect(isSingletonType(undefined)).toBe(false)
     expect(singletonItemId(contact())).toBe('contact')
-    expect(singletonItemId(contact({ singleton: { id: 'main' } }))).toBe(
-      'main'
-    )
+    expect(singletonItemId(contact({ singleton: { id: 'main' } }))).toBe('main')
     expect(singletonItemId(contact({ singleton: {} }))).toBe('contact')
   })
 
@@ -55,9 +51,9 @@ describe('singleton helpers', () => {
 
     expect(contentTypeNewPath(type)).toBe('/admin/content/contact')
     expect(contentTypeEditPath(type, 'contact')).toBe('/admin/content/contact')
-    expect(contentTypeEditPath(contact({ basePath: '/admin/contact' }), 1)).toBe(
-      '/admin/contact'
-    )
+    expect(
+      contentTypeEditPath(contact({ basePath: '/admin/contact' }), 1)
+    ).toBe('/admin/contact')
   })
 
   it('gives a singleton no New button in the admin bar', () => {
@@ -90,7 +86,9 @@ describe('singleton handlers', () => {
       expect.objectContaining({
         statusCode: 409,
         data: expect.objectContaining({
-          i18n: expect.objectContaining({ key: 'pluto.errors.singletonExists' }),
+          i18n: expect.objectContaining({
+            key: 'pluto.errors.singletonExists',
+          }),
         }),
       })
     )
@@ -136,12 +134,13 @@ describe('singleton in the Git CMS', () => {
     })
     const type = contact()
 
-    const list = await adapter.list({ event, type }, { includeUnpublished: true })
+    const list = await adapter.list(
+      { event, type },
+      { includeUnpublished: true }
+    )
     expect(list.data.map((item) => item.id)).toEqual(['contact'])
     expect(await adapter.get({ event, type }, 'social')).toBeNull()
-    expect((await adapter.get({ event, type }, 'contact'))?.email).toBe(
-      'a@b.c'
-    )
+    expect((await adapter.get({ event, type }, 'contact'))?.email).toBe('a@b.c')
   })
 
   it('uses singleton.id for the file name', async () => {

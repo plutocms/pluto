@@ -3,8 +3,12 @@ import type { SplitterItem } from '@nuxt/ui'
 
 withDefaults(
   defineProps<{
-    /** Drop the max-width container in the main region. Default 'container'. */
-    width?: 'container' | 'full'
+    /**
+     * The main region: 'container' (the padding, the gap and the max width of every admin page),
+     * 'narrow' (the same, in a reading width: a settings-like form), or 'full' (none). Default
+     * 'container'.
+     */
+    width?: 'container' | 'narrow' | 'full'
     /**
      * Fill the main region's height, and let the content scroll inside its
      * own region, not the whole page. For a view with one long scrolling
@@ -333,9 +337,12 @@ watch(
               its own padding instead.
             -->
             <UContainer
-              v-if="width === 'container'"
-              :class="{ 'h-full min-h-0': fill }"
-              class="flex max-w-300 flex-col gap-y-6 px-4 py-6 sm:px-6 lg:gap-y-8 lg:px-8 lg:py-10"
+              v-if="width !== 'full'"
+              :class="[
+                width === 'narrow' ? 'max-w-3xl' : 'max-w-300',
+                { 'h-full min-h-0': fill },
+              ]"
+              class="flex flex-col gap-y-6 px-4 py-6 sm:px-6 lg:gap-y-8 lg:px-8 lg:py-10"
             >
               <slot />
             </UContainer>
