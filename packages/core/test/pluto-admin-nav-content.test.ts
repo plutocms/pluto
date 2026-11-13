@@ -411,6 +411,32 @@ describe('usePlutoAdminNav — content-type-derived nav entries', () => {
     ])
   })
 
+  it('gives a singleton type one link to its form, with its singular label', async () => {
+    const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
+
+    definePlutoExtension({
+      id: 'test-layer',
+      contentTypes: [
+        {
+          id: 'contact',
+          type: contentType('contact', {
+            label: 'Contact info',
+            labelPlural: 'Contacts',
+            singleton: true,
+          }),
+        },
+      ],
+    })
+
+    const { items } = usePlutoAdminNav()
+
+    const entry = items.value.find((item) => item.id === 'content:contact')
+    expect(entry?.to).toBe('/admin/content/contact')
+    expect(entry?.label).toBe('Contact info')
+    expect(entry?.children).toBeUndefined()
+    expect(entry?.newTo).toBeUndefined()
+  })
+
   it('honors a custom basePath', async () => {
     const { definePlutoExtension, usePlutoAdminNav } = await loadComposables()
 

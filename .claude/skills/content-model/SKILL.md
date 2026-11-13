@@ -1265,6 +1265,39 @@ adapters only (see the git-cms skill). A nested type has ids with slashes.
 `compareContentIds(a, b)` (shared util) is an `Array.sort` comparator for such ids. In each
 segment, `index` comes first, then a numeric prefix (`2.name`) as a number, then the name.
 
+## Singleton types
+
+`singleton: true` (or `{ id }`) makes a type with one item: site info, contact data, social links,
+a home page with fixed sections (the options page of ACF).
+
+- Helpers (`shared/utils/content-singleton.ts`, auto-imported): `isSingletonType(type)` and
+  `singletonItemId(type)` (`singleton.id`, else the type `name`).
+- Storage: the type's own, no new table. The Git CMS writes one file, `<dir>/<source>/<id>.md`
+  (`source: 'settings'` and the type `contact` give `content/settings/contact.md`, so several
+  singletons share a folder). Its layout has `singletonId`: `isUsableId` accepts that id only (list
+  and get see that file only) and `create` writes it, whatever the title. The id must be a safe slug
+  (lowercase, dashes): name the type so, or set `singleton.id`. Supabase: the `source` table holds
+  one row; the adapter has no singleton code.
+- Server: `createContentItem` lists one item first (drafts included) and refuses a second with 409
+  `pluto.errors.singletonExists`. `deleteContentItem` refuses with 400 `pluto.errors.singletonDelete`.
+- Admin paths: `contentTypeNewPath` and `contentTypeEditPath` give `basePath` (they win over
+  `newPath` and `editPath`). `contentTypeAdminBar` gives no `new`.
+- Admin: `/admin/content/<type>` renders `PlutoContentSingleton`: it lists one item (`limit=1`) and
+  shows `PlutoContentForm` in edit mode, or in new mode before the first save. The form then emits
+  `created` (it does not navigate: the page has no other address), and the wrapper shows the item.
+  `/new` and `/<id>` redirect to `basePath`. The form has no back link, no breadcrumb and no
+  delete, and its heading is the type label.
+- Nav: one item with the singular `label`, no children and no "+". Pages: one entry. The
+  dashboard stats and the activity chart leave singletons out.
+- `defineContentType` warns in dev when a singleton sets `trash` or `slug`.
+- Site: `usePlutoSingleton<T>(type, { editLink? })` (`app/composables/pluto-singleton.ts`) reads the
+  public list with `limit=1`, so a static build reads the public index. `item` is `null` until the
+  first save (no throw), so a page keeps its fallback. It calls `usePlutoEditLink(type, item.id ??
+  type)`, so the admin bar has "Edit" (with `adminBar.edit`) before the first save too. The type
+  needs `api.public: true`. Headless: `GET /api/pluto/v1/content/<type>?limit=1`, `data[0]`.
+- Tests: `test/content-singleton.test.ts` (helpers, paths, handlers, the Git adapter), and a nav case
+  in `test/pluto-admin-nav-content.test.ts`. The playground has a `contact` singleton in its footer.
+
 ## Known limits, out of scope for this pass
 
 - No real (non-memory) `PlutoContentAdapter` implementation. `@plutocms/supabase`'s job, a

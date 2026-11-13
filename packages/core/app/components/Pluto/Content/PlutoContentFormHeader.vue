@@ -7,7 +7,8 @@
 // holds no form logic. The form passes the data in and handles the events.
 
 const props = defineProps<{
-  backTo: string
+  /** The list of the type. Unset (a singleton type): no back link and no breadcrumb. */
+  backTo?: string
   /** The plural label of the type, before the title. */
   typeLabel: string
   title: string
@@ -147,12 +148,14 @@ const stateText = computed(() => {
          current page. -->
     <template #title>
       <NuxtLink
+        v-if="backTo"
         :to="backTo"
         class="text-muted hover:text-highlighted focus-visible:outline-primary hidden shrink-0 rounded-sm text-sm font-normal focus-visible:outline-2 sm:inline"
       >
         {{ typeLabel }}
       </NuxtLink>
       <UIcon
+        v-if="backTo"
         name="i-lucide-chevron-right"
         class="text-muted hidden size-4 shrink-0 sm:block"
       />

@@ -46,25 +46,28 @@ export function usePlutoContentStats() {
     error.value = null
 
     try {
+      // A singleton type has one item: no count to show.
       stats.value = await Promise.all(
-        contentTypes.value.map(async ({ type }) => {
-          const [total, published] = await Promise.all([
-            count(type.name, false),
-            type.status ? count(type.name, true) : Promise.resolve(undefined),
-          ])
+        contentTypes.value
+          .filter(({ type }) => !type.singleton)
+          .map(async ({ type }) => {
+            const [total, published] = await Promise.all([
+              count(type.name, false),
+              type.status ? count(type.name, true) : Promise.resolve(undefined),
+            ])
 
-          return {
-            name: type.name,
-            label: type.label,
-            labelPlural: type.labelPlural,
-            icon: type.icon,
-            path: type.basePath ?? `/admin/content/${type.name}`,
-            total,
-            ...(published === undefined
-              ? {}
-              : { published, drafts: Math.max(0, total - published) }),
-          }
-        })
+            return {
+              name: type.name,
+              label: type.label,
+              labelPlural: type.labelPlural,
+              icon: type.icon,
+              path: type.basePath ?? `/admin/content/${type.name}`,
+              total,
+              ...(published === undefined
+                ? {}
+                : { published, drafts: Math.max(0, total - published) }),
+            }
+          })
       )
     } catch (caught) {
       error.value = caught

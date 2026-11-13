@@ -309,6 +309,14 @@ export interface PlutoContentType {
     field: string
     direction: 'asc' | 'desc'
   }
+  /**
+   * The type has one item (site info, contact data, a home page with fixed sections). The admin
+   * shows its form at `basePath`, with no list, and the site reads it with `usePlutoSingleton`.
+   * `id` is the id of the item in the Git CMS (default: the type `name`), so the file is
+   * `<dir>/<source>/<id>.md`. On Supabase the `source` table holds one row. See the content-model
+   * skill ("Singleton types").
+   */
+  singleton?: boolean | { id?: string }
   /** Whether nav/pages entries should be derived automatically for this content type. `false` when a layer keeps its own hand-declared `nav`/`pages` at its own URLs. */
   autoRoutes?: boolean
   /**

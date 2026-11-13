@@ -80,6 +80,9 @@ policies shared by every project here.
   forever, Empty the trash), a purge after 30 days; the adapter `trash` contract; the Git CMS keeps
   the file in `<dir>/.trash/` (post, term and author types).
   A daily Nitro task (`pluto:trash:purge`) purges the trash with a system request (`createPlutoSystemEvent`).
+  Singleton types (`singleton: true`): one item, its form at `basePath` (`PlutoContentSingleton`), no
+  list, no delete, no "New"; a second create is 409; the Git CMS file is `<source>/<id>.md`; the site
+  reads it with `usePlutoSingleton(type)` (public list, `limit=1`).
   Scheduled publish and review (`status.schedule`, `status.review`): Schedule with a date and time,
   Publish now, Unschedule; Submit for review and Return to draft for a user without the publish
   capability; a scheduled item is live at its time on a server read (`isLiveStatus`), and the Nitro

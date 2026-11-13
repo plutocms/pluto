@@ -27,6 +27,14 @@ const props = defineProps<{
   id?: string | number
 }>()
 
+const emit = defineEmits<{
+  /**
+   * A singleton type: the first save created the item. The page shows the form of the item
+   * (`PlutoContentSingleton`), because the form has no other address to go to.
+   */
+  created: [id: string | number]
+}>()
+
 const { byName } = usePlutoContentTypes()
 const contentType = computed(() => byName(props.type))
 const { t, tx, d, locale } = usePlutoI18n()
@@ -64,6 +72,7 @@ const canDelete = computed(
 )
 
 const editing = computed(() => props.id !== undefined)
+const singleton = computed(() => isSingletonType(contentType.value))
 const basePath = computed(
   () => contentType.value?.basePath ?? `/admin/content/${props.type}`
 )
@@ -731,6 +740,10 @@ async function onSave(statusOverride?: string, publishAt?: string) {
         description: t('pluto.form.createdDescription', { label: text.label }),
         color: 'success',
       })
+      if (singleton.value) {
+        emit('created', saved.id)
+        return
+      }
       bypass = true
       await navigateTo(editPath(saved.id))
       return
@@ -848,9 +861,11 @@ const itemTitle = computed(() => {
   return typeof value === 'string' ? value.trim() : ''
 })
 const heading = computed(() =>
-  editing.value
-    ? itemTitle.value || t('pluto.content.edit', { label: text.label })
-    : text.newLabel
+  singleton.value
+    ? text.label
+    : editing.value
+      ? itemTitle.value || t('pluto.content.edit', { label: text.label })
+      : text.newLabel
 )
 
 useHead({ title: () => heading.value })
@@ -1354,7 +1369,8 @@ const unpublishLabel = computed(() => {
   return isReview.value ? t('pluto.form.returnToDraft') : undefined
 })
 const canShowDelete = computed(
-  () => editing.value && canDelete.value && !loadFailed.value
+  () =>
+    editing.value && canDelete.value && !loadFailed.value && !singleton.value
 )
 
 const asideTitle = computed(() =>
@@ -1378,7 +1394,7 @@ const asideTitle = computed(() =>
   >
     <template #toolbar>
       <PlutoContentFormHeader
-        :back-to="basePath"
+        :back-to="singleton ? undefined : basePath"
         :type-label="text.labelPlural"
         :title="heading"
         :status="headerStatus"

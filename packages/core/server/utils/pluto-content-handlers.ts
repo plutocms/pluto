@@ -226,6 +226,22 @@ export async function createContentItem(
 
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
 
+  // A singleton type has one item: a second create is refused, drafts included.
+  if (ctx.type.singleton) {
+    const existing = await requireContentAdapter().list(ctx, {
+      limit: 1,
+      offset: 0,
+      includeUnpublished: true,
+    })
+    if (existing.data.length > 0 || (existing.total ?? 0) > 0) {
+      throw createPlutoError({
+        statusCode: 409,
+        message: 'The singleton item exists already.',
+        key: 'pluto.errors.singletonExists',
+      })
+    }
+  }
+
   const item = await requireContentAdapter().create(ctx, payload)
   await removeBackupQuietly(ctx, NEW_BACKUP_KEY)
 
@@ -271,11 +287,22 @@ export async function updateContentItem(
   return item
 }
 
-/** Deletes one item. Authorizes against `type.capabilities.delete` before calling the adapter. */
+/**
+ * Deletes one item. Authorizes against `type.capabilities.delete` before calling the adapter. The
+ * item of a singleton type cannot be deleted (400).
+ */
 export async function deleteContentItem(
   ctx: PlutoContentContext,
   id: string | number
 ): Promise<void> {
+  if (ctx.type.singleton) {
+    throw createPlutoError({
+      statusCode: 400,
+      message: 'The singleton item cannot be deleted.',
+      key: 'pluto.errors.singletonDelete',
+    })
+  }
+
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
 
   // A type with a trash moves the item there. Without one, the delete is final.

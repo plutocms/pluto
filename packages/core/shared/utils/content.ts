@@ -79,6 +79,14 @@ export function defineContentType(type: PlutoContentType): PlutoContentType {
     if (type.status && type.status.values.length === 0) {
       console.warn(`${prefix} status has no values.`)
     }
+
+    if (type.singleton) {
+      for (const option of ['trash', 'slug'] as const) {
+        if (type[option]) {
+          console.warn(`${prefix} a singleton type does not use ${option}.`)
+        }
+      }
+    }
   }
 
   return type
