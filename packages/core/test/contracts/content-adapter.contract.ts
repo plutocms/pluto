@@ -8,7 +8,6 @@ import type {
 import { beforeEach, describe, expect, it } from 'vitest'
 import { statusRules } from '../../shared/utils/content-status'
 
-/** The caller a test acts as. `null` is anonymous. */
 export type ContractCaller = {
   capabilities: string[]
 } | null
@@ -24,7 +23,6 @@ export interface ContractOptions {
   type: PlutoContentType
 }
 
-/** A clock that moves one minute on each call, from a fixed start. */
 export function createContractClock(): () => Date {
   let time = Date.parse('2026-03-01T00:00:00Z')
   return () => new Date((time += 60_000))

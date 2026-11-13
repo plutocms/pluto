@@ -1,3 +1,4 @@
+/** The counts of one content type, for the dashboard. */
 export interface PlutoContentStat {
   name: string
   label: string
@@ -46,7 +47,6 @@ export function usePlutoContentStats() {
     error.value = null
 
     try {
-      // A singleton type has one item: no count to show.
       stats.value = await Promise.all(
         contentTypes.value
           .filter(({ type }) => !type.singleton)
@@ -77,8 +77,6 @@ export function usePlutoContentStats() {
     }
   }
 
-  // Same pattern as usePlutoContentList: fetch right away, and keep a
-  // failure in `error` instead of an unhandled rejection.
   refresh().catch(() => {})
 
   return { stats, pending, error, refresh }

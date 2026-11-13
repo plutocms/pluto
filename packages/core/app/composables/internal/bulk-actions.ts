@@ -4,24 +4,15 @@ import type {
 } from '../../../shared/types/content'
 import { statusRules } from '../../../shared/utils/content-status'
 
-/** A bulk action of the admin list. */
 export type PlutoBulkAction = 'publish' | 'unpublish' | 'remove'
 
-/** The result of a bulk action: the items it changed and the items that failed. */
 export interface PlutoBulkResult {
   done: number
   failed: number
 }
 
-/** How many requests a bulk action runs at a time. */
-export const BULK_CONCURRENCY = 4
+const BULK_CONCURRENCY = 4
 
-/**
- * The items that a status action changes, and the status it gives them. Publish takes the items
- * that are not published (a scheduled item goes live now), unpublish the published and the
- * scheduled ones (they go back to the default status). An item that has the status already needs
- * no request. Without a workflow, nothing.
- */
 export function bulkStatusChange(
   items: PlutoContentItem[],
   action: 'publish' | 'unpublish',
@@ -51,10 +42,6 @@ export function bulkStatusChange(
   return { ids, status }
 }
 
-/**
- * Runs `task` for each id, `size` at a time, and counts the ids that worked and the ids that
- * failed. A failure does not stop the others.
- */
 export async function runInBatches<T>(
   ids: T[],
   task: (id: T) => Promise<unknown>,

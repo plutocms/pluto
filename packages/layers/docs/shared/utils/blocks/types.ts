@@ -1,12 +1,8 @@
-// The definition types (the props, the slots, the patch of `definePlutoBlock`) are in core.
 import type { PlutoPropValue } from '#layers/pluto/shared/utils/blocks/definition'
 export type * from '#layers/pluto/shared/utils/blocks/definition'
 
-// Types of the block model. The model has no Nuxt import, so a package can
-// own it later. The truth stays the Markdown string: a block with `original`
-// is written back byte for byte.
+// The truth stays the Markdown string: a block with `original` is written back byte for byte.
 
-/** A part of the source text that a block came from. */
 export interface PlutoSlice {
   start: number
   end: number
@@ -89,7 +85,6 @@ export interface PlutoBlockDoc {
   gaps: string[]
 }
 
-/** Where a block is in the tree. `parent` is undefined for a top-level block. */
 export interface PlutoBlockLocation {
   block: PlutoBlock
   parent?: PlutoComponentBlock

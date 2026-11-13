@@ -92,7 +92,6 @@ describe('the admin list query', () => {
         order: 5,
         filter: true,
       },
-      // Not in the list and no `filter: true`: a setting, not a filter.
       { name: 'noindex', type: 'boolean', label: 'Hide' },
       {
         name: 'tags',

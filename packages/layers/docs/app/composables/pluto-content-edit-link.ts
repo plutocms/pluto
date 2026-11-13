@@ -8,6 +8,7 @@
  * It also tells the admin bar which page is on screen, so the bar shows
  * "Edit page" for it. It is a wrapper of core's `usePlutoEditLink`.
  *
+ * @see https://pluto.vulmix.dev/docs/layers/docs#what-the-layer-gives
  * @param page A Nuxt Content page. Only `stem` is read.
  * @param type The content type name. Default `doc`.
  */

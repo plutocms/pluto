@@ -43,11 +43,6 @@ export function extendPlutoAsyncData<R extends object, E extends object>(
   )
 }
 
-/**
- * Copies the keys of `source` and `extra` onto the promise `target`, but not `then`, `catch` and
- * `finally`: Nuxt puts them on the `useFetch` result as own keys, bound to its own promise. A
- * copy would make an await of `target` wait for that promise and skip `target` itself.
- */
 function withRefsOf<
   T extends Promise<unknown>,
   S extends object,
@@ -79,6 +74,8 @@ function withRefsOf<
  *
  * // pages/events/[slug].vue
  * const { item: event } = await useEvent(() => String(route.params.slug))
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function definePlutoContent<
   TItem extends object = PlutoPublicItem,
@@ -115,8 +112,6 @@ export function definePlutoContent<
     const searchOption = settings.search
     const urlSearch = computed(() => String(route.query.q ?? '').trim())
 
-    // The search box. Bound to `?q=` of the URL (the default): a change writes the URL after
-    // 300 ms, on page 1, and a change of the URL (back, forward) fills the box.
     const searchInput = ref(searchOption === undefined ? urlSearch.value : '')
     if (searchOption === undefined) {
       let timer: ReturnType<typeof setTimeout> | undefined
@@ -146,14 +141,12 @@ export function definePlutoContent<
           : toValue(searchOption)?.trim() || undefined
     )
 
-    // A new search starts on the first page.
     watch(search, () => {
       if (page.value > 1) {
         page.value = 1
       }
     })
 
-    /** A link to page `value` of the list, for `NuxtLink` (`?page=`, no key for page 1). */
     function pageLink(value: number) {
       return {
         query: {
@@ -192,7 +185,6 @@ export function definePlutoContent<
     id: MaybeRefOrGetter<string | number>,
     options: PlutoContentItemOptions = {}
   ) {
-    // An editor (the admin bar shows) also gets a draft: the same page shows it before it is out.
     const adminBar = usePlutoAdminBar()
     const fetch = usePlutoPublicItem<TItem>(type, id, {
       drafts: () => options.drafts !== false && adminBar.visible.value,
@@ -221,7 +213,6 @@ export function definePlutoContent<
         const media = byName(type)?.fields.find(
           (field) => field.type === 'media'
         )
-        // The standard cover first (`cover` on the public item), then the first media field.
         const value =
           fields()?.cover ?? (media ? fields()?.[media.name] : undefined)
         const first = (Array.isArray(value) ? value[0] : value) as
@@ -240,7 +231,6 @@ export function definePlutoContent<
         ogImage: image,
         ogType: defaults.ogType ?? 'website',
       })
-      // The head hooks of the layers run after the tags above, so they can override them.
       for (const hook of registry.contentHead.list.value) {
         if (hook.contentType === '*' || hook.contentType === type) {
           hook.setup({
@@ -269,10 +259,6 @@ export function definePlutoContent<
     )
   }
 
-  /**
-   * The published items before and after one item (`previous`, `next`), in the order of the
-   * list (`defaults.list.sort`, else `sort`). Both `null` while there is none.
-   */
   function useSurround(
     id: MaybeRefOrGetter<string | number>,
     options: Pick<PlutoContentListOptions, 'sort' | 'filter'> = {}
@@ -301,6 +287,8 @@ const posts = definePlutoContent<PlutoPost, PlutoPostSummary>('post', {
  *
  * @example
  * const { posts, page, pages } = await usePosts({ limit: 10, search })
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function usePosts(options: PlutoContentListOptions = {}) {
   const result = posts.useList(options)
@@ -313,6 +301,8 @@ export function usePosts(options: PlutoContentListOptions = {}) {
  *
  * @example
  * const { post } = await usePost(() => String(route.params.slug))
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function usePost(
   slug: MaybeRefOrGetter<string | number>,
@@ -327,6 +317,8 @@ export function usePost(
  *
  * @example
  * const { newer, older } = await useAdjacentPosts(() => String(route.params.slug))
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function useAdjacentPosts(slug: MaybeRefOrGetter<string | number>) {
   const result = posts.useSurround(slug)
@@ -347,6 +339,8 @@ const categories = definePlutoContent<PlutoTerm>('category', {
  *
  * @example
  * const { tags } = await useTags({ limit: 100, search: false })
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function useTags(options: PlutoContentListOptions = {}) {
   const result = tags.useList(options)
@@ -358,6 +352,8 @@ export function useTags(options: PlutoContentListOptions = {}) {
  *
  * @example
  * const { tag } = await useTag(() => String(route.params.slug))
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function useTag(
   slug: MaybeRefOrGetter<string | number>,
@@ -373,6 +369,8 @@ export function useTag(
  *
  * @example
  * const { categories } = await useCategories({ limit: 100, search: false })
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function useCategories(options: PlutoContentListOptions = {}) {
   const result = categories.useList(options)
@@ -385,6 +383,8 @@ export function useCategories(options: PlutoContentListOptions = {}) {
  *
  * @example
  * const { category } = await useCategory(() => String(route.params.slug))
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function useCategory(
   slug: MaybeRefOrGetter<string | number>,
@@ -404,6 +404,8 @@ const authors = definePlutoContent<PlutoAuthor>('author', {
  *
  * @example
  * const { authors } = await useAuthors({ limit: 100, search: false })
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function useAuthors(options: PlutoContentListOptions = {}) {
   const result = authors.useList(options)
@@ -416,6 +418,8 @@ export function useAuthors(options: PlutoContentListOptions = {}) {
  *
  * @example
  * const { author } = await useAuthor(() => String(route.params.slug))
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function useAuthor(
   slug: MaybeRefOrGetter<string | number>,

@@ -15,9 +15,6 @@ import { toPublicData } from '../../../../core/server/utils/pluto-public-api'
 import { validateContentPayload } from '../../../../core/shared/utils/content-validate'
 import { plutoSeoTypeExtension } from '../shared/utils/seo-fields'
 
-// The Git CMS round trip, over the memory store of core: the extended post type writes the `seo:`
-// block of the file and reads it back. The layer keeps core as it is.
-
 vi.mock('../../../../core/server/utils/pluto-api-config', () => ({
   getPlutoApiConfig: () => ({ cors: true, maxAge: 60 }),
 }))

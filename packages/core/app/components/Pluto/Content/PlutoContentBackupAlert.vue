@@ -1,13 +1,9 @@
 <script setup lang="ts">
-// The recovery offer of the content backup, above the fields of the form. The browser kept
-// unsaved changes of this item. The user restores them, discards them, or looks at them first
-// ("Show changes", a slideover with the same diff as History). See the content-backup skill.
 import type { PlutoBackupOffer } from '../../../composables/pluto-content-backup'
 
 const props = defineProps<{
   type: PlutoContentType | undefined
   offer: PlutoBackupOffer
-  /** The changes that a restore makes, from `diffFields`. */
   changes: PlutoFieldChange[]
 }>()
 

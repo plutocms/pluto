@@ -1,16 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { nextTick, ref } from 'vue'
-import {
-  createPlutoBlockEditor,
-  topLevelId,
-} from '../app/composables/pluto-block-editor'
+import { createPlutoBlockEditor } from '../app/composables/pluto-block-editor'
 import { buildPalette } from '../shared/utils/blocks/editor'
 import { flatChildren } from '../shared/utils/blocks/tree'
 import { corpusBodies } from './helpers/corpus'
-
-// The state of the block editor (the part under the UI): it must never write
-// the text on open, every edit writes only the changed block, and Undo and
-// Redo give the exact bytes back.
 
 const SOURCE =
   '# Title\n\nFirst text.\n\n::note\nA note.\n::\n\n::card-group\n  :::card\n  ---\n  title: One\n  ---\n  First card.\n  :::\n\n  :::card\n  ---\n  title: Two\n  ---\n  Second card.\n  :::\n::\n\n## Last\n\nEnd.\n'
@@ -106,7 +99,6 @@ describe('edit actions', () => {
     expect(emitted.at(-1)!.indexOf('title: Two')).toBeLessThan(
       emitted.at(-1)!.indexOf('title: One')
     )
-    // At the end of the list nothing moves.
     const count = emitted.length
     editor.move(one!.id, 5)
     expect(emitted).toHaveLength(count)
@@ -147,18 +139,6 @@ describe('edit actions', () => {
     await nextTick()
     expect(emitted).toHaveLength(1)
     expect(editor.canUndo.value).toBe(true)
-  })
-})
-
-describe('topLevelId', () => {
-  it('gives the top-level block of a child', () => {
-    const { editor } = create()
-    const group = editor.doc.value.blocks.find(
-      (block) => block.kind === 'component' && block.name === 'card-group'
-    )!
-    const [one] = flatChildren(group as never)
-    expect(topLevelId(editor.doc.value, one!.id)).toBe(group.id)
-    expect(topLevelId(editor.doc.value, null)).toBeNull()
   })
 })
 

@@ -15,13 +15,10 @@ import { resolvePlutoDocsOptions } from './options'
 
 export type { PlutoDocsOptions, PlutoDocsTypeOptions } from './options'
 
-/** The routes of the run-time render mode, on the public API of Pluto. The composables of the layer call them. */
 export const RUNTIME_ROUTE_BASE = '/api/pluto/v1/docs'
 
-/** The template of Nuxt Content that holds its resolved collections (an internal of Nuxt Content). */
 const CONTENT_MANIFEST_TEMPLATE = 'content/manifest.ts'
 
-/** The collections that Nuxt Content resolved, or undefined when its manifest template is not there. */
 function contentCollections(nuxt: Nuxt): ContentCollection[] | undefined {
   const template = nuxt.options.build.templates.find(
     (item) => item.filename === CONTENT_MANIFEST_TEMPLATE
@@ -34,21 +31,6 @@ function contentCollections(nuxt: Nuxt): ContentCollection[] | undefined {
     : undefined
 }
 
-/**
- * Registers the content types of the docs layer. It is OFF when the
- * app turns the standalone CMS off (`plutoGithub.enabled: false`). The default
- * `'auto'` and `true` both count as on. The module only checks the options
- * and copies them to the public runtime config. The client plugin
- * (`app/plugins/pluto-docs.ts`) and the Nitro plugin
- * (`server/plugins/pluto-docs.ts`) of the layer build the types from
- * that config. See the docs-setup skill.
- *
- * Zero config: with no `types`, the types come from the page collections that Nuxt Content
- * resolved (`collectionTypes`), after every module ran, and the render mode is `'build'` unless
- * the app sets it (the pages of a theme such as Docus call `queryCollection`, not the composables
- * of the layer). Core wraps a root with no `PlutoRoot` (the pluto-root module), so a theme root
- * such as the one of Docus needs nothing from this layer.
- */
 export default defineNuxtModule<PlutoDocsOptions>({
   meta: { name: 'pluto-docs', configKey: 'plutoDocs' },
   defaults: { types: [] },
@@ -74,7 +56,6 @@ export default defineNuxtModule<PlutoDocsOptions>({
       return
     }
 
-    // The collections are known when Nuxt Content has run, so after every module.
     nuxt.hook('modules:done', () => {
       const collections = contentCollections(nuxt)
       if (!collections) {
@@ -102,7 +83,6 @@ export default defineNuxtModule<PlutoDocsOptions>({
         logger.error(error)
       }
 
-      // The plugins read this key. It is absent when the layer is off.
       nuxt.options.runtimeConfig.public.plutoDocs = {
         types,
         render,
@@ -110,7 +90,6 @@ export default defineNuxtModule<PlutoDocsOptions>({
       }
 
       if (render === 'hybrid' || render === 'runtime') {
-        // The toc rules of Nuxt Content, so the run-time parser makes the same table of contents.
         const content = (
           nuxt.options as {
             content?: {
@@ -132,11 +111,8 @@ export default defineNuxtModule<PlutoDocsOptions>({
         }
       }
 
-      // The build manifest: content id → version, for each type. The server compares it with the
-      // store (hybrid). It is a virtual module, so it is part of the server bundle and matches the
-      // pages that Nuxt Content builds in the same run. It is made once, when the bundler first asks.
       const makeManifest = () => {
-        // The CMS module sets the storage and the content dir. They are known here, after all modules ran.
+        // The CMS module sets the storage and the content dir: read them after all modules ran.
         const cmsConfig = nuxt.options.runtimeConfig.public.plutoGithub as
           { storage?: string; dir?: string } | undefined
         return buildContentManifest(types, {
@@ -159,8 +135,7 @@ export default defineNuxtModule<PlutoDocsOptions>({
         }
       })
 
-      // The preview page of the visual editor is a client-only page that no search engine should list.
-      // It is not prerendered, and the response says noindex. An app rule for the same path wins.
+      // An app rule for the same path wins.
       nuxt.options.routeRules = {
         [PREVIEW_PATH]: {
           ssr: false,

@@ -1,11 +1,6 @@
 import type { Nuxt } from '@nuxt/schema'
 
-/**
- * True for a static build: not dev, and `nuxt generate`, `nitro.static`, or a static Nitro preset
- * (`nitro.preset`, else `NITRO_PRESET`). The output then has no server.
- */
 export function isStaticBuild(nuxt: Nuxt): boolean {
-  // `_generate` is the internal flag of `nuxt generate`. It is not in the public types.
   const generate = (nuxt.options as { _generate?: boolean })._generate
   return (
     !nuxt.options.dev &&
@@ -14,7 +9,6 @@ export function isStaticBuild(nuxt: Nuxt): boolean {
   )
 }
 
-/** The Nitro presets that write only static files: `static`, `github_pages`, `*_static`. */
 export function isStaticPreset(preset: unknown): boolean {
   if (typeof preset !== 'string') {
     return false
@@ -25,13 +19,11 @@ export function isStaticPreset(preset: unknown): boolean {
   )
 }
 
-/** `repo`, `/repo` and `/repo/` become `/repo/`. An empty path becomes `/`. */
 export function normalizeBasePath(path: string): string {
   const segments = path.split('/').filter(Boolean)
   return segments.length > 0 ? `/${segments.join('/')}/` : '/'
 }
 
-/** The links of `app.head` with a site path (`/favicon.svg`) get the base path in front. */
 export function withBaseInHeadLinks<T extends { href?: unknown }>(
   links: T[],
   baseURL: string

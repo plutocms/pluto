@@ -31,6 +31,8 @@ export function usePlutoSettingsPanels() {
  * - `allowed`: false when `current` needs a capability the user lacks. The
  *   parent page shows a no-permission alert then. This only decides what the
  *   UI shows. The routes of a page do their own server-side check.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/settings-pages
  */
 export function usePlutoSettingsPages() {
   const registry = usePlutoRegistry()

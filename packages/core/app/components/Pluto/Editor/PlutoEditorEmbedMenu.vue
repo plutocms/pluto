@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The popover of a video block (`plutoEmbed`) of the Visual editor: it shows under the block while
-// the block is selected (a click on it). The address can change: Enter, or leaving the field,
-// applies it when a video player of the site matches it (else a message, and the block stays).
-// Open the video in a new tab, or remove the block.
 import type { Editor as CoreEditor } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import { NodeSelection } from '@tiptap/pm/state'
@@ -19,7 +15,6 @@ const registry = usePlutoRegistry()
 const url = ref('')
 const invalid = ref(false)
 
-/** The selected video block: its position and its address, or null. */
 function selectedEmbed(editor: CoreEditor) {
   const { selection } = editor.state
   return selection instanceof NodeSelection &&
@@ -52,7 +47,6 @@ watch(
   { immediate: true }
 )
 
-/** Applies the address. `focus`: the editor gets the focus back, with the block selected. */
 function apply(focus: boolean) {
   if (!current) {
     return
@@ -75,7 +69,6 @@ function apply(focus: boolean) {
   if (!node) {
     return
   }
-  // A new address is written alone on its line (no source text to keep).
   const tr = props.editor.state.tr.setNodeMarkup(pos, undefined, {
     ...node.attrs,
     url: href,
@@ -89,9 +82,6 @@ function apply(focus: boolean) {
   }
 }
 
-// A click on the video gives the focus to the address, with the text selected, so a paste or a new
-// address replaces it. A block selected another way (the keys) keeps the focus in the text. Escape
-// in the field goes back to the text.
 const panel = useTemplateRef<HTMLElement>('panel')
 let clickedAt = 0
 function onPointerDown(event: PointerEvent) {

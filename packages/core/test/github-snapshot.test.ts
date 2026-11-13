@@ -110,7 +110,6 @@ describe('withBuildSnapshot', () => {
 })
 
 describe('withSnapshotFallback', () => {
-  /** A GitHub store whose reads throw `error`, or answer when `error` is undefined. */
   function github(error?: Error): PlutoGithubStore {
     const store = createMemoryStore({ 'content/posts/live.md': POST })
     if (!error) {

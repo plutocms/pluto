@@ -1,31 +1,19 @@
-// Pure engine of the Pluto i18n system. It does not use Nuxt auto-imports, so
-// plain Vitest can import it. The Nuxt-aware wrappers are in
-// `app/composables/pluto-i18n.ts`. Import from 'vue' explicitly, as
-// `registry-factory.ts` does.
 import { shallowReactive } from 'vue'
 
-/** A message tree as stored in a locale JSON file. */
 export interface MessageTree {
   [key: string]: string | MessageTree
 }
 
-/** A message tree flattened to dotted keys. */
 export type FlatMessages = Record<string, string>
 
 export type MessageParams = Record<string, unknown>
 
-/**
- * A translation key: a lowercase namespace (a layer name, which can start with
- * a digit: `3d`), then one or more dotted parts. Example: `pluto.common.save`.
- * A plain English label does not match, so `tx()` can tell a key from a literal.
- */
 const MESSAGE_KEY = /^[a-z0-9][a-z0-9-]*(?:\.[\w-]+)+$/
 
 export function isMessageKey(value: unknown): value is string {
   return typeof value === 'string' && MESSAGE_KEY.test(value)
 }
 
-/** Flattens a nested message tree to dotted keys. Keeps string leaves only. */
 export function flattenMessages(tree: MessageTree, prefix = ''): FlatMessages {
   const flat: FlatMessages = {}
   for (const [name, value] of Object.entries(tree)) {
@@ -39,7 +27,6 @@ export function flattenMessages(tree: MessageTree, prefix = ''): FlatMessages {
   return flat
 }
 
-/** Replaces each `{name}` with `params.name`. An unknown name stays as it is. */
 export function interpolate(message: string, params?: MessageParams): string {
   if (!params) {
     return message
@@ -52,7 +39,6 @@ export function interpolate(message: string, params?: MessageParams): string {
 
 const PLURAL_SEPARATOR = ' | '
 
-/** Returns the number of plural forms in a message. */
 export function countPluralForms(message: string): number {
   return message.split(PLURAL_SEPARATOR).length
 }
@@ -68,14 +54,6 @@ function getPluralRules(locale: string): Intl.PluralRules {
   return rules
 }
 
-/**
- * Picks one form of a plural message.
- *
- * - One form: returned as it is.
- * - Two forms (`one | other`): `Intl.PluralRules` of the locale decides.
- * - Three forms (`zero | one | other`): 0 gives the first form, even in a
- *   locale where 0 is `one` (pt-BR). Then `Intl.PluralRules` decides.
- */
 export function selectPlural(
   message: string,
   count: number,
@@ -96,29 +74,18 @@ export function selectPlural(
 }
 
 export interface TranslatorOptions {
-  /** The active locale code. Called on each translation, so it can be reactive. */
   locale: () => string
-  /** The locale to use when a key is missing. Default `en`. */
   fallbackLocale?: string
-  /** Returns the flat messages of a locale, or undefined if not loaded. */
   messages: (locale: string) => FlatMessages | undefined
-  /** Called once for each missing key. Default: `console.warn` in dev, none otherwise. */
   warn?: (message: string) => void
 }
 
 export interface Translator {
-  /** Translates a key. A second number argument is the plural count. */
   t: (key: string, params?: MessageParams | number) => string
-  /** True if the key exists in the active locale or in the fallback. */
   te: (key: string) => boolean
-  /** Translates a key-or-literal value. A literal returns unchanged. */
   tx: (value: string, params?: MessageParams | number) => string
 }
 
-/**
- * Builds a translator. Fallback order: the active locale, the fallback
- * locale, then the key itself.
- */
 export function createTranslator(options: TranslatorOptions): Translator {
   const fallbackLocale = options.fallbackLocale ?? 'en'
   const warned = new Set<string>()
@@ -182,7 +149,6 @@ export function createTranslator(options: TranslatorOptions): Translator {
   return { t, te, tx }
 }
 
-/** Deep-merges message trees. A later tree overrides an earlier one. */
 export function mergeMessageTrees(...trees: MessageTree[]): MessageTree {
   const result: MessageTree = {}
   for (const tree of trees) {
@@ -202,17 +168,10 @@ export function mergeMessageTrees(...trees: MessageTree[]): MessageTree {
 }
 
 export interface LocaleCache<T> {
-  /** Reactive read. Returns undefined until the locale is loaded. */
   get: (locale: string) => T | undefined
-  /** Loads a locale once. Many calls share one promise. */
   load: (locale: string) => Promise<void>
 }
 
-/**
- * A cache of per-locale data (messages, or a Nuxt UI locale object), filled
- * by async loaders. `get` is reactive, so a translation updates when its
- * locale finishes loading.
- */
 export function createLocaleCache<T, R = T>(
   loaders: Record<string, () => Promise<R>>,
   transform: (value: R) => T
@@ -248,7 +207,6 @@ export function createLocaleCache<T, R = T>(
 const numberFormats = new Map<string, Intl.NumberFormat>()
 const dateFormats = new Map<string, Intl.DateTimeFormat>()
 
-/** Formats a number. The `Intl` formatter is cached per locale and options. */
 export function formatNumber(
   locale: string,
   value: number,
@@ -263,7 +221,6 @@ export function formatNumber(
   return format.format(value)
 }
 
-/** Formats a date. The `Intl` formatter is cached per locale and options. */
 export function formatDate(
   locale: string,
   value: Date | number | string,
@@ -278,10 +235,6 @@ export function formatDate(
   return format.format(value instanceof Date ? value : new Date(value))
 }
 
-/**
- * Returns the name of a language in its own language, first letter in
- * capitals. Example: `pt-BR` gives "Português (Brasil)".
- */
 export function getLanguageName(code: string): string {
   let name = code
   try {
@@ -292,10 +245,6 @@ export function getLanguageName(code: string): string {
   return name.charAt(0).toLocaleUpperCase(code) + name.slice(1)
 }
 
-/**
- * Parses an `Accept-Language` header into language tags, best first. A tag
- * with `q=0` is dropped.
- */
 export function parseAcceptLanguage(header: string | undefined): string[] {
   if (!header) {
     return []
@@ -314,11 +263,6 @@ export function parseAcceptLanguage(header: string | undefined): string[] {
     .map((entry) => entry.tag)
 }
 
-/**
- * Matches the requested language tags to the supported locale codes. For each
- * tag, in order: an exact match (ignoring case), then the first supported
- * code with the same base language. Returns null if nothing matches.
- */
 export function matchLocale(
   requested: string[],
   supported: string[]

@@ -12,9 +12,8 @@ interface ReferenceOptionsEntry {
 }
 
 /** The most items that one widget loads. A longer list needs a server search. */
-export const REFERENCE_OPTIONS_LIMIT = 1000
+const REFERENCE_OPTIONS_LIMIT = 1000
 
-// One request at a time for each target, so two widgets of a page share the fetch.
 const inflight = new Map<string, Promise<void>>()
 
 /**
@@ -76,12 +75,10 @@ export function usePlutoReferenceOptions(target: MaybeRefOrGetter<string>) {
     return request
   }
 
-  /** Reads the list again. */
   function refresh(): Promise<void> {
     return load()
   }
 
-  /** Reads the list unless a recent read exists. */
   function ensure(): Promise<void> {
     return isReferenceCacheFresh(state.value[name.value]?.fetchedAt, Date.now())
       ? Promise.resolve()

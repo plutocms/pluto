@@ -1,10 +1,4 @@
 <script setup lang="ts">
-// A small rich text editor for one Text block, or for one slot of a
-// component. It is the core Nuxt UI editor (Tiptap) with the toolbar of the
-// Pluto Markdown editor (`usePlutoMarkdownToolbar`). The Tiptap history is off:
-// the block editor has one undo stack for the whole page. The value is
-// Markdown. The editor emits only after the author types, so opening a block
-// never rewrites it.
 const props = defineProps<{
   modelValue: string
   disabled?: boolean
@@ -48,7 +42,6 @@ const items = computed(() => shared.value.slice(1))
 </script>
 
 <template>
-  <!-- The editor root is a bordered box. A click anywhere in the box puts the cursor in the text. -->
   <div
     class="w-full"
     @focusin="touched = true"

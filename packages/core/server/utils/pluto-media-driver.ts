@@ -1,14 +1,13 @@
 import type { PlutoMediaDriver } from '../../shared/types/media'
 import { createPlutoError } from './pluto-error'
 
-// The media driver of the app. A backend registers one (GitHub, Supabase,
-// ...). A module-scope singleton, like the content registry
-// (server/utils/pluto-content.ts), for the same reasons: it is set once at
-// startup and holds no per-request state. See the media skill.
-
 let mediaDriver: PlutoMediaDriver | undefined
 
-/** Replaces the driver that was registered before. The last one wins. */
+/**
+ * Registers the media driver, the storage of the uploaded files. The last driver registered wins.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/media#write-a-driver
+ */
 export function registerMediaDriver(driver: PlutoMediaDriver): void {
   mediaDriver = driver
 }

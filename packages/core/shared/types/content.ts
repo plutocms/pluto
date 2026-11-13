@@ -14,19 +14,19 @@ export type PlutoFieldType =
   | 'media'
 
 /**
- * Fields every `PlutoField` shares, regardless of `type`. A concrete field
- * (`PlutoTextField`, `PlutoSlugField`, and so on) narrows `type` to one
- * literal and adds its own type-specific options on top of this base.
+ * Options that every field shares. A concrete field (`PlutoTextField`, `PlutoSlugField`, and so
+ * on) sets `type` to one literal and adds its own options.
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#field-types
  */
 export interface PlutoFieldBase {
-  /** Field key. Used as the object key on a `PlutoContentItem`, and as the default storage column (see `fieldColumn` in `shared/utils/content-map.ts`). */
+  /** Field key. It is the key on a `PlutoContentItem` and the default storage column. */
   name: string
   type: PlutoFieldType
   label: string
   description?: string
-  /** Storage column, when it differs from `name`. Falls back to `name` when unset. */
+  /** Storage column, when it differs from `name`. Default: `name`. */
   column?: string
-  /** This field has no storage column. Its value never reaches `mapFieldsToColumns`'s output, but still passes through validation and the generic form payload — letting a `hooks.afterCreate`/`afterUpdate` read it from `rawBody` without a matching database column. */
+  /** The field has no storage column. It passes validation and reaches `hooks.afterCreate` and `hooks.afterUpdate` in `rawBody`, but the adapter does not store it. */
   virtual?: boolean
   required?: boolean
   /** Show this field as a column in the generic list view. Default false. */
@@ -64,8 +64,7 @@ export interface PlutoFieldBase {
 
 /**
  * A collapsible group of the side column of the form (`PlutoContentType.sideGroups`). A layer that
- * adds fields to a type adds its group with them (a content type extension), so its fields stay
- * together, under its name.
+ * adds fields to a type can add its group with them.
  */
 export interface PlutoContentSideGroup {
   id: string
@@ -122,7 +121,8 @@ export interface PlutoReferenceField extends PlutoFieldBase {
   /**
    * Name of the referenced content type, for example 'category'. The value is the id of an item of
    * that type, or a list of ids (`multiple`). The public API gives `{ id, label, slug? }` in place
-   * of each id when the target is public. See the tags-and-categories skill.
+   * of each id when the target is public.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#reference-fields
    */
   target?: string
   /** The value is a list of ids, in order. */
@@ -149,7 +149,7 @@ export interface PlutoReferenceField extends PlutoFieldBase {
 /**
  * Files of the media library. The value is one media id, or a list of ids in
  * order (`multiple`). The public API gives the records in place of the ids.
- * See the media skill.
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#media-fields
  */
 export interface PlutoMediaField extends PlutoFieldBase {
   type: 'media'
@@ -177,9 +177,9 @@ export type PlutoField =
   | PlutoDateField
 
 /**
- * Capability keys a content-type adapter checks before it reads, writes, or
- * deletes a row. Plain strings, not registered `PlutoCapability` entries —
- * see the permissions skill for the format (`<namespace>:<action>`).
+ * Capability keys that the server checks before it reads, writes or deletes an item. The format is
+ * `<namespace>:<action>`.
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#capabilities
  */
 export interface PlutoContentTypeCapabilities {
   read?: string
@@ -190,7 +190,7 @@ export interface PlutoContentTypeCapabilities {
 }
 
 export interface PlutoContentStatus {
-  /** Storage column. Falls back to 'status' when unset. */
+  /** Storage column. Default: 'status'. */
   column?: string
   values: Array<{
     label: string
@@ -205,8 +205,8 @@ export interface PlutoContentStatus {
    * `value` (default `'scheduled'`) until then. The time is in `publishedAtColumn`, so the type
    * needs one (without it, the option does nothing). At the time the item is live (the public API
    * shows it), and the scheduled task `pluto:publish:scheduled` sets the status to published. The
-   * adapter must have `publishDue`. Do not list the value in `values`: core adds it. See the
-   * content-model skill ("Scheduled publish and review").
+   * adapter must have `publishDue`. Do not list the value in `values`: core adds it.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#scheduled-publish-and-review
    */
   schedule?: boolean | { value?: string }
   /**
@@ -218,18 +218,18 @@ export interface PlutoContentStatus {
 }
 
 export interface PlutoContentTimestamps {
-  /** Storage column, or `false` to disable this timestamp. Falls back to 'created_at' when unset. */
+  /** Storage column, or `false` to turn this timestamp off. Default: 'created_at'. */
   created?: string | false
-  /** Storage column, or `false` to disable this timestamp. Falls back to 'updated_at' when unset. */
+  /** Storage column, or `false` to turn this timestamp off. Default: 'updated_at'. */
   updated?: string | false
 }
 
 /**
  * A change that a layer makes to content types it does not own, for example new fields on the
- * `post` type, which a backend owns. `extend` is pure: it gets a type and returns a new one (the
- * same object when it changes nothing). It runs for every type, so it checks `type.name` itself.
- * The server registry (`extendContentTypes`) and the client registry (`contentTypeExtensions`)
- * use the same shape. A later extension with the same `id` replaces an earlier one.
+ * `post` type. `extend` is pure: it gets a type and returns a new one (the same object when it
+ * changes nothing). It runs for every type, so it checks `type.name` itself. A later extension
+ * with the same `id` replaces an earlier one.
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#extend-a-content-type-of-another-layer
  */
 export interface PlutoContentTypeExtension {
   id: string
@@ -239,27 +239,22 @@ export interface PlutoContentTypeExtension {
 }
 
 export interface PlutoContentI18n {
-  /** Reserved for a future release. Only 'row' will ever be supported: one row per locale. Not implemented yet — declaring it costs nothing and avoids a breaking rename later. */
+  /** Reserved. Not implemented yet. */
   strategy: 'row'
   localeColumn?: string
   groupColumn?: string
 }
 
 /**
- * The contract for one content type: what fields it has, where it is
- * stored, and how the generic list/form UI (a later wave) should render it.
- * A layer declares one of these per content type it owns, through
- * `defineContentType`.
+ * One content type: its fields, where it is stored, and how the generic admin list and form show
+ * it. Declare it with `defineContentType`.
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#content-type-options
  */
 export interface PlutoContentType {
   /**
-   * The content type's own identifier, for example 'post'. Kept separate
-   * from a registered `PlutoContentTypeEntry.id` for the exact same reason
-   * `PlutoCapability.key` is kept separate from `id` (see
-   * `shared/types/registry.ts`): the registry rewrites `id` to
-   * `'<extensionId>:<id>'`, which would corrupt a name used in a URL path
-   * segment or as a lookup key. Always read `name` for the real content
-   * type identity, never the registry entry's `id`.
+   * The identifier of the type, for example 'post'. It is used in URLs and as a lookup key. Read
+   * `name`, not the `id` of the registry entry: the registry rewrites that `id`.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#name-and-id
    */
   name: string
   label: string
@@ -273,40 +268,42 @@ export interface PlutoContentType {
   icon?: string
   /** Table or view name this content type reads and writes. */
   source: string
-  /** Storage column for the primary key. Falls back to 'id' when unset. */
+  /** Storage column of the primary key. Default: 'id'. */
   primaryKey?: string
   /** Name of the field shown as the row's title in lists and breadcrumbs. */
   titleField: string
   fields: PlutoField[]
-  /** Name of the field that holds the slug, or `false` to disable slugging entirely. */
+  /** Name of the field that holds the slug, or `false` for a type with no slug. */
   slug?:
     | {
         field: string
       }
     | false
-  /** `false` disables status/publish workflow entirely for this content type. */
+  /** `false` turns off the status and publish workflow for this type. */
   status?: PlutoContentStatus | false
   /**
    * Remove moves an item to the trash, and the admin has a Trash tab for the type. A trashed item
    * goes for good after 30 days, or with Delete forever. Default off: a remove is final. The
    * adapter must have `trash`. Supabase needs a `deleted_at` column on the table (`column` names
    * another one); the Git CMS keeps the file in `<dir>/.trash/<type name>/`.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#trash
    */
   trash?: boolean | { column?: string }
   /**
    * A short summary of the item. Core adds a text area named `field` (default `excerpt`) when the
    * type does not declare it. The public API gives `excerpt`: the field, else the start of the body
-   * (the first `richtext` field) as plain text. See the content-model skill ("Excerpt and cover
-   * image").
+   * (the first `richtext` field) as plain text.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#excerpt-and-cover-image
    */
   excerpt?: boolean | { field?: string }
   /**
    * The cover image of the item. Core adds a `media` field (one image) named `field` (default
    * `cover`) when the type does not declare it. The public API gives `cover` (the media record),
    * the admin list shows it, and the SEO of a site uses it for `og:image`.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#excerpt-and-cover-image
    */
   cover?: boolean | { field?: string }
-  /** `false` disables created/updated timestamps entirely for this content type. */
+  /** `false` turns off the created and updated timestamps for this type. */
   timestamps?: PlutoContentTimestamps | false
   capabilities?: PlutoContentTypeCapabilities
   /** The collapsible groups of the side column of the form. A field joins one with `group`. */
@@ -319,43 +316,28 @@ export interface PlutoContentType {
    * The type has one item (site info, contact data, a home page with fixed sections). The admin
    * shows its form at `basePath`, with no list, and the site reads it with `usePlutoSingleton`.
    * `id` is the id of the item in the Git CMS (default: the type `name`), so the file is
-   * `<dir>/<source>/<id>.md`. On Supabase the `source` table holds one row. See the content-model
-   * skill ("Singleton types").
+   * `<dir>/<source>/<id>.md`. On Supabase the `source` table holds one row.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#singleton-types
    */
   singleton?: boolean | { id?: string }
-  /** Whether nav/pages entries should be derived automatically for this content type. `false` when a layer keeps its own hand-declared `nav`/`pages` at its own URLs. */
+  /** Build the nav and pages entries of this type from it. Set `false` when the layer declares its own `nav` and `pages`. */
   autoRoutes?: boolean
   /**
-   * Base admin path `PlutoContentList`/`PlutoContentForm` build their own
-   * links from, for example '/admin/posts'. Used regardless of
-   * `autoRoutes` — it is not only for auto-derived nav/pages, it is also
-   * what the generic components' own "add new" button, row edit links,
-   * and post-create redirect are built from. Defaults to
-   * `/admin/content/<name>` when unset.
+   * Base admin path, for example '/admin/posts'. The generic list and form build the "add new"
+   * button, the edit links and the redirect after a create from it. Default:
+   * `/admin/content/<name>`.
    */
   basePath?: string
-  /**
-   * Overrides the "create new" link the generic list page links to.
-   * Defaults to `${basePath}/new`. Set this when an existing layer's
-   * create URL does not follow that convention (for example
-   * `/admin/post/new`, singular, alongside a plural `basePath`) — this
-   * field exists specifically so an already-deployed URL never has to
-   * change to adopt the content model.
-   */
+  /** The "create new" link of the generic list. Default: `${basePath}/new`. */
   newPath?: string
-  /**
-   * Overrides the edit link (and the post-create redirect target) for a
-   * given id. Defaults to `${basePath}/${id}`. Set this when an existing
-   * layer's edit URL does not follow that convention (for example
-   * `/admin/post/edit/:id`, with an extra literal segment `basePath`
-   * alone cannot express) — the same reasoning as `newPath`.
-   */
+  /** The edit link, and the redirect after a create, for an id. Default: `${basePath}/${id}`. */
   editPath?: (id: string | number) => string
   /**
    * Buttons of this type in the admin bar, for a user with the `write`
    * capability. `new`: "New <type>" on every page. `edit`: "Edit <type>" on a
    * public page that calls `usePlutoEditLink(type, id)`. `true` gives both.
-   * Unset gives none. See the admin-shell skill.
+   * Unset gives none.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#admin-bar-buttons
    */
   adminBar?:
     | boolean
@@ -422,7 +404,8 @@ export interface PlutoContentType {
     /**
      * Keep a backup of the unsaved changes in this browser (`localStorage`), and offer to restore
      * it when the user opens the item again. Default true. Set false for a type whose text must
-     * not stay in the browser. See the content-backup skill.
+     * not stay in the browser.
+     * @see https://pluto.vulmix.dev/docs/reference/content-model#backups
      */
     backup?: boolean
   }
@@ -432,13 +415,9 @@ export interface PlutoContentType {
    */
   files?: PlutoContentFiles
   /**
-   * Server-only lifecycle hooks, run by the generic write handlers
-   * (`server/utils/pluto-content-handlers.ts`) after the adapter call
-   * succeeds and before the response goes out. Lets a layer with extra
-   * logic around a write — for example `supabase-shop` reconciling
-   * `product_media` rows after a product write — hook in without a bespoke
-   * endpoint just for that, and without polluting the generic adapter
-   * contract with a per-layer concern.
+   * Server-only hooks. The generic write handlers run them after the adapter call succeeds and
+   * before the response goes out.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#hooks
    */
   hooks?: {
     afterCreate?: (
@@ -463,7 +442,8 @@ export interface PlutoContentType {
 /**
  * The public API of a content type. The routes are `GET /api/pluto/v1/content/<name>` (the list)
  * and `GET /api/pluto/v1/content/<name>/<id or slug>` (one item). They are anonymous and return
- * published items only. See the content-model skill.
+ * published items only.
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export interface PlutoContentApi {
   /** Serve this type on the public API. Default false: a type is private until it opts in. */
@@ -523,12 +503,7 @@ export interface PlutoContentFiles {
 }
 
 /**
- * One stored content row, keyed by field name (not column name — see
- * `mapColumnsToFields` in `shared/utils/content-map.ts` for the
- * column-to-field translation). Named `PlutoContentItem`, not
- * `PlutoEntryRecord`, to avoid visual confusion with `PlutoEntry` (a
- * registry bucket item, see `shared/types/registry.ts`) — this type has
- * nothing to do with the registry.
+ * One stored content item, keyed by field name (not column name).
  *
  * `_version` is a reserved optional key, an optimistic-concurrency token. An
  * adapter MAY return it on `get` and `list` items. The client sends it back
@@ -546,7 +521,7 @@ export type PlutoContentItem = Record<string, unknown> & {
   _frontmatter?: Record<string, unknown>
 }
 
-/** Options for a generic list read. See `server/utils/pluto-content-handlers.ts`. */
+/** Options for a list read. */
 export interface PlutoContentQuery {
   limit?: number
   offset?: number
@@ -588,11 +563,8 @@ export interface PlutoContentContext {
 }
 
 /**
- * Lets a backend layer (`@plutocms/supabase`, and so on) plug its own
- * storage into the generic content server routes, without core knowing
- * which backend is in use — the same role `PlutoMediaDriver` plays for
- * media. Exactly one adapter is meaningful per app, registered through
- * `registerContentAdapter` (see `server/utils/pluto-content.ts`).
+ * Storage for the generic content server routes. A backend layer provides it. One adapter is
+ * active per app, registered with `registerContentAdapter`.
  */
 export interface PlutoContentAdapter {
   id: string
@@ -614,7 +586,7 @@ export interface PlutoContentAdapter {
     values: Record<string, unknown>
   ) => Promise<PlutoContentItem>
   remove: (ctx: PlutoContentContext, id: string | number) => Promise<void>
-  /** Throws when `event`'s caller does not hold `capability`. Optional — see the fail-open rule in the content-model skill. */
+  /** Throws when the caller of `event` does not hold `capability`. Optional. */
   authorize?: (event: H3Event, capability: string) => Promise<void>
   describe?: (ctx: PlutoContentContext) => Promise<string[] | null>
   /**
@@ -648,7 +620,7 @@ export interface PlutoContentAdapter {
    * The saved versions of one item, newest first. Optional: without it, the edit form shows no
    * History. The first entry is the version that the item has now. `cursor` is the `nextCursor`
    * of the page before. The adapter checks that the caller may edit the type. See the
-   * content-model skill ("Revisions").
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#revisions
    */
   listRevisions?: (
     ctx: PlutoContentContext,
@@ -673,7 +645,7 @@ export interface PlutoContentAdapter {
    * `trash`, the delete route calls `trash` instead of `remove`. A trashed item is not in `list`,
    * `get`, `countCreated`, the public API or the reference expansion, and keeps its id and the
    * references to it until `purge`. Every method needs the delete capability of the type. See the
-   * content-model skill ("Trash").
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#trash
    */
   trash?: {
     /** Moves the item to the trash. 404 when it does not exist. */
@@ -715,7 +687,7 @@ export interface PlutoContentAdapter {
    * the caller from `ctx.event`, and each caller sees only its own copies. The core routes check
    * the write capability of the type before they call it. Core also calls `remove` after a create
    * (`'+new'`), an update (the route id) and a delete, and only warns on an error. See the
-   * content-backup skill.
+   * @see https://pluto.vulmix.dev/docs/reference/content-model#backups
    */
   backups?: {
     /** The copy of the caller, or `null`. */

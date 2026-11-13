@@ -1,5 +1,3 @@
-
-/** The image types the browser processes before an upload. GIF is not in it: it can move. */
 const PROCESSED_TYPES = new Set([
   'image/jpeg',
   'image/png',
@@ -93,7 +91,6 @@ export async function processMediaImage(
   context.drawImage(bitmap, 0, 0, width, height)
   bitmap.close()
 
-  // A browser that cannot write WebP gives PNG. Then use JPEG.
   let blob = await encode(canvas, 'image/webp', quality)
   if (blob.type !== 'image/webp') {
     blob = await encode(canvas, 'image/jpeg', 0.85)

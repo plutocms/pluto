@@ -1,12 +1,4 @@
 <script setup lang="ts">
-// The media library: search, the kinds of files, sort, a grid or a list,
-// uploads with progress (a button, or drop files anywhere on it), and "Show
-// more". Two modes:
-// - `manage` (the Media page): a click opens a file in the details (`active`);
-//   the check boxes select files for the bulk actions (copy the URLs, delete).
-// - `select` (the picker): a click selects a file (`selected`), one or many. A
-//   double-click on a file picks it at once (`confirm`).
-// See the media skill.
 import type { PlutoMedia, PlutoMediaSort } from '../../../../shared/types/media'
 import type { PlutoMediaKind } from '../../../../shared/types/registry'
 import { PlutoMediaUploadProblem } from '../../../composables/pluto-media'
@@ -16,7 +8,6 @@ const props = withDefaults(
   defineProps<{
     mode?: 'manage' | 'select'
     multiple?: boolean
-    /** The file types to show and to take: `['image/*']`. All when unset. */
     accept?: string[]
   }>(),
   { mode: 'manage', multiple: false, accept: undefined }
@@ -41,7 +32,6 @@ const toast = useToast()
 const canUpload = computed(() => can('media:manage'))
 const canDelete = computed(() => can('media:delete'))
 
-// The view and the order stay for the next visit.
 const view = useCookie<'grid' | 'list'>('pluto-media-view', {
   default: () => 'grid',
   sameSite: 'lax',
@@ -56,10 +46,8 @@ const total = ref(0)
 const loading = ref(false)
 const loadError = ref('')
 const search = ref('')
-/** `all`, or the id of a kind. */
 const kindFilter = ref('all')
 
-/** The kinds that this library can show: all of them, or the ones `accept` takes. */
 const kinds = computed(() =>
   media.kinds.items.value.filter(
     (kind) =>
@@ -70,7 +58,6 @@ const kinds = computed(() =>
   )
 )
 
-/** The `type` query of a kind: `image` for `image/*`, else its first type. */
 function kindQuery(kind: PlutoMediaKind): string {
   const first = kind.accept[0] ?? ''
   return first === 'image/*' ? 'image' : first.replace(/\*$/, '')
@@ -81,7 +68,6 @@ const typeQuery = computed(() => {
   if (kind) {
     return kindQuery(kind)
   }
-  // One accepted family is a server filter. Several are filtered here.
   if (props.accept?.length === 1) {
     const only = props.accept[0] as string
     return only === 'image/*' ? 'image' : only.replace(/\*$/, '')
@@ -168,7 +154,6 @@ function pickNow(item: PlutoMedia) {
   }
 }
 
-// The check boxes of the Media page, for the bulk actions.
 const checked = ref(new Set<string>())
 function toggleCheck(id: string, on: boolean) {
   const next = new Set(checked.value)
@@ -235,12 +220,10 @@ async function deleteChecked() {
   }
 }
 
-// Uploads, one at a time, in the order of the files.
 interface QueueEntry {
   key: number
   name: string
   progress: number
-  /** A local image URL, for the thumbnail of the queue. */
   thumb?: string
   error?: string
 }
@@ -366,7 +349,6 @@ function pixels(item: PlutoMedia): string {
   return box?.width && box.height ? `${box.width} × ${box.height}` : ''
 }
 
-/** For the page: put a changed record in place, or take deleted ones out. */
 function replace(record: PlutoMedia) {
   items.value = items.value.map((item) =>
     item.id === record.id ? record : item
@@ -394,7 +376,6 @@ defineExpose({
     @dragleave="onDragLeave"
     @drop.prevent="onDrop"
   >
-    <!-- The toolbar: search, sort, view, upload. -->
     <div class="flex flex-wrap items-center gap-2">
       <UInput
         v-model="search"
@@ -449,7 +430,6 @@ defineExpose({
       </template>
     </div>
 
-    <!-- The kinds of files. -->
     <div
       v-if="kindChips.length > 1"
       :aria-label="t('pluto.media.types.label')"
@@ -474,7 +454,6 @@ defineExpose({
       {{ hint }}
     </p>
 
-    <!-- The bulk actions of the Media page. -->
     <div
       v-if="mode === 'manage' && checked.size"
       class="bg-elevated ring-default flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 ring"
@@ -512,7 +491,6 @@ defineExpose({
       </div>
     </div>
 
-    <!-- The upload queue. -->
     <ul v-if="queue.length" class="grid gap-2 sm:grid-cols-2">
       <li
         v-for="entry in queue"
@@ -565,7 +543,6 @@ defineExpose({
       icon="lucide:circle-alert"
     />
 
-    <!-- Empty: no files yet, or no match. -->
     <div
       v-else-if="!loading && visible.length === 0"
       class="border-default flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-14 text-center"
@@ -599,7 +576,6 @@ defineExpose({
       />
     </div>
 
-    <!-- The grid. -->
     <div
       v-else-if="view === 'grid'"
       class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-3"
@@ -639,7 +615,6 @@ defineExpose({
       </template>
     </div>
 
-    <!-- The list. -->
     <div v-else class="ring-default overflow-x-auto rounded-lg ring">
       <table class="w-full text-sm">
         <thead class="bg-elevated text-muted text-left text-xs">

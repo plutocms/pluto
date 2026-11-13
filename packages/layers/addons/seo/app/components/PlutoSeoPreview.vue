@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// The `seo-preview` widget of the SEO fields: how the page looks as a search result and as a
-// social card. It stores nothing (the field is virtual). It reads the item of the form, so it
-// follows what the author types. See the seo skill.
 defineProps<{
   field: PlutoField
   modelValue?: unknown
@@ -17,7 +14,6 @@ const item = computed(() => form?.item.value ?? {})
 const type = computed(() => form?.type.value)
 const text = computed(() => plutoSeoPreviewText(item.value, type.value))
 
-// The address of the page as it will be once published. A draft has none yet.
 const url = computed(() => {
   const current = type.value
   if (!current?.previewUrl) {
@@ -47,7 +43,6 @@ const host = computed(() => {
   }
 })
 
-// The social image is a media id in the form: get its record for the file URL.
 const image = ref<PlutoMedia | null>(null)
 const imageId = computed(() => plutoSeoPreviewImageId(item.value, type.value))
 watch(

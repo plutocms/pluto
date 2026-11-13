@@ -15,7 +15,7 @@ code.
 
 - `nuxt.config.ts`: `$meta.name: 'seo'`, no `extends`.
 - `app/app.config.ts`: the defaults of `plutoSeo` (see "Settings").
-- `shared/types/seo.ts`: `PlutoSeoConfig`, `PlutoSeoFields`.
+- `shared/types/seo.ts`: `PlutoSeoConfig`.
 - `shared/utils/seo-fields.ts`: `PLUTO_SEO_FIELDS`, `plutoSeoWithFields`,
   `plutoSeoTypeExtension`, `plutoSeoReadFrontmatter`, `plutoSeoWriteFrontmatter`.
 - `shared/utils/seo-head.ts`: `plutoSeoItemHead`, `plutoSeoDescription`, `plutoSeoPlainText`,

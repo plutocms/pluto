@@ -10,9 +10,6 @@ import {
 import { parseBlocks } from '../shared/utils/blocks/parse'
 import { findBlock } from '../shared/utils/blocks/tree'
 
-// The pure helpers of the editor UI: labels, excerpts, slot editors, the
-// blocks sent to the preview, and the palette.
-
 function first(source: string) {
   return parseBlocks(source).blocks[0]!
 }

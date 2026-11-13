@@ -17,7 +17,6 @@ export interface GithubTransportOptions {
 export interface OAuthTokens {
   accessToken: string
   refreshToken?: string
-  /** Epoch ms. Unset when the token does not expire. */
   expiresAt?: number
   refreshExpiresAt?: number
 }
@@ -45,7 +44,6 @@ export interface RepoInfo {
 
 export type GithubPermissionLevel = 'admin' | 'maintain' | 'push'
 
-/** GitHub answered an OAuth call with an error. The code is the `error` field of GitHub. */
 export class PlutoGithubOAuthError extends Error {
   readonly code: string
 
@@ -56,12 +54,6 @@ export class PlutoGithubOAuthError extends Error {
   }
 }
 
-/**
- * The web base URL for the OAuth endpoints. GitHub.com uses
- * `https://github.com`. A GitHub Enterprise Server API URL ends with
- * `/api/v3`. Its web URL is the same host without that suffix. Any other
- * value falls back to `https://github.com`.
- */
 export function oauthBaseUrl(apiUrl: string = GITHUB_API_URL): string {
   const base = apiUrl.replace(/\/+$/, '')
   if (base === GITHUB_API_URL) {
@@ -73,12 +65,10 @@ export function oauthBaseUrl(apiUrl: string = GITHUB_API_URL): string {
   return 'https://github.com'
 }
 
-/** A random URL-safe string made of `bytes` random bytes. */
 export function randomToken(bytes = 32): string {
   return randomBytes(bytes).toString('base64url')
 }
 
-/** A PKCE pair. The challenge is the S256 hash of the verifier. */
 export function createPkcePair(): {
   verifier: string
   challenge: string
@@ -90,14 +80,12 @@ export function createPkcePair(): {
   }
 }
 
-/** Compares two strings in constant time. A different length is safe too. */
 export function safeEqual(a: string, b: string): boolean {
   const left = createHash('sha256').update(a).digest()
   const right = createHash('sha256').update(b).digest()
   return timingSafeEqual(left, right) && a.length === b.length
 }
 
-/** True when the text holds a control character (code 0 to 31, or 127). */
 function hasControlCharacter(text: string): boolean {
   return [...text].some((char) => {
     const code = char.charCodeAt(0)
@@ -105,12 +93,7 @@ function hasControlCharacter(text: string): boolean {
   })
 }
 
-/**
- * Checks a post-login redirect target. Only a path on this site is valid. It
- * must start with one `/`. It must not start with `//` or `/\`. It must hold
- * no backslash, no control character and no other origin. Anything else gives
- * the fallback.
- */
+// Only a path on this site is valid: no double slash, no backslash, no control character, no other origin.
 export function safeRedirect(value: unknown, fallback = '/admin/home'): string {
   if (typeof value !== 'string' || value === '' || value.length > 2048) {
     return fallback
@@ -279,11 +262,6 @@ export async function fetchUser(
   }
 }
 
-/**
- * Reads the repo with the USER token. GitHub answers with the permissions of
- * that user. A repo the user cannot see, or the app cannot reach, gives a
- * 404. That returns `null`.
- */
 export async function fetchRepoPermission(
   token: string,
   repo: string,
@@ -308,11 +286,6 @@ export async function fetchRepoPermission(
   }
 }
 
-/**
- * Maps a repo permission to capabilities. Admin and maintain get every
- * capability. Push gets the read, write, publish and delete keys of every
- * registered content type (the post type when none is registered). A lower permission gets `null`: it cannot sign in.
- */
 export function mapRepoPermission(permissions: RepoPermissions | undefined): {
   permission: GithubPermissionLevel
   capabilities: string[]
@@ -327,14 +300,12 @@ export function mapRepoPermission(permissions: RepoPermissions | undefined): {
     return { permission: 'maintain', capabilities: ['*'] }
   }
   if (permissions.push) {
-    // Every registered type counts. The post type is the fallback when none is registered.
     const registered = listContentTypes()
     const types = registered.length > 0 ? registered : [plutoGithubPostType]
     const keys = types.flatMap((type) => {
       const { read, write, publish, delete: remove } = type.capabilities ?? {}
       return [read, write, publish, remove]
     })
-    // The media library: a user who can push can add and remove files too.
     keys.push('media:manage', 'media:delete')
     return {
       permission: 'push',

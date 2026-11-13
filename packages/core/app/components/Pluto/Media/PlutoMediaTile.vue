@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// One square of a media grid: the image, the preview image of another file
-// (a 3D model), or the icon of its kind. A kind with a `badge` ("3D", "PDF")
-// marks it. The library, the picker and the `media` field use it.
-// - `details`: the name and the size on hover.
-// - `compact`: a small square (the list view), with no name.
 import type { PlutoMedia } from '../../../../shared/types/media'
 
 const props = defineProps<{
@@ -20,7 +15,6 @@ const kind = computed(() =>
   props.media ? kindOf(props.media.mimeType) : undefined
 )
 
-/** The image to show: the file itself, or its preview. */
 const picture = computed(() => {
   if (!props.media) {
     return null

@@ -18,12 +18,9 @@ import { PlutoGithubStoreError } from '../store/errors'
 import { getGithubConfig } from './github-config'
 import { requireGithubSession } from './session'
 
-/** Milliseconds that the sources of one commit stay in memory, for each user. */
 const SOURCES_TTL_MS = 3_000
 const MAX_ENTRIES = 200
-/** The newest commits that the route reads to find the last one that did not skip CI. */
 const COMMITS_TO_SCAN = 20
-/** The most environments that the route reads. Each one costs one GitHub call. */
 const MAX_DEPLOYMENTS = 5
 
 interface Sources {
@@ -47,7 +44,6 @@ const cache = new Map<
   }
 >()
 
-/** Forgets the cached sources. A test calls this. */
 export function clearBuildStatusCache(): void {
   cache.clear()
 }
@@ -65,11 +61,6 @@ interface RawCommit {
   }
 }
 
-/**
- * Reads one source. A 403 or a 404 means that the App cannot read it (the
- * permission is missing), so the source counts as unavailable. Any other error
- * goes up.
- */
 async function readSource<T>(
   kind: PlutoBuildItemKind,
   unavailable: PlutoBuildItemKind[],
@@ -131,7 +122,6 @@ async function loadSources(
         const list = await get<RawDeployment[]>(
           `/deployments?sha=${sha}&per_page=20`
         )
-        // The newest deployment of each environment only.
         const newest = new Map<string, RawDeployment>()
         for (const deployment of Array.isArray(list) ? list : []) {
           const key = deployment.environment ?? ''
@@ -165,7 +155,6 @@ async function loadSources(
   return { checkRuns, statuses, deployments, unavailable }
 }
 
-/** Maps an error of a GitHub call to an HTTP error, like the content adapter does. The users route uses it too. */
 export function toHttpError(error: unknown, event: H3Event): unknown {
   if (!(error instanceof PlutoGithubStoreError)) {
     return error
@@ -208,12 +197,6 @@ export function toHttpError(error: unknown, event: H3Event): unknown {
   }
 }
 
-/**
- * Route: GET /api/_pluto/github/build-status. The state of the builds of the newest commit of the
- * content branch that did not skip CI: check runs, commit statuses and deployments.
- * It needs a signed-in user and reads with the token of that user. The `fs`
- * store has no builds, so it answers `none`.
- */
 export async function handleBuildStatus(
   event: H3Event
 ): Promise<PlutoBuildStatus> {
@@ -231,8 +214,6 @@ export async function handleBuildStatus(
     fetch: config.fetch,
   }
   try {
-    // A draft save skips the deploy (`[skip ci]`), so the newest commit that did not skip it has
-    // the builds of the site.
     const { data: commits } = await githubRest<RawCommit[]>(
       `/repos/${config.repo}/commits?sha=${encodeURIComponent(config.branch)}&per_page=${COMMITS_TO_SCAN}`,
       request
@@ -246,7 +227,6 @@ export async function handleBuildStatus(
       )
     }
 
-    // A few seconds of memory for each user and sha: several tabs share one set of calls.
     const key = `${session.user.id}:${config.repo}:${sha}`
     const now = Date.now()
     let entry = cache.get(key)

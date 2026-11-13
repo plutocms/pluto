@@ -191,7 +191,7 @@ test.
 
 Put an env var, a file name, a path or a command between backticks: "Set `PLUTO_GITHUB_REPO` in
 `.env`." Render the string with `PlutoCodeText`, which makes `<code>` of those parts. A place that
-shows plain text (a toast, a title) uses `plutoPlainCodeText` to drop the backticks. See the
+shows plain text (a toast, a title) shows the text as it is. See the
 admin-theme skill ("Inline code").
 
 ## Content type text: `usePlutoContentText`
@@ -226,8 +226,7 @@ locale files. The locale-file test allows the top-level `content` namespace for 
 
 A registry entry holds a key or a literal. The consumer composables resolve it with `tx()` inside
 a `computed`, so a language switch updates it: `usePlutoAdminNav`, `usePlutoCommandPalette`,
-`usePlutoSettingsPanels`, `usePlutoDashboardWidgets`, `usePlutoAdminPages`,
-`usePlutoContentActions`, and `usePlutoCapabilities`. Core's own registrations
+`usePlutoSettingsPanels`, `usePlutoDashboardWidgets`, `usePlutoContentActions`, and `usePlutoCapabilities`. Core's own registrations
 (`app/plugins/pluto-core-registrations.ts`) use keys, such as `pluto.nav.home`.
 
 ## Validation messages

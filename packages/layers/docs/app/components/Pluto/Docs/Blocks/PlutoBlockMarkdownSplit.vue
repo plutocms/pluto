@@ -1,15 +1,6 @@
 <script setup lang="ts">
-// The Markdown mode of the `mdc` widget in a canvas form: the Markdown at the
-// left and the live preview at the right, side by side (stacked on a narrow
-// screen). The handle between them resizes them, and a cookie keeps the size.
-// The preview is the frame of the visual editor, so it renders with the site
-// parser. A click on a block in the preview selects the first line of that
-// block in the Markdown and scrolls to it. The Markdown editor is
-// PlutoMarkdownCodeEditor of core (CodeMirror). The Markdown is the only editor
-// here: the block model only feeds the preview and never writes.
 import type { SplitterItem } from '@nuxt/ui'
 import type { PlutoMarkdownCodeEditor as CodeEditor } from '#components'
-// The component layer. Only the two editor roots import it, so it stays out of the public pages.
 import componentBlocks from '#pluto-blocks'
 import { findBlock } from '../../../../../shared/utils/blocks/tree'
 import PlutoMdcInsertMenu from '../PlutoMdcInsertMenu.vue'
@@ -39,7 +30,6 @@ const editor = createPlutoBlockEditor({
 })
 provide(plutoBlockEditorKey, editor)
 
-// The front matter for the preview header: the item without the body.
 const frontmatter = computed<Record<string, unknown>>(() => {
   const item = form?.item.value ?? {}
   return Object.fromEntries(
@@ -49,10 +39,7 @@ const frontmatter = computed<Record<string, unknown>>(() => {
 
 const code = useTemplateRef<InstanceType<typeof CodeEditor>>('code')
 
-// --- The split ---------------------------------------------------------------------
-
 const isDesktop = useMediaQuery('(min-width: 64rem)')
-// The size of the Markdown pane, in percent of the row (desktop) or of the column (narrow).
 const splitSize = useCookie<number>('pluto-mdc-split', {
   default: () => 50,
   maxAge: 60 * 60 * 24 * 365,
@@ -87,7 +74,6 @@ function onDragging(_index: number, value: boolean) {
   }
 }
 
-// A click on a block in the preview: go to that block in the Markdown.
 watch(
   () => editor.selection.value,
   (selection) => {
@@ -120,7 +106,6 @@ watch(
     @layout="onLayout"
     @dragging="onDragging"
   >
-    <!-- The source pane: the code editor, and the mode switch in a fixed footer, as in the Visual mode. -->
     <template #source>
       <div class="flex size-full min-h-0 flex-col">
         <div class="min-h-0 flex-1 p-4">

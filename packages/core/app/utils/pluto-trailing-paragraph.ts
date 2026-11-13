@@ -1,7 +1,6 @@
 import type { Editor } from '@tiptap/core'
 import { Extension } from '@tiptap/core'
 
-/** Adds an empty paragraph at the end of the document when the last block is not one. */
 function ensureTrailingParagraph(editor: Editor) {
   const { doc, schema } = editor.state
   const paragraph = schema.nodes.paragraph

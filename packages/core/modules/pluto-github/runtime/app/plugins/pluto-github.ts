@@ -19,33 +19,22 @@ import {
   usePlutoGithubSession,
 } from '../composables/pluto-github-session'
 
-// The popover of the backend badge. It loads when the popover opens.
 const PlutoGithubBackendDetails = defineAsyncComponent(
   () =>
     import('../../../../../app/components/Pluto/Github/PlutoGithubBackendDetails.vue')
 )
 
-/** How often the badge reads the local repo again while an admin page shows. */
 const LOCAL_GIT_INTERVAL = 15_000
 
-// The dashboard loads each widget on demand, with a skeleton.
 const PlutoGithubPublicRepoWarning = defineAsyncComponent(
   () =>
     import('../../../../../app/components/Pluto/Github/PlutoGithubPublicRepoWarning.vue')
 )
 
-/**
- * Plugs the standalone CMS into the admin: the auth driver (core renders the
- * navbar, the login page and the route guard from it), the permissions of the
- * signed-in user, the post type, and the post capabilities. The module adds
- * this plugin only when the CMS is on.
- */
 export default defineNuxtPlugin(() => {
-  // Read at setup, while the Nuxt context exists. Later callbacks have none.
   const session = usePlutoGithubSession()
   const registry = usePlutoRegistry()
 
-  // The server registers the post type only when `postType` is on. The client follows it.
   const postType = isPostTypeOn(
     useRuntimeConfig().public.plutoGithub as
       | {
@@ -54,7 +43,6 @@ export default defineNuxtPlugin(() => {
       | undefined
   )
 
-  // The build status shows when a save starts a deploy, and the content is in GitHub.
   const buildStatus = showBuildStatus(
     useRuntimeConfig().public.plutoGithub as
       | {
@@ -64,8 +52,6 @@ export default defineNuxtPlugin(() => {
       | undefined
   )
 
-  // Local mode: the saves are commits in the local repo. The badge counts the commits that are
-  // not pushed. The status route exists in this mode only.
   const local =
     (useRuntimeConfig().public.plutoGithub as { storage?: string } | undefined)
       ?.storage === 'fs'
@@ -126,9 +112,7 @@ export default defineNuxtPlugin(() => {
       ready: async () => {
         try {
           await session.ready()
-        } catch {
-          // A failed session read counts as signed out.
-        }
+        } catch {}
       },
       refresh: () => session.refresh(),
       signOut: () => session.logout(),
@@ -136,8 +120,6 @@ export default defineNuxtPlugin(() => {
       signInTitle: 'pluto.github.login.title',
       signInDescription: 'pluto.github.login.description',
     },
-    // The Users item of the menu, between Media (900) and Settings (1000). The page
-    // (`/admin/users`, added by the module) lists the people with write access to the repo.
     nav: [
       {
         id: 'users',
@@ -148,14 +130,12 @@ export default defineNuxtPlugin(() => {
       },
     ],
 
-    // The backend badge of the navbar: local files with Git, or a GitHub repo.
     backend: {
       id: 'git',
       kind: 'git',
       label: local
         ? 'pluto.github.backend.local'
         : 'pluto.github.backend.github',
-      // Official backends use a Lucide line icon (see the admin-shell skill).
       icon: local ? 'i-lucide-git-branch' : 'i-lucide-github',
       count: () => (local ? localGit.ahead.value : 0),
       countLabel: 'pluto.github.local.aheadShort',
@@ -166,8 +146,6 @@ export default defineNuxtPlugin(() => {
         }
       },
     },
-    // The GitHub tab of Settings: the setup check and the Create button. The module
-    // adds its route (`/admin/settings/github`) with `extendPages`.
     settingsPages: [
       {
         id: 'github',
@@ -176,7 +154,6 @@ export default defineNuxtPlugin(() => {
         icon: 'pluto:github',
         to: '/admin/settings/github',
       },
-      // The Deploy tab: put the site on a host. The module adds its route too.
       {
         id: 'deploy',
         order: 160,
@@ -185,7 +162,6 @@ export default defineNuxtPlugin(() => {
         to: '/admin/settings/deploy',
       },
     ],
-    // The content type gives the Posts nav item, the list and the form.
     contentTypes: postType
       ? [
           { id: 'post', type: plutoGithubPostType },
@@ -193,7 +169,6 @@ export default defineNuxtPlugin(() => {
           { id: 'author', type: plutoGithubAuthorType },
         ]
       : [],
-    // The Markdown editor. The import is lazy, so Tiptap loads on the edit page only.
     contentFieldWidgets: [
       {
         id: 'markdown',
@@ -204,7 +179,6 @@ export default defineNuxtPlugin(() => {
         ),
       },
     ],
-    // The build of the head commit, next to Save. Lazy, like the editor.
     contentToolbarItems: buildStatus
       ? [
           {
@@ -232,8 +206,6 @@ export default defineNuxtPlugin(() => {
           ),
       },
     ],
-    // Core loads the capabilities after sign-in and clears them after sign-out.
-    // See app/plugins/pluto-auth-sync.client.ts.
     permissionsDriver: {
       id: 'pluto-github',
       load: async () => {
@@ -245,11 +217,6 @@ export default defineNuxtPlugin(() => {
   })
 })
 
-/**
- * Reads the local repo on each admin navigation, when the tab shows again, and every
- * `LOCAL_GIT_INTERVAL` while an admin page shows. A save commits on the server, so the count
- * follows within that time, or at once on the next navigation.
- */
 let watchingLocalGit = false
 
 function watchLocalGit(refresh: () => Promise<void>): void {

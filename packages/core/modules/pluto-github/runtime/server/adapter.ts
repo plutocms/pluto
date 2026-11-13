@@ -54,52 +54,31 @@ import {
 import { markdownToPlainText, renderMarkdown } from './utils/markdown'
 import { parseMarkdownFile, serializeMarkdownFile } from './utils/markdown-file'
 
-/**
- * The cache key of the rendered body. Change the version when the renderer gives other HTML for
- * the same Markdown, so the cache renders again (2: the embed paragraphs).
- */
 const HTML_CACHE_KEY = 'html:2'
 
-/** The length of an excerpt made from the body, in the public API. */
 const EXCERPT_LENGTH = 200
 
 export interface PlutoGithubAccess {
-  /** The capability keys the caller holds. */
   capabilities: string[]
-  /** The GitHub token the store uses for this caller. */
   auth: PlutoGithubAuth
 }
 
 export interface MarkdownContentAdapterOptions {
   store: PlutoGithubStore
-  /** The content dir, relative to the repo root. */
   dir: string
-  /** Reads the caller of a request. `null` means anonymous. */
   getAccess: (event: H3Event) => Promise<PlutoGithubAccess | null>
   commit?: {
-    /**
-     * `true`: every commit gets `[skip ci]`. `false`: only a commit that changes no published
-     * content gets it (a draft that stays a draft), so a draft save starts no deploy.
-     */
     skipDeploy?: boolean
   }
-  /** The cache that holds parsed files by blob id. A memory cache by default. */
   cache?: GithubCache
-  /**
-   * The registered content types. A rename or a delete of an item reads it to find the types
-   * that reference the item. Default: the types of the core registry.
-   */
   getTypes?: () => PlutoContentType[]
-  /** How many times a commit retries after an unrelated change. Default 2. */
   retries?: number
   now?: () => Date
 }
 
 interface Entry {
-  /** The id: the file name without `.md`, or the nested path. */
   slug: string
   oid: string
-  /** The text of the file as stored. */
   text: string
   frontmatter: Record<string, unknown>
   body: string
@@ -119,20 +98,17 @@ interface Plan {
   deletions: {
     path: string
   }[]
-  /** The files this commit depends on, and their blob id when the plan was made. */
   targets: {
     path: string
     oid: string | null
   }[]
   item?: PlutoContentItem
-  /** The new text equals the stored text. Do not commit. */
   unchanged?: boolean
 }
 
 interface Layout {
   nested: boolean
   exclude: string[]
-  /** A singleton type: the one id that the type accepts (its file is `<source>/<id>.md`). */
   singletonId?: string
   readFrontmatter?: (
     frontmatter: Record<string, unknown>
@@ -142,7 +118,6 @@ interface Layout {
   ) => Record<string, unknown>
   bodyField?: PlutoField
   slugField?: string
-  /** Fields stored as frontmatter keys. */
   metaFields: PlutoField[]
   statusColumn?: string
   publishedValue: string
@@ -151,7 +126,6 @@ interface Layout {
   updatedColumn?: string
 }
 
-/** The storage keys of one content type. */
 function layoutOf(type: PlutoContentType): Layout {
   const bodyField = type.fields.find(
     (field) => field.type === 'richtext' && !field.virtual
@@ -184,17 +158,14 @@ function layoutOf(type: PlutoContentType): Layout {
   }
 }
 
-// A commit message of the adapter: `content(post): update "slug"`. See `messageOf`.
 const PLUTO_MESSAGE =
   /^content\([^)]*\): (create|update|publish|unpublish|rename|schedule|submit)\b/
 
-/** A schedule and a submit for review are updates in the history. */
 const REVISION_ACTION: Record<string, PlutoContentRevisionAction> = {
   schedule: 'update',
   submit: 'update',
 }
 
-/** A history commit as a revision: the action of a Pluto commit, or the message of any other. */
 function toRevision(commit: {
   oid: string
   message: string
@@ -214,7 +185,6 @@ function toRevision(commit: {
   }
 }
 
-/** The `*` capability means every capability, the same rule as the admin UI. */
 function hasCapability(access: PlutoGithubAccess, capability: string): boolean {
   return (
     access.capabilities.includes('*') ||
@@ -244,7 +214,6 @@ function compareValues(a: unknown, b: unknown): number {
   return left < right ? -1 : left > right ? 1 : 0
 }
 
-/** Builds the `PlutoContentAdapter` over a `PlutoGithubStore`. */
 export function createMarkdownContentAdapter(
   options: MarkdownContentAdapterOptions
 ): PlutoContentAdapter {
@@ -254,8 +223,6 @@ export function createMarkdownContentAdapter(
   const getTypes = options.getTypes ?? listContentTypes
   const now = options.now ?? (() => new Date())
   const skipAll = options.commit?.skipDeploy === true
-
-  // --- Errors ---------------------------------------------------------------
 
   function conflictError() {
     return createPlutoError({
@@ -309,7 +276,6 @@ export function createMarkdownContentAdapter(
     })
   }
 
-  /** Maps any error of the storage layer to an HTTP error. */
   function toHttpError(error: unknown, event: H3Event): unknown {
     if (isError(error)) {
       return error
@@ -345,9 +311,7 @@ export function createMarkdownContentAdapter(
         if (retryAfter !== undefined) {
           try {
             setResponseHeader(event, 'Retry-After', retryAfter)
-          } catch {
-            // A test event has no response. The header is best effort.
-          }
+          } catch {}
         }
         return createPlutoError({
           statusCode: 503,
@@ -374,8 +338,6 @@ export function createMarkdownContentAdapter(
     }
   }
 
-  // --- Access ---------------------------------------------------------------
-
   async function requireAccess(
     event: H3Event,
     capability: string | undefined
@@ -390,7 +352,6 @@ export function createMarkdownContentAdapter(
     return access
   }
 
-  /** Drafts are visible to a signed-in caller with the read capability. */
   function canSeeDrafts(
     type: PlutoContentType,
     access: PlutoGithubAccess | null
@@ -401,8 +362,6 @@ export function createMarkdownContentAdapter(
     const capability = type.capabilities?.read
     return !capability || hasCapability(access, capability)
   }
-
-  // --- Files ----------------------------------------------------------------
 
   async function parseFile(file: PlutoGithubFile): Promise<ParsedFile | null> {
     const cached = await cache.getBlob<ParsedFile>(file.oid)
@@ -421,24 +380,18 @@ export function createMarkdownContentAdapter(
     }
   }
 
-  /** The options that the path helpers need for one type. */
   function pathOptions(layout: Layout): {
     nested: boolean
   } {
     return { nested: layout.nested }
   }
 
-  /** Whether the id is listed in `files.exclude` (an id, or a folder with a trailing slash). */
   function isExcluded(layout: Layout, id: string): boolean {
     return layout.exclude.some((entry) =>
       entry.endsWith('/') ? id.startsWith(entry) : id === entry
     )
   }
 
-  /**
-   * True when the id is a safe id for this type and is not excluded. A singleton type accepts its
-   * own id only, so the other files of its folder are not its items.
-   */
   function isUsableId(layout: Layout, id: string): boolean {
     if (layout.singletonId !== undefined && id !== layout.singletonId) {
       return false
@@ -463,7 +416,6 @@ export function createMarkdownContentAdapter(
     if (!parsed) {
       return null
     }
-    // The parsed file is shared through the cache. A hook gets a copy.
     const frontmatter = layout.readFrontmatter
       ? layout.readFrontmatter(structuredClone(parsed.frontmatter))
       : parsed.frontmatter
@@ -476,7 +428,6 @@ export function createMarkdownContentAdapter(
     }
   }
 
-  /** The files of one type. A nested type reads the whole tree under its folder. */
   async function listFiles(
     type: PlutoContentType,
     layout: Layout,
@@ -489,7 +440,6 @@ export function createMarkdownContentAdapter(
       : store.listDir(folder, head, auth)
   }
 
-  /** Reads one file. A nested type reads it from the tree, a flat type from the file. */
   async function readTarget(
     type: PlutoContentType,
     layout: Layout,
@@ -543,7 +493,6 @@ export function createMarkdownContentAdapter(
     return file ? toEntry(layout, file, slug) : null
   }
 
-  /** The status of an entry. A file with no status key has the default status of the type. */
   function statusOf(
     type: PlutoContentType,
     layout: Layout,
@@ -564,7 +513,6 @@ export function createMarkdownContentAdapter(
       return true
     }
     const status = statusOf(type, layout, entry)
-    // Only a scheduled item reads the clock.
     if (status !== statusRules(type)?.scheduled) {
       return status === layout.publishedValue
     }
@@ -587,7 +535,6 @@ export function createMarkdownContentAdapter(
     return drafts || isPublished(type, layout, entry)
   }
 
-  /** One flat row keyed by storage key, the shape `mapColumnsToFields` reads. */
   function toRow(
     type: PlutoContentType,
     layout: Layout,
@@ -631,12 +578,6 @@ export function createMarkdownContentAdapter(
     return item
   }
 
-  // --- Writes ---------------------------------------------------------------
-
-  /**
-   * The commit message. `publicChange` is false when the commit changes no published content:
-   * the item is a draft before and after. Such a commit gets `[skip ci]`, so it starts no deploy.
-   */
   function messageOf(
     type: PlutoContentType,
     verb: string,
@@ -646,7 +587,6 @@ export function createMarkdownContentAdapter(
     return `content(${type.name}): ${verb}${skip}`
   }
 
-  /** Runs a plan against a fresh head. Retries when only unrelated files changed. */
   async function commitPlan(
     event: H3Event,
     access: PlutoGithubAccess,
@@ -702,12 +642,6 @@ export function createMarkdownContentAdapter(
     return file ? toEntry(layout, file, slug) : null
   }
 
-  /**
-   * The files of the items that reference items of the type `target`, rewritten by `changes`:
-   * each old id becomes its new id, or leaves the field when the new id is null. Drafts count too.
-   * The body, the unknown keys and the stamps of each file stay. A list that ends empty drops its
-   * key. Files that hold no reference are not in the answer. The changed items are not rewritten.
-   */
   async function referenceRewrites(
     head: string,
     access: PlutoGithubAccess,
@@ -790,12 +724,6 @@ export function createMarkdownContentAdapter(
     return result
   }
 
-  /**
-   * The publish time. A scheduled save sets the planned time (`values.publishAt`, in the future);
-   * a scheduled item that keeps its status keeps its time when the payload has no new one. Publish
-   * now of a scheduled item stamps the time now, and a scheduled item that goes back to a draft or
-   * to review loses its time. Else the first publish stamps the time, as before.
-   */
   function applyPublishTime(
     type: PlutoContentType,
     column: string,
@@ -836,7 +764,6 @@ export function createMarkdownContentAdapter(
     }
   }
 
-  /** Applies the payload to a frontmatter object. Unknown keys stay. */
   function applyValues(
     type: PlutoContentType,
     layout: Layout,
@@ -851,7 +778,6 @@ export function createMarkdownContentAdapter(
       }
       const value = values[field.name]
       const column = fieldColumn(field)
-      // An empty list leaves the frontmatter, like an empty value.
       if (isEmptyValue(value) || (Array.isArray(value) && value.length === 0)) {
         delete frontmatter[column]
       } else {
@@ -910,7 +836,6 @@ export function createMarkdownContentAdapter(
     return fallback
   }
 
-  /** The text of a file. The `files.frontmatter.write` hook maps the frontmatter first. */
   function fileText(
     layout: Layout,
     frontmatter: Record<string, unknown>,
@@ -922,7 +847,6 @@ export function createMarkdownContentAdapter(
     return serializeMarkdownFile(mapped, body)
   }
 
-  /** `schedule` or `submit` when an update sets the scheduled or the review status. */
   function statusVerb(
     type: PlutoContentType,
     layout: Layout,
@@ -949,8 +873,6 @@ export function createMarkdownContentAdapter(
     return type.capabilities?.publish ?? type.capabilities?.write
   }
 
-  // --- Adapter methods ------------------------------------------------------
-
   async function list(
     ctx: PlutoContentContext,
     query: PlutoContentQuery
@@ -966,7 +888,6 @@ export function createMarkdownContentAdapter(
         isVisible(type, layout, entry, drafts)
       )
 
-      // Only one status. A type with no publish workflow has no status, so the option does nothing.
       if (query.status !== undefined && layout.statusColumn) {
         entries = entries.filter(
           (entry) => String(statusOf(type, layout, entry)) === query.status
@@ -993,8 +914,6 @@ export function createMarkdownContentAdapter(
         entries = entries.filter((entry) => wanted.has(entry.slug))
       }
 
-      // Equality filters compare the text of the value, because the public API sends text. A list
-      // (a `multiple` reference) matches when it has the value.
       const filters = Object.entries(query.filters ?? {})
       if (filters.length > 0) {
         entries = entries.filter((entry) => {
@@ -1020,7 +939,6 @@ export function createMarkdownContentAdapter(
       entries.sort((a, b) => {
         const left = sortKey === 'id' ? a.slug : a.frontmatter[sortKey]
         const right = sortKey === 'id' ? b.slug : b.frontmatter[sortKey]
-        // A missing value always sorts last, in either direction.
         if (isEmptyValue(left) !== isEmptyValue(right)) {
           return isEmptyValue(left) ? 1 : -1
         }
@@ -1066,18 +984,11 @@ export function createMarkdownContentAdapter(
         return null
       }
       const item = toItem(type, layout, entry, true)
-      // The whole frontmatter of the file, after the `read` hook. A copy: the parse cache shares the original.
       item._frontmatter = structuredClone(entry.frontmatter)
       return item
     })
   }
 
-  /**
-   * Reads one raw file of the type, by a path relative to the type folder. An unsafe path gives
-   * `null`. A `.md` file follows the rules of `get`: it must be a usable id and visible to the
-   * caller, so a draft never reaches an anonymous caller. Another file (for example
-   * `.navigation.yml`) is read as it is.
-   */
   async function readFile(
     ctx: PlutoContentContext,
     relativePath: string
@@ -1145,7 +1056,6 @@ export function createMarkdownContentAdapter(
 
       const frontmatter: Record<string, unknown> = {}
       applyValues(type, layout, frontmatter, values, 'create')
-      // A published item (or a type with no status) is public: its commit starts a deploy.
       const published = isPublished(type, layout, { frontmatter })
       if (
         layout.statusColumn &&
@@ -1249,7 +1159,6 @@ export function createMarkdownContentAdapter(
         const body = bodyOf(layout, values, current.body)
         const text = fileText(layout, frontmatter, body)
 
-        // A save that changes nothing makes no commit. The `updated` stamp alone is not a change.
         if (newPath === oldPath) {
           const probe = { ...frontmatter }
           if (layout.updatedColumn) {
@@ -1273,7 +1182,6 @@ export function createMarkdownContentAdapter(
         }
 
         let verb = `update "${oldSlug}"`
-        // A rename also rewrites the items that reference the old id, in the same commit.
         const rewrites =
           newPath === oldPath
             ? undefined
@@ -1336,7 +1244,6 @@ export function createMarkdownContentAdapter(
         if (!current) {
           throw notFoundError()
         }
-        // The items that reference the deleted id lose it, in the same commit.
         const rewrites = await referenceRewrites(
           head,
           access,
@@ -1358,23 +1265,14 @@ export function createMarkdownContentAdapter(
     })
   }
 
-  // --- Trash ----------------------------------------------------------------
-  //
-  // A trashed item is its file in `<dir>/.trash/<type name>/<id>.md`, with the time it went there
-  // in the frontmatter key `deletedAt`. The tree reads skip dot folders, so `list`, `get` and the
-  // public API do not see it. The references to it stay until the purge.
-
-  /** The frontmatter key of a trashed file: the time it went to the trash (ISO). */
   const TRASH_KEY = 'deletedAt'
 
   interface TrashEntry {
     entry: Entry
     path: string
-    /** The time it went to the trash, in ms. `NaN` when the file has no valid `deletedAt`. */
     deletedAt: number
   }
 
-  /** The trashed files of one type, at `head`. */
   async function trashEntries(
     type: PlutoContentType,
     layout: Layout,
@@ -1404,7 +1302,6 @@ export function createMarkdownContentAdapter(
     return result
   }
 
-  /** The trashed file of one item, at `head`, or `null`. */
   async function readTrashed(
     type: PlutoContentType,
     layout: Layout,
@@ -1428,7 +1325,6 @@ export function createMarkdownContentAdapter(
       : null
   }
 
-  /** The text of a file with `deletedAt` set, or removed. The raw frontmatter, not the mapped one. */
   function withTrashKey(text: string, deletedAt: string | null): string {
     const raw = parseMarkdownFile(text)
     const frontmatter = { ...raw.frontmatter }
@@ -1440,7 +1336,6 @@ export function createMarkdownContentAdapter(
     return serializeMarkdownFile(frontmatter, raw.body)
   }
 
-  /** The reference rewrites of a purge: none for an id that a live item has again. */
   async function purgeRewrites(
     head: string,
     access: PlutoGithubAccess,
@@ -1478,7 +1373,6 @@ export function createMarkdownContentAdapter(
         if (!current) {
           throw notFoundError()
         }
-        // An older trashed copy with the same id is replaced.
         return {
           message: messageOf(
             type,
@@ -1528,7 +1422,6 @@ export function createMarkdownContentAdapter(
         )
       }
 
-      // The last trashed first. A file with no valid time goes last.
       entries.sort(
         (a, b) =>
           (Number.isNaN(b.deletedAt) ? -Infinity : b.deletedAt) -
@@ -1623,7 +1516,6 @@ export function createMarkdownContentAdapter(
         if (!trashed) {
           throw notFoundError()
         }
-        // The items that reference the purged id lose it, in the same commit.
         const rewrites = await purgeRewrites(head, access, type, [slug])
         const count = rewrites.additions.length
         return {
@@ -1655,7 +1547,6 @@ export function createMarkdownContentAdapter(
       let purged = 0
 
       await commitPlan(ctx.event, access, async (head) => {
-        // A file with no valid time stays: nobody knows when it went to the trash.
         const expired = (
           await trashEntries(type, layout, head, access.auth)
         ).filter((trashed) => trashed.deletedAt < limit)
@@ -1688,11 +1579,6 @@ export function createMarkdownContentAdapter(
     })
   }
 
-  /**
-   * Publishes the scheduled items whose time is `at` or earlier, in one commit. The item keeps its
-   * planned time. The commit is a public change, so it starts a deploy (unless every commit skips
-   * it). Needs the publish capability: the scheduled task gives a system request.
-   */
   async function publishDue(
     ctx: PlutoContentContext,
     at: string
@@ -1742,7 +1628,6 @@ export function createMarkdownContentAdapter(
     })
   }
 
-  /** Fails closed: no access gives 401, a missing capability gives 403. */
   async function authorize(event: H3Event, capability: string): Promise<void> {
     await guard(event, async () => {
       await requireAccess(event, capability)
@@ -1779,7 +1664,6 @@ export function createMarkdownContentAdapter(
     })
   }
 
-  /** The item keys of the timestamps: the frontmatter keys that `toItem` copies. */
   function timestampKeys(type: PlutoContentType): {
     created?: string
     updated?: string
@@ -1793,10 +1677,6 @@ export function createMarkdownContentAdapter(
     }
   }
 
-  /**
-   * Keeps a text made from a file in the cache, by the blob id of the file. A blob id never
-   * changes, so the entry never goes stale. Without a blob id, nothing is cached.
-   */
   async function cachedByBlob(
     prefix: string,
     oid: string | undefined,
@@ -1815,11 +1695,6 @@ export function createMarkdownContentAdapter(
     return value
   }
 
-  /**
-   * The public answer of a Markdown item. A list item has no body, and it has `excerpt`: the
-   * `excerpt` value of the item when it has text, else the start of the body as plain text. One
-   * item keeps the Markdown body, and adds `html`: the body rendered and sanitized.
-   */
   async function toPublic(
     ctx: PlutoContentContext,
     data: Record<string, unknown>,
@@ -1851,7 +1726,6 @@ export function createMarkdownContentAdapter(
       result.excerpt = own.trim()
       return result
     }
-    // A list item has no body. Read the file: the cache has it.
     const full = await get(ctx, info.item.id)
     const body = full?.[bodyField.name]
     result.excerpt =
@@ -1863,11 +1737,6 @@ export function createMarkdownContentAdapter(
     return result
   }
 
-  /**
-   * The commits that changed the file of one item, newest first. Only an editor (the type write
-   * capability) reads them. A store with no history (the build snapshot) gives an empty page.
-   * Renames are not followed: the history starts at the last rename.
-   */
   async function listRevisions(
     ctx: PlutoContentContext,
     id: string | number,
@@ -1893,7 +1762,6 @@ export function createMarkdownContentAdapter(
     })
   }
 
-  /** The item as the file was at one commit. A draft follows the rule of `get`. */
   async function getRevision(
     ctx: PlutoContentContext,
     id: string | number,

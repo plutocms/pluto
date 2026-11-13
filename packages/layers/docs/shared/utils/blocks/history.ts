@@ -1,11 +1,6 @@
-// Undo and redo for the block doc. The history keeps snapshots of the doc.
-// A snapshot is immutable, because every operation returns a new doc. The
-// clock is a parameter, so a test needs no timers.
-
 export const HISTORY_LIMIT = 100
 
-/** Edits of the same key within this time (ms) join in one step. */
-export const HISTORY_MERGE_MS = 600
+const HISTORY_MERGE_MS = 600
 
 export interface PlutoHistory<T> {
   /** Oldest first. */
@@ -33,11 +28,6 @@ export function canRedo(history: PlutoHistory<unknown>): boolean {
   return history.future.length > 0
 }
 
-/**
- * Adds a new state. A state equal (`===`) to the present is ignored. With a
- * `key` (for example the id of a block), a push with the same key within
- * `mergeMs` of the last push replaces the present, so it is one undo step.
- */
 export function pushHistory<T>(
   history: PlutoHistory<T>,
   state: T,
@@ -88,7 +78,6 @@ export function redo<T>(history: PlutoHistory<T>): PlutoHistory<T> {
   return { past: [...history.past, history.present], present: present!, future }
 }
 
-/** Starts again from a state, for example after a switch to the Markdown mode. */
 export function resetHistory<T>(state: T): PlutoHistory<T> {
   return createHistory(state)
 }

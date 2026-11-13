@@ -1,7 +1,5 @@
 <script setup lang="ts">
-// Step 2: the API key. v1 keeps it in the environment of the server, so this
-// step shows the line to copy and checks the key. The key never reaches the
-// browser: the check runs on the server.
+// The key never reaches the browser: the check runs on the server.
 const { t } = usePlutoI18n()
 const { status, keyState, checkKey } = usePlutoMail()
 
@@ -14,11 +12,8 @@ const state = computed(() =>
   keyState.value === 'full' || keyState.value === 'sending' ? 'done' : 'todo'
 )
 
-// A site that already has a key checks it once, so the next steps know what
-// the key can do.
 onMounted(async () => {
   if (keyState.value === 'unknown' && !status.value) {
-    // The status card loads the status. Wait for it.
     await until(status)
       .toBeTruthy({ timeout: 10_000 })
       .catch(() => {})

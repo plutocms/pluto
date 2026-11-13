@@ -8,13 +8,9 @@ const DEFAULT_FROM = 'Pluto <pluto@localhost>'
 const TIMEOUT_MS = 4000
 
 export interface DevDriverOptions {
-  /** True in development. The driver logs the mail only then. */
   dev: boolean
-  /** The base URL of a Mailpit server, for example `http://localhost:8025`. Empty: no Mailpit. */
   mailpitUrl?: string
-  /** Default: the global `fetch`. A test passes a fake. */
   fetch?: typeof fetch
-  /** Default: `console.info`. A test passes a spy. */
   log?: (message: string) => void
 }
 
@@ -23,7 +19,6 @@ interface MailpitAddress {
   Name?: string
 }
 
-/** Splits `Name <address>` or `address` into the Mailpit shape. */
 export function parseAddress(value: string): MailpitAddress {
   const open = value.lastIndexOf('<')
   const close = value.lastIndexOf('>')
@@ -85,13 +80,6 @@ async function postToMailpit(
   }
 }
 
-/**
- * The driver for local work. In development it prints the email to the
- * console, text version included, so you can copy an invite link. When
- * `mailpitUrl` is set, it also posts the email to Mailpit. Outside
- * development it logs nothing, and with no Mailpit it refuses to send
- * (`not_configured`), so a production site never drops mail in silence.
- */
 export function createDevDriver(options: DevDriverOptions): PlutoMailDriver {
   // eslint-disable-next-line no-console -- the dev driver prints the mail on purpose
   const log = options.log ?? ((text: string) => console.info(text))

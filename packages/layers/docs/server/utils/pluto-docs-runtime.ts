@@ -15,7 +15,6 @@ import {
 } from '@nuxt/content/server'
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
 import { getQuery, getRouterParam, setResponseHeader } from 'h3'
-// The build manifest. The module makes this virtual module at build time. See modules/pluto-docs/manifest.ts.
 import manifests from '#pluto-docs/manifest'
 import { parseNavigationConfig } from '../../shared/utils/navigation-config'
 import {
@@ -23,24 +22,12 @@ import {
   frontmatterExtras,
 } from '../../shared/utils/runtime-content'
 
-// The server side of the `hybrid` and `runtime` render modes. The module adds the routes
-// only in these modes. The logic is here, in plain functions, and the handlers in
-// `server/handlers/` only call it. See the docs-setup skill.
-//
-// `runtime`: every answer comes from the content adapter that core registered (the GitHub
-// CMS store with its cache).
-// `hybrid`: the answer comes from the build data (Nuxt Content, `queryCollection` on the
-// server) while the store has the same files as the build manifest. A changed or a new
-// page comes from the store. When any file differs, the navigation and the surround come
-// from the store. A removed page is a 404. A store error gives the build data.
-
 const STALE_WHILE_REVALIDATE = 300
 const PARSED_CACHE_SIZE = 200
 const SNAPSHOT_CACHE_SIZE = 20
 const COLLECTION_PATTERN = /^[A-Z][\w-]{0,63}$/i
 const NAVIGATION_FILE = '.navigation.yml'
 
-/** The page that the page route sends. The shape follows a Nuxt Content page. */
 export interface PlutoRuntimePage {
   id: string
   stem: string
@@ -64,7 +51,6 @@ interface RuntimeContext {
   collection: string | undefined
 }
 
-/** The public config of the layer. The site may type its runtime config in its own way, so the code reads it through this type. */
 interface PublicConfig {
   render: string
   runtimeMaxAge?: number
@@ -86,10 +72,6 @@ function queryText(event: H3Event, key: string): string {
   return typeof value === 'string' ? value : ''
 }
 
-/**
- * Checks the request and gives the type. A public read is always anonymous: the session
- * cookie is never read, so every visitor gets the same answer and a CDN may cache it.
- */
 function runtimeContext(event: H3Event): RuntimeContext {
   markPublicRead(event)
   const config = useRuntimeConfig(event).public.plutoDocs as unknown as
@@ -139,7 +121,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/** Every page of the type, in tree order, without the body. */
 async function listPages(
   event: H3Event,
   type: PlutoContentType
@@ -162,15 +143,12 @@ function toNavPage(item: PlutoContentItem): RuntimeNavPage {
   }
 }
 
-// --- The store state against the build manifest ------------------------------
-
 interface Snapshot {
   items: PlutoContentItem[]
   ids: string[]
   diff: ManifestDiff
 }
 
-/** Lists the store and compares it with the manifest. */
 async function takeSnapshot(
   event: H3Event,
   type: PlutoContentType
@@ -184,10 +162,6 @@ async function takeSnapshot(
   return { items, ids: items.map((item) => String(item.id)), diff }
 }
 
-/**
- * The snapshot, or `undefined` when the answer must come from the build data: the mode is
- * hybrid and the store failed (no App, rate limit, outage). In `runtime` mode the error goes up.
- */
 async function snapshotOrFallback(
   event: H3Event,
   context: RuntimeContext
@@ -206,8 +180,6 @@ async function snapshotOrFallback(
   }
 }
 
-// --- The parser --------------------------------------------------------------
-
 type Highlighter =
   NonNullable<
     NonNullable<Parameters<typeof parseMarkdown>[1]>['highlight']
@@ -219,11 +191,6 @@ type Highlighter =
 
 let highlighterPromise: Promise<Highlighter> | undefined
 
-/**
- * The code highlighter of `@nuxtjs/mdc`, made at build time with the themes and the
- * languages of the site. The default highlighter of the parser asks the `/api/_mdc/highlight`
- * route, which Nuxt Content turns off. So the parser gets this one.
- */
 function getHighlighter(): Promise<Highlighter> {
   // eslint-disable-next-line ts/ban-ts-comment
   // @ts-ignore The module is a Nitro alias of @nuxtjs/mdc. It has no type file.
@@ -266,9 +233,6 @@ function parseBody(
   return promise
 }
 
-// --- Folder configs (.navigation.yml) ----------------------------------------
-
-/** The folders of the ids: every parent path, once (`a/b/c` gives `a` and `a/b`). */
 function folderPaths(ids: string[]): string[] {
   const folders = new Set<string>()
   for (const id of ids) {
@@ -282,11 +246,6 @@ function folderPaths(ids: string[]): string[] {
 
 const foldersCache = new Map<string, Record<string, RuntimeFolderConfig>>()
 
-/**
- * The `.navigation.yml` of each folder of the type, read through the adapter (cached by blob in
- * core). The result is cached here by the listing (ids and versions), so a request with an
- * unchanged listing reads no file. An adapter without `readFile` gives no configs.
- */
 async function readFolderConfigs(
   event: H3Event,
   type: PlutoContentType,
@@ -340,9 +299,6 @@ async function storeTree(
   })
 }
 
-// --- The page ----------------------------------------------------------------
-
-/** The page from the store: the text is parsed and the frontmatter passes whole. */
 async function storePage(
   event: H3Event,
   context: RuntimeContext,
@@ -361,7 +317,6 @@ async function storePage(
 
   const title = text(item.title) || text(parsed.data?.title)
   const description = text(item.description) || text(parsed.data?.description)
-  // Like Nuxt Content: the seo title and description default to the page ones.
   const seo: PlutoRuntimePage['seo'] = {
     ...(isRecord(frontmatter.seo) ? frontmatter.seo : {}),
     title: text(item.seoTitle) || title,
@@ -390,7 +345,6 @@ async function storePage(
   }
 }
 
-/** The page from the build data (Nuxt Content), or `null`. */
 async function buildPage(
   event: H3Event,
   collection: string,
@@ -409,7 +363,6 @@ async function buildPage(
   }
 }
 
-/** `GET /api/pluto/v1/docs/:type/page?path=/a/b&collection=docs` */
 export async function plutoRuntimePage(event: H3Event): Promise<unknown> {
   const context = runtimeContext(event)
   const path = queryText(event, 'path')
@@ -417,7 +370,6 @@ export async function plutoRuntimePage(event: H3Event): Promise<unknown> {
 
   const snapshot = await snapshotOrFallback(event, context)
   if (!snapshot) {
-    // The store failed in hybrid mode.
     const page = context.collection
       ? await buildPage(event, context.collection, path)
       : null
@@ -459,7 +411,6 @@ export async function plutoRuntimePage(event: H3Event): Promise<unknown> {
   return page
 }
 
-/** `GET /api/pluto/v1/docs/:type/navigation?collection=docs&includeRoot=1` */
 export async function plutoRuntimeNavigation(event: H3Event): Promise<unknown> {
   const context = runtimeContext(event)
   setCacheHeaders(event)
@@ -477,7 +428,6 @@ export async function plutoRuntimeNavigation(event: H3Event): Promise<unknown> {
   return await storeTree(event, context, snapshot.items, false)
 }
 
-/** `GET /api/pluto/v1/docs/:type/surround?path=/a/b&collection=docs&includeRoot=1` */
 export async function plutoRuntimeSurround(
   event: H3Event
 ): Promise<Array<RuntimeSurroundItem | null> | unknown> {

@@ -19,7 +19,6 @@ let listAnswer: unknown = null
 let itemAnswer: unknown = null
 let itemError: unknown = null
 
-// Like useFetch: a promise that resolves to its own refs, with the refs on it.
 function asyncData(data: unknown, error: unknown = null) {
   const refs = { data: ref(data), error: ref(error), pending: ref(false) }
   const promise = Object.assign(Promise.resolve(refs), refs)
@@ -70,7 +69,6 @@ vi.mock('../app/composables/pluto-site', async () => {
   }
 })
 
-// The head hooks of the registry (the `contentHead` bucket), in the order they run.
 let heads: Array<{
   contentType: string
   setup: (context: {

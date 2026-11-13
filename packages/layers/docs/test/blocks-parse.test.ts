@@ -188,7 +188,6 @@ describe('mdc props', () => {
       ':a=\'["x","it\\u0027s"]\''
     )
     expect(renderInlineToken('a', undefined)).toBeUndefined()
-    // A written value reads back the same.
     for (const value of [
       'plain',
       'with "double"',

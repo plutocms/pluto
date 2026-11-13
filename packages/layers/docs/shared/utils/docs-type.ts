@@ -1,8 +1,3 @@
-// The docs preset. Pure code with no Nuxt import, so plain Vitest tests it.
-// It builds the content type of a Nuxt Content docs page. The frontmatter
-// hooks map `navigation` and `seo` to flat keys, so each of them is a normal
-// field (a virtual field is not read back). See the docs-preset skill.
-
 import { contentRoutePath } from './content-route'
 
 type Frontmatter = Record<string, unknown>
@@ -15,11 +10,6 @@ function hasText(value: unknown): value is string {
   return typeof value === 'string' && value !== ''
 }
 
-/**
- * Sets a key of a nested object from a flat value. An empty flat value removes
- * the key, but only when the key holds text or nothing: a value of another
- * type (a number, a list) stays as the author wrote it.
- */
 function applyText(target: Frontmatter, key: string, flat: unknown): void {
   if (hasText(flat)) {
     target[key] = flat
@@ -28,11 +18,6 @@ function applyText(target: Frontmatter, key: string, flat: unknown): void {
   }
 }
 
-/**
- * Runs after a file is parsed. Adds the flat keys that the form fields read:
- * `navigationTitle`, `navigationIcon`, `navigationHidden` (from `navigation`)
- * and `seoTitle`, `seoDescription` (from `seo`). It keeps every other key.
- */
 export function readDocsFrontmatter(frontmatter: Frontmatter): Frontmatter {
   const out: Frontmatter = { ...frontmatter }
   const navigation = frontmatter.navigation
@@ -58,13 +43,6 @@ export function readDocsFrontmatter(frontmatter: Frontmatter): Frontmatter {
   return out
 }
 
-/**
- * Runs before a file is written. Folds the flat keys back into `navigation`
- * and `seo`, and drops them. The flat keys win: a missing flat key means the
- * author cleared the field. Keys of `navigation` and `seo` that the preset does
- * not know stay. An empty object is dropped. A hidden page gets
- * `navigation: false`, which replaces the title and the icon.
- */
 export function writeDocsFrontmatter(frontmatter: Frontmatter): Frontmatter {
   const out: Frontmatter = { ...frontmatter }
   const {
@@ -80,7 +58,6 @@ export function writeDocsFrontmatter(frontmatter: Frontmatter): Frontmatter {
   delete out.seoTitle
   delete out.seoDescription
 
-  // navigation
   const navigation = frontmatter.navigation
   if (navigationHidden === true) {
     out.navigation = false
@@ -95,7 +72,6 @@ export function writeDocsFrontmatter(frontmatter: Frontmatter): Frontmatter {
     }
   }
 
-  // seo
   const seo = frontmatter.seo
   const seoObject: Frontmatter = isRecord(seo) ? { ...seo } : {}
   applyText(seoObject, 'title', seoTitle)
@@ -135,21 +111,13 @@ export interface DocsTypeOptions {
   navGroup?: string | false
 }
 
-/** The nav group of a docs type when the options set none. Core declares it. */
-export const DEFAULT_DOCS_NAV_GROUP = 'pages'
+const DEFAULT_DOCS_NAV_GROUP = 'pages'
 
-/** The capabilities of the docs preset. The client plugin registers them. */
 export const DOCS_CAPABILITIES = {
   write: 'docs:write',
   delete: 'docs:delete',
 } as const
 
-/**
- * The docs page type. The id of an item is the path of the file under `source`
- * without `.md` (`2.core/03.content-model`). The slug field holds that whole
- * path, and a new path moves the file. The path is never a frontmatter key,
- * because Nuxt Content reserves `path`.
- */
 export function createDocsType(options: DocsTypeOptions): PlutoContentType {
   const navGroup =
     options.navGroup === false
@@ -246,22 +214,16 @@ export function createDocsType(options: DocsTypeOptions): PlutoContentType {
         region: 'side',
       },
     ],
-    // "New page" and "Edit page" in the admin bar (core). See the page-links skill.
     adminBar: true,
-    // The pages are public on core's public API: /api/pluto/v1/content/<name>[/<id>] (the item has
-    // `html`, rendered by the CMS adapter).
     api: { public: true },
     ...(options.liveOnSave && { liveOnSave: true }),
     status: false,
     timestamps: false,
-    // Tree order: the numeric prefixes decide, not the title.
     defaultSort: { field: 'id', direction: 'asc' },
     capabilities: {
       write: DOCS_CAPABILITIES.write,
       delete: DOCS_CAPABILITIES.delete,
     },
-    // The canvas layout: the body fills the page (the block editor), and the other fields are in the Page tab.
-    // `leftPanel`: the block list. Core shows its skeleton while the page or the editor code loads.
     form: {
       layout: 'canvas',
       canvasField: 'body',
@@ -287,11 +249,4 @@ export function createDocsType(options: DocsTypeOptions): PlutoContentType {
       frontmatter: { read: readDocsFrontmatter, write: writeDocsFrontmatter },
     },
   }
-}
-
-/** Builds a content type from a preset entry of the module options. */
-export function createPresetType(
-  entry: DocsTypeOptions & { preset: 'docs' }
-): PlutoContentType {
-  return createDocsType(entry)
 }

@@ -13,6 +13,7 @@ export type PlutoSaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'failed'
 /**
  * The state of the content form that a field widget can read. Get it with
  * `usePlutoContentForm()`. It is the same object for every widget of one form.
+ * @see https://pluto.vulmix.dev/docs/extend/add-a-field-widget
  */
 export interface PlutoContentFormContext {
   /** The content type of the form. */

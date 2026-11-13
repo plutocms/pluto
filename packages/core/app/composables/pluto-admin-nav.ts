@@ -4,12 +4,8 @@ import { contentTypeMatches } from './internal/admin-menu'
 import { contentTextFor } from './internal/content-text'
 import { findNavGroup, splitByNavGroup } from './internal/nav-groups'
 
-// The id of core's Settings nav item (extension `pluto`, entry `settings`).
 const SETTINGS_NAV_ID = 'pluto:settings'
 
-// Every sub-item of the sidebar has an icon: the list of a section, its "new" page, and a content
-// type with no icon of its own in a group. A layer with its own list and create links uses the
-// same two icons (see the admin-shell skill).
 const PLUTO_NAV_LIST_ICON = 'lucide:list'
 const PLUTO_NAV_NEW_ICON = 'lucide:plus'
 const PLUTO_NAV_TYPE_ICON = 'lucide:file'
@@ -59,14 +55,10 @@ export function usePlutoAdminNav() {
   const i18n = usePlutoI18n()
   const { t, tx } = i18n
 
-  // Dev only. The groups already warned about, so each warns once.
   const warnedGroups = new Set<string>()
 
   const items = computed<PlutoNavItem[]>(() => {
     const registered = registry.nav.list.value
-    // A child with `enabled` shows only when the test passes (for example a
-    // child for admins only). An item with its own `to` and one visible child
-    // stays a plain link, like Settings with one page.
     const resolveLabels = (item: PlutoNavItem): PlutoNavItem => {
       const children = item.children
         ?.filter((child) => child.enabled?.() ?? true)
@@ -85,7 +77,6 @@ export function usePlutoAdminNav() {
     const isVisible = (type: PlutoContentType): boolean =>
       !type.capabilities?.read || can(type.capabilities.read)
 
-    // The "+" of the sidebar: the new page of a type the user may write.
     const canWrite = (type: PlutoContentType): boolean =>
       !type.capabilities?.write || can(type.capabilities.write)
     const newLink = (type: PlutoContentType) =>
@@ -108,7 +99,6 @@ export function usePlutoAdminNav() {
         to: basePath,
         ...newLink(type),
         enabled: () => isVisible(type),
-        // A singleton type has one page: its form.
         children: type.singleton
           ? undefined
           : [
@@ -128,8 +118,6 @@ export function usePlutoAdminNav() {
       }
     }
 
-    // One item for the visible types of a group. A child is the list page of a
-    // type. The `match` paths keep the item active on the new and edit pages.
     function groupNav(bucket: NavGroupBucket<PlutoContentTypeEntry>) {
       const types = bucket.items.map((entry) => entry.type)
       const basePathOf = (type: PlutoContentType) =>
@@ -174,7 +162,6 @@ export function usePlutoAdminNav() {
       }
     }
 
-    // A group with one visible type shows that type as a normal item.
     const contentNav: PlutoNavItem[] = [
       ...ungrouped.map((entry) => typeNav(entry.type)),
       ...grouped.flatMap((bucket) =>
@@ -184,8 +171,6 @@ export function usePlutoAdminNav() {
       ),
     ]
 
-    // The Settings item lists one child per visible settings page, when there
-    // are two or more. With one page (General), the item stays a plain link.
     const withSettingsChildren = (item: PlutoNavItem): PlutoNavItem =>
       item.id === SETTINGS_NAV_ID && settingsPages.value.length >= 2
         ? {
@@ -199,8 +184,6 @@ export function usePlutoAdminNav() {
           }
         : item
 
-    // A registered item at the `basePath` of a content type also owns the
-    // type's new and edit pages, so the sidebar opens it there.
     const withTypeMatches = (item: PlutoNavItem): PlutoNavItem => {
       const extra = contentTypeMatches(
         item,
@@ -239,7 +222,6 @@ export interface PlutoAdminNavAction {
   to: string
 }
 
-// Trailing slashes off, so `/admin/users/` matches `/admin/users`.
 function trimPath(path: string): string {
   return path.replace(/\/+$/, '') || '/'
 }
@@ -260,6 +242,8 @@ function trimPath(path: string): string {
  *
  * `label` is the label of the section (for `aria-label`). A page shows the
  * tabs with `PlutoAdminNavTabs`.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/extension-registry
  */
 export function usePlutoAdminNavTabs() {
   const { items } = usePlutoAdminNav()

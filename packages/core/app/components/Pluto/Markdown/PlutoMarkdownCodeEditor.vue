@@ -1,19 +1,5 @@
 <script setup lang="ts">
 import type { Extension, Range } from '@codemirror/state'
-// The Markdown code editor of core, on CodeMirror 6. Every character stays
-// visible, and the text shows its format as the author types: bold, italic,
-// headings, links and code. The marks (`**`, `#`, `[`) stay, a little dimmed.
-// The MDC lines get a color: the components (`::name`), the slots (`#title`)
-// and the YAML props. A toolbar has the quick formats, with their shortcuts.
-// The post editor and the page editor of the docs layer use it.
-//
-// The model value is the Markdown text, as it is: the editor changes only what
-// the author types. `insert`, `focus`, `reveal` and `goToLine` are exposed, and
-// `insert` goes to the `toolbar` slot too, as in PlutoMarkdownSource.
-//
-// `formatMarkdown`, `minimalChange` and `mdcLineKinds` come from the auto-imports
-// (`shared/utils`). App code must not import `shared/` with a relative path: the
-// server build of pluto keeps its own `shared/` external.
 import type { MarkdownParser } from '@lezer/markdown'
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { PlutoMedia } from '../../../../shared/types/media'
@@ -71,19 +57,9 @@ const props = withDefaults(
     disabled?: boolean
     placeholder?: string
     ariaLabel?: string
-    /** Fill the height of the parent and scroll inside. Default: grow with the text. */
     fill?: boolean
-    /** The minimum height in lines when it grows with the text. Default 18. */
     minLines?: number
-    /** Show all the text in the monospace font (14px), like a code editor. Default: the UI font. */
     monospace?: boolean
-    /**
-     * No box: the text sits on the background of the parent (the post editor), with no side
-     * padding, and grows to fill the height that the parent gives it. The toolbar is the one of
-     * the Visual editor (a rounded bar that stays at the top while the parent scrolls: undo, the
-     * headings and lists, the formats, the image and the components), and a selection shows the
-     * inline formats in a bubble toolbar above it. Default: one bordered box with the quick formats.
-     */
     bare?: boolean
   }>(),
   {
@@ -93,14 +69,11 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
-  /** The caret moved: its line (from 0). The outline of the post editor follows it. */
   cursorLine: [line: number]
 }>()
 
 defineSlots<{
-  /** Next to the quick formats, for example the Insert menu. */
   toolbar?: (props: { insert: Insert; focus: () => void }) => unknown
-  /** At the end of the toolbar, for example the Visual and Markdown switch. */
   'toolbar-end'?: () => unknown
 }>()
 
@@ -139,7 +112,6 @@ const FORMATS: Array<{
 const host = useTemplateRef<HTMLElement>('host')
 let view: EditorView | null = null
 
-// A change that comes from the model value, not from the author: no `update:modelValue` for it.
 const fromModel = Annotation.define<boolean>()
 const editable = new Compartment()
 
@@ -147,10 +119,6 @@ function editableState(disabled: boolean): Extension {
   return [EditorView.editable.of(!disabled), EditorState.readOnly.of(disabled)]
 }
 
-// --- Look ------------------------------------------------------------------------
-
-// The format shows on the text, and the marks stay visible but dimmed. Every line has the same
-// font size: a heading (`## Title`) is yellow, not larger, so it stays apart from a slot (`#title`).
 const hybridStyle = HighlightStyle.define([
   {
     tag: [
@@ -181,10 +149,6 @@ const hybridStyle = HighlightStyle.define([
   },
 ])
 
-// The Markdown language, with the language of each code block (```ts): `@codemirror/language-data` loads a
-// language the first time a block names it, and the editor colors the block then. Built from
-// `markdownLanguage` (the same data, so the list commands still see Markdown), not with `markdown()`,
-// which adds the HTML language for raw HTML (70 KB gzip).
 function codeParser(info: string) {
   const name = /\S*/.exec(info)?.[0]
   const found = name
@@ -207,8 +171,6 @@ const markdownWithCode = new Language(
   'markdown'
 )
 
-// The colors of the code in a block, from the palette of the admin (`--pluto-code-*`, the same as
-// the Visual mode).
 const codeStyle = HighlightStyle.define([
   {
     tag: [
@@ -262,8 +224,6 @@ const LINE_CLASSES = {
   props: Decoration.line({ class: 'cm-pluto-props' }),
   code: Decoration.line({ class: 'cm-pluto-code' }),
 }
-// The parts of an MDC line (`mdcLineTokens`): the colons and braces, the name of a component, its
-// attributes and their values, the name of a slot, the keys and the values of the YAML props.
 const MDC_MARKS = {
   punct: Decoration.mark({ class: 'cm-mdc-punct' }),
   name: Decoration.mark({ class: 'cm-mdc-name' }),
@@ -273,14 +233,11 @@ const MDC_MARKS = {
   slot: Decoration.mark({ class: 'cm-mdc-slot' }),
 }
 
-// The first and the last line of a code block, for its rounded corners.
 const CODE_EDGES = {
   first: Decoration.line({ class: 'cm-pluto-code-first' }),
   last: Decoration.line({ class: 'cm-pluto-code-last' }),
 }
 
-// The MDC lines and the code blocks get their own look. A docs page has a few hundred lines,
-// so the plugin reads the whole text again after each change.
 const mdcLines = ViewPlugin.fromClass(
   class {
     decorations = Decoration.none
@@ -325,9 +282,6 @@ const mdcLines = ViewPlugin.fromClass(
   { decorations: (plugin) => plugin.decorations }
 )
 
-// The look of the Markdown parts that the highlight style cannot give, from the syntax tree of the
-// visible lines: inline code is a tinted pill (its backticks too), a quote line has a bar at its
-// left, and a list mark takes the primary color.
 const MARKS = {
   InlineCode: Decoration.mark({ class: 'cm-pluto-inline-code' }),
   ListMark: Decoration.mark({ class: 'cm-pluto-list-mark' }),
@@ -393,11 +347,9 @@ const theme = EditorView.theme({
   '&': {
     color: 'var(--ui-text)',
     backgroundColor: 'transparent',
-    // The host element sets these two variables for the `monospace` prop.
     fontSize: 'var(--pluto-cm-font-size, 15px)',
   },
   '&.cm-focused': { outline: 'none' },
-  // The scrollbar has no track of its own. With `fill`, it also keeps its room (the host class).
   '.cm-scroller': {
     scrollbarColor: 'var(--ui-border-accented) transparent',
     fontFamily: 'var(--pluto-cm-font, inherit)',
@@ -448,8 +400,6 @@ const theme = EditorView.theme({
     fontFamily: 'var(--font-mono, ui-monospace, monospace)',
     backgroundColor: 'color-mix(in oklab, var(--ui-text) 5%, transparent)',
   },
-  // A block: some room at its sides, and rounded corners. With `.cm-line`, to win over the padding
-  // of a `bare` editor.
   '.cm-line.cm-pluto-code': { paddingInline: '12px' },
   '.cm-line.cm-pluto-code-first': {
     borderTopLeftRadius: '6px',
@@ -461,9 +411,6 @@ const theme = EditorView.theme({
     borderBottomRightRadius: '6px',
     paddingBottom: '4px',
   },
-  // A component, slot or props line keeps its own look: no Markdown format inside it (a code line
-  // keeps the colors of its language). A YAML
-  // line before a `---` line would read as a heading (a "setext" heading) and turn yellow.
   '.cm-pluto-component :not([class*="cm-mdc-"]), .cm-pluto-slot :not([class*="cm-mdc-"]), .cm-pluto-props :not([class*="cm-mdc-"])':
     {
       color: 'inherit !important',
@@ -473,8 +420,6 @@ const theme = EditorView.theme({
       backgroundColor: 'transparent !important',
       padding: '0 !important',
     },
-  // The colors of the MDC parts: the palette of the code of the admin (`--pluto-code-*`), the name
-  // of a component in the primary color. `!important` and two classes: they win over the reset above.
   '.cm-line .cm-mdc-punct': { color: 'var(--ui-text-dimmed) !important' },
   '.cm-line .cm-mdc-name': {
     color: 'var(--ui-primary) !important',
@@ -499,14 +444,11 @@ const theme = EditorView.theme({
   },
 })
 
-// `bare`: no side padding. In the theme, not as a Tailwind `!` class: an important utility of a
-// layer beats every unlayered rule, and a quote line needs its own padding.
+// In the theme, not a Tailwind `!` class: an important utility of a layer beats every unlayered rule.
 const bareTheme = EditorView.theme({
   '.cm-content': { paddingInline: '0' },
   '.cm-line': { paddingInline: '0' },
 })
-
-// --- Actions -----------------------------------------------------------------------
 
 function format(kind: PlutoMarkdownFormat): boolean {
   if (!view || props.disabled) {
@@ -531,10 +473,6 @@ function focus(): void {
   view?.focus()
 }
 
-/**
- * Inserts text in place of the selection and puts the caret after it. With
- * `block`, the text gets a blank line before and after it.
- */
 function insert(text: string, options: { block?: boolean } = {}): void {
   if (!view || props.disabled) {
     return
@@ -556,7 +494,6 @@ function insert(text: string, options: { block?: boolean } = {}): void {
   view.focus()
 }
 
-/** Selects the first line of the range and scrolls it to the upper third of the editor. */
 function reveal(start: number, end: number): void {
   if (!view) {
     return
@@ -574,10 +511,6 @@ function reveal(start: number, end: number): void {
   view.focus()
 }
 
-/**
- * Puts the caret at the end of a line (from 0), and scrolls that line to the top of the editor.
- * The outline of the post editor uses it to jump to a heading.
- */
 function goToLine(line: number): void {
   if (!view) {
     return
@@ -594,12 +527,10 @@ function goToLine(line: number): void {
   view.focus()
 }
 
-/** The offset of the caret in the text (the post editor keeps it across modes and reloads). */
 function caret(): number {
   return view?.state.selection.main.head ?? 0
 }
 
-/** Puts the caret at an offset of the text, in the middle of the editor, and focuses it. */
 function setCaret(offset: number): void {
   if (!view) {
     return
@@ -614,12 +545,6 @@ function setCaret(offset: number): void {
 
 defineExpose({ insert, focus, reveal, goToLine, caret, setCaret })
 
-// --- Toolbar (`bare`) --------------------------------------------------------------------
-//
-// The toolbar of the Visual editor, with the same groups, icons and labels (`pluto.github.editor.*`),
-// acting on the Markdown text.
-
-/** The undo and redo steps, for the state of their buttons. */
 const steps = ref({ undo: 0, redo: 0 })
 
 function runHistory(command: typeof undo) {
@@ -629,7 +554,6 @@ function runHistory(command: typeof undo) {
   }
 }
 
-/** Sets the heading level of the lines of the selection (0: a paragraph). */
 function setHeading(level: number) {
   if (!view || props.disabled) {
     return
@@ -674,7 +598,6 @@ const listItems = computed<DropdownMenuItem[]>(() => [
   },
 ])
 
-// The image button (with a media library) and the component menu (with block components).
 const media = usePlutoMedia()
 const imageOpen = ref(false)
 function insertImage(chosen: PlutoMedia[]) {
@@ -699,7 +622,6 @@ const componentItems = computed<DropdownMenuItem[][]>(() => [
   ],
 ])
 
-/** A button of a quick format, with the shortcut of `FORMATS` in its tooltip. */
 function formatButton(
   kind: PlutoMarkdownFormat,
   icon: string,
@@ -716,7 +638,6 @@ function formatButton(
   }
 }
 
-/** The entries of the toolbar, in the groups of the Visual toolbar. */
 const toolbarItems = computed<PlutoMarkdownToolbarItem[]>(() => [
   {
     kind: 'button',
@@ -799,9 +720,6 @@ const toolbarItems = computed<PlutoMarkdownToolbarItem[]>(() => [
     : []),
 ])
 
-// The entries that do not fit go into a More popover at the end of the row, like the Visual
-// toolbar (PlutoMarkdownToolbar): a narrow panel shows no second row. Every button has the same
-// width, so the split measures one button and one separator, then counts.
 const toolbarRow = useTemplateRef<HTMLElement>('toolbarRow')
 const { width: toolbarWidth } = useElementSize(toolbarRow)
 const toolbarSizes = ref({ item: 32, separator: 9, gap: 2 })
@@ -834,7 +752,6 @@ function entriesWidth(entries: PlutoMarkdownToolbarItem[]): number {
   )
 }
 
-/** Without the separators at the start and the end. */
 function trimSeparators(
   entries: PlutoMarkdownToolbarItem[]
 ): PlutoMarkdownToolbarItem[] {
@@ -865,17 +782,12 @@ const toolbarSplit = computed(() => {
   }
 })
 
-// --- Bubble toolbar (`bare`) ---------------------------------------------------------------
-
-// The inline formats, like the bubble toolbar of the Visual editor.
 const BUBBLE_FORMATS = FORMATS.filter((item) =>
   ['bold', 'italic', 'strike', 'code', 'link'].includes(item.format)
 )
 
-// Where the bubble shows (viewport px: the middle of the start of the selection), or null.
 const bubble = ref<{ top: number; left: number } | null>(null)
 
-/** Measures the selection and places the bubble above it. No selection, no focus: no bubble. */
 function placeBubble() {
   if (!view || !props.bare) {
     return
@@ -892,7 +804,6 @@ function placeBubble() {
       if (!start || !end) {
         return null
       }
-      // One line: the middle of the selection. More lines: above the start.
       const left =
         Math.abs(start.top - end.top) < 2
           ? (start.left + end.left) / 2
@@ -905,16 +816,11 @@ function placeBubble() {
   })
 }
 
-// The page scrolls the editor (it grows with the text): the bubble follows.
 useEventListener('scroll', () => bubble.value && placeBubble(), {
   capture: true,
   passive: true,
 })
 
-// The text goes to the parent at most every 200 ms while the author types, and at once when the
-// editor loses the focus or closes: each value renders the form and the outline, so a value at each
-// key made fast typing lag. A value from the parent that this editor gave (`emitted`) is older than
-// the text, or the same: the watch below never puts it back.
 const EMIT_INTERVAL = 200
 let emitted: string | null = null
 let emitTimer: ReturnType<typeof setTimeout> | undefined
@@ -929,8 +835,6 @@ function flushValue() {
   }
 }
 
-// --- Setup -------------------------------------------------------------------------
-
 onMounted(() => {
   if (props.bare) {
     nextTick(measureToolbar)
@@ -943,8 +847,7 @@ onMounted(() => {
         history(),
         drawSelection(),
         EditorView.lineWrapping,
-        // Not `markdown()`: it adds the HTML, CSS and JavaScript languages for raw HTML in Markdown
-        // (70 KB gzip). The pages have none, and the list commands need only `markdownLanguage`.
+        // Not `markdown()`: it adds the HTML, CSS and JavaScript languages (70 KB gzip).
         new LanguageSupport(markdownWithCode),
         syntaxHighlighting(codeStyle),
         syntaxHighlighting(hybridStyle),
@@ -1012,7 +915,6 @@ onMounted(() => {
   })
 })
 
-// The text changed outside the editor (a reload, the other mode): show it, and keep the caret.
 watch(
   () => props.modelValue,
   (value) => {
@@ -1086,10 +988,6 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- `bare`: the toolbar of the Visual editor, in the same place and look (a rounded bar that
-         stays at the top while the post editor scrolls). The entries that do not fit go into the
-         More popover. A button keeps the focus in the text (`mousedown.prevent`), so the
-         selection stays. -->
     <div
       v-if="bare"
       :aria-label="t('pluto.github.editor.toolbar')"
@@ -1154,8 +1052,6 @@ onBeforeUnmount(() => {
       />
     </div>
 
-    <!-- `fill`: the editor scrolls inside, and keeps the room of its scrollbar. `bare`: the editor
-         fills the height that the parent gives it, with no side padding. -->
     <div
       ref="host"
       :class="
@@ -1179,8 +1075,6 @@ onBeforeUnmount(() => {
       class="pluto-markdown-code-editor"
     />
 
-    <!-- `bare`: the inline formats over a selection, like the bubble toolbar of the Visual editor.
-         A button keeps the focus in the text (`mousedown.prevent`), so the selection stays. -->
     <div
       v-if="bare && bubble"
       :aria-label="t('pluto.markdown.formatting')"

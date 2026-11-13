@@ -42,10 +42,11 @@ export function usePlutoAppMounted() {
  * last registered driver wins. With no driver, `user` is null and `loggedIn`
  * is false. In development, a driver that breaks the contract logs one warning
  * for each problem.
+ *
+ * @see https://pluto.vulmix.dev/docs/supabase/auth
  */
 export function usePlutoAuth() {
   const registry = usePlutoRegistry()
-  // Read at setup, while the Nuxt context exists. `signOut` runs after an await.
   const { t } = usePlutoI18n()
   const toast = useToast()
   const base = useRuntimeConfig().app.baseURL
@@ -87,8 +88,6 @@ export function usePlutoAuth() {
     }
     const userId = user.value?.id
     await driver.value.signOut()
-    // The browser backups of the user (unsaved changes) must not stay on a shared computer. A
-    // session that expires keeps them, so the same user gets them back after the next sign-in.
     if (userId && import.meta.client) {
       try {
         clearUserBackups(window.localStorage, base, userId)

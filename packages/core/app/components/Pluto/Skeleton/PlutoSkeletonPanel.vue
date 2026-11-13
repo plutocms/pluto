@@ -1,14 +1,8 @@
 <script setup lang="ts">
-// Placeholder for the left panel of a canvas form (for example the block list
-// of the page editor) while the item or the widget code loads. The shape of a
-// list panel: a header with the title and its buttons, rows with an icon and a
-// title (one row with children under a guide line), and a footer.
 defineProps<{
-  /** The panel title. It shows as text, so the header does not change. */
   title?: string
 }>()
 
-// The title widths of the rows, so the rows do not all look the same.
 const rows = [
   'w-3/4',
   'w-1/2',

@@ -1,10 +1,3 @@
-// The read side of the public pages. These composables hide the render mode
-// (`plutoDocs.render`). In `'build'` mode they call Nuxt Content's
-// `queryCollection`. In `'hybrid'` and `'runtime'` mode they call the layer's server routes:
-// `'runtime'` reads the Markdown from the content repository, and `'hybrid'` serves the build
-// data until a file differs from the build. A site calls only these, so a switch
-// of the mode needs no change in its pages. See the docs-setup skill.
-
 import type { MaybeRefOrGetter } from 'vue'
 
 /**
@@ -68,8 +61,7 @@ export interface PlutoContentNavigationOptions extends PlutoContentReadOptions {
   includeRoot?: boolean
 }
 
-/** `'hybrid'`, `'build'` or `'runtime'`: the render mode of the site. */
-export function usePlutoContentRender(): 'hybrid' | 'build' | 'runtime' {
+function usePlutoContentRender(): 'hybrid' | 'build' | 'runtime' {
   const render = useRuntimeConfig().public.plutoDocs?.render
   return render === 'runtime' || render === 'hybrid' ? render : 'build'
 }
@@ -102,7 +94,6 @@ function normalizePath(path: string): string {
   return path.length > 1 ? path.replace(/\/+$/, '') : path
 }
 
-/** A route of the layer on the public API of Pluto. See `RUNTIME_ROUTE_BASE` in the module. */
 function routeUrl(
   type: string,
   name: 'page' | 'navigation' | 'surround'
@@ -110,7 +101,6 @@ function routeUrl(
   return `/api/pluto/v1/docs/${encodeURIComponent(type)}/${name}`
 }
 
-/** Runs a server route and returns its `data`. A 404 gives `null`. Any other error is thrown. */
 async function fetchRoute<T>(
   url: string,
   query: Record<string, string | undefined>
@@ -130,6 +120,7 @@ async function fetchRoute<T>(
  * The page at a route path, or `null` when there is none. Returns the result of
  * `useAsyncData`, so `await` it in `<script setup>`. The path follows the ref.
  *
+ * @see https://pluto.vulmix.dev/docs/layers/docs#pages-that-work-in-every-mode
  * @example
  * const { data: page } = await usePlutoContentPage(() => route.path, { collection: 'docs' })
  */
@@ -152,7 +143,6 @@ export function usePlutoContentPage(
           { path: current, collection: options.collection }
         )
       }
-      // The collection name is a string here. The generated types know the names of the site.
       const page = await queryCollection(
         buildCollection(options, 'usePlutoContentPage') as never
       )
@@ -170,6 +160,8 @@ export function usePlutoContentPage(
  *
  * Folder titles, icons and the other keys of a `.navigation.yml` file apply in every mode: Nuxt
  * Content reads them at build time, and the server reads them from the store at run time.
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/docs#pages-that-work-in-every-mode
  */
 export function usePlutoContentNavigation(
   options: PlutoContentNavigationOptions = {}
@@ -198,6 +190,8 @@ export function usePlutoContentNavigation(
 /**
  * The previous and the next page of a route path: `[previous, next]`, each one an item or
  * `null`. Each item has `title`, `path` and `description`.
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/docs#pages-that-work-in-every-mode
  */
 export function usePlutoContentSurround(
   path: MaybeRefOrGetter<string>,

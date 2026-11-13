@@ -1,3 +1,4 @@
+/** The weekly creation counts of one content type. */
 export interface PlutoContentActivitySeries {
   name: string
   label: string
@@ -20,7 +21,6 @@ export function usePlutoContentActivity(weeks = 12) {
   return useAsyncData(
     `pluto-content-activity-${weeks}`,
     async () => {
-      // A singleton type has one item: no activity to chart.
       const series = await Promise.all(
         contentTypes.value
           .filter(({ type }) => !type.singleton)

@@ -1,51 +1,31 @@
 <script setup lang="ts">
-// The toolbar of `PlutoContentForm`. Every layout uses it, so every edit page
-// has the same top row: back, the breadcrumbs ("Type > • title [status] Saved
-// just now"), then the View link, the toolbar items of the layers, the buttons
-// of the layers, Save or Publish, the overflow menu, and the panel toggles.
-// Unsaved changes show as a yellow dot before the title, with a tooltip. It
-// holds no form logic. The form passes the data in and handles the events.
-
 const props = defineProps<{
-  /** The list of the type. Unset (a singleton type): no back link and no breadcrumb. */
   backTo?: string
-  /** The plural label of the type, before the title. */
   typeLabel: string
   title: string
   status?: {
     label: string
     published: boolean
-    /** The badge color. Default: success when published, else neutral. */
     color?: 'success' | 'neutral' | 'info' | 'warning'
-    /** The full text of the badge, for a tooltip (for example the date of a schedule). */
     title?: string
   }
   saveState: PlutoSaveState
-  /** The text of the `saved` state, for example "Saved 2 min ago". */
   savedText?: string
-  /** The public URL of the item. The "View <label>" link shows only when it is set. */
   viewUrl?: string
-  /** The singular label of the type, for the "View <label>" link ("View Post"). */
   itemLabel?: string
-  /** Components that a layer adds with `contentToolbarItems`, already filtered. They show before the buttons. */
   toolbarItems?: PlutoContentToolbarItem[]
-  /** Buttons that a layer adds with `contentActions`, already filtered. */
   actions: PlutoFormHeaderButton[]
-  /** The save and publish buttons, already filtered. */
   buttons: PlutoFormHeaderButton[]
   saving: boolean
   canUnpublish: boolean
-  /** The menu label of `unpublish`: Unpublish by default, else Unschedule or Return to draft. */
   unpublishLabel?: string
   canDelete: boolean
-  /** The type has a trash: the menu says Move to trash. */
   trash?: boolean
   asideToggle?: PlutoFormHeaderToggle
   leftToggle?: PlutoFormHeaderToggle
 }>()
 
 const emit = defineEmits<{
-  /** A button of `buttons` or `actions` was pressed. */
   press: [id: string]
   retry: []
   unpublish: []
@@ -56,14 +36,10 @@ const emit = defineEmits<{
 
 const { t } = usePlutoI18n()
 
-// While a save runs, the pressed button shows the spinner and the others are only disabled. A save
-// from the keyboard (Ctrl+S) has no pressed button: all are disabled, and the state line says it.
 const pressed = ref<string | null>(null)
 function press(id: string) {
   pressed.value = id
   emit('press', id)
-  // A press that starts no save (a check failed, or Schedule opens its dialog) forgets the button
-  // (the prop changes after the form renders: a tick later).
   nextTick(() => {
     if (!props.saving) {
       pressed.value = null
@@ -79,8 +55,6 @@ watch(
   }
 )
 
-// Below `sm` (40rem) the row is tight: the View link moves into the overflow
-// menu, and a secondary button shows its icon only.
 const isSm = useMediaQuery('(min-width: 40rem)')
 
 const viewLabel = computed(() =>
@@ -144,8 +118,6 @@ const stateText = computed(() => {
 
 <template>
   <PlutoViewToolbar :back-to="backTo">
-    <!-- The breadcrumbs, in a smaller font. The type label links to the list; the title is the
-         current page. -->
     <template #title>
       <NuxtLink
         v-if="backTo"
@@ -159,7 +131,6 @@ const stateText = computed(() => {
         name="i-lucide-chevron-right"
         class="text-muted hidden size-4 shrink-0 sm:block"
       />
-      <!-- Unsaved changes: a yellow dot before the title. The live region after the title says it. -->
       <UTooltip v-if="saveState === 'dirty'" :text="stateText">
         <span
           class="bg-warning size-2 shrink-0 rounded-full"
@@ -180,7 +151,6 @@ const stateText = computed(() => {
         {{ status.label }}
       </UBadge>
 
-      <!-- The save state is a live region: a screen reader hears it change. -->
       <div
         role="status"
         aria-live="polite"

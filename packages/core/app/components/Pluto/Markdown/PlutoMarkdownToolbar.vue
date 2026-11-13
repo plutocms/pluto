@@ -2,13 +2,6 @@
 import type { EditorToolbarItem } from '@nuxt/ui'
 import type { Editor } from '@tiptap/vue-3'
 
-// The toolbar of a rich text editor in one row. The buttons that do not fit go into a "More"
-// popover at the end of the row, as the same buttons, so a narrow panel shows no second row and
-// no empty space. The groups keep their separators. The slots of the items (a link button, the
-// media button, the component menu) work in both places: the parent passes them as slots here.
-//
-// Every button of the toolbar has the same width (the icon buttons of `UEditorToolbar` and of the
-// slots), so the split reads the width of one button and of one separator, then counts.
 const props = defineProps<{
   editor: Editor
   items: EditorToolbarItem[][]
@@ -21,7 +14,6 @@ const { t } = usePlutoI18n()
 const row = useTemplateRef<HTMLElement>('row')
 const { width } = useElementSize(row)
 
-// The sizes in px. A first render measures the real button and separator.
 const sizes = ref({ item: 28, separator: 9, gap: 2 })
 function measure() {
   const el = row.value
@@ -44,7 +36,6 @@ function measure() {
 }
 onMounted(() => nextTick(measure))
 
-/** The width of some groups in one row. */
 function rowWidth(groups: EditorToolbarItem[][]): number {
   const { item, separator, gap } = sizes.value
   const count = groups.reduce((sum, group) => sum + group.length, 0)
@@ -55,11 +46,9 @@ function rowWidth(groups: EditorToolbarItem[][]): number {
 
 const split = computed(() => {
   const all = props.items.filter((group) => group.length > 0)
-  // Not measured yet (0), or everything fits: one row with all the buttons.
   if (width.value === 0 || rowWidth(all) <= width.value) {
     return { visible: all, overflow: [] as EditorToolbarItem[][] }
   }
-  // Room for the More button and its gap.
   const room = width.value - sizes.value.item - sizes.value.gap
   const visible: EditorToolbarItem[][] = []
   const overflow: EditorToolbarItem[][] = []
@@ -88,7 +77,6 @@ const split = computed(() => {
   return { visible, overflow }
 })
 
-// The names of the item slots that the parent fills (`link`, `image`, `component`, ...).
 const slotNames = computed(() => Object.keys(slots))
 </script>
 

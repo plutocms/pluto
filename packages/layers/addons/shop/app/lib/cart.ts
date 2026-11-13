@@ -1,60 +1,35 @@
-// The pure rules of the cart: no Vue, no Nuxt, no storage. `useCart` (app/composables/cart.ts)
-// keeps the lines in state and calls these. Tests: test/cart.test.ts.
-
-/**
- * The fields the cart needs from a product. The public API gives more. No index signature, so an
- * interface of the app (`PublicProduct`) fits: an interface has no implicit index signature.
- */
+// No index signature: an app interface such as `PublicProduct` must fit.
 export interface PlutoCartProduct {
   id: string | number
-  /** The price of one unit, in cents. */
   price: number
 }
 
-/** One product in the cart. `product` is a copy, from the last time the cart read it. */
 export interface PlutoCartLine<T extends PlutoCartProduct = PlutoCartProduct> {
   id: string | number
   quantity: number
   product: T
 }
 
-/** The settings of the cart (`plutoShop.cart` in app config). */
 export interface PlutoCartRules {
-  /** The most units of one product in the cart. */
   maxQuantity: number
-  /**
-   * A number field of the product: the units in stock. The cart takes no more than that. An
-   * empty name, or a product without a number in the field, has no stock limit.
-   */
   stockField: string
-  /**
-   * A boolean field of the product: true when it is made to order. Such a product has no stock
-   * limit, whatever its stock field holds. Empty: no such field.
-   */
   madeToOrderField: string
 }
 
-/** The text that localStorage holds. `version` lets a later format read an old cart. */
 export interface PlutoCartStored {
   version: 1
   lines: PlutoCartLine[]
 }
 
-/** The same id, for an id from the URL (a string) and an id from the API (a number). */
 export function sameCartId(a: string | number, b: string | number): boolean {
   return String(a) === String(b)
 }
 
-/**
- * The most units of `product` that the cart takes: the stock, and never more than `maxQuantity`.
- * A product made to order has no stock limit.
- */
 export function cartLimit(
   product: PlutoCartProduct,
   rules: PlutoCartRules
 ): number {
   const max = Math.max(0, Math.floor(rules.maxQuantity))
-  // The fields are names from the settings, so read the product as a record.
   const fields = product as unknown as Record<string, unknown>
   if (rules.madeToOrderField && fields[rules.madeToOrderField] === true) {
     return max
@@ -66,7 +41,6 @@ export function cartLimit(
   return Math.min(max, Math.max(0, Math.floor(stock)))
 }
 
-/** A whole number from 0 to `limit`. Anything else that is not a number gives 0. */
 function clampQuantity(quantity: number, limit: number): number {
   if (!Number.isFinite(quantity)) {
     return 0
@@ -74,11 +48,6 @@ function clampQuantity(quantity: number, limit: number): number {
   return Math.min(limit, Math.max(0, Math.floor(quantity)))
 }
 
-/**
- * Adds `quantity` units of `product`, up to its limit. A product in the cart gets the new copy,
- * and its units go down to the new limit when the stock is now lower. Returns the new lines and
- * the units really added (0 when the product is at its limit).
- */
 export function addCartLine<T extends PlutoCartProduct>(
   lines: PlutoCartLine<T>[],
   product: T,
@@ -102,7 +71,6 @@ export function addCartLine<T extends PlutoCartProduct>(
   }
 }
 
-/** Sets the units of one product, up to its limit. 0 or less removes the product. */
 export function setCartLineQuantity<T extends PlutoCartProduct>(
   lines: PlutoCartLine<T>[],
   id: string | number,
@@ -118,7 +86,6 @@ export function setCartLineQuantity<T extends PlutoCartProduct>(
   })
 }
 
-/** The lines without the product `id`. */
 export function removeCartLine<T extends PlutoCartProduct>(
   lines: PlutoCartLine<T>[],
   id: string | number
@@ -126,18 +93,15 @@ export function removeCartLine<T extends PlutoCartProduct>(
   return lines.filter((line) => !sameCartId(line.id, id))
 }
 
-/** The units of all products. */
 export function cartCount(lines: PlutoCartLine[]): number {
   return lines.reduce((sum, line) => sum + line.quantity, 0)
 }
 
-/** The price of one line, in cents. */
 export function cartLineSubtotal(line: PlutoCartLine): number {
   const price = Number(line.product.price)
   return Number.isFinite(price) ? price * line.quantity : 0
 }
 
-/** The price of all lines, in cents. */
 export function cartSubtotal(lines: PlutoCartLine[]): number {
   return lines.reduce((sum, line) => sum + cartLineSubtotal(line), 0)
 }
@@ -160,10 +124,6 @@ function isCartLine(value: unknown): value is PlutoCartLine {
   )
 }
 
-/**
- * The lines of a saved cart. A text that is not a cart gives no lines, and a line that is not
- * valid is left out, so a broken or old value never breaks the page.
- */
 export function parseCart(text: string | null | undefined): PlutoCartLine[] {
   if (!text) {
     return []
@@ -190,18 +150,11 @@ export function parseCart(text: string | null | undefined): PlutoCartLine[] {
   return lines
 }
 
-/** The text to save in localStorage. */
 export function serializeCart(lines: PlutoCartLine[]): string {
   const stored: PlutoCartStored = { version: 1, lines }
   return JSON.stringify(stored)
 }
 
-/**
- * The lines with the current products. `fresh` maps an id to the product as the API gives it
- * now, or `null` when the API no longer has it. An id that is not in `fresh` (the call failed)
- * keeps its line as it is. A product that is gone, or out of stock, leaves the cart; a quantity
- * over the new limit goes down to it.
- */
 export function refreshCartLines<T extends PlutoCartProduct>(
   lines: PlutoCartLine<T>[],
   fresh: Map<string, T | null>,
@@ -239,17 +192,11 @@ export function refreshCartLines<T extends PlutoCartProduct>(
   return { lines: result, removed, changed }
 }
 
-/** How `loadCartProducts` reads the public API. */
 export interface PlutoCartSource {
-  /** The public content type of the products. */
   type: string
-  /** A static build: read the public index, not the item routes. */
   static: boolean
-  /** The path of the public index (`PLUTO_PUBLIC_INDEX_PATH`). */
   indexPath: string
-  /** The path of one item (`/api/pluto/v1/content/<type>/<id>`). */
   itemPath: (id: string | number) => string
-  /** `$fetch`, or a stub in a test. */
   fetch: <R>(path: string) => Promise<R>
 }
 
@@ -258,12 +205,6 @@ function isNotFound(error: unknown): boolean {
   return status?.statusCode === 404 || status?.status === 404
 }
 
-/**
- * The current products of `ids`, for `refreshCartLines`: a product, or `null` when the API no
- * longer has it (404, or not in the index). An id whose call failed in another way is not in the
- * map, so its line stays. A static site reads the index once; a live site reads each item, in
- * parallel.
- */
 export async function loadCartProducts<T extends PlutoCartProduct>(
   ids: (string | number)[],
   source: PlutoCartSource
@@ -299,10 +240,6 @@ export async function loadCartProducts<T extends PlutoCartProduct>(
   return result
 }
 
-/**
- * The localStorage key of the cart. A site under a sub path (GitHub Pages) adds the path, so
- * two sites on one origin keep two carts.
- */
 export function cartStorageKey(storageKey: string, baseURL: string): string {
   return baseURL && baseURL !== '/' ? `${storageKey}:${baseURL}` : storageKey
 }

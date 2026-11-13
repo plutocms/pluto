@@ -1,29 +1,17 @@
-// Scopes a compiled stylesheet to the Pluto admin: every rule matches only
-// inside a scope root. Pure (no `nuxt/kit`), so the unit tests call it directly.
-// See the single-tailwind-build skill, "The admin build".
 import type { AtRule, Rule } from 'postcss'
 import postcss from 'postcss'
 import selectorParser from 'postcss-selector-parser'
 
-/**
- * The elements that start the admin scope: <html> on an admin page
- * (`data-pluto-admin`), and the admin bar and its portals on a public page
- * (`data-pluto-admin-scope`).
- */
 export const PLUTO_ADMIN_SCOPE_ROOTS = [
   '[data-pluto-admin]',
   '[data-pluto-admin-scope]',
 ] as const
 
-/** Selectors that mean the document root. They become the scope roots. */
 const ROOT_SELECTORS = new Set([':root', ':host', 'html'])
 
-/** A pseudo-element: the scope goes before it. */
 const PSEUDO_ELEMENT = /^(?:::|:(?:before|after|first-line|first-letter)$)/
 
-/** Scopes each selector of a selector list. */
 function scopeSelectorList(selector: string, roots: readonly string[]): string {
-  // An element in the scope: a root itself, or anything inside a root.
   const inScope = `:is(${[...roots, ...roots.map((root) => `${root} *`)].join(', ')})`
   const rootNames = roots.map((root) => root.slice(1, -1))
   const out: string[] = []
@@ -36,13 +24,9 @@ function scopeSelectorList(selector: string, roots: readonly string[]): string {
         return
       }
       if (ROOT_SELECTORS.has(text)) {
-        // A doubled root, (0,2,0): on <html> of an admin page it beats the
-        // app's own `:root` (0,1,0), whatever order the two files load in.
         out.push(...roots.map((root) => `${root}${root}`))
         return
       }
-      // The subject is the last compound: `.a .b::before` becomes
-      // `.a .b:is(…)::before`.
       const nodes = sel.nodes
       let start = 0
       nodes.forEach((node, index) => {
@@ -60,8 +44,6 @@ function scopeSelectorList(selector: string, roots: readonly string[]): string {
       if (pseudoElement === -1) {
         sel.append(scope)
       } else {
-        // The space before the pseudo-element (`, ::after`) moves to the
-        // scope. Left in place, it would be a descendant combinator.
         const target = nodes[pseudoElement]!
         scope.spaces.before = target.spaces.before
         target.spaces.before = ''
@@ -74,7 +56,6 @@ function scopeSelectorList(selector: string, roots: readonly string[]): string {
   return out.join(', ')
 }
 
-/** True when the rule is in `@keyframes`, or nested in another rule. */
 function keepAsIs(rule: Rule): boolean {
   let parent = rule.parent
   while (parent && parent.type !== 'root') {
@@ -92,17 +73,6 @@ function keepAsIs(rule: Rule): boolean {
   return false
 }
 
-/**
- * Returns `css` with every top-level rule scoped to `roots`:
- *
- * - `:root`, `:host`, and `html` become the roots, doubled for (0,2,0), so the
- *   theme variables and the base of the document apply from each root down,
- *   over the app's own `:root` rules.
- * - Any other selector gets `:is(<root>, <root> *)` on its subject. It then
- *   matches only in the scope, with (0,1,0) more specificity.
- * - A selector that names a root already stays.
- * - Rules nested in rules (they follow their parent) and `@keyframes` stay.
- */
 export function scopeCss(
   css: string,
   roots: readonly string[] = PLUTO_ADMIN_SCOPE_ROOTS

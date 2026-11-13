@@ -1,8 +1,4 @@
-// Generates app/assets/css/admin-theme.css from the Pluto UI tokens
-// (app/assets/css/pluto-tokens.css) and the installed Tailwind palette (the
-// status colors). Run from packages/core: node scripts/generate-admin-theme.cjs
-// See the admin-theme skill for the palette choices and how they were
-// validated.
+// Run from packages/core: node scripts/generate-admin-theme.cjs
 const fs = require('node:fs')
 const path = require('node:path')
 
@@ -17,7 +13,6 @@ const theme = fs.readFileSync(
 )
 const tokens = fs.readFileSync('app/assets/css/pluto-tokens.css', 'utf8')
 
-// sRGB hex to an OKLCH literal, so every value in the theme has one form.
 const toLinear = (c) =>
   c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 function hexToOklch(hex) {
@@ -36,7 +31,6 @@ function hexToOklch(hex) {
   return `oklch(${(L * 100).toFixed(1)}% ${C.toFixed(3)} ${H.toFixed(2)})`
 }
 
-// A Pluto token (tholin, haze, heart, kuiper) or a Tailwind color, as an OKLCH literal.
 function v(name) {
   const own = tokens.match(
     new RegExp(String.raw`--color-${name}: (#[0-9A-Fa-f]{6})`)

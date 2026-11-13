@@ -1,7 +1,3 @@
-// A server for the handler tests, with no Nitro. It registers the post type of the Git CMS with
-// the SEO extension and the Markdown adapter of core over the memory store, and stubs the names
-// that Nitro auto-imports in the handlers. Everything else is the real code of core and of the layer.
-
 import type { H3Event } from 'h3'
 import { vi } from 'vitest'
 import { createMarkdownContentAdapter } from '../../../../../core/modules/pluto-github/runtime/server/adapter'
@@ -37,7 +33,6 @@ import {
   plutoSeoRenderSitemap,
 } from '../../shared/utils/seo-xml'
 
-/** The default settings of the layer, as `app/app.config.ts` gives them. */
 export function defaultSeoConfig(
   extra: Record<string, unknown> = {}
 ): Record<string, any> {
@@ -59,7 +54,6 @@ export function defaultSeoConfig(
   }
 }
 
-/** A fake H3 event: the headers that a handler sets are in `headers`. */
 export interface FakeEvent {
   context: Record<string, unknown>
   headers: Record<string, string>
@@ -99,7 +93,6 @@ export interface SeoServerOptions {
   baseURL?: string
 }
 
-/** A post file with the frontmatter that the test gives. */
 export function postFile(
   frontmatter: Record<string, string | boolean>,
   body = 'Body of the post.'
@@ -110,7 +103,6 @@ export function postFile(
   return `---\n${lines.join('\n')}\n---\n${body}\n`
 }
 
-/** Registers everything and stubs the globals. Call `vi.unstubAllGlobals()` after the test. */
 export function setupSeoServer(options: SeoServerOptions = {}) {
   const config = defaultSeoConfig(options.config)
   const root = options.root === undefined ? 'https://example.com' : options.root

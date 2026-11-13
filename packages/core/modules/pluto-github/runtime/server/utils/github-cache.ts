@@ -4,7 +4,6 @@ export interface GithubCacheBackend {
   remove: (key: string) => Promise<void>
 }
 
-/** The default backend: a plain Map. Tests use it. */
 export function createMemoryCacheBackend(): GithubCacheBackend {
   const map = new Map<string, unknown>()
   return {
@@ -21,16 +20,13 @@ export function createMemoryCacheBackend(): GithubCacheBackend {
 export interface GithubHeadEntry {
   oid: string
   etag?: string
-  /** Epoch ms of the last check against GitHub. */
   at: number
 }
 
 export interface GithubCacheOptions {
   backend?: GithubCacheBackend
-  /** Seconds the head stays fresh. */
   headTtl: number
   now?: () => number
-  /** Key prefix, so several repos can share one backend. */
   prefix?: string
 }
 
@@ -40,10 +36,8 @@ export interface GithubCache {
   setHead: (oid: string, etag?: string) => Promise<void>
   getIndex: <T>(dir: string, headOid: string) => Promise<T | undefined>
   setIndex: (dir: string, headOid: string, value: unknown) => Promise<void>
-  /** Parsed results by blob id. A blob id never changes, so no TTL. */
   getBlob: <T>(oid: string) => Promise<T | undefined>
   setBlob: (oid: string, value: unknown) => Promise<void>
-  /** Runs `loader` once for all concurrent calls with the same key. */
   singleFlight: <T>(key: string, loader: () => Promise<T>) => Promise<T>
 }
 

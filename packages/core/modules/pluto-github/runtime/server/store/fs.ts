@@ -7,20 +7,8 @@ import { PlutoGithubConflictError, PlutoGithubStoreError } from './errors'
 import { commitLocalFiles, localFileAt, localFileHistory } from './local-git'
 
 export interface FsStoreOptions {
-  /** The absolute root dir. All paths are relative to it. */
   root: string
-  /**
-   * The dir, relative to `root`, whose files make the head id. Set it to the
-   * content dir. Default: the whole root. Never leave the default when the
-   * root is a project dir: the head would read every file, `node_modules`
-   * too, on each request.
-   */
   headDir?: string
-  /**
-   * Commit each write to the local Git repo of `root` (local Git publishing). The files are
-   * written first, so a commit that fails (a hook, no Git author) never loses the save: a
-   * warning says why. Default false.
-   */
   gitCommit?: boolean
 }
 
@@ -30,7 +18,6 @@ const SKIP_MARKER = /\s*\[skip ci\]\s*$/
 
 let warnedNoRepo = false
 
-/** Dirs the head never reads: dependencies, build output and dot dirs. */
 const SKIPPED_DIRS = new Set([
   'node_modules',
   '.nuxt',
@@ -41,12 +28,6 @@ const SKIPPED_DIRS = new Set([
   'dist',
 ])
 
-/**
- * A store over the local file system, for dev. The head id is a hash of the
- * file listing (path and blob id) under `headDir`, so it changes after a
- * write. A file change made by hand changes it too. With `gitCommit`, each
- * write is also a commit in the local Git repo.
- */
 export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
   const root = resolve(options.root)
   const headRoot = options.headDir ? resolve(root, options.headDir) : root
@@ -99,7 +80,6 @@ export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
     }
   }
 
-  /** Collects the `.md` files under `dir`. It skips dot dirs, dot files and the skipped dirs. */
   async function walkMarkdown(dir: string, out: string[]): Promise<void> {
     let entries
     try {
@@ -191,7 +171,6 @@ export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
       return files
     },
     readFile: async (path) => read(path),
-    // The history of the local Git repo of the project. No repo, or no Git: no history.
     history: async (path, query) => {
       safePath(path)
       const skip = Number.parseInt(query.cursor ?? '0', 10) || 0
@@ -232,7 +211,6 @@ export function createFsStore(options: FsStoreOptions): PlutoGithubStore {
       }
     },
     commit: async (input) => {
-      // Check every path first, so a bad path changes nothing.
       const additions = input.additions.map((item) => ({
         full: safePath(item.path),
         contents:

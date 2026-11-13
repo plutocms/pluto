@@ -9,6 +9,8 @@ import { createContentText } from './internal/content-text'
  * Read the values inside a template or a `computed`, so a locale switch
  * updates them. Server code and code that reads `type.label` directly keep
  * the English text.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/i18n
  */
 export function usePlutoContentText(
   type: MaybeRefOrGetter<PlutoContentType | undefined>

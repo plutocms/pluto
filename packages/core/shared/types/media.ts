@@ -1,9 +1,9 @@
 import type { H3Event } from 'h3'
 
 /**
- * One file of the media library. Core fills in every field at upload, from
- * the bytes on the server: a driver only stores the record. See the media
- * skill.
+ * One file of the media library. Core fills in every field at upload, from the bytes on the
+ * server: a driver only stores the record.
+ * @see https://pluto.vulmix.dev/docs/build/media#the-record
  */
 export interface PlutoMedia {
   id: string
@@ -86,9 +86,9 @@ export interface PlutoMediaPatch {
 export type PlutoMediaCapability = 'media:manage' | 'media:delete'
 
 /**
- * The storage of one backend (GitHub, Supabase, ...). It stores the bytes and
- * the record together. Core owns the routes, the checks and the record. A
- * backend registers one driver on the server, with `registerMediaDriver`.
+ * The storage of one backend. It stores the bytes and the record together. Core owns the routes,
+ * the checks and the record. Register a driver on the server with `registerMediaDriver`.
+ * @see https://pluto.vulmix.dev/docs/build/media#write-a-driver
  */
 export interface PlutoMediaDriver {
   name: string

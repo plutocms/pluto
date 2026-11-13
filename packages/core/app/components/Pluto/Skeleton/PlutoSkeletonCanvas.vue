@@ -1,9 +1,4 @@
-<script setup lang="ts">
-// Placeholder for the canvas field of a canvas form (for example the page
-// preview of the block editor) while the item loads. It is the shape of a
-// page: a title, a lead, paragraphs, an image and cards, centered like the
-// preview.
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div

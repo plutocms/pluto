@@ -5,18 +5,6 @@ import {
   staffDecision,
 } from '../composables/internal/admin-shell'
 
-/**
- * The route guard of the admin. It never touches a path outside `/admin`.
- * With no auth driver, `driverDecision` decides: in production every admin
- * path goes to the not-configured page, in dev the admin opens. With a driver,
- * a signed-out user on a private admin path goes to the login page. A
- * signed-in user on a public auth path goes to the admin home. The driver's own `guard` runs first, so a backend
- * can send the user somewhere else (supabase: the first setup). Then a signed-in
- * user on a private path must be staff (at least one capability, or no
- * permissions driver). Other users go to `/admin/no-access`. The public auth
- * paths and the no-access page are never sent to it, so there is no loop. The
- * server still checks every request: this only decides what the browser shows.
- */
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = usePlutoAuth()
   const driver = driverDecision({
@@ -64,7 +52,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo(decision.to, { replace: true })
   }
 
-  // The staff step. A signed-out user and a public auth path are done above.
   const publicPaths = auth.publicPaths.value
   if (!auth.loggedIn.value || matchPublicPath(to.path, publicPaths)) {
     return

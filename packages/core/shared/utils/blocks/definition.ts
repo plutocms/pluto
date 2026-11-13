@@ -1,11 +1,4 @@
-// The block definition model: what an editor shows for a component (the props, their widgets, the
-// slots), and the patch that a component file gives with `definePlutoBlock({...})`. Shared by the
-// block editor of the docs layer and the content components of the post editor. Pure: no Nuxt.
-// See the content-components skill.
-
 export type PlutoPropValue = unknown
-
-// Block definitions: what the editor shows for a component.
 
 export type PlutoBlockPropType =
   | 'string'
@@ -24,6 +17,10 @@ export interface PlutoBlockPropOption {
   label?: string
 }
 
+/**
+ * What the block editor shows for one prop of a component.
+ * @see https://pluto.vulmix.dev/docs/extend/author-components#props-become-fields
+ */
 export interface PlutoBlockPropDefinition {
   type: PlutoBlockPropType
   /** A plain text or an i18n key. */
@@ -82,9 +79,9 @@ export interface PlutoBlockDefinition {
 export type PlutoBlockPropPatch = Partial<PlutoBlockPropDefinition>
 
 /**
- * A partial block definition: one layer of the sources (the component layer, or the site
- * override). `Props` is the prop interface of a component, so `definePlutoBlock<Props>()` can
- * check the keys of `props`. A prop or a slot set to `false` is removed from the layers below.
+ * A partial block definition: what `definePlutoBlock` takes. `Props` is the prop interface of a
+ * component. A prop or a slot set to `false` is removed from the layers below.
+ * @see https://pluto.vulmix.dev/docs/extend/author-components
  */
 export interface PlutoBlockPatch<
   Props extends object = Record<string, unknown>,
@@ -109,7 +106,6 @@ export interface PlutoBlockSources {
   overrides?: PlutoBlocksConfig
 }
 
-/** The theme colors of Nuxt UI. A prop whose values are all colors gets the color widget. */
 export const BLOCK_COLORS = [
   'primary',
   'secondary',
@@ -120,7 +116,6 @@ export const BLOCK_COLORS = [
   'neutral',
 ]
 
-/** A readable name from a component name: `pluto-hero` gives `Pluto hero`, `starCount` gives `Star count`. */
 export function humanizeName(name: string): string {
   const text = name
     .replace(/^u-/, '')
@@ -133,23 +128,16 @@ export function humanizeName(name: string): string {
   return text ? text[0]!.toUpperCase() + text.slice(1) : name
 }
 
-/**
- * The key of a component in the sources: the kebab name that `pascalCase` turns back into the
- * component name. `PlutoHero` gives `pluto-hero`, and `UPageCTA` gives `u-page-c-t-a`. A name that
- * is already kebab case stays as it is.
- */
 export function blockKey(name: string): string {
   return name.replace(/(?<!^|-)[A-Z]/g, (letter) => `-${letter}`).toLowerCase()
 }
 
-/** `star-count` gives `starCount`. */
 export function camelKey(name: string): string {
   return name.replace(/-+([a-z0-9])/gi, (_, letter: string) =>
     letter.toUpperCase()
   )
 }
 
-/** The key of `map` that means `key`: the same key, else the same name in kebab or camel case. */
 export function sameKey(map: object, key: string): string {
   if (key in map) {
     return key
@@ -158,7 +146,6 @@ export function sameKey(map: object, key: string): string {
   return Object.keys(map).find((other) => camelKey(other) === camel) ?? key
 }
 
-/** The same join for two patches: `false` stays in the result, so a layer above can still remove. */
 function mergePatchEntries<T extends object>(
   base: Record<string, Partial<T> | false | undefined> | undefined,
   patch: Record<string, Partial<T> | false | undefined> | undefined
@@ -178,10 +165,6 @@ function mergePatchEntries<T extends object>(
   return out
 }
 
-/**
- * Put one patch over another, for example the in-file macro over the block made from the
- * component meta. The result is still a patch: `false` for a prop or a slot stays in it.
- */
 export function mergeBlockPatch(
   base: PlutoBlockPatch,
   over: PlutoBlockPatch | false | undefined

@@ -25,7 +25,6 @@ export interface PlutoSeoEntriesOptions {
   skipNoindex?: boolean
 }
 
-/** The items per call to the adapter. */
 const PAGE = 100
 
 function stamp(value: unknown): string | undefined {

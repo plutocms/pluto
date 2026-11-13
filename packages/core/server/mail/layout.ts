@@ -1,13 +1,3 @@
-/**
- * The email layout: one 600 px table with inline CSS, a heading, text, an
- * optional button with a plain link under it, and a footer with the site
- * name. No image and no tracking pixel, so the email works without remote
- * content and leaves no trace of who opened it.
- *
- * Every text goes through `escapeHtml`. The plain text version has the same
- * content with no markup.
- */
-
 const HTML_ESCAPES: Record<string, string> = {
   '&': '&amp;',
   '<': '&lt;',
@@ -16,17 +6,14 @@ const HTML_ESCAPES: Record<string, string> = {
   "'": '&#39;',
 }
 
-/** Escapes a text for HTML content and for a double-quoted or single-quoted attribute. */
 export function escapeHtml(value: string): string {
   return String(value).replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]!)
 }
 
-/** Joins the words of a subject line on one line. A line break would split a header. */
 export function toSubject(value: string): string {
   return value.replace(/\s+/g, ' ').trim()
 }
 
-/** Accepts only an absolute http or https URL. Anything else (for example `javascript:`) throws. */
 export function assertHttpUrl(value: string): string {
   let parsed: URL
   try {
@@ -41,23 +28,16 @@ export function assertHttpUrl(value: string): string {
 }
 
 export interface EmailLayoutInput {
-  /** The language code of the email, for `<html lang>`. */
   lang: string
   siteName: string
-  /** The page title and the heading. */
   heading: string
-  /** Plain paragraphs. */
   paragraphs: string[]
-  /** A call to action. `url` must be an http(s) URL. */
   button?: {
     label: string
     url: string
   }
-  /** A sentence above the plain link under the button. Needs `button`. */
   linkHint?: string
-  /** Small print under the button, for example "If you did not expect this email...". */
   notes?: string[]
-  /** The footer line. It names the site. */
   footer: string
 }
 
@@ -67,7 +47,6 @@ const TEXT_COLOR = '#1f2328'
 const MUTED_COLOR = '#656d76'
 const BUTTON_COLOR = '#2563eb'
 
-/** Renders the HTML and the plain text of one email. */
 export function renderEmailLayout(input: EmailLayoutInput): {
   html: string
   text: string

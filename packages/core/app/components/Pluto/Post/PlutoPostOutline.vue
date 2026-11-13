@@ -1,11 +1,6 @@
 <script setup lang="ts">
-// The left panel of the post editor: the outline of the post (its headings). A click on
-// a heading jumps to it in the editor and in the preview. The heading that has the caret of the
-// editor is the active item. The shell (header, background, scroll
-// area) is `PlutoViewSidePanel`, shared with the panels of other layers.
 const props = defineProps<{
   headings: PlutoMarkdownHeading[]
-  /** The index of the heading that has the caret, or -1. */
   active?: number
 }>()
 
@@ -15,7 +10,6 @@ const emit = defineEmits<{
 
 const { t } = usePlutoI18n()
 
-// The smallest level of the post is the left edge, so a post that starts at `##` is not indented.
 const baseLevel = computed(() =>
   props.headings.reduce((min, heading) => Math.min(min, heading.level), 6)
 )
@@ -41,7 +35,6 @@ const baseLevel = computed(() =>
         class="hover:bg-elevated/60 focus-visible:outline-primary flex min-h-8 w-full items-center rounded-md py-1 pe-2 text-start text-sm focus-visible:outline-2 focus-visible:-outline-offset-2"
         @click="emit('select', index)"
       >
-        <!-- The icon of the heading level (H1 to H6). -->
         <UIcon
           :name="`i-lucide-heading-${heading.level}`"
           class="text-dimmed me-2 size-4 shrink-0"

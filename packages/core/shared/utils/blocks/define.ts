@@ -1,12 +1,11 @@
 import type { PlutoBlockPatch } from './definition'
 
 /**
- * Describes a block in `app.config.ts`, or in a component file of `components/content/`.
- * The module adds it as an auto-import, so a component file needs no import line.
- *
- * At run time it does nothing: it returns its argument. The build reads the call in the file and
- * makes the block definition from it. See the block-model skill. With a generic,
- * `definePlutoBlock<Props>({...})` checks that the keys of `props` are props of the component.
+ * Describes a block in a component file of `components/content/`. It is auto-imported. At run time
+ * it returns its argument: the build reads the call and makes the block definition from it. With a
+ * generic, `definePlutoBlock<Props>({...})` checks that the keys of `props` are props of the
+ * component.
+ * @see https://pluto.vulmix.dev/docs/extend/author-components#add-the-macro
  */
 export function definePlutoBlock<
   Props extends object = Record<string, unknown>,

@@ -5,32 +5,20 @@ import {
   shouldPoll,
 } from './build-status'
 
-/** The most seconds between two tries after errors. */
 const MAX_BACKOFF_MS = 60_000
-/** The poller stops after this many errors in a row. */
 const MAX_ERRORS = 5
 
 export interface BuildPollerOptions {
-  /** Reads the status once. */
   load: () => Promise<PlutoBuildStatus>
   onStatus: (status: PlutoBuildStatus) => void
-  /** Called on a failed read. The poller goes on unless the error is 401 or 403. */
   onError?: (error: unknown) => void
-  /** True while the page is hidden. The poller then does not call `load`. */
   isHidden: () => boolean
   now?: () => number
 }
 
 export interface BuildPoller {
-  /**
-   * Reads now, then keeps reading while the build is pending. `afterSave` gives
-   * the checks some seconds to appear (an answer of `none` is not final yet).
-   * It resets the 15-minute limit.
-   */
   start: (options?: { afterSave?: boolean }) => void
-  /** Stops all timers. A read in progress still ends, and its answer is dropped. */
   stop: () => void
-  /** Call it when the page becomes visible. It reads again. */
   resume: () => void
 }
 
@@ -42,14 +30,9 @@ function statusCodeOf(error: unknown): number | undefined {
   return value?.statusCode ?? value?.status
 }
 
-/**
- * The polling loop of the build status. It has no Vue and no DOM code, so a
- * test can drive it with fake timers. The rules are in `shouldPoll`.
- */
 export function createBuildPoller(options: BuildPollerOptions): BuildPoller {
   const now = options.now ?? Date.now
   let timer: ReturnType<typeof setTimeout> | undefined
-  // A new run (start, stop) makes older reads stale.
   let run = 0
   let startedAt = 0
   let afterSave = false
@@ -74,7 +57,6 @@ export function createBuildPoller(options: BuildPollerOptions): BuildPoller {
     if (current !== run) {
       return
     }
-    // A hidden page asks nothing. `resume` starts again.
     if (options.isHidden() || now() - startedAt >= BUILD_POLL_MAX_MS) {
       return
     }

@@ -31,7 +31,6 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 
-/** Runs the module on a fake Nuxt, and then the `nitro:config` hook like Nuxt does. */
 async function run(
   options: { static?: boolean; websiteUrl?: string; layers?: string[] } = {}
 ) {

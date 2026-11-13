@@ -1,15 +1,9 @@
 import { ELEMENT_NODE, parse, renderSync, TEXT_NODE } from 'ultrahtml'
-import { PLUTO_COMPONENT_ATTRIBUTE, readComponentMarker } from '../markdown/component'
+import {
+  PLUTO_COMPONENT_ATTRIBUTE,
+  readComponentMarker,
+} from '../markdown/component'
 import { decodeEntitiesOnce } from '../markdown/sanitize-html'
-
-/**
- * Embeds: a paragraph of the body that is one URL alone (the renderer marks it with
- * `data-pluto-embed`, see `isEmbedParagraph` in shared/markdown/render.ts) shows as the player of
- * the first provider that matches the URL. The providers are in the `embedProviders` bucket of
- * the registry; core has YouTube and Vimeo. A provider matches the URL itself, with strict hosts
- * and id patterns, and its component gets only what the match returns. See the content-model
- * skill ("Embeds"). Pure: no DOM, no Nuxt.
- */
 
 /** The data that a provider takes from a URL: the id and the options, as text. */
 export type PlutoEmbedMatch = Record<string, string>
@@ -24,7 +18,6 @@ const YOUTUBE_HOSTS = new Set([
 ])
 const YOUTUBE_ID = /^[\w-]{11}$/
 
-/** Seconds from `90`, `90s` or `1h2m3s`. `undefined` when it is not a time. */
 function youtubeSeconds(value: string | null): number | undefined {
   if (!value) {
     return undefined
@@ -44,10 +37,6 @@ function youtubeSeconds(value: string | null): number | undefined {
   )
 }
 
-/**
- * A YouTube video: `youtube.com/watch?v=<id>`, `/shorts/<id>`, `/embed/<id>`, `/live/<id>`,
- * `youtu.be/<id>`. The id has 11 characters. `t` or `start` gives `start` (seconds).
- */
 export function matchYoutubeUrl(url: URL): PlutoEmbedMatch | null {
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
     return null
@@ -78,10 +67,6 @@ export function matchYoutubeUrl(url: URL): PlutoEmbedMatch | null {
   return start ? { id, start: String(start) } : { id }
 }
 
-/**
- * A Vimeo video: `vimeo.com/<id>`, `vimeo.com/<id>/<hash>` (an unlisted video),
- * `vimeo.com/channels/<name>/<id>`, `player.vimeo.com/video/<id>?h=<hash>`. The id is digits.
- */
 export function matchVimeoUrl(url: URL): PlutoEmbedMatch | null {
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
     return null
@@ -119,7 +104,6 @@ export type PlutoHtmlPart =
   | { kind: 'embed'; href: string; inner: string }
   | { kind: 'component'; name: string; props: Record<string, unknown> }
 
-/** Decodes the entities that the sanitizer writes in a text or an attribute value. */
 export const decodeHtmlEntities = decodeEntitiesOnce
 
 interface HtmlNode {
@@ -130,7 +114,6 @@ interface HtmlNode {
   children?: HtmlNode[]
 }
 
-/** The first `a` with an `href` under a node. */
 function firstHref(node: HtmlNode): string | undefined {
   for (const child of node.children ?? []) {
     if (child.type === ELEMENT_NODE && child.name === 'a') {
@@ -144,23 +127,14 @@ function firstHref(node: HtmlNode): string | undefined {
   return undefined
 }
 
-/** True when the HTML has an embed paragraph. A quick test before `splitBodyHtml`. */
 export function hasEmbedParagraph(html: string): boolean {
   return html.includes('data-pluto-embed')
 }
 
-/** True when the HTML has the mark of a content component. A quick test before `splitBodyHtml`. */
 export function hasComponentMarker(html: string): boolean {
   return html.includes(PLUTO_COMPONENT_ATTRIBUTE)
 }
 
-/**
- * Splits sanitized body HTML into its top-level parts, so `PlutoHtml` can put a provider
- * component in place of an embed paragraph, and a site component in place of the mark of a content
- * component (`div[data-pluto-component]`, see shared/markdown/component.ts), and keep every other
- * element as it is (its inner HTML stays a string). The top level stays flat, so the direct-child
- * rules of `.pluto-prose` still apply. Whitespace between the elements goes.
- */
 export function splitBodyHtml(html: string): PlutoHtmlPart[] {
   const root = parse(html) as HtmlNode
   const parts: PlutoHtmlPart[] = []
@@ -205,7 +179,6 @@ export function splitBodyHtml(html: string): PlutoHtmlPart[] {
   return parts
 }
 
-/** The first provider (by `order`) that matches `href`, with its match. `null` for none. */
 export function resolveEmbed<
   P extends { match: (url: URL) => PlutoEmbedMatch | null },
 >(

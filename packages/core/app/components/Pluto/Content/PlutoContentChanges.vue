@@ -1,14 +1,8 @@
 <script setup lang="ts">
-// The list of changed fields, shared by History and the backup recovery. A short value shows as
-// two rows (before and after). A long or multi-line text shows as a folded line diff. The caller
-// builds `changes` with `diffFields`. See the content-model skill ("Revisions").
-
 const props = defineProps<{
   type: PlutoContentType | undefined
   changes: PlutoFieldChange[]
-  /** The label of the value in the form (the removed rows). */
   beforeLabel: string
-  /** The label of the other value (the added rows). */
   afterLabel: string
 }>()
 

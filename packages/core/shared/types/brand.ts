@@ -1,7 +1,7 @@
 /**
- * The brand of the admin (white label), set by the developer in
- * `app.config.ts` under `pluto.brand`. Every field is optional. With no brand,
- * the admin shows the Pluto look and links.
+ * The brand of the admin (white label), set in `app.config.ts` under `pluto.brand`. Every field is
+ * optional. With no brand, the admin shows the Pluto look and links.
+ * @see https://pluto.vulmix.dev/docs/extend/white-label
  *
  * ```ts
  * export default defineAppConfig({

@@ -1,9 +1,8 @@
 import type { PlutoContentType } from '../types/content'
 
 /**
- * The status workflow of a content type: the published, draft, scheduled and review values, and
- * the rules that the admin, the adapters and the public API share. See the content-model skill
- * ("Scheduled publish and review").
+ * The status workflow of a content type: the published, draft, scheduled and review values.
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#scheduled-publish-and-review
  */
 export interface PlutoStatusRules {
   /** The storage column of the status. */
@@ -53,10 +52,6 @@ export function statusRules(type: StatusType): PlutoStatusRules | null {
   }
 }
 
-/**
- * The status values of a type: `status.values`, then the scheduled and review values when the
- * type has them (with the value as the label; the admin translates it). Empty with no workflow.
- */
 export function contentStatusValues(
   type: StatusType
 ): Array<{ label: string; value: string }> {
@@ -111,7 +106,6 @@ export function isLiveStatus(
   return false
 }
 
-/** `isLiveStatus` for an item that has the status and the time under their storage columns. */
 export function isLiveItem(
   type: StatusType,
   item: Record<string, unknown>,

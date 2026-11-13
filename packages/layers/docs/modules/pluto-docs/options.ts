@@ -1,4 +1,8 @@
-/** One content type that the layer builds from a preset. */
+/**
+ * One content type that the layer builds from a preset.
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/docs#options
+ */
 export interface PlutoDocsTypeOptions {
   /** The preset that makes the type. Only `docs` exists. */
   preset: 'docs'
@@ -24,9 +28,18 @@ export interface PlutoDocsTypeOptions {
   navGroup?: string | false
 }
 
-/** How the public pages get their content. See the docs-setup skill. */
+/**
+ * How the public pages get their content.
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/docs#build-time-run-time-or-both
+ */
 export type PlutoDocsRender = 'hybrid' | 'build' | 'runtime'
 
+/**
+ * The options of the docs layer (`plutoDocs` in `nuxt.config.ts`).
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/docs#options
+ */
 export interface PlutoDocsOptions {
   /** The content types to register. Default: none. */
   types?: PlutoDocsTypeOptions[]
@@ -56,9 +69,9 @@ export interface PlutoDocsResolveResult {
   errors: string[]
 }
 
-export const PLUTO_DOCS_PRESETS = ['docs'] as const
-export const PLUTO_DOCS_RENDER_MODES = ['hybrid', 'build', 'runtime'] as const
-export const DEFAULT_RUNTIME_MAX_AGE = 10
+const PLUTO_DOCS_PRESETS = ['docs'] as const
+const PLUTO_DOCS_RENDER_MODES = ['hybrid', 'build', 'runtime'] as const
+const DEFAULT_RUNTIME_MAX_AGE = 10
 
 export const CMS_OFF_ERROR =
   'The docs layer needs the standalone CMS. Remove plutoGithub.enabled: false, or remove the layer.'
@@ -70,7 +83,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/** Whether `source` is `''` or a safe nested path (the same segment rule as the CMS). */
 export function isValidSource(source: unknown): source is string {
   if (typeof source !== 'string') {
     return false
@@ -85,7 +97,6 @@ export function isValidSource(source: unknown): source is string {
   )
 }
 
-/** Normalizes a route prefix to `/a/b`, or `''` for none. */
 export function normalizeRoutePrefix(prefix: unknown): string {
   if (typeof prefix !== 'string') {
     return ''
@@ -94,11 +105,6 @@ export function normalizeRoutePrefix(prefix: unknown): string {
   return segments.length > 0 ? `/${segments.join('/')}` : ''
 }
 
-/**
- * Checks the module options. A type with a problem is dropped and gives one
- * error. When the CMS is off, the layer is off and gives one error. This file
- * has no Nuxt import, so plain Vitest tests it.
- */
 export function resolvePlutoDocsOptions(
   options: PlutoDocsOptions,
   ctx: PlutoDocsResolveContext

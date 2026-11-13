@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// The chip of a content component in the post editor (the node view of `PlutoContentComponentNode`).
-// It names the component (its icon and label, and the first text props), and a click opens the
-// props form: a `PlutoBlockPropControl` for each prop of the definition, then the props of the
-// Markdown that the definition does not list. A name that no block component of the site has gets
-// a warning: the site renders nothing there. See the content-components skill.
 import type { NodeViewProps } from '@tiptap/vue-3'
 import type { PlutoMedia } from '../../../../shared/types/media'
 import type {
@@ -30,7 +25,6 @@ const values = computed<Record<string, PlutoPropValue>>(
 )
 const editable = computed(() => props.editor.isEditable)
 
-/** A prop of the Markdown that the definition does not list. */
 function fieldFromValue(value: unknown): PlutoBlockPropDefinition {
   if (typeof value === 'boolean') {
     return { type: 'boolean' }
@@ -43,8 +37,6 @@ function fieldFromValue(value: unknown): PlutoBlockPropDefinition {
   }
 }
 
-// The props of the form: the definition first (with the spelling of the Markdown, `star-count`
-// for the prop `starCount`), then the others of the Markdown.
 const fields = computed(() => {
   const keys = Object.keys(values.value)
   const out: Array<{ name: string; definition: PlutoBlockPropDefinition }> = []
@@ -63,7 +55,6 @@ const fields = computed(() => {
   return out
 })
 
-// The text props that show on the chip, so two chips of one component differ.
 const summary = computed(() =>
   fields.value
     .map((field) => values.value[field.name])
@@ -75,12 +66,7 @@ const summary = computed(() =>
 )
 
 const open = ref(false)
-// The popover points at the icon of the chip: the chip is as wide as the text, and an arrow at
-// its center would be out of the popover (aligned to the start), so it would not show. The offset
-// counts the padding and the border of the chip (9px) around the icon.
 const iconEl = useTemplateRef<HTMLElement>('icon')
-// A new component from the insert menu opens its props form, one frame later, after the menu has
-// closed.
 onMounted(() => {
   if (takePlutoContentComponentOpen() && editable.value) {
     requestAnimationFrame(() => {
@@ -101,7 +87,6 @@ function setProps(patch: Record<string, PlutoPropValue>) {
   props.updateAttributes({ props: next })
 }
 
-/** A file of the media library: the URL, and the props of `fills` (the size, the alt text). */
 function setMedia(
   name: string,
   definition: PlutoBlockPropDefinition,

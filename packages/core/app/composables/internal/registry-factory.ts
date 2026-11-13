@@ -1,8 +1,3 @@
-// Nuxt auto-imports `app/composables/*.ts` at depth 1 only, so this file
-// sits under `internal/` on purpose: it stays out of auto-import, and it can
-// be unit-tested directly with an explicit import, outside a Nuxt build
-// context. Import from 'vue' explicitly here, instead of relying on
-// auto-import, so this file works the same way under plain Vitest.
 import type { ComputedRef } from 'vue'
 import { computed, markRaw, shallowRef } from 'vue'
 
@@ -12,16 +7,6 @@ export interface OwnedEntry {
   enabled?: () => boolean
 }
 
-/**
- * An owner-keyed registry. Each owner (a layer id) contributes a list of
- * entries. Calling `set` again for the same owner replaces its whole
- * contribution — this makes registration idempotent, so re-running a
- * plugin (for example on HMR) never duplicates entries and needs no
- * dedupe warning.
- *
- * `list` merges every owner's entries, drops disabled ones, and sorts by
- * `order` (default 100), breaking ties by first-registration sequence.
- */
 export function createOwnedRegistry<T extends OwnedEntry>() {
   const owners = shallowRef<Map<string, T[]>>(new Map())
   let sequence = 0

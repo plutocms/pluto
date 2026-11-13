@@ -1,12 +1,13 @@
 <script setup lang="ts">
-// The thumbnail of a 3D model: its preview image (no three.js), with a 3D
-// badge. With `interactive`, a click (or the button) starts the viewer in its
-// place, so a page loads three.js only when someone wants to turn the model.
-// See the 3d skill.
 import { usePluto3dI18n } from '../composables/pluto-3d-i18n'
 
 withDefaults(
   defineProps<{
+    /**
+     * The media record of the model (the public API gives it).
+     *
+     * @see https://pluto.vulmix.dev/docs/layers/3d#show-a-model-on-a-site
+     */
     media?: PlutoPublicMedia | null
     /** The `sizes` of the preview image (`PlutoImage`). */
     sizes?: string
@@ -28,8 +29,6 @@ const live = ref(false)
 </script>
 
 <template>
-  <!-- No Tailwind class, as in Pluto3dViewer. The layout is in the <style>
-       below; the look of the badges is in app/assets/css/pluto-base.css. -->
   <div class="pluto-3d-preview">
     <Pluto3dViewer
       v-if="live"
@@ -67,8 +66,6 @@ const live = ref(false)
 </template>
 
 <style>
-/* The layout of the preview. It loads with the component, also without
-   `@plutocms/css/base`. See Pluto3dViewer.vue. */
 @layer theme, base, components, utilities;
 
 @layer components {

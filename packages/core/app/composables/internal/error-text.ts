@@ -1,7 +1,5 @@
-// Pure part of `usePlutoErrorText`. It does not use Nuxt auto-imports.
 import type { MessageParams } from './i18n-core'
 
-/** The fallback key when the caller passes none. */
 export const DEFAULT_ERROR_KEY = 'pluto.errors.unknown'
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -14,12 +12,6 @@ function nonEmpty(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() !== '' ? value : undefined
 }
 
-/**
- * Finds the `{ key, params }` that a `createPlutoError` call put in the
- * response. A `$fetch` error holds the whole response body in `data`, so the
- * pair sits in `data.data.i18n`. An error that Nuxt creates on the client
- * holds it in `data.i18n`.
- */
 function findTag(data: Record<string, unknown> | undefined):
   | {
       key: string
@@ -37,26 +29,10 @@ function findTag(data: Record<string, unknown> | undefined):
   return undefined
 }
 
-/**
- * The i18n key that a server `createPlutoError` put in an error, or
- * `undefined`. It reads a `$fetch` error and an error that Nuxt creates on the
- * client. Use it to tell two errors with the same status apart.
- */
 export function errorKey(error: unknown): string | undefined {
   return findTag(asRecord(asRecord(error)?.data))?.key
 }
 
-/**
- * Turns an error into text for an admin. Order:
- *
- * 1. The translated `data.i18n` of a server `createPlutoError`.
- * 2. The `statusMessage`, then the `message`, of the response body
- *    (English). Then the `statusMessage` of the error itself. A `$fetch`
- *    error copies that one from the HTTP status text. The status text can
- *    be a generic phrase ("Unsupported Media Type") and is empty over
- *    HTTP/2, so the body comes first.
- * 3. The translated fallback key.
- */
 export function resolveErrorText(
   error: unknown,
   fallbackKey: string,

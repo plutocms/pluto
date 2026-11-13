@@ -18,13 +18,7 @@ const { t } = usePlutoI18n()
 </script>
 
 <template>
-  <!--
-    `:toggle="false"` is load-bearing. UDashboardNavbar's default toggle
-    button calls Nuxt UI's global `dashboard:sidebar:toggle` hook, which
-    controls the app-level LEFT sidebar from admin.vue. This is a SECOND,
-    page-local navbar — its own toggle would open and close the wrong
-    sidebar, so it must never render one.
-  -->
+  <!-- Keep `:toggle="false"`. The default toggle runs the global hook that controls the left sidebar. -->
   <UDashboardNavbar
     :title="title"
     :icon="icon"

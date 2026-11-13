@@ -19,14 +19,6 @@ import { usePlutoServerTranslator } from './pluto-i18n'
 
 export { isPlutoMailError, PlutoMailError } from '../mail/errors'
 
-/**
- * The server-side mail registry. Like `server/utils/pluto-content.ts`, it is a
- * module-scope singleton on purpose: a layer registers a driver or a store
- * once, at Nitro startup, and the registered objects hold no per-request
- * state. The secrets come from `runtimeConfig.plutoMail` (set by
- * `NUXT_PLUTO_MAIL_*` variables) on each call, never from module state.
- */
-
 const drivers = new Map<string, PlutoMailDriver>()
 let store: PlutoMailStore | undefined
 
@@ -34,6 +26,8 @@ let store: PlutoMailStore | undefined
  * Registers a mail driver. `NUXT_PLUTO_MAIL_DRIVER=<id>` selects it. A
  * registered driver with the id `resend`, `dev` or `none` replaces the
  * built-in one.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/add-a-mail-driver
  */
 export function registerMailDriver(driver: PlutoMailDriver): void {
   drivers.set(driver.id.toLowerCase(), driver)
@@ -42,26 +36,23 @@ export function registerMailDriver(driver: PlutoMailDriver): void {
 /**
  * Registers a secret store, for a key that does not live in the
  * environment. The last store wins. The environment always wins over a store.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/add-a-mail-driver#optional-a-mail-store
  */
 export function registerMailStore(next: PlutoMailStore): void {
   store = next
 }
 
 export interface ResolveMailOptions {
-  /** Default: `useRuntimeConfig().plutoMail`. */
   config?: Partial<PlutoMailConfig>
-  /** Default: `import.meta.dev`. */
   dev?: boolean
-  /** Default: the global `fetch`. A test passes a fake. */
   fetch?: typeof fetch
 }
 
-/** What `resolveMailDriver` returns: the driver, its send context, and the status. */
 export interface PlutoMailResolution {
   driver: PlutoMailDriver
   context: PlutoMailSendContext
   status: PlutoMailStatus
-  /** The Resend key that resolved. Server only. Never put it in a response. */
   resendKey: string
 }
 
@@ -81,17 +72,6 @@ function normalizeConfig(
 
 const warnedDrivers = new Set<string>()
 
-/**
- * Picks the mail driver. The order:
- *
- * 1. `NUXT_PLUTO_MAIL_DRIVER` (`plutoMail.driver`): a registered driver, or
- *    `resend`, `dev`, `none`.
- * 2. `resend`, when a Resend key resolves (the environment, then a store).
- * 3. `dev`, in development.
- * 4. `none`.
- *
- * Production never falls back to `dev`.
- */
 export async function resolveMailDriver(
   options: ResolveMailOptions = {}
 ): Promise<PlutoMailResolution> {
@@ -159,7 +139,6 @@ export async function resolveMailDriver(
   }
 }
 
-/** What the admin shows about the mail setup. It holds no secret. */
 export async function getPlutoMailStatus(
   options: ResolveMailOptions = {}
 ): Promise<PlutoMailStatus> {
@@ -202,6 +181,8 @@ function assertMessage(message: PlutoMailMessage): void {
 /**
  * Sends one email through the resolved driver. It throws a `PlutoMailError`
  * on failure. It logs nothing: not a recipient, a subject, a link or a key.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/mail#send-an-email
  */
 export async function sendPlutoMail(
   message: PlutoMailMessage,
@@ -237,6 +218,8 @@ export interface RenderEmailOptions {
  *
  *     const email = await renderPlutoEmail('invite', { url }, { locale })
  *     await sendPlutoMail({ to, ...email })
+ *
+ * @see https://pluto.vulmix.dev/docs/build/mail#templates
  */
 export async function renderPlutoEmail<N extends keyof PlutoEmailTemplates>(
   name: N,

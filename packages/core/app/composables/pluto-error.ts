@@ -5,6 +5,8 @@ import { DEFAULT_ERROR_KEY, resolveErrorText } from './internal/error-text'
  * the translation key that a server `createPlutoError` sent (`data.i18n`),
  * then the server `statusMessage` or `message`, then the fallback key. The
  * default fallback is `pluto.errors.unknown`.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/i18n
  */
 export function usePlutoErrorText() {
   const { t, te } = usePlutoI18n()

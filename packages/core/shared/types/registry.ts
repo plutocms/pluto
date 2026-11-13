@@ -7,11 +7,11 @@ import type {
 
 /**
  * An embed provider: a URL alone on its line of a post becomes the player of the first provider
- * (by `order`) whose `match` returns data. Core has `youtube` and `vimeo`; a layer adds more.
- * `match` must be strict (the hosts, an id pattern) and pure: it runs on the server and in the
- * browser. The component gets the props `url` (the URL of the line) and `match` (what `match`
- * returned), and renders the player. Core never puts provider HTML in the body: the component is
- * the only place that loads the provider. See the content-model skill ("Embeds").
+ * (by `order`) whose `match` returns data. `match` must be strict (the hosts, an id pattern) and
+ * pure: it runs on the server and in the browser. The component gets the props `url` (the URL of
+ * the line) and `match` (what `match` returned), and renders the player. Core never puts provider
+ * HTML in the body: the component is the only place that loads the provider.
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#embeds
  */
 export interface PlutoEmbedProvider extends PlutoEntry {
   /** A translation key or literal: the name of the provider ("YouTube"). */
@@ -21,9 +21,9 @@ export interface PlutoEmbedProvider extends PlutoEntry {
 }
 
 /**
- * A kind of file of the media library: images, PDFs, 3D models (the 3D
- * add-on). The library, the tiles, the details and the picker use the first
- * kind whose `accept` matches the type of a file. See the media skill.
+ * A kind of file of the media library: images, PDFs, 3D models. The library, the tiles, the
+ * details and the picker use the first kind whose `accept` matches the type of a file.
+ * @see https://pluto.vulmix.dev/docs/build/media#media-kinds
  */
 export interface PlutoMediaKind extends PlutoEntry {
   /** MIME types or families: `['model/gltf-binary']`, `['image/*']`. */
@@ -50,10 +50,10 @@ export interface PlutoMediaKind extends PlutoEntry {
 }
 
 /**
- * A group of content types in the admin menus. A content type names its group
- * with `navGroup`. The sidebar shows the types of a group as one item with one
- * link per type, and the admin bar lists them in one "New" menu. Core declares
- * the group `pages`. See the extension-registry skill.
+ * A group of content types in the admin menus. A content type names its group with `navGroup`.
+ * The sidebar shows the types of a group as one item with one link per type, and the admin bar
+ * lists them in one "New" menu.
+ * @see https://pluto.vulmix.dev/docs/extend/extension-registry#nav-groups
  */
 export interface PlutoNavGroup extends PlutoEntry {
   /** A translation key or literal: the name of the group ("Pages"). */
@@ -61,6 +61,10 @@ export interface PlutoNavGroup extends PlutoEntry {
   icon?: string
 }
 
+/**
+ * The base of every registry entry.
+ * @see https://pluto.vulmix.dev/docs/extend/extension-registry#entries
+ */
 export interface PlutoEntry {
   /** Unique inside this extension. Stored as `<extensionId>:<id>`. */
   id: string
@@ -85,7 +89,7 @@ export interface PlutoNavChild {
 export interface PlutoNavItem extends PlutoEntry {
   label: string
   icon?: string
-  /** Admin route path, for example '/admin/posts'. Plain string on purpose. */
+  /** Admin route path, for example '/admin/posts'. */
   to?: string
   /**
    * More admin paths that belong to this item, for example '/admin/product' for
@@ -105,11 +109,7 @@ export interface PlutoNavbarComponentAction extends PlutoEntry {
   component: Component
 }
 
-/**
- * A navbar action that is a plain link. Core renders it with one look
- * (`PlutoNavbarButton`). `label` is key-or-literal. `to` can be a function,
- * for a target that depends on reactive state (for example the current page).
- */
+/** A navbar action that is a plain link. `label` is a key or a literal. `to` can be a function, for a target that depends on reactive state. */
 export interface PlutoNavbarLinkAction extends PlutoEntry {
   label: string
   icon?: string
@@ -119,15 +119,6 @@ export interface PlutoNavbarLinkAction extends PlutoEntry {
 
 export type PlutoNavbarAction =
   PlutoNavbarComponentAction | PlutoNavbarLinkAction
-
-export interface PlutoAdminPage extends PlutoEntry {
-  /** The route Nuxt already created from a file. This registry only adds metadata. */
-  path: string
-  title: string
-  icon?: string
-  /** Full id of a parent page (e.g. 'supabase-blog:posts'), for a breadcrumb trail. */
-  parent?: string
-}
 
 export interface PlutoDashboardWidget extends PlutoEntry {
   component: Component
@@ -144,9 +135,9 @@ export interface PlutoSettingsPanel extends PlutoEntry {
 }
 
 /**
- * A tab of the Settings section. The route is a file the layer ships at
- * `pages/admin/settings/<x>.vue`. This entry only adds the tab and the nav
- * link. Core registers General (`/admin/settings`, order 0).
+ * A tab of the Settings section. The route is a file that the layer ships at
+ * `pages/admin/settings/<x>.vue`. This entry only adds the tab and the nav link.
+ * @see https://pluto.vulmix.dev/docs/extend/settings-pages
  */
 export interface PlutoSettingsPage extends PlutoEntry {
   /** Key-or-literal. */
@@ -158,11 +149,7 @@ export interface PlutoSettingsPage extends PlutoEntry {
   capability?: string
 }
 
-/**
- * A section a layer adds to the Email settings page (`/admin/settings/email`),
- * below the core setup steps. For example, a backend layer adds a section
- * that explains how to send its own sign-in emails through the mail driver.
- */
+/** A section that a layer adds to the Email settings page (`/admin/settings/email`), below the core setup steps. */
 export interface PlutoMailPanel extends PlutoEntry {
   title: string
   description?: string
@@ -176,10 +163,9 @@ export interface PlutoSettingsDriver extends PlutoEntry {
 }
 
 /**
- * Loads and saves the current user's admin language. One backend layer
- * registers this, the same way one layer registers a PlutoSettingsDriver.
- * `load` returns the stored locale code, or null when the user chose
- * Automatic (browser language). `save` stores a code, or null for Automatic.
+ * Loads and saves the admin language of the current user. `load` returns the stored locale code,
+ * or null when the user chose Automatic (browser language). `save` stores a code, or null for
+ * Automatic.
  */
 export interface PlutoLocaleDriver extends PlutoEntry {
   load: () => Promise<string | null>
@@ -187,12 +173,9 @@ export interface PlutoLocaleDriver extends PlutoEntry {
 }
 
 /**
- * A capability a layer defines. `key` is the real capability string, for
- * example 'posts:publish'. It is kept separate from `id` on purpose: the
- * registry rewrites `id` to '<extensionId>:<id>' (see registry-factory.ts),
- * which would corrupt a capability string if `id` were reused as the
- * capability itself. `id` identifies this registry entry; `key` identifies
- * the permission.
+ * A capability that a layer defines. `key` is the capability string, for example 'posts:publish'.
+ * `id` only identifies the registry entry: the registry rewrites it to '<extensionId>:<id>'.
+ * @see https://pluto.vulmix.dev/docs/build/permissions
  */
 export interface PlutoCapability extends PlutoEntry {
   /** Format: '<namespace>:<action>', lowercase, for example 'posts:publish'. */
@@ -201,31 +184,19 @@ export interface PlutoCapability extends PlutoEntry {
   description?: string
 }
 
-/**
- * Loads the current user's capability list. One backend layer registers
- * this, the same way one layer registers a PlutoSettingsDriver. `load`
- * returns a flat list of capability key strings the user holds. The
- * single entry '*' means "every capability" (used by the built-in admin
- * role).
- */
+/** Loads the capabilities of the current user. `load` returns the capability keys. The single entry '*' means every capability. */
 export interface PlutoPermissionsDriver extends PlutoEntry {
   load: () => Promise<string[]>
 }
 
-/**
- * A content type a layer declares, wrapped for the registry. `type.name`
- * is the content type's real identity — see the doc comment on
- * `PlutoContentType.name` in `shared/types/content.ts` for why it is kept
- * separate from this entry's `id`.
- */
+/** A content type that a layer declares, wrapped for the registry. Read `type.name`, not `id`. */
 export interface PlutoContentTypeEntry extends PlutoEntry {
   type: PlutoContentType
 }
 
 /**
- * An extension of the content types a layer does not own, for the client registry (see
- * `PlutoContentTypeExtension`). `usePlutoContentTypes()` gives every type with the extensions
- * applied, in `order`. The same object works for the server, with `extendContentTypes`.
+ * An extension of the content types a layer does not own, for the client registry.
+ * `usePlutoContentTypes()` gives every type with the extensions applied, in `order`.
  */
 export interface PlutoContentTypeExtensionEntry
   extends PlutoEntry, Pick<PlutoContentTypeExtension, 'extend'> {}
@@ -254,10 +225,9 @@ export interface PlutoContentHeadContext {
 }
 
 /**
- * A component that renders one field type, or one named `widget`, in the
- * generic content form (a later wave). `fieldType` and `widget` are both
- * optional so an entry can match by either — see
- * `usePlutoContentFieldWidget` for the resolution order.
+ * A component that renders one field type, or one named `widget`, in the generic content form.
+ * An entry matches by `fieldType` or by `widget`.
+ * @see https://pluto.vulmix.dev/docs/extend/add-a-field-widget
  */
 export interface PlutoContentFieldWidget extends PlutoEntry {
   fieldType?: PlutoFieldType
@@ -265,7 +235,7 @@ export interface PlutoContentFieldWidget extends PlutoEntry {
   component: Component
 }
 
-/** State passed to a `PlutoContentAction`'s `show` test and `onSelect` handler. */
+/** The state that a `PlutoContentAction` gets in `show` and `onSelect`. */
 export interface PlutoContentActionContext {
   type: PlutoContentType
   item: Record<string, unknown>
@@ -275,11 +245,7 @@ export interface PlutoContentActionContext {
   remove: () => Promise<void>
 }
 
-/**
- * A button a layer adds to the generic content form (a later wave). Matched
- * against a content type the same way `PlutoContentFieldWidget` matches a
- * field: by exact name, or by `'*'` for every content type.
- */
+/** A button that a layer adds to the generic content form. It matches a content type by exact name, or by `'*'` for every type. */
 export interface PlutoContentAction extends PlutoEntry {
   /** Content type `name`, or '*' for every content type. */
   contentType: string | '*'
@@ -294,12 +260,10 @@ export interface PlutoContentAction extends PlutoEntry {
 }
 
 /**
- * A component a layer adds to the toolbar of the generic content form, before
- * the buttons (a status, an indicator). It renders inside the form, so it can
- * call `usePlutoContentForm()` to read the item and to run code after a save.
- * It gets no props. Matched against a content type like `PlutoContentAction`:
- * by exact name, or by `'*'` for every content type. Register it with
- * `defineAsyncComponent`, so it loads on demand.
+ * A component that a layer adds to the toolbar of the generic content form, before the buttons
+ * (a status, an indicator). It gets no props. It can call `usePlutoContentForm()` to read the
+ * item and to run code after a save. Matched like `PlutoContentAction`. Register it with
+ * `defineAsyncComponent`.
  */
 export interface PlutoContentToolbarItem extends PlutoEntry {
   /** Content type `name`, or '*' for every content type. */
@@ -316,11 +280,7 @@ export interface PlutoAuthUser {
   avatarUrl?: string
 }
 
-/**
- * A path that needs no sign-in. `signedIn` says what happens when a signed-in
- * user opens it: 'redirect' (default) sends the user to the admin home,
- * 'allow' shows the page.
- */
+/** A path that needs no sign-in. `signedIn` says what happens when a signed-in user opens it: 'redirect' (default) sends the user to the admin home, 'allow' shows the page. */
 export interface PlutoAuthPublicPath {
   path: string
   signedIn?: 'redirect' | 'allow'
@@ -333,16 +293,12 @@ export interface PlutoAuthSignInProps {
 }
 
 /**
- * The sign-in backend of the admin. One backend layer registers it, and the
- * last registered driver wins, like the other drivers.
+ * The sign-in backend of the admin. The last registered driver wins.
  *
- * Hydration rule: `user()` and `loggedIn()` are getters that read reactive
- * state. `loggedIn()` must give the same answer on the server and in the
- * first client render. A backend with a cookie session that the server can read
- * (supabase) can answer on the server, so the admin bar renders in the server
- * HTML. A backend that learns the session in the browser (the standalone CMS)
- * must answer false on the server. Then the bar appears after hydration.
- * When `loggedIn` is missing, core uses `user() !== null`.
+ * `user()` and `loggedIn()` are getters that read reactive state. `loggedIn()` must give the same
+ * answer on the server and in the first client render. A backend with a cookie session that the
+ * server can read can answer on the server. A backend that learns the session in the browser must
+ * answer false on the server. When `loggedIn` is missing, core uses `user() !== null`.
  */
 export interface PlutoAuthDriver extends PlutoEntry {
   user: () => PlutoAuthUser | null
@@ -365,11 +321,9 @@ export interface PlutoAuthDriver extends PlutoEntry {
   /** Paths that need no sign-in. '/admin/login' is always one. */
   publicPaths?: Array<string | PlutoAuthPublicPath>
   /**
-   * A check that runs before the sign-in rule, on every `/admin` path, after
-   * `ready()`. Return a local path to redirect there, or nothing to go on.
-   * Supabase uses it to send a new install to the setup page first. A path the
-   * check returns must handle itself: core does not run the check again on it
-   * when it equals the current path. It must never reject.
+   * A check that runs before the sign-in rule, on every `/admin` path, after `ready()`. Return a
+   * local path to redirect there, or nothing to go on. Core does not run the check again when the
+   * path it returns equals the current path. It must never reject.
    */
   guard?: (
     to: PlutoAuthGuardTarget
@@ -406,8 +360,8 @@ export interface PlutoSiteInfo extends PlutoEntry {
 }
 
 /**
- * The backend that stores the content: a Git repo or a database. The admin navbar shows the
- * last registered one as a badge, with a popover. See the admin-shell skill.
+ * The backend that stores the content: a Git repo or a database. The admin navbar shows the last
+ * registered one as a badge, with a popover.
  */
 export interface PlutoBackendInfo extends PlutoEntry {
   /** `git`: Markdown files in a Git repo. `database`: rows in a database. */
@@ -430,12 +384,15 @@ export interface PlutoBackendInfo extends PlutoEntry {
   onOpen?: () => void
 }
 
+/**
+ * What a layer registers in the admin and on the site. Every field is optional.
+ * @see https://pluto.vulmix.dev/docs/extend/extension-registry
+ */
 export interface PlutoExtension {
   /** Layer name. Use the package's $meta.name, e.g. 'supabase-blog'. */
   id: string
   navbarActions?: PlutoNavbarAction[]
   nav?: PlutoNavItem[]
-  pages?: PlutoAdminPage[]
   dashboardWidgets?: PlutoDashboardWidget[]
   settingsPanels?: PlutoSettingsPanel[]
   settingsPages?: PlutoSettingsPage[]
@@ -460,12 +417,7 @@ export interface PlutoExtension {
   embedProviders?: PlutoEmbedProvider[]
 }
 
-/**
- * The shape `createOwnedRegistry` returns, one per registrable thing. Declared
- * again here, rather than imported from `app/composables/internal`, because
- * the shared TS project does not include `app/`. Structural typing keeps this
- * in sync with the real return type.
- */
+/** The shape that `createOwnedRegistry` returns, one per registrable thing. Declared here because the shared TS project does not include `app/`. */
 export interface PlutoRegistryBucket<T extends PlutoEntry> {
   set: (owner: string, entries: T[]) => void
   remove: (owner: string) => void
@@ -475,7 +427,6 @@ export interface PlutoRegistryBucket<T extends PlutoEntry> {
 export interface PlutoRegistry {
   navbarActions: PlutoRegistryBucket<PlutoNavbarAction>
   nav: PlutoRegistryBucket<PlutoNavItem>
-  pages: PlutoRegistryBucket<PlutoAdminPage>
   settingsPanels: PlutoRegistryBucket<PlutoSettingsPanel>
   settingsPages: PlutoRegistryBucket<PlutoSettingsPage>
   mailPanels: PlutoRegistryBucket<PlutoMailPanel>

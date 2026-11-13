@@ -1,6 +1,3 @@
-// What the head tags of a page say. Pure code with no Nuxt import, so plain Vitest tests it. The
-// composable `usePlutoSeo` and the plugin of the layer turn these values into head entries.
-
 import type { PlutoSeoConfig } from '../types/seo'
 
 /** The longest description for a search result. */
@@ -82,7 +79,6 @@ export interface PlutoSeoImage {
   height?: number
 }
 
-/** The record of a `media` field (or the first of a list) as an image, with an absolute URL. */
 function imageOf(
   value: unknown,
   absoluteUrl: (path: string) => string
@@ -113,7 +109,6 @@ export interface PlutoSeoAuthor {
   image?: string
 }
 
-/** The fields that hold the authors of an item: `authors` (a list), else `author` (one). */
 const AUTHOR_FIELDS = ['authors', 'author']
 
 /**
@@ -252,7 +247,7 @@ export function plutoSeoItemHead(
 /**
  * The JSON-LD of an article page: a schema.org `BlogPosting` with the headline, the description,
  * the image, the dates, the authors (each a `Person`) and the page URL. `undefined` without a
- * title. Pure.
+ * title.
  */
 export function plutoSeoArticleJsonLd(
   head: PlutoSeoItemHead,
@@ -283,7 +278,7 @@ export function plutoSeoArticleJsonLd(
 
 /**
  * The text of a JSON-LD script: the JSON, with `<`, `>`, `&` and the line separators escaped, so
- * no value can close the script tag. Pure.
+ * no value can close the script tag.
  */
 export function plutoSeoJsonLdText(data: unknown): string {
   return JSON.stringify(data).replace(

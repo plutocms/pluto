@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// The Insert menu of the Markdown editor: one item for each MDC snippet. The
-// `insert` function is the one of the `toolbar` slot of PlutoMarkdownSource.
 const props = defineProps<{
   insert: (text: string, options?: { block?: boolean }) => void
   disabled?: boolean

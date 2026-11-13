@@ -1,12 +1,9 @@
 <script setup lang="ts">
-// One numbered step of the Email setup. It draws the card, the number and the
-// state badge. The step content goes in the default slot.
 const props = withDefaults(
   defineProps<{
     number: number
     title: string
     description?: string
-    /** `todo`: do this next. `done`: finished. `locked`: an earlier step is missing. `optional`: you can skip it. */
     state?: 'todo' | 'done' | 'locked' | 'optional'
   }>(),
   { state: 'todo' }

@@ -27,6 +27,8 @@ import {
  *
  * @example
  * const { data } = await usePlutoPublicList('post', { limit: 10, sort: '-publishedAt' })
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function usePlutoPublicList<T = PlutoPublicItem>(
   type: MaybeRefOrGetter<string>,
@@ -42,11 +44,8 @@ export function usePlutoPublicList<T = PlutoPublicItem>(
           `pluto-public-list:${toValue(type)}:${JSON.stringify(params.value)}`
       ),
       query: params,
-      // The prerender asks the real API. The browser of a static site has none.
       ...(import.meta.client &&
         staticSite && {
-          // Through `unknown`: a direct cast compares the function with `$fetch` over every
-          // typed server route of the app, and TypeScript stops with "excessive stack depth".
           $fetch: ((
             _request: string,
             options?: { query?: Record<string, unknown> }
@@ -62,7 +61,6 @@ export function usePlutoPublicList<T = PlutoPublicItem>(
 
 let staticIndex: Promise<PlutoPublicIndex> | undefined
 
-/** The list answer of a static site, from the public index. The browser loads the index once. */
 async function queryStaticList<T>(
   type: string,
   query: Record<string, unknown> = {}
@@ -91,6 +89,8 @@ async function queryStaticList<T>(
  *
  * @example
  * const { data } = await usePlutoPublicItem('post', () => String(route.params.slug))
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function usePlutoPublicItem<T = PlutoPublicItem>(
   type: MaybeRefOrGetter<string>,
@@ -118,6 +118,8 @@ export function usePlutoPublicItem<T = PlutoPublicItem>(
  *
  * @example
  * const { data } = await usePlutoPublicSurround('post', slug, { sort: '-publishedAt' })
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function usePlutoPublicSurround<T = PlutoPublicItem>(
   type: MaybeRefOrGetter<string>,

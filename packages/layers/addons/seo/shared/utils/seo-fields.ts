@@ -1,21 +1,8 @@
-// The SEO fields of a content type, and their storage. Pure code with no Nuxt import, so plain
-// Vitest tests it. The layer adds the fields to the types of `plutoSeo.types` with a content type
-// extension (`plutoSeoTypeExtension`), on the server and on the client. See the seo skill.
-//
-// Each field sets a snake_case `column`. On Supabase it is the real column of the table
-// (`posts.seo_title`). On the Git CMS it is a flat frontmatter key, and the frontmatter hooks fold
-// the flat keys into a nested `seo:` block, the shape of Nuxt Content and of the docs layer.
-
 import type { PlutoSeoConfig } from '../types/seo'
 
 type Frontmatter = Record<string, unknown>
 
-/**
- * The SEO fields, in form order. The group comes last (orders 900 to 904). The preview has no
- * storage (`virtual`): it only shows the other fields. The columns are a contract with the
- * Supabase blog migration `006_post_seo.sql`: do not rename them. They show in the "SEO" group of
- * the side column (`PLUTO_SEO_GROUP`), closed when the form loads.
- */
+/** The "SEO" group of the side column. It is closed when the form loads. */
 export const PLUTO_SEO_GROUP: PlutoContentSideGroup = {
   id: 'seo',
   label: 'seo.group',
@@ -24,6 +11,10 @@ export const PLUTO_SEO_GROUP: PlutoContentSideGroup = {
   defaultOpen: false,
 }
 
+/**
+ * The SEO fields, in form order. The columns match the Supabase blog migration
+ * `006_post_seo.sql`: do not rename them.
+ */
 export const PLUTO_SEO_FIELDS: PlutoField[] = [
   {
     name: 'seoPreview',
@@ -95,10 +86,6 @@ function hasText(value: unknown): value is string {
   return typeof value === 'string' && value !== ''
 }
 
-/**
- * Sets a key of the `seo` object from a flat value. An empty flat value removes the key, but only
- * when the key holds text or nothing: a value of another type stays as the author wrote it.
- */
 function applyText(target: Frontmatter, key: string, flat: unknown): void {
   if (hasText(flat)) {
     target[key] = flat

@@ -10,16 +10,10 @@ import { decodeEntitiesOnce, isSafeUrl } from './url-safety'
 
 export { decodeEntitiesOnce, isSafeUrl } from './url-safety'
 
-// This file is the trust boundary for `PlutoMarkdown`. Everything it lets
-// through ends up in a `v-html` on a public page. Keep it an allowlist,
-// never a denylist — a denylist misses the next new tag or handler.
-//
-// `ultrahtml/transformers/sanitize` is NOT used here. It is a denylist (it
-// leaves `onclick`/`onerror` alone, and does not check URL schemes at
-// all), so it does not fit this job.
+// This file is the trust boundary for `PlutoHtml`: everything it lets through ends up in a `v-html`
+// on a public page. Keep it an allowlist, never a denylist. Do not use
+// `ultrahtml/transformers/sanitize`: it is a denylist and does not check URL schemes.
 
-// Elements this sanitizer keeps. Every other element is either unwrapped
-// (children kept, tag dropped) or hard-dropped (see DROP_ELEMENTS below).
 const ALLOWED_ELEMENTS = new Set([
   'p',
   'h1',
@@ -54,9 +48,6 @@ const ALLOWED_ELEMENTS = new Set([
   'input',
 ])
 
-// Hard-dropped: the element AND every child node is removed. A `<script>`
-// body is a text-node child of the `<script>` element, so dropping the
-// element removes the code with it.
 const DROP_ELEMENTS = new Set([
   'script',
   'style',
@@ -88,16 +79,9 @@ const DROP_ELEMENTS = new Set([
 const LANGUAGE_CLASS = /^language-[\w+#.-]+$/
 const TH_TD_ALIGN = new Set(['left', 'center', 'right'])
 
-// ultrahtml's `renderSync` writes attribute values into `key="value"` with
-// no escaping of its own (see its `attrs()` helper). Every attribute value
-// this sanitizer keeps must be escaped here, or a value such as
-// `alt='x" onerror="alert(1)'` breaks out of the quote and injects a new,
-// live attribute in the final HTML.
-/**
- * The value to write for a kept attribute. ultrahtml gives the raw value, which can hold entities
- * already (marked writes `&amp;` in a URL). Decode it once, as a browser reads it, then escape it
- * once, so `?a=1&amp;b=2` stays `?a=1&amp;b=2` and does not become `&amp;amp;`.
- */
+// ultrahtml's `renderSync` writes attribute values with no escaping. Escape every kept value, or
+// `alt='x" onerror="alert(1)'` injects a live attribute. The raw value can hold entities already
+// (marked writes `&amp;` in a URL): decode once, then escape once.
 function keptValue(value: string): string {
   return escapeAttributeValue(decodeEntitiesOnce(value))
 }
@@ -140,7 +124,6 @@ function filterAttributes(element: ElementNode, name: string): void {
       if (typeof attributes.title === 'string') {
         kept.title = keptValue(attributes.title)
       }
-      // A new tab is the only target, always with a safe rel.
       if (attributes.target === '_blank') {
         kept.target = '_blank'
         kept.rel = PLUTO_LINK_BLANK_REL
@@ -170,8 +153,7 @@ function filterAttributes(element: ElementNode, name: string): void {
     case 'input': {
       if (attributes.type === 'checkbox') {
         kept.type = 'checkbox'
-        // Boolean attributes: carry only their presence, not any value an
-        // attacker may have attached to them.
+        // Keep only the presence of a boolean attribute, not its value.
         if ('checked' in attributes) {
           kept.checked = ''
         }
@@ -182,8 +164,6 @@ function filterAttributes(element: ElementNode, name: string): void {
       break
     }
     case 'p': {
-      // The mark of a paragraph that can be an embed (see `isEmbedParagraph` in render.ts).
-      // Only its presence counts: the value is always empty.
       if ('data-pluto-embed' in attributes) {
         kept['data-pluto-embed'] = ''
       }
@@ -198,25 +178,17 @@ function filterAttributes(element: ElementNode, name: string): void {
       break
     }
     default:
-      // Every other allowed element keeps no attributes. This alone drops
-      // every `on*` event handler and every `style` attribute.
+      // No attributes: this drops every `on*` handler and every `style` attribute.
       break
   }
 
   element.attributes = kept
 }
 
-/**
- * Sanitize HTML down to a strict allowlist of elements and attributes.
- *
- * This is the only function in this file other code should call. It parses
- * `html`, walks the resulting tree once to collect an action per node
- * (drop, unwrap, or filter its attributes), then applies those actions in
- * reverse order — mutating the tree while `walkSync` is still walking it
- * would skip or duplicate nodes.
- */
+/** Sanitizes HTML down to a strict allowlist of elements and attributes. */
 export function sanitizeHtml(html: string): string {
   const doc = parse(html)
+  // Collect the actions, then apply them in reverse: a change of the tree during `walkSync` skips nodes.
   const actions: Array<() => void> = []
 
   walkSync(doc, (node) => {
@@ -232,9 +204,6 @@ export function sanitizeHtml(html: string): string {
       return
     }
 
-    // The mark of a content component (see shared/markdown/component.ts): a `div` with a valid
-    // name keeps the name and the props (parsed, filtered and written again), and nothing else.
-    // It has no children: the site renders the component there.
     if (name === 'div') {
       const marker = readComponentMarker(element.attributes)
       if (marker) {

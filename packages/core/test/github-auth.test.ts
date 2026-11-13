@@ -251,7 +251,6 @@ describe('isLocalRequest', () => {
         })
       )
     ).toBe(false)
-    // The client sent "127.0.0.1"; the dev proxy appended its real address.
     expect(
       isLocalRequest(
         fakeEvent({
@@ -434,13 +433,11 @@ describe('gET /api/_pluto/auth/github/callback', () => {
     expect(app.jar.has('pluto-github-session')).toBe(true)
     expect(app.jar.has('pluto-github-oauth')).toBe(false)
 
-    // The code is exchanged with the client secret, the verifier and the same redirect uri.
     const exchange = fake.oauth.exchanges[0]!
     expect(exchange.client_secret).toBe('client-secret')
     expect(exchange.redirect_uri).toBe(
       'http://cms.test/api/_pluto/auth/github/callback'
     )
-    // PKCE: the verifier hashes to the challenge sent in the authorize url.
     expect(
       createHash('sha256').update(exchange.code_verifier!).digest('base64url')
     ).toBe(authorize.searchParams.get('code_challenge'))
@@ -463,7 +460,6 @@ describe('gET /api/_pluto/auth/github/callback', () => {
     expect(text).not.toContain(fake.oauth.last.refreshToken)
     expect(text).not.toMatch(/token/i)
     expect(session.headers.get('cache-control')).toBe('no-store')
-    // The cookie holds a sealed value. It shows no token.
     expect(app.jar.get('pluto-github-session')).not.toContain(
       fake.oauth.last.accessToken
     )

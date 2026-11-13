@@ -10,11 +10,6 @@ import {
 import { getGithubConfig } from './github-config'
 import { isLocalRequest } from './session'
 
-/**
- * The local Git routes exist for local mode only: a dev build, the `fs` store, and a request from
- * this machine (the rule of the dev local user). Any other request gets 404, so the routes say
- * nothing about the repo.
- */
 function localRoot(event: H3Event): string {
   setResponseHeader(event, 'Cache-Control', 'no-store')
   const config = getGithubConfig()
@@ -29,7 +24,6 @@ function localRoot(event: H3Event): string {
   return config.fsRoot
 }
 
-/** Route: GET /api/_pluto/github/local/status. The branch and the commits that are not pushed. */
 export async function handleLocalGitStatus(
   event: H3Event
 ): Promise<LocalGitStatus> {
@@ -73,7 +67,6 @@ const PUSH_ERRORS: Record<
   failed: { statusCode: 502, message: 'Git could not push.', key: 'failed' },
 }
 
-/** Route: POST /api/_pluto/github/local/push. Pushes the current branch, then answers the status. */
 export async function handleLocalGitPush(
   event: H3Event
 ): Promise<LocalGitStatus> {

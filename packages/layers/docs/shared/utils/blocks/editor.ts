@@ -1,7 +1,3 @@
-// Pure helpers for the block editor UI: the label, icon and excerpt of a block,
-// the Markdown of a slot, the blocks sent to the preview, and the palette
-// entries. No Nuxt import, so plain Vitest tests them.
-
 import type { PlutoPreviewBlock, PlutoPreviewChild } from './preview-protocol'
 import type {
   PlutoBlock,
@@ -28,7 +24,6 @@ export interface PlutoBlockInfo {
 
 const HEADING = /^#{1,6} +(\S.*)$/m
 
-/** Removes the Markdown marks of a short text, so it reads as plain text in a list. */
 export function plainExcerpt(markdown: string, max = 48): string {
   const text = markdown
     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
@@ -50,7 +45,6 @@ function textExcerpt(markdown: string): string {
   return plainExcerpt(first ?? '')
 }
 
-/** The first line of text in a component, for the excerpt of a block that has no title. */
 function firstText(component: PlutoComponentBlock): string {
   for (const child of flatChildren(component)) {
     if (child.kind === 'text') {
@@ -60,7 +54,6 @@ function firstText(component: PlutoComponentBlock): string {
   return ''
 }
 
-/** The label, the icon and the excerpt of a block in the outline. */
 export function describeBlock(
   block: PlutoBlock,
   sources: PlutoBlockSources = {}
@@ -108,7 +101,6 @@ export function describeBlock(
   }
 }
 
-/** The Markdown of the children of one slot, without the white space of the parent. */
 export function slotMarkdown(
   component: PlutoComponentBlock,
   slot: string
@@ -120,11 +112,6 @@ export function slotMarkdown(
 
 export type PlutoSlotMode = 'rich' | 'inline' | 'blocks' | 'markdown'
 
-/**
- * The editor for a slot. A `rich` or `inline` slot falls back when its content
- * has a block or a syntax that the text editor would lose: it then shows the
- * blocks, or a Markdown box.
- */
 export function resolveSlotMode(
   component: PlutoComponentBlock,
   slot: string,
@@ -134,7 +121,6 @@ export function resolveSlotMode(
   if (wanted === 'blocks') {
     return 'blocks'
   }
-  // A component or a code block inside the slot needs the list of blocks.
   if (
     !children.every((child) => child.kind === 'text' || child.kind === 'raw')
   ) {
@@ -151,12 +137,6 @@ export function resolveSlotMode(
   return 'rich'
 }
 
-/**
- * The block that the preview shows as selected: the deepest component on the
- * path of the selected block, else its top-level block. The preview marks only
- * the top-level blocks and the inner components, so a text inside a card shows
- * the card.
- */
 export function previewSelectionId(
   doc: PlutoBlockDoc,
   id: string | null
@@ -173,7 +153,6 @@ export function previewSelectionId(
   return path[0] ?? null
 }
 
-/** The top-level blocks as the preview frame wants them. */
 export function toPreviewBlocks(
   blocks: PlutoBlock[],
   sources: PlutoBlockSources = {}
@@ -195,12 +174,7 @@ export function toPreviewBlocks(
   })
 }
 
-/**
- * The inner components of a component, in source order over all slots, for
- * the marks of the preview (a click selects an inner block). Text, code and raw
- * children are not here: a click on them selects the nearest component.
- */
-export function previewChildren(
+function previewChildren(
   component: PlutoComponentBlock,
   sources: PlutoBlockSources = {}
 ): PlutoPreviewChild[] {
@@ -218,7 +192,6 @@ export function previewChildren(
     })
 }
 
-/** The component names that a slot accepts, or `undefined` for any. */
 export function acceptedNames(
   definition: PlutoBlockDefinition,
   slot: string
@@ -273,11 +246,6 @@ export interface PlutoPaletteGroup {
 const TABLE_MARKDOWN =
   '| Column | Column |\n| ------ | ------ |\n| Cell | Cell |'
 
-/**
- * The palette: the built-in blocks (text, code, table) first, then the
- * component groups. `accepts` limits the list to some component names, for a
- * target inside a component that takes only some children.
- */
 export function buildPalette(
   sources: PlutoBlockSources = {},
   accepts?: string[]
@@ -346,12 +314,4 @@ export function buildPalette(
     }
   }
   return groups
-}
-
-/** How many blocks a block holds, itself included. */
-export function countBlocks(block: PlutoBlock): number {
-  return block.kind === 'component'
-    ? 1 +
-        flatChildren(block).reduce((sum, child) => sum + countBlocks(child), 0)
-    : 1
 }

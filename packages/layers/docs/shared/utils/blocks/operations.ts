@@ -1,8 +1,3 @@
-// Edit operations on a block doc. Each one is pure: it returns a new doc and
-// never changes its input. An edit removes `original` from the edited block and
-// from its ancestors, so only those blocks are built again on save. The gaps
-// stay where they are, so the layout of the other blocks does not change.
-
 import type {
   PlutoBlock,
   PlutoBlockDoc,
@@ -15,7 +10,6 @@ import { dedent, parseBlocks } from './parse'
 import { renderBlock } from './serialize'
 import { findBlock, flatChildren, newBlockId, pathOf } from './tree'
 
-/** Where a block goes: a list of the doc, or a slot of a component. `index` is the position in that list. */
 export interface PlutoBlockTarget {
   parentId?: string
   slot?: string
@@ -28,8 +22,6 @@ export interface PlutoInsertResult {
   ids: string[]
 }
 
-// Clone and dirty marks
-
 function cloneDoc(doc: PlutoBlockDoc): PlutoBlockDoc {
   // A JSON copy also works for a reactive proxy.
   return JSON.parse(JSON.stringify(doc)) as PlutoBlockDoc
@@ -39,7 +31,6 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
-/** Removes `original` from the block and from its ancestors. */
 function touch(doc: PlutoBlockDoc, id: string): void {
   for (const pathId of pathOf(doc, id)) {
     const found = findBlock(doc, pathId)
@@ -59,12 +50,6 @@ function renewIds(block: PlutoBlock): PlutoBlock {
   return block
 }
 
-// Indent
-
-/**
- * Changes the indent of the lines after the first one. A gap ends before a
- * block, so a line end at the end of the text also gets the indent.
- */
 function shiftText(text: string, from: string, to: string): string {
   return text.replace(
     /\n([ \t]*)(?=[^\n]|$)/g,
@@ -73,7 +58,6 @@ function shiftText(text: string, from: string, to: string): string {
   )
 }
 
-/** A block with a new indent. A block that moves to another level is built again on save. */
 function withIndent(block: PlutoBlock, indent: string): PlutoBlock {
   const from = block.indent ?? ''
   if (from === indent) {
@@ -108,8 +92,6 @@ function withIndent(block: PlutoBlock, indent: string): PlutoBlock {
   }
   return block
 }
-
-// Lists
 
 interface ListView {
   blocks: PlutoBlock[]
@@ -161,7 +143,6 @@ function viewOf(
 
 const MARKER = /^[ \t]*#[a-z][\w-]*[ \t]*$/gim
 
-/** The text of a gap up to the end of its last `#name` line, or an empty text. */
 function markerPrefix(gap: string): string {
   let end = -1
   for (const match of gap.matchAll(MARKER)) {
@@ -179,7 +160,6 @@ function markerLine(gap: string, slot: string): { end: number } | undefined {
   return undefined
 }
 
-/** The indent for a new child: the one of the sibling next to it, or a default. */
 function childIndentFor(
   view: ListView,
   index: number,
@@ -198,12 +178,10 @@ function childIndentFor(
   return block.kind === 'component' ? `${base}  ` : base
 }
 
-/** The gap between two blocks of a list. It is a blank line, plus the indent in a component. */
 function separatorFor(view: ListView, indent: string): string {
   return view.parent ? `\n\n${indent}` : '\n\n'
 }
 
-/** The gaps between the new blocks, indented for a component. */
 function innerGapsFor(gaps: string[], indent: string): string[] {
   return gaps.map((gap) =>
     indent && gap.includes('\n')
@@ -212,7 +190,6 @@ function innerGapsFor(gaps: string[], indent: string): string[] {
   )
 }
 
-/** Puts blocks into an empty list: the doc, or a slot with no child. */
 function fillEmpty(
   view: ListView,
   blocks: PlutoBlock[],
@@ -226,7 +203,6 @@ function fillEmpty(
   }
   const indent = blocks[0]!.indent ?? ''
   const slot = view.slot!
-  // Where the slot starts: after its `#name` line, or at the start of the content.
   let at = view.start
   let cut: number | undefined
   const marker = markerLine(parent.gaps[at] ?? '', slot)
@@ -247,13 +223,11 @@ function fillEmpty(
     parent.slots[slot] = view.blocks
     view.blocks.push(...blocks)
     if (slot === 'default' && view.missing) {
-      // Content before the first `#name` goes first in the record.
       const { default: own, ...rest } = parent.slots
       parent.slots = { default: own!, ...rest }
     }
     return
   }
-  // A named slot with no entry: add a `#name` section at the end.
   at = parent.gaps.length - 1
   const last = parent.gaps[at]!
   const closing = /\n[ \t]*$/.exec(last)
@@ -270,10 +244,6 @@ function fillEmpty(
   view.blocks.push(...blocks)
 }
 
-/**
- * Replaces `count` blocks at `index` with new blocks. `inner` has the gaps
- * between the new blocks. Insert is `count` 0, remove is no new block.
- */
 function spliceList(
   view: ListView,
   index: number,
@@ -300,7 +270,6 @@ function spliceList(
     return
   }
   if (blocks.length === 0) {
-    // Remove: join the gap before and the gap after.
     const before = gaps[f] ?? ''
     const after = gaps[f + count] ?? ''
     const rest = view.blocks.length - count
@@ -314,12 +283,10 @@ function spliceList(
     view.blocks.splice(index, count)
     return
   }
-  // Replace: keep the outer gaps, change the inner ones.
   gaps.splice(f + 1, count - 1, ...inner)
   view.blocks.splice(index, count, ...blocks)
 }
 
-/** A nested component needs more colons than its parent. */
 function ensureColons(block: PlutoBlock, min: number): void {
   if (block.kind !== 'component') {
     return
@@ -344,9 +311,6 @@ function prepare(view: ListView, index: number, blocks: PlutoBlock[]): void {
   }
 }
 
-// Make blocks
-
-/** Parses Markdown into new blocks, with fresh ids. The text between them is in `gaps`. */
 export function blocksFromMarkdown(markdown: string): {
   blocks: PlutoBlock[]
   gaps: string[]
@@ -360,10 +324,6 @@ export function blocksFromMarkdown(markdown: string): {
 
 export function createTextBlock(markdown: string): PlutoBlock {
   return { id: newBlockId(), kind: 'text', markdown }
-}
-
-export function createCodeBlock(code = '', lang = ''): PlutoBlock {
-  return { id: newBlockId(), kind: 'code', lang, fence: '```', code }
 }
 
 export function createComponentBlock(
@@ -385,9 +345,6 @@ export function createComponentBlock(
   return block
 }
 
-// Operations
-
-/** Puts blocks at a target. It returns `undefined` when the target does not exist. */
 export function insertBlocks(
   doc: PlutoBlockDoc,
   blocks: PlutoBlock[],
@@ -446,7 +403,6 @@ export function removeBlock(doc: PlutoBlockDoc, id: string): PlutoBlockDoc {
   return next
 }
 
-/** Moves a block. `target.index` is the position in the target list after the move. */
 export function moveBlock(
   doc: PlutoBlockDoc,
   id: string,
@@ -456,7 +412,6 @@ export function moveBlock(
   if (!found) {
     return doc
   }
-  // A block cannot go into itself.
   if (
     target.parentId !== undefined &&
     pathOf(doc, target.parentId).includes(id)
@@ -484,7 +439,6 @@ export function moveBlock(
   }
   const moving = clone(found.block)
   const removed = removeBlock(doc, id)
-  // The moved block keeps its id.
   const inserted = insertBlocks(removed, [moving], target)
   if (!inserted) {
     return doc
@@ -492,7 +446,6 @@ export function moveBlock(
   return inserted.doc
 }
 
-/** Copies a block and puts the copy after it. */
 export function duplicateBlock(
   doc: PlutoBlockDoc,
   id: string
@@ -509,7 +462,6 @@ export function duplicateBlock(
   })
 }
 
-/** Edits a block with a function on a copy. A no-op edit returns the same doc. */
 function editBlock(
   doc: PlutoBlockDoc,
   id: string,
@@ -570,10 +522,6 @@ export function updateCode(
   })
 }
 
-/**
- * Sets some props of a component in one edit (one undo step), for example an image and its size.
- * A value of `undefined` removes the prop. The same doc when nothing changes.
- */
 export function setProps(
   doc: PlutoBlockDoc,
   id: string,
@@ -585,7 +533,6 @@ export function setProps(
   )
 }
 
-/** Sets a prop of a component. A value of `undefined` removes the prop. */
 export function setProp(
   doc: PlutoBlockDoc,
   id: string,
@@ -615,7 +562,6 @@ export function setProp(
   })
 }
 
-/** Replaces all children of a slot with the blocks parsed from Markdown. */
 export function setSlot(
   doc: PlutoBlockDoc,
   id: string,
@@ -628,7 +574,6 @@ export function setSlot(
   }
   const current = found.block.slots[slot] ?? []
   const parsed = blocksFromMarkdown(markdown)
-  // The same text gives the same doc.
   if (
     current.length > 0 &&
     parsed.blocks.length > 0 &&
@@ -664,7 +609,6 @@ export function setSlot(
   return next
 }
 
-/** Replaces a block with the blocks parsed from Markdown. */
 export function replaceWithMarkdown(
   doc: PlutoBlockDoc,
   id: string,
@@ -698,7 +642,6 @@ export function replaceWithMarkdown(
   return { doc: next, ids: parsed.blocks.map((block) => block.id) }
 }
 
-/** The block as plain Markdown text, for "Edit as Markdown". */
 export function blockMarkdown(block: PlutoBlock): string {
   if (block.kind === 'text' || block.kind === 'raw') {
     return block.markdown

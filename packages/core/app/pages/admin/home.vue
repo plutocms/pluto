@@ -9,7 +9,6 @@ const today = computed(() =>
   d(new Date(), { weekday: 'long', month: 'long', day: 'numeric' })
 )
 
-// The header's Create button reuses the command palette's Create commands.
 const groups = usePlutoCommandPalette()
 const createItems = computed(
   () => groups.value.find((group) => group.id === 'pluto-create')?.items ?? []

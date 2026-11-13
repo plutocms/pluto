@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The page for an admin with no auth driver in production: the backend is
-// missing or did not load. The route guard sends every admin path here (see
-// `driverDecision`), so the admin pages do not show to everyone. The frame is
-// PlutoAdminAuthCard. See the admin-shell skill.
 definePageMeta({ layout: 'auth' })
 
 const { t } = usePlutoI18n()

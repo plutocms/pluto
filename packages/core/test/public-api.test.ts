@@ -482,7 +482,6 @@ describe('getPublicSurround', () => {
 
     const middle = await api.getPublicSurround(event(), 'post', 'b', {})
     expect(middle.data.previous).toMatchObject({ slug: 'a' })
-    // The draft `c` is skipped.
     expect(middle.data.next).toMatchObject({ slug: 'd' })
 
     const first = await api.getPublicSurround(event(), 'post', '1', {})

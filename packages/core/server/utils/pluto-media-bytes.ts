@@ -1,11 +1,5 @@
 import { imageMeta } from 'image-meta'
 
-// The checks on the bytes of an upload. Pure JS, with no native code, so they
-// run on every host (Cloudflare Workers too). The browser processes an image
-// before the upload (it removes the metadata and makes it smaller), but the
-// server does not trust that: an upload through the API, or a browser that
-// could not process the file, still goes through these checks.
-
 function startsWith(bytes: Uint8Array, signature: number[], at = 0): boolean {
   return signature.every((value, index) => bytes[at + index] === value)
 }
@@ -14,7 +8,6 @@ function ascii(bytes: Uint8Array, at: number, length: number): string {
   return String.fromCharCode(...bytes.subarray(at, at + length))
 }
 
-/** The real type of a file, from its first bytes. `null` for a type core does not know. */
 export function sniffMediaType(bytes: Uint8Array): string | null {
   if (startsWith(bytes, [0xff, 0xd8, 0xff])) {
     return 'image/jpeg'
@@ -43,7 +36,6 @@ export function sniffMediaType(bytes: Uint8Array): string | null {
   return null
 }
 
-/** The size of an image in pixels, from its header. `null` when it cannot be read. */
 export function readImageSize(
   bytes: Uint8Array
 ): { width: number; height: number } | null {
@@ -67,9 +59,7 @@ function concat(parts: Uint8Array[]): Uint8Array {
   return out
 }
 
-/** The EXIF orientation (1 to 8) in a JPEG APP1 segment, or 1. */
 function exifOrientation(segment: Uint8Array): number {
-  // FF E1, length (2), "Exif\0\0", then a TIFF header.
   if (ascii(segment, 4, 6) !== 'Exif\0\0') {
     return 1
   }
@@ -86,13 +76,10 @@ function exifOrientation(segment: Uint8Array): number {
         return value >= 1 && value <= 8 ? value : 1
       }
     }
-  } catch {
-    // A short or broken TIFF block: no orientation.
-  }
+  } catch {}
   return 1
 }
 
-/** A minimal APP1 segment that holds only the orientation tag. */
 function orientationSegment(orientation: number): Uint8Array {
   const tiff = [
     0x4d,
@@ -102,9 +89,9 @@ function orientationSegment(orientation: number): Uint8Array {
     0x00,
     0x00,
     0x00,
-    0x08, // "MM", 42, IFD at 8
+    0x08,
     0x00,
-    0x01, // one entry
+    0x01,
     0x01,
     0x12,
     0x00,
@@ -112,7 +99,7 @@ function orientationSegment(orientation: number): Uint8Array {
     0x00,
     0x00,
     0x00,
-    0x01, // orientation, SHORT, 1 value
+    0x01,
     0x00,
     orientation,
     0x00,
@@ -120,7 +107,7 @@ function orientationSegment(orientation: number): Uint8Array {
     0x00,
     0x00,
     0x00,
-    0x00, // no next IFD
+    0x00,
   ]
   const body = [...'Exif\0\0'].map((char) => char.charCodeAt(0)).concat(tiff)
   const length = body.length + 2
@@ -140,7 +127,6 @@ function stripJpeg(bytes: Uint8Array): Uint8Array {
       at++
       continue
     }
-    // The scan (or the end): the image data follows. Copy the rest as it is.
     if (marker === 0xda || marker === 0xd9) {
       parts.push(bytes.subarray(at))
       break
@@ -155,8 +141,6 @@ function stripJpeg(bytes: Uint8Array): Uint8Array {
       return bytes
     }
     const segment = bytes.subarray(at, at + 2 + length)
-    // APP1 (EXIF, XMP), APP13 (IPTC) and comments can hold the place, the
-    // camera and the author. APP2 (the color profile) stays.
     if (marker === 0xe1) {
       orientation = Math.max(orientation, exifOrientation(segment))
     } else if (marker !== 0xed && marker !== 0xfe) {
@@ -164,7 +148,6 @@ function stripJpeg(bytes: Uint8Array): Uint8Array {
     }
     at += 2 + length
   }
-  // Keep the rotation: without it, a photo that the browser did not process shows sideways.
   if (orientation !== 1) {
     parts.splice(1, 0, orientationSegment(orientation))
   }
@@ -204,7 +187,6 @@ function stripWebp(bytes: Uint8Array): Uint8Array {
     }
     if (name === 'VP8X') {
       const chunk = bytes.slice(at, Math.min(end, bytes.length))
-      // The flags: clear "has EXIF" (0x08) and "has XMP" (0x04).
       chunk[8] = (chunk[8] ?? 0) & ~0x0c
       parts.push(chunk)
     } else if (name !== 'EXIF' && name !== 'XMP ') {
@@ -220,12 +202,6 @@ function stripWebp(bytes: Uint8Array): Uint8Array {
   return concat([header, body])
 }
 
-/**
- * The file without its metadata: EXIF (with the GPS place), XMP, IPTC and
- * text chunks. JPEG, PNG and WebP. The image data does not change (no
- * re-encoding). Other types come back as they are. A file that cannot be
- * parsed comes back as it is too, so a strange file never breaks an upload.
- */
 export function stripImageMetadata(
   bytes: Uint8Array,
   mimeType: string

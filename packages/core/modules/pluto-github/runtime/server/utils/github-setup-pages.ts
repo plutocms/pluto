@@ -1,10 +1,3 @@
-/**
- * The server-rendered pages of the GitHub App setup. They are plain HTML with
- * inline CSS, because they run before any sign-in works and outside the Nuxt
- * app. The functions are pure: the route passes a translate function `t`.
- * Every value goes through `escapeHtml`.
- */
-
 export type SetupTranslate = (
   key: string,
   params?: Record<string, string | number>
@@ -18,20 +11,14 @@ const ESCAPES: Record<string, string> = {
   "'": '&#39;',
 }
 
-/** Escapes text for an HTML body or a quoted attribute. */
 export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => ESCAPES[char]!)
 }
 
-/** Escapes text for an HTML body, and makes `<code>` of the parts between backticks. */
 export function escapeCodeText(value: string): string {
   return escapeHtml(value).replace(/`([^`]+)`/g, '<code>$1</code>')
 }
 
-// The look of the admin auth pages (the `auth` layout and PlutoAdminAuthCard): the colors of the
-// admin theme (app/assets/css/admin-theme.css, OKLCH literals, light and dark), the canvas, a
-// card with the logo, and the buttons, alerts and inline code of the admin. Public Sans when the
-// browser has it, else the system font: the page loads no font file.
 const STYLES = `
 :root{color-scheme:light dark;--canvas:#fff;--card:#fff;--text:oklch(39.7% .05 273.48);--strong:oklch(24.1% .041 272.8);--muted:oklch(56% .049 273.45);--border:oklch(91% .016 269.97);--accented:oklch(83.3% .025 270.3);--elevated:oklch(95.5% .008 271.33);--primary:oklch(58.7% .184 36.16);--on-primary:#fff;--success:oklch(72.3% .219 149.579);--warn:oklch(76.9% .188 70.08);--warn-bg:oklch(76.9% .188 70.08/.1);--warn-ring:oklch(76.9% .188 70.08/.25)}
 @media (prefers-color-scheme:dark){:root{--canvas:oklch(24.1% .041 272.8);--card:oklch(28% .042 273);--text:oklch(91% .016 269.97);--strong:#fff;--muted:oklch(68.5% .039 271.84);--border:oklch(31.2% .048 273.43);--accented:oklch(39.7% .05 273.48);--elevated:oklch(31.2% .048 273.43);--primary:oklch(72.8% .165 40.63);--on-primary:oklch(24.1% .041 272.8);--success:oklch(79.2% .209 151.711);--warn:oklch(82.8% .189 84.429);--warn-bg:oklch(82.8% .189 84.429/.1);--warn-ring:oklch(82.8% .189 84.429/.25)}}
@@ -60,11 +47,8 @@ textarea{width:100%;min-height:11rem;resize:vertical;background:var(--canvas);co
 code{border:1px solid var(--accented);background:var(--elevated);color:var(--strong);padding:1px 5px;border-radius:4px;font:.875em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 `
 
-// The external icon of Nuxt UI (Lucide `arrow-up-right`), after a link that opens another site.
 const EXTERNAL_ICON = `<svg class="ext" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>`
 
-// The Pluto logo of the admin auth card: the black wordmark in light mode, the white one in dark
-// mode (core serves both from public/img).
 const LOGO = `<picture><source srcset="/img/pluto.png" media="(prefers-color-scheme: dark)"><img class="logo" src="/img/pluto.svg" alt="Pluto"></picture>`
 
 function layout(lang: string | undefined, title: string, body: string): string {
@@ -90,19 +74,12 @@ ${body}
 
 export interface StartPageInput {
   t: SetupTranslate
-  /** The language code of the page. */
   lang?: string
-  /** The URL that the form posts to. */
   action: string
-  /** The manifest as JSON text. */
   manifest: string
   appName: string
 }
 
-/**
- * The page that posts the manifest to GitHub. The form submits itself. The
- * button works without JavaScript.
- */
 export function renderStartPage(input: StartPageInput): string {
   const { t } = input
   const body = `<h1>${escapeHtml(t('pluto.github.setup.page.start.title'))}</h1>
@@ -117,24 +94,17 @@ export function renderStartPage(input: StartPageInput): string {
 
 export interface ResultPageInput {
   t: SetupTranslate
-  /** The language code of the page. */
   lang?: string
   appName: string
-  /** The `KEY=value` lines to copy. */
   envBlock: string
   installUrl: string
-  /** Development: the server wrote the values into `.env`. */
   envSaved: boolean
-  /** Development: the server tried to write `.env` and failed. */
   envFailed: boolean
-  /** Development: `.gitignore` does not ignore `.env`. */
   envNotIgnored: boolean
   dev: boolean
-  /** The admin sign-in page. */
   signInUrl: string
 }
 
-/** The page that shows the env block, the install link and the next steps. */
 export function renderResultPage(input: ResultPageInput): string {
   const { t } = input
   const saved = input.envSaved
@@ -193,15 +163,11 @@ else{t.select();document.execCommand('copy');done()}})})()
 
 export interface ErrorPageInput {
   t: SetupTranslate
-  /** The language code of the page. */
   lang?: string
-  /** The message key under `pluto.github.setup.page.error`: `state` or `github`. */
   reason: 'state' | 'github'
-  /** The start route, so the author can try again. */
   retryUrl: string
 }
 
-/** The page for a failed setup. It never shows a value from GitHub. */
 export function renderErrorPage(input: ErrorPageInput): string {
   const { t } = input
   const body = `<h1>${escapeHtml(t('pluto.github.setup.page.error.title'))}</h1>

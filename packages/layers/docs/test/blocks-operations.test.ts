@@ -25,8 +25,6 @@ import {
 } from '../shared/utils/blocks/tree'
 import { corpusBodies } from './helpers/corpus'
 
-// The text of a doc after an operation must parse again, and write again with
-// the same bytes. This shows that the gaps and the markers stay valid.
 function expectStable(doc: PlutoBlockDoc, message = ''): string {
   const text = serializeBlocks(doc)
   expect(serializeBlocks(parseBlocks(text)), message).toBe(text)
@@ -131,7 +129,6 @@ describe('insert', () => {
     ).toEqual(['One', 'Two'])
     expect(parsed.colons).toBe(2)
     expect(flatChildren(parsed)[1]).toMatchObject({ colons: 3, indent: '  ' })
-    // The first child keeps its source.
     expect(
       text.startsWith(
         '::card-group\n  :::card\n  ---\n  title: One\n  ---\n  Text.\n  :::\n\n  :::card'
@@ -243,7 +240,6 @@ describe('move', () => {
       doc.blocks[0]!.id,
       doc.blocks[1]!.id,
     ])
-    // The blocks keep their slices, so the moved text is the source text.
     expect(moved.blocks[0]!.original).toBeDefined()
   })
 
@@ -395,7 +391,6 @@ describe('every operation on every page of the corpus', () => {
         const doc = parseBlocks(body)
         const ids: string[] = []
         walkBlocks(doc.blocks, (block) => ids.push(block.id))
-        // All components, and every fifth block.
         for (const id of ids.filter(
           (id, index) =>
             index % 5 === 0 || findBlock(doc, id)!.block.kind === 'component'
@@ -404,7 +399,6 @@ describe('every operation on every page of the corpus', () => {
           expectStable(duplicated!.doc, `${file} duplicate ${id}`)
           expectStable(removeBlock(doc, id), `${file} remove ${id}`)
           const found = findBlock(doc, id)!
-          // Move to the start of the same list.
           expectStable(
             moveBlock(doc, id, {
               parentId: found.parent?.id,
@@ -431,7 +425,6 @@ describe('every operation on every page of the corpus', () => {
       walkBlocks(doc.blocks, (block) => ids.push(block.id))
       for (const id of ids) {
         const removed = count(removeBlock(doc, id))
-        // Removing a component removes its children too.
         const found = findBlock(doc, id)!.block
         const size =
           found.kind === 'component' ? 1 + flatChildren(found).length : 1

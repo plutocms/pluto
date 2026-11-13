@@ -1,5 +1,10 @@
 import { parseGithubRepoUrl } from './git-remote'
 
+/**
+ * The options of the `plutoGithub` key of `nuxt.config.ts`, the Git CMS.
+ *
+ * @see https://pluto.vulmix.dev/docs/git-cms/reference#options
+ */
 export interface PlutoGithubOptions {
   /**
    * `'auto'` (the default) turns the CMS on unless a backend layer is present.
@@ -72,16 +77,9 @@ export interface ResolvedPlutoGithubOptions {
 
 export interface PlutoGithubResolveContext {
   dev: boolean
-  /** A backend layer is present: the supabase layer, `@nuxtjs/supabase`, or a layer with `$meta.plutoBackend`. */
   hasBackendLayer: boolean
-  /** The env vars to read the defaults from. The module passes `process.env`. */
   env?: Record<string, string | undefined>
-  /** The URL of the `origin` git remote. The module reads it in dev only. */
   gitOrigin?: string
-  /**
-   * A static build (`nuxt generate`): the site reads the content from the files of the checkout
-   * while it prerenders. The `fs` store is the default and is valid. No sign-in, no admin.
-   */
   static?: boolean
 }
 
@@ -92,11 +90,6 @@ export interface PlutoGithubResolveResult {
   errors: string[]
 }
 
-/**
- * The env var names the CMS server code reads at run time. Nuxt maps
- * `NUXT_<name>` onto `runtimeConfig.plutoGithub`. The module never checks them
- * at build time.
- */
 export const PLUTO_GITHUB_SECRET_ENV = {
   required: [
     'SESSION_PASSWORD',
@@ -114,10 +107,6 @@ const DRIVE_PATTERN = /^[a-z]:/i
 export const SUPABASE_CONFLICT_ERROR =
   'The standalone CMS cannot run with the supabase layer. Remove plutoGithub.enabled or the supabase layer.'
 
-/**
- * Normalizes a content dir to forward slashes with no trailing slash.
- * Returns `undefined` when the dir is not a safe relative path.
- */
 export function normalizeGithubDir(dir: string): string | undefined {
   const value = dir.trim().replaceAll('\\', '/')
   if (!value || value.startsWith('/') || DRIVE_PATTERN.test(value)) {
@@ -139,7 +128,6 @@ export function resolvePlutoGithubOptions(
   const warnings: string[] = []
   const errors: string[] = []
   const env = ctx.env ?? {}
-  // The first name with a value wins.
   const fromEnv = (...names: string[]) =>
     names.map((name) => env[name]?.trim()).find(Boolean)
 
@@ -185,7 +173,6 @@ export function resolvePlutoGithubOptions(
   }
 
   if (ctx.hasBackendLayer) {
-    // `auto` steps aside without a log. An explicit `true` is a mistake.
     if (mode === true) {
       errors.push(SUPABASE_CONFLICT_ERROR)
     }
@@ -235,7 +222,6 @@ export function resolvePlutoGithubOptions(
   return { enabled: errors.length === 0, resolved, warnings, errors }
 }
 
-/** The default repo: env vars, then Vercel, then (dev only) the git remote. */
 function detectRepo(
   ctx: PlutoGithubResolveContext,
   fromEnv: (...names: string[]) => string | undefined
@@ -249,7 +235,6 @@ function detectRepo(
   if (owner && slug) {
     return `${owner}/${slug}`
   }
-  // Netlify gives the URL of the repo to the build.
   const netlify = parseGithubRepoUrl(fromEnv('REPOSITORY_URL') ?? '')
   if (netlify) {
     return netlify

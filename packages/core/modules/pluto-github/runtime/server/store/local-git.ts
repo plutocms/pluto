@@ -5,7 +5,6 @@ import { promisify } from 'node:util'
 
 const run = promisify(execFile)
 
-/** The result of a local commit. `skipped` names the reason when nothing was committed. */
 export type LocalCommitResult =
   | { committed: true; sha: string }
   | { committed: false; skipped: 'not-a-repo' | 'no-git' | 'no-changes' }
@@ -15,15 +14,6 @@ async function git(root: string, args: string[]): Promise<string> {
   return stdout.trim()
 }
 
-/**
- * Commits the given paths (relative to `root`) to the local Git repo of `root`, and nothing else:
- * changes that the author staged in other files stay as they are. New files are added, deleted
- * files are removed. The commit runs the hooks of the repo and uses its author (`user.name`,
- * `user.email`).
- *
- * Returns `committed: false` without an error when `root` is not in a Git work tree, when Git is
- * not installed, or when the paths have no change. Throws when Git fails (a hook, no author).
- */
 export async function commitLocalFiles(
   root: string,
   paths: string[],
@@ -70,27 +60,20 @@ export async function commitLocalFiles(
     return { committed: false, skipped: 'no-changes' }
   }
 
-  // `--only` (implied by the paths) commits these files and leaves the rest of the index alone.
   await git(root, ['commit', '-m', message, '--', ...staged])
   return { committed: true, sha: await git(root, ['rev-parse', 'HEAD']) }
 }
 
-/** The state of the local Git repo, for the backend badge of the admin (local mode). */
 export type LocalGitStatus =
   | { repo: false; reason: 'not-a-repo' | 'no-git' }
   | {
       repo: true
-      /** The current branch. `null` on a detached HEAD. */
       branch: string | null
-      /** The upstream of the branch, for example `origin/main`. `null` when it has none. */
       upstream: string | null
-      /** The remote that a push uses: the remote of the upstream, else `origin`, else the first. */
       remote: string | null
-      /** The commits that are not pushed: not on the upstream, or on no remote at all. */
       ahead: number
     }
 
-/** Why a push failed. `rejected`: the remote has commits that this repo has not (pull first). */
 export type LocalPushError =
   | 'not-a-repo'
   | 'detached'
@@ -114,7 +97,6 @@ async function gitOrNull(root: string, args: string[]): Promise<string | null> {
   }
 }
 
-/** Reads the branch, the upstream and the commits that are not pushed. It runs no network call. */
 export async function readLocalGitStatus(
   root: string
 ): Promise<LocalGitStatus> {
@@ -146,8 +128,6 @@ export async function readLocalGitStatus(
     upstreamRemote ??
     (remotes.includes('origin') ? 'origin' : (remotes[0] ?? null))
 
-  // With an upstream: the commits that it lacks. Without one: the commits on no remote branch. A
-  // repo with no commit yet has no HEAD, so the count fails and reads as 0.
   const count = await gitOrNull(
     root,
     upstream
@@ -159,7 +139,6 @@ export async function readLocalGitStatus(
   return { repo: true, branch, upstream, remote, ahead }
 }
 
-/** Sorts the stderr text of a failed push into a reason. */
 export function pushErrorReason(stderr: string): LocalPushError {
   if (/\[rejected\]|non-fast-forward|fetch first/i.test(stderr)) {
     return 'rejected'
@@ -174,12 +153,6 @@ export function pushErrorReason(stderr: string): LocalPushError {
   return 'failed'
 }
 
-/**
- * Pushes the current branch. A branch with no upstream is pushed to the remote of the status and
- * gets it as its upstream. Git never asks for a password in the terminal (`GIT_TERMINAL_PROMPT=0`),
- * and the push stops after `timeout` ms. A credential helper of the system can still ask in a
- * window. Throws `LocalPushFailure`.
- */
 export async function pushLocalGit(
   root: string,
   options: { timeout?: number } = {}
@@ -220,7 +193,6 @@ export async function pushLocalGit(
   return readLocalGitStatus(root)
 }
 
-/** One commit of `localFileHistory`. */
 export interface LocalFileCommit {
   oid: string
   message: string
@@ -232,11 +204,6 @@ const FIELD = '\u001F'
 const RECORD = '\u001E'
 const COMMIT_OID = /^[0-9a-f]{7,64}$/i
 
-/**
- * The commits of the local Git repo of `root` that changed `path` (relative to `root`), newest
- * first. `skip` commits are left out first. An empty list when `root` is not in a Git work tree
- * or Git is not installed. `more` is true when older commits exist.
- */
 export async function localFileHistory(
   root: string,
   path: string,
@@ -276,7 +243,6 @@ export async function localFileHistory(
   }
 }
 
-/** The text of `path` (relative to `root`) at a commit. `null` when it was not there. */
 export async function localFileAt(
   root: string,
   path: string,
@@ -286,12 +252,11 @@ export async function localFileAt(
     return null
   }
   try {
-    const { stdout } = await run(
-      'git',
-      // `./`: the path is relative to `root`, not to the top of the repo.
-      ['show', `${commitOid}:./${path}`],
-      { cwd: root, windowsHide: true, maxBuffer: 32 * 1024 * 1024 }
-    )
+    const { stdout } = await run('git', ['show', `${commitOid}:./${path}`], {
+      cwd: root,
+      windowsHide: true,
+      maxBuffer: 32 * 1024 * 1024,
+    })
     return stdout
   } catch {
     return null

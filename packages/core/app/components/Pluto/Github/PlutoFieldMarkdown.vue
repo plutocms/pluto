@@ -10,30 +10,10 @@ import PlutoEditorImageMenu from '../Editor/PlutoEditorImageMenu.vue'
 import PlutoEditorLinkMenu from '../Editor/PlutoEditorLinkMenu.vue'
 import PlutoMarkdownSource from './PlutoMarkdownSource.vue'
 
-// The `richtext` widget of the standalone CMS. It edits a Markdown string with
-// the Nuxt UI editor (Tiptap). The model value is the Markdown text, so the
-// adapter stores the body as it is. The CMS client plugin registers this
-// widget in CMS mode only, and loads it with `defineAsyncComponent`, so
-// Tiptap loads on the edit page only.
-//
-// The visual editor knows the CommonMark parts and strikethrough. No underline (the StarterKit
-// mark is off, Ctrl+U too): Markdown has none, the editor wrote raw `<u>` HTML, which turned
-// Visual off, and underlined text reads as a link. It has no
-// node for MDC, a table, a task list or raw HTML, and it can lose that markup
-// when it saves. So the widget has a Source mode (`PlutoMarkdownSource`). The
-// `editor` option of the field picks the first mode: `auto` (default) opens
-// Source when the text has such syntax. Visual is off while the text has it.
-// See the git-cms skill.
 const props = defineProps<{
   field: PlutoTextField
   modelValue: unknown
   disabled?: boolean
-  /**
-   * The post editor (`post-canvas`) shows this widget as its Visual mode. No label, no mode switch
-   * (the post editor has its own), no border: the compose panel has the background of the text.
-   * The toolbar is a separate rounded bar that stays at the top while the panel scrolls, and the
-   * text fills the rest of the height. No padding: the post editor sets the space around it.
-   */
   canvas?: boolean
 }>()
 
@@ -47,8 +27,6 @@ const value = computed(() =>
   typeof props.modelValue === 'string' ? props.modelValue : ''
 )
 
-// The Markdown that the visual editor cannot keep. It follows the text, so
-// Visual turns on again when the author removes that syntax in Source.
 const unsafe = computed(() => findUnsafeMarkdown(value.value))
 const visualBlocked = computed(() => unsafe.value.length > 0)
 
@@ -67,7 +45,6 @@ const placeholder = computed(
   () => props.field.placeholder ?? t('pluto.github.editor.placeholder')
 )
 
-// In the canvas, the post editor owns the label and the Markdown mode.
 const UFormField = resolveComponent('UFormField')
 const frame = computed(() =>
   props.canvas
@@ -85,9 +62,6 @@ const frame = computed(() =>
       }
 )
 
-// The toolbar items are shared: `usePlutoMarkdownToolbar`. The link, image and
-// component buttons are slots. The image button shows when the app has a media
-// library, the component menu when the site has block components.
 const components = usePlutoContentComponents()
 const items = usePlutoMarkdownToolbar({
   link: true,
@@ -95,8 +69,6 @@ const items = usePlutoMarkdownToolbar({
   component: components.list.value.length > 0,
 })
 
-// A content component (`::name{props}` then `::`) shows as a chip. See the
-// content-components skill. A video URL alone on its line shows as its thumbnail (PlutoEmbedNode).
 const registry = usePlutoRegistry()
 const extensions = [
   PlutoLink,
@@ -109,29 +81,17 @@ const extensions = [
   PlutoTrailingParagraph,
   PlutoThrottledState,
   PlutoIgnoreAriaHidden,
-  // The text goes to the form at once when the editor loses the focus (see flushEditorValue).
   Extension.create({
     name: 'plutoFlushOnBlur',
     onBlur: () => flushEditorValue(),
   }),
 ]
 
-/**
- * The Markdown of the editor, without the blank lines at the end: the empty last line of the editor
- * (`PlutoTrailingParagraph`) never reaches the file, and an open post stays unchanged.
- */
 function trimEnd(markdown: string): string {
   return markdown.replace(/(?:\s|&nbsp;)+$/u, '')
 }
-// The text goes to the form at most every 200 ms while the author types, and at once when the
-// editor loses the focus (a click on Save takes it) or closes. Each value renders the form, the
-// outline and this widget, so a value at each key made fast typing lag.
-//
-// UEditor compares its model value with its own Markdown, and loads the value again when they
-// differ. So while the value is one that this widget gave, the editor gets its own last Markdown
-// back (before the trim, and maybe some keys ahead of the value): it never reloads while the author
-// types. A reload drops a space at the end of a line (`## My `), so the caret left the line. The
-// two are plain variables: they change at each key, and must not render anything.
+// UEditor loads its model value again when it differs from its own Markdown. Give it its own last Markdown back,
+// or a reload drops a trailing space and the caret leaves the line. These two are plain variables on purpose.
 const EMIT_INTERVAL = 200
 let lastMarkdown: string | null = null
 let emitted: string | null = null
@@ -161,18 +121,8 @@ function onEditorUpdate(markdown: string) {
 
 onBeforeUnmount(flushEditorValue)
 
-// --- Blocks: the bubble toolbar, the drag handle and the slash menu ---------------------------
-//
-// Like the other editors of Pluto: a selection shows the bubble toolbar (the text marks and the
-// link). In the gutter at the left of the text, a block has a grip (drag to move, click for
-// Duplicate and Delete), and an empty line has a "+" that opens the block menu for that line (a
-// dropdown: no "/" goes into the text). "/" in an empty line opens the same items as a suggestion
-// menu. The content components of the site are in it too. The editor always ends with an empty
-// line, so the "+" has a place after the last block.
 const bubbleItems = usePlutoMarkdownBubbleItems()
 
-// The "/" menu always opens below the caret (its arrow points up at it, pluto-layer.css): near the
-// bottom of the screen it gets shorter and scrolls, it does not flip above.
 const suggestionOptions = {
   placement: 'bottom-start' as const,
   offset: 10,
@@ -194,10 +144,6 @@ const suggestionOptions = {
   },
 }
 
-/**
- * The rule of Tiptap for the bubble toolbar (some text selected, the focus in the editor or in the
- * toolbar), but not for a selected block: a video has its own popover (`PlutoEditorEmbedMenu`).
- */
 function bubbleShouldShow({
   editor,
   element,
@@ -230,7 +176,6 @@ const suggestionItems = usePlutoMarkdownSuggestionItems(() =>
   }))
 )
 
-// The `plutoComponent` kind of the block menu: inserts the component and opens its settings.
 const handlers = {
   plutoComponent: {
     canExecute: () => true,
@@ -241,7 +186,6 @@ const handlers = {
   },
 }
 
-// The block under the drag handle, from its `hover` event.
 const handleNode = shallowRef<{ node: JSONContent; pos: number }>()
 const handleOnEmptyLine = computed(
   () =>
@@ -249,8 +193,6 @@ const handleOnEmptyLine = computed(
     !handleNode.value.node.content?.length
 )
 
-// The block of the open menu of the handle. The pointer can hover other blocks while the menu is
-// open; the menu acts on the block where it opened.
 const menuNode = shallowRef<{ node: JSONContent; pos: number }>()
 function onHandleMenu(editor: Editor, open: boolean) {
   if (open) {
@@ -259,10 +201,6 @@ function onHandleMenu(editor: Editor, open: boolean) {
   editor.chain().setMeta('lockDragHandle', open).run()
 }
 
-/**
- * The menu of the "+" of an empty line: the items of the block menu (`suggestionItems`). An item
- * puts the caret in that line and runs its handler there, like the "/" menu, with no "/" to remove.
- */
 function insertMenu(
   editor: Editor,
   editorHandlers: EditorCustomHandlers
@@ -298,7 +236,6 @@ function insertMenu(
   )
 }
 
-/** The menu of the grip: Duplicate and Delete the block under the handle. */
 function blockMenu(editor: Editor): DropdownMenuItem[][] {
   const current = menuNode.value ?? handleNode.value
   if (!current?.node?.type) {
@@ -351,7 +288,6 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           :disabled="!visualBlocked"
           :content="{ side: 'top' }"
         >
-          <!-- A disabled button gets no pointer events, so the span carries the tooltip. -->
           <span class="inline-flex">
             <UButton
               :variant="mode === 'visual' ? 'solid' : 'outline'"
@@ -387,12 +323,6 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
       @update:model-value="emit('update:modelValue', $event)"
     />
 
-    <!-- Outside the canvas, the editor root is a bordered box. The editable area has a minimum
-         height (in the canvas: the rest of the panel), so a click anywhere in it puts the cursor
-         in the text. In the canvas, the editor element reaches into the gutter at its left
-         (`-ms-14 ps-14`): the block buttons sit there, and the pointer stays in the editor on its
-         way to them (Tiptap hides the handle when the pointer leaves the editor). Under `sm`,
-         Nuxt UI hides the handle, so there is no gutter. -->
     <UEditor
       v-else
       v-slot="{ editor, handlers: editorHandlers }"
@@ -422,8 +352,6 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
       class="bg-default w-full"
       @update:model-value="onEditorUpdate($event as string)"
     >
-      <!-- The menus of the toolbar (Heading, the link popover) open on top of the editor box,
-           which has the same background in dark mode. A darker background sets them apart. -->
       <UTheme
         :ui="{
           dropdownMenu: {
@@ -436,7 +364,6 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           },
         }"
       >
-        <!-- One row: the buttons that do not fit go into the More popover (PlutoMarkdownToolbar). -->
         <PlutoMarkdownToolbar
           :editor="editor"
           :items="items"
@@ -460,8 +387,6 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </template>
         </PlutoMarkdownToolbar>
 
-        <!-- Over a text selection: the marks and the link. Not over a selected block (a video):
-             that one has its own popover. -->
         <UEditorToolbar
           :editor="editor"
           :items="bubbleItems"
@@ -475,15 +400,10 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </template>
         </UEditorToolbar>
 
-        <!-- A click on a link: its address and text. A click on a video: its address. A click on an
-             image: its alt text, Replace, Open and Remove. -->
         <PlutoEditorLinkMenu :editor="editor" />
         <PlutoEditorEmbedMenu :editor="editor" />
         <PlutoEditorImageMenu :editor="editor" />
 
-        <!-- In the gutter at the left of the text: the grip of a block (drag to move; a click opens
-             Duplicate and Delete), or the "+" of an empty line (the block menu there). No flip:
-             the buttons stay in the gutter, so the editor does not scroll sideways. -->
         <UEditorDragHandle
           v-slot="{ ui: handleUi }"
           :editor="editor"
@@ -537,7 +457,6 @@ function blockMenu(editor: Editor): DropdownMenuItem[][] {
           </UDropdownMenu>
         </UEditorDragHandle>
 
-        <!-- "/" in an empty line: the block menu. Not in code (plutoSlashMenuAllowed). -->
         <UEditorSuggestionMenu
           :editor="editor"
           :items="suggestionItems"

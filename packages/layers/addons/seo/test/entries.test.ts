@@ -3,9 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { markPublicRead } from '../../../../core/server/utils/pluto-public-read'
 import { plutoSeoListEntries } from '../server/utils/seo-entries'
 
-// `plutoSeoListEntries` uses names that Nitro auto-imports. Each test stubs them with a fake
-// adapter, to check the paging and the filters without a store.
-
 afterEach(() => {
   vi.unstubAllGlobals()
 })

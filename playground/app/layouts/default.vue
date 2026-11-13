@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// The public pages of the playground: a header with the posts and the admin. As plain as can be,
-// to see the posts of the Git CMS on a site while working on the layers.
 const site = usePlutoSite()
 
 const { item: contact } = usePlutoSingleton('contact')

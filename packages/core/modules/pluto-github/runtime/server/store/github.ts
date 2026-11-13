@@ -10,17 +10,11 @@ import { githubGraphql, githubRest } from '../github/client'
 import { PlutoGithubStoreError } from './errors'
 
 export interface GithubStoreOptions {
-  /** `owner/name`. */
   repo: string
   branch: string
   apiUrl: string
   cache: GithubCache
-  /**
-   * A server token for public reads, when the caller sends no auth. It can
-   * be a function, so the token can change over time (an installation token).
-   */
   readToken?: string | (() => Promise<string | undefined>)
-  /** A transport stub. Tests use it. */
   fetch?: GithubFetch
 }
 
@@ -87,10 +81,8 @@ const TREE_QUERY = `query PlutoGithubTree($owner: String!, $name: String!, $expr
   }
 }`
 
-/** The deepest folder level that the nested tree query reads. It matches the 6 segments of a nested id. */
 const TREE_DEPTH = 6
 
-/** One GraphQL query for the whole tree: a nested `... on Tree { entries }`, `TREE_DEPTH` levels deep. */
 function buildNestedTreeQuery(depth: number): string {
   let level = ''
   for (let index = 0; index < depth; index++) {
@@ -174,7 +166,6 @@ function dirOf(path: string): string {
   return index === -1 ? '' : path.slice(0, index)
 }
 
-/** Reads and writes a GitHub repo through the REST and GraphQL APIs. */
 export function createGithubStore(
   options: GithubStoreOptions
 ): PlutoGithubStore {

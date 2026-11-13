@@ -128,7 +128,6 @@ export function createAuthApp(
   return { request, jar, deleted, handler }
 }
 
-/** The fake event of a unit test of a function that reads the socket and the headers. */
 export function fakeEvent(
   options: {
     address?: string
@@ -146,7 +145,6 @@ export function fakeEvent(
   } as unknown as H3Event
 }
 
-/** Runs the whole sign-in with a fake GitHub and returns the cookie jar owner. */
 export async function signIn(
   app: ReturnType<typeof createAuthApp>,
   fake: ReturnType<typeof createFakeGithub>,

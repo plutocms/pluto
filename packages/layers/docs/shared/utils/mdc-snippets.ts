@@ -1,6 +1,3 @@
-// The MDC snippets of the Insert menu. Pure data, so plain Vitest tests it.
-// Each `label` is a full i18n key (a literal, so the locale test finds it).
-
 export interface MdcSnippet {
   id: string
   /** An i18n key of the layer. */

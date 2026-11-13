@@ -4,10 +4,6 @@ import {
   previewSelectionId,
   toPreviewBlocks,
 } from '../../../../../shared/utils/blocks/editor'
-// The live preview of the page: an iframe of `/_pluto/preview` on the same
-// origin. This component sends the blocks to the frame (after 150 ms of
-// quiet), and tells the editor when a block is clicked or hovered in the frame.
-// Both sides check the origin and the shape of every message.
 import {
   isTrustedPreviewOrigin,
   parsePreviewMessage,
@@ -105,7 +101,6 @@ function scheduleRender() {
 
 watch([blocks, () => props.frontmatter], scheduleRender, { deep: false })
 
-// The selection comes from the outline or the panel: draw it and scroll to it.
 watch(shownId, (id) => {
   if (!ready.value) {
     return
@@ -132,7 +127,6 @@ function onMessage(event: MessageEvent) {
       ready.value = true
       timedOut.value = false
       frameError.value = null
-      // The first render goes at once.
       sendRender()
       break
     case 'select':
@@ -189,10 +183,6 @@ defineExpose({ reload })
       loading="eager"
     />
 
-    <!--
-      While the preview loads: the shape of a page (core's canvas skeleton) and a small status
-      pill at the bottom, so the frame does not flash empty.
-    -->
     <div
       v-if="!ready && !timedOut"
       class="pointer-events-none absolute inset-0 flex flex-col bg-default"

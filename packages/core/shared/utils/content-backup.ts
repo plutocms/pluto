@@ -1,10 +1,6 @@
 import type { PlutoContentType, PlutoField } from '../types/content'
 import { stableStringify } from './stable-stringify'
 
-// The record of a content backup, and the pure rules around it. The form writes the record to
-// `localStorage` today. A server copy can use the same record later. It has no Nuxt imports, so
-// plain Vitest and the server can use it. See the content-backup skill.
-
 /** One changed field: the value at the baseline (`base`) and the value in the form (`value`). */
 export interface PlutoContentBackupChange {
   base?: unknown
@@ -28,19 +24,12 @@ export interface PlutoContentBackup {
   changes: Record<string, PlutoContentBackupChange>
 }
 
-/** Limits of the browser backup. */
 export const PLUTO_BACKUP_MAX_CHARS = 1_000_000
 export const PLUTO_BACKUP_MAX_TOTAL_CHARS = 2_500_000
 export const PLUTO_BACKUP_MAX_COUNT = 20
 export const PLUTO_BACKUP_TTL_MS = 14 * 24 * 60 * 60 * 1000
-/** The most bytes of a record that a `keepalive` request sends (the browser allows about 64 KiB). */
-export const PLUTO_BACKUP_KEEPALIVE_BYTES = 60_000
+const PLUTO_BACKUP_KEEPALIVE_BYTES = 60_000
 
-/**
- * The fields that a backup holds: the declared fields that are in the form, except the status
- * field (Save and Publish own it). Virtual fields are in, because they are form input. The slug
- * is in, because a slug edit is user work.
- */
 export function backupFields(type: PlutoContentType): PlutoField[] {
   const statusColumn = type.status
     ? (type.status.column ?? 'status')
@@ -50,10 +39,6 @@ export function backupFields(type: PlutoContentType): PlutoField[] {
   )
 }
 
-/**
- * The fields of `current` that differ from `baseline`, with both values. It compares the values
- * as sorted JSON, so the key order does not matter. Pure.
- */
 export function backupChanges(
   fields: PlutoField[],
   baseline: Record<string, unknown>,
@@ -74,11 +59,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
-/**
- * Reads a parsed JSON value as a backup record. It returns `null` for a wrong `v`, a wrong shape,
- * a missing `device` and an expired record. With `fields`, it drops the changes of fields that
- * the type does not declare (any more). Pure.
- */
 export function parseBackup(
   value: unknown,
   options: { now: number; ttlMs: number; fields?: PlutoField[] }
@@ -131,13 +111,6 @@ export interface PlutoBackupPlan {
   conflicts: string[]
 }
 
-/**
- * What a restore of `record` changes in `current` (the saved values). A field whose backup value
- * equals `current` is not in `values`. A field whose `current` value is not the backup `base` is a
- * conflict: the item was saved again after the backup, and the backup wins. A field that is not in
- * `fields` is dropped. A field of the stored item that the backup does not hold is not touched.
- * Pure.
- */
 export function planRestore(
   fields: PlutoField[],
   record: PlutoContentBackup,
@@ -170,10 +143,6 @@ export interface PlutoBackupPick {
   otherDevice: boolean
 }
 
-/**
- * The newer of the browser record and the server record, by `savedAt`. A tie goes to the browser
- * record. A record from the server that another device wrote has `otherDevice`. Pure.
- */
 export function pickBackup(
   local: PlutoContentBackup | null,
   server: PlutoContentBackup | null,
@@ -192,11 +161,6 @@ export function pickBackup(
   return null
 }
 
-/**
- * True when the browser record of `pick` must go to the server: the server has no copy, or an
- * older one. A browser backup written before the server kept copies (or while the server was
- * down) then reaches the other devices too. Call it only when the server answered. Pure.
- */
 export function needsServerCopy(
   pick: PlutoBackupPick,
   server: PlutoContentBackup | null
@@ -207,10 +171,6 @@ export function needsServerCopy(
   )
 }
 
-/**
- * The JSON text of a record for a `keepalive` request, or `null` when the text is larger than
- * `maxBytes` (counted in UTF-8 bytes). Pure.
- */
 export function keepaliveBody(
   record: PlutoContentBackup,
   maxBytes = PLUTO_BACKUP_KEEPALIVE_BYTES

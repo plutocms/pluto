@@ -136,7 +136,6 @@ Auto-imported. They hide the mode. Each returns the `useAsyncData` result.
 - `usePlutoContentNavigation({ collection, type?, includeRoot? })` — `'build'`: `queryCollectionNavigation`. Else the route.
 - `usePlutoContentSurround(path, { collection, type?, includeRoot? })` — `'build'`: `queryCollectionItemSurroundings`.
   Else the route.
-- `usePlutoContentRender()` — `'hybrid'`, `'build'` or `'runtime'`.
 
 ### liveOnSave
 

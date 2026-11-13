@@ -48,7 +48,6 @@ import {
 import { enforceAuthRateLimit } from './rate-limit'
 import { getGithubSession, isLocalRequest } from './session'
 
-/** The origin of the site as the browser sees it. */
 function siteOrigin(event: H3Event): string {
   return getRequestURL(event, { xForwardedHost: true, xForwardedProto: true })
     .origin
@@ -69,16 +68,10 @@ function inputOf(config: GithubConfig) {
   }
 }
 
-/** True for a request from this machine in a dev build. The same rule as the dev local user. */
 function isDevLocal(event: H3Event, config: GithubConfig): boolean {
   return config.dev && isLocalRequest(event)
 }
 
-/**
- * `start` and `callback` run for the dev local request, or for any request
- * while the sign-in is not configured. Else they answer 404, as if they did
- * not exist.
- */
 function assertSetupAllowed(event: H3Event, config: GithubConfig): void {
   if (isDevLocal(event, config)) {
     return
@@ -88,7 +81,6 @@ function assertSetupAllowed(event: H3Event, config: GithubConfig): void {
   }
 }
 
-/** True when the App is installed on the repo. It asks GitHub with the App JWT. */
 async function appIsInstalled(config: GithubConfig): Promise<boolean> {
   try {
     const jwt = createAppJwt({
@@ -115,13 +107,7 @@ export interface SetupStatus {
   checks?: SetupCheck[]
 }
 
-/**
- * The setup status. A site that is ready tells an anonymous caller `ready`
- * and nothing more. The dev local request and a signed-in user get the
- * checks too. A site that is not ready gives the checks to everyone, because
- * the sign-in page needs them. The answer holds booleans and public names. It
- * never holds a secret.
- */
+// A ready site tells an anonymous caller nothing more than `ready`.
 export async function handleSetupStatus(event: H3Event): Promise<SetupStatus> {
   enforceAuthRateLimit(event)
   noStore(event)
@@ -177,7 +163,6 @@ function sendHtml(event: H3Event, html: string, status = 200): string {
   return html
 }
 
-/** The owner of the repo is an organization or a user. A failed lookup counts as a user. */
 async function lookupOwnerType(
   config: GithubConfig
 ): Promise<string | undefined> {
@@ -198,7 +183,6 @@ async function lookupOwnerType(
   }
 }
 
-/** The page that posts the manifest to GitHub. It also saves the one-time `state` in a cookie. */
 export async function handleSetupStart(event: H3Event): Promise<string> {
   enforceAuthRateLimit(event)
   const config = getGithubConfig()
@@ -206,7 +190,6 @@ export async function handleSetupStart(event: H3Event): Promise<string> {
 
   const origin = siteOrigin(event)
   const state = randomToken(24)
-  // A plain cookie, not the sealed session: the session password may not exist yet.
   setCookie(event, SETUP_STATE_COOKIE, state, {
     httpOnly: true,
     sameSite: 'lax',
@@ -242,7 +225,6 @@ function repoName(repo: string): string {
   return repo.split('/')[1] ?? ''
 }
 
-/** Writes the values into `<rootDir>/.env`. It returns what happened and never logs a value. */
 async function writeEnvFile(
   config: GithubConfig,
   entries: Array<[string, string]>
@@ -277,12 +259,6 @@ async function writeEnvFile(
   return { saved: true, failed: false, notIgnored: !ignored }
 }
 
-/**
- * The end of the manifest flow. It checks `state`, trades the code for the
- * App, and answers a page with the env block. Nothing is stored: the secrets
- * go only to the browser that ran the flow. In development it also writes
- * `.env`.
- */
 export async function handleSetupCallback(event: H3Event): Promise<string> {
   enforceAuthRateLimit(event)
   const config = getGithubConfig()
@@ -295,7 +271,6 @@ export async function handleSetupCallback(event: H3Event): Promise<string> {
 
   const query = getQuery(event)
   const saved = getCookie(event, SETUP_STATE_COOKIE)
-  // The state works once.
   deleteCookie(event, SETUP_STATE_COOKIE, { path: SETUP_BASE_PATH })
   if (
     !saved ||
@@ -320,7 +295,6 @@ export async function handleSetupCallback(event: H3Event): Promise<string> {
     )
     converted = parseConversion(response.data)
   } catch (error) {
-    // Log the kind of failure only. The error text can come from GitHub.
     console.error(
       `[pluto-github] GitHub did not convert the App manifest (${error instanceof PlutoGithubStoreError ? error.code : 'error'}).`
     )
@@ -333,7 +307,6 @@ export async function handleSetupCallback(event: H3Event): Promise<string> {
     return fail('github', 502)
   }
 
-  // A site that has no valid session password gets a new one.
   const newPassword =
     config.sessionPassword.length >= 32 ? undefined : randomToken(32)
   const entries = buildEnvEntries(converted, newPassword)

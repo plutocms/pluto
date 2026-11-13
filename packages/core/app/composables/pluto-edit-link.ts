@@ -34,6 +34,8 @@ export function usePlutoCurrentContent() {
  *
  * @example
  * const editLink = usePlutoEditLink('post', () => route.params.slug as string)
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/admin-shell
  */
 export function usePlutoEditLink(
   type: string,
@@ -45,8 +47,6 @@ export function usePlutoEditLink(
   const { can } = usePlutoPermissions()
 
   if (import.meta.client) {
-    // The next page can mount before this one unmounts. The owner check keeps
-    // this page from clearing the value of the next page.
     const owner = ++nextOwner
     watch(
       () => toValue(id),
@@ -77,7 +77,6 @@ export function usePlutoEditLink(
     ) {
       return null
     }
-    // No capability declared means open to anyone who can reach the admin, like the form.
     if (
       contentType.capabilities?.write &&
       !can(contentType.capabilities.write)

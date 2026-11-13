@@ -21,19 +21,11 @@ import {
   resolveReferenceFilters,
 } from './pluto-reference-public'
 
-/**
- * The logic of the public API (`/api/pluto/v1/content/...`). It is in plain functions, so a test
- * can call it. Every read is a public read: `markPublicRead` runs first, so the adapter answers as
- * for an anonymous visitor, and only published items come out. A type is served only when it sets
- * `api.public`. See the content-model skill.
- */
-
 export const PUBLIC_DEFAULT_LIMIT = 20
 export const PUBLIC_MAX_LIMIT = 100
 const MAX_SEARCH_LENGTH = 200
 const STALE_WHILE_REVALIDATE = 300
 
-/** The timestamps of a public answer, and the key of `timestampKeys` that each one reads. */
 const TIMESTAMPS = [
   ['createdAt', 'created'],
   ['updatedAt', 'updated'],
@@ -51,6 +43,7 @@ export interface PublicListQuery {
   filters?: Record<string, string>
 }
 
+// A private type answers 404 too, so the API does not tell that it exists.
 function notFound(name: string): Error {
   return createPlutoError({
     statusCode: 404,
@@ -69,7 +62,6 @@ function invalidQuery(name: string): Error {
   })
 }
 
-/** The type, when it is registered and public. A private type answers 404 too, so the API does not tell that it exists. */
 export function requirePublicType(name: string): PlutoContentType {
   const type = getContentType(name)
   if (!type || type.api?.public !== true) {
@@ -78,7 +70,6 @@ export function requirePublicType(name: string): PlutoContentType {
   return type
 }
 
-/** The field names that the public answer has, besides `id` and the timestamps. */
 export function publicFieldNames(type: PlutoContentType): string[] {
   const declared = type.fields
     .filter((field) => !field.virtual)
@@ -89,7 +80,6 @@ export function publicFieldNames(type: PlutoContentType): string[] {
   return type.api.fields.filter((name) => declared.includes(name))
 }
 
-/** The item key of each public timestamp, from the adapter. */
 function timestampKeys(
   type: PlutoContentType
 ): Partial<Record<'createdAt' | 'updatedAt' | 'publishedAt', string>> {
@@ -105,7 +95,6 @@ function timestampKeys(
   return result
 }
 
-/** Reads a whole number from a query value. Anything else gives `fallback`. */
 function wholeNumber(value: unknown, fallback: number): number {
   const text = Array.isArray(value) ? value[0] : value
   if (typeof text !== 'string' || !/^\d+$/.test(text)) {
@@ -119,11 +108,6 @@ function singleText(value: unknown): string | undefined {
   return typeof text === 'string' ? text : undefined
 }
 
-/**
- * Reads the query of the list route. `limit` is 1 to 100 (default 20) and `offset` is 0 or more; a
- * bad value uses the default. `sort` is `field` or `-field` (descending). `filter[field]=value`
- * filters by equality. A sort or filter on a field that the public answer does not have gives 400.
- */
 export function parsePublicQuery(
   type: PlutoContentType,
   query: Record<string, unknown>
@@ -173,10 +157,6 @@ export function parsePublicQuery(
   return result
 }
 
-/**
- * True when the item is live: published, scheduled with a time that has come, or of a type with
- * no publish workflow (`isLiveItem`).
- */
 export function isPublishedItem(
   type: PlutoContentType,
   item: PlutoContentItem
@@ -184,10 +164,6 @@ export function isPublishedItem(
   return isLiveItem(type, item)
 }
 
-/**
- * The public answer for one item: the allow-list, then `adapter.toPublic`, then the standard keys
- * (`withStandardPublicKeys`), then `hooks.toPublic`, then the code highlighters on `html`.
- */
 export async function toPublicData(
   ctx: PlutoContentContext,
   item: PlutoContentItem,
@@ -211,9 +187,7 @@ export async function toPublicData(
     }
   }
 
-  // The ids of the `media` fields become the records of the files.
   data = await expandPublicMedia(ctx.event, ctx.type, data, batch)
-  // The ids of the `reference` fields with a public `target` become `{ id, label, slug }`.
   data = await expandPublicReferences(ctx.event, ctx.type, data, batch)
 
   const adapter = requireContentAdapter()
@@ -224,8 +198,6 @@ export async function toPublicData(
   if (ctx.type.hooks?.toPublic) {
     data = await ctx.type.hooks.toPublic(ctx, data, { view, item, batch })
   }
-  // The code blocks of the body get the colors of the code highlighters of the site, if it has
-  // one (an add-on layer, or a Nitro plugin of the site). See pluto-highlight.ts.
   if (view === 'item' && typeof data.html === 'string') {
     data.html = await highlightPlutoHtml(
       data.html,
@@ -235,7 +207,6 @@ export async function toPublicData(
   return data
 }
 
-/** Sets the cache header of a public answer. A public answer never sets a cookie. */
 export function setPublicApiCache(event: H3Event): void {
   const { maxAge } = getPlutoApiConfig()
   setResponseHeader(
@@ -247,7 +218,6 @@ export function setPublicApiCache(event: H3Event): void {
   )
 }
 
-/** `GET /api/pluto/v1/content/:type`: the published items of a public type. */
 export async function listPublicContent(
   event: H3Event,
   typeName: string,
@@ -258,7 +228,6 @@ export async function listPublicContent(
   const query = parsePublicQuery(type, rawQuery)
   const ctx = { event, type }
 
-  // A filter on a reference field takes an id or a slug. An unknown value matches nothing.
   const { filters, empty } = await resolveReferenceFilters(
     event,
     type,
@@ -298,11 +267,6 @@ export async function listPublicContent(
   }
 }
 
-/**
- * The public index of a static build (`PlutoPublicIndex`): every published item of every public
- * type, in the list shape and in the default sort. The prerender writes it to
- * `/api/pluto/v1/index.json`, and the list composables of the browser answer from it.
- */
 export async function buildPublicIndex(
   event: H3Event
 ): Promise<PlutoPublicIndex> {
@@ -314,7 +278,6 @@ export async function buildPublicIndex(
     const items: PlutoPublicItem[] = []
     let total = Infinity
     while (items.length < total) {
-      // The query of a URL: text values.
       const page = await listPublicContent(event, type.name, {
         limit: String(PUBLIC_MAX_LIMIT),
         offset: String(items.length),
@@ -327,11 +290,6 @@ export async function buildPublicIndex(
   return index
 }
 
-/**
- * True when the caller may read the drafts of the type: the adapter says the caller holds the read
- * capability of the type (else its write capability). Fails closed: no capability to check, no
- * `authorize`, or no session gives false.
- */
 async function canReadDrafts(
   event: H3Event,
   type: PlutoContentType
@@ -349,11 +307,6 @@ async function canReadDrafts(
   }
 }
 
-/**
- * `GET /api/pluto/v1/content/:type/:id`: one published item, by id or slug. With `drafts`
- * (`?drafts=1`), an editor of the type (`canReadDrafts`) also gets a draft, marked with
- * `meta.draft`, and the answer is private (`no-store`). For anyone else `drafts` changes nothing.
- */
 export async function getPublicContent(
   event: H3Event,
   typeName: string,
@@ -392,15 +345,8 @@ export async function getPublicContent(
   }
 }
 
-/** The most published items that `getPublicSurround` reads to find the neighbors. */
 export const PUBLIC_SURROUND_MAX = 1000
 
-/**
- * `GET /api/pluto/v1/surround/:type/:id`: the published items before and after one item, in the
- * order of `sort` (default: the `defaultSort` of the type), with the same `filter` as a list.
- * For a list sorted by `-publishedAt`, `previous` is the newer item and `next` the older one. It
- * reads at most `PUBLIC_SURROUND_MAX` items. 404 when the item is not among them.
- */
 export async function getPublicSurround(
   event: H3Event,
   typeName: string,

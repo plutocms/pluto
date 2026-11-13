@@ -4,15 +4,7 @@ import type {
 } from '../shared/types/content'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-// pluto-content.ts (server/utils) is a plain module-scope singleton by
-// design — see its doc comment. That means state persists across imports
-// within one test file unless we reset it. `vi.resetModules()` plus a
-// fresh dynamic `import()` per test gives each test its own copy of the
-// module's `Map` and adapter variable, the same isolation
-// `test/content-registry.test.ts` gets from stubbing `useNuxtApp` for the
-// client registry — the mechanism differs (this module has no Nuxt-global
-// dependency to stub) but the goal is the same: no state leaks between
-// tests.
+// The server registry is a module singleton: each test loads a fresh copy with `vi.resetModules()`.
 afterEach(() => {
   vi.resetModules()
 })
@@ -104,7 +96,6 @@ describe('registerContentAdapter / getContentAdapter', () => {
 })
 
 describe('extendContentTypes', () => {
-  // An extension that adds one field to the types it names.
   function addField(id: string, field: string, only?: string, order?: number) {
     return {
       id,

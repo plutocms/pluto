@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// The Vimeo embed of core: a thumbnail with a play button, and the Vimeo player after a click
-// (`ScriptVimeoPlayer` of @nuxt/scripts), with Do Not Track (`dnt`). An unlisted video keeps its
-// hash. `match` comes from `matchVimeoUrl`.
 import PlutoEmbedPlay from './PlutoEmbedPlay.vue'
 
 const props = defineProps<{

@@ -4,9 +4,7 @@ import type { PlutoRegistry } from '../shared/types/registry'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
 
-// Same Nuxt-global stubbing as test/permissions.test.ts — see that file for
-// why: pluto-registry.ts and pluto-extension.ts lean on Nuxt's
-// auto-imported globals, which nothing provides outside a Nuxt build.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
 let fakeNuxtApp: {
   _plutoRegistry?: PlutoRegistry
 }

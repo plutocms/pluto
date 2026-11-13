@@ -7,14 +7,14 @@ import { blockFromComponentMeta } from '#layers/pluto/shared/utils/blocks/compon
 import { parseBlocks } from '../shared/utils/blocks/parse'
 import { resolveBlockDefinition } from '../shared/utils/blocks/registry'
 
-// The component layer of core (made from the component meta) in the block editor of the docs
-// layer: the shared labels of the presets, the kebab props of a page, and `false` slots. The
-// fixtures are the ones of the core tests.
-
 function fixture(name: string): PlutoComponentMeta {
   return JSON.parse(
     readFileSync(
-      join(__dirname, '../../../core/test/fixtures/component-meta', `${name}.json`),
+      join(
+        __dirname,
+        '../../../core/test/fixtures/component-meta',
+        `${name}.json`
+      ),
       'utf8'
     )
   )

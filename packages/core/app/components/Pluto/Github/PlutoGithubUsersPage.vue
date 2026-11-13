@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// The Users page of the Git CMS (`/admin/users`). The CMS module adds the
-// route with `extendPages`, and the client plugin adds the Users item of the
-// menu. It lists the people with write access to the content repo, read only:
-// GitHub owns the access, so the page links to the access settings of the
-// repo. See the git-cms skill.
 import type { TableColumn } from '@nuxt/ui'
 import type {
   PlutoGithubRepoUser,
@@ -47,7 +42,6 @@ const accessUrl = computed(() =>
 )
 const self = computed(() => auth.user.value?.username?.toLowerCase() ?? '')
 const users = computed(() => answer.value?.users ?? [])
-// The i18n key of the reason why the list is empty.
 const REASON_KEYS = {
   'no-app': 'noApp',
   'app-error': 'appError',
@@ -98,7 +92,6 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
       </template>
     </UAlert>
 
-    <!-- Loading -->
     <div
       v-if="status === 'loading'"
       class="flex flex-col gap-y-3"
@@ -107,7 +100,6 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
       <USkeleton v-for="row in 3" :key="row" class="h-12 w-full" />
     </div>
 
-    <!-- Error -->
     <UAlert
       v-else-if="status === 'error'"
       :title="t('pluto.github.users.error')"
@@ -125,7 +117,6 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
       variant="subtle"
     />
 
-    <!-- Local mode with no GitHub App or an App that cannot read, or no repo -->
     <UAlert
       v-else-if="answer?.reason"
       :title="t(`pluto.github.users.reason.${reasonKey}.title`)"

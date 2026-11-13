@@ -1,5 +1,3 @@
-// Every component loads on demand. Core's renderers show a skeleton for each
-// one while its chunk loads (see PlutoSkeletonField and PlutoSkeletonWidget).
 const PlutoFieldBoolean = defineAsyncComponent(
   () => import('../components/Pluto/Content/fields/PlutoFieldBoolean.vue')
 )
@@ -24,15 +22,12 @@ const PlutoFieldText = defineAsyncComponent(
 const PlutoFieldMedia = defineAsyncComponent(
   () => import('../components/Pluto/Content/fields/PlutoFieldMedia.vue')
 )
-// The players of the embeds of core (a URL alone on its line of a post).
 const PlutoEmbedYoutube = defineAsyncComponent(
   () => import('../components/Pluto/Embed/PlutoEmbedYoutube.vue')
 )
 const PlutoEmbedVimeo = defineAsyncComponent(
   () => import('../components/Pluto/Embed/PlutoEmbedVimeo.vue')
 )
-// The post editor (canvas layout): by widget name only, so it never replaces the
-// `richtext` widget of a field that does not ask for it.
 const PlutoFieldPostCanvas = defineAsyncComponent(
   () => import('../components/Pluto/Post/PlutoFieldPostCanvas.vue')
 )
@@ -54,28 +49,10 @@ const PlutoContentHistory = defineAsyncComponent(
   () => import('../components/Pluto/Content/PlutoContentHistory.vue')
 )
 
-// Registers core's own Home and Settings anchors, plus the eight built-in
-// content field widgets. `order: 0` and `order: 1000` are reserved for the
-// Home/Settings nav entries, so every other layer's nav item sorts between
-// them by default (default order is 100).
-//
-// Labels and titles are translation keys, not English text. The consumer
-// composables resolve them with `tx()`. See the i18n skill.
-//
-// Everything core itself contributes to the registry lives in this one
-// `definePlutoExtension` call — `definePlutoExtension` replaces a layer's
-// whole contribution on every call, not just the buckets that call passes,
-// so a second `id: 'pluto'` call elsewhere would silently wipe this one out.
-//
-// `richtext` has no core widget here on purpose — a layer registers it (the
-// Git CMS, the blog). `media` has the core widget: the picker of the core
-// media library, for every backend (see the media skill).
-//
-// The Media page and its menu item show only when a backend has a media
-// driver (`runtimeConfig.public.plutoMedia.driver`).
 export default defineNuxtPlugin(() => {
   const mediaEnabled = usePlutoMedia().enabled
 
+  // One call only: `definePlutoExtension` replaces the whole contribution of an id on each call.
   definePlutoExtension({
     id: 'pluto',
     capabilities: [
@@ -117,28 +94,6 @@ export default defineNuxtPlugin(() => {
         to: '/admin/settings',
       },
     ],
-    pages: [
-      {
-        id: 'home',
-        path: '/admin/home',
-        title: 'pluto.pages.dashboard',
-        icon: 'lucide:house',
-      },
-      {
-        id: 'media',
-        path: '/admin/media',
-        title: 'pluto.pages.media',
-        icon: 'lucide:images',
-      },
-      {
-        id: 'settings',
-        path: '/admin/settings',
-        title: 'pluto.pages.settings',
-        icon: 'lucide:settings',
-      },
-    ],
-    // The General tab holds the settings panels and the language card. A layer
-    // adds a tab with a file at `pages/admin/settings/<x>.vue` and an entry here.
     settingsPages: [
       {
         id: 'general',
@@ -147,7 +102,6 @@ export default defineNuxtPlugin(() => {
         icon: 'lucide:sliders-horizontal',
         to: '/admin/settings',
       },
-      // Admin only ('*'). The page and its routes (`/api/_pluto/mail/**`) check it.
       {
         id: 'email',
         order: 200,
@@ -157,8 +111,6 @@ export default defineNuxtPlugin(() => {
         capability: '*',
       },
     ],
-    // The embed providers of core. A layer adds more (X, Instagram, ...). See the content-model
-    // skill ("Embeds").
     embedProviders: [
       {
         id: 'youtube',
@@ -175,7 +127,6 @@ export default defineNuxtPlugin(() => {
         component: PlutoEmbedVimeo,
       },
     ],
-    // The kinds of files that core knows. A layer adds its own (the 3D add-on adds 3D models).
     mediaKinds: [
       {
         id: 'image',
@@ -213,10 +164,6 @@ export default defineNuxtPlugin(() => {
         component: PlutoFieldPostCanvas,
       },
     ],
-    // `order: 0` puts the content overview first. It spans the full row
-    // because it lays out its own grid of tiles. It is disabled while no
-    // content type is registered, so the dashboard shows its own empty
-    // message instead of a blank cell.
     dashboardWidgets: [
       {
         id: 'content-overview',
@@ -226,8 +173,6 @@ export default defineNuxtPlugin(() => {
         component: PlutoDashboardContentOverview,
         enabled: () => usePlutoContentTypes().items.value.length > 0,
       },
-      // The activity chart and the quick actions share the next row (2 + 1
-      // columns). A layer widget with the default order (100) goes below.
       {
         id: 'content-activity',
         order: 10,
@@ -244,8 +189,6 @@ export default defineNuxtPlugin(() => {
         component: PlutoDashboardQuickActions,
       },
     ],
-    // The groups of content types in the sidebar and the admin bar. A type names one
-    // with `navGroup`. Order 100 puts the group with the content items.
     navGroups: [
       {
         id: 'pages',
@@ -254,12 +197,9 @@ export default defineNuxtPlugin(() => {
         icon: 'i-lucide-book-open',
       },
     ],
-    // "New <type>" and "Edit <type>" for the content types that set `adminBar`.
     navbarActions: [
       { id: 'content', order: 50, component: PlutoContentBarActions },
     ],
-    // History in the edit form of every type. It shows only when the backend keeps revisions.
-    // Order 40: before the build status of the Git CMS (50).
     contentToolbarItems: [
       {
         id: 'history',

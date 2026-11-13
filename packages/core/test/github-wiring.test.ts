@@ -57,7 +57,6 @@ function setup(patch: Parameters<typeof resetTestConfig>[1] = {}) {
   const config = resetTestConfig(fake, { appId: '12345', privateKey, ...patch })
   registerGithubContent(config, createGithubCache({ headTtl: 0 }))
 
-  // The same logic as the generic content routes in server/api/_pluto/content.
   const app = createAuthApp((router) => {
     router.get(
       '/api/_pluto/content/:type',

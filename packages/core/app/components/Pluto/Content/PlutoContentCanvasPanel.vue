@@ -1,11 +1,4 @@
 <script setup lang="ts">
-// A field widget of a 'canvas' form renders one of these for each panel it
-// wants beside the canvas. The slot content moves (Teleport) into the left
-// panel, or into one tab of the right panel. The widget stays in the canvas, so
-// its state is one component tree. The widget contract does not change.
-//
-// Outside a 'canvas' form (no host), the slot renders inline where the panel
-// sits, so a widget still works in any other layout.
 const props = defineProps<{
   /** `left` is the side panel left of the canvas. `right` is a tab of the right panel. */
   side: 'left' | 'right'
@@ -29,9 +22,6 @@ if (host) {
   onBeforeUnmount(unregister)
 }
 
-// The target is an element ref, so it changes when the panel closes and opens,
-// when the screen changes between desktop and narrow, and when a tab mounts.
-// Until it exists, nothing renders, and the slot content mounts when it does.
 const target = computed(() => {
   if (!host) {
     return null

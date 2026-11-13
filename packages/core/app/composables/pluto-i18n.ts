@@ -17,7 +17,6 @@ import {
   useLocaleCookie,
 } from './internal/i18n-runtime'
 
-/** Missing keys already reported. Shared, so a key warns once per process. */
 const warnedKeys = new Set<string>()
 
 function warnOnce(message: string) {
@@ -27,15 +26,8 @@ function warnOnce(message: string) {
   }
 }
 
-/**
- * The state both scopes share: the active locale, the translator, the
- * formatters, and the Nuxt UI locale object. The admin and the site keep a
- * separate active locale and a shared message cache.
- */
 function useLocaleScope(scope: 'admin' | 'site') {
   const config = getConfig()
-  // The same resolver as the pluto-i18n plugin: the stored choice, not the
-  // default locale, even when this runs before the plugin.
   const state = useState<string>(`pluto-${scope}-locale`, () =>
     resolveScopeLocale(scope)
   )
@@ -72,6 +64,8 @@ function useLocaleScope(scope: 'admin' | 'site') {
  *
  * `tx(value)` translates a key-or-literal string. It translates only when the
  * value looks like a key and the key exists. Any other value returns as it is.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/i18n
  */
 export function usePlutoI18n() {
   const scope = useLocaleScope('admin')
@@ -81,7 +75,6 @@ export function usePlutoI18n() {
     () => registry.localeDrivers.list.value.at(-1) ?? null
   )
 
-  /** The stored choice. Null means Automatic. */
   const preference = useState<string | null>(
     'pluto-admin-locale-preference',
     () => readAdminPreference()
@@ -92,15 +85,6 @@ export function usePlutoI18n() {
     scope.state.value = code
   }
 
-  /**
-   * Switches the admin language at once. A code is an explicit choice. Null is
-   * Automatic: the browser language is detected again. The cookie keeps the
-   * explicit code, or is cleared for Automatic. Then the registered locale
-   * driver, if any, saves the choice. A driver error rejects the promise, and
-   * the switch stays. `save: false` keeps the choice on this device only: the
-   * login page uses it, because no user is signed in to save it for. The next
-   * sign-in saves it (see `syncUserLocale`).
-   */
   async function setLocale(
     code: string | null,
     options: { save?: boolean } = {}
@@ -116,14 +100,6 @@ export function usePlutoI18n() {
     }
   }
 
-  /**
-   * Reads the user's stored language from the locale driver. A stored code
-   * switches the admin to it and sets the cookie. No stored code, and an
-   * explicit choice on this device (the cookie, for example from the login
-   * page): the choice stays, and the driver saves it for the user. No stored
-   * code and no choice means Automatic: the browser language applies. With no
-   * driver, or on a driver error, nothing changes.
-   */
   async function syncUserLocale() {
     if (!driver.value) {
       return
@@ -176,12 +152,13 @@ export function usePlutoI18n() {
  * Translation for the public site. The site locale belongs to the app: the
  * `pluto-site-locale` cookie, else the `plutoI18n.siteLocale` option, else the
  * default locale. It does not follow the admin language.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/i18n
  */
 export function usePlutoSiteI18n() {
   const scope = useLocaleScope('site')
   const cookie = useLocaleCookie(SITE_LOCALE_COOKIE)
 
-  /** Switches the site language, and keeps it in the `pluto-site-locale` cookie. */
   async function setLocale(code: string) {
     if (!scope.locales.includes(code)) {
       return

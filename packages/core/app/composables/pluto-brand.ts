@@ -12,7 +12,6 @@ export function usePlutoBrand() {
 
   return {
     brand,
-    /** Show the links to Pluto. Default true. */
     plutoLinks: computed(() => brand.value.plutoLinks !== false),
     css: computed(() => plutoBrandCss(brand.value)),
   }

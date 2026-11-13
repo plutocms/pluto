@@ -36,6 +36,8 @@ export function usePlutoNavbarActions() {
  *
  * `confirmed` is true only for a staff user that the browser checked. Use it
  * for links that must not show from the hint alone.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/admin-shell
  */
 export function usePlutoAdminBar() {
   const route = useRoute()
@@ -49,8 +51,6 @@ export function usePlutoAdminBar() {
   const staff = computed(() =>
     isStaff(permissions.hasDriver.value, permissions.granted.value)
   )
-  // The public-page rule also waits for the mount, so the first client render
-  // matches the server HTML. The admin rule does not read it.
   const known = computed(() => capabilitiesKnown.value && mounted.value)
   const hiddenByRoute = computed(
     () => route.meta.plutoAdminBar === false || isPlutoPreviewPath(route.path)

@@ -5,7 +5,6 @@ import type {
 } from '../types/public-api'
 import { PLUTO_API_PREFIX } from './public-api'
 
-/** The path of the public index of a static build. See `PlutoPublicIndex`. */
 export const PLUTO_PUBLIC_INDEX_PATH = `${PLUTO_API_PREFIX}/index.json`
 
 const DEFAULT_LIMIT = 20
@@ -51,7 +50,6 @@ export function queryPublicIndex<T = PlutoPublicItem>(
     items.sort((a, b) => {
       const left = a[name]
       const right = b[name]
-      // A missing value always sorts last, in either direction.
       if (isEmpty(left) !== isEmpty(right)) {
         return isEmpty(left) ? 1 : -1
       }
@@ -77,11 +75,6 @@ function text(value: unknown): string | undefined {
   return one === undefined || one === null ? undefined : String(one)
 }
 
-/**
- * True when a value matches the text of a filter. A list matches when one entry matches. An object
- * with an `id` (an expanded reference) matches by its `id` or its `slug`. Anything else compares
- * by its text.
- */
 function matchesFilter(value: unknown, wanted: string): boolean {
   if (Array.isArray(value)) {
     return value.some((entry) => matchesFilter(entry, wanted))

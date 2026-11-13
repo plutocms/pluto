@@ -9,7 +9,6 @@ export interface PlutoMarkdownHeading {
 }
 
 const FENCE = /^\s{0,3}(`{3,}|~{3,})/
-// The opening hashes: one to six, then a space, a tab or the end of the line.
 const ATX = /^ {0,3}(#{1,6})(?=[ \t]|$)/
 const SETEXT = /^ {0,3}(?:=+|-+)[ \t]*$/
 const LINK = /!?\[([^\]]*)\]\([^)]*\)/g
@@ -19,7 +18,6 @@ function plainText(text: string): string {
   return text.replace(LINK, '$1').replace(MARKS, '').trim()
 }
 
-/** The level and the text of an ATX heading, or null. A closing run of `#` is not text. */
 function atxHeading(line: string): { level: number; text: string } | null {
   const open = line.match(ATX)
   if (!open) {
@@ -33,12 +31,6 @@ function atxHeading(line: string): { level: number; text: string } | null {
   return { level: open[1]!.length, text }
 }
 
-/**
- * The headings of a Markdown text, in source order: the ATX headings (`## Title`) and the setext
- * headings (a line of text under `===` or `---`). Lines inside a fenced code block are not
- * headings. The order matches the `h1` to `h6` elements of the rendered HTML, so an index into
- * this list is an index into the headings of the preview.
- */
 export function plutoMarkdownHeadings(
   markdown: string
 ): PlutoMarkdownHeading[] {

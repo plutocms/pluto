@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// One list of the outline: the blocks of the page, or the children of one
-// slot of a component. It nests itself for the children. Each list is its own
-// SortableJS group, so a block moves inside its list only (same level).
-// Drag is for the mouse and touch. The keyboard uses Alt+Up and Alt+Down, and
-// the menu of the row.
 import type { PlutoBlock } from '../../../../../shared/utils/blocks/types'
 import { resolveSlotMode } from '../../../../../shared/utils/blocks/editor'
 
@@ -38,9 +33,6 @@ interface PlutoBlockChildList {
 }
 
 /** The slots of a component that show their children in the outline. */
-// A row keeps a column for the chevron only when a block of this list has
-// children. A list of leaves (often the cards of a slot) has no empty column,
-// so its titles do not move to the right for nothing.
 const hasChevrons = computed(() =>
   props.blocks.some((block) => childLists(block).length > 0)
 )
@@ -121,7 +113,6 @@ function onKeydown(event: KeyboardEvent, block: PlutoBlock) {
   if (event.altKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
     event.preventDefault()
     editor.move(block.id, event.key === 'ArrowUp' ? -1 : 1)
-    // The row renders in its new place. Keep the focus on it.
     nextTick(() =>
       document
         .querySelector<HTMLElement>(
@@ -138,7 +129,6 @@ function onKeydown(event: KeyboardEvent, block: PlutoBlock) {
     (event.key === 'ArrowLeft' || event.key === 'ArrowRight') &&
     childLists(block).length
   ) {
-    // Like a tree: Left closes the children, Right opens them.
     const collapsed = editor.collapsedIds.value.has(block.id)
     if (collapsed === (event.key === 'ArrowRight')) {
       event.preventDefault()
@@ -182,7 +172,6 @@ onMounted(async () => {
     // Mouse events instead of the browser drag and drop: the same on every browser and on touch.
     forceFallback: true,
     fallbackOnBody: true,
-    // A list is its own group, so a block cannot leave it.
     group: `blocks:${props.parentId ?? 'root'}:${props.slotName ?? 'default'}`,
     onEnd(event) {
       const { oldIndex, newIndex, item, from } = event
@@ -212,14 +201,6 @@ onBeforeUnmount(() => sortable?.destroy())
 </script>
 
 <template>
-  <!--
-    A row: the chevron (16px, only in a list with children), the icon, the title, the dots menu.
-    The whole row is the drag handle. The vertical line of a child list sits under the center of
-    the chevron: 2px row padding + 8px = 10px (`ms-2.5`).
-
-    The dots menu shows on row hover. It keeps its place (opacity only), so the rows do not move.
-    A device without hover, the keyboard focus and an open menu keep it visible.
-  -->
   <ul ref="list" :data-level="level" class="flex flex-col gap-0.5">
     <li v-for="(block, index) in blocks" :key="block.id">
       <div
@@ -233,7 +214,6 @@ onBeforeUnmount(() => sortable?.destroy())
         class="group flex items-center gap-0.5 rounded-md pe-0.5 ps-0.5 transition-colors"
         data-block-drag
       >
-        <!-- Opens and closes the children of a component. A block with no children keeps the space. -->
         <button
           v-if="childLists(block).length"
           :aria-expanded="!editor.collapsedIds.value.has(block.id)"
@@ -274,7 +254,6 @@ onBeforeUnmount(() => sortable?.destroy())
           @keydown="onKeydown($event, block)"
         >
           <UIcon :name="info(block).icon" class="size-4 shrink-0 text-muted" />
-          <!-- The title shows the whole text when the row truncates it. -->
           <span
             :title="
               info(block).excerpt

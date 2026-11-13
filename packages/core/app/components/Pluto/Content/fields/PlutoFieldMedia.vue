@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The core `media` widget. The value is one media id, or a list of ids in
-// order (`multiple`). The picker gives the files; the records of the ids load
-// from the library. A deleted file shows as a "Deleted file" tile until
-// someone removes it. See the media skill.
 import type { PlutoMedia } from '../../../../../shared/types/media'
 
 const props = defineProps<{
@@ -32,9 +28,7 @@ async function loadRecords() {
       records.value.set(record.id, record)
     }
     records.value = new Map(records.value)
-  } catch {
-    // The tiles show the ids as deleted files. The form still works.
-  }
+  } catch {}
 }
 
 watch(ids, loadRecords, { immediate: true })
@@ -76,7 +70,6 @@ function move(index: number, step: -1 | 1) {
     :description="field.description"
     :required="field.required"
   >
-    <!-- One file: a tile, Change and Remove. -->
     <div v-if="!field.multiple" class="flex items-end gap-3">
       <button
         :disabled="disabled"
@@ -119,7 +112,6 @@ function move(index: number, step: -1 | 1) {
       </div>
     </div>
 
-    <!-- Many files: a strip in order, and an Add tile. -->
     <ul
       v-else
       class="grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2"

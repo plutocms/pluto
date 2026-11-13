@@ -3,16 +3,10 @@ import { getRequestIP, setResponseHeader } from 'h3'
 import { createPlutoError } from '../../../../../server/utils/pluto-error'
 
 export interface RateLimiter {
-  /** Counts one request. Returns the seconds to wait when the key is over the limit, or 0. */
   hit: (key: string) => number
 }
 
-/**
- * A fixed-window counter in memory. Each server instance keeps its own
- * counts. It is a brake against a script that hammers the sign-in routes. It
- * is not a security boundary: OAuth state, PKCE and GitHub itself guard the
- * flow.
- */
+// A brake against a script, not a security boundary: OAuth state, PKCE and GitHub guard the flow.
 export function createRateLimiter(options: {
   limit: number
   windowMs: number
@@ -33,7 +27,6 @@ export function createRateLimiter(options: {
     hit(key) {
       const time = now()
       if (windows.size >= maxKeys) {
-        // Drop the windows that ended. If all are live, drop the oldest.
         for (const [name, window] of windows) {
           if (time - window.start >= options.windowMs) {
             windows.delete(name)
@@ -61,11 +54,6 @@ export function createRateLimiter(options: {
 
 const authLimiter = createRateLimiter({ limit: 20, windowMs: 60_000 })
 
-/**
- * Limits the sign-in routes to 20 requests a minute for each IP. The IP comes
- * from the socket, or from `x-forwarded-for` when a proxy sets it. A client
- * can fake that header, so this stays a brake and not a gate.
- */
 export function enforceAuthRateLimit(
   event: H3Event,
   limiter: RateLimiter = authLimiter

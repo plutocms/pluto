@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// The frame of the admin auth pages: the logo, the site name, the heading,
-// the body and "Back to the site". With no default slot, the body is the
-// sign-in form of the auth driver and its links. With no driver, it shows an
-// alert. A backend uses the slot for its other auth pages (sign up, password
-// reset), so every auth page has the same frame. See the admin-shell skill.
 const props = defineProps<{
   /** A safe local path to open after sign-in. */
   redirect?: string
@@ -42,8 +37,6 @@ const subheading = computed(() => {
   return value ? tx(value) : ''
 })
 const links = computed(() => driver.value?.links ?? {})
-// A brand logo (white label), else the Pluto logo. The card follows the color
-// mode, so it shows `logo` in light mode and `logoDark` in dark mode.
 const { brand } = usePlutoBrand()
 const logoLight = computed(() => brand.value.logo || brand.value.logoDark || '')
 const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
@@ -137,7 +130,6 @@ const logoDark = computed(() => brand.value.logoDark || brand.value.logo || '')
       </div>
     </UCard>
 
-    <!-- The admin language, before sign-in. -->
     <PlutoAdminLanguageSelect />
   </div>
 </template>

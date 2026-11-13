@@ -32,7 +32,6 @@ interface Call {
   init: RequestInit
 }
 
-/** A fake fetch. Each queued item is a Response, or an Error to throw. */
 function fakeFetch(
   ...queue: Array<Response | Error | ((init: RequestInit) => Promise<Response>)>
 ) {

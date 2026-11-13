@@ -48,11 +48,9 @@ describe('findUnsafeMarkdown', () => {
       findUnsafeMarkdown(`Text\n\n::my-card{title="Hi" :n='2'}\n::\n\nMore\n`)
     ).toEqual([])
     expect(findUnsafeMarkdown('::rule\n\n::\n')).toEqual([])
-    // With content, with an indent, or not closed, it is still an MDC block.
     expect(kinds('::note\nHello\n::\n')).toEqual(['mdc-block'])
     expect(kinds('  ::card\n  ::\n')).toEqual(['mdc-block'])
     expect(kinds('::card\n')).toEqual(['mdc-block'])
-    // An empty component inside another one: the outer lines are unsafe.
     expect(kinds('::outer\n::inner\n::\n::\n')).toEqual(['mdc-block'])
   })
 
@@ -93,7 +91,6 @@ describe('findUnsafeMarkdown', () => {
       { kind: 'table', line: 2 },
     ])
     expect(kinds('a | b\n:-: | --:\n1 | 2')).toEqual(['table'])
-    // A thematic break is not a table.
     expect(findUnsafeMarkdown('text\n---\n')).toEqual([])
   })
 

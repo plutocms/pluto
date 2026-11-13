@@ -127,7 +127,6 @@ describe('createAppJwt', () => {
 
   it('leaves a value that is not a key as it is', () => {
     expect(normalizePem(' nope ')).toBe('nope')
-    // Base64 text that holds no PEM.
     expect(normalizePem(Buffer.from('hello world').toString('base64'))).toBe(
       Buffer.from('hello world').toString('base64')
     )

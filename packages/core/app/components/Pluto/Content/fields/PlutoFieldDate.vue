@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// UInputDate's modelValue is a `DateValue` (from `@internationalized/date`),
-// not a plain string. A content item stores a 'date' field as a plain ISO
-// date string ('YYYY-MM-DD'), so this widget converts both ways at its own
-// boundary — the rest of the content model never sees a `DateValue`.
 import type { CalendarDate, DateValue } from '@internationalized/date'
 import { parseDate } from '@internationalized/date'
 

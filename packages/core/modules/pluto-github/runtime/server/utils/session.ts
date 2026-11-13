@@ -19,9 +19,7 @@ export const CMS_OAUTH_SESSION_NAME = 'pluto-github-oauth'
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60
 const OAUTH_MAX_AGE = 10 * 60
 const MIN_PASSWORD_LENGTH = 32
-/** Refresh the user token when it ends in less than this many ms. */
 const REFRESH_MARGIN = 5 * 60 * 1000
-/** Check the repo permission again when the last check is older than this many ms. */
 const RECHECK_AFTER = 10 * 60 * 1000
 
 export interface GithubSessionUser {
@@ -31,29 +29,22 @@ export interface GithubSessionUser {
   avatarUrl: string
 }
 
-/** What the sealed cookie holds. It never leaves the server in a response body. */
 export interface GithubSessionData {
   user: GithubSessionUser
-  /** The GitHub user token. */
   token: string
   refreshToken?: string
-  /** Epoch ms. Unset when the token does not expire. */
   expiresAt?: number
   refreshExpiresAt?: number
   permission: GithubPermissionLevel
   capabilities: string[]
-  /** Epoch ms of the last repo permission check. */
   checkedAt: number
-  /** Whether the repo is private. The admin warns when it is public. */
   repoPrivate?: boolean
 }
 
 export interface GithubSession extends GithubSessionData {
-  /** True for the fixed local user of the dev `fs` store. */
   local?: boolean
 }
 
-/** The dev user of the `fs` store. It has no GitHub token. */
 const LOCAL_SESSION: GithubSession = {
   user: { id: 0, login: 'local', name: 'Local', avatarUrl: '' },
   token: '',
@@ -89,7 +80,6 @@ function githubUnavailable() {
   })
 }
 
-/** The 500 error for a CMS that has no sign-in set up. */
 export function authNotConfigured() {
   return createPlutoError({
     statusCode: 500,
@@ -100,12 +90,6 @@ export function authNotConfigured() {
 
 let devPassword: string | undefined
 
-/**
- * The password that seals the cookies. It needs 32 characters or more. In
- * production a missing or short password is an error: the CMS refuses to
- * serve sign-in. In dev it uses a random password for this process, so a
- * restart signs everyone out.
- */
 export function resolveSessionPassword(config: GithubConfig): string {
   if (config.sessionPassword.length >= MIN_PASSWORD_LENGTH) {
     return config.sessionPassword
@@ -145,7 +129,6 @@ function sessionOptions(
   }
 }
 
-/** The sealed session of the signed-in user. */
 export function useGithubSession(
   event: H3Event,
   config: GithubConfig = getGithubConfig()
@@ -162,7 +145,6 @@ export interface GithubOAuthState {
   redirect: string
 }
 
-/** The short sealed session that holds the state of one sign-in attempt. */
 export function useGithubOAuthSession(
   event: H3Event,
   config: GithubConfig = getGithubConfig()
@@ -176,13 +158,6 @@ export function useGithubOAuthSession(
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1'])
 const LOCAL_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
 
-/**
- * The client address of a request that the `nuxt dev` server proxied to its
- * Nitro worker. The worker socket has no remote address, and the dev proxy
- * appends the real client address as the LAST `x-forwarded-for` entry. A
- * client can send its own `x-forwarded-for`, but the proxy still appends the
- * real address after it, so only the last entry counts.
- */
 function devProxyClientAddress(
   header: string | string[] | undefined
 ): string | undefined {
@@ -195,20 +170,7 @@ function devProxyClientAddress(
   return last || undefined
 }
 
-/**
- * True when the request comes from this machine. It is used only in a dev
- * build with the `fs` store (see `loadSession`).
- *
- * - A direct connection: the socket address must be a loopback address, and
- *   the request must have no `x-forwarded-for` or `forwarded` header (a proxy
- *   or a tunnel forwarded it).
- * - The `nuxt dev` worker: the socket has no address. The last
- *   `x-forwarded-for` entry, which the dev proxy appends, must be a loopback
- *   address.
- *
- * In both cases the `Host` header must name this machine. This blocks DNS
- * rebinding and tunnels.
- */
+// Only a direct loopback connection with no proxy header and a local Host passes: this blocks tunnels and DNS rebinding.
 export function isLocalRequest(event: H3Event): boolean {
   const req = event.node?.req
   if (!req) {
@@ -237,7 +199,6 @@ export function isLocalRequest(event: H3Event): boolean {
 }
 
 const refreshing = new Map<string, Promise<OAuthTokens>>()
-/** Fresh results by the refresh token they replaced, for a short time. */
 const refreshed = new Map<
   string,
   {
@@ -245,16 +206,8 @@ const refreshed = new Map<
     at: number
   }
 >()
-/** How long a late request, sent with the old cookie, may reuse a refresh result. */
 const REFRESH_REUSE = 60 * 1000
 
-/**
- * One refresh for each refresh token. GitHub rotates the refresh token, so a
- * second use of the old one fails. A browser often sends several requests with
- * the same old cookie. The first call refreshes. A call that runs at the same
- * time shares its promise. A call that comes soon after reuses its result.
- * The results stay in the memory of this server process only.
- */
 function refreshOnce(
   config: GithubConfig,
   refreshToken: string
@@ -347,7 +300,6 @@ async function loadSession(
       await session.update(current)
     } catch (error) {
       if (error instanceof PlutoGithubOAuthError) {
-        // GitHub refused the refresh token. The session is over.
         dropSessionCookie(event, config)
         throw signInRequired()
       }
@@ -364,7 +316,6 @@ async function loadSession(
       })
       const mapped = repo ? mapRepoPermission(repo.permissions) : null
       if (!mapped) {
-        // The user lost push access, or the app lost the repo.
         dropSessionCookie(event, config)
         throw signInRequired()
       }
@@ -378,7 +329,6 @@ async function loadSession(
       await session.update(current)
     } catch (error) {
       if (error instanceof PlutoGithubStoreError && error.code === 'auth') {
-        // GitHub revoked the token.
         dropSessionCookie(event, config)
         throw signInRequired()
       }
@@ -398,11 +348,6 @@ async function loadSession(
   return current
 }
 
-/**
- * The signed-in user of this request, or `null`. It refreshes the user token
- * when it ends soon. It checks the repo permission again every 10 minutes.
- * One request runs these steps once. A session that is over gives a 401.
- */
 export function getGithubSession(
   event: H3Event
 ): Promise<GithubSession | null> {
@@ -445,7 +390,6 @@ export async function requireGithubCapability(
   return session
 }
 
-/** Starts a session after a sign-in. */
 export async function setGithubSession(
   event: H3Event,
   data: GithubSessionData
@@ -455,7 +399,6 @@ export async function setGithubSession(
   delete (event.context as Record<string, unknown>)[MEMO_KEY]
 }
 
-/** Deletes the cookie. It works even when the session password is missing. */
 function dropSessionCookie(event: H3Event, config: GithubConfig): void {
   const context = event.context as Record<string, unknown>
   delete (context.sessions as Record<string, unknown> | undefined)?.[
@@ -469,9 +412,6 @@ function dropSessionCookie(event: H3Event, config: GithubConfig): void {
   })
 }
 
-/**
- * Ends the session. Later reads in the same request see a signed-out user.
- */
 export function clearGithubSession(
   event: H3Event,
   config: GithubConfig = getGithubConfig()

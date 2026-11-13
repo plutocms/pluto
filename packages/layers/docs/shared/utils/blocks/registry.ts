@@ -1,8 +1,3 @@
-// Join the presets, the component layer, the site overrides (`plutoBlocks` in
-// app.config.ts) and the props found in the document into one definition for
-// each component. Pure functions: the caller reads the app config and passes
-// the sources in.
-
 import type {
   PlutoBlock,
   PlutoBlockDefinition,
@@ -22,8 +17,6 @@ import {
 } from '#layers/pluto/shared/utils/blocks/definition'
 import { BLOCK_GROUPS, BLOCK_PRESETS, HIDDEN_PROP_NAMES } from './presets'
 
-// The key helpers and the patch join are in core: the content components of the post editor use
-// them too.
 export { blockKey, camelKey, humanizeName, mergeBlockPatch }
 
 export interface ResolveOptions {
@@ -32,8 +25,6 @@ export interface ResolveOptions {
   /** A block of the doc. Its props and slots fill what the definition does not list. */
   block?: PlutoComponentBlock
 }
-
-
 
 function automaticDefinition(name: string): PlutoBlockDefinition {
   return {
@@ -59,7 +50,6 @@ function propFromValue(value: unknown): PlutoBlockPropDefinition {
   }
 }
 
-// --- Shared labels ----------------------------------------------------------------
 // The meta reader of core gives no label. A prop or a slot of the component layer with the name of
 // a preset prop or slot (`icon`, `to`, `title`...) takes its shared label here.
 
@@ -83,7 +73,6 @@ const SLOT_PREFIX = 'docs.blocks.slots.'
 let sharedProps: Set<string> | undefined
 let sharedSlots: Set<string> | undefined
 
-/** The shared label key of a prop (`icon`, `to`, `title`...) when the presets have one. */
 function propLabelKey(name: string): string | undefined {
   sharedProps ??= sharedKeys(
     (preset) => Object.values(preset.props ?? {}).map((prop) => prop.label),
@@ -100,7 +89,6 @@ function slotLabelKey(name: string): string | undefined {
   return sharedSlots.has(name) ? `${SLOT_PREFIX}${name}` : undefined
 }
 
-/** The component layer with the shared labels on the props and the slots that have no label. */
 function withSharedLabels(
   layer: PlutoBlockOverride | undefined
 ): PlutoBlockOverride | undefined {
@@ -126,7 +114,6 @@ function withSharedLabels(
   }
 }
 
-/** The layer of one block in a config. The key can be the kebab name or any form of it. */
 function layerFor(
   config: PlutoBlocksConfig | undefined,
   key: string
@@ -141,10 +128,6 @@ function layerFor(
   return other === undefined ? undefined : config[other]
 }
 
-/**
- * Join the entries of one map (props or slots) one by one. An entry of the patch changes the
- * entry of the base key by key, and `false` removes it. An entry with no base starts from `fill`.
- */
 function mergeEntries<T extends object>(
   base: Record<string, T> | undefined,
   patch: Record<string, Partial<T> | false | undefined> | undefined,
@@ -165,12 +148,6 @@ function mergeEntries<T extends object>(
   return out
 }
 
-
-/**
- * Put a layer over a definition. The fields of the layer replace the fields of the base. Props and
- * slots join key by key (shallow). `false` removes a prop or a slot. `false` for the whole block
- * hides it.
- */
 function mergeDefinition(
   base: PlutoBlockDefinition,
   layer: PlutoBlockOverride | undefined
@@ -190,25 +167,11 @@ function mergeDefinition(
   }
 }
 
-
-/** The slot content kind for a slot that no definition lists. */
 function slotFromChildren(children: PlutoBlock[]): PlutoBlockSlotDefinition {
   const onlyText = children.every((child) => child.kind === 'text')
   return { content: onlyText ? 'rich' : 'blocks' }
 }
 
-/**
- * The definition of a component: the preset (or an automatic one), the
- * component layer over it, the site override over that, and the props and
- * slots of `options.block` that none of them lists. Found props go to the
- * Advanced section.
- *
- * The name can be kebab case (`pluto-hero`) or the Pascal form that a page
- * can use (`PlutoHero`). The definition has the kebab name. A prop of the
- * definition takes the spelling that the block uses: when the page has
- * `star-count` and the meta has `starCount`, the key is `star-count`, so an
- * edit changes the prop of the page and adds no second one.
- */
 export function resolveBlockDefinition(
   name: string,
   options: ResolveOptions = {}
@@ -247,7 +210,6 @@ export function resolveBlockDefinition(
   return { ...merged, props, slots }
 }
 
-/** The text a palette inserts for a component. */
 export function insertTextFor(definition: PlutoBlockDefinition): string {
   return definition.insert ?? `::${definition.name}\n::`
 }
@@ -257,12 +219,6 @@ export interface PaletteGroup {
   items: PlutoBlockDefinition[]
 }
 
-/**
- * The blocks of the palette, in groups. The presets come first, then the
- * components of the component layer (a component shows only when it is in
- * that layer), then the components that only the site config declares. A
- * hidden block, or a block set to `false`, is not in the list.
- */
 export function listPaletteBlocks(
   sources: PlutoBlockSources = {}
 ): PaletteGroup[] {

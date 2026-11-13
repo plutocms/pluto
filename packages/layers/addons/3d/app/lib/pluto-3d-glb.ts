@@ -1,12 +1,6 @@
-/**
- * The files that a `.glb` links but does not hold: images and buffers with a
- * `uri` that is not a `data:` URI. Such a model shows without them (a model with
- * no texture). Reads only the JSON chunk; no three.js. An empty list for a file
- * that is not a valid GLB.
- */
 export function glbExternalFiles(bytes: ArrayBuffer): string[] {
   const view = new DataView(bytes)
-  // The header: "glTF", the version, the length. Then the first chunk: its length and "JSON".
+  // Header: "glTF", version, length. First chunk: length, then "JSON".
   if (bytes.byteLength < 20 || view.getUint32(0, true) !== 0x46546c67) {
     return []
   }

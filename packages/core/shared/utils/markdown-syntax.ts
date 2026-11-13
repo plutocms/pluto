@@ -18,14 +18,7 @@ export interface UnsafeMarkdownIssue {
   line: number
 }
 
-/**
- * The last line index of an empty component that opens at `index` with no indent (`::name{props}`,
- * blank lines, `::`): the visual editor keeps it as a component chip. Else `undefined`.
- */
-function emptyComponentEnd(
-  lines: string[],
-  index: number
-): number | undefined {
+function emptyComponentEnd(lines: string[], index: number): number | undefined {
   if (!/^:{2,}[a-z]/i.test(lines[index]!)) {
     return undefined
   }
@@ -40,12 +33,10 @@ function emptyComponentEnd(
   return matchEmptyComponent(text)?.raw.length === text.length ? end : undefined
 }
 
-/** A fence info string that the visual editor keeps: nothing, or one language name. */
 const SAFE_FENCE_INFO = /^[\w+#.-]*$/
 const MDC_BLOCK = /^\s*::/
 const MDC_INLINE = /(?:^|[^\w:/]):[a-z][\w-]*[{[]/i
 const HTML_TAG = /<\/?[a-z][\w:-]*(?:\s[^<>]*)?\/?>|<!--/i
-/** A table delimiter row: only pipes, colons, dashes and spaces, with at least one pipe and one dash. */
 function isTableDelimiter(line: string): boolean {
   return line.includes('|') && line.includes('-') && /^[\s|:-]+$/.test(line)
 }
@@ -54,7 +45,6 @@ const TASK_ITEM = /^\s*(?:[-*+]|\d+[.)])\s+\[[ x]\](?:\s|$)/i
 const FOOTNOTE = /\[\^[^\]\s]+\]/
 const INLINE_CODE = /(?<!`)(`+)(?!`)(.*?[^`])\1(?!`)/g
 
-/** Reads a fence opening line: three or more backticks or tildes, then the info string. */
 function openingFence(line: string):
   | {
       char: string
@@ -72,22 +62,17 @@ function openingFence(line: string):
     size++
   }
   const info = text.slice(size).trim()
-  // A backtick fence cannot have a backtick in its info string.
   return size >= 3 && !(char === '`' && info.includes('`'))
     ? { char, size, info }
     : undefined
 }
 
 /**
- * Finds Markdown syntax that the visual editor would lose on save: MDC
- * blocks (`::note`, but not an empty component with inline props at the top
- * level: the editor keeps it as a content component) and inline components
- * (`:icon{name=x}`), attributes
- * after a link or code (`[a](b){.c}`), HTML tags, GFM tables, task lists,
- * footnotes, and a code fence with more than a language in its info string.
- * Text inside a code fence or an inline code span is plain code, so it is
- * ignored (except the fence info). It returns one issue per kind, with the
- * first line of that kind. An empty list means the text is safe.
+ * Finds Markdown syntax that the visual editor would lose on save: MDC blocks (not an empty
+ * component with inline props at the top level), inline components, attributes after a link or
+ * code, HTML tags, GFM tables, task lists, footnotes, and a code fence with more than a language
+ * in its info string. Code is ignored, except the fence info. It returns one issue per kind, with
+ * the first line of that kind. An empty list means the text is safe.
  */
 export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
   const found = new Map<UnsafeMarkdownKind, number>()
@@ -98,7 +83,6 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
   }
 
   const lines = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n').split('\n')
-  // The prose lines. A line inside a fence is blank, so line numbers stay.
   const prose: string[] = []
   let fence:
     | {
@@ -129,7 +113,6 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
     prose.push(line)
   }
 
-  // Inline code can be followed by MDC attributes: `` `x`{.c} ``.
   const blanked = prose.map((line, index) => {
     return line.replace(INLINE_CODE, (match, _ticks, _body, offset: number) => {
       if (line[offset + match.length] === '{') {
@@ -139,7 +122,6 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
     })
   })
 
-  // The lines of an empty component (a content component) are safe.
   let safeUntil = -1
   for (const [index, line] of blanked.entries()) {
     const number = index + 1
@@ -152,7 +134,6 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
     if (MDC_INLINE.test(line)) {
       add('mdc-inline', number)
     }
-    // A link that opens in a new tab (`{target="_blank"}`) is safe: the editor keeps it.
     if (/[\])]\{/.test(withoutBlankLinkAttributes(line))) {
       add('attributes', number)
     }
@@ -165,7 +146,6 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
     if (FOOTNOTE.test(line)) {
       add('footnote', number)
     }
-    // A table needs a header row with a pipe, then a delimiter row.
     if (
       index > 0 &&
       blanked[index - 1]!.includes('|') &&
@@ -178,11 +158,6 @@ export function findUnsafeMarkdown(text: string): UnsafeMarkdownIssue[] {
   return [...found].map(([kind, line]) => ({ kind, line }))
 }
 
-/**
- * Inserts `snippet` into `value` in place of the selection. The result has
- * the new text and the caret position. With `block`, the snippet gets a blank
- * line before and after it, so it never joins the text next to it.
- */
 export function insertMarkdownText(
   value: string,
   selection: {
@@ -217,11 +192,6 @@ export function insertMarkdownText(
   }
 }
 
-/**
- * The first mode of the Markdown widget for a field `editor` option and a
- * text. `visual` and `source` are fixed. `auto` (or no option) opens Source
- * when the text has syntax that the visual editor cannot keep.
- */
 export function pickMarkdownEditorMode(
   editor: 'auto' | 'visual' | 'source' | undefined,
   text: string

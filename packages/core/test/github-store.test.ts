@@ -86,7 +86,6 @@ describe('github store listTree', () => {
     ])
     expect(tree[0]).toMatchObject({ name: 'c.md', text: 'C' })
     expect(github.calls.tree).toBe(1)
-    // The query nests `entries` six levels deep.
     expect(queries[0]!.match(/entries \{/g)).toHaveLength(6)
   })
 
@@ -135,7 +134,6 @@ describe('github store head', () => {
     expect(await store.head()).toBe(first)
     expect(github.calls.headNotModified).toBe(1)
 
-    // The 304 refreshed the TTL.
     await store.head()
     expect(github.calls.headNotModified).toBe(1)
   })

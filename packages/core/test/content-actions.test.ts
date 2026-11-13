@@ -3,9 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
 import { createI18nStub } from './fixtures/i18n-stub'
 
-// pluto-content-actions.ts leans on Nuxt's auto-imported `usePlutoRegistry`
-// and `computed`. Outside a Nuxt build nothing injects them — stub the same
-// way test/permissions.test.ts and test/pluto-admin-nav-content.test.ts do.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
 let fakeNuxtApp: {
   _plutoRegistry?: PlutoRegistry
 }

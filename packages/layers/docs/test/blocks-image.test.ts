@@ -4,9 +4,6 @@ import { parseBlocks } from '../shared/utils/blocks/parse'
 import { resolveBlockDefinition } from '../shared/utils/blocks/registry'
 import { serializeBlocks } from '../shared/utils/blocks/serialize'
 
-// The Image block (`pluto-figure`): a `media` prop that a choice from the media library fills
-// with the URL, the size and the alt text, in one edit.
-
 describe('the Image block', () => {
   it('has a media prop that fills the size and the alt text', () => {
     const definition = resolveBlockDefinition('pluto-figure')

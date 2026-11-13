@@ -6,10 +6,6 @@ function isComponent(value: unknown): boolean {
   )
 }
 
-/**
- * Checks an auth driver. It gives one message for each problem, and an empty
- * list when the driver is valid. Core calls it in development only.
- */
 export function validatePlutoAuthDriver(
   driver: Partial<PlutoAuthDriver> | null | undefined
 ): string[] {

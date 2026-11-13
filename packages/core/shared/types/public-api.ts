@@ -2,11 +2,10 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { PlutoPublicMedia } from './media'
 
 /**
- * The answers of the public API (`/api/pluto/v1/...`). See the content-model skill and the
- * "Public API" page of the docs.
+ * One item of a public answer (`/api/pluto/v1/...`): `id`, the public fields of the type, and the
+ * timestamps it has.
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
-
-/** One item of a public answer: `id`, the public fields of the type, and the timestamps it has. */
 export type PlutoPublicItem = Record<string, unknown> & {
   id: string | number
   createdAt?: string

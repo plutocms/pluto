@@ -1,6 +1,5 @@
 import type { H3Event } from 'h3'
 
-/** The key on `event.context` that marks a request as a public read. */
 const PUBLIC_READ_KEY = 'plutoPublicRead'
 
 /**
@@ -11,6 +10,8 @@ const PUBLIC_READ_KEY = 'plutoPublicRead'
  * every route handler. Nitro auto-imports it.
  *
  * Without the CMS this does nothing: no adapter reads the mark.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function markPublicRead(event: H3Event): void {
   event.context[PUBLIC_READ_KEY] = true

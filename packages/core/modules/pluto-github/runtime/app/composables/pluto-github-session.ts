@@ -20,16 +20,6 @@ export interface PlutoGithubSessionResponse {
   }
 }
 
-/**
- * The signed-in CMS user. The state is shared across the app under one key.
- *
- * The browser fetches it after hydration (`server: false`). The server never
- * reads it, so a public page that a CDN caches never holds a user. The admin
- * is client-only, so it loses nothing. The response has no token.
- *
- * A static build (`public.plutoGithub.static`) has no server, so it never asks: nobody is
- * signed in there.
- */
 export function usePlutoGithubSession() {
   const isStatic =
     (useRuntimeConfig().public.plutoGithub as { static?: boolean } | undefined)
@@ -46,7 +36,6 @@ export function usePlutoGithubSession() {
   const capabilities = computed(() => asyncData.data.value?.capabilities ?? [])
   const repo = computed(() => asyncData.data.value?.repo ?? null)
 
-  /** Waits for the first answer. A route middleware uses it. */
   async function ready(): Promise<void> {
     await asyncData
   }
@@ -55,7 +44,6 @@ export function usePlutoGithubSession() {
     await asyncData.refresh()
   }
 
-  /** Ends the session on the server, then clears it here. The caller picks the next page. */
   async function logout(): Promise<void> {
     try {
       await $fetch(CMS_LOGOUT_URL, { method: 'POST' })

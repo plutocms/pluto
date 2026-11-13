@@ -5,7 +5,6 @@ import { createPlutoError } from './pluto-error'
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 const API_PREFIX = '/api/_pluto'
 
-/** `host:port` of a URL in lowercase. The default port of the scheme is dropped. */
 function hostOfUrl(value: string): string | undefined {
   try {
     const url = new URL(value)
@@ -15,7 +14,6 @@ function hostOfUrl(value: string): string | undefined {
   }
 }
 
-/** The `Host` header in lowercase. A default port is dropped, so `a.com:443` equals `a.com`. */
 function normalizeHost(host: string, protocol: string): string {
   const lower = host.trim().toLowerCase()
   if (protocol === 'https:' && lower.endsWith(':443')) {
@@ -30,24 +28,12 @@ function normalizeHost(host: string, protocol: string): string {
 export interface PlutoOriginCheckInput {
   method: string
   path: string
-  /** The request `Host` header. */
   host: string | undefined
   origin: string | undefined
   referer: string | undefined
 }
 
-/**
- * Decides if a request passes the CSRF check. Core runs it for every layer, with or without
- * the CMS (server/middleware/pluto-origin.ts). A request that can change
- * state (`POST`, `PATCH`, `PUT`, `DELETE`) to `/api/_pluto/**` must say it
- * comes from this host. `Origin` is checked first. When it is absent,
- * `Referer` is checked. With neither header, the request fails. The compared
- * value is `host:port`.
- *
- * The check uses the `Host` header. It does not use `x-forwarded-host`:
- * Nitro has no setting to trust a proxy, and a client can fake that header.
- * A proxy in front of the app must pass the public `Host` header on.
- */
+// Compare the Host header, not x-forwarded-host: a client can fake that header.
 export function isPlutoSameOriginRequest(
   input: PlutoOriginCheckInput
 ): boolean {
@@ -75,7 +61,6 @@ export function isPlutoSameOriginRequest(
   return hostOfUrl(source) === normalizeHost(input.host, url.protocol)
 }
 
-/** Throws a 403 when the request fails the origin check. */
 export function assertPlutoSameOrigin(event: H3Event): void {
   const ok = isPlutoSameOriginRequest({
     method: event.method,

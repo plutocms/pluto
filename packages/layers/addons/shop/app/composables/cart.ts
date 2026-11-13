@@ -16,9 +16,6 @@ import {
   setCartLineQuantity,
 } from '../lib/cart'
 
-// The cart of a shop. The lines are in `useState`, and the browser saves them in localStorage
-// (app/plugins/cart.client.ts). See the shop skill ("Cart").
-
 /** A line of `useCart().lines`: the product, its units, its price and its limit. */
 export interface PlutoCartItem<
   T extends PlutoCartProduct = PlutoCartProduct,
@@ -37,14 +34,11 @@ export interface PlutoCartRefresh<
   changed: PlutoCartLine<T>[]
 }
 
-/** The state key of the lines. */
 export const PLUTO_CART_STATE = 'pluto-shop-cart'
 
 let pendingRefresh: Promise<PlutoCartRefresh> | undefined
 
-// `$fetch` with a plain type. Through `unknown`: a call with a `string` path compares it with
-// every typed server route of the app, and TypeScript stops with "excessive stack depth" in an
-// app with many routes (a Supabase shop).
+// A typed `$fetch` call with a `string` path hits "excessive stack depth" in an app with many routes.
 function fetchJson<R>(path: string): Promise<R> {
   return ($fetch as unknown as (path: string) => Promise<R>)(path)
 }
@@ -58,6 +52,7 @@ function fetchJson<R>(path: string): Promise<R> {
  * the stock are current, and a product that is gone or sold out leaves the cart. A checkout
  * must still compute the price on the server.
  *
+ * @see https://pluto.vulmix.dev/docs/layers/shop#use-the-cart
  * @example
  * const cart = useCart<PublicProduct>()
  * cart.add(product)

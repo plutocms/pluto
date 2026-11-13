@@ -1,13 +1,9 @@
 import type { PlutoBrand } from '../types/brand'
 
-/** The steps of a color scale, as in Tailwind and Nuxt UI. */
 export const PLUTO_BRAND_STEPS = [
   50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950,
 ] as const
 
-// The lightness of each step in a Tailwind scale (OKLCH L). The brand color
-// takes step 600, and the other steps keep these relative distances toward
-// the light end (50) and the dark end (950).
 const STEP_LIGHTNESS: Record<number, number> = {
   50: 0.971,
   100: 0.936,
@@ -21,8 +17,6 @@ const STEP_LIGHTNESS: Record<number, number> = {
   900: 0.396,
   950: 0.258,
 }
-// The chroma of each step, relative to the brand color. The light and the dark
-// ends lose chroma, as in a Tailwind scale.
 const STEP_CHROMA: Record<number, number> = {
   50: 0.15,
   100: 0.3,
@@ -55,7 +49,6 @@ function hexToRgb(hex: string): [number, number, number] {
 const toLinear = (c: number) =>
   c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
 
-/** An sRGB hex color in OKLCH: lightness 0..1, chroma, hue in degrees. */
 function hexToOklch(hex: string): {
   l: number
   c: number
@@ -79,7 +72,6 @@ function hexToOklch(hex: string): {
   }
 }
 
-/** The WCAG contrast ratio of white text on an sRGB hex color. */
 export function plutoBrandContrast(hex: string): number {
   const [r, g, b] = hexToRgb(hex).map((value) => toLinear(value / 255)) as [
     number,
@@ -90,16 +82,10 @@ export function plutoBrandContrast(hex: string): number {
   return 1.05 / (luminance + 0.05)
 }
 
-/** True for a 3- or 6-digit hex color. */
 export function isPlutoBrandHex(value: unknown): value is string {
   return typeof value === 'string' && HEX.test(value)
 }
 
-/**
- * The 11-step scale of a brand color, as OKLCH literals. The brand color is
- * step 600 exactly. The lighter steps move toward the lightness of a Tailwind
- * 50, the darker ones toward a 950, with less chroma at both ends.
- */
 export function plutoBrandScale(
   hex: string
 ): Record<(typeof PLUTO_BRAND_STEPS)[number], string> {
@@ -130,10 +116,6 @@ export function plutoBrandScale(
 const BRAND_SELECTOR =
   ':root[data-pluto-admin][data-pluto-admin],\n[data-pluto-admin-scope][data-pluto-admin-scope]'
 
-/**
- * The CSS that applies a brand to the admin: the primary scale, the radius and
- * the fonts. An empty string when the brand changes none of them.
- */
 export function plutoBrandCss(brand: PlutoBrand | undefined): string {
   if (!brand) {
     return ''

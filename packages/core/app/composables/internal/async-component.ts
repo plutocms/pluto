@@ -1,9 +1,5 @@
 import type { Component } from 'vue'
 
-/**
- * True when `component` came from `defineAsyncComponent`. Vue marks that
- * wrapper with `__asyncLoader`.
- */
 export function isAsyncComponent(component: unknown): boolean {
   return (
     typeof component === 'object' &&
@@ -48,11 +44,6 @@ interface ExtensionComponents {
   }
 }
 
-/**
- * Lists the registered components of an extension that are not async, as
- * `<extension id>:<bucket>:<entry id>`. The navbar actions are not checked:
- * the navbar must be ready at the first paint.
- */
 export function findSyncComponents(definition: ExtensionComponents): string[] {
   const buckets = [
     'contentFieldWidgets',

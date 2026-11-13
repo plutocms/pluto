@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { isAdminPath } from '../../../composables/internal/admin-shell'
 
-// The core admin navbar: the 40px bar, the menu button for small screens, the
-// logo, the site name chip, "View site", the actions of the layers, the backend
-// badge and the user menu (with the theme). It has no top-level await, so it renders from
-// the state of the auth driver. See the admin-shell skill.
 const route = useRoute()
 const isSidebarOpen = usePlutoAdminMenuOpen()
 const { t } = usePlutoI18n()
 const { hasDriver } = usePlutoAuth()
 const site = usePlutoSiteInfo()
-// The navbar is dark in both color modes, so a brand shows its dark-background logo.
 const { brand } = usePlutoBrand()
 const brandLogo = computed(() => brand.value.logoDark || brand.value.logo || '')
 const brandMark = computed(() => brand.value.mark || brandLogo.value)
@@ -46,10 +41,6 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
             to="/admin/home"
             class="group outline-inverted/40 flex h-full items-center gap-x-2 rounded-sm focus-visible:outline-2 focus-visible:-outline-offset-2"
           >
-            <!--
-              A brand logo (white label), its mark only on a small screen. Else the Pluto
-              mark: the site chip next to it names the site.
-            -->
             <template v-if="brandLogo">
               <img
                 :src="brandMark"
@@ -68,7 +59,6 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
               class="block h-6.75 w-auto grayscale-100 group-hover:grayscale-0"
               mark
             />
-            <!-- The site that this admin edits, as a chip. -->
             <span
               v-if="siteName"
               class="border-default bg-elevated text-highlighted hidden h-6 max-w-48 items-center truncate rounded-full border px-2.5 text-xs/6 font-semibold sm:inline-block"
@@ -78,11 +68,6 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
           </NuxtLink>
         </div>
 
-        <!--
-          The overflow clip keeps a long list of actions from pushing the bar. The
-          padding and the negative margin give the focus ring of the first and the last
-          action room inside the clip, without moving them.
-        -->
         <div class="-mx-1 h-full min-w-0 overflow-hidden px-1">
           <ul class="flex h-full min-w-0 items-center gap-x-0.5 text-sm">
             <ClientOnly>
@@ -91,7 +76,6 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
                   <div
                     class="text-dimmed flex h-full items-center gap-x-2 rounded-sm px-2"
                   >
-                    <!-- Lucide: an app's icon bundle always has it. -->
                     <Icon
                       name="i-lucide-loader-circle"
                       class="size-4 animate-spin"
@@ -103,7 +87,6 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
               <PlutoNavbarAdminActions />
             </ClientOnly>
 
-            <!-- After the actions: New Post first, then View site. -->
             <PlutoNavbarButton
               v-if="isAdmin"
               :label="t('pluto.navbar.viewSite')"
@@ -117,17 +100,12 @@ const siteDomain = computed(() => domainFromUrl(site.url.value) || host)
       </div>
 
       <div class="flex shrink-0 items-center gap-1 lg:gap-3">
-        <!-- Where the content goes: Git or a database. Admin pages only, next to the user. -->
         <ClientOnly>
           <div v-if="isAdmin" class="h-full shrink-0">
             <PlutoAdminBackendBadge />
           </div>
         </ClientOnly>
 
-        <!--
-          The user is known in the browser only. On a public page the server
-          renders the bar from the hint, so the menu loads after the mount.
-        -->
         <ClientOnly>
           <PlutoAdminUserMenu v-if="hasDriver" />
 

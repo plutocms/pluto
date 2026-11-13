@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, defineAsyncComponent } from 'vue'
 import { findSyncComponents } from '../app/composables/internal/async-component'
 
-// Same stubs as test/content-actions.test.ts: the composables lean on Nuxt auto-imports.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
 let fakeNuxtApp: {
   _plutoRegistry?: PlutoRegistry
 }

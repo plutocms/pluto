@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The popover body of the backend badge (`backend.details`) for the Git CMS.
-// Local mode (`fs` store): the saves are commits in the local repo, the
-// commits that are not pushed, and a Push button. GitHub mode: the repo and
-// the branch that each save commits to, with links to GitHub.
 import { usePlutoGithubLocalGit } from '../../../../modules/pluto-github/runtime/app/composables/pluto-github-local-git'
 import { usePlutoGithubSession } from '../../../../modules/pluto-github/runtime/app/composables/pluto-github-session'
 
@@ -37,7 +33,6 @@ const visibility = computed(() => {
     : t('pluto.github.backend.public')
 })
 
-// What the local repo needs, in one line. `null` while the first read runs.
 const localState = computed(() => {
   const status = git.status.value
   if (!status) {

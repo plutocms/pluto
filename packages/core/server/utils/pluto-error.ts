@@ -17,6 +17,8 @@ export interface PlutoErrorOptions {
  * Creates an H3 error that the admin can show in its own language. The
  * `statusMessage` stays English. The translation key and its values go in
  * `data.i18n`, and the client reads them with `usePlutoErrorText()`.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/i18n
  */
 export function createPlutoError(options: PlutoErrorOptions): H3Error {
   return createError({

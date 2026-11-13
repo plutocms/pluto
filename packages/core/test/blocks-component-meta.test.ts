@@ -31,7 +31,6 @@ function propOf(
   return { props: [{ name, type, schema: type, ...extra }] }
 }
 
-/** The definition that one prop of the given type gets. */
 function widget(name: string, type: string) {
   return blockFromComponentMeta('Thing', propOf(name, type)).definition.props?.[
     name
@@ -215,7 +214,6 @@ describe('real meta fixtures', () => {
     expect(definition.slots!.default).not.toHaveProperty('content')
     expect(definition.slots!.notice).toMatchObject({ content: 'inline' })
   })
-
 })
 
 describe('the macro', () => {

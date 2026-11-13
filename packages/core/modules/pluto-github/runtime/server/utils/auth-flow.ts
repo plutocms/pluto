@@ -43,7 +43,6 @@ function loginError(event: H3Event, reason: string) {
   return sendRedirect(event, `${LOGIN_PAGE}?error=${reason}`, 302)
 }
 
-/** Starts the GitHub sign-in. It saves `state`, the PKCE verifier and the target in a short sealed session. */
 export async function handleLogin(event: H3Event) {
   enforceAuthRateLimit(event)
   noStore(event)
@@ -75,7 +74,6 @@ export async function handleLogin(event: H3Event) {
   )
 }
 
-/** Ends the GitHub sign-in. It checks `state`, trades the code, checks the repo permission and starts the session. */
 export async function handleCallback(event: H3Event) {
   enforceAuthRateLimit(event)
   noStore(event)
@@ -117,7 +115,6 @@ export async function handleCallback(event: H3Event) {
       redirectUri: callbackUrl(event),
     })
     const user = await fetchUser(tokens.accessToken, transport)
-    // The USER token reads the repo. A repo the user or the App cannot see gives a 404.
     const repo = await fetchRepoPermission(
       tokens.accessToken,
       config.repo,
@@ -156,7 +153,6 @@ export async function handleCallback(event: H3Event) {
   return sendRedirect(event, safeRedirect(saved.redirect), 302)
 }
 
-/** Ends the session. */
 export function handleLogout(event: H3Event) {
   noStore(event)
   clearGithubSession(event)
@@ -164,7 +160,6 @@ export function handleLogout(event: H3Event) {
   return null
 }
 
-/** What the browser may know about the session. It never has a token. */
 export async function handleSession(event: H3Event) {
   noStore(event)
   const config = getGithubConfig()
@@ -172,7 +167,6 @@ export async function handleSession(event: H3Event) {
   try {
     session = await getGithubSession(event)
   } catch (error) {
-    // A session that is over gives `{ user: null }`. Its cookie is already cleared.
     if (
       (
         error as {

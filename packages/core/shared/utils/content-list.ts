@@ -7,17 +7,6 @@ import type {
 import { isTargetReference } from './content-reference'
 import { contentStatusValues } from './content-status'
 
-/**
- * Returns the text that the generic list shows for one field of one item.
- *
- * A field with `listFormat` shows what the formatter returns. A formatter
- * that throws does not break the list: the raw value shows instead. A field
- * with no formatter shows the raw value as text. An empty value is an empty
- * string.
- *
- * This function is pure and has no browser or Nuxt dependency, so it is safe
- * to call on the server too.
- */
 export function formatListValue(
   field: PlutoField,
   item: PlutoContentItem
@@ -45,17 +34,10 @@ function rawListValue(value: unknown): string {
   return String(value)
 }
 
-// The search, the filters and the sort of the admin list. The list page and the admin list route
-// use the same rules, so a link with a query (`?search=…&status=draft&sort=-title`) gives the same
-// list as the page, and a bad value never reaches the adapter.
-
-/** The longest search text. A longer one is cut. */
 export const ADMIN_LIST_SEARCH_MAX = 200
 
-/** The longest filter value (a reference id, an option value). */
 const FILTER_VALUE_MAX = 200
 
-/** The field types that sort as a column of the list. */
 const SORTABLE_TYPES = new Set<PlutoField['type']>([
   'text',
   'textarea',
@@ -66,13 +48,7 @@ const SORTABLE_TYPES = new Set<PlutoField['type']>([
   'date',
 ])
 
-/**
- * True when the admin list offers this field as a filter. A `reference` with a `target` filters
- * by default (tags, categories, authors). A `select` and a `boolean` filter by default when they
- * show in the list (`inList`), so a setting such as "Hide from search engines" adds no filter.
- * `filter: true` turns it on for any of them, `filter: false` turns it off.
- */
-export function isListFilterField(field: PlutoField): boolean {
+function isListFilterField(field: PlutoField): boolean {
   if (field.filter === false || field.virtual) {
     return false
   }
@@ -85,7 +61,6 @@ export function isListFilterField(field: PlutoField): boolean {
   )
 }
 
-/** True when the admin list can sort by this column. */
 export function isListSortField(field: PlutoField): boolean {
   return (
     field.inList === true &&
@@ -95,7 +70,6 @@ export function isListSortField(field: PlutoField): boolean {
   )
 }
 
-/** The fields that the admin list offers as filters, in the order of the form. */
 export function listFilterFields(type: PlutoContentType): PlutoField[] {
   return type.fields
     .filter(isListFilterField)
@@ -117,7 +91,6 @@ function singleText(value: unknown): string | undefined {
   return typeof text === 'string' ? text : undefined
 }
 
-/** True when `value` is an allowed value of the filter field. */
 function isFilterValue(field: PlutoField, value: string): boolean {
   if (value === '' || value.length > FILTER_VALUE_MAX) {
     return false
@@ -196,10 +169,6 @@ export function parseAdminListQuery(
   return { query, invalid }
 }
 
-/**
- * The query keys of an admin list query, the reverse of `parseAdminListQuery`: for the list route
- * and for the route query of the page. An empty part has no key.
- */
 export function adminListQueryKeys(
   query: PlutoAdminListQuery
 ): Record<string, string> {
@@ -219,7 +188,6 @@ export function adminListQueryKeys(
   return keys
 }
 
-/** True when the query narrows the list: a search, a status or a filter. A sort alone does not. */
 export function isNarrowedListQuery(query: PlutoAdminListQuery): boolean {
   return Boolean(
     query.search || query.status || Object.keys(query.filters ?? {}).length > 0

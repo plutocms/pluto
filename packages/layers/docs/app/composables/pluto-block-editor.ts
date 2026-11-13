@@ -113,7 +113,6 @@ export interface PlutoBlockEditor {
 export const plutoBlockEditorKey: InjectionKey<PlutoBlockEditor> =
   Symbol('plutoBlockEditor')
 
-/** The block editor that the calling component sits in. Throws outside a `PlutoBlockEditor`. */
 export function usePlutoBlockEditor(): PlutoBlockEditor {
   const editor = inject(plutoBlockEditorKey, null)
   if (!editor) {
@@ -136,7 +135,6 @@ function tryParse(source: string): {
   }
 }
 
-/** Ids of the blocks whose `original` is gone, over the whole tree. */
 function editedBlockIds(
   blocks: PlutoBlock[],
   out = new Set<string>()
@@ -152,12 +150,6 @@ function editedBlockIds(
   return out
 }
 
-/**
- * The state of one block editor: the doc, the selection, the undo history and
- * the edit actions. Each edit builds a new doc, writes the text and calls
- * `options.emit`. A block that no edit touched keeps its source bytes, so
- * opening a page and leaving it changes nothing.
- */
 export function createPlutoBlockEditor(
   options: PlutoBlockEditorOptions
 ): PlutoBlockEditor {
@@ -254,7 +246,6 @@ export function createPlutoBlockEditor(
       : undefined
   }
 
-  /** After the selected block, or into a slot of the selected block that accepts the new component. */
   function defaultTarget(entry: PlutoPaletteEntry): PlutoBlockTarget {
     const current = selected.value
     if (!current) {
@@ -392,29 +383,12 @@ export function createPlutoBlockEditor(
   }
 }
 
-/** The id of the top-level block that holds a block. The preview selects at this level. */
-export function topLevelId(
-  doc: PlutoBlockDoc,
-  id: string | null
-): string | null {
-  return id ? (pathOf(doc, id)[0] ?? null) : null
-}
-
-/**
- * The `plutoBlocks` value of the app config, as `PlutoBlocksConfig`. Nuxt types
- * `useAppConfig()` from the literal config of the site, where `'inline'` is a
- * `string`, so read the value through this function, not from `useAppConfig()`.
- */
-export function usePlutoBlocksConfig(): () => PlutoBlocksConfig | undefined {
+// Nuxt types `useAppConfig()` from the literal config, where `'inline'` is a `string`: read `plutoBlocks` through this function.
+function usePlutoBlocksConfig(): () => PlutoBlocksConfig | undefined {
   const appConfig = useAppConfig()
   return () => appConfig.plutoBlocks as unknown as PlutoBlocksConfig | undefined
 }
 
-/**
- * The layers of the block definitions for a block editor: the component layer and the
- * `plutoBlocks` value of the app config. The caller passes the component layer in: the two editor
- * roots import it from `#pluto-blocks`, so the data stays in the lazy editor chunk.
- */
 export function usePlutoBlockSources(
   components: PlutoBlocksConfig = {}
 ): () => PlutoBlockSources {
@@ -422,7 +396,6 @@ export function usePlutoBlockSources(
   return () => ({ components, overrides: blocksConfig() })
 }
 
-/** The texts of the slots of a component: the title of a slot, and the label of its "Add" button. */
 export function usePlutoBlockLabels() {
   const { t, tx } = usePlutoI18n()
   const editor = usePlutoBlockEditor()
@@ -440,7 +413,6 @@ export function usePlutoBlockLabels() {
       : humanizeName(slot)
   }
 
-  /** "Add Card" when the slot takes one kind of block, "Add a block" for the main slot, else "Add to Buttons". */
   function addLabel(
     definition: PlutoBlockDefinition | undefined,
     slot: string

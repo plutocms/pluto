@@ -1,5 +1,3 @@
-// The open modals of `Modal.vue`, in the order they opened. Escape closes only
-// the last one, so Escape in a modal over a modal closes one modal.
 const openModals: symbol[] = []
 
 export function pushModal(id: symbol): void {

@@ -167,7 +167,6 @@ describe('gET /api/_pluto/github/users', () => {
     expect(calls[0]!.search).toContain('permission=push')
     expect(calls[0]!.token).not.toBe('')
 
-    // A second read within the cache time makes no call.
     await app.request(URL_PATH)
     expect(calls).toHaveLength(2)
   })

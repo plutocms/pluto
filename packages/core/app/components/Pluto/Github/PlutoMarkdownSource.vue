@@ -1,25 +1,12 @@
 <script setup lang="ts">
-// A raw Markdown editor: a monospace textarea that grows with the text. The
-// model value is the Markdown text, as it is. Nothing parses or rewrites it,
-// so MDC, HTML and tables stay as the author wrote them.
-//
-// A layer can use it as a base for its own widget. The `toolbar` slot sits
-// above the text. `insert` and `focus` are exposed for a toolbar button. The
-// CMS module registers the short name `PlutoMarkdownSource`.
 const props = withDefaults(
   defineProps<{
     modelValue: string
     disabled?: boolean
     placeholder?: string
-    /** The minimum height in rows. Default 18. */
     rows?: number
-    /** The box grows up to this many rows, then it scrolls. Default: no limit. */
     maxRows?: number
     ariaLabel?: string
-    /**
-     * Fill the height of the parent: the text scrolls inside the box, which does not grow. For
-     * a full-height editor, such as the Markdown mode of the post editor.
-     */
     fill?: boolean
   }>(),
   {
@@ -45,10 +32,6 @@ function focus(): void {
   element()?.focus()
 }
 
-/**
- * Inserts text in place of the selection and puts the caret after it. With
- * `block`, the text gets a blank line before and after it.
- */
 function insert(
   text: string,
   options: {
@@ -70,10 +53,6 @@ function insert(
   })
 }
 
-/**
- * Puts the caret at the start of a line (from 0), and scrolls that line to the top of the box.
- * The outline of the post editor uses it to jump to a heading.
- */
 function goToLine(line: number): void {
   const el = element()
   if (!el) {

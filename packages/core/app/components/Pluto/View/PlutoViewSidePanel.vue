@@ -6,21 +6,9 @@ import {
   ScrollAreaViewport,
 } from 'reka-ui'
 
-// The shell of a side panel of a canvas form: the Outline of a post, the Blocks of a docs page,
-// and any panel that a layer adds with `PlutoContentCanvasPanel`. Every panel gets the same look
-// as the rail next to it:
-//
-// - the panel background (`bg-pluto-panel`),
-// - a 48px header with the title, the `actions` slot, and the button that hides the panel,
-// - a body that scrolls in a Reka UI scroll area with a thin scrollbar that shows on hover,
-// - an optional `footer` slot under the body.
-//
-// The default slot is the body. It has no padding: the content sets its own.
 withDefaults(
   defineProps<{
-    /** The title in the header, and the accessible name of the region. */
     title: string
-    /** Show the button that hides the panel (a left panel, desktop only). */
     collapse?: boolean
   }>(),
   { collapse: true }

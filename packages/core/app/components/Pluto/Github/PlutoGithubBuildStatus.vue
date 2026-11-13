@@ -1,15 +1,4 @@
 <script setup lang="ts">
-// A toolbar item of the edit form (`contentToolbarItems`). It shows the build
-// of the newest commit of the content branch that did not skip CI (a draft
-// save skips it), so a draft that was never public in this page shows nothing:
-// a spinner while the site builds,
-// a check mark when it is live, and an error icon when the build failed. The
-// state itself ("Live") is the button that opens the details, with a link to each
-// Action or build.
-// The CMS plugin registers it only for GitHub storage with `skipDeploy` off.
-// A type with `liveOnSave` shows a save at once: "Live" right after the save, a
-// small spinner by the state while the static build runs, and a warning
-// in the popover when that build fails (the site then serves the change at run time).
 import type {
   PlutoBuildItem,
   PlutoBuildState,
@@ -22,13 +11,8 @@ const { t, locale } = usePlutoI18n()
 const form = usePlutoContentForm()
 const { status, check, afterSave } = usePlutoGithubBuildStatus()
 
-// True when the item was public in this page: published when it loaded, or after a save.
-// A draft save skips the deploy, so a draft that was never public has no build to show.
 const everPublic = ref(!form)
 
-// Read once the item of the edit page is there (the form mounts before it), and after each
-// save. A new item has no commit yet: the form goes to the edit page after the first save,
-// and this item mounts again there.
 const loaded = computed(() =>
   Boolean(form?.editing.value && !form.loading.value)
 )
@@ -47,7 +31,6 @@ onMounted(() => {
     { immediate: true }
   )
 })
-// True after a save in this page. With `liveOnSave` the change is live from then on.
 const savedHere = ref(false)
 form?.onSaved((saved) => {
   everPublic.value ||= isPublicItem(form.type.value, saved)
@@ -60,18 +43,15 @@ form?.onSaved((saved) => {
 
 const state = computed<PlutoBuildState>(() => status.value?.state ?? 'none')
 const liveOnSave = computed(() => form?.type.value?.liveOnSave === true)
-/** The static build runs, and the site already serves the change. */
 const staticBuilding = computed(
   () => liveOnSave.value && state.value === 'pending'
 )
-/** The static build failed, and the site serves the change at run time. */
 const staticFailed = computed(
   () => liveOnSave.value && state.value === 'failure'
 )
 
 const summary = computed(() => {
   if (liveOnSave.value) {
-    // Live at once after a save. On open, live as soon as a build is known.
     return savedHere.value || state.value !== 'none'
       ? {
           label: t('pluto.github.build.live'),
@@ -118,7 +98,6 @@ const relative = computed(
   () => new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' })
 )
 
-/** "2 minutes ago", or "just now". */
 function ago(iso: string | undefined): string | undefined {
   if (!iso) {
     return undefined
@@ -157,8 +136,6 @@ const commitTime = computed(() => ago(status.value?.committedAt))
 
 <template>
   <div v-if="summary && everPublic" class="flex items-center gap-1">
-    <!-- The state (icon and label). With details, it is the button that opens them. The state is
-         a live region: a screen reader hears the change. -->
     <UPopover v-if="status" :content="{ align: 'end' }">
       <UTooltip :text="t('pluto.github.build.details')">
         <UButton
@@ -183,7 +160,6 @@ const commitTime = computed(() => ago(status.value?.committedAt))
             <span class="sr-only md:hidden">{{ summary.label }}</span>
           </span>
           <span class="sr-only">{{ t('pluto.github.build.details') }}</span>
-          <!-- A small spinner by the state while the static build runs. -->
           <UIcon
             v-if="staticBuilding"
             name="i-lucide-loader-circle"
@@ -269,7 +245,6 @@ const commitTime = computed(() => ago(status.value?.committedAt))
       </template>
     </UPopover>
 
-    <!-- No details yet: the state only. -->
     <div
       v-else
       role="status"

@@ -4,23 +4,11 @@ import type { PlutoNavGroup } from '../../../shared/types/registry'
 import { splitByNavGroup } from './nav-groups'
 
 export interface NewMenuOptions {
-  /** The singular label of a type. */
   label: (type: PlutoContentType) => string
-  /** The label of a group (already translated). */
   groupLabel: (group: PlutoNavGroup) => string
-  /** The link to the new page of a type. */
   to: (type: PlutoContentType) => string
 }
 
-/**
- * The items of the "New" menu of the admin bar, for the types that can show a
- * New button. The types without a group come first, as direct links. Each group
- * follows, in the order of `groups`. A group with two or more types is a
- * submenu (label and icon of the group, one link per type). A group with one
- * type shows that type as a direct link. When the only entry is one group, the
- * menu shows the types of the group directly, without the submenu. The caller shows a plain button, not
- * this menu, when there is one type in total.
- */
 export function buildNewMenu(
   entries: ReadonlyArray<{ type: PlutoContentType }>,
   groups: readonly PlutoNavGroup[],

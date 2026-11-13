@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
   contentEditPath,
-  contentNewPath,
   contentRoutePath,
 } from '../shared/utils/content-route'
 
@@ -62,11 +61,5 @@ describe('contentEditPath', () => {
     expect(contentEditPath('my type', 'index')).toBe(
       '/admin/content/my%20type/index'
     )
-  })
-})
-
-describe('contentNewPath', () => {
-  it('gives the create form of a type', () => {
-    expect(contentNewPath('doc')).toBe('/admin/content/doc/new')
   })
 })

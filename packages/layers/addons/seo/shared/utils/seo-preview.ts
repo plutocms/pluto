@@ -1,8 +1,3 @@
-// The text of the preview in the admin form: how a search result and a social card look. Pure
-// code with no Nuxt import, so plain Vitest tests it. `PlutoSeoPreview.vue` shows these values.
-// The form holds the raw item (a media field is an id, the body is Markdown), so the preview
-// reads the item with its own helpers, not with `plutoSeoItemHead`.
-
 import {
   PLUTO_SEO_DESCRIPTION_MAX,
   plutoSeoCutText,
@@ -61,7 +56,6 @@ export function plutoSeoPreviewText(
   }
 }
 
-/** The first id of a `media` value (an id, or a list of ids). */
 function firstId(value: unknown): string | undefined {
   const id = Array.isArray(value) ? value[0] : value
   return typeof id === 'string' && id !== '' ? id : undefined

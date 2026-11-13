@@ -2,10 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref, toValue } from 'vue'
 import { contentIdPath } from '../shared/utils/content-id'
 
-// pluto-content-item.ts leans on Nuxt's auto-imported `ref`/`toValue` and
-// the Nitro/ofetch global `$fetch`. Outside a Nuxt build nothing injects
-// either — stub them the same way test/permissions.test.ts stubs its own
-// set of Nuxt globals.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
 let fetchMock: ReturnType<typeof vi.fn>
 
 beforeEach(() => {

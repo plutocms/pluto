@@ -1,17 +1,8 @@
 <script setup lang="ts">
-// The live preview of a post: an iframe of `/_pluto/post-preview` on the same
-// origin, so the post renders with the site CSS. This component sends the item
-// and the Markdown to the frame after 150 ms of quiet. Both sides check the origin
-// and the shape of every message (`shared/utils/post-preview-protocol.ts`).
 const props = defineProps<{
   contentType: string
-  /** The fields of the item, without the body. */
   item: Record<string, unknown>
   markdown: string
-  /**
-   * Keep 40px free at the right of the page, for the open button of the closed right panel.
-   * The page itself gets the space (the `inset` message), and the badge moves left.
-   */
   gutterEnd?: boolean
 }>()
 
@@ -63,7 +54,6 @@ function sendInset() {
 }
 watch(() => props.gutterEnd, sendInset)
 
-// The preview follows the light and dark mode of the admin.
 const colorMode = useColorMode()
 function sendColorMode() {
   if (ready.value) {
@@ -111,7 +101,6 @@ function reload() {
   startTimer()
 }
 
-/** Scrolls the preview to a heading of the body (its index in source order). */
 function scrollToHeading(heading: number) {
   if (ready.value) {
     send(plutoPostPreviewMessage('scroll-to', { heading }))
@@ -141,8 +130,6 @@ onBeforeUnmount(() => {
       loading="eager"
     />
 
-    <!-- Tells the preview apart from the editor. It fades out while the pointer is on the
-         preview, so it never hides the page. The iframe title names the frame for a screen reader. -->
     <div
       v-if="ready && !timedOut"
       :class="gutterEnd ? 'inset-e-13' : 'inset-e-3'"
@@ -153,7 +140,6 @@ onBeforeUnmount(() => {
       {{ t('pluto.post.previewBadge') }}
     </div>
 
-    <!-- While the preview loads: the shape of a page and a small status pill. -->
     <div
       v-if="!ready && !timedOut"
       class="bg-default pointer-events-none absolute inset-0 flex flex-col"

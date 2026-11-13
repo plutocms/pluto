@@ -1,36 +1,21 @@
-// Pure part of the unsaved-changes guard of `PlutoContentForm`. It does not
-// use Nuxt auto-imports, so plain Vitest can import it.
+// No Nuxt auto-imports here: plain Vitest imports this file.
 
 export interface DirtyState {
-  /** The text of the payload that counts as "saved". `null` until the form read it. */
   baseline: string | null
 }
 
-/**
- * Tracks whether the form has unsaved changes.
- *
- * A widget can change the value right after it mounts, for example an editor
- * that writes its own normal form of the text. That change is not an edit. So
- * the baseline follows the item until the user first edits (`interact`). After
- * that the baseline stays, until a save calls `reset`.
- *
- * `state` is a plain object, so a caller can pass a Vue `reactive` and watch it.
- */
 export function createDirtyTracker(state: DirtyState) {
   let interacted = false
 
   return {
-    /** Call it when the item changes. Before the first edit, the new value is the baseline. */
     follow(current: string) {
       if (!interacted) {
         state.baseline = current
       }
     },
-    /** Call it on the first real user input. The baseline stays from now on. */
     interact() {
       interacted = true
     },
-    /** Call it after a save. The saved value is the new baseline. */
     reset(current: string) {
       state.baseline = current
     },
@@ -48,7 +33,6 @@ export interface ShortcutEvent {
   altKey: boolean
 }
 
-/** True for Ctrl+S on Windows and Linux, and Cmd+S on macOS. */
 export function isSaveShortcut(event: ShortcutEvent): boolean {
   return (
     event.key.toLowerCase() === 's' &&
@@ -67,7 +51,6 @@ export type SavedAgo =
       value: number
     }
 
-/** How long ago a save happened, in whole units. Under 45 seconds is "now". */
 export function savedAgo(diffMs: number): SavedAgo {
   const seconds = Math.max(0, diffMs) / 1000
   if (seconds < 45) {
@@ -84,15 +67,9 @@ export function savedAgo(diffMs: number): SavedAgo {
   return { unit: 'day', value: Math.round(hours / 24) }
 }
 
-/** The elements whose press changes the form value. A plain click on the page does not. */
 const EDITING_TARGET =
   'button, a, input, select, textarea, label, [contenteditable], [draggable="true"], [role="option"], [role="menuitem"], [role="switch"], [role="checkbox"], [role="radio"], [role="combobox"], [role="tab"]'
 
-/**
- * True when a user event can be an edit. A key press, a paste and a drop always
- * count. A pointer press counts on a control only. This keeps a click on the
- * empty page from freezing the baseline before a late widget settles.
- */
 export function isEditingEvent(
   type: string,
   target: {

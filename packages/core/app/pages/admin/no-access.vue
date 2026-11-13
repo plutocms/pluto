@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The page for a signed-in user with no capability. The route guard sends the
-// user here (see `staffDecision`). The `reason=error` query means the
-// capabilities failed to load. The frame is PlutoAdminAuthCard. See the
-// admin-shell skill.
 import {
   ADMIN_HOME_PATH,
   ADMIN_NO_ACCESS_PATH,
@@ -36,7 +32,6 @@ const description = computed(() =>
     : t('pluto.noAccess.description')
 )
 
-/** Loads the capabilities again. Staff go on. Other users stay on this page. */
 async function tryAgain() {
   trying.value = true
   try {
@@ -48,7 +43,6 @@ async function tryAgain() {
       await navigateTo(redirect.value || ADMIN_HOME_PATH, { replace: true })
       return
     }
-    // Keep the wanted path, and drop the error reason from the URL.
     await navigateTo(
       redirect.value
         ? `${ADMIN_NO_ACCESS_PATH}?redirect=${encodeURIComponent(redirect.value)}`

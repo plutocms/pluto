@@ -1,12 +1,5 @@
-// The pure part of the run-time render mode. No Nuxt import, so plain Vitest tests it.
-// It turns the flat list of pages of a type into what Nuxt Content gives at build time:
-// the navigation tree and the previous and next page. The tree follows the algorithm of
-// `generateNavigationTree` in Nuxt Content, so a site can use the same components.
-// See the docs-setup skill.
-
 import { contentRoutePath } from './content-route'
 
-/** The fields of a page that the navigation needs. They come from the docs type fields. */
 export interface RuntimeNavPage {
   /** The content id, for example `2.core/03.content-model`. */
   id: string
@@ -17,7 +10,6 @@ export interface RuntimeNavPage {
   navigationHidden?: boolean
 }
 
-/** A node of the navigation tree. The shape of `ContentNavigationItem` of Nuxt Content. */
 export interface RuntimeNavItem {
   title: string
   path: string
@@ -31,7 +23,6 @@ export interface RuntimeNavItem {
   [key: string]: unknown
 }
 
-/** A neighbor page for the surround. */
 export interface RuntimeSurroundItem {
   title: string
   path: string
@@ -41,7 +32,6 @@ export interface RuntimeSurroundItem {
 
 const INDEX_STEM = /(?:[1-9]\d*\.)?index/
 
-/** `getting-started` gives `Getting Started`. Nuxt Content names a folder without an index page this way. */
 export function titleFromSegment(segment: string): string {
   return segment
     .split(/[\s-]/g)
@@ -50,18 +40,12 @@ export function titleFromSegment(segment: string): string {
     .join(' ')
 }
 
-/** Whether the id is the root page of the source (`index`, or `1.index`). */
 export function isRootIndexId(id: string): boolean {
   return !id.includes('/') && INDEX_STEM.test(id)
 }
 
-/**
- * The parsed `.navigation.yml` of a folder. Nuxt Content reads `title`, `navigation` (`false` hides
- * the folder, an object overrides the keys) and passes every other key (`icon`, ...) to the folder item.
- */
 export type RuntimeFolderConfig = Record<string, unknown>
 
-/** The keys that Nuxt Content keeps as page fields. They do not go to the folder item as they are. */
 const FOLDER_PAGE_KEYS = new Set([
   'title',
   'description',
@@ -78,10 +62,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/**
- * The keys that a folder config puts on its navigation item, like `pickConfigNavigationFields`
- * of Nuxt Content: the title, then the other keys, then the `navigation` object.
- */
 export function folderItemFields(
   config: RuntimeFolderConfig | undefined
 ): Record<string, unknown> {
@@ -118,7 +98,6 @@ export interface RuntimeNavOptions {
   withDescription?: boolean
 }
 
-/** Whether the folder config of this folder, or of a parent folder, hides it. */
 function isInHiddenFolder(
   id: string,
   folders: Record<string, RuntimeFolderConfig> | undefined
@@ -145,12 +124,6 @@ function visiblePages(
   )
 }
 
-/**
- * Builds the navigation tree from the pages, in the order given (the tree order of ids).
- * A page with `navigationHidden` is left out. The root `index` page is left out unless
- * `includeRoot` is set. A folder takes the title of its index page. A folder with no
- * index page gets a title from its name and `page: false`.
- */
 export function buildNavigationTree(
   pages: RuntimeNavPage[],
   options: RuntimeNavOptions = {}
@@ -185,7 +158,6 @@ export function buildNavigationTree(
       )
     }
 
-    // A page at the top level of the source.
     if (parts.length <= 1) {
       const placeholder = isIndex
         ? nav.find((node) => node.path === item.path && node.page === false)
@@ -201,7 +173,6 @@ export function buildNavigationTree(
       continue
     }
 
-    // Walk down the folders. A missing folder becomes a placeholder.
     let siblings = nav
     for (const [index, part] of parts.slice(0, -1).entries()) {
       const folderPath = contentRoutePath(
@@ -246,7 +217,6 @@ export function buildNavigationTree(
   return clearTree(nav)
 }
 
-/** Removes empty `children` and the `page: undefined` keys, like Nuxt Content does. */
 function clearTree(nav: RuntimeNavItem[]): RuntimeNavItem[] {
   for (const item of nav) {
     if (item.page === undefined) {
@@ -261,7 +231,6 @@ function clearTree(nav: RuntimeNavItem[]): RuntimeNavItem[] {
   return nav
 }
 
-/** The pages of a tree in reading order. A folder with no page is skipped. */
 export function flattenNavigation(nav: RuntimeNavItem[]): RuntimeNavItem[] {
   return nav.flatMap((item) => {
     const children = item.children ? flattenNavigation(item.children) : []
@@ -275,7 +244,6 @@ export function flattenNavigation(nav: RuntimeNavItem[]): RuntimeNavItem[] {
   })
 }
 
-/** The previous and the next page of `path`. A missing neighbor is `null`. An unknown path gives two `null`. */
 export function surroundOf(
   nav: RuntimeNavItem[],
   path: string
@@ -299,7 +267,6 @@ export function surroundOf(
   return [pick(flat[index - 1]), pick(flat[index + 1])]
 }
 
-/** The content id of the page for a route path, or `undefined`. Ignores a trailing slash. */
 export function pageIdForRoute(
   ids: string[],
   path: string,
@@ -309,13 +276,11 @@ export function pageIdForRoute(
   return ids.find((id) => contentRoutePath(id, routePrefix) === wanted)
 }
 
-/** One entry of the store listing: the id and the version (`_version`) of the file. */
 export interface ListedVersion {
   id: string
   version?: string
 }
 
-/** The difference between the build manifest of a type and the store listing. */
 export interface ManifestDiff {
   /** True when nothing differs: the build data is current. */
   same: boolean
@@ -327,10 +292,6 @@ export interface ManifestDiff {
   removed: string[]
 }
 
-/**
- * Compares the build manifest (id → version) with the store listing. A store entry without a
- * version counts as changed, because the build data cannot be proven current.
- */
 export function diffManifest(
   manifest: Record<string, string> | undefined,
   current: ListedVersion[]
@@ -356,7 +317,6 @@ export function diffManifest(
   }
 }
 
-/** The page fields that Nuxt Content builds itself. Frontmatter with these keys does not go to `meta`. */
 const PAGE_FIELD_KEYS = new Set([
   'id',
   'stem',
@@ -371,7 +331,6 @@ const PAGE_FIELD_KEYS = new Set([
   'meta',
 ])
 
-/** Flat keys that the docs type adds to the frontmatter for its form fields. They are not file keys. */
 const FORM_ONLY_KEYS = new Set([
   'navigationTitle',
   'navigationIcon',
@@ -380,12 +339,6 @@ const FORM_ONLY_KEYS = new Set([
   'seoDescription',
 ])
 
-/**
- * The extra keys of a page from its whole frontmatter. Nuxt Content keeps the keys that the
- * collection schema declares at the top level of the page and puts the other keys in `meta`. The
- * server does not know the schema, so a key goes in both places: the page reads it the same way in
- * both modes. A key that is a page field (`title`, `seo`, ...) is left out: the page builds it.
- */
 export function frontmatterExtras(
   frontmatter: Record<string, unknown> | undefined
 ): { top: Record<string, unknown>; meta: Record<string, unknown> } {

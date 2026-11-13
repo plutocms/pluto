@@ -52,7 +52,7 @@ that block. A test guards this with the 48 pages of the docs site.
 
 `insertBlocks`, `insertBlock`, `removeBlock`, `moveBlock`, `duplicateBlock`, `updateText`,
 `updateCode`, `setProp`, `setProps` (some props in one edit), `setSlot`, `replaceWithMarkdown`, `blocksFromMarkdown`, `blockMarkdown`,
-and the makers `createTextBlock`, `createCodeBlock`, `createComponentBlock`.
+and the makers `createTextBlock`, `createComponentBlock`.
 
 - An edit removes `original` from the block and its ancestors. The other blocks keep theirs.
 - A move in one list changes only the order of the blocks. The gaps stay in place.

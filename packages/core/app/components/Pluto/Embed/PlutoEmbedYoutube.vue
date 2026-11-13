@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// The YouTube embed of core: a thumbnail with a play button, and the player of
-// `youtube-nocookie.com` after a click (`ScriptYouTubePlayer` of @nuxt/scripts). Nothing loads
-// from YouTube but the thumbnail before the click. `match` comes from `matchYoutubeUrl`.
 import PlutoEmbedPlay from './PlutoEmbedPlay.vue'
 
 const props = defineProps<{

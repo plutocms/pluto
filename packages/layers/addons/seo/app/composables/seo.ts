@@ -1,6 +1,7 @@
 import type { MaybeRefOrGetter } from 'vue'
 import { computed, toValue } from 'vue'
 
+/** The options of `usePlutoSeo`. */
 export interface PlutoSeoOptions {
   /** The content type (its `name`, or the type), for the title field and the media fields. */
   type?: string | PlutoContentType
@@ -17,6 +18,7 @@ export interface PlutoSeoOptions {
  * `definePlutoContent` pages call it on their own; call it for a page you wrote yourself.
  * Returns what the tags say, as a computed value.
  *
+ * @see https://pluto.vulmix.dev/docs/layers/seo#the-head-tags
  * @example
  * const { data } = await useFetch(`/api/pluto/v1/content/post/${slug}`)
  * usePlutoSeo(() => data.value?.data, { type: 'post', ogType: 'article' })
@@ -76,7 +78,6 @@ export function usePlutoSeo(
   })
 
   if (article) {
-    // The JSON-LD of the article. The text escapes `<`, so no value closes the script.
     useHead({
       script: () => {
         const data = plutoSeoArticleJsonLd(

@@ -3,7 +3,6 @@ import type { PlutoContentType } from '../../../../shared/types/content'
 
 interface Props {
   type: PlutoContentType
-  /** The values of the saved item. Unset before the first save. */
   item?: Record<string, unknown>
   pending?: boolean
 }

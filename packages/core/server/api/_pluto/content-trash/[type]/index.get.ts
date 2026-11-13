@@ -1,8 +1,3 @@
-/**
- * The trash of one content type, the last trashed first:
- * `GET /api/_pluto/content-trash/<type>?limit=50&offset=0&search=...`. It purges the items older
- * than 30 days first. Needs the delete capability. See the content-model skill ("Trash").
- */
 export default defineEventHandler(async (event) => {
   const type = requireContentType(getRouterParam(event, 'type') ?? '')
   const query = getQuery(event)

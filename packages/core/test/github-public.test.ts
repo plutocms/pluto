@@ -18,8 +18,6 @@ import {
   signIn,
 } from './fixtures/github-auth-harness'
 
-// The posts of the Git CMS through the public API of core (`/api/pluto/v1/content/post`).
-
 vi.mock(
   '../modules/pluto-github/runtime/server/utils/github-config',
   async () => {
@@ -350,7 +348,6 @@ describe('one post', () => {
         html: string
       }
     }
-    // The html is in the cache under the blob id of the file.
     const oid = gitBlobSha(FILES['content/posts/live.md']!)
     expect(
       await getRegisteredGithubCache().getBlob<string>(`html:2:${oid}`)

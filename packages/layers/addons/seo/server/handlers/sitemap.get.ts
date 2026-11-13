@@ -1,13 +1,8 @@
 import { defineEventHandler, setResponseHeader } from 'h3'
-
-// `/sitemap.xml`. The module adds the route. The paths of the settings come first, then every
-// published item of the public types that have a page. An item that says `seoNoindex` stays out.
-// Without a known site URL the sitemap is empty: a sitemap needs absolute URLs.
 export default defineEventHandler(async (event) => {
   const config = useAppConfig().plutoSeo as PlutoSeoConfig
   const root = getPlutoSiteRoot(event)
 
-  // The first URL wins. A later one only adds the date it lacks.
   const urls = new Map<string, PlutoSeoSitemapUrl>()
   const add = (loc: string, lastmod?: unknown) => {
     const known = urls.get(loc)

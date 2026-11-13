@@ -4,18 +4,9 @@ import { createBuildPoller } from '../../shared/build-poller'
 
 export const CMS_BUILD_STATUS_URL = '/api/_pluto/github/build-status'
 
-/**
- * The build status of the head commit, with polling. Call it in `setup`. It does
- * not read until `check()` or `afterSave()` runs. It stops by itself when the
- * build is done, after 15 minutes, and while the page is hidden. It reads again
- * when the page is visible. The scope end stops everything.
- *
- * Each call has its own state. The admin is client-only, so nothing runs on the server.
- */
 export function usePlutoGithubBuildStatus() {
   const status = shallowRef<PlutoBuildStatus | null>(null)
   const failed = shallowRef(false)
-  // True after `check` or `afterSave`, until `stop`. A page that shows again reads only then.
   let started = false
 
   const poller = createBuildPoller({
@@ -51,12 +42,10 @@ export function usePlutoGithubBuildStatus() {
   return {
     status,
     failed,
-    /** Reads now, and while the build is pending. Call it when the edit page opens. */
     check() {
       started = true
       poller.start()
     },
-    /** Call it after a save. It forgets the old answer and waits for the checks of the new commit. */
     afterSave() {
       started = true
       status.value = null

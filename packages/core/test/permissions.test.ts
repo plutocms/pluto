@@ -3,11 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
 import { createI18nStub } from './fixtures/i18n-stub'
 
-// pluto-registry.ts, pluto-extension.ts, and pluto-permissions.ts all lean
-// on Nuxt's auto-imported globals (`useNuxtApp`, `computed`, `ref`,
-// `useState`, `usePlutoRegistry`). Outside a Nuxt build nothing injects
-// them, so this file stubs them the same way `test/nuxt-config.test.ts`
-// stubs `defineNuxtConfig` — see that file for the same pattern.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
 let fakeNuxtApp: {
   _plutoRegistry?: PlutoRegistry
   _plutoPermissionsLoad?: {
@@ -25,8 +21,6 @@ beforeEach(() => {
   vi.stubGlobal('computed', computed)
   vi.stubGlobal('usePlutoI18n', () => createI18nStub())
   vi.stubGlobal('ref', ref)
-  // A minimal stand-in for Nuxt's useState: one ref per key, created once
-  // and reused for the life of the test.
   vi.stubGlobal('useState', <T>(key: string, init: () => T) => {
     if (!stateStore.has(key)) {
       stateStore.set(key, ref(init()))
@@ -40,12 +34,6 @@ afterEach(() => {
   vi.resetModules()
 })
 
-/**
- * Loads the real composables fresh for one test, and stubs
- * `usePlutoRegistry` as a global so the modules' own internal,
- * auto-import-style calls to it resolve to the same registry instance
- * this function returns.
- */
 async function loadComposables() {
   const { usePlutoRegistry } = await import('../app/composables/pluto-registry')
   vi.stubGlobal('usePlutoRegistry', usePlutoRegistry)

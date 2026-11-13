@@ -1,6 +1,5 @@
 import type { H3Event } from 'h3'
 
-/** The key on `event.context` that marks a system request. A client cannot set it. */
 const SYSTEM_KEY = 'plutoSystem'
 
 /**

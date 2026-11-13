@@ -1,15 +1,9 @@
 <script setup lang="ts">
-// One setting of a component: a field with the right control for the type of
-// the prop (text, long text, switch, number, choice, icon, color, link, image). A
-// prop with an object or a list shows as YAML. An empty value removes the prop,
-// so the Markdown stays short. The block editor of the docs layer and the component chip of the
-// post editor use it. See the content-components skill.
 import type { PlutoBlockPropDefinition } from '../../../../shared/utils/blocks/definition'
 import { parse, stringify } from 'yaml'
 import { humanizeName } from '#layers/pluto/shared/utils/blocks/definition'
 
 const props = defineProps<{
-  /** The name of the prop in the Markdown. */
   name: string
   definition: PlutoBlockPropDefinition
   modelValue: unknown
@@ -17,12 +11,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  /** `undefined` removes the prop. */
   'update:modelValue': [value: unknown]
-  /**
-   * A `media` prop: a file chosen in the media library. The inspector sets the URL and the props
-   * of `fills` (the size, the alt text) in one edit.
-   */
   media: [media: PlutoMedia]
 }>()
 
@@ -68,7 +57,6 @@ function setText(value: string | undefined) {
   )
 }
 
-// The default of the component, as a text for a placeholder.
 const defaultText = computed(() =>
   props.definition.default === undefined
     ? undefined
@@ -82,7 +70,6 @@ const switchOn = computed(() =>
 )
 
 function setBoolean(value: boolean) {
-  // The state of the default removes the prop. An explicit value in the source stays explicit.
   const fallback = props.definition.default === true
   if (value === fallback) {
     emit('update:modelValue', props.modelValue === value ? value : undefined)
@@ -111,7 +98,6 @@ const selectItems = computed(() => {
   if (current && !items.some((item) => item.value === current)) {
     items.push({ value: current, label: current })
   }
-  // "Default (slow)": the item shows the value that the component uses.
   const fallback = items.find((item) => item.value === defaultText.value)
   const defaultLabel = defaultText.value
     ? `${t('pluto.blocks.default')} (${fallback?.label ?? defaultText.value})`
@@ -131,7 +117,6 @@ function setSelect(value: string) {
   emit('update:modelValue', value === DEFAULT ? undefined : value)
 }
 
-// YAML for an object or a list. The text applies when the box loses the focus and the YAML is valid.
 const yamlDraft = ref(
   isStructured.value ? stringify(props.modelValue).trimEnd() : ''
 )
@@ -165,8 +150,6 @@ function applyYaml() {
   }
 }
 
-// An image (a `media` prop): the URL in the Markdown, a preview, and a choice from the media
-// library of the app (when a backend has one). The URL field stays, for an image from elsewhere.
 const mediaLibrary = usePlutoMedia()
 const pickerOpen = ref(false)
 const baseURL = useRuntimeConfig().app.baseURL

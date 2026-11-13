@@ -5,7 +5,6 @@ import {
 import { normalizeGithubDir } from '../../../options'
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-/** One segment of a nested id: a slug with an optional numeric prefix (`2.install`). */
 const SEGMENT_PATTERN = /^(?:\d+\.)?[a-z0-9]+(?:-[a-z0-9]+)*$/
 const MAX_SLUG_LENGTH = SLUG_MAX_LENGTH
 const MAX_NESTED_SEGMENTS = 6
@@ -19,11 +18,9 @@ export class PlutoGithubPathError extends Error {
 }
 
 export interface PlutoGithubPathOptions {
-  /** The type stores its items in nested folders. See `PlutoContentType.files`. */
   nested?: boolean
 }
 
-/** Throws when the slug is not a lowercase, dash-separated ASCII slug. */
 export function assertSafeSlug(slug: string, label = 'slug'): void {
   if (
     typeof slug !== 'string' ||
@@ -35,12 +32,6 @@ export function assertSafeSlug(slug: string, label = 'slug'): void {
   }
 }
 
-/**
- * Throws when the id is not safe. A flat id follows `assertSafeSlug`. A nested
- * id is 1 to 6 segments joined with `/`, 255 characters at most. Each segment
- * is a slug with an optional numeric prefix. This refuses `..`, an empty
- * segment, a dot segment and a backslash.
- */
 export function assertSafeContentId(
   id: string,
   options: PlutoGithubPathOptions = {},
@@ -74,10 +65,6 @@ function baseOf(dir: string): string {
   return base
 }
 
-/**
- * The folder of one content type under `base`. A flat type needs a slug as
- * `source`. A nested type can use `''` (the dir itself) or a nested path.
- */
 function typeFolder(
   base: string,
   source: string,
@@ -90,10 +77,7 @@ function typeFolder(
   return `${base}/${source}`
 }
 
-/**
- * The file path `<dir>/<source>/<id>.md`. It always stays under `dir`. For a
- * nested type, `id` can hold `/` and `source` can be `''`.
- */
+// The result always stays under `dir`: every segment goes through the safe checks.
 export function contentFilePath(
   dir: string,
   source: string,
@@ -116,19 +100,13 @@ export function contentFilePath(
   return path
 }
 
-/** The name of the trash folder under the content dir. A dot folder: lists and reads skip it. */
 export const TRASH_DIR = '.trash'
 
-/**
- * The trash folder of one content type: `<dir>/.trash/<type name>`. The type name, not the source:
- * a nested type can have the source `''`, and two types never share a name.
- */
 export function trashDirPath(dir: string, typeName: string): string {
   assertSafeSlug(typeName, 'type')
   return `${baseOf(dir)}/${TRASH_DIR}/${typeName}`
 }
 
-/** The trashed file of one item: `<dir>/.trash/<type name>/<id>.md`. */
 export function trashFilePath(
   dir: string,
   typeName: string,
@@ -139,7 +117,6 @@ export function trashFilePath(
   return `${trashDirPath(dir, typeName)}/${id}.md`
 }
 
-/** The folder `<dir>/<source>` that holds the files of one content type. */
 export function contentDirPath(
   dir: string,
   source: string,
@@ -149,20 +126,13 @@ export function contentDirPath(
 }
 
 const MAX_RELATIVE_LENGTH = 255
-/** True when the text has a control character (code under 32, or 127). */
 function hasControlChar(text: string): boolean {
   return [...text].some(
     (char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127
   )
 }
 
-/**
- * The path of a raw file under the folder of a type: `<folder>/<relative>`.
- * `relative` is a path inside the folder, with `/` separators. Throws when it
- * is empty, too long, absolute (`/x`, `C:/x`, `C:x`), has a backslash, a control
- * character or a `%` escape, or has an empty, `.` or `..` segment. The result
- * always stays under `folder`.
- */
+// The result always stays under `folder`: no `..`, no escape.
 export function typeRelativePath(folder: string, relative: string): string {
   if (
     typeof relative !== 'string' ||

@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// A test email, in two places of the flow. `self` (step 3) sends to your own
-// address, and works before you verify a domain, with the Resend test sender.
-// `anyone` (step 6) sends to any address, after the domain is verified and the
-// From address is set. Resend refuses the second case for an unverified
-// domain. The 403 gets a plain explanation here.
 const props = defineProps<{
   mode: 'self' | 'anyone'
   number: number
@@ -24,8 +19,6 @@ const failure = ref<{
 
 const emailValid = computed(() => isPlutoMailAddress(to.value.trim()))
 
-// The key can send with either access level. Without a key, only the dev
-// driver can "send" (it prints to the server console).
 const canSend = computed(() => Boolean(status.value?.configured))
 
 const domainVerified = computed(

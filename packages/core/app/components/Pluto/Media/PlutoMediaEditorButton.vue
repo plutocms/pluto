@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// The image button of a rich text toolbar (a `slot: 'image'` item). It opens
-// the media picker (images only) and puts the image at the cursor, with its
-// alt text. The editor keeps the image as Markdown: `![alt](url)`.
 import type { Editor } from '@tiptap/vue-3'
 import type { PlutoMedia } from '../../../../shared/types/media'
 

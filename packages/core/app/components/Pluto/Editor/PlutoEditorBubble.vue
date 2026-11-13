@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// A popover of the Visual editor on a link, a video or an image (Tiptap `BubbleMenu`): the panel of
-// the admin popovers, with an arrow that points at what it edits. It opens under its target
-// (`bottom-start`, so a narrow column does not scroll sideways), above when there is no room.
-// Tiptap places the panel; this component places the arrow after each move (`onUpdate`): on the
-// side of the target, at its start (a block) or at the caret (a link). See the git-cms skill.
 import type { Editor as CoreEditor } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import { NodeSelection } from '@tiptap/pm/state'
@@ -25,7 +20,6 @@ const arrow = ref<{ side: 'top' | 'bottom'; left: number }>({
   left: 16,
 })
 
-/** The box of the target: the selected block, or the caret. */
 function targetRect(): DOMRect | null {
   const { view, state } = props.editor
   const { selection } = state

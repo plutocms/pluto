@@ -1,10 +1,10 @@
 <script setup lang="ts">
-// The Pluto logo (public/img/pluto.svg) inline. The planet keeps its colors in
-// both color modes. The wordmark uses currentColor, so it takes the text color.
-// `mark` shows the planet only (public/img/pluto-icon.svg).
 withDefaults(
   defineProps<{
-    // Show the planet only, without the wordmark.
+    /**
+     * Show the planet only, with no wordmark.
+     * @see https://pluto.vulmix.dev/docs/build/components#plutologo
+     */
     mark?: boolean
   }>(),
   {
@@ -12,7 +12,6 @@ withDefaults(
   }
 )
 
-// The mouth uses a mask. Each logo on the page needs its own mask id.
 const maskId = `pluto-mouth-${useId()}`
 </script>
 

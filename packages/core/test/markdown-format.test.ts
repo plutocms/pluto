@@ -7,7 +7,6 @@ import {
 } from '../shared/utils/markdown-format'
 import { mdcLineKinds, mdcLineTokens } from '../shared/utils/mdc-lines'
 
-/** Applies a format to the text with the selection between `[` and `]`, and gives the new text and selection. */
 function apply(marked: string, format: PlutoMarkdownFormat): string {
   const from = marked.indexOf('[')
   const to = marked.indexOf(']') - 1
@@ -175,7 +174,6 @@ describe('headingMarkdown', () => {
 })
 
 describe('mdcLineTokens', () => {
-  /** The text and kind of each token, to read the result at a glance. */
   function parts(line: string, kind: Parameters<typeof mdcLineTokens>[1]) {
     return mdcLineTokens(line, kind).map(
       (token) => `${token.kind}:${line.slice(token.from, token.to)}`

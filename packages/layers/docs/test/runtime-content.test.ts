@@ -253,7 +253,6 @@ describe('folder configs (.navigation.yml)', () => {
       icon: 'i-lucide-rocket',
       path: '/start',
     })
-    // The index child keeps the page title.
     expect(tree[0]!.children![0]).toMatchObject({ title: 'Start here' })
   })
 

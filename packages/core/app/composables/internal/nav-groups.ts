@@ -1,11 +1,6 @@
 import type { PlutoContentType } from '../../../shared/types/content'
 import type { PlutoNavGroup } from '../../../shared/types/registry'
 
-/**
- * The group a content type names with `navGroup`. The full id of the group
- * (`pluto:pages`) matches first. A bare id (`pages`) matches when one group
- * has it. No match gives `undefined`, so the type stays a normal item.
- */
 export function findNavGroup(
   groups: readonly PlutoNavGroup[],
   name: string | undefined
@@ -26,11 +21,6 @@ export interface NavGroupBucket<T> {
   items: T[]
 }
 
-/**
- * Splits content types into the ones without a known group and the buckets of
- * each group. The buckets follow the order of `groups`. The order of the
- * types inside each part stays as it is.
- */
 export function splitByNavGroup<T extends { type: PlutoContentType }>(
   entries: readonly T[],
   groups: readonly PlutoNavGroup[]

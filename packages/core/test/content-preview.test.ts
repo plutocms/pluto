@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 import {
   previewMediaIds,
   previewPublicFields,
-  previewReferenceIds,
   previewReferenceMediaIds,
   previewReferenceTargets,
   toPreviewItem,
@@ -168,10 +167,6 @@ describe('references in a preview', () => {
   it('lists the targets and the ids of an item', () => {
     expect(previewReferenceTargets(type)).toEqual(['tag', 'cat'])
     expect(previewReferenceTargets(undefined)).toEqual([])
-    expect(
-      previewReferenceIds(type, { tags: ['a', 'b'], category: 7 }, 'tag')
-    ).toEqual(['a', 'b'])
-    expect(previewReferenceIds(type, { category: 7 }, 'cat')).toEqual(['7'])
   })
 })
 

@@ -4,20 +4,15 @@ import type {
   PlutoField,
 } from '../types/content'
 
-/** Resolves the storage column for a field. Falls back to `field.name` when `field.column` is unset. */
+/** The storage column of a field: `field.column`, else `field.name`. */
 export function fieldColumn(field: PlutoField): string {
   return field.column ?? field.name
 }
 
 /**
- * Converts a field-keyed payload into a column-keyed one, for every field
- * in `type.fields` present in `payload`. A field absent from `payload` is
- * left out of the result, so a partial update payload stays partial after
- * mapping. An adapter (a later wave) sends the result straight to its
- * storage layer.
- *
- * A field with `virtual: true` never appears in the result, even when
- * `payload` has a value for it — it has no storage column by design.
+ * Converts a field-keyed payload into a column-keyed one. A field that is not in `payload` stays
+ * out of the result, so a partial update stays partial. A `virtual` field never appears in the
+ * result.
  */
 export function mapFieldsToColumns(
   type: PlutoContentType,
@@ -38,23 +33,10 @@ export function mapFieldsToColumns(
 }
 
 /**
- * Converts a column-keyed row into a field-keyed `PlutoContentItem`, for
- * every field in `type.fields`, plus the primary key column (`type.primaryKey`,
- * default `'id'`) mapped to `item.id`. A column absent from `row` is left
- * out of the result field.
- *
- * A field with `virtual: true` is skipped, for symmetry with
- * `mapFieldsToColumns` — it has no column to read back from `row` in the
- * first place, so this only guards against a stray column that happens to
- * share the field's name.
- *
- * When `type.status` is set, this also maps the status column
- * (`type.status.column`, default `'status'`) to `item.status`, unless a
- * declared field already set `item.status` above. This mirrors the write
- * side: `@plutocms/supabase`'s `content-adapter.ts` already writes the
- * status column for a content type with workflow enabled, even when no
- * field named `status` is declared. Without this, a generic list/form
- * read back a row with no `status` key at all.
+ * Converts a column-keyed row into a field-keyed `PlutoContentItem`. The primary key column
+ * (`type.primaryKey`, default `'id'`) becomes `item.id`. A `virtual` field is skipped. When
+ * `type.status` is set, the status column becomes `item.status`, unless a declared field already
+ * set it.
  */
 export function mapColumnsToFields(
   type: PlutoContentType,

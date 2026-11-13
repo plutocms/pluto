@@ -42,7 +42,6 @@ describe('isPublicItem', () => {
       true
     )
     expect(isPublicItem(plutoGithubPostType, { status: 'draft' })).toBe(false)
-    // The post type defaults to draft.
     expect(isPublicItem(plutoGithubPostType, {})).toBe(false)
   })
 

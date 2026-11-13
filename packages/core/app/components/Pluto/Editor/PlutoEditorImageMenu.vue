@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The popover of an image of the Visual editor: it shows under the image while it is selected (a
-// click on it). The alt text can change: Enter, or leaving the field, applies it. Replace picks
-// another image of the media library (it keeps the alt text, or takes the one of the new file when
-// the image has none). Open the image in a new tab, or remove it.
 import type { Editor as CoreEditor } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import type { PlutoMedia } from '../../../../shared/types/media'
@@ -20,7 +16,6 @@ const alt = ref('')
 const src = ref('')
 const pickerOpen = ref(false)
 
-/** The selected image: its position and its attributes, or null. */
 function selectedImage(editor: CoreEditor) {
   const { selection } = editor.state
   return selection instanceof NodeSelection &&
@@ -62,7 +57,6 @@ watch(
   { immediate: true }
 )
 
-/** Sets attributes of the image, and keeps it selected. */
 function setImage(attrs: { src?: string; alt?: string }, focus: boolean) {
   if (!current) {
     return

@@ -1,6 +1,3 @@
-// The 3D add-on layer. Add it next to the backend layer of the app:
-// `extends: ['@plutocms/supabase-shop', '@plutocms/3d']`. It does not
-// extend `@plutocms/core` itself: the backend layer brings core, so core loads once.
 export default defineNuxtConfig({
   $meta: {
     name: '3d',
@@ -17,7 +14,6 @@ export default defineNuxtConfig({
     },
   },
 
-  // three.js loads in the browser only, on the pages that show a model.
   build: {
     transpile: ['three'],
   },

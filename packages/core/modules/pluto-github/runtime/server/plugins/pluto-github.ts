@@ -5,10 +5,6 @@ import { createNitroCacheBackend } from '../utils/github-cache-nitro'
 import { getGithubConfig } from '../utils/github-config'
 import { registerGithubContent } from '../utils/github-setup'
 
-/**
- * Nitro plugin. The module adds it only when the CMS is on. It picks the
- * store and registers the post type and the Markdown adapter.
- */
 export default defineNitroPlugin(() => {
   const config = getGithubConfig()
   const cache = createGithubCache({
@@ -18,10 +14,6 @@ export default defineNitroPlugin(() => {
   registerGithubContent(config, cache, () => loadBuildSnapshot(config.dir))
 })
 
-/**
- * The Markdown of the content dir as the build bundled it (server assets, see the module), keyed
- * by repo path: `content/posts/hello.md`. Empty when the build bundled nothing.
- */
 async function loadBuildSnapshot(dir: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {}
   try {

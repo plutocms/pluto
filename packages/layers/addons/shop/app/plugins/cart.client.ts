@@ -6,8 +6,6 @@ import {
   serializeCart,
 } from '../lib/cart'
 
-// Loads the saved cart after hydration, saves each change, and follows the other tabs. Before
-// `onNuxtReady` the cart is empty, as on the server, so the first render matches the HTML.
 export default defineNuxtPlugin({
   name: 'pluto-shop-cart',
   setup() {
@@ -19,8 +17,6 @@ export default defineNuxtPlugin({
       useRuntimeConfig().app.baseURL
     )
 
-    // localStorage throws in some private windows and with blocked site data. The cart then
-    // lives for the page only.
     function read(): string | null {
       try {
         return localStorage.getItem(key)

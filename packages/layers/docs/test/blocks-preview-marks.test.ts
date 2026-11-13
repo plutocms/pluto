@@ -21,10 +21,6 @@ import {
 import { flatChildren } from '../shared/utils/blocks/tree'
 import { corpusBodies } from './helpers/corpus'
 
-// The preview marks the inner components of a block, so a click selects the
-// card, not the whole card group. The marks follow the site parser
-// (`parseMarkdown` of @nuxtjs/mdc), as the preview page does.
-
 async function parse(markdown: string): Promise<PlutoMarkNode[]> {
   const { body } = await parseMarkdown(markdown, { highlight: false })
   return (body.children as PlutoMarkNode[]).filter(
@@ -32,7 +28,6 @@ async function parse(markdown: string): Promise<PlutoMarkNode[]> {
   )
 }
 
-/** The marked ids under a node, in document order. */
 function markedIds(node: PlutoMarkNode, ids: string[] = []): string[] {
   for (const child of node.children ?? []) {
     const id = child.props?.[PREVIEW_BLOCK_ATTRIBUTE]

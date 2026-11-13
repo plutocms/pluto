@@ -54,7 +54,6 @@ function infoFrom(
   }
 }
 
-// The chip of a component that the insert menu just added opens its props form at once.
 let openNext = false
 
 /** The next component chip that mounts opens its props form. The insert command calls it. */

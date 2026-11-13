@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// Core's quick actions widget. It reuses the command palette's commands, so
-// the two never disagree: every "New <label>" command the user can run, and
-// a few admin destinations.
 const groups = usePlutoCommandPalette()
 const { t } = usePlutoI18n()
 
@@ -11,7 +8,6 @@ const create = computed(
 
 const goTo = computed(() =>
   (groups.value.find((group) => group.id === 'pluto-go-to')?.items ?? [])
-    // Home is the page this widget is on.
     .filter((item) => item.label !== t('pluto.nav.home'))
     .slice(0, 4)
 )

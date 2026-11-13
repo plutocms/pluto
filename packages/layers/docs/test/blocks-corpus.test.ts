@@ -5,10 +5,6 @@ import { serializeBlocks } from '../shared/utils/blocks/serialize'
 import { walkBlocks } from '../shared/utils/blocks/tree'
 import { corpusBodies, corpusFiles } from './helpers/corpus'
 
-// The 48 pages of the docs site, copied as they are. The editor must write
-// each page back with the same bytes when nothing changed. This test guards
-// the splice model: if it fails, a page would show a diff after a save with no edit.
-
 describe('block model corpus', () => {
   it('has the 48 pages of the docs site', () => {
     expect(corpusFiles()).toHaveLength(48)

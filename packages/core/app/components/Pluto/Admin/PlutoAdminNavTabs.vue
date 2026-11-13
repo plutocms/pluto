@@ -1,14 +1,9 @@
 <script setup lang="ts">
-// The tabs of the section of the page: the children of the menu item whose submenu holds the page
-// (usePlutoAdminNavTabs), in a bar under the toolbar of the page (`#toolbar` of
-// PlutoViewAdminPanel, after the PlutoViewToolbar). The "new" child of the section is a button at
-// the end of the tabs, not a tab. Nothing shows when the page is in no submenu.
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const { tabs, action, label } = usePlutoAdminNavTabs()
 
-// The active tab is set by hand (`active`), not by the router: a parent path
-// such as `/admin/settings` must not be active on the pages below it.
+// Set `active` by hand: a parent path such as `/admin/settings` must not be active on the pages below it.
 const items = computed<NavigationMenuItem[]>(() =>
   tabs.value.map((tab) => ({
     label: tab.label,

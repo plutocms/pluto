@@ -12,12 +12,9 @@ export interface PlutoGithubFile {
   text: string
 }
 
-/** One commit of a file history. */
 export interface PlutoGithubCommitInfo {
   oid: string
-  /** The first line of the message. */
   message: string
-  /** An ISO timestamp. */
   committedAt: string
   author: {
     name: string
@@ -26,7 +23,6 @@ export interface PlutoGithubCommitInfo {
   }
 }
 
-/** A GitHub token (user or server). The fs and memory stores ignore it. */
 export interface PlutoGithubAuth {
   token: string
 }
@@ -36,7 +32,6 @@ export interface PlutoGithubCommitInput {
   message: string
   additions: {
     path: string
-    /** UTF-8 text, or base64 for a binary file (`encoding: 'base64'`). */
     contents: string
     encoding?: 'utf8' | 'base64'
   }[]
@@ -50,16 +45,11 @@ export interface PlutoGithubStore {
     revalidate?: boolean
     auth?: PlutoGithubAuth
   }) => Promise<string>
-  /** The `.md` files directly in `dir`, sorted by name. A missing dir gives `[]`. */
   listDir: (
     dir: string,
     headOid: string,
     auth?: PlutoGithubAuth
   ) => Promise<PlutoGithubFile[]>
-  /**
-   * Every `.md` file under `dir`, at any depth (the adapter sets the depth limit), sorted by
-   * path. A missing dir gives `[]`. Dot dirs and dot files are not listed.
-   */
   listTree: (
     dir: string,
     headOid: string,
@@ -70,12 +60,7 @@ export interface PlutoGithubStore {
     headOid: string,
     auth?: PlutoGithubAuth
   ) => Promise<PlutoGithubFile | null>
-  /** The bytes of any file (a media file), at the branch head. `null` when it does not exist. */
   readRaw: (path: string, auth?: PlutoGithubAuth) => Promise<Uint8Array | null>
-  /**
-   * The commits that changed one file, newest first. Optional: a store without it has no history
-   * (the build snapshot). `cursor` is the `nextCursor` of the page before. Renames are not followed.
-   */
   history?: (
     path: string,
     query: {
@@ -87,13 +72,11 @@ export interface PlutoGithubStore {
     commits: PlutoGithubCommitInfo[]
     nextCursor?: string
   }>
-  /** One file as it was at a commit. `null` when the file was not there. Optional, with `history`. */
   readAt?: (
     path: string,
     commitOid: string,
     auth?: PlutoGithubAuth
   ) => Promise<PlutoGithubFile | null>
-  /** Throws a `PlutoGithubConflictError` when `expectedHeadOid` is stale. */
   commit: (
     input: PlutoGithubCommitInput,
     auth: PlutoGithubAuth

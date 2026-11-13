@@ -33,16 +33,8 @@ import {
 import { createGithubCache } from './github-cache'
 import { getGithubSession } from './session'
 
-/** The token provider of the GitHub store. None with the `fs` store. */
 let registeredTokens: AppTokenProvider | undefined
 
-/**
- * Picks the store: the local files in dev with `fs`, otherwise GitHub. The
- * GitHub store reads for anonymous callers with the read token, or with an
- * installation token of the App. See `createAppTokenProvider`. The build bundles the content
- * (`loadSnapshot`). With neither (a first deploy, before the App), anonymous reads go to it. With
- * one, they go to GitHub, and to the bundled content when GitHub fails (hybrid).
- */
 export function createContentStore(
   config: GithubConfig,
   cache: GithubCache,
@@ -50,7 +42,6 @@ export function createContentStore(
 ): PlutoGithubStore {
   if (config.storage === 'fs') {
     registeredTokens = undefined
-    // Only the content dir makes the head id. The root is the project dir.
     return createFsStore({
       root: resolve(config.fsRoot || process.cwd()),
       headDir: config.dir,
@@ -81,7 +72,6 @@ export function createContentStore(
     return github
   }
   if (canRead) {
-    // At most one warning in 5 minutes, so an outage does not flood the log.
     let warnedAt = -Infinity
     return withSnapshotFallback(
       github,
@@ -108,21 +98,10 @@ export function createContentStore(
   })
 }
 
-/**
- * Makes the rest of this request anonymous. `getGithubAccess` then returns
- * `null` and never reads the session cookie. The public read routes call
- * this first, so a response never depends on who asks, and never sets a cookie.
- * It is the same as `markPublicRead` of core, which a layer can call too.
- */
 export function markGithubAnonymous(event: H3Event): void {
   markPublicRead(event)
 }
 
-/**
- * The caller of a request. A signed-in user gives its own GitHub token and
- * capabilities. Everyone else is anonymous (`null`), and so is a request that
- * `markGithubAnonymous` marked.
- */
 export async function getGithubAccess(
   event: H3Event
 ): Promise<PlutoGithubAccess | null> {
@@ -139,11 +118,6 @@ export async function getGithubAccess(
   return { capabilities: session.capabilities, auth: { token: session.token } }
 }
 
-/**
- * The access of a system request (a scheduled task): every capability. With the GitHub store, an
- * installation token that can write; without the App id and key, `null` (the adapter answers 401
- * and the task skips). The `fs` store needs no token.
- */
 async function systemAccess(): Promise<PlutoGithubAccess | null> {
   if (!registeredTokens) {
     return { capabilities: ['*'], auth: { token: '' } }
@@ -161,18 +135,15 @@ async function systemAccess(): Promise<PlutoGithubAccess | null> {
 let registeredCache: GithubCache | undefined
 let registeredStore: PlutoGithubStore | undefined
 
-/** The store that `registerGithubContent` made. The `/media/**` route reads from it. */
 export function getRegisteredGithubStore(): PlutoGithubStore | undefined {
   return registeredStore
 }
 
-/** The cache that `registerGithubContent` got. A memory cache when none is set. */
 export function getRegisteredGithubCache(): GithubCache {
   registeredCache ??= createGithubCache({ headTtl: 0 })
   return registeredCache
 }
 
-/** Registers the post type, the Markdown adapter and the media driver with core. */
 export function registerGithubContent(
   config: GithubConfig,
   cache: GithubCache,
@@ -181,11 +152,9 @@ export function registerGithubContent(
   registeredCache = cache
   if (config.postType) {
     registerContentType(plutoGithubPostType)
-    // The terms of the post: the post fields `categories` and `tags` point to them.
     for (const type of plutoGithubTermTypes) {
       registerContentType(type)
     }
-    // The authors of the post: the post field `authors` points to them.
     registerContentType(plutoGithubAuthorType)
   }
   const store = createContentStore(config, cache, loadSnapshot)

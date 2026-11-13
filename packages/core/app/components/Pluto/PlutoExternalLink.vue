@@ -1,9 +1,9 @@
 <script setup lang="ts">
-// A link to another site inside a sentence or a cell: it opens in a new tab and ends with the
-// external icon of Nuxt UI (`i-lucide-arrow-up-right`, the icon its menus add to an item that
-// opens in a new tab). A button to another site has it as its `trailing-icon`.
-// Screen readers hear that the link opens a new tab.
 defineProps<{
+  /**
+   * The URL of the other site.
+   * @see https://pluto.vulmix.dev/docs/extend/forms
+   */
   to: string
 }>()
 

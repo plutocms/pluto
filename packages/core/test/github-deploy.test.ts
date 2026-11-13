@@ -471,7 +471,6 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     ).toBe('ci: deploy the site to GitHub Pages')
     expect(api.calls.every((call) => call.method === 'GET')).toBe(true)
 
-    // A second run changes nothing.
     const again = await (
       await app().request('/api/_pluto/github/deploy/pages', POST_LOCAL)
     ).json()
@@ -511,7 +510,6 @@ describe('the deploy routes', { timeout: 30000 }, () => {
     expect(git('status', '--porcelain')).toBe('')
     expect(api.calls.every((call) => call.method === 'GET')).toBe(true)
 
-    // A second run has nothing to remove.
     const again = await (
       await app().request('/api/_pluto/github/deploy/pages', DELETE_LOCAL)
     ).json()

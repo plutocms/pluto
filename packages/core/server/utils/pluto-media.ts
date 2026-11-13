@@ -29,12 +29,6 @@ import {
 import { getMediaLimits } from './pluto-media-config'
 import { requireMediaDriver } from './pluto-media-driver'
 
-// The media library of core: the upload checks and the route handlers. A
-// backend registers one driver (pluto-media-driver.ts). Core owns the routes,
-// the checks and the record: the driver only stores the bytes and the
-// record. See the media skill.
-
-/** Five random characters, `[a-z0-9]`. They make a stored file name unique. */
 export function mediaSuffix(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(5))
   return [...bytes].map((byte) => (byte % 36).toString(36)).join('')
@@ -44,15 +38,9 @@ export interface MediaFileInput {
   name: string
   data: Uint8Array
   alt?: string
-  /** The bytes of a preview image, made in the browser. */
   preview?: Uint8Array
 }
 
-/**
- * Checks an uploaded file and makes its complete record: the real type (from
- * the bytes), the size limit, the metadata removed, the pixel size, the
- * stored file name. Throws 400, 413 or 415.
- */
 export function prepareMediaUpload(
   file: MediaFileInput,
   limits: PlutoMediaLimits,
@@ -75,7 +63,6 @@ export function prepareMediaUpload(
       key: 'pluto.media.errors.tooLarge',
       params: { name, limit: formatMediaSize(limit) },
     })
-  // A file over every limit stops before the type check reads it.
   if (file.data.length > mediaLargestLimit(limits)) {
     throw tooLarge(mediaLargestLimit(limits))
   }
@@ -108,11 +95,6 @@ export function prepareMediaUpload(
   }
 }
 
-/**
- * Checks the preview image of a file (made in the browser by the kind of the
- * file): a JPEG, PNG or WebP image, at most 2 MB, with its pixel size. The
- * metadata goes, like for any image. Throws 413 or 415.
- */
 export function prepareMediaPreview(
   data: Uint8Array,
   fileName: string
@@ -161,7 +143,6 @@ function whole(value: unknown, fallback: number): number {
   return Number.isInteger(number) && number >= 0 ? number : fallback
 }
 
-/** The list query of `GET /api/_pluto/media`. */
 export function parseMediaQuery(raw: Record<string, unknown>): PlutoMediaQuery {
   return {
     limit: Math.min(PLUTO_MEDIA_MAX_LIMIT, Math.max(1, whole(raw.limit, 40))),
@@ -173,7 +154,6 @@ export function parseMediaQuery(raw: Record<string, unknown>): PlutoMediaQuery {
   }
 }
 
-/** `GET /api/_pluto/media`: a page of the library, or the records of `ids`. */
 export async function listMedia(event: H3Event): Promise<{
   data: PlutoMedia[]
   total: number
@@ -194,7 +174,6 @@ export async function listMedia(event: H3Event): Promise<{
   return driver.list(event, parseMediaQuery(raw))
 }
 
-/** `POST /api/_pluto/media`: multipart, with a `file` part, and optional `alt` and `preview` parts. */
 export async function uploadMedia(
   event: H3Event
 ): Promise<{ data: PlutoMedia }> {
@@ -225,7 +204,6 @@ export async function uploadMedia(
   return { data: await driver.upload(event, upload) }
 }
 
-/** `PATCH /api/_pluto/media/:id`: `{ alt?, name? }`. */
 export async function updateMedia(
   event: H3Event,
   id: string
@@ -253,7 +231,6 @@ export async function updateMedia(
   return { data: await driver.update(event, id, patch) }
 }
 
-/** `PUT /api/_pluto/media/:id/preview`: multipart, with a `preview` part. Sets or replaces the preview image. */
 export async function setMediaPreview(
   event: H3Event,
   id: string
@@ -277,7 +254,6 @@ export async function setMediaPreview(
       key: 'pluto.media.errors.notFound',
     })
   }
-  // The preview is named after the stored file: `mug-k3j9a.glb` gives `mug-k3j9a.preview.webp`.
   const stored = decodeURIComponent(
     new URL(record.url, 'http://x').pathname.split('/').pop() ?? record.id
   )
@@ -290,7 +266,6 @@ export async function setMediaPreview(
   }
 }
 
-/** `DELETE /api/_pluto/media/:id`. */
 export async function removeMedia(
   event: H3Event,
   id: string
@@ -301,11 +276,6 @@ export async function removeMedia(
   return { id }
 }
 
-/**
- * `POST /api/_pluto/media/sizes`: fills in `width` and `height` of the images
- * that have none (files from before core media). It reads each image through
- * its URL. One call does at most `limit` images; call again while `remaining` > 0.
- */
 export async function fillMediaSizes(
   event: H3Event,
   limit = 20

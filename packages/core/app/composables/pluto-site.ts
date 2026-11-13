@@ -12,6 +12,8 @@ import { usePlutoSiteInfo } from './pluto-navbar'
  *
  * @example
  * const { name, description } = usePlutoSite()
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function usePlutoSite() {
   const info = usePlutoSiteInfo()
@@ -26,7 +28,6 @@ export function usePlutoSite() {
   const websiteUrl = config.websiteUrl?.trim() ?? ''
   const root = siteRootUrl({
     websiteUrl,
-    // A static build has no request at run time: its origin would be the build host.
     origin: websiteUrl || config.plutoPublicApi?.static ? '' : origin,
     baseURL: runtime.app?.baseURL,
   })
@@ -53,6 +54,8 @@ export function usePlutoSite() {
  * @example
  * // layouts/default.vue
  * usePlutoSiteHead()
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function usePlutoSiteHead() {
   const site = usePlutoSite()

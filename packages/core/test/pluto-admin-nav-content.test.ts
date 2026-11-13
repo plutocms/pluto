@@ -5,12 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, reactive, ref } from 'vue'
 import { createI18nStub } from './fixtures/i18n-stub'
 
-// Same Nuxt-global stubbing as test/permissions.test.ts and
-// test/content-registry.test.ts — see those files for why:
-// pluto-admin-nav.ts leans on Nuxt's auto-imported globals (`useNuxtApp`,
-// `computed`, `ref`, `useState`) plus two composables this repo's Nuxt
-// layer setup normally auto-imports for it (its own sibling composables),
-// none of which exist outside a Nuxt build.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
 let fakeNuxtApp: {
   _plutoRegistry?: PlutoRegistry
 }

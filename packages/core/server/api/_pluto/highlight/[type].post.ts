@@ -1,9 +1,3 @@
-/**
- * Colors the code blocks of the HTML of the post preview with the code highlighters of the site, so
- * the preview shows the code as the site does (pluto-highlight.ts). Needs the write capability of
- * the type, like a save. `highlighted: false`: the site has no highlighter, and the preview stops
- * asking.
- */
 const MAX_HTML_LENGTH = 1_000_000
 
 export default defineEventHandler(async (event) => {

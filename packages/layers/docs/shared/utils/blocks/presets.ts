@@ -1,9 +1,3 @@
-// The blocks that work with no site config: the Nuxt UI prose components and
-// the Nuxt UI page components that a Markdown page can use. Pure data. Each
-// label and description is an i18n key of the layer, in the group
-// docs.blocks.<name>. A prop or a slot name shared by many blocks has
-// one key in the groups props and slots of the same namespace.
-
 import type {
   PlutoBlockDefinition,
   PlutoBlockPropDefinition,
@@ -15,7 +9,6 @@ import type {
 import { BLOCK_COLORS } from '#layers/pluto/shared/utils/blocks/definition'
 import { MDC_SNIPPETS } from '../mdc-snippets'
 
-/** The group ids of the palette, in order. A site can use any other text as a group. */
 export const BLOCK_GROUPS = [
   'text',
   'callouts',
@@ -26,7 +19,6 @@ export const BLOCK_GROUPS = [
   'site',
 ] as const
 
-/** The labels of the three built-in kinds of block. */
 export const BLOCK_KIND_LABELS = {
   text: 'docs.blocks.kinds.text',
   code: 'docs.blocks.kinds.code',
@@ -222,7 +214,6 @@ const DEFINITIONS: PlutoBlockDefinition[] = [
     slots: { default: slot('default', 'blocks') },
     insert: '::code-collapse\n```ts [file.ts]\nconst value = 1\n```\n::',
   }),
-  // Inline components. A Markdown page uses them inside a text, so the palette does not list them.
   block('badge', 'text', 'i-lucide-badge', {
     hidden: true,
     props: {
@@ -238,8 +229,6 @@ const DEFINITIONS: PlutoBlockDefinition[] = [
     hidden: true,
     props: { name: prop('icon', 'name') },
   }),
-  // An image of the media library (`PlutoFigure` of this layer). The choice of a file also sets
-  // its size and, while it is empty, the alt text. The Markdown keeps the URL.
   block('pluto-figure', 'media', 'i-lucide-image', {
     props: {
       src: prop('media', 'src', {
@@ -379,7 +368,6 @@ const DEFINITIONS: PlutoBlockDefinition[] = [
   }),
 ]
 
-/** The presets by component name. */
 export const BLOCK_PRESETS: Readonly<Record<string, PlutoBlockDefinition>> =
   Object.freeze(
     Object.fromEntries(
@@ -387,5 +375,4 @@ export const BLOCK_PRESETS: Readonly<Record<string, PlutoBlockDefinition>> =
     )
   )
 
-/** The props that no preset lists, and that the panel keeps out of the main section. */
 export const HIDDEN_PROP_NAMES = ['ui', 'as'] as const

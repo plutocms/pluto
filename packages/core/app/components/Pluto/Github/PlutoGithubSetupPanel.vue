@@ -1,10 +1,4 @@
 <script setup lang="ts">
-// The setup check of the GitHub sign-in: the Create button, the Install link
-// and the docs link first, then the checklist, folded. The checklist opens by
-// itself only when the panel has no button to show. The login card (`variant="login"`) and the
-// GitHub settings page (`variant="settings"`) both use it. The file lives
-// under `app/` so Tailwind scans it. The panel holds no secret: the status
-// route answers booleans and public names only. See the git-cms skill.
 import type { PlutoGithubSetupStatus } from '../../../../modules/pluto-github/runtime/app/composables/pluto-github-setup'
 import {
   CMS_SETUP_START_URL,
@@ -14,7 +8,6 @@ import {
 const props = withDefaults(
   defineProps<{
     variant?: 'login' | 'settings'
-    /** Use a status that the parent already has, instead of a new read. */
     status?: PlutoGithubSetupStatus | null
   }>(),
   {
@@ -59,7 +52,6 @@ const hasAction = computed(() =>
     (installCheck.value && !installCheck.value.ok && installUrl.value)
   )
 )
-// The settings page reads the status after the mount, so follow it.
 const checklistOpen = ref(false)
 watch(
   hasAction,
@@ -81,9 +73,7 @@ async function copyCallback() {
     setTimeout(() => {
       copied.value = false
     }, 2000)
-  } catch {
-    // The field is selectable, so the user can copy by hand.
-  }
+  } catch {}
 }
 </script>
 
