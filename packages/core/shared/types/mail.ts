@@ -1,10 +1,3 @@
-/**
- * The mail contract. Pluto sends its own emails (invites, tests, and later
- * notifications) through one driver. The built-in drivers are `resend`, `dev`
- * and `none`. A layer can register another one with `registerMailDriver`.
- * See the mail skill.
- */
-
 /** One email. The same message works with every driver. */
 export interface PlutoMailMessage {
   /** One address or a list. */
@@ -67,8 +60,10 @@ export interface PlutoMailSendContext {
 }
 
 /**
- * A mail backend. `send` throws a `PlutoMailError` on failure and never logs
- * a recipient, a subject, a link or a key.
+ * A mail backend. The built-in drivers are `resend`, `dev` and `none`. Register another one with
+ * `registerMailDriver`. `send` throws a `PlutoMailError` on failure and never logs a recipient, a
+ * subject, a link or a key.
+ * @see https://pluto.vulmix.dev/docs/extend/add-a-mail-driver
  */
 export interface PlutoMailDriver {
   /** The value of `NUXT_PLUTO_MAIL_DRIVER` that selects this driver. */
@@ -81,11 +76,7 @@ export interface PlutoMailDriver {
   ) => Promise<PlutoMailSendResult>
 }
 
-/**
- * Where secrets come from besides the environment. A backend layer can
- * register one (a later version keeps the key in a vault). The environment
- * always wins over a store.
- */
+/** Where secrets come from besides the environment. The environment always wins over a store. */
 export interface PlutoMailStore {
   id: string
   get: (name: 'resendApiKey') => Promise<string | null>

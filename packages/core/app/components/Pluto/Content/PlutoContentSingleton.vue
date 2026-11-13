@@ -2,7 +2,6 @@
 import type { PlutoContentListResult } from '../../../../shared/types/content'
 
 const props = defineProps<{
-  /** The `name` of a singleton type. */
   type: string
 }>()
 

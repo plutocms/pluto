@@ -1,6 +1,3 @@
-// The text of the sitemap, the feed and robots.txt. Pure code with no Nuxt import, so plain
-// Vitest tests it. The handlers in `server/handlers/` fetch the data and call these functions.
-
 /** The most URLs of one sitemap file (the limit of the sitemap protocol). */
 export const PLUTO_SEO_SITEMAP_MAX = 50_000
 
@@ -23,7 +20,6 @@ const MONTHS = [
   'Dec',
 ]
 
-// The characters that XML 1.0 does not allow (control characters, except tab, LF and CR).
 // eslint-disable-next-line no-control-regex
 const INVALID_XML = /[\u0000-\u0008\v\f\u000E-\u001F\uFFFE\uFFFF]/g
 

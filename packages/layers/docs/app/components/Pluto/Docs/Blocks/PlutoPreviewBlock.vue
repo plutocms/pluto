@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// One block in the preview page, inside its own error boundary. A component
-// that throws (it needs data that the preview has no, for example) shows a
-// small card in place of the block, and the other blocks keep working.
-// `preview: false` in the block definition shows the same card, with a note.
 import type { MDCRoot } from '@nuxtjs/mdc'
 
 const props = defineProps<{
@@ -24,12 +20,10 @@ const { t } = usePlutoI18n()
 const failed = ref<string | null>(null)
 const value = computed(() => (props.body ? { body: props.body } : undefined))
 
-// The render options of the site page (`usePlutoPreviewRender` in the site's PlutoContentPreview).
 const renderOptions = inject(plutoPreviewRenderKey, {})
 const prose = computed(() => toValue(renderOptions).prose ?? true)
 const components = computed(() => toValue(renderOptions).components ?? {})
 
-// A new body gets a new chance to render.
 watch(
   () => props.body,
   () => {
@@ -40,7 +34,6 @@ watch(
 onErrorCaptured((error) => {
   failed.value = error instanceof Error ? error.message : String(error)
   emit('error', props.id, failed.value)
-  // Stop the error here, so the other blocks stay on screen.
   return false
 })
 

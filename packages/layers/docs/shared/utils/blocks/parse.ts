@@ -1,8 +1,3 @@
-// Cut a Markdown (MDC) text into blocks. Each block keeps the exact text it
-// came from, and the doc keeps the text between the blocks, so a save with no
-// edit writes the same bytes. The parser is `remark-mdc` on `remark-parse`:
-// pin the versions to the ones of `@nuxtjs/mdc`.
-
 import type {
   PlutoBlock,
   PlutoBlockDoc,
@@ -17,7 +12,11 @@ import remarkGfm from 'remark-gfm'
 import remarkMdc from 'remark-mdc'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
-import { parseInlineProps, parseOpener, parseYamlProps } from '#layers/pluto/shared/utils/blocks/mdc-props'
+import {
+  parseInlineProps,
+  parseOpener,
+  parseYamlProps,
+} from '#layers/pluto/shared/utils/blocks/mdc-props'
 import { flatChildren } from './tree'
 
 interface MdNode {
@@ -36,7 +35,6 @@ interface Context {
   nextId: () => string
 }
 
-/** A block with the range of the source that it covers. */
 interface Entry {
   block: PlutoBlock
   start: number
@@ -72,7 +70,6 @@ const PROSE_TYPES = new Set([
   'definition',
 ])
 
-/** The reason why the visual editor cannot keep a piece of prose, or `undefined` when it can. */
 function unsafeReason(
   node: MdNode,
   source: string
@@ -124,13 +121,11 @@ function lineStartOf(source: string, offset: number): number {
   return source.lastIndexOf('\n', offset - 1) + 1
 }
 
-/** The white space before a node, on its first line. */
 function indentOf(source: string, start: number): string {
   const before = source.slice(lineStartOf(source, start), start)
   return /^[ \t]*$/.test(before) ? before : ''
 }
 
-/** Removes the indent from each line but the first. */
 export function dedent(text: string, indent: string): string {
   if (!indent) {
     return text
@@ -143,7 +138,6 @@ export function dedent(text: string, indent: string): string {
     .join('\n')
 }
 
-/** Removes the indent from every line. */
 function dedentAll(text: string, indent: string): string {
   return text
     .split('\n')
@@ -175,7 +169,6 @@ function parseCode(ctx: Context, node: MdNode): Entry {
     closing[1]!.length >= fence.length
   const code = lines.slice(1, closed ? -1 : undefined).join('\n')
 
-  // The language is the first word. A file name or a flag can follow.
   const langEnd = info.search(/[\s[{]/)
   const lang = langEnd === -1 ? info : info.slice(0, langEnd)
   let rest = info.slice(lang.length).trim()
@@ -237,7 +230,6 @@ function parseText(ctx: Context, start: number, end: number): Entry {
 const YAML_BLOCK =
   /^(\r?\n[ \t]*)---[ \t]*\r?\n([\s\S]*?)\r?\n[ \t]*---[ \t]*(?=\r?\n|$)/
 
-/** The common white space at the start of the non-blank lines. */
 function commonIndent(text: string): string {
   let common: string | undefined
   for (const line of text.split('\n')) {
@@ -278,7 +270,6 @@ function parseComponent(ctx: Context, node: MdNode): Entry {
     return rawFallback()
   }
 
-  // The children by slot. `default` is the content before the first `#name`.
   const slots: Record<string, PlutoBlock[]> = {}
   const entries: Entry[] = []
   const take = (name: string, nodes: MdNode[]) => {
@@ -377,7 +368,6 @@ function parseComponent(ctx: Context, node: MdNode): Entry {
   return { block, start, end }
 }
 
-/** Turns sibling nodes into blocks. `top` cuts a Text block at each H1 and H2. */
 function parseNodes(ctx: Context, nodes: MdNode[], top: boolean): Entry[] {
   const entries: Entry[] = []
   let group: { start: number; end: number } | undefined
@@ -422,7 +412,6 @@ function parseNodes(ctx: Context, nodes: MdNode[], top: boolean): Entry[] {
   return entries
 }
 
-/** Cuts a Markdown (MDC) text into a block doc. `serializeBlocks` of the result gives the same text. */
 export function parseBlocks(source: string): PlutoBlockDoc {
   const tree = unified()
     .use(remarkParse)

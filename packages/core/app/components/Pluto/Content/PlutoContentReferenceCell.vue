@@ -1,9 +1,6 @@
 <script setup lang="ts">
-// The cell of a `reference` field with a `target` in the content list: the labels of the
-// referenced items as badges, up to three, then "+N". An id with no item shows its text.
 const props = defineProps<{
   field: PlutoReferenceField
-  /** The stored value of the field: one id or a list of ids. */
   value: unknown
 }>()
 
@@ -20,7 +17,6 @@ onMounted(() => {
   }
 })
 
-// The labels keep the order of the stored ids.
 const labels = computed(() =>
   referenceFieldIds(props.value).map((id) => ({
     key: id,

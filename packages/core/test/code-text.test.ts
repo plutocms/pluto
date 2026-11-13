@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  plutoCodeTextParts,
-  plutoPlainCodeText,
-} from '../shared/utils/code-text'
+import { plutoCodeTextParts } from '../shared/utils/code-text'
 
 describe('plutoCodeTextParts', () => {
   it('splits text and code', () => {
@@ -31,11 +28,5 @@ describe('plutoCodeTextParts', () => {
 
   it('gives nothing for an empty text', () => {
     expect(plutoCodeTextParts('')).toEqual([])
-  })
-})
-
-describe('plutoPlainCodeText', () => {
-  it('removes the backticks', () => {
-    expect(plutoPlainCodeText('Open `/admin` now')).toBe('Open /admin now')
   })
 })

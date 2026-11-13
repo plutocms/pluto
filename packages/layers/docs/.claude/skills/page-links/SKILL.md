@@ -58,4 +58,4 @@ Both need `docs:write`, the `write` capability of the type. The layer registers 
 its own. A site that wants "Edit Page" on a page must call `usePlutoContentEditLink` there, the
 landing page too.
 
-`contentEditPath` and `contentNewPath` are in `shared/utils/content-route.ts` and have tests.
+`contentEditPath` is in `shared/utils/content-route.ts` and has tests.

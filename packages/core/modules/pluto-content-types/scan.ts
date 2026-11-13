@@ -1,4 +1,3 @@
-/** A content type declared in a file: `export const <exportName> = defineContentType(...)`. */
 export interface DeclaredContentType {
   exportName: string
   file: string
@@ -7,7 +6,6 @@ export interface DeclaredContentType {
 const DECLARATION =
   /export\s+const\s+([A-Za-z_$][\w$]*)\s*(?::[^=]+)?=\s*defineContentType\s*(?:<[^>]*>\s*)?\(/g
 
-/** The names of the exports of a file that are declared with `defineContentType`. */
 export function contentTypeExports(text: string): string[] {
   const code = text
     .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -15,11 +13,6 @@ export function contentTypeExports(text: string): string[] {
   return [...code.matchAll(DECLARATION)].map((match) => match[1]!)
 }
 
-/**
- * The text of the type template. Each declared type joins the global `PlutoContentTypes` map
- * under its own `name` (a type-level key, so the file needs no name). `importPath` gives the
- * module path of a file, relative to the template.
- */
 export function contentTypesTemplate(
   declared: DeclaredContentType[],
   importPath: (file: string) => string

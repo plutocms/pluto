@@ -1,10 +1,4 @@
 <script setup lang="ts">
-// The backend badge of the admin navbar: "Git · GitHub", "Git · Local",
-// "Database · Supabase". It tells the editor where the content goes. A click
-// opens a popover with the details of the backend (its own component). A
-// count (for example the commits that are not pushed) shows as a small pill.
-// The backend comes from the `backend` field of `definePlutoExtension`. See
-// the admin-shell skill.
 const { t } = usePlutoI18n()
 const { backend } = usePlutoBackend()
 const open = ref(false)
@@ -14,7 +8,6 @@ const kindLabel = computed(() =>
     ? t('pluto.backend.kind.database')
     : t('pluto.backend.kind.git')
 )
-// The icon of the provider (GitHub, Git, Supabase, ...), else a generic one for the kind.
 const kindIcon = computed(
   () =>
     backend.value?.icon ||

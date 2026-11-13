@@ -23,9 +23,6 @@ export function usePlutoCommandPalette() {
   const i18n = usePlutoI18n()
   const { t, tx } = i18n
 
-  // Everything the palette shows resolves inside the `computed`, so a locale
-  // switch updates it. Nav labels arrive resolved from `usePlutoAdminNav`.
-  // `tx()` leaves a resolved label as it is.
   return computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => {
     const seen = new Set<string>()
 
@@ -42,8 +39,6 @@ export function usePlutoCommandPalette() {
     }
 
     const create = contentTypes.value.flatMap(({ type }) => {
-      // "No capability declared" means the operation is open to anyone who
-      // can reach the admin, the same rule as PlutoContentForm.
       if (type.capabilities?.write && !can(type.capabilities.write)) {
         return []
       }

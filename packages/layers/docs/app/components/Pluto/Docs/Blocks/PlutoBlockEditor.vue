@@ -1,13 +1,5 @@
 <script setup lang="ts">
-// The component layer. Only the two editor roots import it, so it stays out of the public pages.
 import componentBlocks from '#pluto-blocks'
-// The visual block editor: the canvas of the 'canvas' form layout. The canvas
-// shows the live preview of the page. The block list goes in the left panel,
-// and the controls of the selected block go in the right panel (a tab of the
-// form's aside). The widget keeps all the state, so the panels are slots of
-// this one component tree. The value is the Markdown text of the page body. A
-// block that no edit touched keeps its bytes, so opening and saving a page
-// with no edit changes nothing. See the block-editor skill.
 import PlutoBlockInspector from './PlutoBlockInspector.vue'
 import PlutoBlockOutline from './PlutoBlockOutline.vue'
 import PlutoBlockPalette from './PlutoBlockPalette.vue'
@@ -35,7 +27,6 @@ const editor = createPlutoBlockEditor({
 })
 provide(plutoBlockEditorKey, editor)
 
-// The front matter for the preview header: the item without the body and the internal `_` keys.
 const frontmatter = computed<Record<string, unknown>>(() => {
   const item = form?.item.value ?? {}
   return Object.fromEntries(
@@ -45,8 +36,6 @@ const frontmatter = computed<Record<string, unknown>>(() => {
   )
 })
 
-// A selection brings the Block tab forward (and opens the panel on a narrow screen). On a narrow
-// screen the block list is a slideover. A choice in it closes the slideover, so the controls show.
 const wide = useMediaQuery('(min-width: 1024px)')
 watch(
   () => editor.selection.value,

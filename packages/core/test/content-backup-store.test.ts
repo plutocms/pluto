@@ -81,7 +81,6 @@ function key(type: string, id: string | null = null, userId = 'u1') {
   return backupKey({ base: '/', userId, type, id })
 }
 
-/** A record of about `size` characters of JSON. */
 function sized(size: number, savedAt = NOW) {
   return record({
     savedAt,

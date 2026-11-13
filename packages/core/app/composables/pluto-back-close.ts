@@ -1,6 +1,5 @@
 import type { MaybeRefOrGetter, Ref } from 'vue'
 
-/** The key of the history entry that an open overlay adds. */
 const STATE_KEY = 'plutoBackClose'
 
 let counter = 0
@@ -17,6 +16,8 @@ let counter = 0
  *
  * `enabled` is true by default. Pass the narrow-screen rule, so a desktop panel adds no entry.
  * Call it in `setup`: it stops when the component unmounts.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/forms
  */
 export function usePlutoBackClose(
   open: Ref<boolean>,
@@ -27,7 +28,6 @@ export function usePlutoBackClose(
   }
 
   const id = `pluto-${++counter}`
-  // True while the entry of this overlay is in the history.
   let pushed = false
 
   function isOurs(state: unknown): boolean {
@@ -39,7 +39,6 @@ export function usePlutoBackClose(
   }
 
   function onPopState(event: PopStateEvent) {
-    // Back left the entry of this overlay: close it.
     if (pushed && !isOurs(event.state)) {
       pushed = false
       open.value = false
@@ -65,9 +64,6 @@ export function usePlutoBackClose(
     { flush: 'sync' }
   )
 
-  // A navigation to another page while the overlay is open: the entry stays in the history as it
-  // is. Back to this entry is not one: it has the same path (the router runs its own popstate
-  // listener first, so this hook must not reset it).
   const stopRouterHook = useRouter().beforeEach((to, from) => {
     if (to.fullPath !== from.fullPath) {
       pushed = false

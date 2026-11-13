@@ -29,7 +29,6 @@ import { getGithubConfig } from './github-config'
 import { localReadToken } from './github-users'
 import { isLocalRequest, requireGithubSession } from './session'
 
-/** A repo name that is safe to put in an API path. */
 const REPO_NAME = /^[\w.-]+\/[\w.-]+$/
 
 interface RawDeployment {
@@ -77,11 +76,6 @@ async function readDeploy(
   }
 }
 
-/**
- * The last deploy to GitHub Pages, from the deployments of the `github-pages` environment. It
- * reads with the token first (a private repo needs one), then with no token (a public repo needs
- * none, and the App may not read deployments). It never throws.
- */
 export async function readPagesDeploy(
   config: GithubConfig,
   token?: string
@@ -92,14 +86,11 @@ export async function readPagesDeploy(
   for (const auth of token ? [token, undefined] : [undefined]) {
     try {
       return await readDeploy(config, auth)
-    } catch {
-      // Try the next way, then give up.
-    }
+    } catch {}
   }
   return { state: 'unknown' }
 }
 
-/** The local mode of this request: a dev build, the `fs` store, and this computer. */
 function isLocalMode(event: H3Event): boolean {
   const config = getGithubConfig()
   return (
@@ -118,7 +109,6 @@ async function rootFiles(root: string): Promise<string[]> {
   }
 }
 
-/** The token to read the repo with: the user's, or in local mode the App or the read token. */
 async function readToken(
   config: GithubConfig,
   local: boolean,
@@ -173,12 +163,6 @@ async function buildStatus(
   return status
 }
 
-/**
- * Route: GET /api/_pluto/github/deploy/status. The facts that the Deploy page needs: the repo,
- * the branch, the GitHub Pages workflow to copy, and the last deploy to GitHub Pages. In local
- * mode on this computer it also says whether the workflow is in the project. It needs a signed-in
- * user. It runs no CLI.
- */
 export async function handleDeployStatus(
   event: H3Event
 ): Promise<PlutoDeployStatus> {
@@ -189,11 +173,6 @@ export async function handleDeployStatus(
   return buildStatus(event, local, token)
 }
 
-/**
- * Route: POST /api/_pluto/github/deploy/pages. Local mode on this computer only (404 otherwise).
- * It writes the workflow when it is missing or old, and commits it to the local repo. It changes
- * nothing on GitHub: the author turns Pages on in the settings of the repo, then pushes.
- */
 export async function handleSetupPages(
   event: H3Event
 ): Promise<PlutoPagesSetupResult> {
@@ -222,7 +201,6 @@ export async function handleSetupPages(
       )
       committed = result.committed
     } catch (error) {
-      // The file is written. A hook or a missing author stops the commit only.
       console.warn('[pluto-github] Could not commit the Pages workflow.', error)
     }
   }
@@ -231,11 +209,6 @@ export async function handleSetupPages(
   return { status: await buildStatus(event, true, token), committed }
 }
 
-/**
- * Route: DELETE /api/_pluto/github/deploy/pages. Local mode on this computer only (404 otherwise).
- * It deletes the workflow and commits the removal to the local repo. It changes nothing on GitHub:
- * the push stops new builds, and the author unpublishes the site in the Pages settings of the repo.
- */
 export async function handleRemovePages(
   event: H3Event
 ): Promise<PlutoPagesSetupResult> {
@@ -257,7 +230,6 @@ export async function handleRemovePages(
       )
       committed = result.committed
     } catch (error) {
-      // The file is gone. A hook or a missing author stops the commit only.
       console.warn(
         '[pluto-github] Could not commit the removal of the Pages workflow.',
         error
@@ -275,16 +247,10 @@ async function settle(lookup: Promise<string[]>): Promise<string[]> {
   try {
     return await lookup
   } catch {
-    // No record of this kind, or no answer.
     return []
   }
 }
 
-/**
- * Checks the DNS of a custom domain for GitHub Pages: `ok` when every address of the domain is a
- * GitHub Pages address. A CNAME to `<owner>.github.io` gives these addresses too, so one rule
- * covers a subdomain and an apex domain.
- */
 export async function checkPagesDomain(
   domain: string
 ): Promise<PlutoDomainCheck> {
@@ -310,10 +276,6 @@ export async function checkPagesDomain(
   }
 }
 
-/**
- * Route: GET /api/_pluto/github/deploy/dns?domain=<domain>. A signed-in user only. It checks
- * whether the DNS records of a custom domain point to GitHub Pages, from the server, with no CLI.
- */
 export async function handleDomainCheck(
   event: H3Event
 ): Promise<PlutoDomainCheck> {

@@ -23,14 +23,11 @@ export interface ContentValidationError {
 }
 
 /**
- * Checks a field-keyed payload against a content type's field rules. Pure
- * TypeScript, no I/O and no Nuxt/Vue dependency, so a server route (a later
- * wave) and an app composable can both call it and get the same answer.
+ * Checks a field-keyed payload against the field rules of a content type. It returns the errors.
  *
- * Pass `{ partial: true }` for a partial update (for example a PATCH):
- * a required field missing from `payload` entirely is not an error, because
- * omitting a field is not the same as clearing it. A required field present
- * in `payload` with an empty value is still an error, partial or not.
+ * Pass `{ partial: true }` for a partial update: a required field that is missing from `payload`
+ * is not an error. A required field with an empty value is an error either way.
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#validate-a-payload
  */
 export function validateContentPayload(
   type: PlutoContentType,
@@ -64,7 +61,6 @@ export function validateContentPayload(
       }
     }
 
-    // Nothing more to check when the field was not supplied at all.
     if (!present || value === undefined || value === null) {
       continue
     }
@@ -135,8 +131,6 @@ export function validateContentPayload(
       case 'textarea':
       case 'richtext':
       case 'slug': {
-        // Only PlutoTextField carries maxLength; PlutoSlugField never does,
-        // so the 'in' check both narrows the type and skips slug fields.
         const maxLength = 'maxLength' in field ? field.maxLength : undefined
         if (
           maxLength !== undefined &&
@@ -172,7 +166,6 @@ export function validateContentPayload(
         break
       }
 
-      // 'date' | 'media': no format check, only the required check above.
       default:
         break
     }

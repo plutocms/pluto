@@ -1,15 +1,8 @@
 <script setup lang="ts">
 import type { PlutoField } from '../../../../shared/types/content'
 
-// Placeholder for one content field while the item or the widget code loads.
-// It has the shape of the real field: the label, the description line when the
-// field has one, and a control of the same size as the widget of its type
-// (an input, a text area, a rich text editor with its toolbar, a switch, media
-// tiles). So the form does not jump when the real fields replace it.
 const props = defineProps<{
-  /** The field. Gives the type, the description line and, for media, `multiple`. */
   field?: PlutoField
-  /** The field type, when there is no field. */
   fieldType?: string
 }>()
 
@@ -27,13 +20,10 @@ const multipleMedia = computed(
       <USkeleton v-if="hasDescription" class="h-3.5 w-3/5" />
     </div>
 
-    <!-- A switch. -->
     <USkeleton v-if="type === 'boolean'" class="h-6 w-11 rounded-full" />
 
-    <!-- A text area. -->
     <USkeleton v-else-if="type === 'textarea'" class="h-28 w-full" />
 
-    <!-- A rich text editor: the toolbar, then the body. -->
     <div
       v-else-if="type === 'richtext'"
       class="ring-default flex flex-col overflow-hidden rounded-md ring"
@@ -50,7 +40,6 @@ const multipleMedia = computed(
       </div>
     </div>
 
-    <!-- Media: a gallery of tiles, or one image. -->
     <div
       v-else-if="type === 'media' && multipleMedia"
       class="flex flex-col gap-4 lg:flex-row lg:items-start"
@@ -65,13 +54,11 @@ const multipleMedia = computed(
       class="aspect-video w-full max-w-sm"
     />
 
-    <!-- A slug: the input and the link preview under it. -->
     <template v-else-if="type === 'slug'">
       <USkeleton class="h-10 w-full" />
       <USkeleton class="h-3 w-40" />
     </template>
 
-    <!-- Text, number, date, select, reference: one input. -->
     <USkeleton v-else class="h-10 w-full" />
   </div>
 </template>

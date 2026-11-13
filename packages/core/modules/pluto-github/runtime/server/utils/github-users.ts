@@ -13,21 +13,17 @@ import { toHttpError } from './build-status'
 import { getGithubConfig } from './github-config'
 import { requireGithubSession } from './session'
 
-/** GitHub gives at most 100 collaborators per page. The route reads at most this many pages. */
 const MAX_PAGES = 10
-/** How long one list stays in memory. Several tabs and reloads share it. */
 const CACHE_TTL = 30_000
 
 const cache = new Map<string, { at: number; value: PlutoGithubUsersResponse }>()
 let appTokens: { key: string; provider: AppTokenProvider } | undefined
 
-/** Forgets the cached lists. For tests. */
 export function clearGithubUsersCache(): void {
   cache.clear()
   appTokens = undefined
 }
 
-/** The token of the App (or the read token), for local mode. One provider per config. The deploy status uses it too. */
 export function localReadToken(config: GithubConfig): Promise<string> {
   const key = [config.repo, config.appId, config.apiUrl, config.readToken].join(
     '\n'
@@ -48,7 +44,6 @@ export function localReadToken(config: GithubConfig): Promise<string> {
   return appTokens.provider.getReadToken()
 }
 
-/** Reads every collaborator with push access or more, page by page. */
 async function listCollaborators(
   config: GithubConfig,
   token: string
@@ -67,13 +62,6 @@ async function listCollaborators(
   return all
 }
 
-/**
- * Route: GET /api/_pluto/github/users. The people with write access to the content repo, read
- * only. It needs a signed-in user, and reads with the token of that user. In local mode (the dev
- * user has no GitHub token) it reads with the App installation token or the read token; with
- * neither, it answers `reason: 'no-app'`, and `app-error` when the App gives no token (not
- * installed on the repo, or a wrong key). Admins, then maintainers, then writers.
- */
 export async function handleGithubUsers(
   event: H3Event
 ): Promise<PlutoGithubUsersResponse> {
@@ -101,7 +89,6 @@ export async function handleGithubUsers(
     try {
       token = await localReadToken(config)
     } catch {
-      // The App is not installed on the repo, or its key is wrong. The provider logs the cause.
       return { ...base, reason: 'app-error' }
     }
   }

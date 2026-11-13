@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// The details of one file, in the aside of the Media page: the file (an image,
-// or the viewer of its kind, for example the 3D viewer), its facts, the name
-// and the alt text, copy the URL or Markdown, download, make a preview, delete.
 import type { PlutoMedia } from '../../../../shared/types/media'
 
 const props = defineProps<{ media: PlutoMedia }>()
@@ -183,7 +180,6 @@ async function remove() {
 
 <template>
   <div class="flex flex-col gap-5">
-    <!-- The file: the image, the viewer of its kind, its preview, or an icon. -->
     <div
       class="bg-elevated ring-default relative flex aspect-square items-center justify-center overflow-hidden rounded-lg ring"
     >
@@ -275,7 +271,6 @@ async function remove() {
       @click="save"
     />
 
-    <!-- A kind that can make a preview (a 3D model): make it for a file that has none, or again. -->
     <div
       v-if="kind?.createPreview && canManage"
       class="bg-elevated/60 ring-default flex items-center gap-3 rounded-lg p-3 ring"

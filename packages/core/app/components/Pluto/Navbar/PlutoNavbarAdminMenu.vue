@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// The admin menu on a public page. The admin navbar shows on the public site
-// for a logged-in admin, and its menu button opens the admin sidebar. Public
-// pages do not use the admin layout, so that sidebar is not there. This
-// slideover shows the same menu instead. PlutoRoot renders it on public
-// routes only.
 const open = usePlutoAdminMenuOpen()
 const menu = usePlutoAdminMenu()
 const openGroups = usePlutoAdminMenuGroups()
@@ -16,10 +11,6 @@ const { t } = usePlutoI18n()
     :ui="{ content: 'w-[min(18rem,85vw)]' }"
     side="left"
   >
-    <!--
-      The slideover renders at the end of <body>, outside the navbar. The
-      `data-pluto-admin-scope` wrapper gives it the admin theme there.
-    -->
     <template #content>
       <div
         class="text-default flex h-full flex-col bg-(--pluto-admin-sidebar)"

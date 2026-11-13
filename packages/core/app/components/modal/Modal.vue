@@ -94,8 +94,6 @@ watchEffect(() => {
   scrollLock.value = false
 })
 
-// Escape closes the modal, with the same rule as a click outside. Only the
-// modal that opened last closes (see modal-stack.ts).
 const stackId = Symbol('modal')
 
 watch(model, (open) => (open ? pushModal(stackId) : removeModal(stackId)), {

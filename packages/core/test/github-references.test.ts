@@ -197,7 +197,6 @@ describe('a rename or a delete of a term', () => {
       'alpha',
       'b',
     ])
-    // A post with no reference and a term of another type stay as they were.
     expect(github.read('content/posts/other.md')).toBe(before.other)
     expect(github.read('content/categories/a.md')).toBe(before.category)
     expect(before.live).not.toBe(github.read('content/posts/live.md'))
@@ -232,7 +231,6 @@ describe('a rename or a delete of a term', () => {
     expect(read(github, 'content/posts/both.md').frontmatter.tags).toEqual([
       'b',
     ])
-    // The category with the same id keeps its posts.
     expect(
       read(github, 'content/posts/live.md').frontmatter.categories
     ).toEqual(['a'])
@@ -349,7 +347,6 @@ describe('the trash of a term', () => {
       'a',
       'b',
     ])
-    // The public answer drops a trashed target: it is not in the list of tags.
     expect(
       (await adapter.list(tag, { ids: ['a', 'b'] })).data.map((item) => item.id)
     ).toEqual(['b'])

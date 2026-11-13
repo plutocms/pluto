@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// The right panel (the Block tab): the controls of the selected block. A Text
-// block has a rich text box. A Code block has a language, a file name and a
-// code box. A component has its content (one control for each slot) and its
-// settings. Unknown settings are in the Advanced section. Nothing here shows
-// raw keys or YAML, except in Advanced and in "Edit as Markdown".
 import type {
   PlutoBlock,
   PlutoBlockPropDefinition,
@@ -36,7 +31,6 @@ const definition = computed(() =>
 )
 const parent = computed(() => editor.selected.value?.parent)
 
-// "Edit as Markdown" shows the Markdown of the block in a box. It resets with the selection.
 const rawOpen = ref(false)
 watch(
   () => block.value?.id,
@@ -66,8 +60,6 @@ const LANGUAGES = [
   'yaml',
 ]
 
-// --- Component settings ---------------------------------------------------------
-
 const settings = computed(() => {
   const props = definition.value?.props ?? {}
   return Object.entries(props).filter(([, prop]) => !prop.advanced)
@@ -78,8 +70,6 @@ const advanced = computed(() => {
   return Object.entries(props).filter(([, prop]) => prop.advanced)
 })
 
-// A prop with a `slot` (the label of a button) is one field for the prop and the slot. The slot
-// does not show in Content.
 const coveredSlots = computed(
   () =>
     new Set(
@@ -263,7 +253,6 @@ function applyRaw(markdown: string) {
         @click="editor.select(parent.id)"
       />
 
-      <!-- Edit as Markdown -->
       <section v-if="rawOpen" class="flex flex-col gap-2">
         <p class="text-sm text-muted">
           {{ t('docs.editor.rawNote') }}
@@ -278,7 +267,6 @@ function applyRaw(markdown: string) {
         />
       </section>
 
-      <!-- Text -->
       <template v-else-if="block.kind === 'text'">
         <PlutoBlockTextEditor
           :key="block.id"
@@ -289,7 +277,6 @@ function applyRaw(markdown: string) {
         />
       </template>
 
-      <!-- Code -->
       <template v-else-if="block.kind === 'code'">
         <div class="grid grid-cols-2 gap-3">
           <UFormField
@@ -354,7 +341,6 @@ function applyRaw(markdown: string) {
         </UFormField>
       </template>
 
-      <!-- Markdown (raw) -->
       <template v-else-if="block.kind === 'raw'">
         <UAlert
           :description="
@@ -376,7 +362,6 @@ function applyRaw(markdown: string) {
         />
       </template>
 
-      <!-- Component -->
       <template v-else>
         <section v-if="slots.length" class="flex flex-col gap-4">
           <h4 class="text-xs font-semibold uppercase tracking-wide text-muted">
@@ -506,7 +491,6 @@ function applyRaw(markdown: string) {
         </details>
       </template>
 
-      <!-- Actions -->
       <div class="flex flex-wrap gap-2 border-t border-default pt-4">
         <UButton
           :label="t('docs.editor.duplicate')"

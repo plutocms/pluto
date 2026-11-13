@@ -15,7 +15,6 @@ import { plutoAtomNodeView } from './pluto-atom-node-view'
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     plutoComponent: {
-      /** Inserts an empty component at the cursor; its chip opens the props form. */
       insertPlutoComponent: (name: string) => ReturnType
     }
   }
@@ -92,7 +91,6 @@ export const PlutoContentComponentNode: Node = Node.create({
     level: 'block',
     start: (src: string) => componentStart(src),
     tokenize(src: string) {
-      // Every prop the author wrote: the site filters them when it renders.
       const match = matchEmptyComponent(src, { safe: false })
       if (!match) {
         return undefined

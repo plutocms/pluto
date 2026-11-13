@@ -1,8 +1,4 @@
-<script setup lang="ts">
-// The play button over the thumbnail of a video embed, until a click loads the player. Plain CSS
-// (no Tailwind), like `PlutoHtml`: a site with no Tailwind shows it too. The button is a picture
-// only: the player root has the role and the label ("Play video").
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <span class="pluto-embed-play" aria-hidden="true">

@@ -7,13 +7,6 @@ import { contentTypeExports, contentTypesTemplate } from './scan'
 
 const FILENAME = 'types/pluto-content-types.d.ts'
 
-/**
- * The item types of the content types of the app, with no interface to write. The module reads
- * the auto-imports of the app and its layers, finds each `export const x = defineContentType(...)`,
- * and writes `#build/types/pluto-content-types.d.ts`: it adds each type to the global
- * `PlutoContentTypes` map under its `name`. Then `usePlutoSingleton('contact')` knows its item, and
- * `PlutoItem<'contact'>` names it. See the content-model skill ("Item types").
- */
 export default defineNuxtModule({
   meta: { name: 'pluto-content-types' },
   setup(_options, nuxt) {
@@ -65,7 +58,6 @@ export default defineNuxtModule({
       { nuxt: true, nitro: true, shared: true }
     )
 
-    // A new or changed declaration in dev: write the types again.
     nuxt.hook('builder:watch', async (_event, path) => {
       if (
         /\.[cm]?ts$/.test(path) &&

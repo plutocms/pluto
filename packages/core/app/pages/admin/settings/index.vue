@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// The General tab of Settings. The parent page (`../settings.vue`) draws the
-// title and the tabs.
 const { t } = usePlutoI18n()
 
 useHead({
@@ -19,7 +17,6 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col gap-y-6 lg:gap-y-8">
-    <!-- Per-user, so it needs no capability and no settings driver. -->
     <PlutoSettingsLanguage />
 
     <UAlert

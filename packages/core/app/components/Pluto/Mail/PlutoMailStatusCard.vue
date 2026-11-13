@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// The state of the mail setup at a glance: which driver sends, whether it can
-// send, and the From address. It loads the status from the server. The
-// server sends no secret, only "a key is set" or not.
 const { t, te } = usePlutoI18n()
 const errorText = usePlutoErrorText()
 const { status, statusPending, loadStatus } = usePlutoMail()

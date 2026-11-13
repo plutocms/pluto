@@ -1,20 +1,13 @@
 const websiteName = process.env.WEBSITE_NAME || 'Untitled'
 
-// The build default of the site URL: the production host of Vercel, else the URL of Netlify.
-// `NUXT_PUBLIC_WEBSITE_URL` overrides it at run time.
 const websiteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   : process.env.URL || ''
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
-// Core extends no other layer. The helpers of the retired `@plutocms/utils` that
-// core uses are in shared/utils (`domainFromUrl`).
 export default defineNuxtConfig({
-  // No @nuxt/eslint: a module of a layer runs in every app that extends it. The
-  // repo lints with @nuxt/eslint-config (eslint.config.mjs at the root).
+  // No @nuxt/eslint: a module of a layer runs in every app that extends it.
   modules: [
     '@nuxt/image',
-    // The players of the embeds (`ScriptYouTubePlayer`, `ScriptVimeoPlayer`): they load only on a click.
     '@nuxt/scripts',
     '@nuxt/ui',
     '@vueuse/nuxt',
@@ -42,22 +35,13 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      // The build-time site name. Without WEBSITE_NAME, public titles stay as
-      // the page sets them, not "Page - Untitled". The admin builds its own
-      // title from the runtime name (PlutoRoot).
+      // Without WEBSITE_NAME, public titles stay as the page sets them, not "Page - Untitled".
       titleTemplate: process.env.WEBSITE_NAME ? `%s - ${websiteName}` : '%s',
     },
   },
 
-  // No `css` entry: modules/pluto-css gives the admin a Tailwind build of its
-  // own, and the site's build is the app's CSS entry. Both get this layer's
-  // pluto-layer.css through @plutocms/css (#build/pluto.css). See the
-  // single-tailwind-build skill.
-
   runtimeConfig: {
-    // Private mail settings. Empty defaults on purpose: Nuxt reads
-    // `NUXT_PLUTO_MAIL_*` only for a key that exists here. Set them at run
-    // time, never in the build environment. See the mail skill.
+    // Empty defaults on purpose: Nuxt reads `NUXT_PLUTO_MAIL_*` only for a key that exists here.
     plutoMail: {
       driver: '',
       from: '',
@@ -65,11 +49,6 @@ export default defineNuxtConfig({
       resend: { apiKey: '' },
       mailpit: { url: '' },
     },
-    // The public API (`/api/pluto/v1/**`). `cors`: `true` (any origin), a list of origins, or
-    // `false`. `maxAge`: the `s-maxage` of an answer in seconds (`0` = `no-store`). Env:
-    // `NUXT_PLUTO_API_CORS` (`false` or a JSON list) and `NUXT_PLUTO_API_MAX_AGE`. `highlighter`: the
-    // code highlighter to try first, by its id (`lowlight`, `shiki`); empty: by `order`. Env:
-    // `NUXT_PLUTO_API_HIGHLIGHTER`. See server/utils/pluto-highlight.ts.
     plutoApi: {
       cors: true,
       maxAge: 60,
@@ -77,31 +56,17 @@ export default defineNuxtConfig({
     },
     public: {
       websiteName,
-      // The site description: the default `description` of a public page (`usePlutoSiteHead`).
-      // Env: `NUXT_PUBLIC_WEBSITE_DESCRIPTION`.
       websiteDescription: '',
-      // The address of the site, for absolute URLs (`og:image`, a canonical, a sitemap). It may
-      // include the base path of a project site. A static build needs it. A server build falls
-      // back to the origin of the request. Env: `NUXT_PUBLIC_WEBSITE_URL`.
       websiteUrl,
-      // The public API. `static`: the site is a static build, so the list composables of the
-      // browser answer from the prerendered index (`/api/pluto/v1/index.json`). The Git CMS sets
-      // it in a static build.
       plutoPublicApi: {
         static: false,
       },
-      // The media library. A backend sets `driver` (`github`, `supabase`) when it
-      // registers its media driver; the admin shows the library only then. Empty
-      // `allowedTypes` and `0` give the defaults (shared/utils/media.ts). Env:
-      // `NUXT_PUBLIC_PLUTO_MEDIA_MAX_UPLOAD_BYTES`. See the media skill.
       plutoMedia: {
         driver: '',
         allowedTypes: [] as string[],
-        // Types that layers add (the 3D add-on adds `model/gltf-binary`). Arrays of
-        // layers join, so each layer adds its own.
+        // Arrays of layers join, so each layer adds its own types.
         extraTypes: [] as string[],
         maxUploadBytes: 0,
-        // The size limit of single types, in bytes: `{ 'model/gltf-binary': 26214400 }`.
         typeLimits: {} as Record<string, number>,
       },
     },
@@ -124,14 +89,8 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-08-15',
 
-  // The scheduled tasks of Pluto (experimental in Nitro). `pluto:trash:purge` deletes the items
-  // that are in the trash for more than 30 days. A host with no scheduled tasks skips it: opening a
-  // Trash purges too. Nitro 2 runs them on a Node, Bun or Deno server and on Cloudflare, not on
-  // Vercel or Netlify (Nitro 3 makes Vercel Cron Jobs, and the Vercel Hobby plan allows only daily
-  // ones: check the 5-minute task before Pluto moves to Nitro 3). `pluto:publish:scheduled` publishes the scheduled
-  // items whose time has come (a server read shows them at the time already, and the admin list
-  // of a publisher publishes them too; a static site needs a GitHub Actions workflow). To turn one off, an app sets its cron key to
-  // `[]`.
+  // Nitro 2 runs scheduled tasks on a Node, Bun or Deno server and on Cloudflare, not on Vercel or
+  // Netlify. An app turns a task off when it sets its cron key to `[]`.
   nitro: {
     experimental: {
       tasks: true,
@@ -142,10 +101,8 @@ export default defineNuxtConfig({
     },
   },
 
-  // One copy of each ProseMirror package in the bundle. A package manager can install a nested
-  // copy (prosemirror-state with its own prosemirror-model), and the editors then mix nodes of two
-  // copies: the slash menu fails with "multiple versions of prosemirror-model were loaded". The
-  // app gets this list from the layer.
+  // A nested copy of a ProseMirror package makes the editors mix nodes of two copies: the slash
+  // menu fails with "multiple versions of prosemirror-model were loaded".
   vite: {
     resolve: {
       dedupe: [
@@ -158,22 +115,18 @@ export default defineNuxtConfig({
   },
 
   typescript: {
-    // No `includeWorkspace`: in the monorepo it would read every package. Each package has its own typecheck.
+    // In the monorepo, `includeWorkspace` would read every package.
     includeWorkspace: false,
     typeCheck: false,
   },
 
-  // Modules configurations
   fonts: {
     defaults: {
       weights: [400, 600, 700],
     },
   },
 
-  // Core ships its one brand icon (GitHub) as a tiny custom collection, so it
-  // does not depend on the whole simple-icons collection (about 4 MB in the
-  // server bundle). Lucide stays a normal installed collection. See the
-  // admin-theme skill.
+  // A custom collection keeps the whole simple-icons collection (about 4 MB) out of the server bundle.
   icon: {
     customCollections: [
       {

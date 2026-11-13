@@ -86,7 +86,6 @@ describe('createBackupSync', () => {
     const { sync, calls } = setup(() => ({ supported: true }))
 
     await sync.write('a', record('b'))
-    // Only the time and the tab differ.
     await sync.write('a', record('b', { savedAt: 99, tab: 'other' }))
     await sync.write('a', record('c'))
     await sync.write('b', record('c'))
@@ -185,7 +184,6 @@ describe('createBackupSync', () => {
     vi.useFakeTimers()
     const { sync } = setup(() => new Promise<BackupAnswer>(() => {}))
 
-    // No write: no wait.
     await sync.settled(2000)
 
     void sync.write('a', record('b'))

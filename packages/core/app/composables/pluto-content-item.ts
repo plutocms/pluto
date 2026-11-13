@@ -18,6 +18,8 @@
  * watched for later changes. A page must mount the form again when the id
  * changes. The generated page `[id].vue` does this with `:key` on the route
  * id.
+ *
+ * @see https://pluto.vulmix.dev/docs/reference/content-model
  */
 export function usePlutoContentItem(
   typeName: string,
@@ -29,13 +31,9 @@ export function usePlutoContentItem(
   const item = ref<Record<string, unknown>>({})
   const pending = ref(false)
   const error = ref<unknown>(null)
-  // Only the item fetch sets this. A failed save sets `error`, not this, so a
-  // form can tell "the item did not load" from "the save failed".
   const loadError = ref<unknown>(null)
 
   async function refresh(): Promise<void> {
-    // A new, unsaved entry has nothing to fetch — `item` stays the empty
-    // object it started as.
     if (isNew) {
       return
     }
@@ -57,12 +55,6 @@ export function usePlutoContentItem(
     }
   }
 
-  // Fire the initial fetch right away, same reasoning as
-  // usePlutoContentList: /admin/** is client-only, so there is no SSR
-  // payload concern. The failure path already lands in `error` for a
-  // reactive consumer to read; swallow the rejection here so it never
-  // surfaces as an unhandled rejection. A caller invoking `refresh()`
-  // again later still gets a real rejection to `await`.
   refresh().catch(() => {})
 
   async function save(

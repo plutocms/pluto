@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// The switch between the Visual and the Markdown editor of the page body.
 const props = defineProps<{
   mode: 'visual' | 'markdown'
   disabled?: boolean

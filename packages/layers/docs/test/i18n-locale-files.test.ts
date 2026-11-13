@@ -3,13 +3,6 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { createDocsType } from '../shared/utils/docs-type'
 
-// Checks every locale file of this layer against en: same keys, same
-// placeholders. A new language is checked by adding its file. Every literal key
-// in the code must exist in en.
-//
-// A translation also holds the core convention keys of the default `doc` type
-// (`content.doc.*`). en has none: the English text is in the type itself, and an
-// en key would hide a custom `label` option.
 const root = join(__dirname, '..')
 const dir = join(root, 'i18n', 'locales')
 const codes = readdirSync(dir)
@@ -41,7 +34,6 @@ for (const code of codes) {
   )
 }
 
-/** The keys of the layer namespace only. */
 function own(messages: FlatMessages): string[] {
   return Object.keys(messages).filter((key) => key.startsWith('docs.'))
 }

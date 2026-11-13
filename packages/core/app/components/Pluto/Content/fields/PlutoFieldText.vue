@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// Renders both 'text' and 'textarea' fields. `richtext` has no core widget
-// — a layer (for example @plutocms/supabase-blog) registers its own.
 const props = defineProps<{
   field: PlutoTextField
   modelValue: unknown

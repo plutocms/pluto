@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The link popover of the Visual editor: it shows under a link while the caret is in it (a click on
-// a link puts the caret there). The address and the text of the link can change: Enter, or leaving
-// the field, applies them. The box makes the link open in a new tab on the site
-// (`{target="_blank"}`, see PlutoLink). Open the link in a new tab, or remove it (the text stays).
 import type { Editor as CoreEditor } from '@tiptap/core'
 import type { Editor } from '@tiptap/vue-3'
 import PlutoEditorBubble from './PlutoEditorBubble.vue'
@@ -16,7 +12,6 @@ const { t } = usePlutoI18n()
 const url = ref('')
 const text = ref('')
 const blank = ref(false)
-// The link of the popover: its range in the document, and its address and text as they were.
 let link: {
   from: number
   to: number
@@ -25,15 +20,12 @@ let link: {
   blank: boolean
 } | null = null
 
-/** The link around the caret, or null. */
 function linkAtCaret(editor: CoreEditor) {
   const { state } = editor
   const type = state.schema.marks.link
   if (!type || !state.selection.empty) {
     return null
   }
-  // The text node at the caret (after it, else before it) with a link, then its neighbors with the
-  // same link.
   const { $from } = state.selection
   const parent = $from.parent
   let found = parent.childAfter($from.parentOffset)
@@ -78,8 +70,6 @@ function shouldShow({ editor }: { editor: CoreEditor }) {
   return editor.isEditable && linkAtCaret(editor) !== null
 }
 
-// The fields follow the link of the caret. The author types in the fields, not in the text, so a
-// new link only comes with a new caret.
 function sync() {
   const next = linkAtCaret(props.editor)
   if (
@@ -105,7 +95,6 @@ watch(
   { immediate: true }
 )
 
-/** Applies the fields to the link. `focus`: the caret goes back to the text, after the link. */
 function apply(focus: boolean) {
   if (!link) {
     return
@@ -146,7 +135,6 @@ function apply(focus: boolean) {
   }
 }
 
-/** Opens the link in a new tab on the site, or not. The caret stays. */
 function setBlank(value: boolean | 'indeterminate') {
   if (!link) {
     return
@@ -163,8 +151,6 @@ function setBlank(value: boolean | 'indeterminate') {
   blank.value = link.blank
 }
 
-// The popover never takes the focus: a click in a link puts the caret there, to edit the text.
-// Escape in a field goes back to the text.
 function backToText() {
   if (link) {
     props.editor.chain().focus().setTextSelection(link.to).run()

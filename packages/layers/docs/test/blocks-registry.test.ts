@@ -5,7 +5,7 @@ import type {
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { definePlutoBlock } from "#layers/pluto/shared/utils/blocks/define"
+import { definePlutoBlock } from '#layers/pluto/shared/utils/blocks/define'
 import { buildPalette } from '../shared/utils/blocks/editor'
 import { parseBlocks } from '../shared/utils/blocks/parse'
 import {
@@ -128,7 +128,6 @@ describe('block presets', () => {
       ...BLOCK_GROUPS.map((group) => groupLabelKey(group)),
       'docs.blocks.kinds.table',
     ])
-    // The palette entries of the built-in blocks (text, table, code) have their own texts.
     for (const { entries } of buildPalette()) {
       for (const entry of entries.filter((item) => item.kind !== 'component')) {
         used.add(entry.label)
@@ -476,7 +475,6 @@ describe('block sources', () => {
     })
     expect(Object.keys(definition.props!)).toEqual(['star-count', 'speed'])
     expect(definition.props!['star-count']).toMatchObject({ type: 'number' })
-    // The page does not use the prop: the key stays as the meta spells it.
     const other = resolveBlockDefinition('pluto-hero', {
       sources: { components },
       block: parseBlocks('::pluto-hero\n::\n').blocks[0] as PlutoComponentBlock,

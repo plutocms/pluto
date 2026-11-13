@@ -5,9 +5,6 @@ import type {
 } from '../../../../shared/types/content'
 import { plutoSideFieldLayout } from '../../../../shared/utils/content-side-groups'
 
-// The fields of the side column of the form: the fields with no group first, then each group of
-// the type (`sideGroups`) as a collapsible section, open or closed on load by its `defaultOpen`.
-// A layer that adds fields to a type adds its group with them (see the content-model skill).
 const props = defineProps<{
   fields: PlutoField[]
   groups?: PlutoContentSideGroup[]

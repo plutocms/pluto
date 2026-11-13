@@ -72,7 +72,6 @@ describe('plutoBrandCss', () => {
     expect(css).toContain(
       '--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;'
     )
-    // The title font follows the text font when no display font is set.
     expect(css).toContain(
       '--pluto-admin-font-display: "Inter", ui-sans-serif, system-ui, sans-serif;'
     )

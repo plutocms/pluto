@@ -1,11 +1,5 @@
 <script setup lang="ts">
-// Step 7, optional: replace the setup key with a sending-only key for the one
-// domain. A sending-only key cannot read or change anything in the Resend
-// account, so a leak of the server environment does less harm.
-//
-// This is the one place where a key reaches the browser: the new key. The
-// server shows it once, the admin copies it into the environment, and this
-// component drops it when the page closes. Nothing stores it.
+// The new key reaches the browser here only. Nothing stores it.
 const { t } = usePlutoI18n()
 const errorText = usePlutoErrorText()
 const { keyState, domain, createSendingKey } = usePlutoMail()

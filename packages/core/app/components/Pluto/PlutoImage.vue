@@ -1,26 +1,20 @@
 <script setup lang="ts">
-// An image of the media library on a public page. It takes the record that
-// the public API gives (a `media` field) and lets `@nuxt/image` make the
-// sizes at delivery (`sizes`, the provider of the host). The width and the
-// height of the record stop the layout from moving while the image loads.
-//
-// When the image service cannot read the file (for example a file of the
-// Git CMS that is in the repo but not in a deploy yet), it shows the file
-// as it is. A file that is not an image shows its preview image (the
-// thumbnail of a 3D model), or nothing when it has none. See the media skill.
-//
-// The template has one root (a v-if chain, no fragment), so a class on
-// PlutoImage reaches the image.
 import type { PlutoPublicMedia } from '../../../shared/types/media'
 
 const props = withDefaults(
   defineProps<{
+    /**
+     * The media record that the public API gives, for example `post.cover`.
+     * @see https://pluto.vulmix.dev/docs/build/components#plutoimage
+     */
     media?: PlutoPublicMedia | null
     /** The `sizes` of `@nuxt/image`, for example `xs:100vw sm:50vw lg:400px`. Give every size a screen (`xs:`): a size with none gives a 1 px entry. */
     sizes?: string
     /** Overrides the alt text of the record. */
     alt?: string
+    /** The native `loading` attribute. Default `lazy`. */
     loading?: 'lazy' | 'eager'
+    /** The native `fetchpriority` attribute. Default `auto`. */
     fetchpriority?: 'high' | 'low' | 'auto'
   }>(),
   {
@@ -52,9 +46,6 @@ const image = computed(() => {
 })
 const text = computed(() => props.alt ?? image.value?.alt ?? '')
 
-// The file as it is. A site path of the Git CMS (`/media/...`) is under the base path of a site
-// on a sub path (GitHub Pages). On a static build the image service has only the sizes of the
-// prerendered pages, so an image that shows in the browser only (a cart) needs this file.
 const baseURL = useRuntimeConfig().app.baseURL
 const fileUrl = computed(() =>
   image.value ? withBasePath(image.value.url, baseURL) : ''

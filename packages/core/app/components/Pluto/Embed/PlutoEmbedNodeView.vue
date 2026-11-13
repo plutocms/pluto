@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The embed block of the Visual editor (the node view of `PlutoEmbedNode`): the component of the
-// provider, as the site shows it before a click (the thumbnail and the play button), and the
-// provider and the URL under it. The player is inert: a click selects the block, it never plays.
-// With no provider for the URL any more, the block shows the URL.
 import type { NodeViewProps } from '@tiptap/vue-3'
 import { NodeViewWrapper } from '@tiptap/vue-3'
 import { resolveEmbed } from '#layers/pluto/shared/utils/embed'
@@ -12,8 +8,7 @@ const props = defineProps<NodeViewProps>()
 const { tx } = usePlutoI18n()
 const registry = usePlutoRegistry()
 
-// A click selects the block, so its popover (PlutoEditorEmbedMenu) opens. Not on mousedown: that
-// starts a drag of the block.
+// Select on click, not on mousedown: mousedown starts a drag of the block.
 function select() {
   const position = props.getPos()
   if (props.editor.isEditable && typeof position === 'number') {

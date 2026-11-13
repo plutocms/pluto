@@ -4,6 +4,8 @@ import { computed } from 'vue'
 /**
  * Content types declared by every layer, in registry order, with the extensions of the layers
  * (`contentTypeExtensions`) applied.
+ *
+ * @see https://pluto.vulmix.dev/docs/reference/content-model
  */
 export function usePlutoContentTypes() {
   const registry = usePlutoRegistry()
@@ -16,7 +18,6 @@ export function usePlutoContentTypes() {
     }))
   })
 
-  /** Looks up a content type by its own `name`, not the registry entry `id`. */
   function byName(name: string): PlutoContentType | undefined {
     return items.value.find((entry) => entry.type.name === name)?.type
   }

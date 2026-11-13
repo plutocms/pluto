@@ -45,14 +45,12 @@ export interface PlutoBackupOffer {
   otherDevice: boolean
 }
 
+/** `offered`: a backup waits for the user. `stopped`: the form no longer writes backups. */
 export type PlutoBackupState = 'idle' | 'offered' | 'stopped'
 
-/** Time to wait for a server copy when the form opens, in ms. */
 const SERVER_WAIT_MS = 3000
-/** The server copy writes 10 s after the last change, and at most every 30 s. */
 const SERVER_WRITE_WAIT_MS = 10_000
 const SERVER_WRITE_MAX_WAIT_MS = 30_000
-/** Time to wait for a server write in progress before a save, in ms. */
 const SERVER_SETTLE_MS = 2000
 
 /**
@@ -63,25 +61,18 @@ const SERVER_SETTLE_MS = 2000
  */
 export function usePlutoContentBackup(options: {
   type: ComputedRef<PlutoContentType | undefined>
-  /** The id of the item. `undefined` on a new item. */
   id: () => string | number | undefined
   editing: ComputedRef<boolean>
   item: Ref<Record<string, unknown>>
   dirtyState: DirtyState
-  /** The sorted JSON of the payload now (the form `snapshot`). */
   snapshot: ComputedRef<string>
   dirty: ComputedRef<boolean>
-  /** The item loaded (or the item is new). */
   ready: ComputedRef<boolean>
   canSave: ComputedRef<boolean>
   slugTouched: Ref<boolean>
-  /** Marks the next change as an edit, so the baseline stays (`tracker.interact`). */
   interact: () => void
-  /** Runs the `onFlush` callbacks of the widgets. */
   flush: () => void
-  /** Loads the stored item again (`refresh` of the item composable). It rejects on an error. */
   reload: () => Promise<void>
-  /** Sets the dirty baseline to the form now, two times as a save does (now and after a tick). */
   resetBaseline: () => Promise<void>
   server?: PlutoBackupServer
 }) {
@@ -96,18 +87,14 @@ export function usePlutoContentBackup(options: {
   const state = ref<PlutoBackupState>('idle')
   const offer = shallowRef<PlutoBackupOffer | null>(null)
   const otherTab = ref(false)
-  // The server copy that a write replaced came from another device a short time ago.
   const otherDevice = ref(false)
-  // A save failed with a 409: someone saved the item after the form loaded it.
   const conflict = ref(false)
   const merging = ref(false)
-  // False until the form decided on the offer. Nothing writes before that.
   const checked = ref(false)
   const store = shallowRef<BackupStore | null>(null)
   let device = ''
   let checking = false
   let disposed = false
-  // The browser refused a write twice: no more backups in this page view.
   let failed = false
   let lastChangeAt = 0
   let lastWritten: string | null = null
@@ -131,7 +118,6 @@ export function usePlutoContentBackup(options: {
     })
   }
 
-  /** The id of the server copy: the item id, or '+new'. */
   function serverKey(): string {
     const id = options.id()
     return id === undefined ? '+new' : String(id)
@@ -171,15 +157,12 @@ export function usePlutoContentBackup(options: {
     removeServer()
   }
 
-  // --- Write --------------------------------------------------------------------
-
   const scheduler = createBackupScheduler({
     wait: 1000,
     maxWait: 5000,
     run: () => writeNow(),
   })
 
-  /** The record of the form now, or `null` when the form holds no change. */
   function buildRecord(snapshot: string): PlutoContentBackup | null {
     const changes = backupChanges(
       fields.value,
@@ -214,13 +197,11 @@ export function usePlutoContentBackup(options: {
       .catch(() => {})
   }
 
-  /** `force` also sends the server copy now (the conflict flow). */
   function writeNow(force = false) {
     scheduler.cancel()
     if (!canWrite()) {
       return
     }
-    // A widget can hold edits that are not in the item yet.
     options.flush()
     if (!options.dirty.value) {
       removeLocal()
@@ -253,17 +234,12 @@ export function usePlutoContentBackup(options: {
     }
   }
 
-  // --- Write, server copy -------------------------------------------------------
-
-  // The server copy is slower than the browser backup: 10 s after the last change, 30 s at most.
-  // It stays when the form is clean again: a save, Discard or Leave remove it.
   const serverScheduler = createBackupScheduler({
     wait: SERVER_WRITE_WAIT_MS,
     maxWait: SERVER_WRITE_MAX_WAIT_MS,
     run: () => writeServer(),
   })
 
-  /** The record to send to the server now, or `null` when there is nothing to send. */
   function serverRecord(): PlutoContentBackup | null {
     if (!options.server?.write || !canWrite()) {
       return null
@@ -274,7 +250,6 @@ export function usePlutoContentBackup(options: {
 
   function writeServer() {
     serverScheduler.cancel()
-    // Offline: the `online` event schedules the write again.
     if (!navigator.onLine) {
       return
     }
@@ -284,7 +259,6 @@ export function usePlutoContentBackup(options: {
     }
   }
 
-  /** A hidden page can close at once: one `keepalive` request, when the body is small. */
   function writeServerKeepalive() {
     if (!options.server?.keepalive || !navigator.onLine) {
       return
@@ -301,10 +275,6 @@ export function usePlutoContentBackup(options: {
     serverScheduler.cancel()
   }
 
-  /**
-   * Call this before a save. The server copy must not be written after the save removed it: this
-   * cancels the timer, and waits at most 2 s for a write in progress.
-   */
   async function prepareSave() {
     serverScheduler.cancel()
     await options.server?.settled?.(SERVER_SETTLE_MS)
@@ -315,7 +285,6 @@ export function usePlutoContentBackup(options: {
       return
     }
     if (!options.dirty.value) {
-      // Back to the saved text: the backup has nothing to keep.
       cancelWrites()
       removeLocal()
       lastWritten = null
@@ -328,7 +297,6 @@ export function usePlutoContentBackup(options: {
     }
   })
 
-  // A hidden page can be closed at once, so write now. A page that is shown again needs nothing.
   useEventListener('pagehide', () => {
     writeNow()
     writeServerKeepalive()
@@ -343,14 +311,12 @@ export function usePlutoContentBackup(options: {
       }
     }
   )
-  // The connection is back: send the changes that the server copy missed.
   useEventListener('online', () => {
     if (canWrite() && options.dirty.value && options.server?.write) {
       serverScheduler.schedule()
     }
   })
 
-  // Another tab wrote the backup of this item.
   useEventListener('storage', (event: StorageEvent) => {
     if (
       state.value === 'stopped' ||
@@ -370,9 +336,6 @@ export function usePlutoContentBackup(options: {
     }
   })
 
-  // --- Offer --------------------------------------------------------------------
-
-  /** The answer of the server, or `null` when it gave none within `SERVER_WAIT_MS`. */
   async function readServer(): Promise<BackupRead> {
     if (!options.server) {
       return null
@@ -400,8 +363,6 @@ export function usePlutoContentBackup(options: {
     checking = true
     const current = store.value!
     current.prune(base, userId.value!)
-    // A widget can write its own normal form of the loaded value right after it mounts. The
-    // baseline follows it. Read the baseline after that.
     await nextTick()
 
     const parseOptions = { now: Date.now(), ttlMs: PLUTO_BACKUP_TTL_MS }
@@ -433,15 +394,10 @@ export function usePlutoContentBackup(options: {
           otherDevice: pick.otherDevice,
         }
         state.value = 'offered'
-        // The form writes nothing while it offers a backup. A browser backup that the server does
-        // not have (written before the server kept copies, or while it was down) goes there now,
-        // so another device can offer it too. With no answer, nothing goes: a failed read must
-        // not replace a newer copy of another device.
         if (answer && needsServerCopy(pick, server)) {
           sendToServer(pick.record)
         }
       } else {
-        // The backup holds nothing new: the item already has these values.
         removeBoth()
       }
     }
@@ -474,9 +430,6 @@ export function usePlutoContentBackup(options: {
     )
   })
 
-  // --- Choices of the user ------------------------------------------------------------
-
-  /** Puts the backup values in the form. The form is dirty, and the next writes keep them. */
   function restore() {
     const current = offer.value
     if (!current) {
@@ -497,27 +450,16 @@ export function usePlutoContentBackup(options: {
     })
   }
 
-  /**
-   * The save failed with a 409. Write the backup now, so the changes are safe, and show the
-   * conflict alert.
-   */
   function onConflict() {
-    // The last write may be equal to the form: write again to send the server copy.
     lastWritten = null
     writeNow(true)
     conflict.value = true
   }
 
-  /**
-   * "Load the latest and keep my changes": load the stored item again, make it the baseline, and
-   * put the changes of the backup on top of it. There is no offer. If the load fails, the backup
-   * stays and the alert stays.
-   */
   async function reloadAndMerge() {
     if (!conflict.value || merging.value) {
       return
     }
-    // Write the unsaved changes first, then read them back. The record has the base values.
     writeNow(true)
     const stored = store.value?.read(key()) ?? null
     const record = stored
@@ -541,7 +483,6 @@ export function usePlutoContentBackup(options: {
         })
         return
       }
-      // A widget can write its own normal form of the new value on the next tick.
       await options.resetBaseline()
 
       conflict.value = false
@@ -553,7 +494,6 @@ export function usePlutoContentBackup(options: {
           )
         : null
       if (!record || !plan || Object.keys(plan.values).length === 0) {
-        // The stored item already has the values of the backup.
         removeBoth()
         lastWritten = null
         toast.add({
@@ -589,37 +529,31 @@ export function usePlutoContentBackup(options: {
     }
   }
 
-  /** Removes the backup. */
   function discard() {
     removeBoth()
     offer.value = null
     state.value = 'idle'
   }
 
-  /** The form saved the item. The backup of the item has nothing left to keep. */
   function onSaved(savedId: string | number) {
     cancelWrites()
-    // The core handlers removed the server copy with the save: no DELETE here.
     removeLocal()
     options.server?.forget?.()
     lastWritten = null
     offer.value = null
     conflict.value = false
     if (!options.editing.value || String(savedId) !== String(options.id())) {
-      // The form navigates now (a new item, or an id change).
       state.value = 'stopped'
     } else if (state.value === 'offered') {
       state.value = 'idle'
     }
   }
 
-  /** The form does not write any more (it navigates away). The backup stays. */
   function stop() {
     cancelWrites()
     state.value = 'stopped'
   }
 
-  /** The user left without saving, or the item was removed: no backup stays, and none is written. */
   function leave() {
     cancelWrites()
     removeBoth()
@@ -649,16 +583,11 @@ export function usePlutoContentBackup(options: {
   return {
     state,
     offer,
-    /** The changes that a restore makes, for the "Show changes" view. */
     changes,
     otherTab,
-    /** The server copy replaced a copy of another device: the device that saves last wins. */
     otherDevice,
-    /** Call and wait before a save: the server copy must not be written after the save. */
     prepareSave,
-    /** A save failed with a 409 and the conflict alert shows. */
     conflict,
-    /** The conflict button is loading the latest version. */
     merging,
     onConflict,
     reloadAndMerge,

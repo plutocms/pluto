@@ -1,8 +1,5 @@
-// Pure part of `usePlutoReferenceOptions`. It does not use Nuxt auto-imports, so plain Vitest
-// can import it. It has no runtime import from `shared/` (a layer build cannot resolve one from
-// `app/`), so the caller passes `slugifyTitle`.
+// No Nuxt auto-imports here: plain Vitest imports this file.
 
-/** Makes a slug from a title. Core gives `slugifyTitle`. */
 import type {
   PlutoContentItem,
   PlutoContentType,
@@ -10,27 +7,19 @@ import type {
 
 export type ReferenceSlugify = (title: string) => string
 
-/** One choice of a reference widget: the id of an item of the target type and its label. */
 export interface PlutoReferenceOption {
   label: string
   value: string | number
-  /** The slug of the item, when the target type has a slug field. */
   slug?: string
-  /** The media id of the image of the item (`referenceImageField`): the avatar of the option. */
   image?: string
 }
 
-/** The name of the slug field of a type, if it has one. */
 export function referenceSlugField(
   type: PlutoContentType | undefined
 ): string | undefined {
   return type?.fields.find((field) => field.type === 'slug')?.name
 }
 
-/**
- * The image field of a type, if it has one: its first `media` field of one image (`accept`
- * empty or with an `image/` type). An author has its avatar; a term with a cover has the cover.
- */
 export function referenceImageField(
   type: PlutoContentType | undefined
 ): string | undefined {
@@ -43,7 +32,6 @@ export function referenceImageField(
   )?.name
 }
 
-/** The options of a list of items. An item with no title shows its id. */
 export function referenceOptionsFromItems(
   type: PlutoContentType | undefined,
   items: readonly PlutoContentItem[]
@@ -72,7 +60,6 @@ function normalize(value: string): string {
   return value.trim().toLocaleLowerCase()
 }
 
-/** The option whose label or slug equals the text (case and edge spaces do not count). */
 export function findReferenceOption(
   options: readonly PlutoReferenceOption[],
   text: string,
@@ -91,7 +78,6 @@ export function findReferenceOption(
   )
 }
 
-/** The body that creates an item of the target type from a typed title. */
 export function referenceCreateBody(
   type: PlutoContentType | undefined,
   title: string,
@@ -105,10 +91,6 @@ export function referenceCreateBody(
   }
 }
 
-/**
- * The options for the menu: the loaded options, plus one option for each id that has none (a
- * deleted item, or an option that is not loaded). Such an option shows the id as its text.
- */
 export function withUnknownIds(
   options: readonly PlutoReferenceOption[],
   ids: ReadonlyArray<string | number>
@@ -124,7 +106,6 @@ export function withUnknownIds(
   return extra.length > 0 ? [...options, ...extra] : [...options]
 }
 
-/** True while a cache entry from `fetchedAt` may serve a new widget. */
 export function isReferenceCacheFresh(
   fetchedAt: number | undefined,
   now: number,
@@ -133,7 +114,6 @@ export function isReferenceCacheFresh(
   return fetchedAt !== undefined && now - fetchedAt < maxAgeMs
 }
 
-/** The options as public references, by id, for `toPreviewItem`. */
 export function referenceOptionsToPublic(
   options: readonly PlutoReferenceOption[]
 ): Map<string, { id: string | number; label: string; slug?: string }> {

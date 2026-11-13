@@ -8,7 +8,6 @@ import type { PlutoPublicReference } from '../types/public-api'
 import { isTargetReference, referenceFieldIds } from './content-reference'
 import { mediaFieldIds } from './media'
 
-/** The keys of a form item that can hold a date, by the public key. The first one set wins. */
 function dateKeys(
   type: PlutoContentType | undefined,
   key: 'created' | 'updated' | 'published'
@@ -53,15 +52,12 @@ function firstText(
 export type PlutoPreviewReference = PlutoPublicReference &
   Record<string, unknown>
 
-/** The keys of a reference. A `publicFields` entry with one of these names is skipped. */
 const REFERENCE_KEYS = new Set(['id', 'label', 'slug'])
 
-/** The `publicFields` names of a reference field, without the reference keys. */
 function extraNames(field: PlutoReferenceField): string[] {
   return (field.publicFields ?? []).filter((name) => !REFERENCE_KEYS.has(name))
 }
 
-/** The `publicFields` that the reference fields of `type` ask from the content type `target`. */
 export function previewPublicFields(
   type: PlutoContentType | undefined,
   target: string
@@ -77,7 +73,6 @@ export function previewPublicFields(
   return [...names]
 }
 
-/** The value of a target field for the preview: a media field gets its record or records. */
 function previewExtraValue(
   targetType: PlutoContentType | undefined,
   name: string,
@@ -94,17 +89,6 @@ function previewExtraValue(
   return field.multiple ? records : (records[0] ?? null)
 }
 
-/**
- * A form item in the shape of the public API (`usePlutoPublicItem`), for a preview: the field
- * values, `html`, and the dates as `createdAt`, `updatedAt` and `publishedAt`, whatever the
- * columns of the backend are. A media field gets its record (an array for `multiple`, else one
- * record or `null`) from `media`: the records of its ids. A `reference` field with a `target` gets
- * `{ id, label, slug? }` from `references` (target type name, then id), like the public API: a list
- * for `multiple`, else one reference or `null`; an id with no entry is dropped. A field with
- * `publicFields` adds those values of the entry, with the media records from `media` (`typeOf`
- * gives the target type). A preview component can then render the same object as the public
- * page. Pure.
- */
 export function toPreviewItem(
   type: PlutoContentType | undefined,
   item: Record<string, unknown>,
@@ -163,7 +147,6 @@ export function toPreviewItem(
   return { ...result, html } as PlutoPreviewItem
 }
 
-/** The media ids of every media field of a form item. */
 export function previewMediaIds(
   type: PlutoContentType | undefined,
   item: Record<string, unknown>
@@ -177,7 +160,6 @@ export function previewMediaIds(
   ]
 }
 
-/** The names of the content types that the target references of a type point to. */
 export function previewReferenceTargets(
   type: PlutoContentType | undefined
 ): string[] {
@@ -190,25 +172,6 @@ export function previewReferenceTargets(
   ]
 }
 
-/** The ids that the reference fields of a form item hold for the content type `target`. */
-export function previewReferenceIds(
-  type: PlutoContentType | undefined,
-  item: Record<string, unknown>,
-  target: string
-): string[] {
-  return [
-    ...new Set(
-      (type?.fields ?? [])
-        .filter((field) => isTargetReference(field) && field.target === target)
-        .flatMap((field) => referenceFieldIds(item[field.name]))
-    ),
-  ]
-}
-
-/**
- * The media ids of the `publicFields` of the items that the reference fields of a form item point
- * to (an author avatar), for the media load of the preview.
- */
 export function previewReferenceMediaIds(
   type: PlutoContentType | undefined,
   item: Record<string, unknown>,

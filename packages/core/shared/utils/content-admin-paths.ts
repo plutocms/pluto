@@ -1,7 +1,6 @@
 import type { PlutoContentType } from '../types/content'
 import { contentIdPath } from './content-id'
 
-/** The admin list path of a type: `basePath`, else `/admin/content/<name>`. */
 export function contentTypeBasePath(type: PlutoContentType): string {
   return type.basePath ?? `/admin/content/${type.name}`
 }
@@ -33,10 +32,6 @@ export function contentTypeEditPath(
   )
 }
 
-/**
- * The admin bar buttons that a type asks for. `true` gives both. Unset gives none. A singleton
- * type has no "New" button.
- */
 export function contentTypeAdminBar(type: PlutoContentType): {
   new: boolean
   edit: boolean

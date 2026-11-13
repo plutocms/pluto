@@ -1,14 +1,8 @@
 import type { Ref } from 'vue'
 import { Extension } from '@tiptap/core'
 
-/** The shortest time between two renders that the editor state starts, in ms. */
 const RENDER_INTERVAL = 120
 
-/**
- * A ref that keeps each new value at once, but starts the renders that read it at most once per
- * `RENDER_INTERVAL`: the first change after a pause renders on the next frame, the next ones
- * together at the end of the interval.
- */
 function throttledRef<T>(initial: T): Ref<T> {
   let value = initial
   let last = 0
@@ -59,7 +53,6 @@ export const PlutoThrottledState = Extension.create({
       return
     }
     editor.reactiveState = throttledRef(editor.view.state)
-    // The components that read the old ref render once more, and read the new one from then on.
     old.value = editor.view.state
   },
 })

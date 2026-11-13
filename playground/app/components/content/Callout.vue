@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// A content component for the posts of the playground: a note, a tip or a warning, as a Nuxt UI
-// alert. The post editor lists it under "Insert a component" (it calls `definePlutoBlock`).
 const props = withDefaults(
   defineProps<{
     type?: 'note' | 'tip' | 'warning'

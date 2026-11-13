@@ -16,7 +16,7 @@ Tailwind.
 | `PlutoProse`                      | supabase-blog | A rich text value, with the `pluto-prose` class.                                                                                                                                                                                                                                   |
 | `Pluto3dViewer`, `Pluto3dPreview` | 3d            | Layout in the component, look in the base file.                                                                                                                                                                                                                                    |
 
-`PlutoMarkdown` is the old Git CMS name of `PlutoHtml`. The docs layer is a full docs site on
+The docs layer is a full docs site on
 Nuxt UI and Nuxt Content: a site that uses it needs Tailwind and Nuxt UI.
 
 `ColorModeButton` (core, unprefixed): one `<button>` with the `pluto-color-mode-button` class and a

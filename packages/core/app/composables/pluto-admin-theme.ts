@@ -1,23 +1,10 @@
-/**
- * Puts `data-pluto-admin` on <html> while the calling component is mounted.
- * `app/assets/css/admin-theme.css` keys the admin's own palette, chart
- * colors, surfaces, and font on that attribute, so the consumer app's
- * public-site theme (its app.config colors and @theme) does not reach the
- * admin. The attribute sits on <html>, not on a layout wrapper, so it also
- * covers overlays that render at the end of <body>.
- *
- * Call it from every admin layout. `useHead` removes the attribute when the
- * layout unmounts, so the public site never gets it.
- *
- * `useHead` puts the attribute in the server HTML, but in the browser it
- * writes <html> after the render, a frame late. The admin build is scoped to
- * the attribute, so a client navigation from the public site showed one frame
- * of the admin with no styles. `onMounted` runs in the same task as the DOM
- * change, before the paint, so the attribute is set there too. A count keeps
- * it while another admin layout is mounted.
- */
 let mountedAdminLayouts = 0
 
+/**
+ * Marks the page as an admin page, so the admin theme applies and the theme of the public site stays out.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/styles
+ */
 export function usePlutoAdminTheme() {
   useHead({ htmlAttrs: { 'data-pluto-admin': '' } })
   if (import.meta.client) {
@@ -102,8 +89,6 @@ export const PLUTO_ADMIN_UI = {
   badge: { base: 'font-sans' },
   input: { root: 'w-full', base: 'font-sans' },
   textarea: { base: 'font-sans' },
-  // An open select shows the focus style of Nuxt UI (the primary ring and its soft outline): the
-  // list belongs to it.
   select: {
     base: 'font-sans data-[state=open]:outline-3 data-[state=open]:outline-primary/25 data-[state=open]:ring-primary',
   },

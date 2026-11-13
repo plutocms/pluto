@@ -13,7 +13,7 @@
 @layer theme, base, components, utilities;
 
 @layer components {
-  /* PlutoHtml, PlutoMarkdown, and the PlutoProse of the blog layer. */
+  /* PlutoHtml, and the PlutoProse of the blog layer. */
   :where(.pluto-prose) {
     --pluto-prose-heading: var(--ui-text-highlighted, currentColor);
     --pluto-prose-muted: var(

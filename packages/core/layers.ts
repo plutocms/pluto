@@ -1,11 +1,4 @@
-/**
- * The local layers helper. An app imports it in `nuxt.config.ts`:
- *
- *   import { plutoLayer } from '@plutocms/core/layers'
- *
- * Nuxt loads `nuxt.config.ts` before any module runs, so this file has no
- * Nuxt runtime import. It uses Node built-ins only. See the local-layers skill.
- */
+// Nuxt loads `nuxt.config.ts` before any module runs: this file imports Node built-ins only.
 import { existsSync } from 'node:fs'
 import { isAbsolute, resolve } from 'node:path'
 import process from 'node:process'
@@ -15,10 +8,7 @@ export interface PlutoLayerOptions {
   root?: string
 }
 
-/**
- * The checkout of each Pluto layer under the root. The key is the package name
- * without the scope. A package of a monorepo is in a folder of its repo.
- */
+/** The checkout of each Pluto layer under the root, by package name without the scope. */
 export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
   core: 'pluto/packages/core',
   supabase: 'supabase/packages/supabase',
@@ -33,7 +23,6 @@ export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
 
 const SCOPE = '@plutocms/'
 
-/** `@plutocms/supabase-shop` becomes `supabase-shop`. */
 function folderOf(name: string): string {
   return name.startsWith(SCOPE) ? name.slice(SCOPE.length) : name
 }
@@ -43,22 +32,23 @@ export function plutoLayerEnvName(name: string): string {
   return `PLUTO_${folderOf(name).toUpperCase().replaceAll('-', '_')}_PATH`
 }
 
-/** The checkout of a layer under the root. A layer that is not in the map has a folder of its name. */
 function checkoutOf(root: string, folder: string): string {
   return resolve(root, PLUTO_LAYER_PATHS[folder] ?? folder)
 }
 
 /**
- * Returns a Nuxt `extends` entry for a Pluto layer.
+ * Returns a Nuxt `extends` entry for a Pluto layer: the package name, so Nuxt uses the npm
+ * package.
  *
- * Default: the package name, so Nuxt uses the npm package.
+ * Local mode is on when `PLUTO_LOCAL_ROOT` or `options.root` is set, unless `PLUTO_USE_LOCAL=false`.
+ * The root is an absolute path, or a path relative to the current working directory. In local
+ * mode the helper sets `PLUTO_<NAME>_PATH` for every known checkout under the root, so the layers
+ * that extend other Pluto layers use the local copies too. An explicit `PLUTO_<NAME>_PATH` wins.
  *
- * Local mode is on when `PLUTO_LOCAL_ROOT` is set (or `options.root` is set),
- * unless `PLUTO_USE_LOCAL=false`. The root is a path, absolute or relative to
- * the current working directory. In local mode the helper sets
- * `PLUTO_<NAME>_PATH` for every known checkout under the root, so the layers
- * that extend other Pluto layers use the local copies too. An explicit
- * `PLUTO_<NAME>_PATH` always wins.
+ * @example
+ * import { plutoLayer } from '@plutocms/core/layers'
+ * export default defineNuxtConfig({ extends: [plutoLayer('@plutocms/core')] })
+ * @see https://pluto.vulmix.dev/docs/contributing/workspace#the-plutolayer-helper
  */
 export function plutoLayer(
   name: string,

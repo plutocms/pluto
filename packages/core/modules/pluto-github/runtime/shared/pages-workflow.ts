@@ -1,9 +1,7 @@
-/** The path of the GitHub Pages workflow that the Deploy page writes. */
 export const PAGES_WORKFLOW_PATH = '.github/workflows/pluto-pages.yml'
 
 export type PackageManager = 'npm' | 'pnpm' | 'yarn' | 'bun'
 
-/** The lock file of each package manager, in the order the check reads them. */
 const LOCK_FILES: [string, PackageManager][] = [
   ['bun.lock', 'bun'],
   ['bun.lockb', 'bun'],
@@ -12,23 +10,15 @@ const LOCK_FILES: [string, PackageManager][] = [
   ['package-lock.json', 'npm'],
 ]
 
-/** The package manager of a project, from the files at its root. Default npm. */
 export function detectPackageManager(files: readonly string[]): PackageManager {
   const names = new Set(files)
   return LOCK_FILES.find(([file]) => names.has(file))?.[1] ?? 'npm'
 }
 
-/** A GitHub Actions expression: `${{ <expression> }}` in the workflow. */
 function actionsExpression(expression: string): string {
   return ['$', '{{ ', expression, ' }}'].join('')
 }
 
-/**
- * The setup and install steps of each package manager, and the build command, as YAML lines. The
- * command is `nuxt generate`, not `nuxt build`: Nuxt Icon sees a static site only through
- * `generate`. Then it reads icons from the Iconify API in the browser, instead of the
- * `/api/_nuxt_icon` route that a static site does not have.
- */
 function buildSteps(manager: PackageManager): {
   setup: string[]
   build: string
@@ -74,13 +64,6 @@ function buildSteps(manager: PackageManager): {
   }
 }
 
-/**
- * The script of the `publish` job: plain Node, no install. It reads every `.md` file under the
- * content dir (`PLUTO_CONTENT_DIR`; dot folders such as `.trash` are skipped), and sets
- * `status: scheduled` to `status: published` when `publishedAt` is now or earlier. Only that
- * line changes. It writes `published=<count>` to `GITHUB_OUTPUT`. The keys are the ones of the
- * built-in post type; a type with other keys is not covered.
- */
 export const PUBLISH_SCHEDULED_SCRIPT = [
   "import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'",
   "import { join } from 'node:path'",
@@ -117,21 +100,9 @@ export const PUBLISH_SCHEDULED_SCRIPT = [
   "console.log('Published ' + published + ' scheduled item(s).')",
 ]
 
-/**
- * The GitHub Actions workflow that builds the site as static files and deploys it to GitHub
- * Pages, on each push to the content branch. The build reads the Markdown of the checkout, so it
- * needs no secret. `PLUTO_BASE_URL` gets the sub path of a project site (`/<repo>`), or nothing
- * for a user site or a custom domain. `NUXT_PUBLIC_WEBSITE_URL` gets the address of the site.
- *
- * Scheduled publish: a static site has no server task. Every hour, the `publish` job sets the
- * due scheduled posts to published (`PUBLISH_SCHEDULED_SCRIPT`) and commits them; the build runs
- * only when it published one. A push with the token of the workflow starts no other workflow, so
- * the build runs in the same run, on the new commit. The schedule runs on the default branch.
- */
 export function renderPagesWorkflow(options: {
   branch: string
   packageManager: PackageManager
-  /** The content dir of the Git CMS (`plutoGithub.dir`). Default `content`. */
   dir?: string
 }): string {
   const { setup, build } = buildSteps(options.packageManager)
@@ -220,7 +191,6 @@ export function renderPagesWorkflow(options: {
   ].join('\n')
 }
 
-/** The default address of a GitHub Pages site: `https://<owner>.github.io/<repo>/`. */
 export function defaultPagesUrl(repo: string): string {
   const [owner = '', name = ''] = repo.split('/')
   const host = `${owner.toLowerCase()}.github.io`

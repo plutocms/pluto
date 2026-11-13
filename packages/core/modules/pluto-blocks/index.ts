@@ -18,27 +18,12 @@ import {
   MACRO_KEY,
 } from './catalog'
 
-/**
- * The block components of a site: the files of `components/content/` (the app and its layers) that
- * call `definePlutoBlock(...)`. Two Vite virtual modules:
- *
- * - `#pluto-blocks`: the block definitions (props, slots, label, icon), from the TypeScript meta
- *   and the macro. Only the editors import it (the block editor of the docs layer, the component
- *   chip of the post editor), so it stays out of the public pages. The server build gets an empty
- *   object. The parser loads with the first import, not at start-up, and parses only a changed file.
- * - `#pluto-block-components`: a loader for each such file, by its kebab name. `PlutoHtml` renders a
- *   component of a post with it, on the server and in the browser. A text check finds the macro:
- *   no parse.
- *
- * See the content-components skill.
- */
 export default defineNuxtModule({
   meta: { name: 'pluto-blocks' },
   setup(_options, nuxt) {
     const logger = useLogger('pluto-blocks')
     const { resolve } = createResolver(import.meta.url)
 
-    // `definePlutoBlock(...)` in a component file. A typed no-op at run time: the build reads the call.
     addImports({
       name: BLOCK_MACRO,
       from: resolve('../../shared/utils/blocks/define'),
@@ -48,26 +33,20 @@ export default defineNuxtModule({
   },
 })
 
-function setupBlockModules(
-  nuxt: Nuxt,
-  logger: ReturnType<typeof useLogger>
-) {
+function setupBlockModules(nuxt: Nuxt, logger: ReturnType<typeof useLogger>) {
   const ids = {
     blocks: '#pluto-blocks',
     components: '#pluto-block-components',
   }
-  // The `\0` prefix marks a virtual id. No `#` in it: a browser URL ends at the `#`.
   const resolved = {
     blocks: '\0pluto-blocks',
     components: '\0pluto-block-components',
   }
-  // The app first, then its layers (the order of priority).
   const dirs = () =>
     nuxt.options._layers.map((layer) =>
       join(layer.config.srcDir, CONTENT_COMPONENTS_DIR)
     )
 
-  // The cache of the parser names a file from the text after the last slash, so give it slashes.
   const slashes = (path: string) => path.replaceAll('\\', '/')
 
   type Reader = typeof import('nuxt-component-meta/parser').getComponentMeta
@@ -123,7 +102,6 @@ function setupBlockModules(
       if (options?.ssr) {
         return blocksModuleSource({})
       }
-      // The parser loads here, not at start-up, because it brings the TypeScript compiler.
       getComponentMeta ||= (await import('nuxt-component-meta/parser'))
         .getComponentMeta
       return blocksModuleSource(catalog.collect())
@@ -143,7 +121,6 @@ function setupBlockModules(
       if (!isBlockFile(file)) {
         return undefined
       }
-      // A file can get or lose the macro: both virtual modules load again, with the component.
       const virtual = Object.values(resolved)
         .map((id) => server.moduleGraph.getModuleById(id))
         .filter((module) => module !== undefined)

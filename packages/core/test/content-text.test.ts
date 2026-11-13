@@ -31,7 +31,6 @@ const type: PlutoContentType = {
   ],
 }
 
-/** An i18n object with extra messages, as a layer's locale file would add. */
 function withMessages(
   messages: Record<string, string>,
   locale:

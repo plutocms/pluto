@@ -12,7 +12,6 @@ const publicMediaCache = new WeakMap<
   Promise<Map<string, PlutoMedia>>
 >()
 
-/** The records of every `media` field of the items of one answer, with one `driver.get`. */
 function loadPublicMedia(
   event: H3Event,
   type: PlutoContentType,
@@ -44,11 +43,6 @@ function loadPublicMedia(
   return pending
 }
 
-/**
- * Puts the records in place of the ids of the public `media` fields of `data`:
- * one record (or `null`), or a list for a `multiple` field. An id with no
- * record (a deleted file) is dropped.
- */
 export async function expandPublicMedia(
   event: H3Event,
   type: PlutoContentType,

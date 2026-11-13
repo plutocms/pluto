@@ -4,44 +4,23 @@ import { createPrivateKey, createSign } from 'node:crypto'
 import { createPlutoError } from '../../../../../server/utils/pluto-error'
 import { githubRest } from './client'
 
-/** Renew the installation token when it ends in less than this many ms. */
 const RENEW_MARGIN = 5 * 60 * 1000
 
 export interface AppTokenOptions {
-  /** `owner/name`. */
   repo: string
   apiUrl?: string
   appId: string
-  /** The App private key in PEM. A literal `\n` (two characters) stands for a new line. */
   privateKey: string
-  /** A read-only token. When set, it replaces the installation token. */
   readToken?: string
   fetch?: GithubFetch
   now?: () => number
 }
 
 export interface AppTokenProvider {
-  /** The token for anonymous public reads. Throws a 503 when nothing is set up. */
   getReadToken: () => Promise<string>
-  /**
-   * An installation token that can write the contents of the repo, for a system request (a
-   * scheduled task). Needs the App id and key; the read token does not count. Throws a 503 when
-   * they are missing.
-   */
   getWriteToken: () => Promise<string>
 }
 
-/**
- * Turns the value of the private key env var into a PEM. It accepts three
- * formats:
- *
- * - A PEM with real line breaks.
- * - A PEM on one line, with a literal `\n` (two characters) for each line break.
- * - The base64 of the PEM, on one line. The value has no `-----BEGIN`. The
- *   function decodes it, and uses the result when it has `-----BEGIN`.
- *
- * Any other value comes back trimmed, so the key parser gives the error.
- */
 export function normalizePem(value: string): string {
   const text = value.trim().replace(/\\n/g, '\n').replace(/\r\n/g, '\n')
   if (text.includes('-----BEGIN')) {
@@ -65,10 +44,6 @@ function base64Url(value: string | Buffer): string {
   return Buffer.from(value).toString('base64url')
 }
 
-/**
- * Signs the JWT of a GitHub App (RS256). `iat` is 60 seconds in the past to
- * allow clock drift. The token lives 9 minutes. GitHub allows 10 at most.
- */
 export function createAppJwt(options: {
   appId: string
   privateKey: string
@@ -106,21 +81,12 @@ function unavailable(notConfigured = false) {
       })
 }
 
-/**
- * Gives the token for anonymous reads of the public site. A read-only token
- * from `readToken` wins. Without it, the provider signs an App JWT,
- * finds the installation on the repo and asks for an installation token that
- * can only read contents on this one repo. It keeps that token in memory
- * until 5 minutes before it ends. With no credentials at all, it throws a 503
- * and logs the cause. It never throws when it is built.
- */
 export function createAppTokenProvider(
   options: AppTokenOptions
 ): AppTokenProvider {
   const now = options.now ?? Date.now
   const [, name = ''] = options.repo.split('/')
   let installationId: number | undefined
-  /** One token for each permission: `read` for the public pages, `write` for a system request. */
   const cached: Partial<
     Record<
       'read' | 'write',
@@ -140,7 +106,6 @@ export function createAppTokenProvider(
     access: 'read' | 'write' = 'read'
   ): never {
     if (access === 'write') {
-      // A system request (a scheduled task) logs once in its own caller.
       throw unavailable(notConfigured)
     }
     if (!warned) {
@@ -200,7 +165,6 @@ export function createAppTokenProvider(
       }
       return token.token
     } catch (error) {
-      // The installation may be gone or new. Look it up again next time.
       installationId = undefined
       return fail(
         'GitHub did not give an installation token. Install the App on the repo.',

@@ -1,4 +1,8 @@
-/** The run-time config of the public API. See `runtimeConfig.plutoApi` in `nuxt.config.ts`. */
+/**
+ * The run-time config of the public API: `runtimeConfig.plutoApi` in `nuxt.config.ts`.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api#cache-and-cors
+ */
 export interface PlutoApiConfig {
   /** `true`: any origin (`*`). A list: only these origins. `false`: no CORS header. */
   cors: boolean | string[]
@@ -17,7 +21,6 @@ export const PLUTO_API_DEFAULTS: PlutoApiConfig = {
   highlighter: '',
 }
 
-/** Reads a CORS value. An env var gives text: `false`, `true`, or a JSON list of origins. */
 function corsValue(value: unknown): boolean | string[] {
   if (typeof value === 'boolean') {
     return value

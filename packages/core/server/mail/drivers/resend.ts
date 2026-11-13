@@ -2,24 +2,14 @@ import type { PlutoMailDriver } from '../../../shared/types/mail'
 import { PlutoMailError } from '../errors'
 import { createResendClient } from '../resend-client'
 
-/**
- * The From address Resend lets every account use. It delivers only to the
- * email address of the Resend account, until the site verifies a domain.
- */
 export const RESEND_TEST_SENDER = 'Pluto <onboarding@resend.dev>'
 
 export interface ResendDriverOptions {
   apiKey: string
-  /** Default: the global `fetch`. A test passes a fake. */
   fetch?: typeof fetch
   timeoutMs?: number
 }
 
-/**
- * Sends through the Resend HTTP API with plain `fetch`. Each attempt has a
- * timeout. A network error, a timeout or a 5xx gets one retry with the same
- * `Idempotency-Key`, so Resend never sends the same message twice.
- */
 export function createResendDriver(
   options: ResendDriverOptions
 ): PlutoMailDriver {

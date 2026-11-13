@@ -1,9 +1,7 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 import { activeNavGroups, nextOpenGroups } from './internal/admin-menu'
 
-// `to` is typed per-app via Nuxt's typed pages, so it differs across every
-// app that extends this layer. This menu only ever uses `href`, so drop `to`
-// here to avoid a cross-app type mismatch on that field.
+/** A sidebar menu item of the admin. */
 export type PlutoAdminMenuItem = Omit<NavigationMenuItem, 'to'> & {
   /** The new page of a content type. PlutoAdminNavMenu shows a "+" for it. */
   newTo?: string
@@ -12,19 +10,13 @@ export type PlutoAdminMenuItem = Omit<NavigationMenuItem, 'to'> & {
 
 function toMenuItem(item: PlutoNavItem, active: boolean): PlutoAdminMenuItem {
   return {
-    // The value names the item in the open groups (usePlutoAdminMenuGroups).
     value: item.id,
-    // A group is active on every page that belongs to it: its own path, a
-    // child's path, a page below one of them, or a `match` path (an edit
-    // page). Without it, the link is active on its own path only.
     active: active || undefined,
     label: item.label,
     icon: item.icon,
     href: item.to,
     newTo: item.newTo,
     newLabel: item.newLabel,
-    // Top-level items SPA-navigate instead of doing a full page load.
-    // Children stay href-only.
     onSelect: item.to ? () => navigateTo(item.to) : undefined,
     children: item.children?.map((child) => ({
       label: child.label,
@@ -32,11 +24,7 @@ function toMenuItem(item: PlutoNavItem, active: boolean): PlutoAdminMenuItem {
       href: child.to,
       newTo: child.newTo,
       newLabel: child.newLabel,
-      // A child that points at its parent's own path (Settings > General)
-      // must not stay active on the sibling pages below that path.
       exact: child.to === item.to ? true : undefined,
-      // Only a top-level item shows the active background. An active child
-      // shows the primary text color alone.
       ui: { link: 'data-active:before:bg-transparent' },
     })),
   }
@@ -46,6 +34,8 @@ function toMenuItem(item: PlutoNavItem, active: boolean): PlutoAdminMenuItem {
  * The admin navigation as `UNavigationMenu` items. The admin layout's
  * sidebar and the public-page admin menu (`PlutoNavbarAdminMenu`) both
  * use it, so they always show the same items.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/extension-registry
  */
 export function usePlutoAdminMenu() {
   const route = useRoute()
@@ -97,6 +87,8 @@ export function usePlutoAdminMenuGroups() {
  * cross-repo contract: the `supabase` layer's navbar
  * (`app/components/navbar/NavbarAdmin.vue`) writes to this exact state key
  * from its menu button. Keep the name as it is.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/extension-registry
  */
 export function usePlutoAdminMenuOpen() {
   return useState<boolean>('pluto-admin-sidebar-open', () => false)

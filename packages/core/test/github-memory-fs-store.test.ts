@@ -16,7 +16,6 @@ afterEach(async () => {
   }
 })
 
-// The same behavior for the memory and the fs store.
 function contract(label: string, make: () => Promise<PlutoGithubStore>) {
   describe(`${label} store`, () => {
     it('lists the .md files of a dir, sorted, and skips other files', async () => {

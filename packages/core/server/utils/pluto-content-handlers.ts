@@ -16,14 +16,6 @@ import {
 import { createPlutoError } from './pluto-error'
 import { createPlutoSystemEvent } from './pluto-system'
 
-/**
- * The real logic behind the generic content routes, kept in plain exported
- * functions — not inline in a `server/api/**` route file — so it can be
- * unit-tested by calling it directly, the same way this workspace already
- * tests everything else: no live Nitro server, no `@nuxt/test-utils`.
- */
-
-/** The key of the server copy of a new item. */
 const NEW_BACKUP_KEY = '+new'
 
 export function requireContentType(name: string): PlutoContentType {
@@ -55,21 +47,6 @@ export function requireContentAdapter(): PlutoContentAdapter {
   return adapter
 }
 
-/**
- * Checks `capability` against `event`, but only when there is something to
- * check against. Exported because both write handlers below share it, and
- * a test exercises it indirectly through them.
- *
- * Fails open on purpose, in two cases:
- * - `capability` is undefined (the content type declares no capability for
- *   this operation): nothing to enforce, anyone who can reach the route
- *   may proceed.
- * - The registered adapter has no `authorize` method: the same fail-open
- *   rule `usePlutoPermissions().can()` already documents for "no
- *   permissions backend registered at all" — with no boundary to enforce,
- *   the adapter's own backing store (RLS, or equivalent) is still the real
- *   gate.
- */
 export async function authorizeContentOperation(
   event: H3Event,
   capability: string | undefined
@@ -87,21 +64,7 @@ export async function authorizeContentOperation(
   await adapter.authorize(event, capability)
 }
 
-/**
- * Lists items for `ctx.type`. Never checks `type.capabilities.read` and
- * never calls `adapter.authorize` — see the content-model skill for why:
- * in short, "read" is not all-or-nothing for a type like `posts` (an
- * anonymous visitor can read published posts; only drafts need a
- * capability), and that distinction already lives in the adapter's backing
- * store (RLS, for the one adapter that exists so far). This route always
- * asks the adapter for everything, unfiltered by capability, because it is
- * admin-surface-only in intent — a public-facing read path is a layer's
- * own hand-written endpoint, not this generic one.
- *
- * `published: true` narrows the result to published rows. The dashboard
- * uses it, with `limit: 1`, to count published rows next to the total.
- * It only narrows the result, so it needs no capability check either.
- */
+// No read capability check here: the adapter decides what an anonymous caller sees.
 export async function listContentItems(
   ctx: PlutoContentContext,
   query: PlutoAdminListQuery & {
@@ -110,8 +73,6 @@ export async function listContentItems(
     published?: boolean
   }
 ): Promise<PlutoContentListResult> {
-  // The admin list of a publisher publishes the due items first: a host with no scheduled task
-  // (Vercel with Nitro 2, Netlify) still gets a right status. The dashboard count does not.
   if (query.published !== true) {
     await publishDueOnOpen(ctx)
   }
@@ -122,15 +83,10 @@ export async function listContentItems(
     sort: query.sort ?? ctx.type.defaultSort,
     filters: query.filters,
     status: query.status,
-    // A status filter can ask for a draft, so it needs the unpublished rows.
     includeUnpublished: query.published !== true,
   })
 }
 
-/**
- * Publishes the scheduled items of the type whose time has come, when the caller can publish.
- * A caller without the publish capability only reads. A failure only warns: the list still loads.
- */
 async function publishDueOnOpen(ctx: PlutoContentContext): Promise<void> {
   const adapter = requireContentAdapter()
   if (!adapter.publishDue || !statusRules(ctx.type)?.scheduled) {
@@ -153,7 +109,6 @@ async function publishDueOnOpen(ctx: PlutoContentContext): Promise<void> {
   }
 }
 
-/** Gets one item by id or slug. No capability check — see `listContentItems`. */
 export async function getContentItem(
   ctx: PlutoContentContext,
   idOrSlug: string | number
@@ -183,11 +138,6 @@ function requirePlainObjectBody(body: unknown): Record<string, unknown> {
   return body as Record<string, unknown>
 }
 
-/**
- * Removes the server copy of the caller after a save or a delete worked. It does nothing when the
- * adapter keeps no copies. A copy that stays is harmless, so an error only warns: it never fails the
- * save. `key` is the item id as text, or '+new'.
- */
 export async function removeBackupQuietly(
   ctx: PlutoContentContext,
   key: string
@@ -202,12 +152,6 @@ export async function removeBackupQuietly(
   }
 }
 
-/**
- * Creates one item. Validates the full payload (not partial), authorizes
- * against `type.capabilities.write`, then calls the adapter, then runs
- * `type.hooks.afterCreate` when one is registered. A hook error propagates
- * — it is not swallowed.
- */
 export async function createContentItem(
   ctx: PlutoContentContext,
   body: unknown
@@ -226,7 +170,6 @@ export async function createContentItem(
 
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
 
-  // A singleton type has one item: a second create is refused, drafts included.
   if (ctx.type.singleton) {
     const existing = await requireContentAdapter().list(ctx, {
       limit: 1,
@@ -252,12 +195,6 @@ export async function createContentItem(
   return item
 }
 
-/**
- * Updates one item. Validates the payload as a partial update, authorizes
- * against `type.capabilities.write`, then calls the adapter, then runs
- * `type.hooks.afterUpdate` when one is registered. A hook error propagates
- * — it is not swallowed.
- */
 export async function updateContentItem(
   ctx: PlutoContentContext,
   id: string | number,
@@ -287,10 +224,6 @@ export async function updateContentItem(
   return item
 }
 
-/**
- * Deletes one item. Authorizes against `type.capabilities.delete` before calling the adapter. The
- * item of a singleton type cannot be deleted (400).
- */
 export async function deleteContentItem(
   ctx: PlutoContentContext,
   id: string | number
@@ -305,7 +238,6 @@ export async function deleteContentItem(
 
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
 
-  // A type with a trash moves the item there. Without one, the delete is final.
   const adapter = requireContentAdapter()
   if (ctx.type.trash && adapter.trash) {
     await adapter.trash.move(ctx, id)
@@ -315,17 +247,14 @@ export async function deleteContentItem(
   await removeBackupQuietly(ctx, String(id))
 }
 
-/** The days that an item stays in the trash. Then the purge deletes it. */
 export const PLUTO_TRASH_DAYS = 30
 
-/** The time before which a trashed item is old enough for the purge (ISO). */
 export function trashCutoff(now: Date = new Date()): string {
   return new Date(
     now.getTime() - PLUTO_TRASH_DAYS * 24 * 60 * 60 * 1000
   ).toISOString()
 }
 
-/** The trash of the adapter, for a type with `trash`. 404 without it on the type, 501 on the adapter. */
 function requireTrash(
   ctx: PlutoContentContext
 ): NonNullable<PlutoContentAdapter['trash']> {
@@ -347,11 +276,6 @@ function requireTrash(
   return trash
 }
 
-/**
- * The trashed items of a type, the last trashed first. It purges the items older than
- * `PLUTO_TRASH_DAYS` first, so a host with no scheduled task purges too. A failed purge only
- * warns. Needs the delete capability.
- */
 export async function listTrashItems(
   ctx: PlutoContentContext,
   query: {
@@ -372,10 +296,6 @@ export async function listTrashItems(
   return trash.list(ctx, query)
 }
 
-/**
- * Purges the expired items of every type with `trash`, as a system request. The scheduled task
- * `pluto:trash:purge` calls it. A type that fails (no server credentials, an outage) only warns.
- */
 export async function purgeExpiredTrash(
   now: Date = new Date()
 ): Promise<{ purged: number; failed: string[] }> {
@@ -401,11 +321,6 @@ export async function purgeExpiredTrash(
   return result
 }
 
-/**
- * Publishes the scheduled items whose time has come, for every content type with
- * `status.schedule`, with a system request. The scheduled task `pluto:publish:scheduled` calls it.
- * A failed type only warns, so the other types still publish.
- */
 export async function publishScheduledContent(
   now: Date = new Date()
 ): Promise<{ published: number; failed: string[] }> {
@@ -433,7 +348,6 @@ export async function publishScheduledContent(
   return result
 }
 
-/** Moves a trashed item back. Needs the delete capability. */
 export async function restoreTrashItem(
   ctx: PlutoContentContext,
   id: string | number
@@ -442,7 +356,6 @@ export async function restoreTrashItem(
   return requireTrash(ctx).restore(ctx, id)
 }
 
-/** Deletes a trashed item forever. Needs the delete capability. */
 export async function purgeTrashItem(
   ctx: PlutoContentContext,
   id: string | number
@@ -451,13 +364,11 @@ export async function purgeTrashItem(
   await requireTrash(ctx).purge(ctx, id)
 }
 
-/** Deletes every trashed item of the type forever. Needs the delete capability. */
 export async function emptyTrash(
   ctx: PlutoContentContext,
   now: Date = new Date()
 ): Promise<{ purged: number }> {
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
-  // One second ahead, so an item trashed in this second goes too.
   const purged = await requireTrash(ctx).purgeBefore(
     ctx,
     new Date(now.getTime() + 1000).toISOString()
@@ -465,10 +376,8 @@ export async function emptyTrash(
   return { purged }
 }
 
-/** Most weeks the activity route accepts. */
 export const CONTENT_ACTIVITY_MAX_WEEKS = 52
 
-/** Monday 00:00 UTC of the week that contains `date`. */
 function startOfWeekUtc(date: Date): Date {
   const start = new Date(
     Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
@@ -478,17 +387,6 @@ function startOfWeekUtc(date: Date): Date {
   return start
 }
 
-/**
- * Counts the items created in each of the last `weeks` weeks, oldest first.
- * The last point is the current week, so far. Weeks start on Monday, UTC.
- *
- * No capability check, for the same reason as `listContentItems`: it only
- * returns counts, and the adapter's backing store already limits what the
- * caller can see.
- *
- * Returns `supported: false` with no points when the adapter has no
- * `countCreated`, or when it returns `null` for this content type.
- */
 export async function contentActivity(
   ctx: PlutoContentContext,
   options: {
@@ -538,18 +436,12 @@ export async function contentActivity(
   }
 }
 
-/** Most revisions in one page. */
 export const CONTENT_REVISIONS_MAX_LIMIT = 50
 
-/** The history of an item is for its editors: the type write capability. */
 async function authorizeRevisions(ctx: PlutoContentContext): Promise<void> {
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
 }
 
-/**
- * The saved versions of one item, newest first. It needs the write capability of the type: only
- * an editor can restore one. Returns `supported: false` when the adapter keeps no revisions.
- */
 export async function listContentRevisions(
   ctx: PlutoContentContext,
   id: string | number,
@@ -574,7 +466,6 @@ export async function listContentRevisions(
   return { supported: true, ...page }
 }
 
-/** One item as it was at a revision. The same rule as `listContentRevisions`. 404 when it has none. */
 export async function getContentRevision(
   ctx: PlutoContentContext,
   id: string | number,
@@ -600,23 +491,14 @@ export async function getContentRevision(
   return item
 }
 
-// --- Server copy of the unsaved changes ------------------------------------------------
-
-/** The server copy is for the editors of the type: the write capability, as a save. */
 async function authorizeBackup(ctx: PlutoContentContext): Promise<void> {
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
 }
 
-/** The key of the copy: the item id, or '+new' when the request has none. */
 function backupKeyOf(id: string | undefined): string {
   return id || NEW_BACKUP_KEY
 }
 
-/**
- * The server copy of the caller for one item (`id` absent: a new item). Returns
- * `supported: false` before any check when the adapter keeps no copies (the Git CMS), so the form
- * sends one cheap request and no backend call happens. Needs the write capability of the type.
- */
 export async function getContentBackup(
   ctx: PlutoContentContext,
   id?: string
@@ -629,11 +511,6 @@ export async function getContentBackup(
   return { supported: true, backup: await backups.get(ctx, backupKeyOf(id)) }
 }
 
-/**
- * Replaces the server copy of the caller. `body` is the raw request text. It must be at most
- * `PLUTO_BACKUP_MAX_CHARS` characters (413) and a record of the backup shape (400). Only the
- * declared backup fields are kept. Same rules as `getContentBackup`.
- */
 export async function putContentBackup(
   ctx: PlutoContentContext,
   id: string | undefined,
@@ -676,7 +553,6 @@ export async function putContentBackup(
   return { supported: true, otherDevice }
 }
 
-/** Removes the server copy of the caller. Same rules as `getContentBackup`. */
 export async function removeContentBackup(
   ctx: PlutoContentContext,
   id?: string

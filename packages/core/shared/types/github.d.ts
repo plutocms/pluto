@@ -1,7 +1,5 @@
 import type { PlutoGithubOptions } from '../../modules/pluto-github/options'
 
-// The `pluto-github` module fills these keys. See modules/pluto-github/index.ts.
-// The secret keys come from `NUXT_PLUTO_GITHUB_<NAME>` env vars at run time.
 declare module '@nuxt/schema' {
   interface NuxtConfig {
     plutoGithub?: PlutoGithubOptions

@@ -4,9 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
 import { createI18nStub } from './fixtures/i18n-stub'
 
-// Same Nuxt-global stubbing as test/pluto-admin-nav-content.test.ts.
-// pluto-command-palette.ts uses auto-imported globals and sibling
-// composables that do not exist outside a Nuxt build.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
 const navItems = ref<PlutoNavItem[]>([])
 const contentTypes = ref<
   {

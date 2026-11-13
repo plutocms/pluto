@@ -21,7 +21,6 @@ export type { PlutoGithubOptions } from './options'
 
 interface LayerMeta {
   name?: string
-  /** A backend layer sets this to `true`, so the standalone CMS stays off. */
   plutoBackend?: boolean
 }
 
@@ -29,26 +28,16 @@ interface LayerConfigMeta {
   $meta?: LayerMeta
 }
 
-/**
- * The optional standalone CMS: Markdown posts in a GitHub repo, edited in the
- * Pluto admin. `plutoGithub.enabled` is `'auto'` by default: the CMS is on unless
- * a backend layer is present or the app sets `false`. An explicit `true` with a
- * backend layer logs an error. When the CMS is off, the module adds nothing to
- * the app. See the git-cms skill.
- */
 export default defineNuxtModule<PlutoGithubOptions>({
   meta: { name: 'pluto-github', configKey: 'plutoGithub' },
   defaults: { enabled: 'auto' },
   setup(options, nuxt) {
-    // Off when the app says so. Return before any other work.
     if (options.enabled === false) {
       return
     }
 
     const logger = useLogger('pluto-github')
 
-    // A backend app uses the `supabase` layer, the `@nuxtjs/supabase` module, or
-    // a layer with `$meta.plutoBackend: true`.
     const layers = nuxt.options._layers ?? []
     const modules = (nuxt.options.modules ?? []).map((entry) =>
       Array.isArray(entry) ? entry[0] : entry
@@ -59,9 +48,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
         return meta?.name === 'supabase' || meta?.plutoBackend === true
       }) || modules.includes('@nuxtjs/supabase')
 
-    // A static build (`nuxt generate`, or a static Nitro preset such as `github_pages`): the pages
-    // are prerendered from the files of the checkout. The output has no server, so the module adds
-    // no sign-in, admin or write route.
     const isStatic = isStaticBuild(nuxt)
 
     const { enabled, resolved, warnings, errors } = resolvePlutoGithubOptions(
@@ -70,7 +56,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
         dev: nuxt.options.dev,
         hasBackendLayer,
         env: process.env,
-        // The git remote is a dev-only default for the repo. No shell call.
         gitOrigin: nuxt.options.dev
           ? readGitOrigin(nuxt.options.rootDir)
           : undefined,
@@ -83,7 +68,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
         logger.warn(warning)
       }
     }
-    // `nuxt prepare` runs in every install. An auto-enabled CMS stays quiet there.
     if (!(options.enabled === 'auto' && nuxt.options._prepare)) {
       for (const error of errors) {
         logger.error(error)
@@ -93,8 +77,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
       return
     }
 
-    // Empty placeholders, so a `NUXT_PLUTO_GITHUB_<NAME>` env var overrides them
-    // at run time. The module does not check them at build time.
     const secrets: Record<string, string | number | boolean> = {}
     for (const name of [
       ...PLUTO_GITHUB_SECRET_ENV.required,
@@ -105,20 +87,15 @@ export default defineNuxtModule<PlutoGithubOptions>({
 
     const deployHost = detectDeployHost(process.env)
 
-    // Non-secret settings for the server code. They stay out of the public
-    // config. `fsRoot` is set for the dev `fs` store only.
     Object.assign(secrets, {
       apiUrl: resolved.github.apiUrl,
       skipDeploy: resolved.commit.skipDeploy,
-      // A static build only reads.
       localCommit: resolved.commit.local && !isStatic,
       headTtl: resolved.cache.headTtl,
       cacheStorage: resolved.cache.storage,
       postType: resolved.postType,
       fsRoot: resolved.storage === 'fs' ? nuxt.options.rootDir : '',
-      // Development only: the setup writes the `.env` file there.
       rootDir: nuxt.options.dev ? nuxt.options.rootDir : '',
-      // The host that builds the app (Vercel, Netlify). The Deploy tab links to its domain settings.
       host: deployHost.id,
       hostSite: deployHost.site,
     })
@@ -134,10 +111,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
       dir: resolved.dir,
       postType: resolved.postType,
       skipDeploy: resolved.commit.skipDeploy,
-      // A static build has no server: the client asks for no session.
       static: isStatic,
     }
-    // The media library of core uses the GitHub driver (runtime/server/media.ts).
     const media = nuxt.options.runtimeConfig.public.plutoMedia as
       Record<string, unknown> | undefined
     nuxt.options.runtimeConfig.public.plutoMedia = {
@@ -147,7 +122,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
 
     const resolver = createResolver(import.meta.url)
     const server = (file: string) => resolver.resolve('./runtime/server', file)
-    // A route of the server build. A static build has no server, so it adds none.
     const addRoute = (
       route: string,
       method: 'get' | 'post' | 'delete',
@@ -158,13 +132,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
       }
     }
 
-    // The Nitro plugin registers the store, the adapter and the post type. A static build needs
-    // it too: the public API reads the files while the pages prerender.
     addServerPlugin(server('plugins/pluto-github'))
 
-    // A site that reads from GitHub bundles the Markdown of its content dir as it was at build
-    // time (the host builds from a checkout). Until the server has a read token or the GitHub
-    // App, the public pages read this snapshot instead of failing. See `withBuildSnapshot`.
     if (resolved.storage === 'github' && !isStatic) {
       nuxt.options.nitro ||= {}
       nuxt.options.nitro.serverAssets ||= []
@@ -175,10 +144,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
       })
     }
 
-    // A static build: the base path, the admin out of the prerender and the public index are in
-    // the pluto-static module of core, for every backend.
-
-    // Server: the sign-in routes.
     addRoute(
       '/api/_pluto/auth/github/login',
       'get',
@@ -192,23 +157,9 @@ export default defineNuxtModule<PlutoGithubOptions>({
     addRoute('/api/_pluto/auth/logout', 'post', 'api/auth/logout.post')
     addRoute('/api/_pluto/auth/session', 'get', 'api/auth/session.get')
 
-    // Client: the extension plugin and the session composable. Core owns the
-    // admin routes, the login page and the route guard.
     addPlugin({ src: resolver.resolve('./runtime/app/plugins/pluto-github') })
     addImportsDir(resolver.resolve('./runtime/app/composables'))
 
-    // `PlutoMarkdown` shows the sanitized HTML of a public item. The file lives
-    // under `app/`, so Tailwind scans it. Nuxt would name it from its folder, so
-    // the module gives it the short name.
-    addComponent({
-      name: 'PlutoMarkdown',
-      filePath: resolver.resolve(
-        '../../app/components/Pluto/Github/PlutoMarkdown.vue'
-      ),
-    })
-
-    // `PlutoMarkdownSource` is the raw Markdown editor. A layer uses it to build its own
-    // field widget (the docs layer wraps it). The module gives it the short name.
     addComponent({
       name: 'PlutoMarkdownSource',
       filePath: resolver.resolve(
@@ -216,16 +167,12 @@ export default defineNuxtModule<PlutoGithubOptions>({
       ),
     })
 
-    // The GitHub tab of Settings. The page file lives under `app/`, so Tailwind scans it.
-    // It is a child of the Settings page (`/admin/settings`), so it shows in its tabs.
     const settingsFile = resolver.resolve(
       '../../app/components/Pluto/Github/PlutoGithubSettingsPage.vue'
     )
-    // The Deploy tab of Settings (`/admin/settings/deploy`): the hosts, and GitHub Pages.
     const deployFile = resolver.resolve(
       '../../app/components/Pluto/Github/PlutoGithubDeployPage.vue'
     )
-    // The Users page (`/admin/users`): the people with write access to the repo, read only.
     const usersFile = resolver.resolve(
       '../../app/components/Pluto/Github/PlutoGithubUsersPage.vue'
     )
@@ -259,8 +206,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
       }
     })
 
-    // Setup routes: the checks and the App Manifest flow. See the git-cms skill.
-    // They are static, so they win over the `:type/:slug` route below.
     addRoute('/api/_pluto/github/setup/status', 'get', 'api/setup/status.get')
     addRoute('/api/_pluto/github/setup/start', 'get', 'api/setup/start.get')
     addRoute(
@@ -269,12 +214,8 @@ export default defineNuxtModule<PlutoGithubOptions>({
       'api/setup/callback.get'
     )
 
-    // The build status of the head commit. It needs a signed-in user.
     addRoute('/api/_pluto/github/build-status', 'get', 'api/build-status.get')
 
-    // The Deploy tab: the facts of the hosts and the last Pages deploy, the DNS check of a domain
-    // (signed-in user), and the GitHub Pages workflow setup (local mode on this computer only; the
-    // handler checks it).
     addRoute('/api/_pluto/github/deploy/status', 'get', 'api/deploy/status.get')
     addRoute('/api/_pluto/github/deploy/pages', 'post', 'api/deploy/pages.post')
     addRoute(
@@ -284,19 +225,13 @@ export default defineNuxtModule<PlutoGithubOptions>({
     )
     addRoute('/api/_pluto/github/deploy/dns', 'get', 'api/deploy/dns.get')
 
-    // The people with write access to the repo, for the Users page. It needs a signed-in user.
     addRoute('/api/_pluto/github/users', 'get', 'api/users.get')
 
-    // Local mode: the Git state of the project and the Push button of the backend badge.
-    // A dev build with the `fs` store only. The handlers also check the request.
     if (nuxt.options.dev && resolved.storage === 'fs') {
       addRoute('/api/_pluto/github/local/status', 'get', 'api/local/status.get')
       addRoute('/api/_pluto/github/local/push', 'post', 'api/local/push.post')
     }
 
-    // The public reads of the posts go through the public API of core (`/api/pluto/v1/content/post`).
-
-    // The media files that are in the repo but not in a deploy yet. See the media skill.
     addRoute('/media/**', 'get', 'routes/media.get')
 
     logger.info(
@@ -305,7 +240,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
   },
 })
 
-/** `APP_ID` becomes `appId`. */
 function toCamelCase(name: string): string {
   return name
     .toLowerCase()

@@ -1,14 +1,14 @@
 import { formatCurrency } from './currency'
 
-// Product prices are stored as integer cents (4990 means R$ 49,90).
-// These helpers are the one place that converts between cents and
-// a currency amount. Do not write `/ 100` or `* 100` elsewhere.
+// Prices are integer cents. Convert only with these helpers: do not write `/ 100` or `* 100` elsewhere.
 
 type FormatCurrencyOptions = NonNullable<Parameters<typeof formatCurrency>[1]>
 
 /**
  * Converts integer cents to a currency amount. Example: 4990 -> 49.9.
  * A missing or invalid value gives 0.
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/shop#prices
  */
 export function centsToAmount(cents: number | null | undefined): number {
   if (typeof cents !== 'number' || !Number.isFinite(cents)) {
@@ -21,6 +21,8 @@ export function centsToAmount(cents: number | null | undefined): number {
  * Converts a currency amount to integer cents. Example: 49.9 -> 4990.
  * The result is rounded, so a float error like 0.1 + 0.2 gives exactly 30.
  * A missing or invalid value gives null.
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/shop#prices
  */
 export function amountToCents(
   amount: number | null | undefined
@@ -33,14 +35,14 @@ export function amountToCents(
   return Math.round(Number((amount * 100).toPrecision(15)))
 }
 
-// The most digits the price mask takes: 13 digits of cents (R$ 99.999.999.999,99). The
-// value stays a safe integer.
 const MAX_PRICE_DIGITS = 13
 
 /**
  * Reads the digits of a masked price text as integer cents. Example: "R$ 50,90" -> 5090,
  * and "R$ 50,901" (one digit typed at the end) -> 50901. Digits after the 13th are ignored.
  * A text with no digit gives null.
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/shop#prices
  */
 export function digitsToCents(text: string): number | null {
   const digits = text.replace(/\D/g, '')
@@ -53,6 +55,8 @@ export function digitsToCents(text: string): number | null {
 /**
  * Formats a product price in cents as a currency string (BRL by default).
  * Example: 4990 -> "R$ 49,90".
+ *
+ * @see https://pluto.vulmix.dev/docs/layers/shop#prices
  */
 export function formatProductPrice(
   cents: number | null | undefined,

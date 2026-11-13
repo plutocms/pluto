@@ -1,10 +1,4 @@
 <script setup lang="ts">
-// The Email tab of Settings (admin only). A guided setup for the mail driver:
-// status, a Resend account, the key, a first test, a domain, the From address,
-// a test to anyone, and an optional sending-only key. The Resend key stays in
-// the environment of the server. See the mail skill.
-//
-// The step components are lazy: Nuxt splits each one into its own chunk.
 const { t } = usePlutoI18n()
 
 useHead({
@@ -51,7 +45,6 @@ const { items: panels } = usePlutoMailPanels()
     <LazyPlutoMailStepTest :number="6" mode="anyone" />
     <LazyPlutoMailStepSendingKey />
 
-    <!-- Sections that other layers add (the mailPanels bucket). -->
     <UCard v-for="panel in panels" :key="panel.id">
       <template #header>
         <h2 class="font-semibold">

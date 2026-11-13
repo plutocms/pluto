@@ -1,12 +1,5 @@
 import type { PlutoContentType } from '../../../../shared/types/content'
 
-/**
- * The Git CMS `author` type: the public profile of a post author (name, bio, avatar). The file is
- * `content/authors/<slug>.md`, frontmatter only; the slug (the file name) is the id that a post
- * stores in its `authors` list. An author has no status: it is public once saved. It has no link
- * to a sign-in user, so no user data goes to the public site. Writing and deleting need
- * `authors:manage`. See the authors skill.
- */
 export const plutoGithubAuthorType: PlutoContentType = {
   name: 'author',
   label: 'Author',
@@ -48,8 +41,6 @@ export const plutoGithubAuthorType: PlutoContentType = {
     },
   ],
   slug: { field: 'slug' },
-  // The author page of the site. Change this with `extendContentTypes` when the site uses another
-  // path.
   previewUrl: (item) =>
     typeof item.slug === 'string' && item.slug
       ? `/authors/${item.slug}`

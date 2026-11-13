@@ -29,9 +29,6 @@ export interface PlutoMailTestResult {
 export type PlutoMailKeyState =
   'unknown' | 'checking' | 'full' | 'sending' | 'invalid' | 'missing' | 'failed'
 
-// The domain the admin worked on last, per browser. A convenience only: it
-// saves picking the domain again after a reload. Storage can be blocked, so
-// every access is guarded.
 const DOMAIN_STORAGE_KEY = 'pluto-mail-domain'
 
 function rememberDomain(id: string): void {
@@ -50,7 +47,6 @@ function recalledDomainId(): string | null {
   }
 }
 
-/** Maps a failed key check to a state the page can show. */
 function keyStateFromError(error: unknown): PlutoMailKeyState {
   const code = plutoMailErrorCode(error)
   if (code === 'not_configured') {
@@ -101,7 +97,6 @@ export function usePlutoMail() {
     }
   }
 
-  /** Makes a domain the one the page works on, and keeps it in the `domains` list. */
   function selectDomain(next: PlutoMailDomain | null) {
     domain.value = next
     if (next) {
@@ -112,7 +107,6 @@ export function usePlutoMail() {
     }
   }
 
-  /** Checks the key with Resend. Sets `keyState` and `domains`. */
   async function checkKey(): Promise<PlutoMailKeyState> {
     keyState.value = 'checking'
     try {
@@ -122,7 +116,6 @@ export function usePlutoMail() {
       )
       domains.value = result.domains
       keyState.value = result.access
-      // Pick the domain of the last visit, if it still exists.
       const recalled = recalledDomainId()
       if (!domain.value && recalled) {
         selectDomain(
@@ -136,8 +129,6 @@ export function usePlutoMail() {
     return keyState.value
   }
 
-  // The explicit result type keeps TypeScript from walking the typed route
-  // tree of every layer ("excessive stack depth" in a big app).
   async function sendTest(
     to: string,
     locale?: string
@@ -175,7 +166,6 @@ export function usePlutoMail() {
     )
   }
 
-  /** Makes a sending-only key. The answer holds the key once. */
   async function createSendingKey(domainId?: string): Promise<string> {
     const result = await $fetch<{
       token: string

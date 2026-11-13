@@ -1,10 +1,7 @@
 <script setup lang="ts">
-// The switch between the Visual and the Markdown editor of the post editor. It sits in the
-// footer of the compose panel.
 const props = defineProps<{
   mode: 'visual' | 'markdown'
   disabled?: boolean
-  /** The text has Markdown that the visual editor cannot keep: Visual is off. */
   visualBlocked?: boolean
 }>()
 
@@ -22,8 +19,6 @@ function pick(mode: 'visual' | 'markdown') {
 </script>
 
 <template>
-  <!-- A press on a button does not take the focus from the text: the caret stays and shows, and
-       the other mode gets it. -->
   <div
     :aria-label="t('pluto.post.mode')"
     class="flex gap-1"
@@ -35,7 +30,6 @@ function pick(mode: 'visual' | 'markdown') {
       :disabled="!visualBlocked"
       :content="{ side: 'top' }"
     >
-      <!-- A disabled button gets no pointer events, so the span carries the tooltip. -->
       <span class="inline-flex">
         <UButton
           :variant="mode === 'visual' ? 'solid' : 'outline'"

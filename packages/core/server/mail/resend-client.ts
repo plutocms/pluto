@@ -3,15 +3,12 @@ import { PlutoMailError } from './errors'
 
 const BASE_URL = 'https://api.resend.com'
 
-/** Resend refuses a call with no User-Agent header (403). */
 export const RESEND_USER_AGENT = 'PlutoCMS (+https://github.com/plutocms/pluto)'
 
-/** One attempt may take 4 seconds. A send has one retry. */
 export const RESEND_TIMEOUT_MS = 4000
 
 export interface ResendClientOptions {
   apiKey: string
-  /** Default: the global `fetch`. A test passes a fake. */
   fetch?: typeof fetch
   timeoutMs?: number
   baseUrl?: string
@@ -19,9 +16,7 @@ export interface ResendClientOptions {
 
 export interface ResendRequestOptions {
   body?: unknown
-  /** Sent as the `Idempotency-Key` header. */
   idempotencyKey?: string
-  /** Retry once, with the same key, after a network error, a timeout or a 5xx. */
   retry?: boolean
 }
 
@@ -30,11 +25,6 @@ interface ResendErrorBody {
   message?: string
 }
 
-/**
- * Maps a Resend error answer to a mail error code. The English message is
- * fixed per code: it never repeats the provider text, because that text can
- * hold the address of the recipient.
- */
 export function mapResendError(
   status: number,
   body: ResendErrorBody | null
@@ -86,11 +76,6 @@ export function mapResendError(
   return error('provider_error', `Resend failed with status ${status}.`)
 }
 
-/**
- * A small Resend API client over plain `fetch`: no SDK. It sets the
- * User-Agent header, a timeout for each attempt, and maps every failure to a
- * `PlutoMailError`. The key never appears in an error.
- */
 export function createResendClient(options: ResendClientOptions) {
   const doFetch = options.fetch ?? globalThis.fetch
   const timeoutMs = options.timeoutMs ?? RESEND_TIMEOUT_MS
@@ -139,9 +124,7 @@ export function createResendClient(options: ResendClientOptions) {
       let payload: unknown = null
       try {
         payload = await response.json()
-      } catch {
-        // An empty or invalid body: the status still decides.
-      }
+      } catch {}
 
       if (!response.ok) {
         throw mapResendError(response.status, payload as ResendErrorBody | null)
@@ -164,7 +147,6 @@ export function createResendClient(options: ResendClientOptions) {
   }
 
   return {
-    /** Calls the Resend API. Returns the parsed JSON body. Throws a `PlutoMailError`. */
     async request<T = unknown>(
       method: string,
       path: string,
@@ -181,5 +163,3 @@ export function createResendClient(options: ResendClientOptions) {
     },
   }
 }
-
-export type ResendClient = ReturnType<typeof createResendClient>

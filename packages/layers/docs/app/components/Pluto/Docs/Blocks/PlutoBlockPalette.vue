@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The palette: "Add a block". A search box and the blocks in groups, each with
-// an icon, a name and a one-line description. A choice inserts the block with
-// friendly content and selects it. The editor state holds the open flag and
-// the target, so the outline, the inspector and a shortcut can open it.
 import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui'
 import {
   acceptedNames,

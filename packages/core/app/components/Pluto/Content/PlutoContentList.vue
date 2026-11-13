@@ -22,9 +22,6 @@ const { t, n, d } = usePlutoI18n()
 const text = usePlutoContentText(contentType)
 
 if (!contentType.value) {
-  // The generated page (`app/pages/admin/content/[type]/index.vue`) already
-  // resolves the type and 404s before this component ever mounts, so this
-  // should not normally happen.
   console.error(
     `PlutoContentList: content type "${props.type}" was not found in the registry.`
   )
@@ -32,8 +29,7 @@ if (!contentType.value) {
 
 const { can } = usePlutoPermissions()
 
-// "No capability declared" means the operation is open to anyone who can
-// reach this page — never call can('') as a stand-in for that.
+// No capability declared means open to anyone who can reach this page. Never call can('') for that.
 const canWrite = computed(
   () =>
     !contentType.value?.capabilities?.write ||
@@ -55,10 +51,6 @@ const basePath = computed(
   () => contentType.value?.basePath ?? `/admin/content/${props.type}`
 )
 
-// newPath/editPath exist so an already-deployed layer's URLs never have
-// to change to adopt this component — see the doc comments on
-// PlutoContentType.newPath/editPath for why a single basePath cannot
-// always express both.
 const newPath = computed(
   () => contentType.value?.newPath ?? `${basePath.value}/new`
 )
@@ -69,9 +61,6 @@ function editPath(id: string | number) {
   )
 }
 
-// The search, the status, the filters and the sort live in the route query, so
-// a reload, a link and the back button keep them. A value that the type does
-// not allow is dropped. See `parseAdminListQuery`.
 const route = useRoute()
 const router = useRouter()
 const listQuery = computed<PlutoAdminListQuery>(() =>
@@ -80,7 +69,6 @@ const listQuery = computed<PlutoAdminListQuery>(() =>
     : {}
 )
 
-// A search, a status or a filter narrows the list. A sort alone does not.
 const narrowed = computed(() => isNarrowedListQuery(listQuery.value))
 
 function isListQueryKey(key: string): boolean {
@@ -92,7 +80,6 @@ function isListQueryKey(key: string): boolean {
   )
 }
 
-/** Writes the list query to the route. The other keys of the route query stay. */
 function setListQuery(next: PlutoAdminListQuery) {
   const kept = Object.fromEntries(
     Object.entries(route.query).filter(([key]) => !isListQueryKey(key))
@@ -100,9 +87,6 @@ function setListQuery(next: PlutoAdminListQuery) {
   router.replace({ query: { ...kept, ...adminListQueryKeys(next) } })
 }
 
-// Load the list 50 rows at a time. The table is virtualized, so only the
-// visible rows render, and the next page loads when the user scrolls near
-// the end of the table (or of the card list, on mobile).
 const PAGE_SIZE = 50
 const {
   items,
@@ -122,11 +106,9 @@ const tableRef = useTemplateRef<{
 const mobileListRef = useTemplateRef<HTMLElement>('mobileList')
 
 function loadMoreSafely() {
-  // A failure lands in `error`, and the alert offers "Try again".
   loadMore().catch(() => {})
 }
 
-// Stop while an error shows, so a failing page does not load in a loop.
 const canLoadMore = () => hasMore.value && !error.value
 useInfiniteScroll(() => tableRef.value?.$el, loadMoreSafely, {
   distance: 240,
@@ -134,8 +116,6 @@ useInfiniteScroll(() => tableRef.value?.$el, loadMoreSafely, {
 })
 useInfiniteScroll(mobileListRef, loadMoreSafely, { distance: 240, canLoadMore })
 
-// What to show while the list has no rows. With rows, the list shows
-// them, and a failed refresh shows an alert above them instead.
 const emptyState = computed<'loading' | 'error' | 'empty' | 'no-match' | null>(
   () => {
     if (items.value.length > 0) {
@@ -155,9 +135,6 @@ function retry() {
   refresh().catch(() => {})
 }
 
-// The first page loads again while rows show (a search, a filter, the sort, a refresh). The rows
-// dim and the table shows its bar until the new rows arrive. A next page (`loadingMore`) does
-// not dim the rows: the footer says "Loading more".
 const refreshing = computed(() => pending.value && items.value.length > 0)
 const tableUi = computed(() => ({
   tr: 'group',
@@ -167,8 +144,7 @@ const tableUi = computed(() => ({
     : 'transition-opacity',
 }))
 
-// Buttons navigate with `navigateTo`, not `to`: `to` is typed per app
-// through typed pages, so a computed button list cannot type it here.
+// Use `navigateTo`, not `to`: `to` is typed per app, so a computed button list cannot type it.
 const emptyActions = computed<ButtonProps[]>(() => {
   const type = contentType.value
   if (!type) {
@@ -196,8 +172,6 @@ const emptyActions = computed<ButtonProps[]>(() => {
     : []
 })
 
-// The title of an item, or an empty string. The list shows "Untitled" for an
-// item without one, so its row still has a link to open it.
 function itemTitle(item: PlutoContentItem): string {
   const value = item[contentType.value?.titleField ?? '']
   return typeof value === 'string' || typeof value === 'number'
@@ -205,7 +179,6 @@ function itemTitle(item: PlutoContentItem): string {
     : ''
 }
 
-// The table slot of the title column. The title cell links to the edit page.
 const titleCellSlot = computed(
   () => `${contentType.value?.titleField ?? ''}-cell`
 )
@@ -216,31 +189,23 @@ const listFields = computed(() =>
     .sort((a, b) => (a.order ?? 100) - (b.order ?? 100))
 )
 
-// A `reference` field with a `target` shows the labels of the referenced items as badges.
 function isReferenceColumn(field: PlutoField): field is PlutoReferenceField {
   return isTargetReference(field)
 }
 
-// The fields of a card on a small screen. The title is the card heading.
 const cardFields = computed(() =>
   listFields.value.filter(
     (field) => field.name !== contentType.value?.titleField
   )
 )
 
-// The status of each item, for a type with a publish workflow. A draft shows
-// a neutral badge, a published item a green one, as in the form toolbar.
 const statusConfig = computed(() => contentType.value?.status || null)
 
-// Bulk actions on the rows of the table. Publish and Unpublish need a workflow
-// and the publish capability, Remove needs the delete capability.
 const canBulkStatus = computed(
   () => Boolean(statusConfig.value) && canPublish.value
 )
 const canBulk = computed(() => canBulkStatus.value || canDelete.value)
 
-// The search waits 300 ms after the last key. A change of the route (the back
-// button, "Clear the filters") puts its text back in the box.
 const searchText = ref(listQuery.value.search ?? '')
 const applySearch = useDebounceFn((value: string) => {
   setListQuery({ ...listQuery.value, search: value.trim() || undefined })
@@ -257,7 +222,6 @@ watch(
   }
 )
 
-// The values of the type, plus In review and Scheduled when the type has them.
 const statusItems = computed(() =>
   contentStatusValues(contentType.value).map((entry) => ({
     label: text.statusLabel(entry.value, entry.label),
@@ -265,7 +229,6 @@ const statusItems = computed(() =>
   }))
 )
 
-// The fields that filter, with their translated labels and options.
 const filterFields = computed(() =>
   contentType.value
     ? listFilterFields(contentType.value).map((field) => text.field(field))
@@ -286,13 +249,11 @@ function setFilter(name: string, value: string | undefined) {
   setListQuery({ ...listQuery.value, filters })
 }
 
-/** Removes the search, the status and the filters. The sort stays. */
 function clearFilters() {
   searchText.value = ''
   setListQuery({ sort: listQuery.value.sort })
 }
 
-// A sortable column header goes: ascending, descending, then the default sort.
 function sortState(name: string): 'asc' | 'desc' | undefined {
   const sort = listQuery.value.sort
   return sort?.field === name ? sort.direction : undefined
@@ -321,7 +282,6 @@ function sortIcon(name: string): string {
 
 const sortFields = computed(() => listFields.value.filter(isListSortField))
 
-// The badge of an item: green when published, blue with the date when scheduled, amber in review.
 function itemStatus(item: PlutoContentItem): {
   label: string
   color: 'success' | 'neutral' | 'info' | 'warning'
@@ -337,7 +297,6 @@ function itemStatus(item: PlutoContentItem): {
   }
   if (value === rules.scheduled && rules.publishedAtColumn) {
     const time = statusTime(item[rules.publishedAtColumn])
-    // A due item is live: the task sets its status soon.
     if (time !== undefined && time <= Date.now()) {
       return {
         label: text.statusLabel(rules.published),
@@ -391,8 +350,6 @@ const columns = computed<TableColumn<PlutoContentItem>[]>(() => [
 const toast = useToast()
 const errorText = usePlutoErrorText()
 
-// The cover image of a type with the standard `cover` option: a small thumbnail before the title.
-// The records of the cover ids of the loaded rows load in one request, and stay for the next pages.
 const coverName = computed(() => standardFieldNames(contentType.value).cover)
 const covers = ref(new Map<string, PlutoMedia>())
 const mediaApi = usePlutoMedia()
@@ -422,14 +379,11 @@ watch(
         next.set(record.id, record)
       }
       covers.value = next
-    } catch {
-      // No thumbnail: the list works the same.
-    }
+    } catch {}
   },
   { immediate: true }
 )
 
-/** The URL of the thumbnail of an item: the preview image, else the image itself. */
 function coverUrl(item: PlutoContentItem): string | undefined {
   const id = coverId(item)
   const record = id ? covers.value.get(id) : undefined
@@ -446,7 +400,6 @@ const pendingDeleteId = ref<string | number | null>(null)
 const isDeleteModalOpen = ref(false)
 const deleting = ref(false)
 
-// The selected rows, by the text of their id. Only loaded rows can be selected.
 const selected = ref<Set<string>>(new Set())
 const selectedItems = computed(() =>
   items.value.filter((item) => selected.value.has(String(item.id)))
@@ -476,10 +429,8 @@ function clearSelection() {
   selected.value = new Set()
 }
 
-// Another search, filter or sort shows other rows: the selection goes.
 watch(() => JSON.stringify(adminListQueryKeys(listQuery.value)), clearSelection)
 
-// Remove with the dialog: one item, or the selected items.
 const bulkRemove = ref(false)
 const bulkRunning = ref<PlutoBulkAction | null>(null)
 
@@ -487,7 +438,6 @@ function itemUrl(id: string | number): string {
   return `/api/_pluto/content/${props.type}/${contentIdPath(id)}`
 }
 
-/** Runs one request per item, 4 at a time, then shows one toast and loads the list again. */
 async function runBulk(
   action: PlutoBulkAction,
   ids: Array<string | number>,
@@ -523,8 +473,7 @@ function bulkStatus(action: 'publish' | 'unpublish') {
     toast.add({ title: t('pluto.list.bulk.nothing'), color: 'neutral' })
     return
   }
-  // Each task awaits and returns nothing. A returned $fetch promise makes TypeScript compare the
-  // answers of every typed route of the app, which is too deep in a large app.
+  // Return nothing. A returned $fetch promise makes TypeScript compare every typed route of the app.
   void runBulk(action, change.ids, async (id) => {
     await $fetch(itemUrl(id), {
       method: 'PATCH',
@@ -533,8 +482,6 @@ function bulkStatus(action: 'publish' | 'unpublish') {
   })
 }
 
-// A type with a trash: Remove moves the items to the trash at once, with Undo in the toast, and
-// the list has the tabs All and Trash (`?trash=1`). Without one, Remove asks and is final.
 const trashEnabled = computed(
   () => Boolean(contentType.value?.trash) && canDelete.value
 )
@@ -546,8 +493,6 @@ const trashCounter =
     ? usePlutoContentTrashCount(props.type)
     : null
 
-// The All list stays loaded under the Trash tab, but a restore or a purge there changes it. So it
-// loads again when the view comes back to All.
 watch(trashView, (now, before) => {
   if (before && !now) {
     retry()
@@ -611,10 +556,6 @@ async function moveToTrash(ids: Array<string | number>) {
   }
 }
 
-/**
- * Remove of one row. The dialog asks first: "Move to the trash?" for a type with a trash (the
- * toast then offers Undo), else the final delete.
- */
 function removeItem(id: string | number) {
   openDeleteModal(id)
 }
@@ -630,7 +571,6 @@ function openDeleteModal(id: string | number) {
 }
 
 function closeDeleteModal() {
-  // The dialog stays open while the delete runs, so the user sees it finish.
   if (deleting.value) {
     return
   }
@@ -688,9 +628,6 @@ async function confirmDelete() {
   }
 }
 
-// The footer line: "Showing 5 of 20 posts", plus "Loading more…" while a
-// page loads. The phrase has the plural label as a parameter, so a language
-// can put it anywhere.
 const footer = computed(() => {
   const params = {
     loaded: n(items.value.length),
@@ -720,7 +657,6 @@ const footer = computed(() => {
           </UButton>
         </template>
       </PlutoViewToolbar>
-      <!-- The tabs of the menu item that holds this list (for example Pages). -->
       <PlutoAdminNavTabs />
       <PlutoContentListTabs
         v-if="trashEnabled"
@@ -736,7 +672,6 @@ const footer = computed(() => {
     />
 
     <template v-else>
-      <!-- The bulk actions, while rows are selected. They take the place of the filters. -->
       <div
         v-if="selectedItems.length > 0"
         class="bg-elevated flex shrink-0 flex-wrap items-center gap-2 rounded-lg px-3 py-1.5"
@@ -795,7 +730,6 @@ const footer = computed(() => {
         />
       </div>
 
-      <!-- The search and the filters. Not on an empty type: there is nothing to narrow. -->
       <div
         v-else-if="emptyState !== 'empty'"
         class="flex shrink-0 flex-wrap items-center gap-2"
@@ -1060,7 +994,6 @@ const footer = computed(() => {
           />
         </template>
 
-        <!-- A sortable column: the header is a button (ascending, descending, default). -->
         <template
           v-for="field in sortFields"
           :key="field.name"
@@ -1131,10 +1064,6 @@ const footer = computed(() => {
           </UBadge>
         </template>
 
-        <!--
-        Edit and Remove show on row hover. They keep their place (opacity only), and stay visible
-        on a device without hover and while they hold the keyboard focus.
-      -->
         <template #actions-cell="{ row }">
           <div
             class="flex justify-end gap-3 group-focus-within:opacity-100 group-hover:opacity-100 [@media(hover:hover)]:opacity-0"

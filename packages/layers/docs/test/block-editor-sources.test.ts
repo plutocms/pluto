@@ -4,9 +4,6 @@ import { createPlutoBlockEditor } from '../app/composables/pluto-block-editor'
 import { buildPalette } from '../shared/utils/blocks/editor'
 import { corpusBodies } from './helpers/corpus'
 
-// The block editor with a component layer. Definitions never feed the parser or the writer, so
-// the layer must change nothing in the text.
-
 const components = {
   'pluto-hero': { icon: 'i-lucide-sparkles', group: 'landing' },
   'card-group': { props: { columns: { type: 'number' as const } } },

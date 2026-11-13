@@ -1,7 +1,3 @@
-// Write a block doc back to text. A block with `original` writes its source
-// bytes. The gaps between blocks are always the source text. Only an edited
-// block is built from the model, so one edit changes only the lines of that block.
-
 import type {
   PlutoBlock,
   PlutoBlockDoc,
@@ -16,8 +12,7 @@ import {
 } from '#layers/pluto/shared/utils/blocks/mdc-props'
 import { flatChildren } from './tree'
 
-/** Puts the indent before each non-blank line but the first. */
-export function indentLines(text: string, indent: string): string {
+function indentLines(text: string, indent: string): string {
   if (!indent) {
     return text
   }
@@ -48,8 +43,7 @@ function renderCode(block: PlutoCodeBlock): string {
   return indentLines(`${fence}${info}${body}\n${fence}`, block.indent ?? '')
 }
 
-/** The opening line of a component, with its props. Unchanged props give the source text. */
-export function renderOpener(block: PlutoComponentBlock): string {
+function renderOpener(block: PlutoComponentBlock): string {
   if (isSameProps(block.props, block.propOrder, block.propSource)) {
     return block.openerText
   }
@@ -82,7 +76,6 @@ function renderComponent(block: PlutoComponentBlock): string {
   return `${out}${block.gaps[children.length] ?? ''}${':'.repeat(block.colons)}`
 }
 
-/** The text of one block, without the white space before its first line. */
 export function renderBlock(block: PlutoBlock): string {
   if (block.original) {
     return block.original.text

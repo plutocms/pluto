@@ -14,16 +14,13 @@ import { getContentType } from './pluto-content'
 import { requireContentAdapter } from './pluto-content-handlers'
 import { expandPublicMedia } from './pluto-media-public'
 
-/** One published item of a target: its reference, and the values of the `publicFields` asked for. */
 interface LoadedReference {
   reference: PlutoPublicReference
   extra: Record<string, unknown>
 }
 
-/** The loaded references of one target type, by id (as text). */
 type ReferenceMap = Map<string, LoadedReference>
 
-/** The keys of a reference. A `publicFields` entry with one of these names is skipped. */
 const REFERENCE_KEYS = new Set(['id', 'label', 'slug'])
 
 const publicReferenceCache = new WeakMap<
@@ -39,7 +36,6 @@ function isPublished(type: PlutoContentType, item: PlutoContentItem): boolean {
   return isLiveItem(type, item)
 }
 
-/** True when the public answer has the field: it is stored and the `api.fields` list keeps it. */
 function isPublicField(type: PlutoContentType, name: string): boolean {
   const field = type.fields.find((entry) => entry.name === name)
   return (
@@ -49,7 +45,6 @@ function isPublicField(type: PlutoContentType, name: string): boolean {
   )
 }
 
-/** The public `reference` fields of the type that point to the content type `target`. */
 function fieldsTo(type: PlutoContentType, target: string) {
   return type.fields.filter(
     (field) =>
@@ -59,7 +54,6 @@ function fieldsTo(type: PlutoContentType, target: string) {
   )
 }
 
-/** The `publicFields` of a field that the target can give: its public fields, not a reference key. */
 function extraFieldsOf(field: PlutoField, target: PlutoContentType): string[] {
   if (field.type !== 'reference') {
     return []
@@ -69,11 +63,6 @@ function extraFieldsOf(field: PlutoField, target: PlutoContentType): string[] {
   )
 }
 
-/**
- * The references of the published items of `target` that the items of one answer use, with one
- * `list`. Each one keeps the `publicFields` that the fields of `type` ask for, with the media
- * records in place of the media ids (one media read for the answer).
- */
 function loadReferences(
   event: H3Event,
   type: PlutoContentType,
@@ -111,7 +100,6 @@ function loadReferences(
       { ids: [...ids], limit: ids.size, includeUnpublished: false }
     )
     const slugField = target.slug ? target.slug.field : undefined
-    // An adapter may ignore `ids`: core matches them again.
     const items = result.data.filter(
       (item) => ids.has(String(item.id)) && isPublished(target, item)
     )
@@ -122,7 +110,6 @@ function loadReferences(
         extra[name] = item[name] ?? null
       }
       if (extraNames.size > 0) {
-        // `items` is the batch of the media read: one read for every target item.
         extra = await expandPublicMedia(event, target, extra, items)
       }
       map.set(String(item.id), {
@@ -140,13 +127,6 @@ function loadReferences(
   return pending
 }
 
-/**
- * Puts `{ id, label, slug? }` in place of the ids of the public `reference` fields of `data` that
- * have a public `target` type: a list for a `multiple` field, else one reference or `null`. A
- * field with `publicFields` adds those fields of the target to each reference. An id with no
- * published item is dropped. A field with no value gives `[]` or `null`. A reference to a private
- * type keeps its ids. It reads each target type once for the items of one answer.
- */
 export async function expandPublicReferences(
   event: H3Event,
   type: PlutoContentType,
@@ -188,11 +168,6 @@ export async function expandPublicReferences(
   return result
 }
 
-/**
- * Turns the value of each filter on a `target` reference into the id of the item: the value is an
- * id or a slug (one `get` on the target type). `empty` is true when a value names no published
- * item, so the filter matches nothing. Other filters stay as they are.
- */
 export async function resolveReferenceFilters(
   event: H3Event,
   type: PlutoContentType,

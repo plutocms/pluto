@@ -3,6 +3,7 @@ import type { ClassNameValue } from 'tailwind-merge'
 import { twMerge } from 'tailwind-merge'
 
 const props = defineProps<{
+  /** Extra classes. They merge with the default width and padding. */
   class?: ClassNameValue
 }>()
 

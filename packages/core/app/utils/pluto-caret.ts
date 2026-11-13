@@ -1,12 +1,7 @@
 import type { Editor } from '@tiptap/core'
 
-// The caret of the post editor in one shared unit: its offset in the Markdown text. The Visual and
-// the Markdown mode convert to and from it, so a switch of mode (and a reload, see
-// PlutoFieldPostCanvas) keeps the caret where it was. A marker character that no post holds (a
-// private-use code point) goes in at the caret, and the other side finds it.
 const MARKER = ''
 
-/** How many characters before the caret identify its place when the text moved a little. */
 const CONTEXT = 24
 
 /**
@@ -30,7 +25,6 @@ export function plutoMarkdownCaret(editor: Editor, value: string): number {
   if (!before) {
     return 0
   }
-  // The occurrence of the text before the caret nearest to the offset.
   let best = -1
   for (
     let i = value.indexOf(before);

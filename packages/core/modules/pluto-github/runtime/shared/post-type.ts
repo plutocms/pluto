@@ -1,11 +1,5 @@
 import type { PlutoContentType } from '../../../../shared/types/content'
 
-/**
- * The built-in `post` content type of the standalone CMS. The storage keys
- * match the file layout: `content/posts/<slug>.md`. The slug is the file
- * name, so it is not a frontmatter key. The `content` field is the Markdown
- * body. The capability keys match the post type of `@plutocms/supabase-blog`.
- */
 export const plutoGithubPostType: PlutoContentType = {
   name: 'post',
   label: 'Post',
@@ -31,9 +25,6 @@ export const plutoGithubPostType: PlutoContentType = {
       inList: true,
       region: 'side',
     },
-    // The authors: a list of author ids (the slugs of `content/authors/`), in byline order. The
-    // public API gives `[{ id, label, slug, avatar, bio }]`. A new post gets the authors that the
-    // user saved last time. See the authors skill.
     {
       name: 'authors',
       type: 'reference',
@@ -47,8 +38,6 @@ export const plutoGithubPostType: PlutoContentType = {
       region: 'side',
     },
     { name: 'excerpt', type: 'textarea', label: 'Excerpt', region: 'side' },
-    // The cover: a media id in the frontmatter (`cover: red-mug-k3j9a`). The public API gives
-    // the record (`url`, `width`, `height`, `alt`). See the media skill.
     {
       name: 'cover',
       type: 'media',
@@ -56,8 +45,6 @@ export const plutoGithubPostType: PlutoContentType = {
       accept: ['image/*'],
       region: 'side',
     },
-    // The terms: lists of term ids (the slugs of `content/categories/` and `content/tags/`) in
-    // the frontmatter. The public API gives `[{ id, label, slug }]`. See the tags-and-categories skill.
     {
       name: 'categories',
       type: 'reference',
@@ -82,13 +69,10 @@ export const plutoGithubPostType: PlutoContentType = {
       type: 'richtext',
       label: 'Content',
       region: 'main',
-      // The post editor: Visual or Markdown with the site preview, the outline at the left.
       widget: 'post-canvas',
     },
   ],
   slug: { field: 'slug' },
-  // The "View Post" link of the form: the post page of the core blog template
-  // (`pages/posts/[slug].vue`). A draft has no public page.
   previewUrl: (item) =>
     item.status === 'published' && typeof item.slug === 'string' && item.slug
       ? `/posts/${item.slug}`
@@ -102,7 +86,6 @@ export const plutoGithubPostType: PlutoContentType = {
       { label: 'Draft', value: 'draft' },
       { label: 'Published', value: 'published' },
     ],
-    // Schedule a post. Every editor of the Git CMS can publish (push access), so no review step.
     schedule: true,
   },
   timestamps: { created: 'createdAt', updated: 'updatedAt' },
@@ -112,21 +95,12 @@ export const plutoGithubPostType: PlutoContentType = {
     delete: 'posts:delete',
   },
   defaultSort: { field: 'createdAt', direction: 'desc' },
-  // "New Post" in the admin bar, and "Edit Post" on a page that calls `usePlutoEditLink('post', slug)`.
   adminBar: true,
-  // The site reads the posts at run time, so a save shows at once. The form shows "Live" right
-  // after the save, while the build that refreshes the bundled content runs (hybrid).
   liveOnSave: true,
-  // Served by the public API: /api/pluto/v1/content/post.
   api: { public: true },
-  // Remove moves a post to `content/.trash/post/`. See the content-model skill ("Trash").
   trash: true,
-  // The standard excerpt and cover image (the fields above): the public API, the admin list and
-  // the SEO of a site use them. See the content-model skill ("Excerpt and cover image").
   excerpt: true,
   cover: true,
-  // The canvas layout, like the page editor: the body fills the page, the outline is at the
-  // left, the other fields are in the Post tab at the right.
   form: {
     layout: 'canvas',
     canvasField: 'content',

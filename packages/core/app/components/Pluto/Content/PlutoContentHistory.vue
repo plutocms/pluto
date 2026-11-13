@@ -1,17 +1,8 @@
 <script setup lang="ts">
-// A toolbar item of the edit form (`contentToolbarItems`, every content type). It shows History
-// when the backend keeps revisions (`adapter.listRevisions`) and the item has one. The
-// slideover lists the saved versions, newest first, and shows what a restore of one changes in
-// the form. "Restore this version" copies its fields into the form (`revisionRestoreValues`: not
-// the slug, not the status). The user then saves, so a restore is a normal save: validation,
-// capabilities, the conflict check, and a new version that can be undone. See the content-model
-// skill ("Revisions").
-
 const { t, d } = usePlutoI18n()
 const form = usePlutoContentForm()
 const toast = useToast()
 
-/** Revisions per page. */
 const PAGE = 20
 
 const revisions = ref<PlutoContentRevision[]>([])
@@ -54,13 +45,10 @@ async function load(more = false) {
   }
 }
 
-// --- The selected version --------------------------------------------------
-
 const selectedId = ref<string>()
 const selectedItem = ref<PlutoContentItem | null>(null)
 const selectedLoading = ref(false)
 const selectedError = ref(false)
-// A revision never changes, so its item is read once.
 const revisionCache = new Map<string, PlutoContentItem>()
 
 async function select(revision: PlutoContentRevision) {
@@ -95,8 +83,6 @@ async function select(revision: PlutoContentRevision) {
   }
 }
 
-// The first page loads once the item of the edit page is there (the form mounts before it), so
-// the button shows only when there is a history. A save adds a version: read the list again.
 const loadedId = computed(() =>
   form?.editing.value && !form.loading.value ? itemId.value : undefined
 )
@@ -116,8 +102,6 @@ form?.onSaved(() => {
   load()
 })
 
-// On open: the version before the current one, or the current one when the form has unsaved
-// changes (a restore of it drops them).
 watch(open, (value) => {
   if (!value || selectedId.value) {
     return
@@ -151,8 +135,6 @@ function restore() {
     icon: 'lucide:history',
   })
 }
-
-// --- Labels ------------------------------------------------------------------
 
 function titleOf(revision: PlutoContentRevision): string {
   return revision.action
@@ -190,7 +172,6 @@ const selectedRevision = computed(() =>
 
     <template #body>
       <div class="flex h-full min-h-0">
-        <!-- The versions. On a narrow screen they hide while a version is open. -->
         <nav
           v-if="isDesktop || !selectedId"
           :aria-label="t('pluto.history.title')"
@@ -254,7 +235,6 @@ const selectedRevision = computed(() =>
           </div>
         </nav>
 
-        <!-- What a restore of the selected version changes in the form. -->
         <section
           v-if="isDesktop || selectedId"
           class="flex min-h-0 min-w-0 flex-1 flex-col"

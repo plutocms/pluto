@@ -1,13 +1,9 @@
+// No Nuxt auto-imports here: plain Vitest imports this file.
 import type {
   PlutoContentType,
   PlutoReferenceField,
 } from '../../../shared/types/content'
 
-// The first values of a new item in `PlutoContentForm`: the `default` of each field, then the
-// value that the user saved last time in each `remember` field. Pure, with no Nuxt imports, so
-// plain Vitest can test it. See the authors skill.
-
-/** The `remember` reference fields of a type. They need a `target`. */
 export function rememberFields(
   type: PlutoContentType | undefined
 ): Array<PlutoReferenceField & { target: string }> {
@@ -20,7 +16,6 @@ export function rememberFields(
   )
 }
 
-/** The storage key of a remembered value: one per site, user, type and field. */
 export function rememberKey(input: {
   base: string
   userId: string
@@ -30,7 +25,6 @@ export function rememberKey(input: {
   return `pluto:remember:${JSON.stringify([input.base, input.userId, input.type, input.field])}`
 }
 
-/** True for a value that holds nothing: `undefined`, `null`, `''` or `[]`. */
 function isEmpty(value: unknown): boolean {
   return (
     value === undefined ||
@@ -40,17 +34,12 @@ function isEmpty(value: unknown): boolean {
   )
 }
 
-/** A copy of a plain value, so the form never changes the `default` of the type. */
 function copy(value: unknown): unknown {
   return value !== null && typeof value === 'object'
     ? JSON.parse(JSON.stringify(value))
     : value
 }
 
-/**
- * The first values of a new item: the `default` of each field that has one, then the remembered
- * value of each `remember` field (it replaces the default). A field with no value is left out.
- */
 export function initialValues(
   type: PlutoContentType | undefined,
   remembered: Record<string, unknown> = {}
@@ -70,7 +59,6 @@ export function initialValues(
   return values
 }
 
-/** The remembered value under `key`, or `undefined`. A broken value counts as none. */
 export function readRemembered(
   storage: Pick<Storage, 'getItem'>,
   key: string
@@ -83,7 +71,6 @@ export function readRemembered(
   }
 }
 
-/** Keeps `value` under `key`. An empty value removes the key. A storage error is ignored. */
 export function writeRemembered(
   storage: Pick<Storage, 'setItem' | 'removeItem'>,
   key: string,
@@ -100,10 +87,6 @@ export function writeRemembered(
   }
 }
 
-/**
- * The value without the ids that are not in `known` (a deleted item): a list for a `multiple`
- * field, else the id or `undefined`.
- */
 export function keepKnownIds(
   field: Pick<PlutoReferenceField, 'multiple'>,
   value: unknown,

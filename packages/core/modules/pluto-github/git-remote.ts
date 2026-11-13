@@ -1,10 +1,6 @@
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 
-/**
- * Turns a GitHub remote URL into `owner/name`. It reads the https, ssh and
- * `git@` forms of github.com. It returns `undefined` for any other host.
- */
 export function parseGithubRepoUrl(url: string): string | undefined {
   const value = url.trim()
   const match =
@@ -17,7 +13,6 @@ export function parseGithubRepoUrl(url: string): string | undefined {
   return match ? `${match[1]}/${match[2]}` : undefined
 }
 
-/** Reads the `url` of the `origin` remote from the text of a git config file. */
 export function parseGitConfigOrigin(text: string): string | undefined {
   let inOrigin = false
   for (const raw of text.split(/\r?\n/)) {
@@ -34,7 +29,6 @@ export function parseGitConfigOrigin(text: string): string | undefined {
   return undefined
 }
 
-/** Finds the git config file of the repo that holds `rootDir`. No shell call. */
 function findGitConfig(rootDir: string): string | undefined {
   let dir = resolve(rootDir)
   for (;;) {
@@ -43,7 +37,6 @@ function findGitConfig(rootDir: string): string | undefined {
       if (statSync(dotGit).isDirectory()) {
         return join(dotGit, 'config')
       }
-      // A worktree or a submodule: `.git` is a file with `gitdir: <path>`.
       const pointer = /^gitdir: ?(\S.*)$/m.exec(readFileSync(dotGit, 'utf8'))
       if (pointer) {
         const gitDir = isAbsolute(pointer[1]!.trim())
@@ -65,7 +58,6 @@ function findGitConfig(rootDir: string): string | undefined {
   }
 }
 
-/** The `origin` remote URL of the git repo that holds `rootDir`, or `undefined`. */
 export function readGitOrigin(rootDir: string): string | undefined {
   try {
     const file = findGitConfig(rootDir)

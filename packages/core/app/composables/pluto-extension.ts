@@ -9,6 +9,8 @@ import { findSyncComponents } from './internal/async-component'
  * same `id` replaces that layer's whole contribution — it does not add to
  * it — so re-running the plugin (for example on HMR) never duplicates
  * entries.
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/extension-registry
  */
 export function definePlutoExtension(definition: PlutoExtension): void {
   const registry = usePlutoRegistry()
@@ -19,7 +21,6 @@ export function definePlutoExtension(definition: PlutoExtension): void {
 
   registry.navbarActions.set(definition.id, definition.navbarActions ?? [])
   registry.nav.set(definition.id, definition.nav ?? [])
-  registry.pages.set(definition.id, definition.pages ?? [])
   registry.settingsPanels.set(definition.id, definition.settingsPanels ?? [])
   registry.settingsPages.set(definition.id, definition.settingsPages ?? [])
   registry.mailPanels.set(definition.id, definition.mailPanels ?? [])
@@ -71,8 +72,6 @@ export function definePlutoExtension(definition: PlutoExtension): void {
   registry.contentHead.set(definition.id, definition.contentHead ?? [])
 }
 
-// Dev only. The names already warned about, so each component warns once
-// (the plugin runs again on HMR).
 const warnedComponents = new Set<string>()
 
 function warnSyncComponents(definition: PlutoExtension): void {

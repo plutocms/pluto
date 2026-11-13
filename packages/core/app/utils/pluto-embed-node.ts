@@ -38,7 +38,6 @@ function embedOf(providers: () => readonly PlutoEmbedProvider[], href: string) {
   return /^https?:\/\//i.test(href) ? resolveEmbed(providers(), href) : null
 }
 
-/** The URL of a paragraph that is one link with its URL as its text, else `null`. */
 function linkOnlyHref(paragraph: PmNode): string | null {
   if (paragraph.childCount !== 1) {
     return null
@@ -49,7 +48,6 @@ function linkOnlyHref(paragraph: PmNode): string | null {
   return text.isText && href && text.text?.trim() === href ? href : null
 }
 
-/** Turns the top-level paragraphs with a source into embed blocks. `null` when there is none. */
 function convertEmbedParagraphs(state: EditorState): Transaction | null {
   const embed = state.schema.nodes.plutoEmbed
   if (!embed) {
@@ -75,7 +73,6 @@ function convertEmbedParagraphs(state: EditorState): Transaction | null {
       embed.create({ url: href, source: node.attrs[SOURCE_ATTRIBUTE] })
     )
   }
-  // Not a change of the author: Undo skips it.
   return tr.setMeta('addToHistory', false)
 }
 
@@ -90,7 +87,6 @@ export const PlutoEmbedNode = Node.create({
   addAttributes() {
     return {
       url: { default: '', rendered: false },
-      // The text of the line in the Markdown (`https://…`, `<https://…>` or `[https://…](https://…)`).
       source: { default: undefined, rendered: false },
     }
   },
@@ -120,11 +116,6 @@ export const PlutoEmbedNode = Node.create({
   },
 })
 
-/**
- * A line that is one URL alone, between blank lines: `https://…`, `<https://…>` or
- * `[https://…](https://…)`. Strict: no space before it, and the next line is blank (or the end).
- * A line in a paragraph never matches, as on the site.
- */
 const URL_LINE =
   /^(?:<https?:\/\/[^\s<>]+>|https?:\/\/\S+|\[https?:\/\/[^\s\]]+\]\(https?:\/\/[^\s)]+\))[ \t]*(?:\n|$)(?=[ \t]*(?:\n|$))/
 
@@ -151,13 +142,10 @@ export const PlutoEmbedParagraph = Extension.create<PlutoEmbedOptions>({
     ]
   },
 
-  // A token of its own, not `paragraph`: the Markdown writer finds the writer of a node by its
-  // token name first, and this extension writes no paragraph.
   markdownTokenName: 'plutoEmbedLine',
   markdownTokenizer: {
     name: 'plutoEmbedLine',
     level: 'block',
-    // No paragraph needs a cut: a blank line ends a paragraph before such a line.
     start: () => -1,
     tokenize(src: string) {
       const match = URL_LINE.exec(src)
@@ -167,8 +155,6 @@ export const PlutoEmbedParagraph = Extension.create<PlutoEmbedOptions>({
     },
   },
 
-  // Always a paragraph: one with a source when the line is an embed (the same rule as the site,
-  // `isEmbedParagraph`), else a plain one with the link. The pass turns a top-level one into a block.
   parseMarkdown(token, helpers) {
     const text = String(token.text ?? '')
     const tokens = (helpers.tokenizeInline?.(text) ?? []) as Tokens.Generic[]

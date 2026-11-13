@@ -1,12 +1,5 @@
 <script setup lang="ts">
-// The scroll area of the admin sidebar (the body of UDashboardSidebar in app/layouts/admin.vue),
-// with the scrollbar of Reka UI instead of the native one. The sidebar is dark in both modes, so
-// the thumb is a light gray. It shows while the pointer is over the sidebar and fades out a moment
-// after it leaves (`type="hover"`).
-//
-// The scrollbar lies over the right padding of the content (the gutter): the rows never move when
-// it shows, and it never covers them. The inner `div` of the viewport is a block, not Reka's
-// `display: table`, so a long label truncates instead of widening the sidebar.
+// The viewport div is a block, not Reka's `display: table`, so a long label truncates.
 import {
   ScrollAreaRoot,
   ScrollAreaScrollbar,
@@ -25,10 +18,6 @@ import {
       <slot />
     </ScrollAreaViewport>
 
-    <!--
-      Mounted all the time, so the opacity can fade. The `!` keeps the duration against the
-      no-transition rule of the admin (pluto-layer.css).
-    -->
     <ScrollAreaScrollbar
       orientation="vertical"
       class="flex w-2.5 touch-none p-0.5 transition-opacity duration-300! select-none data-[state=hidden]:opacity-0"

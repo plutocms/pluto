@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The picker modal: the library in select mode, with uploads. The `media`
-// field and the image button of a rich text editor open it. `select` gives
-// the chosen records, in the order they were chosen. A double-click on a file
-// picks it at once (one file).
 import type { PlutoMedia } from '../../../../shared/types/media'
 
 const props = withDefaults(
@@ -58,7 +54,6 @@ function unselect(id: string) {
 
     <template #footer>
       <div class="flex w-full flex-wrap items-center gap-2">
-        <!-- The chosen files, in their order. A click takes one out. -->
         <ul
           v-if="multiple && selected.length"
           class="flex max-w-full gap-1.5 overflow-x-auto"

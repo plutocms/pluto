@@ -20,19 +20,6 @@ import {
 
 export type { PlutoI18nOptions } from './locale-files'
 
-/**
- * Finds every layer's `i18n/locales/<code>.json` and generates
- * `#build/pluto-i18n.mjs`: the locale codes and one lazy loader per locale.
- * The files of all layers merge, base layer first and the app last, so the
- * app overrides a layer's text. Adding a language is adding the JSON files.
- * No code change.
- *
- * The same files feed a Nitro virtual module, `#pluto-i18n-server`, for the
- * server translator (`usePlutoServerTranslator`).
- *
- * The module also puts the resolved options in
- * `runtimeConfig.public.plutoI18n`. See the i18n skill.
- */
 export default defineNuxtModule<PlutoI18nOptions>({
   meta: { name: 'pluto-i18n', configKey: 'plutoI18n' },
   defaults: {},
@@ -44,8 +31,6 @@ export default defineNuxtModule<PlutoI18nOptions>({
       return existsSync(dir) ? readdirSync(dir) : []
     }
 
-    // Nuxt UI's locale files. The generated file imports them by absolute
-    // path, so the app needs no direct `@nuxt/ui` dependency.
     const uiLocaleDir = dirname(
       await resolvePath('@nuxt/ui/runtime/locale/en.js')
     )
@@ -83,9 +68,6 @@ export default defineNuxtModule<PlutoI18nOptions>({
         }),
     })
 
-    // The server translator (`server/utils/pluto-i18n.ts`) reads the same
-    // files through a Nitro virtual module. `files` is read when Nitro asks
-    // for the module, so a new locale file shows up on the next build.
     nuxt.hook('nitro:config', (nitroConfig) => {
       nitroConfig.virtual ||= {}
       nitroConfig.virtual['#pluto-i18n-server'] = () =>
@@ -98,9 +80,6 @@ export default defineNuxtModule<PlutoI18nOptions>({
       getContents: renderI18nTypes,
     })
 
-    // A new or removed locale file changes the generated file. Locale
-    // codes and options come from the first run, so restart the dev server
-    // after a new language. An edit of an existing file hot-reloads on its own.
     nuxt.hook('builder:watch', async (_event, path) => {
       const normalized = path.replaceAll('\\', '/')
       if (

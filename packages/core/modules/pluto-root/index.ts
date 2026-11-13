@@ -19,19 +19,6 @@ export interface PlutoRootOptions {
   siteApp?: PlutoRootSiteApp
 }
 
-/**
- * The root of a Pluto app, with no `PlutoRoot` to write. When the root component (the `app.vue`
- * of the app, of a theme layer such as Docus, or the default one of Nuxt) does not use
- * `PlutoRoot`, the module puts `PlutoAppRoot` in its place, and the template
- * `#build/pluto/site-root.mjs` gives it the original root:
- *
- * - the admin (`/admin/**`) and the preview of the visual editor get `PlutoRoot` and the page
- *   only: the root of the site, its header, layout and awaits never run there;
- * - a public page gets the root of the site, in `PlutoRoot` with `own-layout` (the site root
- *   decides its layout) and `own-app` when the site root has its own `UApp`.
- *
- * A root that uses `PlutoRoot` stays as it is. See the admin-shell skill ("The root").
- */
 export default defineNuxtModule<PlutoRootOptions>({
   meta: { name: 'pluto-root', configKey: 'plutoRoot' },
   defaults: { wrap: true, siteApp: 'auto' },
@@ -64,9 +51,7 @@ export default defineNuxtModule<PlutoRootOptions>({
       let text = ''
       try {
         text = readFileSync(root, 'utf8')
-      } catch {
-        // A root that cannot be read is wrapped as a plain root.
-      }
+      } catch {}
       const info = inspectRootComponent(text)
       if (info.usesPlutoRoot) {
         return

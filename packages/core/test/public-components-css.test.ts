@@ -3,13 +3,11 @@ import { join } from 'node:path'
 import postcss from 'postcss'
 import { describe, expect, it } from 'vitest'
 
-// The public components work on a site with no Tailwind: they carry only
-// `pluto-*` classes, and their look is plain CSS in pluto-base.css. See the
-// public-components skill.
+// The public components work on a site with no Tailwind: they carry only `pluto-*` classes, and
+// their look is plain CSS in pluto-base.css.
 const app = join(__dirname, '..', 'app')
 const read = (...path: string[]) => readFileSync(join(app, ...path), 'utf8')
 
-/** Every static class token in a template: `class="..."`. */
 function templateClasses(sfc: string): string[] {
   const template = /<template>([\s\S]*)<\/template>/.exec(sfc)?.[1] ?? ''
   return [...template.matchAll(/\sclass="([^"]*)"/g)].flatMap((match) =>
@@ -51,7 +49,6 @@ describe('pluto-base.css', () => {
     })
 
     expect(rules.length).toBeGreaterThan(0)
-    // Only `:where(...)`, pseudo-elements, and combinators: nothing counts.
     for (const selector of rules) {
       const rest = selector
         .replace(/:where\([^()]*\)/g, '')

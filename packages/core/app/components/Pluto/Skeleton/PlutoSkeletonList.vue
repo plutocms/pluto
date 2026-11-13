@@ -1,22 +1,13 @@
 <script setup lang="ts">
-// Placeholder for a content list while its first page loads. It has the
-// shape of the list: on desktop the table with its real column headers and
-// rows of bars, on a small screen the cards. So the page does not jump when
-// the rows arrive. The root is a status region: the list gives it the
-// "Loading" label and `aria-busy`.
 withDefaults(
   defineProps<{
-    /** The column headers. The table shows them as they are. */
     columns: string[]
-    /** Show the status column (a badge). */
     status?: boolean
-    /** The number of placeholder rows. */
     rows?: number
   }>(),
   { status: false, rows: 8 }
 )
 
-// Bar widths for the cells, so the rows do not all look the same.
 const widths = ['w-3/4', 'w-1/2', 'w-2/3', 'w-2/5', 'w-3/5', 'w-1/3']
 </script>
 

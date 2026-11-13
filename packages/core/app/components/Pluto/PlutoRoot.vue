@@ -2,8 +2,6 @@
 import { ConfigProvider, TooltipProvider } from 'reka-ui'
 import { resolveSiteName } from '../../composables/internal/admin-shell'
 
-// An app needs no PlutoRoot of its own: the pluto-root module wraps a root that has none
-// (PlutoAppRoot), and sets these two props for a public page.
 const props = defineProps<{
   /**
    * The slot has its own `UApp` (the root of a theme such as Docus). On a public page PlutoRoot
@@ -17,9 +15,6 @@ const props = defineProps<{
 
 const adminBar = usePlutoAdminBar()
 
-// One Nuxt UI locale per page: the admin's on /admin routes, the site's on the
-// rest. The admin navbar on a public page keeps the site locale for Nuxt UI
-// text, but its own labels use the admin locale through usePlutoI18n().
 const route = useRoute()
 const admin = usePlutoI18n()
 const site = usePlutoSiteI18n()
@@ -27,9 +22,6 @@ const isAdmin = computed(
   () => route.path === '/admin' || route.path.startsWith('/admin/')
 )
 
-// Close the admin menu after a navigation, so it is not open on the next
-// page. The watch lives here because the public-page menu unmounts when the
-// route moves into /admin, before its own watch could run.
 const adminMenuOpen = usePlutoAdminMenuOpen()
 watch(
   () => route.fullPath,
@@ -41,18 +33,9 @@ watch(
 const active = computed(() => (isAdmin.value ? admin : site))
 const uiLocale = computed(() => active.value.uiLocale.value)
 
-// Pluto owns <html lang> on admin routes. On public routes it sets it only
-// when the app uses the site scope (it sets plutoI18n.siteLocale or
-// siteLocales). Otherwise the app keeps its own app.head.htmlAttrs.
 const { siteManaged } = useRuntimeConfig().public.plutoI18n
 const managesLang = computed(() => isAdmin.value || Boolean(siteManaged))
 
-// The tab title of an admin route is "Page - Site name". The site name is the
-// site info name, then the `websiteName` runtime config, then the admin name.
-// Public routes keep the title template of the app. Every value is the same on
-// the server and on the client, so the title is hydration-safe.
-// The brand of the admin (white label): the primary scale, the radius and the
-// fonts, after the admin theme. See usePlutoBrand and the admin-theme skill.
 const plutoBrand = usePlutoBrand()
 useHead({
   style: computed(() =>
@@ -85,8 +68,6 @@ const siteName = computed(() =>
   )
 )
 
-// The input is reactive, so a public route adds no entry and the title
-// template of the app stays in force there.
 useHead(
   computed(() =>
     isAdmin.value
@@ -98,15 +79,7 @@ useHead(
   )
 )
 
-// `data-pluto-admin-bar` marks <html> while the admin bar shows, so a site can
-// offset its own header only then. It follows the bar, so it is in the server
-// HTML when the hint puts the bar there (see `usePlutoAdminBar`).
-//
-// In the browser, a watch sets it on <html> directly, not through useHead.
-// Unhead removes only the attributes that it rendered in the browser. With a
-// stale hint (the session ended), the bar can hide before the first head render
-// in the browser, so the attribute of the server HTML would stay, and with it
-// the gap of the bar on the page.
+// Set the attribute on <html> in the browser, not through useHead: Unhead removes only attributes that it rendered in the browser.
 if (import.meta.server) {
   useHead({
     htmlAttrs: {
@@ -128,8 +101,7 @@ if (import.meta.server) {
   )
 }
 
-// A page that the hint changed must not go into a shared cache. The bar holds
-// no user data, but a cached copy would show its empty frame to every visitor.
+// A page that the hint changed must not go into a shared cache.
 if (import.meta.server && usePlutoAdminBarHint().value) {
   useResponseHeader('Cache-Control').value = 'private, no-store'
 }
@@ -165,10 +137,6 @@ useHead({
 
       <PlutoAdminNavbarProvider />
 
-      <!--
-        Public pages have no admin sidebar. The admin navbar menu button
-        opens this slideover there instead.
-      -->
       <LazyPlutoNavbarAdminMenu v-if="!isAdmin && adminBar.visible.value" />
 
       <div class="pluto-root-page">
@@ -182,36 +150,16 @@ useHead({
 </template>
 
 <style>
-/*
- * The page is at least one viewport tall and grows with its content. A fixed
- * `height: 100%` would cap every wrapper at one viewport, and a sticky header
- * (a Nuxt UI `UHeader`) would leave after one viewport of scroll, because a
- * sticky element stays inside its parent. The admin keeps the fixed height.
- */
 #__nuxt {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
 
-/*
- * `--pluto-admin-bar-height` is the height of the admin navbar: 2.5rem (40px)
- * at every width. The admin navbar and the admin layout read it. A public site
- * that shows the bar to a logged-in admin offsets its own header by the same
- * value. Core sets `data-pluto-admin-bar` on <html> while the bar shows, so a
- * site can offset its header only then:
- * `:root[data-pluto-admin-bar] .site-header { top: var(--pluto-admin-bar-height) }`.
- * It is here, in plain CSS, so a site with no Tailwind has it too.
- */
 :root {
   --pluto-admin-bar-height: 2.5rem;
 }
 
-/*
- * `--pluto-page-height` is the height that a public page has for itself: the
- * viewport, less the admin bar while it shows. A layout with a footer at the
- * bottom of a short page sets `min-height: var(--pluto-page-height)`.
- */
 :where(:root) {
   --pluto-page-height: 100dvh;
 }
@@ -220,13 +168,6 @@ useHead({
   --pluto-page-height: calc(100dvh - var(--pluto-admin-bar-height));
 }
 
-/*
- * The bar is fixed at the top, so a public page moves down by its height while
- * it shows: the top of the page is never under the bar. A sticky or fixed
- * header of the site still needs `top: var(--pluto-admin-bar-height)`. The
- * admin pages (`data-pluto-admin`) have their own layout. Zero specificity
- * (`:where`), so a rule of the site wins.
- */
 :where(:root[data-pluto-admin-bar]:not([data-pluto-admin])) body {
   padding-top: var(--pluto-admin-bar-height);
 }
@@ -235,16 +176,6 @@ useHead({
   scroll-padding-top: var(--pluto-admin-bar-height);
 }
 
-/*
- * The header of the site under the bar, with no CSS of the site. `--ui-header-height` is the height
- * of the site header (4rem in Nuxt UI, or the value of the site). <body> keeps that height in
- * `--pluto-site-header-height` (always, so a site can use it), and while the bar shows, `#__nuxt`
- * adds the bar to `--ui-header-height`:
- * the parts that stick under the header (the page aside, the table of contents, the anchor scroll
- * margin) then stick under the bar too. Two elements, because a custom property that reads itself
- * on one element is a cycle. A `UHeader` has the class `pluto-header-offset` (the app config of
- * core): it sticks under the bar and keeps the height of the site header.
- */
 :root:not([data-pluto-admin]) body {
   --pluto-site-header-height: var(--ui-header-height, 4rem);
 }
@@ -264,10 +195,6 @@ useHead({
   min-height: var(--pluto-page-height);
 }
 
-/*
- * The wrappers grow to fill #__nuxt. Plain CSS, not Tailwind classes: a site
- * may have no Tailwind (the admin has a build of its own).
- */
 .pluto-root {
   display: flex;
   flex-direction: column;

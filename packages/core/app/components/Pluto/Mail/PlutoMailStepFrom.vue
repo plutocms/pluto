@@ -1,11 +1,8 @@
 <script setup lang="ts">
-// Step 5: the From address. The address must belong to the verified domain.
-// Pluto builds the environment lines. The admin copies them and restarts.
 const { t } = usePlutoI18n()
 const { status, domain } = usePlutoMail()
 const config = useRuntimeConfig()
 
-// "Untitled" is the default site name. It makes a poor sender name.
 const siteName = String(config.public.websiteName ?? '')
 const senderName = ref(siteName === 'Untitled' ? '' : siteName)
 const localPart = ref('hello')
@@ -24,7 +21,6 @@ const replyToValid = computed(
   () => replyTo.value.trim() === '' || isPlutoMailAddress(replyTo.value.trim())
 )
 
-// A display name cannot hold angle brackets, quotes, commas or line breaks.
 const cleanName = computed(() =>
   senderName.value.replace(/[<>",;\r\n]/g, '').trim()
 )

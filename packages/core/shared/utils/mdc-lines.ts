@@ -1,9 +1,3 @@
-// The kind of each line of an MDC page, for the colors of the Markdown editor:
-// the component lines (`::name` and the closing `::`), the slot lines
-// (`#title`), the YAML props of a component (between `---` lines just after
-// its opening line), and the code fences with their content. Markdown has no
-// such lines, so the editor marks them itself. Pure: no DOM.
-
 export type PlutoMdcLineKind = 'component' | 'slot' | 'props' | 'code'
 
 const COMPONENT_OPEN = /^\s*:{2,}[A-Z][\w-]*/i
@@ -12,7 +6,6 @@ const SLOT = /^\s*#[A-Z][\w-]*\s*$/i
 const FENCE = /^\s*(`{3,}|~{3,})/
 const YAML_FENCE = /^\s*---\s*$/
 
-/** One kind (or `undefined`) for each line of `text`, in order. */
 export function mdcLineKinds(
   text: string
 ): Array<PlutoMdcLineKind | undefined> {
@@ -74,8 +67,6 @@ export interface PlutoMdcToken {
   kind: PlutoMdcTokenKind
 }
 
-// One attribute of `{...}`: a key (`title`, `:count`, `#id`, `.class`), and maybe `=` and a value
-// (quoted, or a bare word).
 const ATTRIBUTE = /([:#.]?[\w-]+)(?:\s*(=)\s*("[^"]*"|'[^']*'|[^\s}]+))?/g
 const LITERAL = /^(?:true|false|null|-?\d+(?:\.\d+)?)$/
 
@@ -104,11 +95,6 @@ function attributeTokens(
   }
 }
 
-/**
- * The colored parts of one MDC line of `kind` (from `mdcLineKinds`): the colons, the name and the
- * braces of a component with its attributes (`::callout{type="tip" :count=2}`), the `#` and the
- * name of a slot, the key and the value of a YAML prop. Offsets are in the line. Pure: no DOM.
- */
 export function mdcLineTokens(
   line: string,
   kind: PlutoMdcLineKind | undefined

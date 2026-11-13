@@ -57,7 +57,6 @@ describe('sitemap.xml', () => {
         'https://example.com/posts/old',
       ])
     )
-    // updatedAt wins, then publishedAt.
     expect(body).toContain(
       '<loc>https://example.com/posts/new</loc>\n    <lastmod>2026-03-04T10:00:00.000Z</lastmod>'
     )
@@ -100,7 +99,6 @@ describe('sitemap.xml', () => {
     expect(
       locs.filter((loc) => loc === 'https://example.com/posts/new')
     ).toHaveLength(1)
-    // The path came first, so the post only adds its date.
     expect(body).toContain(
       '<loc>https://example.com/posts/new</loc>\n    <lastmod>2026-03-04T10:00:00.000Z</lastmod>'
     )

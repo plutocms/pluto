@@ -7,6 +7,7 @@ interface Options {
 
 /**
  * Formats a number as a currency string.
+ * @see https://pluto.vulmix.dev/docs/layers/shop#prices
  * @param value - The numeric value to format.
  * @param options - Formatting options including currency type, spacing, prefix style, and trailing zero preference.
  * @returns The formatted currency string.

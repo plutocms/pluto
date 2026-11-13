@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// The code block of the Visual editor (the node view of `PlutoCodeBlock`): the code, colored by its
-// language (lowlight), and a select of the language at its top right. The select shows while the
-// pointer is over the block or the caret is in it. The language is the info of the fence
-// (```ts) in the Markdown; a name that the list does not have stays, as its own item.
 import type { NodeViewProps } from '@tiptap/vue-3'
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
 
@@ -10,7 +6,6 @@ const props = defineProps<NodeViewProps>()
 
 const { t } = usePlutoI18n()
 
-// Plain text has no language (a fence with no info). The select needs a value that is not empty.
 const PLAIN = 'plaintext'
 
 const language = computed({
@@ -19,8 +14,6 @@ const language = computed({
     props.updateAttributes({ language: value === PLAIN ? null : value }),
 })
 
-// A short name (`ts`) shows as its language and stays as written. A name that the list does not
-// know is its own item.
 const items = computed(() => {
   const current = language.value
   const list = [
@@ -37,7 +30,6 @@ const items = computed(() => {
     : [...list, { label: current, value: current }]
 })
 
-// The caret is in the block: the select shows, as on hover.
 const active = computed(() => {
   const position = props.getPos()
   if (typeof position !== 'number') {

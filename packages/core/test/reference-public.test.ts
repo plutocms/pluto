@@ -85,7 +85,6 @@ const TAGS: PlutoContentItem[] = [
   { id: 'c', title: 'Gamma', slug: 'gamma' },
 ]
 
-/** One adapter for several types. It counts the `list` reads per type and keeps `ids` and `filters`. */
 function multiAdapter(rows: Record<string, PlutoContentItem[]>) {
   const lists: Array<{ type: string; ids?: Array<string | number> }> = []
   const adapter: PlutoContentAdapter = {
@@ -362,7 +361,6 @@ describe('publicFields', () => {
         { name: 'note', type: 'text', label: 'Note' },
       ],
       slug: { field: 'slug' },
-      // `note` is not public.
       api: { public: true, fields: ['name', 'slug', 'bio', 'avatar'] },
     }
   }

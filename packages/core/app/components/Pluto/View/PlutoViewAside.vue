@@ -1,19 +1,8 @@
 <script setup lang="ts">
-// Do NOT use UDashboardSidebar here. Nuxt UI's UDashboardSidebar listens to
-// a GLOBAL `dashboard:sidebar:toggle` runtime hook, not a per-instance one.
-// A second instance of it (this aside) would open and close in lockstep
-// with the app's own LEFT sidebar from admin.vue. This component is a
-// hand-built stand-in instead: a plain `<aside>` on desktop, a `USlideover`
-// on mobile, both bound to the same `open` model.
+// Do not use UDashboardSidebar here. Its toggle hook is global, so this aside would open and close with the left sidebar.
 withDefaults(
   defineProps<{
-    /** The heading. The `header` slot replaces it. */
     title?: string
-    /**
-     * Desktop width, in px. Default 320. Ignored inside a
-     * PlutoViewAdminPanel that gets `aside-open`: its resizable panel sets
-     * the width.
-     */
     width?: number
   }>(),
   {
@@ -22,7 +11,6 @@ withDefaults(
 )
 
 defineSlots<{
-  /** Replaces the heading, for example with tabs. */
   header?: () => unknown
   default?: () => unknown
 }>()
@@ -35,11 +23,7 @@ function close() {
   open.value = false
 }
 
-// Render the plain aside on desktop only, and the slideover on mobile only,
-// so the slot mounts once. CSS classes (`hidden lg:flex`, `lg:hidden`) are
-// not enough: they hide a copy, but the copy stays mounted and fetches its
-// own data. An open slideover is also a modal dialog. It disables pointer
-// events on the rest of the page even while CSS hides it.
+// Render one copy only. A hidden copy stays mounted, fetches data, and its open slideover blocks pointer events.
 const isDesktop = useMediaQuery('(min-width: 64rem)')
 const resizable = inject(plutoViewAsideResizableKey, ref(false))
 const slideoverOpen = computed({
@@ -48,15 +32,10 @@ const slideoverOpen = computed({
     open.value = value
   },
 })
-// On a narrow screen, Back (or the back swipe) closes the slideover.
 usePlutoBackClose(slideoverOpen)
 </script>
 
 <template>
-  <!--
-    Inside a resizable PlutoViewAdminPanel the splitter panel owns the
-    width and its handle draws the border. Elsewhere, keep the fixed width.
-  -->
   <aside
     v-if="open && isDesktop"
     :style="resizable ? undefined : { width: `${width}px` }"
@@ -84,7 +63,6 @@ usePlutoBackClose(slideoverOpen)
         />
       </UTooltip>
     </div>
-    <!-- The scrollbar has no track of its own: the panel shows through. -->
     <div
       class="min-h-0 flex-1 scrollbar-thumb-(--ui-border-accented) overflow-y-auto p-4"
     >
@@ -92,11 +70,7 @@ usePlutoBackClose(slideoverOpen)
     </div>
   </aside>
 
-  <!--
-    `unmount-on-hide="false"` keeps the slot mounted after the first open,
-    so a reopen keeps the widget state (an open picker, a typed search) and
-    does not fetch the field options again.
-  -->
+  <!-- Keep the slot mounted after the first open, so a reopen keeps the widget state. -->
   <USlideover
     v-if="!isDesktop"
     v-model:open="slideoverOpen"

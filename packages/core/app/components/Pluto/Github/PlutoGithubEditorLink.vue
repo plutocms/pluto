@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/vue-3'
 
-// The link button of the Markdown editor toolbar. A popover holds the URL.
 const props = defineProps<{
   editor: Editor
 }>()
@@ -13,7 +12,7 @@ const url = ref('')
 const active = ref(false)
 const disabled = ref(true)
 
-// Reads the editor state after each change. A computed must not read it.
+// Read the editor state after each change. A computed must not read it.
 function sync() {
   const { editor } = props
   active.value = editor.isActive('link')

@@ -83,7 +83,6 @@ interface Call {
   body?: string
 }
 
-/** A GitHub that answers the three calls of the setup. */
 function createSetupGithub(
   options: {
     ownerType?: string
@@ -147,7 +146,6 @@ function configure(
   return github
 }
 
-/** Runs `start` and returns the state from the form action. */
 async function startFlow(
   app: ReturnType<typeof setupApp>,
   init: Parameters<ReturnType<typeof setupApp>['request']>[1] = {}

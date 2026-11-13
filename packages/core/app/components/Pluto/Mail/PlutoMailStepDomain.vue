@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// Step 4: the sending domain. Pluto creates the domain in Resend and shows
-// the DNS records. After the admin adds them, Pluto asks Resend to verify,
-// and checks the status on a schedule: every 10 s at first, slower up to 60 s,
-// and it stops after 10 minutes. "Check again" starts it again.
 const { t } = usePlutoI18n()
 const errorText = usePlutoErrorText()
 const {
@@ -69,8 +65,6 @@ const statusBadge = computed(() => {
   }
 })
 
-// One check: read the domain, report whether the work is done. The poller
-// calls it, and so do the buttons.
 async function checkOnce(): Promise<boolean> {
   if (!domain.value) {
     return true
@@ -95,9 +89,6 @@ function startPolling() {
 
 onBeforeUnmount(() => poller.stop())
 
-// A domain from the list has no records yet: read it once. The poll does not
-// start here. It starts when the admin asks Resend to verify, because the
-// 10 minutes should not run out while the DNS records are still missing.
 watch(
   () => domain.value?.id,
   async (id) => {
@@ -127,8 +118,6 @@ async function add() {
   }
 }
 
-// "Verify" and "Check again" ask Resend to look at the DNS now, read the
-// result, and keep checking for 10 minutes.
 async function verifyNow() {
   if (!domain.value) {
     return

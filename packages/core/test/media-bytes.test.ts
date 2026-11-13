@@ -23,7 +23,6 @@ function segment(marker: number, body: number[] | string): number[] {
   return [0xff, marker, length >> 8, length & 0xff, ...data]
 }
 
-/** An APP1 EXIF segment with an orientation tag and a GPS-like text. */
 function exifSegment(orientation: number): number[] {
   const tiff = [
     0x4d,
@@ -60,7 +59,6 @@ function exifSegment(orientation: number): number[] {
   ])
 }
 
-/** A small JPEG: SOI, EXIF, IPTC, a comment, a color profile, a frame of 640 x 480, a scan, EOI. */
 function jpeg(orientation = 1): Uint8Array {
   return new Uint8Array([
     0xff,

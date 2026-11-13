@@ -39,7 +39,6 @@ interface Answers {
   >
 }
 
-/** The fake GitHub, plus the build-status calls. */
 function setup(answers: Answers = {}) {
   const fake = createFakeGithub({
     users: { ada: { id: 7, permission: 'push' } },
@@ -312,7 +311,6 @@ describe('gET /api/_pluto/github/build-status', () => {
     await app.request(URL_PATH)
     const first = calls.length
     await app.request(URL_PATH)
-    // The second request reads the commit again, and nothing else.
     expect(calls.length).toBe(first + 1)
   })
 

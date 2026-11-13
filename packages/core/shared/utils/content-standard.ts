@@ -5,14 +5,6 @@ import type {
 } from '../types/content'
 import { markdownToPlainText } from '../markdown/render'
 
-/**
- * The standard options of a content type: `excerpt` and `cover`. Any type can turn them on. Core
- * adds the field when the type does not declare it, the public API gives `excerpt` (with a
- * fallback from the body) and `cover`, the admin list shows the cover, and the SEO of a site uses
- * both. See the content-model skill ("Excerpt and cover image"). Pure.
- */
-
-/** The field names of the standard options of a type. A missing key: the option is off. */
 export function standardFieldNames(
   type: Pick<PlutoContentType, 'excerpt' | 'cover'> | undefined
 ): { excerpt?: string; cover?: string } {
@@ -28,7 +20,6 @@ export function standardFieldNames(
   return names
 }
 
-/** The excerpt field that core adds: a text area in the side panel. */
 function excerptField(name: string): PlutoField {
   return {
     name,
@@ -40,7 +31,6 @@ function excerptField(name: string): PlutoField {
   } as PlutoField
 }
 
-/** The cover field that core adds: one image of the media library, in the side panel. */
 function coverField(name: string): PlutoField {
   return {
     name,
@@ -52,10 +42,6 @@ function coverField(name: string): PlutoField {
   } as PlutoField
 }
 
-/**
- * The type with the fields of its standard options. A field that the type declares already stays
- * as it is (its label, its place). The same object when nothing changes.
- */
 export function withStandardFields(type: PlutoContentType): PlutoContentType {
   const names = standardFieldNames(type)
   const added: PlutoField[] = []
@@ -73,15 +59,8 @@ export function withStandardFields(type: PlutoContentType): PlutoContentType {
     : { ...type, fields: [...type.fields, ...added] }
 }
 
-/** The length of an excerpt made from the body. */
 const STANDARD_EXCERPT_LENGTH = 200
 
-/**
- * The keys of the standard options (`excerpt`, `cover`) on a public answer. `excerpt`: the value
- * of the excerpt field, else an excerpt that the adapter gave, else the start of the body as
- * plain text. `cover`: the media record of the cover field. A type without the option is
- * unchanged.
- */
 export function withStandardPublicKeys(
   type: PlutoContentType,
   data: Record<string, unknown>,

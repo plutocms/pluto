@@ -13,12 +13,6 @@ import { getContentAdapter } from './pluto-content'
 import { createPlutoError } from './pluto-error'
 import { resolveMailDriver } from './pluto-mail'
 
-/**
- * Helpers for the admin-only mail routes under `server/api/_pluto/mail/**`.
- * The routes are thin. The logic lives in `pluto-mail-handlers.ts`, so a test
- * can call it without a Nitro server.
- */
-
 function forbidden() {
   return createPlutoError({
     statusCode: 403,
@@ -27,17 +21,7 @@ function forbidden() {
   })
 }
 
-/**
- * Lets only an administrator through, and fails closed. It denies the call
- * when no content adapter is registered, when the adapter has no
- * `authorize`, and when `authorize(event, '*')` throws or does anything but
- * resolve. A state-changing call (`write`) also needs a same-origin request.
- *
- * Mail routes differ from the content routes on purpose: the content routes
- * fail open without `authorize` (the backing store is the real gate). Mail
- * has no backing store, and its routes use the server's secrets, so no
- * guard means no access.
- */
+// Fail closed: deny when no adapter can authorize.
 export async function requireMailAdmin(
   event: H3Event,
   options: {
@@ -61,7 +45,6 @@ export async function requireMailAdmin(
         statusCode?: number
       } | null
     )?.statusCode
-    // Keep a 401 so the admin can ask for a new sign-in. Everything else is a 403.
     throw status === 401
       ? createPlutoError({
           statusCode: 401,
@@ -72,12 +55,7 @@ export async function requireMailAdmin(
   }
 }
 
-/**
- * Refuses a request that a browser sent from another site. A browser sets
- * `Origin` (or `Sec-Fetch-Site`) on a cross-site POST. A call with neither
- * header is not a browser form post, so it passes. The session cookie is
- * `SameSite=Lax` too: this is a second guard.
- */
+// A cross-site request from a browser must not reach the mail routes.
 export function assertMailSameOrigin(event: H3Event): void {
   if (getRequestHeader(event, 'sec-fetch-site') === 'cross-site') {
     throw forbidden()
@@ -114,7 +92,6 @@ const STATUS_BY_CODE: Record<PlutoMailErrorCode, number> = {
   provider_error: 502,
 }
 
-/** Turns a `PlutoMailError` into an H3 error that the admin shows in its language. */
 export function toMailH3Error(error: PlutoMailError) {
   return createPlutoError({
     statusCode: STATUS_BY_CODE[error.code] ?? 502,
@@ -124,7 +101,6 @@ export function toMailH3Error(error: PlutoMailError) {
   })
 }
 
-/** Runs `fn` and turns a `PlutoMailError` it throws into an H3 error. Other errors pass through. */
 export async function withMailErrors<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn()
@@ -133,7 +109,6 @@ export async function withMailErrors<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-/** Creates a Resend client from the key that resolves (env, then store). Throws `not_configured` with no key. */
 export async function requireResendClient() {
   const { resendKey } = await resolveMailDriver()
   if (!resendKey) {
@@ -143,11 +118,9 @@ export async function requireResendClient() {
 }
 
 export interface MailRateLimiter {
-  /** Counts one call. Returns the seconds to wait when the key is over the limit, or 0. */
   hit: (key: string) => number
 }
 
-/** A fixed-window counter in memory. Each server instance counts for itself. */
 export function createMailRateLimiter(options: {
   limit: number
   windowMs: number
@@ -193,11 +166,6 @@ export function createMailRateLimiter(options: {
   }
 }
 
-/**
- * Who is calling: a hash of the session credentials (the `Authorization`
- * header, else the cookies), so the limit counts for one admin session and no
- * secret sits in memory. With neither, it falls back to the IP address.
- */
 export function adminRateKey(event: H3Event): string {
   const credentials =
     getRequestHeader(event, 'authorization') ||
@@ -208,7 +176,6 @@ export function adminRateKey(event: H3Event): string {
   return `ip:${getRequestIP(event, { xForwardedFor: true }) ?? 'unknown'}`
 }
 
-/** 5 test emails in 10 minutes for each admin. */
 export const testMailLimiter = createMailRateLimiter({
   limit: 5,
   windowMs: 10 * 60 * 1000,

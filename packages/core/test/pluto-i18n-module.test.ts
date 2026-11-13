@@ -155,7 +155,6 @@ describe('renderI18nTemplate', () => {
   })
 
   it('is valid JavaScript that exports working loaders', async () => {
-    // Replace the file imports with fixtures, then run the generated code.
     const tweaked = source
       .replace(
         'import("/pluto/i18n/locales/pt-BR.json")',

@@ -1,18 +1,4 @@
 <script setup lang="ts">
-// The Deploy tab of Settings (`/admin/settings/deploy`). The CMS module adds
-// the route with `extendPages`, and the client plugin adds the tab. It puts
-// the site on a host:
-//
-// - The whole app (the site and the admin): Vercel, Netlify, a Node host. A
-//   card opens the import page of the host for this repo.
-// - A static site (the admin stays on the computer): GitHub Pages and
-//   Cloudflare Pages. In local mode, "Add the workflow" writes and commits the
-//   workflow, after a dialog. The author turns Pages on in the settings of the
-//   repo (a link), and pushes. The page needs no CLI: it reads the last deploy
-//   of the `github-pages` environment with the GitHub API.
-// - The domain: see PlutoGithubDeployDomain.
-//
-// The file lives under `app/` so Tailwind scans it. See the git-cms skill.
 import type {
   PlutoDeployStatus,
   PlutoPagesSetupResult,
@@ -53,7 +39,6 @@ const repoUrl = computed(() =>
   status.value?.repo ? `https://github.com/${status.value.repo}` : ''
 )
 
-/** The full-site hosts. Each link opens the import page of the host. */
 const hosts = computed(() => [
   {
     id: 'vercel',
@@ -74,8 +59,6 @@ const hosts = computed(() => [
   },
 ])
 
-// --- GitHub Pages ------------------------------------------------------------
-
 const deploy = computed(() => status.value?.deploy)
 const online = computed(() => deploy.value?.state === 'success')
 const siteUrl = computed(
@@ -84,7 +67,6 @@ const siteUrl = computed(
 const pagesSettingsUrl = computed(() =>
   repoUrl.value ? `${repoUrl.value}/settings/pages` : ''
 )
-/** The page of the workflow on GitHub: its runs, and the "Run workflow" button. */
 const runsUrl = computed(() => {
   const file = status.value?.workflow.path.split('/').at(-1)
   return repoUrl.value && file
@@ -98,7 +80,6 @@ const pushed = computed(
     !localGit.ahead.value
 )
 
-/** One line for the last deploy. */
 const deployLine = computed(() => {
   const current = deploy.value
   if (!current) {
@@ -134,7 +115,6 @@ async function setupPages() {
       { method: 'POST' }
     )
     status.value = result.status
-    // The workflow commit is a new commit to push: the Git badge counts it.
     localGit.refresh()
   } catch (error) {
     setupError.value = errorText(error)
@@ -143,8 +123,6 @@ async function setupPages() {
   }
 }
 
-// Remove: delete and commit the workflow (after a dialog). GitHub keeps the
-// last site until the author unpublishes it in the Pages settings.
 const removeOpen = ref(false)
 const removing = ref(false)
 const removeError = ref('')
@@ -190,9 +168,7 @@ async function copy(id: string, text: string) {
         copied.value = ''
       }
     }, 2000)
-  } catch {
-    // The text is selectable, so the user can copy it by hand.
-  }
+  } catch {}
 }
 
 const cloudflare = {
@@ -225,7 +201,6 @@ const cloudflare = {
       variant="subtle"
     />
 
-    <!-- The whole app: the site and the admin. -->
     <section class="flex flex-col gap-y-3">
       <div>
         <h2 class="font-semibold">{{ t('pluto.github.deploy.full.title') }}</h2>
@@ -264,7 +239,6 @@ const cloudflare = {
       </p>
     </section>
 
-    <!-- A static site: the admin stays on the computer. -->
     <section class="flex flex-col gap-y-3">
       <div>
         <h2 class="font-semibold">
@@ -309,7 +283,6 @@ const cloudflare = {
 
           <template v-else-if="status">
             <ol class="flex flex-col gap-y-4 text-sm">
-              <!-- 1. The workflow file. -->
               <li class="flex items-start gap-2">
                 <UIcon
                   :name="
@@ -369,7 +342,6 @@ const cloudflare = {
                 </div>
               </li>
 
-              <!-- 2. The source of Pages, in the settings of the repo. -->
               <li class="flex items-start gap-2">
                 <UIcon
                   :name="
@@ -393,7 +365,6 @@ const cloudflare = {
                 </div>
               </li>
 
-              <!-- 3. The push. -->
               <li class="flex items-start gap-2">
                 <UIcon
                   :name="
@@ -424,7 +395,6 @@ const cloudflare = {
                 </div>
               </li>
 
-              <!-- 4. The last deploy, read with the GitHub API. -->
               <li class="flex items-start gap-2">
                 <UIcon
                   :name="deployIcon[0]"

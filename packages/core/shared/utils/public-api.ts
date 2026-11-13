@@ -1,9 +1,7 @@
 import type { PlutoPublicItem, PlutoPublicQuery } from '../types/public-api'
 
-/** The prefix of the public API. Version 1. A breaking change ships as `/api/pluto/v2` next to it. */
 export const PLUTO_API_PREFIX = '/api/pluto/v1'
 
-/** The path of the surround route of one item: `/api/pluto/v1/surround/<type>/<id>`. */
 export function plutoSurroundApiPath(
   type: string,
   id: string | number
@@ -12,8 +10,8 @@ export function plutoSurroundApiPath(
 }
 
 /**
- * The path of a public content route: the list of `type`, or one item when `id` is set. Each
- * segment of a nested id (`1.start/2.install`) is encoded on its own, so the slashes stay.
+ * The path of a public content route: the list of `type`, or one item when `id` is set.
+ * @see https://pluto.vulmix.dev/docs/build/public-api#routes
  */
 export function plutoContentApiPath(
   type: string,
@@ -59,6 +57,7 @@ export interface PlutoPublishedDateOptions extends Intl.DateTimeFormatOptions {
  * The date of a public item, as text: `publishedAt`, else `createdAt`, else `''`. Default
  * `{ dateStyle: 'medium', timeZone: 'UTC' }`: the server and the browser give the same text, so
  * the page hydrates with no mismatch. Pass `timeZone` for the time zone of the site.
+ * @see https://pluto.vulmix.dev/docs/build/public-api#dates-and-reading-time
  */
 export function formatPublishedDate(
   item: Pick<PlutoPublicItem, 'createdAt' | 'publishedAt'>,
@@ -78,6 +77,7 @@ export function formatPublishedDate(
 /**
  * The reading time of an HTML body, in minutes: its words over `wordsPerMinute` (default 220),
  * rounded, at least 1. The tags do not count as words.
+ * @see https://pluto.vulmix.dev/docs/build/public-api#dates-and-reading-time
  */
 export function readingMinutes(html: string, wordsPerMinute = 220): number {
   const words = html

@@ -24,6 +24,8 @@ export interface PlutoSingletonOptions {
  * suggested names (`PlutoSingletonTypeName`), and the name types `item`
  * (`usePlutoSingleton('contact')`, see `PlutoContentTypes`). Another name takes the item type as a
  * type argument.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
  */
 export function usePlutoSingleton<N extends PlutoSingletonTypeName>(
   type: N,

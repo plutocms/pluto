@@ -47,9 +47,7 @@ const asideOpen = defineModel<boolean>('asideOpen', { default: false })
 
 const slots = useSlots()
 
-// `useSlots()` is not reactive. A view can fill a slot later, for example when
-// a widget loads on demand and adds the left panel. So keep the slot flags in
-// refs, and read the slots again before each update of this component.
+// `useSlots()` is not reactive. Keep the slot flags in refs.
 const hasAsideSlot = ref(Boolean(slots.aside))
 const hasLeftSlot = ref(Boolean(slots.left))
 const hasRailSlot = ref(Boolean(slots.rail))
@@ -61,12 +59,7 @@ onBeforeUpdate(() => {
 const { t } = usePlutoI18n()
 const isDesktop = useMediaQuery('(min-width: 64rem)')
 
-// The splitter works in percentages of its own width: the row less the rail (the aside can be
-// outside the splitter for a moment, so the splitter itself is not measured). The side limits are
-// in px, so convert them against that width. Do not use the
-// splitter's `sizeUnit: 'px'`: when a panel joins with its side already open
-// (a reload), reka-ui skips the px conversion and reads the px value as a raw
-// size.
+// Do not use the splitter's `sizeUnit: 'px'`. When a panel joins already open, reka-ui skips the px conversion.
 interface SplitterPanelInstance {
   resize: (size: number) => void
 }
@@ -76,11 +69,11 @@ const splitter = useTemplateRef<{
 const rowEl = ref<HTMLElement>()
 const railEl = ref<HTMLElement>()
 const { width: rowWidth } = useElementSize(rowEl)
-const splitWidth = computed(() => rowWidth.value - (railEl.value?.offsetWidth ?? 0))
+const splitWidth = computed(
+  () => rowWidth.value - (railEl.value?.offsetWidth ?? 0)
+)
 const toPercent = (px: number) => Math.min(100, (px / splitWidth.value) * 100)
 
-// On mobile the aside is a slideover, so it needs no panel. Wait for the
-// row to have a width, so the px-to-percent conversion is correct.
 const resizable = computed(
   () =>
     rowWidth.value > 0 &&
@@ -90,14 +83,11 @@ const resizable = computed(
 )
 provide(plutoViewAsideResizableKey, resizable)
 
-// The left panel sits in the splitter on desktop, with the same rule. On a
-// narrow screen it is a slideover, outside the splitter.
 const leftResizable = computed(
   () =>
     rowWidth.value > 0 && hasLeftSlot.value && leftOpen.value && isDesktop.value
 )
 const leftSlideover = computed(() => hasLeftSlot.value && !isDesktop.value)
-// On a narrow screen, Back (or the back swipe) closes the left slideover.
 usePlutoBackClose(
   computed({
     get: () => leftSlideover.value && leftOpen.value,
@@ -107,7 +97,6 @@ usePlutoBackClose(
   })
 )
 
-// The collapse button in the header of the left panel (PlutoViewLeftCollapse).
 const leftCollapseButtons = ref(0)
 provide(plutoViewLeftPanelKey, {
   close: () => {
@@ -126,8 +115,6 @@ const ASIDE_MAX = 560
 const LEFT_MIN = 200
 const LEFT_MAX = 400
 
-// Keep the side widths in px ourselves, so they stay the same when the
-// window size changes between visits.
 const asideWidth = useCookie<number>('pluto-view-aside-width', {
   default: () => 300,
 })
@@ -137,14 +124,11 @@ const leftWidth = useCookie<number>('pluto-view-left-width', {
 const asideEl = ref<HTMLElement>()
 const leftEl = ref<HTMLElement>()
 
-// Snapshot the width when a panel opens. A reactive `defaultSize` would
-// rebuild the panel on every save.
 const clamp = (px: number, min: number, max: number) =>
   Math.min(max, Math.max(min, px))
 const asideDefault = ref(0)
 const leftDefault = ref(0)
 
-/** The width of a side panel in px: its box while it is open, else the stored width. */
 function sideWidth(el: HTMLElement | undefined, stored: number) {
   const width = el?.getBoundingClientRect().width
   return width && width > 0 ? width : stored
@@ -162,14 +146,8 @@ function onDragging(_index: number, dragging: boolean) {
   }
 }
 
-// The sheet: a view with the rail (a canvas form on desktop) shows its light panels (the left
-// panel and the main region) as one sheet with rounded top corners, on the frame color
-// (`bg-pluto-frame`) of the toolbar and the rail. No border under the toolbar, beside the rail or
-// before the aside: only the line between the left panel and the main region stays.
 const sheet = computed(() => hasRailSlot.value && isDesktop.value)
 
-// `id` and `order` let the splitter add and remove a side panel as it
-// opens and closes. The order is left, main, aside.
 const items = computed<SplitterItem[]>(() => [
   ...(leftResizable.value
     ? [
@@ -188,7 +166,6 @@ const items = computed<SplitterItem[]>(() => [
     id: 'pluto-view-main',
     slot: 'main',
     order: 2,
-    // The top left corner is the corner of the sheet when no left panel is open.
     class: sheet.value
       ? leftResizable.value
         ? 'rounded-se-xl'
@@ -209,11 +186,6 @@ const items = computed<SplitterItem[]>(() => [
     : []),
 ])
 
-// When a side panel opens or closes, the splitter lays out its panels again from the
-// `defaultSize` that each one had when it joined: reka-ui reads it once, at mount. So the panel
-// that stays open went back to its first width (a width dragged since then was lost). The widths
-// in px are taken before the change (the panel that stays open: its box; the one that opens: its
-// stored width), and both panels get them back after the new layout.
 function restoreSideWidths(asidePx: number, leftPx: number) {
   const panels = splitter.value?.panelsRef ?? []
   const panelOf = (id: string) => {
@@ -266,13 +238,6 @@ watch(
     </div>
 
     <div ref="rowEl" class="relative flex min-h-0 flex-1 overflow-hidden">
-      <!--
-        The action rail (desktop): a narrow column of icon buttons at the left edge, for the left
-        panels (the Outline of the post editor) and other actions of the view. It takes the place
-        of the floating button that opens a closed left panel. On a narrow screen the toolbar
-        opens the left panel as a slideover. It is part of the frame of the sheet (`bg-pluto-rail`: the
-        frame color in both modes), with no border.
-      -->
       <nav
         v-if="hasRailSlot && isDesktop"
         ref="railEl"
@@ -282,26 +247,14 @@ watch(
         <slot name="rail" />
       </nav>
 
-      <!--
-        No `id` on the splitter, on purpose. With an id, Nuxt UI names each handle
-        `<id>-handle-<index>`, and reka-ui reads that name once, when the handle mounts. A panel
-        that joins later (the left panel of the canvas layout loads on demand) shifts the indexes,
-        so two handles get the same name, and a drag on the aside handle resized the left panel.
-        Without an id, reka-ui gives each handle its own unique id. The panels keep their `id`s.
-      -->
       <USplitter
         ref="splitter"
         :items="items"
         :hit-area-margins="{ coarse: 15, fine: 2.5 }"
         :ui="{
-          // In the sheet with no aside open, 16px of frame at the right of the sheet.
           root: sheet && !resizable ? 'min-h-0 flex-1 pe-4' : 'min-h-0 flex-1',
-          // In the sheet, a panel clips its content at its rounded corners.
           panel: sheet ? 'overflow-hidden' : undefined,
-          // A 1px line. A `::before` 2.5px wider on each side is the 6px grab
-          // area, and the 6px haze-400 bar: it fades in after 300ms of hover, and
-          // shows at once while dragging. The `!` keeps the duration and the
-          // delay against the no-transition rule of the admin (pluto-layer.css).
+          // The `!` keeps the duration and delay against the no-transition rule of the admin (pluto-layer.css).
           handle: [
             sheet
               ? 'bg-transparent [#pluto-view-left+&]:bg-border'
@@ -318,10 +271,6 @@ watch(
         </template>
 
         <template #main>
-          <!--
-            `scrollbar-gutter: stable` keeps the space of the scrollbar on a short page too, so
-            the content does not move sideways between a short and a long page.
-          -->
           <main
             :class="
               fill
@@ -330,12 +279,6 @@ watch(
             "
             class="min-h-0 w-full"
           >
-            <!--
-              'container' gives the padding and the gap of every admin page, so a
-              page needs no wrapper of its own. 'full' adds
-              none — a focus-layout consumer (e.g. a rich text editor) supplies
-              its own padding instead.
-            -->
             <UContainer
               v-if="width !== 'full'"
               :class="[
@@ -357,15 +300,10 @@ watch(
         </template>
       </USplitter>
 
-      <!-- Closed or mobile: the aside renders outside the splitter. -->
       <div v-if="!resizable" class="shrink-0">
         <slot name="aside" />
       </div>
 
-      <!--
-        A closed side panel opens again from a small square button at the place of the collapse
-        button in its header. Desktop only: on a narrow screen the toolbar opens the slideovers.
-      -->
       <template v-if="panelToggles && isDesktop">
         <UTooltip
           v-if="hasLeftSlot && !leftOpen && !hasRailSlot"
@@ -401,11 +339,6 @@ watch(
       </template>
     </div>
 
-    <!--
-      The left panel on a narrow screen. Like PlutoViewAside, it renders the
-      slot once: here on a narrow screen, in the splitter on desktop.
-      `unmount-on-hide="false"` keeps the slot mounted after the first open.
-    -->
     <USlideover
       v-if="leftSlideover"
       v-model:open="leftOpen"

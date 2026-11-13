@@ -4,7 +4,6 @@ import { gitBlobSha, listingOid } from '../utils/blob-sha'
 import { PlutoGithubConflictError } from './errors'
 
 export interface MemoryStore extends PlutoGithubStore {
-  /** Puts a file without a commit. For test setup. */
   seed: (path: string, text: string) => void
 }
 
@@ -17,19 +16,11 @@ function parentOf(path: string): string {
   return index === -1 ? '' : path.slice(0, index)
 }
 
-/**
- * An in-memory store for tests. `listDir` and `readFile` read the current
- * state and ignore the head id they get. The head id comes from the content,
- * so it changes after each change. Each commit keeps a copy of the text files,
- * for `history` and `readAt` (commit ids `c1`, `c2`, ..., author `Memory`).
- */
 export function createMemoryStore(
   initial: Record<string, string> = {}
 ): MemoryStore {
   const files = new Map<string, string>(Object.entries(initial))
-  // Binary files (media), as base64. They count for the head id too.
   const raw = new Map<string, string>()
-  // Each commit, oldest first, with the text files after it.
   const log: {
     oid: string
     message: string
@@ -109,9 +100,7 @@ export function createMemoryStore(
       }
     },
     readAt: async (path, commitOid) => {
-      const text = log
-        .find((entry) => entry.oid === commitOid)
-        ?.files.get(path)
+      const text = log.find((entry) => entry.oid === commitOid)?.files.get(path)
       return text === undefined ? null : toFile(path, text)
     },
     readRaw: async (path) => {
@@ -140,7 +129,6 @@ export function createMemoryStore(
       log.push({
         oid: `c${log.length + 1}`,
         message: input.message.split('\n')[0] ?? '',
-        // One minute apart, so the order is clear.
         committedAt: new Date(
           Date.UTC(2026, 0, 1, 0, log.length)
         ).toISOString(),

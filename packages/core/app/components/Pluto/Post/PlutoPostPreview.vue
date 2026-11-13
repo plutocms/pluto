@@ -1,17 +1,8 @@
 <script setup lang="ts">
 import PlutoHtml from '../PlutoHtml.vue'
 
-// The default post preview of the post editor (`post-canvas`). The preview page
-// (`/_pluto/post-preview`) renders it with the site CSS, so it looks like the site.
-//
-// An app overrides it with its own `components/PlutoPostPreview.vue` that takes the
-// same props, to use its real post layout: `item` has the shape of the public API, so
-// the component of the post page renders it as it is. Put `data-pluto-post-body` on the
-// element that holds the body, so the outline can scroll to a heading.
 const props = defineProps<{
-  /** The content type name, for example `post`. */
   contentType: string
-  /** The item in the shape of the public API, with `html`. See `toPreviewItem`. */
   item: PlutoPreviewItem
 }>()
 
@@ -30,7 +21,6 @@ const date = computed(() => {
     : ''
 })
 
-// The reference fields to a content type (tags, categories) show as chips, in field order.
 const references = computed(() =>
   (byName(props.contentType)?.fields ?? [])
     .filter(isTargetReference)

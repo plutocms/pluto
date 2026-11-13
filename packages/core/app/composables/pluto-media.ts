@@ -37,10 +37,6 @@ export class PlutoMediaRequestError extends Error {
   }
 }
 
-/**
- * Sends a form with XHR, so the caller gets the upload progress (0 to 1).
- * `$fetch` has no upload progress. Same origin, so the cookies go with it.
- */
 function sendForm<T>(
   method: 'POST' | 'PUT',
   url: string,
@@ -115,24 +111,17 @@ export function usePlutoMedia() {
     return result.data
   }
 
-  /** The type of a file as the browser sees it, or from its name. */
   function typeOf(file: File): string {
     return (
       file.type || mediaTypeFromName(file.name) || 'application/octet-stream'
     )
   }
 
-  /**
-   * The browser check of a file (the server checks again), before any upload.
-   * `accept` narrows the allowed types, as a `media` field does.
-   */
   function check(file: File, accept?: string[]): void {
     const type = typeOf(file)
     const allowed =
       matchesMediaType(type, limits.allowedTypes) &&
       matchesMediaType(type, accept)
-    // An image the browser makes WebP can be over the limit before it, so the
-    // size check waits for the processed file.
     if (
       !allowed &&
       !(type.startsWith('image/') && matchesMediaType('image/webp', accept))
@@ -143,7 +132,6 @@ export function usePlutoMedia() {
     }
   }
 
-  /** A preview image of a file, made by its kind. `null` when the kind makes none, or fails. */
   async function makePreview(file: Blob, mimeType: string) {
     const create = kinds.kindOf(mimeType)?.createPreview
     if (!create) {
@@ -156,7 +144,6 @@ export function usePlutoMedia() {
     }
   }
 
-  /** The warning of the kind of a file (`kind.inspect`), or `null`. */
   async function inspect(file: Blob, mimeType: string) {
     try {
       return (await kinds.kindOf(mimeType)?.inspect?.(file)) ?? null
@@ -165,18 +152,12 @@ export function usePlutoMedia() {
     }
   }
 
-  /**
-   * Processes an image in the browser (see `processMediaImage`), makes the
-   * preview of a file that has a kind with `createPreview`, then uploads.
-   * `onProgress` gets the upload progress, 0 to 1.
-   */
   async function upload(
     file: File,
     options: {
       alt?: string
       accept?: string[]
       onProgress?: (part: number) => void
-      /** A warning of the kind of the file (`kind.inspect`). The upload goes on. */
       onWarning?: (warning: string) => void
     } = {}
   ): Promise<PlutoMedia> {
@@ -191,7 +172,6 @@ export function usePlutoMedia() {
       })
     }
     const body = new FormData()
-    // The original name, for people. The server names the stored file from the real type.
     body.append('file', ready, file.name)
     if (options.alt) {
       body.append('alt', options.alt)
@@ -224,7 +204,6 @@ export function usePlutoMedia() {
     return result.data
   }
 
-  /** Makes the preview of a stored file (its kind renders the file from its URL) and saves it. */
   async function createPreview(media: PlutoMedia): Promise<PlutoMedia | null> {
     const response = await fetch(media.url)
     if (!response.ok) {

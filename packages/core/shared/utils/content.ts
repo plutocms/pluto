@@ -1,18 +1,19 @@
 import type { PlutoContentType } from '../types/content'
 
 /**
- * Declares a content type. This is an identity function: it returns `type`
- * unchanged. Its only job is type inference at the call site — wrapping a
- * content type literal in `defineContentType` lets TypeScript narrow each
- * `PlutoField`'s `type` correctly — plus a handful of dev-only sanity
- * checks below. This mirrors `definePlutoExtension`'s role: a thin, typed
- * entry point, not a place that does real work.
- *
- * The checks only warn, and only in dev (`import.meta.dev` strips them
- * from a production build). A content type with a typo still loads. The
- * warning exists to catch the typo before it reaches a later wave's
- * generic list/form UI or server adapter, where it would fail silently or
- * confusingly instead.
+ * Declares a content type. It returns `type` unchanged, and keeps the literal names and field
+ * types for TypeScript. In development it warns about a mistake, such as a duplicate field name or
+ * a `titleField` that no field has.
+ * @example
+ * export const eventType = defineContentType({
+ *   name: 'event',
+ *   label: 'Event',
+ *   labelPlural: 'Events',
+ *   source: 'events',
+ *   titleField: 'title',
+ *   fields: [{ name: 'title', type: 'text', label: 'Title', required: true }],
+ * })
+ * @see https://pluto.vulmix.dev/docs/reference/content-model#declare-a-content-type
  */
 export function defineContentType<const T extends PlutoContentType>(
   type: T

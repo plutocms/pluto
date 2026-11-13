@@ -222,7 +222,6 @@ describe('readLocalGitStatus and pushLocalGit', { timeout: 30000 }, () => {
     await pushLocalGit(root)
     const branch = git('symbolic-ref', '--short', 'HEAD')
 
-    // Another clone pushes first.
     const other = mkdtempSync(join(tmpdir(), 'pluto-local-other-'))
     try {
       execFileSync('git', ['clone', '-q', remote, other])

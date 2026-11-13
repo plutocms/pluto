@@ -161,9 +161,7 @@ async function setup(authorize: Authorize = async () => {}) {
     let payload: any = null
     try {
       payload = JSON.parse(text)
-    } catch {
-      // not JSON
-    }
+    } catch {}
     return { status: response.status, headers: response.headers, text, payload }
   }
 }

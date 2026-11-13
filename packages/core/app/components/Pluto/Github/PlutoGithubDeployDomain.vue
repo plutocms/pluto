@@ -1,10 +1,4 @@
 <script setup lang="ts">
-// The Domain section of the Deploy tab. A full-site host (Vercel, Netlify)
-// serves the domain: the section links to its domain settings. For GitHub
-// Pages, the domain lives in the Pages settings of the repo (GitHub ignores a
-// `CNAME` file when an Action builds the site). The section links there, shows
-// the DNS records, checks the DNS from the server, and links to the workflow to
-// build the site again. It needs no CLI. See the git-cms skill.
 import type {
   PlutoDeployStatus,
   PlutoDomainCheck,
@@ -36,9 +30,6 @@ const otherHosts = computed(() =>
   }))
 )
 
-// --- GitHub Pages ------------------------------------------------------------
-
-/** The custom domain of the live Pages site, from the address of its last deploy. */
 const currentDomain = computed(() => {
   const url = props.status.deploy.url
   if (!url) {
@@ -52,10 +43,6 @@ const currentDomain = computed(() => {
   }
 })
 
-/**
- * The address of a project site, which GitHub serves under `/<repo>/`. A custom domain, or a repo
- * named `<owner>.github.io`, serves the site at the root: the workflow then builds it for the root.
- */
 const subpathUrl = computed(() => {
   const url = props.status.deploy.url
   if (!url || currentDomain.value) {
@@ -143,7 +130,6 @@ const CHECK_ICONS = {
       </p>
     </div>
 
-    <!-- A full-site host serves the domain. -->
     <UCard>
       <div class="flex flex-col gap-y-3">
         <div>
@@ -186,7 +172,6 @@ const CHECK_ICONS = {
       </div>
     </UCard>
 
-    <!-- GitHub Pages: the steps, with the DNS records and a DNS check. -->
     <UCard>
       <div class="flex flex-col gap-y-4">
         <div>

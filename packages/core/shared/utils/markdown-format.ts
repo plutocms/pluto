@@ -1,8 +1,3 @@
-// The quick formats of the Markdown editor: bold, italic, links, headings,
-// lists, quotes and code. Each one is a pure function of the text and the
-// selection, so plain Vitest tests them. A second use of the same format on
-// the same text removes it.
-
 export type PlutoMarkdownFormat =
   | 'bold'
   | 'italic'
@@ -38,7 +33,6 @@ function wrap(
 ): PlutoFormatEdit {
   const selected = text.slice(from, to)
   const size = marker.length
-  // The selection has the marks: remove them.
   if (
     selected.length >= size * 2 &&
     selected.startsWith(marker) &&
@@ -52,7 +46,6 @@ function wrap(
       selection: { anchor: from, head: from + inner.length },
     }
   }
-  // The marks are just outside the selection: remove them.
   if (
     text.slice(from - size, from) === marker &&
     text.slice(to, to + size) === marker
@@ -76,7 +69,6 @@ function wrap(
 function link(text: string, from: number, to: number): PlutoFormatEdit {
   const selected = text.slice(from, to)
   if (!selected) {
-    // An empty selection: the text of the link is selected, ready to type.
     return {
       from,
       to,
@@ -94,7 +86,6 @@ function link(text: string, from: number, to: number): PlutoFormatEdit {
   }
 }
 
-/** The start and the end of the lines that the selection touches. */
 function lineRange(
   text: string,
   from: number,
@@ -147,7 +138,6 @@ function prefixLines(
       if (!line.trim()) {
         return line
       }
-      // A line with another list mark changes its mark.
       const bare = line.replace(/^(\s*)(?:[-*+]|\d+\.) /, '$1')
       const indent = /^\s*/.exec(bare)![0]
       const rest = bare.slice(indent.length)
@@ -160,7 +150,6 @@ function prefixLines(
   })
 }
 
-/** No heading, then `##`, then `###`, then no heading again. */
 function heading(text: string, from: number, to: number): PlutoFormatEdit {
   return editLines(text, from, to, (lines) =>
     lines.map((line) => {
@@ -175,11 +164,6 @@ function heading(text: string, from: number, to: number): PlutoFormatEdit {
   )
 }
 
-/**
- * Sets the heading level of the lines of the selection: `level` 1 to 6 gives `#` to `######`, 0
- * gives a paragraph (no `#`). The heading menu of the Markdown toolbar uses it. A caret alone stays
- * at the end of its line; a selection selects the changed lines.
- */
 export function headingMarkdown(
   text: string,
   from: number,
@@ -220,7 +204,6 @@ function codeBlock(text: string, from: number, to: number): PlutoFormatEdit {
   })
 }
 
-/** The change that a quick format makes on the selection `from`..`to` of `text`. */
 export function formatMarkdown(
   text: string,
   from: number,
@@ -248,7 +231,6 @@ export function formatMarkdown(
   }
 }
 
-/** The smallest change from `before` to `after`: the same start and the same end are kept. */
 export function minimalChange(
   before: string,
   after: string

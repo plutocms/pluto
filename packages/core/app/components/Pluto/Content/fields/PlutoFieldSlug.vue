@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// The slug of an item: its address (`field.preview` and the slug, `/posts/my-post`) as a line, and
-// an edit button that shows the input. The author does not have to choose it: `PlutoContentForm`
-// makes it from the field it derives from (`field.from`, the title) for a new item, until the
-// author edits it here. This widget does not derive it itself: only the form knows the other field
-// (see the content-model skill). With no slug yet, the line says it comes from the title.
 const props = defineProps<{
   field: PlutoSlugField
   modelValue: unknown

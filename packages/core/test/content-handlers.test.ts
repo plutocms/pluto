@@ -6,12 +6,7 @@ import type {
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryContentAdapter } from './fixtures/memory-content-adapter'
 
-// pluto-content.ts (the server registry) is a plain module-scope
-// singleton — see its doc comment. Each test gets its own copy of it,
-// through `vi.resetModules()` plus a fresh dynamic `import()`, the same
-// isolation approach as test/content-server-registry.test.ts. Without
-// this, an adapter registered in one test would still be registered in
-// the next.
+// The server registry is a module singleton: each test loads a fresh copy with `vi.resetModules()`.
 afterEach(() => {
   vi.resetModules()
 })
@@ -153,7 +148,6 @@ describe('listContentItems', () => {
         includeUnpublished: true,
       })
     )
-    // With no sort, the default sort of the type.
     expect(listSpy).toHaveBeenNthCalledWith(
       2,
       ctx,
@@ -318,7 +312,6 @@ describe('createContentItem', () => {
     const adapter = createMemoryContentAdapter({ authorize })
     registerContentAdapter(adapter)
 
-    // No `capabilities` at all on this type.
     const ctx = ctxFor(contentType())
     await createContentItem(ctx, { title: 'Hello' })
 
@@ -723,7 +716,6 @@ describe('content backups', () => {
     tab: 'tab-a',
     changes: {
       title: { base: 'Old', value: 'New' },
-      // Not a declared field: the handler drops it.
       other: { base: 1, value: 2 },
     },
   }
@@ -801,7 +793,6 @@ describe('content backups', () => {
       otherDevice: false,
     })
     expect(put).toHaveBeenCalledWith(ctx, '+new', expect.anything())
-    // The undeclared field is gone.
     const saved = (await getContentBackup(ctx)).backup
     expect(Object.keys(saved!.changes)).toEqual(['title'])
     expect(await getContentBackup(ctx, 'a/b')).toEqual({
@@ -1106,7 +1097,6 @@ describe('the scheduled publish', () => {
     registerContentAdapter({ ...createMemoryContentAdapter(), publishDue })
     registerContentType(contentType({ status: schedule }))
     registerContentType(contentType({ name: 'page', status: schedule }))
-    // No schedule, or a schedule with no time column: skipped.
     registerContentType(contentType({ name: 'note' }))
     registerContentType(
       contentType({

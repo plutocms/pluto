@@ -1,16 +1,9 @@
-// The messages between the editor and the preview frame (`/_pluto/preview`).
-// Both sides check the origin and the shape of each message. Types and
-// validators only: no DOM, no Nuxt.
-
 export const PREVIEW_PATH = '/_pluto/preview'
 
-/** The version of the protocol. Change it when a message changes in a way that breaks the other side. */
-export const PREVIEW_PROTOCOL_VERSION = 1
+const PREVIEW_PROTOCOL_VERSION = 1
 
-/** Every message has this `source`, so the frame ignores the messages of other scripts. */
-export const PREVIEW_SOURCE = 'pluto-preview'
+const PREVIEW_SOURCE = 'pluto-preview'
 
-/** An inner component of a block, so the preview can mark it and a click can select it. */
 export interface PlutoPreviewChild {
   id: string
   /** The component name, as in the Markdown (`card`, `u-page-feature`). */
@@ -38,8 +31,6 @@ interface Envelope<T extends string> {
   type: T
 }
 
-// The editor to the frame
-
 export interface PlutoPreviewRender extends Envelope<'render'> {
   frontmatter: Record<string, unknown>
   blocks: PlutoPreviewBlock[]
@@ -57,8 +48,6 @@ export interface PlutoPreviewScrollTo extends Envelope<'scroll-to'> {
 
 export type PlutoPreviewToFrame =
   PlutoPreviewRender | PlutoPreviewSelect | PlutoPreviewScrollTo
-
-// The frame to the editor
 
 export type PlutoPreviewReady = Envelope<'ready'>
 
@@ -134,11 +123,6 @@ function isBlock(value: unknown): value is PlutoPreviewBlock {
 const TO_FRAME = new Set(['render', 'select', 'scroll-to'])
 const FROM_FRAME = new Set(['ready', 'select', 'hover', 'error'])
 
-/**
- * Checks the shape of a message that arrives from `postMessage`. It returns
- * the typed message, or `undefined` for anything else: wrong source, wrong
- * version, wrong direction, or a wrong field.
- */
 export function parsePreviewMessage(
   data: unknown,
   direction: PlutoPreviewDirection
@@ -186,7 +170,6 @@ export function parsePreviewMessage(
   }
 }
 
-/** True when the origin of a message is the expected one. The preview is same-origin, so `expected` is `location.origin`. */
 export function isTrustedPreviewOrigin(
   origin: string,
   expected: string

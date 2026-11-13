@@ -1,9 +1,3 @@
-// Make a block definition from the meta of a Vue component and the optional
-// `definePlutoBlock({...})` call in its file. Pure: the build step (modules/pluto-blocks) parses
-// the files with `nuxt-component-meta` and passes the result in. The result is the "component
-// layer" of one component. Opt-in: the build step calls this only for a component that has the
-// macro. A prop or a slot gets no label here: an editor shows its own label, else the name.
-
 import type {
   PlutoBlockPatch,
   PlutoBlockPropDefinition,
@@ -12,7 +6,6 @@ import type {
 } from './definition'
 import { BLOCK_COLORS, blockKey, mergeBlockPatch } from './definition'
 
-// The parts of the output of `getComponentMeta` that this file reads. The real output has more.
 export interface PlutoMetaSchema {
   kind?: string
   type?: string
@@ -44,14 +37,10 @@ export interface PlutoComponentMeta {
   slots?: PlutoMetaSlot[]
 }
 
-/** The block key of a component: `PlutoHero` gives `pluto-hero`, `UPageCTA` gives `u-page-c-t-a`. */
 export function componentBlockName(pascalName: string): string {
   return blockKey(pascalName)
 }
 
-// --- Type to widget ---------------------------------------------------------------
-
-/** Split a union at its top-level bars, so a bar inside quotes or brackets stays. */
 function splitUnion(type: string): string[] {
   const parts: string[] = []
   let depth = 0
@@ -79,7 +68,6 @@ function splitUnion(type: string): string[] {
   return parts.filter(Boolean)
 }
 
-/** The members of the type without `undefined` and `null`. */
 function typeMembers(prop: PlutoMetaProp): string[] {
   const schema = prop.schema
   const members =
@@ -101,7 +89,6 @@ function isIconName(name: string): boolean {
   return name === 'icon' || name.endsWith('Icon')
 }
 
-/** The widget for a prop, or `undefined` when no widget fits. */
 function widgetFor(
   name: string,
   members: string[]
@@ -152,7 +139,6 @@ function linkName(name: string): boolean {
   return name === 'to' || name === 'href'
 }
 
-/** A simple default from source text: a number, a boolean or a string. Anything else gives `undefined`. */
 export function parseDefault(
   source: string | undefined
 ): string | number | boolean | undefined {
@@ -173,8 +159,6 @@ export function parseDefault(
   return literal && !literal[2]!.includes(literal[1]!) ? literal[2] : undefined
 }
 
-// --- The block --------------------------------------------------------------------
-
 function propFromMeta(prop: PlutoMetaProp): PlutoBlockPropPatch | undefined {
   const widget = widgetFor(prop.name, typeMembers(prop))
   if (!widget) {
@@ -188,7 +172,6 @@ function propFromMeta(prop: PlutoMetaProp): PlutoBlockPropPatch | undefined {
   }
 }
 
-/** `mdc-unwrap` on a `<slot>` shows as the binding `mdcUnwrap` in the meta. */
 function hasUnwrap(slot: PlutoMetaSlot): boolean {
   const schema = slot.schema
   return (
@@ -205,15 +188,6 @@ function slotFromMeta(slot: PlutoMetaSlot): PlutoBlockSlotDefinition {
   }
 }
 
-/**
- * The component layer of one component: the props and slots of its meta, joined with the object of
- * its `definePlutoBlock({...})` call. The macro wins, key by key (`false` removes a prop or a slot).
- * `name` is the component name in Pascal case or kebab case. The result has the block key for the
- * `PlutoBlocksConfig` of the component layer.
- *
- * Props that no widget fits (an object, an array, a function, a number literal) are left out. A
- * page that sets one still shows it in Advanced. The macro can give such a prop a widget.
- */
 export function blockFromComponentMeta(
   name: string,
   meta: PlutoComponentMeta,

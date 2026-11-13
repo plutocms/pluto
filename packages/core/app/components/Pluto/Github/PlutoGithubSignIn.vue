@@ -1,13 +1,7 @@
 <script setup lang="ts">
-// The sign-in form of the standalone CMS: one "Sign in with GitHub" button and
-// the alert for a failed sign-in. It is the `signIn` component of the CMS auth
-// driver. Core renders it inside the login frame (PlutoAdminAuthCard). The file
-// lives under `app/` so Tailwind scans it. When the GitHub App is not set up, it also
-// shows the setup check (PlutoGithubSetupPanel) and turns the button off.
 import { usePlutoGithubSetup } from '../../../../modules/pluto-github/runtime/app/composables/pluto-github-setup'
 
 const props = defineProps<{
-  /** A safe local path to open after sign-in. Core checks it. */
   redirect: string
 }>()
 
@@ -22,8 +16,6 @@ const appSlug = (
   }
 ).plutoGithub?.appSlug
 
-// A full page load: the route is a server route that redirects to GitHub.
-// The server checks the redirect again. It accepts only a path on this site.
 const loginUrl = computed(() => {
   const base = '/api/_pluto/auth/github/login'
   return props.redirect
@@ -47,7 +39,6 @@ const errorKey = computed(() => {
   }
 })
 
-// The sign-in needs the setup. The button stays off until the status says it is ready. A failed read keeps it on.
 const notReady = computed(() => setup.status.value?.ready === false)
 
 const installUrl = computed(() =>

@@ -1,9 +1,4 @@
-/**
- * Encodes a content id for a URL path. It encodes each segment and keeps the
- * `/` between segments, so a nested id (`guide/intro`) stays readable and
- * does not become `guide%2Fintro`. A flat id gives the same text as
- * `encodeURIComponent`.
- */
+/** Encodes a content id for a URL path. It keeps the `/` between segments, so `guide/intro` does not become `guide%2Fintro`. */
 export function contentIdPath(id: string | number): string {
   return String(id)
     .split('/')
@@ -34,14 +29,12 @@ function compareSegments(a: string, b: string): number {
   if (a === b) {
     return 0
   }
-  // `index` comes first in its folder.
   if (a === 'index' || b === 'index') {
     return a === 'index' ? -1 : 1
   }
   const left = splitSegment(a)
   const right = splitSegment(b)
   if (left.order !== right.order) {
-    // A numbered segment comes before a plain one.
     if (left.order === null || right.order === null) {
       return left.order === null ? 1 : -1
     }
@@ -51,11 +44,9 @@ function compareSegments(a: string, b: string): number {
 }
 
 /**
- * Compares two nested content ids, segment by segment. In each segment,
- * `index` comes first. Then a numeric prefix (`2.name`) sorts as a number,
- * and a numbered segment comes before a plain one. Then the name decides. A
- * folder comes before the items inside it. Use it as an `Array.sort`
- * comparator.
+ * Compares two nested content ids, segment by segment, for `Array.sort`. In each segment, `index`
+ * comes first, then a numeric prefix (`2.name`) sorts as a number and before a plain name, then
+ * the name decides. A folder comes before the items inside it.
  */
 export function compareContentIds(a: string, b: string): number {
   const left = a.split('/')

@@ -1,13 +1,5 @@
 <script setup lang="ts">
 import type { PlutoReferenceOption } from '../../../../composables/internal/reference-options'
-// The core `reference` widget. The value is one id, or a list of ids in order (`multiple`).
-// The choices come from one of two sources:
-// - `field.target`: the items of another content type, from the generic admin route (see
-//   `usePlutoReferenceOptions`). With `field.create` and the write capability of the target,
-//   the menu offers to create a new item from the typed text.
-// - `field.optionsUrl`: a URL that answers `{ data: [...] }`.
-// An id with no option (a deleted item) shows its text, so the value is not lost. See the
-// tags-and-categories skill.
 import {
   referenceImageField,
   withUnknownIds,
@@ -36,7 +28,6 @@ const errorText = usePlutoErrorText()
 const target = computed(() => props.field.target ?? '')
 const targetOptions = usePlutoReferenceOptions(target)
 
-// The `optionsUrl` source.
 const urlOptions = ref<PlutoReferenceOption[]>([])
 const urlPending = ref(false)
 
@@ -77,9 +68,9 @@ const ids = computed(() => referenceValue(props.modelValue))
 const baseOptions = computed(() =>
   usesTarget.value ? targetOptions.options.value : urlOptions.value
 )
-// The icon of the target type leads the input. An option of a type with an image (the avatar of an
-// author) shows it: the media records of the options load in one request.
-const icon = computed(() => (target.value ? byName(target.value)?.icon : undefined))
+const icon = computed(() =>
+  target.value ? byName(target.value)?.icon : undefined
+)
 const mediaApi = usePlutoMedia()
 const imageUrls = ref(new Map<string, string>())
 
@@ -107,14 +98,11 @@ watch(
         }
       }
       imageUrls.value = next
-    } catch {
-      // No avatars: the menu works the same.
-    }
+    } catch {}
   },
   { immediate: true }
 )
 
-// A type with an image field gives every option an avatar: the image, else the initials.
 const hasImages = computed(() =>
   Boolean(target.value && referenceImageField(byName(target.value)))
 )
@@ -134,7 +122,6 @@ const items = computed<MenuOption[]>(() =>
   })
 )
 
-/** The option of a tag of the menu (the tag holds the id). */
 function tagOption(tag: unknown) {
   const value =
     typeof tag === 'object' && tag !== null && 'value' in tag
@@ -146,23 +133,18 @@ const pending = computed(() =>
   usesTarget.value ? targetOptions.pending.value : urlPending.value
 )
 
-// The model of the menu: a list for `multiple`, else one id (or nothing).
 const menuValue = computed(() =>
   props.field.multiple ? ids.value : ids.value[0]
 )
 
 function emitIds(next: Array<string | number>) {
-  emit(
-    'update:modelValue',
-    props.field.multiple ? next : (next[0] ?? null)
-  )
+  emit('update:modelValue', props.field.multiple ? next : (next[0] ?? null))
 }
 
 function onUpdate(value: unknown) {
   emitIds(referenceValue(value))
 }
 
-// The inline create needs the option on the field and the write capability of the target.
 const canCreate = computed(() => {
   if (!props.field.create || !usesTarget.value) {
     return false

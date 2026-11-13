@@ -131,7 +131,7 @@ const { posts } = await usePosts({ filter: { tags: tag.value.slug } })
 `toPreviewItem(type, item, html, media, references?)` (`shared/utils/content-preview.ts`) expands
 the `target` references of a form item like the public API. `references` is a map from the
 target type name to a map from id to `PlutoPublicReference`. `previewReferenceTargets(type)` gives
-the target names and `previewReferenceIds(type, item, target)` the ids to load. The preview
+the target names. The preview
 page uses the targets (see "The admin UI").
 
 ## Limits

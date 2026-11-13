@@ -5,7 +5,6 @@ import {
   plutoSeoWithFields,
 } from '../shared/utils/seo-fields'
 
-// The post type of the Git CMS, in short.
 function postType(extra: Record<string, unknown> = {}): any {
   return {
     name: 'post',

@@ -11,7 +11,6 @@ interface Text {
   code?: boolean
 }
 
-/** The state of a doc with one block, and the range of the "/" in it. */
 function slashIn(block: 'paragraph' | 'codeBlock', parts: Text[]) {
   const content = parts.map((part) => ({
     type: 'text',

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// One entry of the toolbar of the Markdown mode (PlutoMarkdownCodeEditor, `bare`): a button, a menu
-// or a separator. The row and the More popover render the same entries.
 import type { DropdownMenuItem } from '@nuxt/ui'
 
 export type PlutoMarkdownToolbarItem =

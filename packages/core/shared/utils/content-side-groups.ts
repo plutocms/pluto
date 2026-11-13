@@ -12,11 +12,6 @@ export interface PlutoSideFieldLayout {
   groups: PlutoSideFieldGroup[]
 }
 
-/**
- * Splits the fields of the side column of the form into its collapsible groups
- * (`PlutoContentType.sideGroups`). The fields keep their order. A group with no field does not
- * show. When two groups have the same id, the first one counts.
- */
 export function plutoSideFieldLayout(
   fields: PlutoField[],
   groups: PlutoContentSideGroup[] = []

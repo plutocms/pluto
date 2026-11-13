@@ -43,9 +43,6 @@ const text = usePlutoContentText(contentType)
 const errorText = usePlutoErrorText()
 
 if (!contentType.value) {
-  // The generated page (`app/pages/admin/content/[type]/{new,[id]}.vue`)
-  // already resolves the type and 404s before this component ever mounts,
-  // so this should not normally happen.
   console.error(
     `PlutoContentForm: content type "${props.type}" was not found in the registry.`
   )
@@ -53,8 +50,7 @@ if (!contentType.value) {
 
 const { can } = usePlutoPermissions()
 
-// "No capability declared" means the operation is open to anyone who can
-// reach this page — never call can('') as a stand-in for that.
+// No capability declared means open to anyone who can reach this page. Never call can('') for that.
 const canWrite = computed(
   () =>
     !contentType.value?.capabilities?.write ||
@@ -78,10 +74,6 @@ const basePath = computed(
   () => contentType.value?.basePath ?? `/admin/content/${props.type}`
 )
 
-// editPath exists so an already-deployed layer's edit URL never has to
-// change to adopt this component — see the doc comment on
-// PlutoContentType.editPath for why a single basePath cannot always
-// express it.
 function editPath(id: string | number) {
   return (
     contentType.value?.editPath?.(id) ??
@@ -98,13 +90,6 @@ const {
   remove,
 } = usePlutoContentItem(props.type, () => props.id)
 
-// --- The first values of a new item ------------------------------------------
-//
-// A new item starts with the `default` of each field, then with the value that the user saved
-// last time in each `remember` field (the authors of a post). The admin renders in the browser
-// only, so the storage is there. The fill runs before the first edit, so the dirty baseline
-// follows it and a new form is not dirty. A remembered id with no item any more is dropped when
-// the options load. See the authors skill.
 const { user: rememberUser } = usePlutoAuth()
 const rememberBase = useRuntimeConfig().app.baseURL
 
@@ -151,7 +136,6 @@ if (!editing.value) {
     options
       .ensure()
       .then(() => {
-        // The options did not load, or the user changed the field: keep it as it is.
         if (options.error.value || item.value[field.name] !== filled) {
           return
         }
@@ -165,7 +149,6 @@ if (!editing.value) {
   }
 }
 
-/** Keeps the value of each `remember` field of a saved payload, for the next new item. */
 function rememberSaved(payload: Record<string, unknown>) {
   const storage = rememberStorage()
   if (!storage) {
@@ -179,8 +162,6 @@ function rememberSaved(payload: Record<string, unknown>) {
   }
 }
 
-// The item did not load (a 404, or a network error). The form shows an error
-// state with a retry button. It shows no fields and no Save button.
 const loadFailed = computed(
   () => editing.value && !itemPending.value && loadError.value !== null
 )
@@ -192,14 +173,12 @@ const loadNotFound = computed(() => {
   return (error?.statusCode ?? error?.status) === 404
 })
 
-// Save and publish stay off while the item is missing.
 const canPublishNow = computed(() => canPublish.value && !loadFailed.value)
 
 function retryLoad() {
   refresh().catch(() => {})
 }
 
-// A missing item will not come back with a retry, so a 404 has no button.
 const loadFailedActions = computed<ButtonProps[]>(() =>
   loadNotFound.value
     ? []
@@ -227,19 +206,6 @@ function sortedFields(region: 'main' | 'side') {
 const mainFields = sortedFields('main')
 const sideFields = sortedFields('side')
 
-// --- Slug auto-derivation, with the PostForm.vue bug fixed -----------------
-//
-// PostForm.vue re-derives its slug from the title on every keystroke, with
-// no gate at all — including while editing an already-published,
-// already-shared post, silently changing a live URL. Auto-derivation here
-// stops the moment either:
-//
-// 1. The form is in edit mode (`editing` is true) — an existing entry's
-//    slug is presumed already meaningful, and never auto-changes without
-//    the user directly touching the slug field.
-// 2. The user has typed into the slug field directly, even while creating
-//    a new entry — tracked by `slugTouched`, flipped by `updateField` below
-//    the moment a 'slug' field's own `update:modelValue` fires.
 const slugTouched = ref(false)
 const slugField = computed(() =>
   contentType.value?.fields.find(
@@ -268,8 +234,6 @@ function updateField(field: PlutoField, value: unknown) {
 
   item.value[field.name] = value
 }
-
-// --- Status / publish workflow ----------------------------------------------
 
 const statusConfig = computed(() => contentType.value?.status || null)
 const publishedValue = computed(
@@ -300,8 +264,6 @@ const statusLabel = computed(() => {
   return text.statusLabel(value, literal)
 })
 
-// Scheduled publish and pending review (`status.schedule`, `status.review`). See the
-// content-model skill ("Scheduled publish and review").
 const rules = computed(() => statusRules(contentType.value))
 const scheduledValue = computed(() => rules.value?.scheduled)
 const reviewValue = computed(() => rules.value?.review)
@@ -322,15 +284,12 @@ const scheduledText = computed(() => {
     ? ''
     : d(new Date(time), { dateStyle: 'medium', timeStyle: 'short' })
 })
-// A scheduled item whose time has come is live: the task sets its status soon.
 const scheduledDue = computed(() => {
   const column = rules.value?.publishedAtColumn
   const time =
     isScheduled.value && column ? statusTime(item.value[column]) : undefined
   return time !== undefined && time <= Date.now()
 })
-// A published or scheduled item changes only with the publish capability. A writer without it
-// sees the item, but cannot save it.
 const lockedForWriter = computed(
   () =>
     editing.value &&
@@ -341,26 +300,19 @@ const lockedForWriter = computed(
       currentStatus.value
     )
 )
-// Save and publish stay off while the item is missing, and for a writer on a live item.
 const canSave = computed(
   () => canWrite.value && !loadFailed.value && !lockedForWriter.value
 )
-
-// --- Save -------------------------------------------------------------------
 
 const toast = useToast()
 const saving = ref(false)
 const validationErrors = ref<ContentValidationError[]>([])
 
-// The save state next to the title. `failed` stays until the next save starts.
 const saveStatus = ref<'idle' | 'saved' | 'failed'>('idle')
 const savedAt = ref<Date | null>(null)
-// The status of the last save, so a retry repeats the same save (for example Publish).
 let lastStatusOverride: string | undefined
 let lastPublishAt: string | undefined
 
-// A validation error with a `code` shows the translated message. The
-// `message` of the error stays English, and shows when there is no code.
 function validationText(error: ContentValidationError): string {
   if (!error.code) {
     return error.message
@@ -374,12 +326,6 @@ function validationText(error: ContentValidationError): string {
   })
 }
 
-// --- Unsaved changes ---------------------------------------------------------
-//
-// The item is dirty when the payload differs from the baseline. The baseline
-// follows the item until the user first edits, so a widget that normalizes its
-// value after it mounts (an editor, for example) does not make the form dirty.
-// A save sets a new baseline. See `createDirtyTracker`.
 const dirtyState = reactive<DirtyState>({ baseline: null })
 const tracker = createDirtyTracker(dirtyState)
 const snapshot = computed(() =>
@@ -392,8 +338,6 @@ const dirty = computed(
     !itemPending.value && !loadFailed.value && tracker.isDirty(snapshot.value)
 )
 
-// A key press, a paste, a drop, or a press on a control counts as an edit. The
-// load must end first: an input during the load does not freeze the baseline.
 useEventListener(
   import.meta.client ? document : undefined,
   ['keydown', 'input', 'change', 'paste', 'drop', 'pointerdown'],
@@ -421,7 +365,6 @@ const saveState = computed<PlutoSaveState>(() => {
   return saveStatus.value === 'saved' ? 'saved' : 'idle'
 })
 
-// "Saved 2 minutes ago". The clock ticks every 30 seconds.
 const now = useNow({ interval: 30_000 })
 const savedText = computed(() => {
   if (!savedAt.value) {
@@ -437,7 +380,6 @@ const savedText = computed(() => {
   return t('pluto.form.savedAt', { time })
 })
 
-// Callbacks that a widget registers with `usePlutoContentForm().onSaved`.
 const savedCallbacks = new Set<(saved: PlutoContentItem) => void>()
 function onSaved(callback: (saved: PlutoContentItem) => void) {
   savedCallbacks.add(callback)
@@ -448,8 +390,6 @@ function onSaved(callback: (saved: PlutoContentItem) => void) {
   return stop
 }
 
-// Callbacks that a widget registers with `usePlutoContentForm().onFlush`. They run before a
-// save builds its payload, and before a backup write.
 const flushCallbacks = new Set<() => void>()
 function onFlush(callback: () => void) {
   flushCallbacks.add(callback)
@@ -465,10 +405,6 @@ function runFlush() {
   }
 }
 
-// --- Backup of the unsaved changes -----------------------------------------------
-//
-// The browser keeps the unsaved changes. The next visit offers them again. See
-// `usePlutoContentBackup` and the content-backup skill.
 const {
   state: backupState,
   offer: backupOffer,
@@ -502,7 +438,6 @@ const {
   flush: runFlush,
   reload: refresh,
   server: usePlutoContentBackupServer(() => contentType.value?.name),
-  // Same as a save: a widget can write its own normal form of the new value on the next tick.
   resetBaseline: async () => {
     tracker.reset(snapshot.value)
     await nextTick()
@@ -510,14 +445,12 @@ const {
   },
 })
 
-// The conflict is solved (the latest version is loaded): the "Save failed" status has no meaning.
 watch(backupConflict, (value) => {
   if (!value && saveStatus.value === 'failed') {
     saveStatus.value = 'idle'
   }
 })
 
-// A save while the recovery alert is open would delete the backup. A dialog asks first.
 const backupConfirmOpen = ref(false)
 let pendingSave: { statusOverride?: string; publishAt?: string } | null = null
 const backupTime = computed(() =>
@@ -542,16 +475,10 @@ function restoreFromConfirm() {
 function saveAndDiscard() {
   const save = pendingSave
   closeBackupConfirm()
-  // Discard removes the backup. A save that fails after this has no backup to keep.
   discardBackup()
   onSave(save?.statusOverride, save?.publishAt)
 }
 
-// --- Leave guard ---------------------------------------------------------------
-//
-// A navigation away from a dirty form opens an in-app dialog and waits. The
-// browser tab close and a reload use `beforeunload`. `bypass` lets our own
-// navigation pass: after a create, an id change, a delete, or "Leave".
 const leaveOpen = ref(false)
 const isDeleteModalOpen = ref(false)
 let leaveTarget: RouteLocationNormalized | null = null
@@ -579,7 +506,6 @@ async function leavePage() {
   leaveOpen.value = false
   leaveTarget = null
   bypass = true
-  // "Leave without saving" means the changes are gone, so the backup goes too.
   backupLeave()
   if (target) {
     await navigateTo(target.fullPath)
@@ -589,13 +515,10 @@ async function leavePage() {
 useEventListener('beforeunload', (event: BeforeUnloadEvent) => {
   if (dirty.value && !bypass) {
     event.preventDefault()
-    // Some browsers need a value on the event to show the dialog.
     event.returnValue = ''
   }
 })
 
-// Ctrl+S on Windows and Linux, Cmd+S on macOS. It saves like the Save button
-// (not Publish) and stops the browser from saving the page.
 useEventListener('keydown', (event: KeyboardEvent) => {
   if (
     !isSaveShortcut(event) ||
@@ -611,7 +534,6 @@ useEventListener('keydown', (event: KeyboardEvent) => {
   onSave()
 })
 
-/** The toast title of a save: the status change, or a plain save with no override. */
 function saveToastTitle(
   statusOverride: string | undefined,
   statusBefore: string | undefined
@@ -639,19 +561,16 @@ function saveToastTitle(
   return t('pluto.form.saved')
 }
 
-// The schedule dialog: a local date and time, in the time zone of the browser.
 const scheduleOpen = ref(false)
 const scheduleInput = ref('')
 const scheduleZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-/** `YYYY-MM-DDTHH:mm` in local time, the value of a `datetime-local` input. */
 function localInputValue(date: Date): string {
   const pad = (value: number) => String(value).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
 const scheduleTime = computed(() => {
-  // A `datetime-local` value with no zone is local time.
   const time = Date.parse(scheduleInput.value)
   return Number.isNaN(time) ? undefined : time
 })
@@ -659,7 +578,6 @@ const scheduleInFuture = computed(
   () => scheduleTime.value !== undefined && scheduleTime.value > Date.now()
 )
 
-/** Opens the dialog with the planned time, else tomorrow at 09:00. */
 function openSchedule() {
   const column = rules.value?.publishedAtColumn
   const planned =
@@ -693,7 +611,6 @@ async function onSave(statusOverride?: string, publishAt?: string) {
     return
   }
 
-  // A widget can hold edits that are not in the item yet (an editor with a debounce).
   runFlush()
   const payload = buildContentPayload(
     type,
@@ -718,12 +635,10 @@ async function onSave(statusOverride?: string, publishAt?: string) {
   lastPublishAt = publishAt
 
   try {
-    // The server copy must not be written after the save removed it.
+    // Do not write the server copy after the save removed it.
     await prepareBackupSave()
     const saved = await save(payload)
 
-    // The saved item is the new baseline. A widget can write its own normal
-    // form of the new value on the next tick, so read the baseline again then.
     tracker.reset(snapshot.value)
     await nextTick()
     tracker.reset(snapshot.value)
@@ -758,21 +673,13 @@ async function onSave(statusOverride?: string, publishAt?: string) {
       color: 'success',
     })
 
-    // An adapter can change the id on save, for example a file-based adapter
-    // that renames the file when the slug changes. Follow the new id. The
-    // page mounts again for the new route, so the item loads under the new id.
     if (String(saved.id) !== String(props.id)) {
       bypass = true
       await navigateTo(editPath(saved.id), { replace: true })
     }
   } catch (error) {
-    // A raced permissions check, or any other server-side rejection
-    // (a 403 included), surfaces here rather than as an unhandled
-    // rejection.
     saveStatus.value = 'failed'
     if (errorKey(error) === 'pluto.errors.conflict') {
-      // Someone saved the item after this form loaded it. The alert replaces the toast. A taken
-      // slug is also a 409, with another key: it keeps the toast.
       backupOnConflict()
     } else {
       toast.add({
@@ -786,17 +693,12 @@ async function onSave(statusOverride?: string, publishAt?: string) {
   }
 }
 
-// --- Delete -------------------------------------------------------------------
-
 const deleting = ref(false)
 
-// The dialog asks first. A type with a trash asks "Move to the trash?", and the toast after the
-// move offers Undo. Without a trash, the delete is final.
 function openDeleteModal() {
   isDeleteModalOpen.value = true
 }
 
-/** The toast after Move to trash, with Undo: the item comes back and its form opens again. */
 function trashedToast(id: string | number) {
   toast.add({
     title: t('pluto.list.trash.moved'),
@@ -851,10 +753,6 @@ async function confirmDelete() {
   }
 }
 
-// --- Layout / aside -----------------------------------------------------------
-
-// In edit mode, the toolbar title and the tab title show the title of the
-// item. While the item loads, or when it has no title, they show "Edit <type>".
 const itemTitle = computed(() => {
   const value = editing.value
     ? item.value[contentType.value?.titleField ?? '']
@@ -885,25 +783,15 @@ const showAside = computed(() => {
 const asideCollapsedByDefault = computed(
   () => contentType.value?.form?.asideCollapsed ?? layout.value === 'focus'
 )
-// Remember the open/closed state per content type across visits.
 const asideOpen = useCookie<boolean>(`pluto-content-aside-${props.type}`, {
   default: () => !asideCollapsedByDefault.value,
 })
 
-// Below the `lg` breakpoint (64rem), the default layout shows the aside
-// fields inline, in a titled section under the main fields. It renders no
-// slideover there: a required field, such as a price, must not hide behind
-// a button. The focus layout keeps the slideover.
 const isDesktop = useMediaQuery('(min-width: 64rem)')
 const inlineAside = computed(
   () => showAside.value && layout.value === 'default' && !isDesktop.value
 )
 
-// --- Canvas layout --------------------------------------------------------------
-//
-// The canvas field fills the main region. Its widget adds panels with
-// PlutoContentCanvasPanel: `left` ones stack in the left panel, `right` ones
-// are tabs of the right panel. The "Page" tab holds every other field.
 const canvasFieldDef = computed(() =>
   isCanvas.value
     ? contentType.value?.fields.find(
@@ -911,7 +799,6 @@ const canvasFieldDef = computed(() =>
       )
     : undefined
 )
-// The fields that a canvas widget shows itself (`claimFields`): not in the right panel.
 const claimGetters = shallowRef<Array<() => string[]>>([])
 const claimedFields = computed(
   () => new Set(claimGetters.value.flatMap((getter) => getter()))
@@ -945,7 +832,6 @@ function setRightTarget(id: string, el: unknown) {
   rightTargets[id] = (el as HTMLElement | null) ?? null
 }
 
-// The element of a widget that shows the alerts of the form (`claimAlerts`), or null.
 const alertsTarget = shallowRef<HTMLElement | null>(null)
 
 if (isCanvas.value) {
@@ -969,7 +855,6 @@ if (isCanvas.value) {
       }
     },
     claimAlerts(element) {
-      // The host type is DOM-free (shared): the element is an HTMLElement in the browser.
       const target = element as HTMLElement
       alertsTarget.value = target
       return () => {
@@ -991,7 +876,6 @@ const rightTabs = computed(() => [
     ? [
         {
           value: 'page',
-          // The tab of the other fields takes the type label ("Post", "Page").
           label: text.label || t('pluto.canvas.page'),
           icon: 'i-lucide-file-text',
         },
@@ -1009,10 +893,6 @@ const activeTab = computed({
   },
 })
 
-// On a narrow screen both panels are slideovers. They start closed and keep
-// no cookie, so a saved "open" never covers the page on the first visit.
-// The left panel (the Outline of a post) starts closed: the editor gets the room. The rail
-// opens it, and the cookie keeps the choice.
 const leftCookie = useCookie<boolean>(`pluto-content-left-${props.type}`, {
   default: () => false,
 })
@@ -1040,7 +920,6 @@ const asideModel = computed({
   },
 })
 
-// Zen mode of the post editor closes both panels, and ends when the form closes (pluto-zen.ts).
 usePlutoZenPanel(leftOpen)
 usePlutoZenPanel(asideModel)
 const zen = usePlutoZen()
@@ -1051,14 +930,10 @@ onBeforeUnmount(() => {
 const hasLeft = computed(
   () => isCanvas.value && leftPanels.value.length > 0 && !loadFailed.value
 )
-// A type that declares its left panel (`form.leftPanel`) shows a skeleton of it until the
-// widget registers the real panel.
 const leftPanelOption = computed(() => {
   const option = contentType.value?.form?.leftPanel
   return typeof option === 'string' ? { label: option } : option
 })
-// The canvas widget rendered (its code loaded). After that, a missing left panel is final: the
-// widget shows none in its current mode, so the skeleton goes.
 const canvasReady = ref(false)
 const leftSkeleton = computed(
   () =>
@@ -1074,8 +949,6 @@ const leftTitle = computed(
     (leftPanelOption.value ? tx(leftPanelOption.value.label) : undefined)
 )
 
-// The buttons of the rail: the left panels that widgets add (the Outline), or the panel that
-// the type declares while the widget loads.
 const railPanels = computed(() =>
   leftPanels.value.length > 0
     ? leftPanels.value.map((panel) => ({
@@ -1100,7 +973,6 @@ function openPanel(id: string) {
   asideModel.value = true
 }
 
-// The aside toggle has no use when the aside is inline, or when the item did not load.
 const showAsideToggle = computed(() =>
   isCanvas.value
     ? hasRight.value
@@ -1111,10 +983,6 @@ function toggleAside() {
   asideModel.value = !asideModel.value
 }
 
-// --- Context for the widgets ------------------------------------------------------
-
-// The aside of the default and focus layouts shows when it has fields. The
-// canvas layout shows it when a panel or the "Page" tab exists.
 const asideSlot = computed(() =>
   isCanvas.value
     ? hasRight.value
@@ -1138,9 +1006,7 @@ provide(plutoContentFormKey, {
   ),
   layout,
   canvas: isCanvas,
-  // The same rule as the floating buttons of PlutoViewAdminPanel (`panel-toggles`).
   panelToggles: computed(() => ({
-    // A canvas has the rail on the left, so no floating button there.
     left:
       isDesktop.value &&
       !isCanvas.value &&
@@ -1159,13 +1025,9 @@ provide(plutoContentFormKey, {
   },
 })
 
-// --- Registry content actions --------------------------------------------------
-
 const toolbarActions = usePlutoContentActions(props.type, 'toolbar')
 const toolbarItems = usePlutoContentToolbarItems(props.type)
 
-// Only used while a content type exists, so `contentType.value` is set by
-// the time this is read.
 function buildActionContext(): PlutoContentActionContext {
   return {
     type: contentType.value as PlutoContentType,
@@ -1177,11 +1039,6 @@ function buildActionContext(): PlutoContentActionContext {
   }
 }
 
-// --- Toolbar data ----------------------------------------------------------------
-//
-// The header holds no form logic. It gets plain data and sends events back.
-
-// The public page of the item, from `previewUrl` of the type.
 const viewUrl = computed(() => {
   if (!editing.value || loadFailed.value || itemPending.value) {
     return undefined
@@ -1192,7 +1049,6 @@ const viewUrl = computed(() => {
       undefined
     )
   } catch {
-    // A broken previewUrl must not break the form.
     return undefined
   }
 })
@@ -1243,7 +1099,6 @@ const headerButtons = computed<PlutoFormHeaderButton[]>(() => {
       variant: 'solid',
     })
   }
-  // Schedule first, as a ghost button; Save draft next to Publish.
   if (
     canPublishNow.value &&
     scheduledValue.value !== undefined &&
@@ -1260,7 +1115,6 @@ const headerButtons = computed<PlutoFormHeaderButton[]>(() => {
     })
   }
   if (canSave.value && statusConfig.value && !isPublished.value) {
-    // A scheduled or a review item keeps its status on a plain save.
     buttons.push({
       id: 'save',
       label:
@@ -1323,10 +1177,6 @@ function onHeaderPress(id: string) {
   }
 }
 
-// On desktop the panels close from a button in their own header (PlutoViewAside, and
-// PlutoViewLeftCollapse in the left panel content), and a closed panel opens from a small
-// floating button of PlutoViewAdminPanel (`panel-toggles`). So the toolbar shows the toggles on a
-// narrow screen only, plus the left one while the left panel content has no collapse button.
 const viewPanel = ref<{
   leftCollapsible: boolean
 }>()
@@ -1354,8 +1204,6 @@ const leftToggle = computed(() => {
     icon: open ? 'lucide:panel-left-close' : 'lucide:panel-left-open',
   }
 })
-// Unpublish a published item, unschedule a scheduled one (both need publish), or take a review
-// item back to a draft (write is enough).
 const canUnpublish = computed(
   () =>
     Boolean(statusConfig.value) &&
@@ -1388,9 +1236,7 @@ const asideTitle = computed(() =>
     v-model:left-open="leftOpen"
     :aside-open="asideSlot && asideModel"
     :left-title="leftTitle"
-    :width="
-      layout !== 'default' ? 'full' : singleton ? 'narrow' : 'container'
-    "
+    :width="layout !== 'default' ? 'full' : singleton ? 'narrow' : 'container'"
     :fill="isCanvas"
     panel-toggles
     @update:aside-open="asideModel = $event"
@@ -1424,7 +1270,6 @@ const asideTitle = computed(() =>
       />
     </template>
 
-    <!-- A singleton type: its title, description and last save, above its one form. -->
     <PlutoContentSingletonIntro
       v-if="singleton && !isCanvas && contentType"
       :type="contentType"
@@ -1432,12 +1277,6 @@ const asideTitle = computed(() =>
       :pending="itemPending"
     />
 
-    <!--
-      The alerts of the form. In the canvas layout, a widget can show them in its own column
-      (`claimAlerts` of the canvas host: the post editor puts them above the title). Else they
-      show above the canvas, on the background of the editor. Outside the canvas the wrapper is
-      `contents`, so each alert is a child of the field list. `empty:hidden`: no alert, no space.
-    -->
     <Teleport :to="alertsTarget ?? 'body'" :disabled="!alertsTarget">
       <div
         :class="
@@ -1529,7 +1368,6 @@ const asideTitle = computed(() =>
       </div>
     </Teleport>
 
-    <!-- The item did not load. Show the error and a retry button, and no fields. -->
     <UEmpty
       v-if="loadFailed"
       :title="
@@ -1545,7 +1383,6 @@ const asideTitle = computed(() =>
       variant="naked"
     />
 
-    <!-- The page and the fields show at once. A skeleton stands in while the item loads. -->
     <PlutoSkeletonCanvas v-else-if="itemPending && isCanvas" />
 
     <template v-else-if="itemPending">
@@ -1556,10 +1393,6 @@ const asideTitle = computed(() =>
       />
     </template>
 
-    <!--
-      The canvas field fills the main region. Its widget root must fill its
-      parent (\`h-full\`), and scrolls its own content.
-    -->
     <div v-else-if="isCanvas" class="flex min-h-0 flex-1 flex-col">
       <PlutoContentField
         v-if="canvasFieldDef"
@@ -1573,7 +1406,6 @@ const asideTitle = computed(() =>
       />
     </div>
 
-    <!-- A singleton type: the fields in a card, like a settings page. -->
     <UCard v-else-if="singleton" :ui="{ body: 'flex flex-col gap-6' }">
       <PlutoContentField
         v-for="field in mainFields"
@@ -1598,7 +1430,6 @@ const asideTitle = computed(() =>
       />
     </template>
 
-    <!-- On a narrow screen, the aside fields show here, under the main fields. -->
     <section
       v-if="inlineAside && !loadFailed"
       class="border-default flex flex-col gap-6 border-t pt-6"
@@ -1618,8 +1449,6 @@ const asideTitle = computed(() =>
       />
     </section>
 
-    <!-- The rail of the canvas layout: one button for the left panel (its icon and label), the
-         active one while it is open. Room for more actions later (a layer, an AI assistant). -->
     <template v-if="isCanvas && (hasLeft || leftSkeleton)" #rail>
       <UTooltip
         v-for="panel in railPanels"
@@ -1639,7 +1468,6 @@ const asideTitle = computed(() =>
       </UTooltip>
     </template>
 
-    <!-- The left panel of the canvas layout. Widget panels teleport into it. -->
     <template v-if="hasLeft" #left>
       <div :ref="setLeftTarget" class="flex min-h-0 flex-1 flex-col" />
     </template>
@@ -1662,7 +1490,6 @@ const asideTitle = computed(() =>
           />
         </template>
 
-        <!-- Canvas: one box for each widget panel, and the "Page" fields. Boxes stay mounted. -->
         <div v-if="isCanvas" class="flex flex-col gap-6">
           <div
             v-for="panel in rightPanels"
@@ -1805,7 +1632,6 @@ const asideTitle = computed(() =>
     </ModalFooter>
   </Modal>
 
-  <!-- A save while the backup is offered. Closing it with Escape or a click outside means "Cancel". -->
   <Modal
     :model-value="backupConfirmOpen"
     :custom-size="480"
@@ -1846,7 +1672,6 @@ const asideTitle = computed(() =>
     </ModalFooter>
   </Modal>
 
-  <!-- The leave dialog. Closing it with Escape or a click outside means "Stay". -->
   <Modal
     :model-value="leaveOpen"
     :custom-size="480"
@@ -1861,7 +1686,6 @@ const asideTitle = computed(() =>
     </ModalContent>
 
     <ModalFooter>
-      <!-- Two buttons of the same size: the choice reads as one or the other. -->
       <div class="grid w-full grid-cols-2 gap-3">
         <UButton
           icon="lucide:arrow-left"

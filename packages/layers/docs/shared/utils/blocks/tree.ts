@@ -1,5 +1,3 @@
-// Helpers to walk the block tree. No Nuxt import.
-
 import type {
   PlutoBlock,
   PlutoBlockDoc,
@@ -7,12 +5,10 @@ import type {
   PlutoComponentBlock,
 } from './types'
 
-/** The children of a component in source order, over all slots. */
 export function flatChildren(component: PlutoComponentBlock): PlutoBlock[] {
   return Object.values(component.slots).flat()
 }
 
-/** Calls `visit` for each block, parents first. */
 export function walkBlocks(
   blocks: PlutoBlock[],
   visit: (block: PlutoBlock, parent?: PlutoComponentBlock) => void,
@@ -53,7 +49,6 @@ export function findBlock(
   return search(doc.blocks)
 }
 
-/** The ids from the top-level block down to the block. Empty when the id is unknown. */
 export function pathOf(doc: PlutoBlockDoc, id: string): string[] {
   const search = (
     blocks: PlutoBlock[],
@@ -78,7 +73,6 @@ export function pathOf(doc: PlutoBlockDoc, id: string): string[] {
 
 let counter = 0
 
-/** A new id for a block that is not from a parse. */
 export function newBlockId(): string {
   counter++
   return `n${counter}`

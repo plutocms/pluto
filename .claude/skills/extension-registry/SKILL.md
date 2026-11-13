@@ -7,7 +7,7 @@ contribution into one reactive registry, and the admin UI renders from that regi
 It adds:
 
 - `shared/types/registry.ts` — the `PlutoExtension` shape and the type of each registrable
-  thing (`PlutoNavItem`, `PlutoNavbarAction`, `PlutoAdminPage`,
+  thing (`PlutoNavItem`, `PlutoNavbarAction`,
   `PlutoDashboardWidget`, `PlutoSettingsPanel`, `PlutoSettingsPage`, `PlutoSettingsDriver`, `PlutoLocaleDriver`,
   `PlutoAuthDriver`, `PlutoAccountMenuItem`, `PlutoAdminBanner`, `PlutoSiteInfo`;
   `PlutoNavbarAction` is a union of `PlutoNavbarComponentAction` and `PlutoNavbarLinkAction`),
@@ -24,7 +24,6 @@ It adds:
 - `app/composables/pluto-navbar.ts` — `usePlutoNavbarActions()`,
   `usePlutoAdminBar()`, `usePlutoAccountMenu()` and `usePlutoSiteInfo()`.
 - `app/composables/pluto-admin-nav.ts` — `usePlutoAdminNav()`, the sidebar nav.
-- `app/composables/pluto-admin-pages.ts` — `usePlutoAdminPages()`, page metadata.
 - `app/composables/pluto-dashboard.ts` — `usePlutoDashboardWidgets()`.
 - `app/composables/pluto-settings.ts` — `usePlutoSettingsPanels()`, `usePlutoSettingsPages()` and
   `usePlutoSettings()`.
@@ -47,7 +46,6 @@ sets only what it has.
 | ----------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `navbarActions`         | `PlutoNavbarAction[]`              | Small buttons in the navbar. Each is a component action (`{ component }`) or a link action (`{ label, icon?, to, target? }`). A union type.  |
 | `nav`                   | `PlutoNavItem[]`                   | Sidebar entries, with optional `children`.                                                                                                   |
-| `pages`                 | `PlutoAdminPage[]`                 | Metadata (title, icon, parent) for a route Nuxt already made from a file.                                                                    |
 | `dashboardWidgets`      | `PlutoDashboardWidget[]`           | Cards shown on `/admin/home`.                                                                                                                |
 | `settingsPanels`        | `PlutoSettingsPanel[]`             | Forms shown on `/admin/settings`.                                                                                                            |
 | `settingsPages`         | `PlutoSettingsPage[]`              | Tabs of the Settings section. See "Settings pages" below.                                                                                    |
@@ -145,7 +143,7 @@ move to keys one entry at a time. See the i18n skill.
 Core's own registrations (`app/plugins/pluto-core-registrations.ts`) use keys, for example
 `pluto.nav.home` and `pluto.dashboard.activity.title`. The consumer composables resolve every
 entry text inside a `computed`: `usePlutoAdminNav`, `usePlutoCommandPalette`, `usePlutoSettingsPanels`, `usePlutoDashboardWidgets`,
-`usePlutoAdminPages`, `usePlutoContentActions`, and `usePlutoCapabilities`. A language switch
+`usePlutoContentActions`, and `usePlutoCapabilities`. A language switch
 updates them. A registry field stays a `string`.
 
 ## The locale driver
@@ -184,14 +182,6 @@ export default defineNuxtPlugin(() => {
         label: 'Posts',
         icon: 'lucide:file-text',
         to: '/admin/posts',
-      },
-    ],
-    pages: [
-      {
-        id: 'posts',
-        path: '/admin/posts',
-        title: 'Posts',
-        icon: 'lucide:file-text',
       },
     ],
     dashboardWidgets: [
@@ -279,7 +269,5 @@ it.
   `db/migrations/003_settings_generic_keys.sql` in that repo. A layer other than core can
   register its own settings panel and persist a genuinely new key through it, as long as the
   key is namespaced with the layer's own name so two layers can never collide.
-- `usePlutoAdminPages()` is not wired into any page's UI yet (no
-  breadcrumb component). It ships so a later pass can build on it.
 - There is no drag-and-drop, per-user layout persistence, or relative (`before`/`after`)
   ordering. `order` is a plain number.

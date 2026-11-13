@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// The DNS records that Resend asks for. The admin adds them at the DNS
-// provider of the domain. Each name and value has a copy button.
 defineProps<{
   records: PlutoMailDomainRecord[]
 }>()

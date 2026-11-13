@@ -7,9 +7,6 @@ import {
   writeDocsFrontmatter,
 } from '../shared/utils/docs-type'
 
-// The adapter parses a file, runs `read`, applies the form values on the flat
-// keys, then runs `write`. These tests do the same steps on plain objects.
-
 function roundTrip(frontmatter: Record<string, unknown>) {
   return writeDocsFrontmatter(readDocsFrontmatter(structuredClone(frontmatter)))
 }
@@ -139,7 +136,6 @@ describe('createDocsType', () => {
   it('is a nested type with the options of the caller', () => {
     expect(type.source).toBe('')
     expect(type.files?.nested).toBe(true)
-    // A type over the whole content dir never lists the media records of the Git CMS.
     expect(type.files?.exclude).toEqual(['media/'])
     const custom = createDocsType({
       name: 'guide',
@@ -301,7 +297,6 @@ describe('writeDocsFrontmatter', () => {
   })
 
   it('removes a key when the author clears the field', () => {
-    // The flat title key is gone because the form value was empty.
     expect(
       writeDocsFrontmatter({
         navigation: { title: 'N', icon: 'i-lucide-box' },

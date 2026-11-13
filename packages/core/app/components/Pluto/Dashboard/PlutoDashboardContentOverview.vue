@@ -1,10 +1,4 @@
 <script setup lang="ts">
-// Core's own dashboard widget: one stat tile per content type. Counts are
-// a handful of headline numbers, so they show as tiles, not as a chart. A
-// type with a status workflow also shows a meter of its published share.
-// The meter has a text label next to it, so the share never depends on
-// color alone. "+N this week" comes from the shared activity data, so it
-// costs no extra request.
 const { items: contentTypes } = usePlutoContentTypes()
 const { stats, pending, error, refresh } = usePlutoContentStats()
 const { data: activity } = usePlutoContentActivity()
@@ -22,7 +16,6 @@ function publishedPercent(stat: PlutoContentStat): number {
     : 0
 }
 
-/** Items created this week, or `undefined` when activity is not available. */
 function thisWeek(stat: PlutoContentStat): number | undefined {
   return activity.value.find((entry) => entry.name === stat.name)?.points.at(-1)
     ?.count

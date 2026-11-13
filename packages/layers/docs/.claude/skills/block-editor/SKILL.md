@@ -70,7 +70,7 @@ The docs type uses the core `canvas` form layout (see the `admin-view-chrome` sk
 - `app/pages/_pluto/preview.vue`: the preview page.
 - `app/components/PlutoContentPreview.vue`: the frame around the blocks. A site can override it.
 - `app/composables/pluto-block-editor.ts`: `createPlutoBlockEditor` (the state),
-  `usePlutoBlockEditor`, `usePlutoBlockSources`, `usePlutoBlockLabels`, `topLevelId`.
+  `usePlutoBlockEditor`, `usePlutoBlockSources`, `usePlutoBlockLabels`.
 - `shared/utils/blocks/editor.ts`: pure helpers (`describeBlock`, `resolveSlotMode`,
   `slotMarkdown`, `toPreviewBlocks`, `buildPalette`).
 

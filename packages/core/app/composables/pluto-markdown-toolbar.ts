@@ -14,9 +14,7 @@ import type { EditorSuggestionMenuItem, EditorToolbarItem } from '@nuxt/ui'
 export function usePlutoMarkdownToolbar(
   options: {
     link?: boolean
-    /** The image button: a `slot: 'image'` item (`PlutoMediaEditorButton`). */
     image?: boolean
-    /** The component menu: a `slot: 'component'` item (`PlutoBlockInsertMenu`). */
     component?: boolean
   } = {}
 ) {
@@ -41,7 +39,6 @@ export function usePlutoMarkdownToolbar(
         tooltip: { text: t('pluto.github.editor.headings') },
         content: { align: 'start' },
         arrow: true,
-        // Paragraph first: it turns a heading back into plain text.
         items: [
           {
             kind: 'paragraph' as const,

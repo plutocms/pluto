@@ -26,6 +26,8 @@ export const plutoCanvasHostKey: InjectionKey<PlutoCanvasHost> =
  * const form = usePlutoContentForm()
  * form?.onSaved(() => refetchMedia())
  * ```
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/forms
  */
 export function usePlutoContentForm(): PlutoContentFormContext | null {
   return inject(plutoContentFormKey, null)

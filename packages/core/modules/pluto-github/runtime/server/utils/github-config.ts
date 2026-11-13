@@ -2,32 +2,20 @@ import type { PlutoDeployHostId } from '../../shared/domain'
 import type { GithubFetch } from '../github/client'
 import { useRuntimeConfig } from 'nitropack/runtime'
 
-/**
- * The run-time config of the CMS server code, in one flat object. Only this
- * file reads `useRuntimeConfig`, so a test can replace it with a stub that
- * also sets `fetch` (the GitHub transport).
- */
 export interface GithubConfig {
   dev: boolean
   storage: 'github' | 'fs'
-  /** `owner/name`. */
   repo: string
   branch: string
   appSlug: string
   apiUrl: string
   dir: string
-  /** The project root. Set for the `fs` store only. */
   fsRoot: string
-  /** The project root. Set in development only. The setup writes `.env` there. */
   rootDir: string
-  /** The host that built the app: `vercel`, `netlify`, or empty. */
   host: PlutoDeployHostId
-  /** Vercel: the production domain. Netlify: the site name. */
   hostSite: string
-  /** The site name (`websiteName`), or an empty string. */
   siteName: string
   skipDeploy: boolean
-  /** Local mode: commit each save to the local Git repo. */
   localCommit: boolean
   headTtl: number
   cacheStorage: string
@@ -38,13 +26,10 @@ export interface GithubConfig {
   clientSecret: string
   privateKey: string
   readToken: string
-  /** Lowercase GitHub logins. Empty means every user with push access. */
   allowedUsers: string[]
-  /** A test transport. The default uses `ofetch`. */
   fetch?: GithubFetch
 }
 
-/** Splits a comma-separated login list. It trims and lowercases each login. */
 export function parseAllowedUsers(value: unknown): string[] {
   return String(value ?? '')
     .split(',')
@@ -56,7 +41,6 @@ export function getGithubConfig(): GithubConfig {
   const config = useRuntimeConfig()
   const secret = (config.plutoGithub ?? {}) as Record<string, unknown>
   const open = (config.public.plutoGithub ?? {}) as Record<string, unknown>
-  // Nuxt parses an env value like `12345` as a number, so accept numbers too.
   const text = (value: unknown, fallback = '') =>
     typeof value === 'string' || typeof value === 'number'
       ? String(value)

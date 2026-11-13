@@ -1,10 +1,7 @@
 <script setup lang="ts">
-// The core login page. The file path must stay `admin/(auth)/login.vue`: a
-// layer that ships the same path overrides this page, and a different path
-// would give two /admin/login routes. The frame is PlutoAdminAuthCard. The sign-in
-// form comes from the auth driver.
 import { safeRedirect } from '../../../composables/internal/admin-shell'
 
+// The file path must stay `admin/(auth)/login.vue`: another path gives two /admin/login routes.
 definePageMeta({ layout: 'auth' })
 
 const { t } = usePlutoI18n()

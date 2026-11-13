@@ -1,7 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
 
-/** The Git blob id of a text: sha1 of `blob <byteLength>\0` and the UTF-8 bytes. */
 export function gitBlobSha(text: string): string {
   const bytes = Buffer.from(text, 'utf8')
   return createHash('sha1')
@@ -10,7 +9,6 @@ export function gitBlobSha(text: string): string {
     .digest('hex')
 }
 
-/** A head id for a flat listing. It changes when a path or a content changes. */
 export function listingOid(
   entries: {
     path: string

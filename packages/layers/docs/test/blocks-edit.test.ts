@@ -15,16 +15,12 @@ import { serializeBlocks } from '../shared/utils/blocks/serialize'
 import { flatChildren, walkBlocks } from '../shared/utils/blocks/tree'
 import { corpusBodies } from './helpers/corpus'
 
-// One edit changes only the lines of the edited block. The text before the
-// block and the text after it stay the same, byte for byte.
-
 function allBlocks(body: string): PlutoBlock[] {
   const out: PlutoBlock[] = []
   walkBlocks(parseBlocks(body).blocks, (block) => out.push(block))
   return out
 }
 
-/** The count of lines of `after` that differ from `before`, between the common start and the common end. */
 function changedLines(before: string, after: string): number {
   const a = before.split('\n')
   const b = after.split('\n')
@@ -53,7 +49,6 @@ describe('edit of a Text block', () => {
     expect(serializeBlocks(next)).toBe(
       source.replace('Second text.', 'Second text, changed.')
     )
-    // The other blocks keep their slices.
     expect(next.blocks[0]!.original).toBeDefined()
     expect(next.blocks[2]!.original).toBeDefined()
     expect(next.blocks[1]!.original).toBeUndefined()
@@ -202,7 +197,6 @@ describe('edit of a prop', () => {
     const out = serializeBlocks(setProp(doc, card.id, 'title', 'First'))
     expect(out).toBe(source.replace('title: One', 'title: First'))
     expect(changedLines(source, out)).toBe(1)
-    // A new key goes at the end of the YAML block.
     const added = serializeBlocks(setProp(doc, card.id, 'color', 'primary'))
     expect(added).toBe(
       source.replace('  to: /one\n', '  to: /one\n  color: primary\n')

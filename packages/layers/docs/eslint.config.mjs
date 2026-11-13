@@ -8,7 +8,6 @@ import { getDefaultSelectors } from 'eslint-plugin-better-tailwindcss/defaults'
 
 // The Nuxt rules come from @nuxt/eslint-config, not from the @nuxt/eslint module. A module in a
 // layer runs in every app that extends the layer.
-// See: https://eslint.vuejs.org/rules
 export default createConfigForNuxt({
   features: {
     standalone: false,

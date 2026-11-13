@@ -1,14 +1,5 @@
 <script setup lang="ts">
 import type { MDCElement, MDCNode, MDCRoot } from '@nuxtjs/mdc'
-// The preview page of the visual block editor. The editor shows it in an
-// iframe. It fetches nothing. The editor sends the blocks (Markdown) with
-// `postMessage`. This page parses each changed block with the site parser
-// (`parseMarkdown` of @nuxtjs/mdc) and renders it with `ContentRenderer`, so
-// the page looks as it does on the site. A click on a block tells the editor
-// which block it is. See the block-editor skill.
-//
-// Security: same origin only. This page ignores a message from another
-// origin or from a window that is not its parent. No remote data loads here.
 import type { CSSProperties } from 'vue'
 import type { PlutoPreviewBlock as PreviewBlockData } from '../../../shared/utils/blocks/preview-protocol'
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
@@ -31,15 +22,12 @@ const { t } = usePlutoI18n()
 useHead({
   title: () => t('docs.preview.title'),
   meta: [{ name: 'robots', content: 'noindex, nofollow' }],
-  // The preview is for choosing blocks, not for reading: no text selection, no link or image
-  // drag, and the default cursor everywhere (not the hand of a link or a button).
   style: [
     {
       textContent:
         '*, *::before, *::after { cursor: default !important; user-select: none !important; -webkit-user-select: none !important; -webkit-user-drag: none !important; }',
     },
     {
-      // A thin scrollbar that fits the editor, in both color modes: a gray thumb on no track.
       textContent: [
         'html { scrollbar-width: thin; scrollbar-color: rgb(128 128 128 / 0.45) transparent; }',
         'html::-webkit-scrollbar { width: 10px; }',
@@ -88,7 +76,6 @@ const selectedId = ref<string | null>(null)
 const cache = new Map<string, MDCRoot>()
 const CACHE_LIMIT = 300
 let run = 0
-// A scroll that came before the block was on screen (a new block): do it after the next render.
 let wantedScroll: string | null = null
 
 /**
@@ -161,7 +148,6 @@ async function render(message: {
       }
     })
   )
-  // A newer message came while the parser worked.
   if (current !== run) {
     return
   }
@@ -173,12 +159,9 @@ async function render(message: {
   await nextTick()
   refreshOverlay()
   if (wantedScroll) {
-    // The components of a block can mount a moment after the render.
     setTimeout(() => wantedScroll && scrollToBlock(wantedScroll), 80)
   }
 }
-
-// --- Talk to the editor ---------------------------------------------------------
 
 function post(message: ReturnType<typeof previewMessage>) {
   window.parent?.postMessage(message, window.location.origin)
@@ -208,8 +191,6 @@ function onMessage(event: MessageEvent) {
       break
   }
 }
-
-// --- Outlines -------------------------------------------------------------------
 
 const hoverId = ref<string | null>(null)
 const overlay = ref<{ selected: DOMRect | null; hover: DOMRect | null }>({
@@ -364,15 +345,12 @@ function selectBlock(id: string | null) {
   refreshOverlay()
 }
 
-// A click selects the block. The page does not follow links or press buttons.
 function onClick(event: MouseEvent) {
   event.preventDefault()
   event.stopPropagation()
   selectBlock(blockIdAt(event.target))
 }
 
-// A middle click or a Ctrl/Cmd+click (`auxclick`) does not open a link in a new tab, a drag does
-// not take a link or an image, and the text does not select.
 function stopEvent(event: Event) {
   event.preventDefault()
   event.stopPropagation()
@@ -395,11 +373,8 @@ function onPointerLeave() {
   }
 }
 
-// Keyboard: Enter on a focused block selects it, so the preview works without a mouse too. Esc
-// selects the block around the selected inner block.
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter' || event.key === ' ') {
-    // Enter on a focused link must not follow it. The preview has nothing to type into.
     event.preventDefault()
     const id = blockIdAt(event.target)
     if (id) {
@@ -434,7 +409,6 @@ onMounted(() => {
   document.addEventListener('selectstart', stopEvent, true)
   observer = new ResizeObserver(refreshOverlay)
   observer.observe(document.body)
-  // Images, fonts and lazy components change the layout after the render.
   mutations = new MutationObserver(refreshOverlay)
   mutations.observe(document.body, {
     childList: true,
@@ -525,7 +499,6 @@ const chipStyle: CSSProperties = {
       />
     </PlutoContentPreview>
 
-    <!-- The outlines use inline styles only, so they do not depend on the site CSS. -->
     <div
       aria-hidden="true"
       style="

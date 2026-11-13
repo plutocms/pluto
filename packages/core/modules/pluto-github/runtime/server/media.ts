@@ -18,20 +18,15 @@ import { filterMediaRecords } from '../../../../shared/utils/media'
 import { isPlutoGithubConflictError } from './store/errors'
 import { parseMarkdownFile, serializeMarkdownFile } from './utils/markdown-file'
 
-/** The URL prefix of the media files. The files are in `<publicDir>/media/`. */
 export const GITHUB_MEDIA_URL_PREFIX = '/media'
 
-/** An id: the stored file name without its extension. No dots or slashes. */
 const ID = /^[a-z0-9][a-z0-9-]{0,99}$/
 
 export interface GithubMediaDriverOptions {
   store: PlutoGithubStore
-  /** The content dir. The records are in `<dir>/media/<id>.md`. */
   dir: string
-  /** The public dir of the site, relative to the repo root. Default `public`. */
   publicDir?: string
   getAccess: (event: H3Event) => Promise<PlutoGithubAccess | null>
-  /** How many times a commit tries again after an unrelated commit. Default 2. */
   retries?: number
 }
 
@@ -51,7 +46,6 @@ interface MediaFrontmatter {
   previewHeight?: unknown
 }
 
-/** The repo paths of a stored file and of its preview. */
 interface StoredFiles {
   file: string
   previewFile: string
@@ -61,20 +55,6 @@ function numberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
-/**
- * The media driver of the Git CMS. A file and its record go into the repo
- * in one commit:
- *
- * - the file: `public/media/<yyyy>/<mm>/<name>-<suffix>.<ext>`, served at
- *   `/media/<yyyy>/<mm>/...` (a static file after a deploy; before it, the
- *   `/media/**` route reads it from the repo);
- * - the record: `<dir>/media/<id>.md`, frontmatter only;
- * - the preview image of a file that is not an image (a 3D model), when the
- *   kind of the file makes one: `<name>-<suffix>.preview.webp` next to the file.
- *
- * Only one size of each image is stored: other sizes come at delivery
- * (`@nuxt/image`). See the media skill.
- */
 export function createGithubMediaDriver(
   options: GithubMediaDriverOptions
 ): PlutoMediaDriver {
@@ -149,7 +129,6 @@ export function createGithubMediaDriver(
     )
   }
 
-  /** The repo path and the URL of a stored file, by its month and its name. */
   function placeOf(createdAt: string, fileName: string) {
     const date = new Date(createdAt)
     const month = `${date.getUTCFullYear()}/${String(date.getUTCMonth() + 1).padStart(2, '0')}`
@@ -159,7 +138,6 @@ export function createGithubMediaDriver(
     }
   }
 
-  /** A binary addition of a commit. */
   function binary(path: string, data: Uint8Array) {
     return {
       path,
@@ -219,7 +197,6 @@ export function createGithubMediaDriver(
     }
   }
 
-  /** Commits on the newest head. A new head from an unrelated commit tries again. */
   async function commit(
     access: PlutoGithubAccess,
     input: Omit<PlutoGithubCommitInput, 'expectedHeadOid'>
@@ -381,7 +358,6 @@ const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',
 }
 
-/** A media path from the URL (`2026/10/name.webp`), or `null` when it is not one. */
 export function githubMediaPath(path: string): string | null {
   const parts = path.split('/')
   return parts.length === 3 &&
@@ -392,7 +368,6 @@ export function githubMediaPath(path: string): string | null {
     : null
 }
 
-/** The type to send for a media file, from its extension. */
 export function githubMediaContentType(path: string): string {
   return (
     CONTENT_TYPES[path.slice(path.lastIndexOf('.') + 1)] ??

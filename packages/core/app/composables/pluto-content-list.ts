@@ -3,6 +3,7 @@ import type { PlutoAdminListQuery } from '../../shared/utils/content-list'
 import { toValue, watch } from 'vue'
 import { adminListQueryKeys } from '../../shared/utils/content-list'
 
+/** Options of `usePlutoContentList`. */
 export interface PlutoContentListOptions {
   /**
    * Rows per request. Set it to load the list page by page: the first page
@@ -34,6 +35,8 @@ export interface PlutoContentListOptions {
  * methods, so a caller `await`s `refresh()` or `remove()` directly, instead
  * of `await`ing the composable's own return value through a hand-rolled
  * `.then()`.
+ *
+ * @see https://pluto.vulmix.dev/docs/reference/content-model
  */
 export function usePlutoContentList(
   typeName: string,
@@ -41,7 +44,6 @@ export function usePlutoContentList(
 ) {
   const { pageSize } = options
 
-  /** The query keys of the search, the status, the filters and the sort. */
   function listKeys(): Record<string, string> {
     return adminListQueryKeys(toValue(options.query) ?? {})
   }
@@ -51,13 +53,9 @@ export function usePlutoContentList(
   const total = ref<number | undefined>(undefined)
   const pending = ref(false)
   const loadingMore = ref(false)
-  /** `true` while more pages exist. Always `false` without `pageSize`. */
   const hasMore = ref(false)
   const error = ref<unknown>(null)
 
-  // A refresh() while a page is in flight makes that page stale. Each fetch
-  // remembers the generation it started in, and drops its result when a
-  // newer refresh() has started since.
   let generation = 0
 
   function fetchPage(offset: number): Promise<PlutoContentListResult> {
@@ -74,7 +72,6 @@ export function usePlutoContentList(
       hasMore.value = false
       return
     }
-    // Without a total, a full page means there may be another one.
     hasMore.value =
       total.value === undefined
         ? lastPageLength === pageSize
@@ -106,7 +103,6 @@ export function usePlutoContentList(
     }
   }
 
-  /** Appends the next page. Does nothing without `pageSize`, without more pages, or while a fetch runs. */
   async function loadMore(): Promise<void> {
     if (!hasMore.value || pending.value || loadingMore.value) {
       return
@@ -132,16 +128,8 @@ export function usePlutoContentList(
     }
   }
 
-  // Fire the initial fetch right away. /admin/** is client-only
-  // (ssr: false in nuxt.config.ts), so there is no SSR payload concern —
-  // this only ever runs in the browser. The failure path already lands in
-  // `error` for a reactive consumer to read; swallow the rejection here so
-  // it never surfaces as an unhandled rejection. A caller invoking
-  // `refresh()` again later still gets a real rejection to `await`.
   refresh().catch(() => {})
 
-  // A new search, status, filter or sort: the first page again. The new rows replace the old ones,
-  // so the list never mixes two queries, and the generation drops a page of the old query.
   if (options.query !== undefined) {
     watch(
       () => JSON.stringify(listKeys()),
@@ -151,8 +139,6 @@ export function usePlutoContentList(
     )
   }
 
-  // A failed delete rejects and leaves `error` alone: `error` is about loading
-  // the list, and the caller shows its own message for the delete.
   async function remove(id: string | number): Promise<void> {
     await $fetch(`${url}/${id}`, { method: 'DELETE' })
 
@@ -161,8 +147,6 @@ export function usePlutoContentList(
       return
     }
 
-    // Paged: drop the row in place, so the user keeps the pages already
-    // loaded and the scroll position.
     items.value = items.value.filter((item) => item.id !== id)
     if (total.value !== undefined) {
       total.value = Math.max(0, total.value - 1)

@@ -125,7 +125,6 @@ describe('createBuildPoller', () => {
     await vi.advanceTimersByTimeAsync(0)
     expect(load).toHaveBeenCalledTimes(2)
     await vi.advanceTimersByTimeAsync(5_000)
-    // One timer only: one more read, not two.
     expect(load).toHaveBeenCalledTimes(3)
   })
 

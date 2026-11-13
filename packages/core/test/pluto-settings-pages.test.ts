@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, reactive, ref } from 'vue'
 import { createI18nStub } from './fixtures/i18n-stub'
 
-// Same Nuxt-global stubbing as test/permissions.test.ts. `useRoute` is a
-// reactive object whose `path` a test changes through `routePath`.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
+// `useRoute` is a reactive object whose `path` a test changes through `routePath`.
 let fakeNuxtApp: {
   _plutoRegistry?: PlutoRegistry
 }

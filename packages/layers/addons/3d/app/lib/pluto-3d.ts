@@ -17,11 +17,6 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { fitDistance, VIEW_DIRECTION } from './pluto-3d-math'
 
-// The three.js part of the 3D add-on: a stage (renderer, scene, soft studio
-// light, camera), loading a model, framing it, and a static preview image.
-// This file is imported on demand, in the browser only, so three.js stays out
-// of the pages that show no model. See the 3d skill.
-
 export interface PlutoStage {
   renderer: WebGLRenderer
   scene: Scene
@@ -29,7 +24,6 @@ export interface PlutoStage {
   dispose: () => void
 }
 
-/** A renderer on `canvas`, with a transparent background and the light of a soft studio. */
 export function createStage(
   canvas: HTMLCanvasElement,
   options: { preserveDrawingBuffer?: boolean } = {}
@@ -42,7 +36,6 @@ export function createStage(
   })
   renderer.outputColorSpace = SRGBColorSpace
   renderer.toneMapping = ACESFilmicToneMapping
-  // Under 1: a white material keeps its shades, and does not burn out.
   renderer.toneMappingExposure = 0.8
   renderer.setClearColor(0x000000, 0)
 
@@ -50,8 +43,6 @@ export function createStage(
   const pmrem = new PMREMGenerator(renderer)
   const environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
   scene.environment = environment
-  // Soft light from all sides, and a key light from the top left with the camera, so a
-  // model with no texture still shows its shape.
   scene.environmentIntensity = 0.35
 
   const camera = new PerspectiveCamera(35, 1, 0.01, 1000)
@@ -73,7 +64,6 @@ export function createStage(
   }
 }
 
-/** Loads a `.glb` model from a URL or from its bytes. Meshopt compression works; Draco does not. */
 export async function loadModel(
   source: string | ArrayBuffer
 ): Promise<Object3D> {
@@ -86,7 +76,6 @@ export async function loadModel(
   return gltf.scene
 }
 
-/** Puts the camera at a three-quarter view that fits the whole model. Returns the center. */
 export function frameModel(
   camera: PerspectiveCamera,
   model: Object3D,
@@ -106,7 +95,6 @@ export function frameModel(
   return sphere.center.clone()
 }
 
-/** Frees the GPU memory of every mesh, material and texture under `object`. */
 export function disposeObject(object: Object3D): void {
   object.traverse((child) => {
     if (!(child instanceof Mesh)) {
@@ -134,12 +122,6 @@ function canvasBlob(
   return new Promise((resolve) => canvas.toBlob(resolve, type, 0.85))
 }
 
-/**
- * A static preview image of a model: one frame of the stage, `size` px
- * square, transparent around the model. WebP, or PNG when the browser cannot
- * write WebP. The media library sends it with the upload. `null` when the
- * browser has no WebGL or the model does not load.
- */
 export async function renderModelPreview(
   file: Blob,
   size = 1024

@@ -1,5 +1,4 @@
-// Markdown to safe HTML, on the server (the public API) and in the browser (the post preview).
-// It imports no Node or Nuxt API.
+// This file runs on the server and in the browser: it imports no Node or Nuxt API.
 import type { Tokens } from 'marked'
 import { Marked } from 'marked'
 import { ELEMENT_NODE, parse, TEXT_NODE, walkSync } from 'ultrahtml'
@@ -16,15 +15,8 @@ import {
 } from './link-target'
 import { sanitizeHtml } from './sanitize-html'
 
-/** The attribute of an embed paragraph. See `isEmbedParagraph`. */
-export const PLUTO_EMBED_ATTRIBUTE = 'data-pluto-embed'
+const PLUTO_EMBED_ATTRIBUTE = 'data-pluto-embed'
 
-/**
- * A paragraph that is one http(s) link and nothing else, with the URL as its text: a URL alone on
- * its line (a GFM autolink), or `[url](url)`, which the Visual editor writes. Such a paragraph can
- * be an embed. The renderer knows no provider: the site component (`PlutoHtml`) asks the
- * providers of the registry. See the content-model skill ("Embeds").
- */
 export function isEmbedParagraph(tokens: Tokens.Generic[]): boolean {
   const parts = tokens.filter(
     (token) => !(token.type === 'text' && !String(token.raw).trim())
@@ -36,13 +28,8 @@ export function isEmbedParagraph(tokens: Tokens.Generic[]): boolean {
   return /^https?:\/\//i.test(link.href) && link.text.trim() === link.href
 }
 
-// One `Marked` instance for every render. GFM gives tables, task lists,
-// strikethrough and autolinks. The `html` renderer returns an empty string,
-// so raw HTML in a post never reaches the output. The sanitizer still runs
-// on the result, as a second guard. A paragraph that can be an embed gets
-// `data-pluto-embed`; it stays a plain paragraph with a link for any client.
-// An empty component (`::name{props}` then `::`) becomes the mark of a content
-// component (see ./component.ts). A link with `{target="_blank"}` opens in a new tab.
+// The `html` renderer returns an empty string, so raw HTML in a post never reaches the output.
+// The sanitizer still runs on the result, as a second guard.
 const marked = new Marked({
   gfm: true,
   extensions: [plutoComponentExtension(), plutoBlankLinkExtension()],
@@ -57,10 +44,6 @@ const marked = new Marked({
   },
 })
 
-/**
- * The marked extension of a content component: an empty component at the top level becomes its
- * mark (`componentMarkerHtml`). The Markdown path of a layer (supabase-blog) uses it too.
- */
 export function plutoComponentExtension() {
   return {
     name: 'plutoComponent',
@@ -89,11 +72,6 @@ export function plutoComponentExtension() {
   }
 }
 
-/**
- * The marked extension of a link that opens in a new tab (`[text](url){target="_blank"}`, see
- * ./link-target.ts): the link renders with `target="_blank"` and a safe `rel`. The Markdown path
- * of a layer (supabase-blog) uses it too.
- */
 export function plutoBlankLinkExtension() {
   return {
     name: 'plutoBlankLink',
@@ -133,10 +111,6 @@ const BLOCK_CLOSE = /^\s*:{2,}\s*$/
 const SLOT = /^\s*#[a-z][\w-]*\s*$/i
 const PROPS_FENCE = /^\s*---\s*$/
 
-/**
- * Inline MDC: components (`:icon{name="x"}`) and attributes (`[text]{.class}`, `[a](/b){.c}`). A link
- * keeps one attribute, a new tab, in the form the editor writes (`{target="_blank"}`).
- */
 function stripInlineMdc(line: string): string {
   return line
     .replace(/(^|[\s(]):[a-z][\w-]*\{[^}]*\}/gi, '$1')
@@ -148,10 +122,6 @@ function stripInlineMdc(line: string): string {
     .replace(/\[([^\]]*)\]\{[^}]*\}/g, '$1')
 }
 
-/**
- * The index of the closing line of an empty component that opens at `index` (`matchEmptyComponent`),
- * else `undefined`.
- */
 function emptyComponentEnd(lines: string[], index: number): number | undefined {
   let end = index + 1
   while (end < lines.length && !lines[end]!.trim()) {
@@ -165,11 +135,9 @@ function emptyComponentEnd(lines: string[], index: number): number | undefined {
 }
 
 /**
- * Removes the MDC syntax of Nuxt Content from Markdown and keeps the text in it, so a page that
- * uses components renders as plain Markdown: the `::name` and `::` lines of a block component go,
- * with the YAML props block (`---` … `---`) right after an open line, the `#slot` lines inside a
- * component, inline components, and `{…}` attributes. Code in a fence does not change. An empty
- * component at the top level (`::name{props}` then `::`) stays: it is a content component.
+ * Removes the MDC syntax of Nuxt Content from Markdown and keeps the text in it. Code in a fence
+ * does not change. An empty component at the top level (`::name{props}` then `::`) stays: it is a
+ * content component.
  */
 export function stripMdc(markdown: string): string {
   const lines = markdown.split(/\r?\n/)
@@ -208,7 +176,6 @@ export function stripMdc(markdown: string): string {
       out.push(line)
       continue
     }
-    // An empty component at the top level stays: the renderer makes it a content component.
     if (depth === 0 && BLOCK_OPEN.test(line)) {
       const empty = emptyComponentEnd(lines, index)
       if (empty !== undefined) {
@@ -237,10 +204,6 @@ export function stripMdc(markdown: string): string {
   return out.join('\n')
 }
 
-/**
- * Renders Markdown to HTML, then sanitizes it. The result is safe for `innerHTML`. MDC syntax goes
- * first (`stripMdc`), so a Nuxt Content page shows its text, not its component markers.
- */
 export function renderMarkdown(markdown: string): string {
   if (typeof markdown !== 'string' || markdown.trim() === '') {
     return ''
@@ -274,12 +237,6 @@ function decodeEntities(value: string): string {
   )
 }
 
-/**
- * Turns Markdown into plain text for an excerpt. A block gets a space around
- * it. Entities are decoded and white space collapses. A text longer than
- * `maxLength` is cut at a word edge and ends with an ellipsis. The result is
- * never longer than `maxLength`.
- */
 export function markdownToPlainText(markdown: string, maxLength = 200): string {
   const html = renderMarkdown(markdown)
   if (!html) {

@@ -23,16 +23,6 @@ import {
 } from '../utils/pluto-mail-admin'
 import { PlutoMailError } from './errors'
 
-/**
- * The logic behind the admin mail routes (`server/api/_pluto/mail/**`). Each
- * route file only calls one of these functions. Every function starts with
- * `requireMailAdmin`, so a route can never run without the admin check.
- *
- * The Resend key never leaves the server. The one exception is the new
- * sending-only key that `createSendingKey` makes: the admin copies it into
- * the environment, and the response says `no-store`.
- */
-
 function invalid(key: string, message: string) {
   return createPlutoError({ statusCode: 400, message, key })
 }
@@ -69,16 +59,11 @@ function toDomain(raw: unknown): PlutoMailDomain {
   }
 }
 
-/** The mail status: driver, From address, key present or not. No secret. */
 export async function mailStatus(event: H3Event) {
   await requireMailAdmin(event)
   return getPlutoMailStatus()
 }
 
-/**
- * Sends the test email to `to`. 5 calls in 10 minutes for each admin. The body
- * is `{ to, locale? }`. `locale` picks the language of the email.
- */
 export async function mailTest(event: H3Event) {
   await requireMailAdmin(event, { write: true })
   enforceTestMailRateLimit(event)
@@ -105,11 +90,6 @@ export async function mailTest(event: H3Event) {
   })
 }
 
-/**
- * Checks the Resend key with `GET /domains`. A full-access key lists the
- * domains. A sending-only key gets `access: 'sending'`: it can send, but it
- * cannot manage domains.
- */
 export async function mailCheckKey(event: H3Event) {
   await requireMailAdmin(event, { write: true })
 
@@ -132,7 +112,6 @@ export async function mailCheckKey(event: H3Event) {
   })
 }
 
-/** Creates a domain in Resend. The body is `{ name, region? }`. Returns the DNS records. */
 export async function mailCreateDomain(event: H3Event) {
   await requireMailAdmin(event, { write: true })
 
@@ -173,7 +152,6 @@ function domainId(event: H3Event): string {
   return id
 }
 
-/** Reads one domain, with its DNS records and status. */
 export async function mailGetDomain(event: H3Event) {
   await requireMailAdmin(event)
   const id = domainId(event)
@@ -186,7 +164,6 @@ export async function mailGetDomain(event: H3Event) {
   })
 }
 
-/** Asks Resend to check the DNS records of a domain now. */
 export async function mailVerifyDomain(event: H3Event) {
   await requireMailAdmin(event, { write: true })
   const id = domainId(event)
@@ -198,11 +175,6 @@ export async function mailVerifyDomain(event: H3Event) {
   })
 }
 
-/**
- * Makes a sending-only key for one domain. The body is `{ domainId? }`. It
- * needs a full-access key. The response holds the new key once, so the admin
- * can copy it into the environment. Nothing stores or logs it.
- */
 export async function mailCreateSendingKey(event: H3Event) {
   await requireMailAdmin(event, { write: true })
 

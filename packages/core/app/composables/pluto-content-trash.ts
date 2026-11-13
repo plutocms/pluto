@@ -1,9 +1,8 @@
 import { contentIdPath } from '../../shared/utils/content-id'
 
 /** The most trashed items that the Trash view shows at once. */
-export const TRASH_VIEW_LIMIT = 100
+const TRASH_VIEW_LIMIT = 100
 
-/** The URL of the trash of a type, or of one trashed item. */
 function trashUrl(typeName: string, id?: string | number): string {
   const base = `/api/_pluto/content-trash/${typeName}`
   return id === undefined ? base : `${base}/${contentIdPath(id)}`
@@ -65,7 +64,6 @@ export function usePlutoContentTrash(
     }
   }
 
-  /** Deletes every trashed item forever. Answers how many. */
   async function empty(): Promise<number> {
     const result = await $fetch<{ purged: number }>(trashUrl(typeName), {
       method: 'DELETE',

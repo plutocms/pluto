@@ -1129,12 +1129,6 @@ of the types. A group with one visible type, and a type with an unknown group, k
 `PlutoEntry.enabled` applies to both sources: the registry filters its own entries, and
 `usePlutoAdminNav` filters the merged list again with `enabled?.() ?? true`.
 
-`usePlutoAdminPages()` synthesizes two `PlutoAdminPage` entries per auto-routed content type — a
-list page (`path: basePath, title: labelPlural`) and a "new" page (`path: `${basePath}/new``,
-`parent: content:<name>`, matching the nav entry's id). The existing `current` lookup
-(`items.value.find(page => page.path === route.path)`) needs no change: these are plain objects
-with a matching `path`, same as every other registered page.
-
 ## `newPath`/`editPath` — for a layer whose URLs are not symmetric
 
 `PlutoContentList` and `PlutoContentForm` build every link they need from one `basePath`: the
@@ -1297,7 +1291,7 @@ a home page with fixed sections (the options page of ACF).
 - Site: `usePlutoSingleton<T>(type, { editLink? })` (`app/composables/pluto-singleton.ts`) reads the
   public list with `limit=1`, so a static build reads the public index. `item` is `null` until the
   first save (no throw), so a page keeps its fallback. It calls `usePlutoEditLink(type, item.id ??
-  type)`, so the admin bar has "Edit" (with `adminBar.edit`) before the first save too. The type
+type)`, so the admin bar has "Edit" (with `adminBar.edit`) before the first save too. The type
   needs `api.public: true`. Headless: `GET /api/pluto/v1/content/<type>?limit=1`, `data[0]`.
 - Tests: `test/content-singleton.test.ts` (helpers, paths, handlers, the Git adapter), and a nav case
   in `test/pluto-admin-nav-content.test.ts`. The playground has a `contact` singleton in its footer.

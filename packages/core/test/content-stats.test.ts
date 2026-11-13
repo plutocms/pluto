@@ -2,9 +2,7 @@ import type { PlutoContentType } from '../shared/types/content'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
-// Same Nuxt-global stubbing as the other composable tests.
-// pluto-content-stats.ts uses auto-imported `ref`, `$fetch`, and a sibling
-// composable that do not exist outside a Nuxt build.
+// Stubs the Nuxt auto-imports. They do not exist outside a Nuxt build.
 const contentTypes = ref<
   {
     type: Partial<PlutoContentType>

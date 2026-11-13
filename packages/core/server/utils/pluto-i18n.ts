@@ -9,7 +9,6 @@ import {
   matchLocale,
 } from '../../app/composables/internal/i18n-core'
 
-/** The locale data of the Nitro virtual module `#pluto-i18n-server`. */
 export interface PlutoServerMessageSource {
   localeCodes: string[]
   defaultLocale: string
@@ -27,16 +26,6 @@ function warnInDev(message: string): void {
   }
 }
 
-/**
- * Builds the server translator function over a message source. The server
- * has no reactive state and no request context, so a translator is cheap:
- * it wraps the same engine as the admin (`createTranslator`), over messages
- * that load once per locale and stay in memory.
- *
- * The locale resolves like this: an exact or base-language match in
- * `localeCodes`, else the default locale. A key that is missing in the
- * locale falls back to the default locale, then to the key itself.
- */
 export function createPlutoServerTranslatorFactory(
   source: PlutoServerMessageSource
 ) {
@@ -92,6 +81,8 @@ let factory: ReturnType<typeof createPlutoServerTranslatorFactory> | undefined
  * email. It reads the same `i18n/locales/<code>.json` files as the admin,
  * merged across layers, base layer first and the app last. An unknown or
  * missing locale uses the default locale.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/mail#the-server-translator
  */
 export async function usePlutoServerTranslator(
   locale?: string | null

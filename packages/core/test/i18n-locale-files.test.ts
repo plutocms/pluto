@@ -82,8 +82,6 @@ describe('core locale files', () => {
   }
 })
 
-// --- Usage check ------------------------------------------------------------
-//
 // Every literal `pluto.*` key in the source must exist in en.json. A key with a
 // typo shows as the raw key in the UI. For a registry string, `tx()` hides it,
 // because the unknown value stays as it is. This test finds both.

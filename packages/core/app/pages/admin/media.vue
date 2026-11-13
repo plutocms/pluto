@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// The media library of the app, for every backend. A click on a file opens
-// its details in the aside. See the media skill.
 import type { PlutoMedia } from '../../../shared/types/media'
 import type PlutoMediaLibrary from '../../components/Pluto/Media/PlutoMediaLibrary.vue'
 

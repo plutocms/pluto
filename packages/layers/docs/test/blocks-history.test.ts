@@ -50,13 +50,10 @@ describe('block history', () => {
     history = pushHistory(history, 'hel', 500, 'block-1')
     expect(history.past).toEqual([''])
     expect(history.present).toBe('hel')
-    // A pause longer than 600 ms from the last edit starts a new step.
     history = pushHistory(history, 'hell', 1200, 'block-1')
     expect(history.past).toEqual(['', 'hel'])
-    // Another block starts a new step at once.
     history = pushHistory(history, 'hello', 1300, 'block-2')
     expect(history.past).toEqual(['', 'hel', 'hell'])
-    // An edit without a key never joins.
     history = pushHistory(history, 'hello!', 1310)
     history = pushHistory(history, 'hello!!', 1320)
     expect(history.past).toHaveLength(5)

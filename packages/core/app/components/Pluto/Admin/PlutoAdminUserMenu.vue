@@ -5,18 +5,10 @@ import {
   shortName,
 } from '../../../composables/internal/admin-shell'
 
-// The user menu of the admin navbar: the avatar, the short name and a dropdown
-// with the account (name, email or username), the theme (Light, Dark, System),
-// Settings, the items of the layers, the links and Sign out. An administrator
-// (the capability '*') gets a chip on the avatar and an "Admin" badge in the
-// account header. The menu has the surface of the admin popovers (it follows the
-// color mode), not the dark color of the navbar.
 const { t } = usePlutoI18n()
 const { user, signOut } = usePlutoAuth()
 const account = usePlutoAccountMenu()
 const { isAdmin } = usePlutoPermissions()
-// The brand (white label) adds a help link and the agency link, and can hide
-// the link to Pluto.
 const { brand, plutoLinks } = usePlutoBrand()
 const linkItems = computed<DropdownMenuItem[]>(() => [
   ...(brand.value.helpUrl
@@ -72,7 +64,6 @@ const menuLabel = computed(() =>
     : name.value
 )
 const avatar = computed(() => user.value?.avatarUrl || undefined)
-// Under the name: the email, else the username when the name is not the username.
 const accountDetail = computed(() => {
   if (user.value?.email) {
     return user.value.email
@@ -82,8 +73,6 @@ const accountDetail = computed(() => {
     : ''
 })
 
-// The theme of the admin: Light, Dark or System (the color mode of the device). A site that
-// forces a color mode has no theme row.
 const colorMode = useColorMode()
 type Theme = 'light' | 'dark' | 'system'
 const themes = computed<{ value: Theme; label: string; icon: string }[]>(() => [
@@ -114,9 +103,7 @@ const currentTheme = computed(() =>
 function setTheme(value: Theme) {
   colorMode.preference = value
 }
-/** The theme row as a menu item (Enter, or a click outside the buttons): the next theme. */
 function nextTheme(event: Event) {
-  // The menu stays open, so the author sees the new theme.
   event.preventDefault()
   const order: Theme[] = ['light', 'dark', 'system']
   setTheme(order[(order.indexOf(theme.value) + 1) % order.length]!)
@@ -143,7 +130,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
             label: t('pluto.navbar.theme'),
             icon: currentTheme.value.icon,
             slot: 'theme' as const,
-            // The item lines up its content at the top; the control is taller than the label.
             class: 'items-center',
             onSelect: nextTheme,
           },
@@ -165,7 +151,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
       to: item.to,
       target: item.target,
       kbds: item.kbds,
-      // A shortcut needs a handler. A link with a shortcut navigates in it.
       onSelect:
         item.onSelect ??
         (item.to && item.kbds ? () => navigateTo(item.to) : undefined),
@@ -185,7 +170,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
 
 defineShortcuts(computed(() => extractShortcuts(items.value)))
 
-// The portal target gives the menu the admin theme on a public page too.
 const portalTarget = usePlutoAdminPortal({ dark: false })
 </script>
 
@@ -199,10 +183,6 @@ const portalTarget = usePlutoAdminPortal({ dark: false })
       :portal="portalTarget ?? true"
       arrow
     >
-      <!--
-        The button fills the height of the bar. The pill inside it keeps the
-        hover and focus look. See PlutoNavbarHit.
-      -->
       <button
         :aria-label="buttonLabel"
         class="group flex h-full items-center outline-none"
@@ -231,7 +211,6 @@ const portalTarget = usePlutoAdminPortal({ dark: false })
         </div>
       </button>
 
-      <!-- The account: the avatar, the name, the email (or the username), the Admin badge. -->
       <template #account>
         <div class="flex w-full min-w-0 items-center gap-3 py-1">
           <UAvatar
@@ -266,11 +245,6 @@ const portalTarget = usePlutoAdminPortal({ dark: false })
         </div>
       </template>
 
-      <!--
-        The theme: a segmented control of three icons. A click on an icon picks that theme; the
-        row is one menu item, so Enter (or a click outside the icons) moves to the next theme. The
-        icons are for the pointer only (`aria-hidden`): the item names the current theme.
-      -->
       <template #theme="{ ui: menuUi }">
         <UIcon :name="currentTheme.icon" :class="menuUi.itemLeadingIcon()" />
         <span :class="menuUi.itemLabel()">

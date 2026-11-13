@@ -1,10 +1,6 @@
 <script setup lang="ts">
-// The tabs All and Trash of a list, for a type with `trash`. The Trash tab is the route query
-// `?trash=1` of the same page: an id can be "trash", so the trash cannot be a path under the list.
 const props = defineProps<{
-  /** The open tab. */
   view: 'all' | 'trash'
-  /** The number of trashed items. `null` hides the badge. */
   count: number | null
 }>()
 

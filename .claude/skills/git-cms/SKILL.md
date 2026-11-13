@@ -67,8 +67,8 @@ no shell command. Tests: `test/github-git-remote.test.ts`, `test/pluto-github-op
 - `runtime/server/{api/build-status.get,utils/build-status}.ts`, `runtime/shared/{build-status,build-poller}.ts`,
   `runtime/app/composables/pluto-github-build-status.ts` and `app/components/Pluto/Github/PlutoGithubBuildStatus.vue` —
   the build status (see "Build status").
-- `app/components/Pluto/Github/` — the sign-in form (`PlutoGithubSignIn`), the dashboard warning, the
-  editor widget and `PlutoMarkdown`.
+- `app/components/Pluto/Github/` — the sign-in form (`PlutoGithubSignIn`), the dashboard warning and the
+  editor widget.
 - `runtime/server/utils/{markdown,sanitize-html}.ts` and the adapter's `toPublic` — the public
   read side (see "Public read"). The routes are core's public API.
 
@@ -736,7 +736,8 @@ grows with the text, with `spellcheck="false"`. It never parses or rewrites the 
   replaces the selection and puts the caret after the text; `block` adds a blank line before and
   after), `focus()` and `goToLine(line)` (the caret goes to the start of the line, from 0, and the
   line scrolls to the top). `insertMarkdownText` is the pure helper. The CMS module registers the
-  short name `PlutoMarkdownSource` (only when the CMS is on), the same way as `PlutoMarkdown`. A
+  short name `PlutoMarkdownSource` (only when the CMS is on) with `addComponent`, because the
+  folder name would make the auto name `PlutoGithubPlutoMarkdownSource`. A
   layer uses it to build its own field widget.
 - i18n keys: `pluto.github.editor.visual`, `source`, `unsafe`, `mode`.
 
@@ -975,7 +976,7 @@ portal`. Any other element is unwrapped: the tag goes and the text stays.
 - Attribute values are escaped, so a quote cannot start a new attribute.
 - The original sanitizer adds no `rel` or `target` to a link, and this port does the same.
 
-### `PlutoHtml` (and `PlutoMarkdown`)
+### `PlutoHtml`
 
 `app/components/Pluto/PlutoHtml.vue`, a core component for every backend. Props: `html: string`,
 `tag = 'article'`, `class`. It sets the server-sanitized HTML of a public item as `innerHTML`, with
@@ -984,11 +985,6 @@ it). It never parses or sanitizes on the client. The typography is the base of t
 theme (semantic tokens such as `text-highlighted` and `border-default`), plus table styles. The
 Git CMS and `@plutocms/supabase-blog` both send sanitized `html`, so one site page works with
 either backend. Pass only the `html` of a public item to it.
-
-`PlutoMarkdown` (`app/components/Pluto/Github/PlutoMarkdown.vue`) is the older Git CMS name. It
-renders `PlutoHtml`, and attributes pass through. The module registers it with `addComponent`,
-because the folder name would make the auto name `PlutoGithubPlutoMarkdown`. New code uses
-`PlutoHtml`.
 
 Use on a site page:
 
@@ -1124,7 +1120,7 @@ item shows. Add the three permissions in the App settings, and accept them on th
 ## Status
 
 All parts of v1 are built: the module, the stores, the Markdown content adapter, GitHub App
-sign-in and the session, the editor, the public read routes, `PlutoMarkdown`, and the user docs
+sign-in and the session, the editor, the public read routes, `PlutoHtml`, and the user docs
 (the "Standalone mode" section of README.md). The starter is the `pluto-core-blog-template`
 repository (`create-pluto -t core-blog`).
 

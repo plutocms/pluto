@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { getLanguageName } from '../../../composables/internal/i18n-core'
 
-// The select cannot hold null, so Automatic uses this value. It is not a
-// valid locale code, so it never clashes with one.
 const AUTOMATIC = '__automatic__'
 
 const { t, locales, preference, setLocale } = usePlutoI18n()
@@ -10,7 +8,6 @@ const toast = useToast()
 
 const items = computed(() => [
   { label: t('pluto.settings.language.automatic'), value: AUTOMATIC },
-  // Each language is named in its own language, so a user finds it.
   ...locales.value.map((code) => ({
     label: getLanguageName(code),
     value: code,
@@ -24,7 +21,6 @@ async function onChange(value: string) {
     await setLocale(value === AUTOMATIC ? null : value)
     toast.add({ title: t('pluto.settings.language.saved'), color: 'success' })
   } catch (error) {
-    // The switch stays on this device. Only the save failed.
     toast.add({
       title: t('pluto.settings.language.saveFailed'),
       description: t('pluto.settings.language.saveFailedDescription', {

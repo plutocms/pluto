@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// One post: the title, the date, the cover and the body (`PlutoHtml`: the embeds and the content
-// components of the site too). A draft shows to a signed-in editor, with a badge.
 const route = useRoute()
 const { post, draft } = await usePost(() => String(route.params.slug))
 </script>

@@ -2,7 +2,6 @@ import { computed } from 'vue'
 import { useFetch, useRequestFetch } from '#imports'
 
 export const CMS_SETUP_STATUS_URL = '/api/_pluto/github/setup/status'
-/** The route that starts the GitHub App creation. Open it with a full page load. */
 export const CMS_SETUP_START_URL = '/api/_pluto/github/setup/start'
 
 export type PlutoGithubSetupCheckId =
@@ -14,7 +13,6 @@ export type PlutoGithubSetupCheckId =
   | 'privateKey'
   | 'installation'
 
-/** The answer of the status route. A site that is ready says only `ready`, unless the user may see more. */
 export interface PlutoGithubSetupStatus {
   ready: boolean
   repo?: string
@@ -27,11 +25,6 @@ export interface PlutoGithubSetupStatus {
   }>
 }
 
-/**
- * The setup status of the GitHub sign-in. The browser fetches it after
- * hydration (`server: false`). The answer has booleans and public names only.
- * `status.value` is `null` until the first answer, and after a failed read.
- */
 export function usePlutoGithubSetup() {
   const asyncData = useFetch<PlutoGithubSetupStatus | null>(
     CMS_SETUP_STATUS_URL,

@@ -1,17 +1,11 @@
 <script setup lang="ts">
-// Core's activity widget: items created per week, one series per content
-// type. A trend over time, so it is a chart: an area for one series, lines
-// for several (each with a legend entry). Series colors come from the admin
-// theme's validated chart palette (--ui-chart-*). A visually hidden table
-// carries the same numbers for assistive technology.
 const WEEKS = 12
 
 const { data: series, status, refresh } = usePlutoContentActivity(WEEKS)
 const { t, n, d } = usePlutoI18n()
 const texts = usePlutoContentTexts()
 
-// The week starts are UTC dates. Format them in UTC so a viewer west of
-// UTC does not see the previous day.
+// Format the week starts in UTC, or a viewer west of UTC sees the previous day.
 const weekLabel = (start: string) =>
   d(new Date(`${start}T00:00:00Z`), {
     month: 'short',
@@ -26,8 +20,6 @@ const rows = computed(() => {
   }
   const last = first.points.length - 1
   return first.points.map((point, index) => {
-    // The last point is the current week, so far. Its Monday is not today, so it
-    // gets its own label.
     const row: Record<string, string | number> = {
       week:
         index === last
@@ -41,7 +33,6 @@ const rows = computed(() => {
   })
 })
 
-// The series carry the English labels. The content text resolves the keys.
 const seriesLabel = (entry: PlutoContentActivitySeries) =>
   texts(entry.name).labelPlural
 const categories = computed(() =>
@@ -86,7 +77,6 @@ function retry() {
       </div>
     </template>
 
-    <!-- The frame of the chart while the counts load: the y labels, the grid lines and the x labels. -->
     <div
       v-if="status === 'pending' || status === 'idle'"
       class="flex h-64 gap-3"

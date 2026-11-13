@@ -1,9 +1,4 @@
 <script setup lang="ts">
-// The Image block of the block editor: `::pluto-figure{src="/media/…" alt="…" caption="…"}`.
-// The block editor fills `src` (and the size, and the alt text while it is empty) from a file of
-// the media library. The Markdown keeps the URL, so the page needs no API call. `dark` is an
-// image for the dark mode. With no image yet, a dashed box says what to choose. See the
-// block-editor skill ("The Image block").
 const props = defineProps<{
   /** The URL of the image, for example `/media/2026/11/admin-home-k3j9a.png`. */
   src?: string

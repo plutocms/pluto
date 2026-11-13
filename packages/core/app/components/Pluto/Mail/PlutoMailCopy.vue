@@ -1,8 +1,6 @@
 <script setup lang="ts">
-// A small button that copies a text. The tooltip says "Copied" for 2 seconds.
 const props = defineProps<{
   text: string
-  /** The accessible name. Default: "Copy". */
   label?: string
 }>()
 

@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// One look for a link action in the admin navbar. The label shows from the lg
-// breakpoint. Below it, only the icon shows, and the label stays as the
-// aria-label. It renders an <li>, because PlutoNavbarAdminActions sits in a <ul>.
-// The link fills the height of the bar. See PlutoNavbarHit.
 defineProps<{
   label: string
   icon?: string

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// Environment lines to copy, one row each. v1 keeps the mail secrets in the
-// environment of the server only. The admin never stores them.
 defineProps<{
   lines: string[]
 }>()

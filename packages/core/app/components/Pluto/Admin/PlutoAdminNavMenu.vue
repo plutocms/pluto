@@ -1,14 +1,4 @@
 <script setup lang="ts">
-// The admin sidebar menu (UNavigationMenu) with a "+" button at the right end of
-// each content type item (`newTo` of the menu item). See PlutoAdminNavNew for
-// why the button is not inside the item link. The `item` and `childItem` are
-// `relative`, so the button can sit on the row.
-//
-// The `item-trailing` slot replaces the default trailing content, so this
-// component draws the chevron of a group again, with the classes of Nuxt UI.
-//
-// Collapsed, the `content` slot is the popover with the children of a group
-// (at least 160px wide). Expanded, it is the accordion content.
 defineProps<{
   collapsed?: boolean
 }>()

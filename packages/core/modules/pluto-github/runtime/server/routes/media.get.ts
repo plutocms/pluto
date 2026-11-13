@@ -10,13 +10,6 @@ import {
   markGithubAnonymous,
 } from '../utils/github-setup'
 
-/**
- * Route: GET /media/**. A media file of the Git CMS, read from the repo.
- * After a deploy, the host sends the static file first, so this route only
- * answers for a file that is in the repo but not in a deploy yet (a content
- * commit can skip the deploy). A stored file name never changes, so the
- * answer can be cached for ever. See the media skill.
- */
 export default defineEventHandler(async (event) => {
   const path = githubMediaPath(getRouterParam(event, '_') ?? '')
   const store = getRegisteredGithubStore()

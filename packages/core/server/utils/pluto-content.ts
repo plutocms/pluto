@@ -5,36 +5,9 @@ import type {
 } from '../../shared/types/content'
 import { applyContentTypeExtensions } from '../../shared/utils/content-extend'
 
-/**
- * The server-side content-type and adapter registry. Deliberately a plain
- * module-scope singleton — NOT built like `usePlutoRegistry` (the client
- * registry in `app/composables/pluto-registry.ts`), and that is on purpose,
- * not an oversight.
- *
- * The client registry lives on `nuxtApp` instead of module scope because a
- * module-scope object on the server would leak state between requests and
- * between apps during SSR: one user's data could end up rendered into
- * another user's response. That risk does not apply here, for three
- * reasons:
- *
- * 1. Registration happens once, at Nitro startup, from a layer's own
- *    `server/plugins/*.ts` file — not per request.
- * 2. The registered values (`PlutoContentType`, `PlutoContentAdapter`) are
- *    static definition objects. They hold zero per-request state.
- * 3. Anything that actually varies per request — the caller's identity,
- *    their session — travels in `PlutoContentContext.event`, which is
- *    passed fresh into every adapter call. It never touches the registry.
- *
- * So a future reader who knows why the client registry avoids module scope
- * should not assume the same warning applies here: it does not, because
- * nothing stored here ever differs between two requests.
- */
-
 const contentTypes = new Map<string, PlutoContentType>()
-// The extensions that layers add, by id, with the order of first registration.
 const extensions = new Map<string, PlutoContentTypeExtension>()
 const extensionSequence = new Map<string, number>()
-// The extended types. Cleared on each register and extend, so a read costs one lookup.
 const extendedTypes = new Map<string, PlutoContentType>()
 let contentAdapter: PlutoContentAdapter | undefined
 
@@ -46,7 +19,12 @@ function orderedExtensions(): PlutoContentTypeExtension[] {
   )
 }
 
-/** Registers the raw type. `getContentType` and `listContentTypes` give it with the extensions. */
+/**
+ * Registers a content type on the server. `getContentType` and `listContentTypes` give it with the
+ * extensions of the layers.
+ *
+ * @see https://pluto.vulmix.dev/docs/build/add-a-content-type#step-3-register-on-the-server
+ */
 export function registerContentType(type: PlutoContentType): void {
   contentTypes.set(type.name, type)
   extendedTypes.clear()
@@ -56,6 +34,8 @@ export function registerContentType(type: PlutoContentType): void {
  * Adds an extension to every content type, the registered ones and the ones that register later.
  * A layer calls it from a `server/plugins/*.ts` file. The same `id` replaces the earlier
  * extension. The registered (raw) types stay unchanged.
+ *
+ * @see https://pluto.vulmix.dev/docs/reference/content-model
  */
 export function extendContentTypes(extension: PlutoContentTypeExtension): void {
   if (!extensionSequence.has(extension.id)) {
@@ -85,7 +65,11 @@ export function listContentTypes(): PlutoContentType[] {
   return [...contentTypes.values()].map(extend)
 }
 
-/** Replaces whatever adapter was registered before. Last-registered wins, the same rule `registerMediaDriver` and the client `settingsDrivers` use. */
+/**
+ * Registers the content adapter, the backend of every content type. The last adapter registered wins.
+ *
+ * @see https://pluto.vulmix.dev/docs/supabase/content-adapter
+ */
 export function registerContentAdapter(adapter: PlutoContentAdapter): void {
   contentAdapter = adapter
 }

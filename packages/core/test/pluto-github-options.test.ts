@@ -342,7 +342,6 @@ describe('resolvePlutoGithubOptions defaults', () => {
         }
       ).resolved.github.repo
     ).toBe('b/two')
-    // Another Git host is not a GitHub repo.
     expect(
       resolvePlutoGithubOptions(
         {},

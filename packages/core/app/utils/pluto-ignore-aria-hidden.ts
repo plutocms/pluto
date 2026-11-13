@@ -1,7 +1,5 @@
 import { Extension } from '@tiptap/core'
 
-// The attributes that an open modal layer puts on the rest of the page: `aria-hidden` and
-// `data-aria-hidden` (the `aria-hidden` package of Reka UI) and `inert`.
 const LAYER_ATTRIBUTES = new Set(['aria-hidden', 'data-aria-hidden', 'inert'])
 
 interface DomObserver {

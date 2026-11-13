@@ -1,10 +1,6 @@
 <script setup lang="ts">
-// One filter of the admin list: the status, or one field (a `select`, a `boolean`, or a
-// `reference` with a `target`). With no value it shows its label; the first item ("All") clears
-// it. A reference filter loads the items of its target, and searches them.
 const props = defineProps<{
   label: string
-  /** The field to filter, with its translated labels (`text.field`). Without it, `items` gives the choices (the status). */
   field?: PlutoField
   items?: Array<{ label: string; value: string }>
 }>()
@@ -12,7 +8,6 @@ const props = defineProps<{
 const model = defineModel<string | undefined>()
 const { t } = usePlutoI18n()
 
-/** The value of the first item: no filter. A select item cannot have an empty value. */
 const ALL = '__pluto_all__'
 
 const reference =
@@ -47,7 +42,6 @@ const choices = computed<Array<{ label: string; value: string }>>(() => {
   }))
 })
 
-/** The label of the chosen value. A reference shows its id until its items load. */
 const chosenLabel = computed(
   () =>
     choices.value.find((choice) => choice.value === model.value)?.label ??
@@ -82,7 +76,6 @@ const selected = computed({
     value-key="value"
     class="w-48"
   >
-    <!-- A set filter keeps its label: "Categories: Travel". -->
     <template v-if="model !== undefined" #default>
       <span class="truncate">
         <span class="text-muted">{{ label }}:</span>

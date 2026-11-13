@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// The published posts, newest first. Drafts show only on their own page, for a signed-in editor.
 const { posts, page, pages, pageLink } = await usePosts({ limit: 10 })
 </script>
 

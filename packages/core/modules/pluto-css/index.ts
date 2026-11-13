@@ -30,38 +30,6 @@ export interface PlutoCssOptions {
   check?: boolean
 }
 
-/**
- * The CSS of Pluto. The admin and the site have separate Tailwind builds:
- *
- * - The admin build `#build/pluto-admin.css` (`tailwindcss`, `@nuxt/ui`,
- *   `@plutocms/css`). Tailwind compiles it at the app's build, then the
- *   `pluto-css:scope-admin` plugin scopes every rule to the admin
- *   (`[data-pluto-admin]`, `[data-pluto-admin-scope]`). PlutoAdminTheme imports
- *   it, so it loads only with the admin UI.
- * - The site's build is the app's own CSS entry, if the app has one. A site
- *   needs no Tailwind. A Tailwind site imports what its pages use:
- *
- *     @import 'tailwindcss';
- *     @import '@nuxt/ui';
- *     @import '@plutocms/css';
- *
- * - `@plutocms/css` is an alias of the generated `#build/pluto.css`. It imports
- *   each layer's app/assets/css/pluto-layer.css (the Pluto tokens, the layer
- *   tokens). Nuxt UI already adds `@source` for every layer's app/ dir, so this
- *   file adds no sources.
- * - `@plutocms/css/site` (opt-in) is an alias of `#build/pluto-site.css`: the
- *   Pluto site theme of core (app/assets/css/pluto-site-theme.css), the look of
- *   the Pluto docs for a site.
- * - `@plutocms/css/base` (opt-in) is an alias of `#build/pluto-base.css`: each
- *   layer's app/assets/css/pluto-base.css, the plain CSS look of its public
- *   components. It needs no Tailwind. The admin build imports it too.
- * - The names are aliases, not npm packages, so they resolve with every package
- *   manager, also when the app installs only an outer layer.
- * - The module warns about a layer that registers its own Tailwind build, and
- *   about more than one build in the app.
- *
- * See the single-tailwind-build skill.
- */
 export default defineNuxtModule<PlutoCssOptions>({
   meta: { name: 'pluto-css', configKey: 'plutoCss' },
   defaults: { check: true },
@@ -79,8 +47,6 @@ export default defineNuxtModule<PlutoCssOptions>({
       getContents: () => renderPlutoCss(layerCssFiles, nuxt.options.buildDir),
     })
 
-    // The opt-in site theme of core. An app that wants the look of the Pluto
-    // docs imports `@plutocms/css/site` after `@plutocms/css`.
     const siteTheme = fileURLToPath(
       new URL('../../app/assets/css/pluto-site-theme.css', import.meta.url)
     )
@@ -90,8 +56,6 @@ export default defineNuxtModule<PlutoCssOptions>({
       getContents: () => renderPlutoSiteCss(siteTheme, nuxt.options.buildDir),
     })
 
-    // The opt-in plain CSS of the public components, from every layer. An
-    // app imports `@plutocms/css/base`, with or without Tailwind.
     const layerBaseCssFiles = findLayerCssFiles(
       layers.map((layer) => layer.app),
       existsSync,
@@ -104,9 +68,6 @@ export default defineNuxtModule<PlutoCssOptions>({
         renderPlutoBaseCss(layerBaseCssFiles, nuxt.options.buildDir),
     })
 
-    // The names that an app's CSS entry imports. Tailwind and Vite resolve
-    // `@import` through the aliases. `/site` and `/base` come first: an alias
-    // also matches the paths under its name, so `@plutocms/css` would take them.
     nuxt.options.alias[PLUTO_SITE_CSS_IMPORT] = join(
       nuxt.options.buildDir,
       'pluto-site.css'
@@ -120,27 +81,17 @@ export default defineNuxtModule<PlutoCssOptions>({
       'pluto.css'
     )
 
-    // The admin build. Not written to disk: on disk, Tailwind IntelliSense
-    // could take this entry for the app's design system. Not in `css`:
-    // PlutoAdminTheme imports it, so it loads with the admin UI only.
     addTemplate({
       filename: 'pluto-admin.css',
       getContents: renderPlutoAdminCss,
     })
 
-    // Server HTML links the admin build, not inlines it: inline, every page
-    // view of a staff user would carry the full build, which no cache keeps.
     const inline = nuxt.options.features.inlineStyles
     if (inline) {
       nuxt.options.features.inlineStyles = (id) =>
         !id?.includes('PlutoAdminTheme.vue') && (inline === true || inline(id))
     }
 
-    // Nuxt prefetches the CSS of every async chunk, so each visitor would
-    // download the admin build after the page loads. The plugin below finds
-    // the CSS files of the client chunk with the build, and this hook turns
-    // off their prefetch. The chunks that render admin UI still load them.
-    // The file names, without the assets dir: the manifest keys have none.
     const adminCssFiles = new Set<string>()
     nuxt.hook('build:manifest', (manifest) => {
       for (const file of adminCssFiles) {
@@ -150,7 +101,6 @@ export default defineNuxtModule<PlutoCssOptions>({
       }
     })
 
-    // A file path, or a Nuxt virtual id (`virtual:nuxt:…%2Fpluto-admin.css`).
     const adminCssId = /(?:[\\/]|%2F)pluto-admin\.css(?:\?|$)/
     addVitePlugin({
       name: 'pluto-css:scope-admin',

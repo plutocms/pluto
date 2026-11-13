@@ -21,6 +21,8 @@ export const plutoPreviewRenderKey: InjectionKey<
  * ```ts
  * usePlutoPreviewRender(() => (props.frontmatter.id === 'index' ? { prose: false } : {}))
  * ```
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/edit-pages-visually
  */
 export function usePlutoPreviewRender(
   options: MaybeRefOrGetter<PlutoPreviewRenderOptions>

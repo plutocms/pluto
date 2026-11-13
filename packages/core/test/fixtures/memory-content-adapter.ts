@@ -22,11 +22,7 @@ export function memoryCaller(event: H3Event): string {
 }
 
 /**
- * An in-memory `PlutoContentAdapter`, for this wave's tests only. It is
- * never registered in the real app — a real adapter is `@plutocms/supabase`'s
- * job, in a later wave. Keep this simple: it is a test fixture, not a
- * reference implementation to study for adapter-authoring guidance (the
- * content-model skill covers that, in prose).
+ * An in-memory `PlutoContentAdapter` for tests. It is never registered in the real app.
  *
  * Pass `options.authorize` to test a capability check that throws (the 403
  * path). Omit it to test the fail-open path (no `authorize` method at all).

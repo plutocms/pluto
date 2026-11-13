@@ -1,13 +1,13 @@
 <script setup lang="ts">
-// A 3D model on a page: drag to turn it, scroll or pinch to zoom. It takes a
-// media record (the public API gives it) or a URL. The preview image of the
-// record shows while three.js and the model load. Rendering stops while the
-// viewer is off screen, and the GPU memory goes when it unmounts. The admin
-// (the details of a file) and a site use the same component. See the 3d skill.
 import { usePluto3dI18n } from '../composables/pluto-3d-i18n'
 
 const props = withDefaults(
   defineProps<{
+    /**
+     * The media record of the model (the public API gives it).
+     *
+     * @see https://pluto.vulmix.dev/docs/layers/3d#show-a-model-on-a-site
+     */
     media?: PlutoPublicMedia | null
     /** A `.glb` URL, in place of a record. */
     src?: string
@@ -73,7 +73,6 @@ async function start() {
   resizer.observe(element)
   resize()
 
-  // Render only while the viewer is on screen.
   const frame = () => {
     controls.update()
     stage.renderer.render(stage.scene, stage.camera)
@@ -126,9 +125,6 @@ onBeforeUnmount(() => cleanup?.())
 </script>
 
 <template>
-  <!-- No Tailwind class: the component works on a site with no Tailwind. The
-       layout is in the <style> below and always loads. The look of the badges
-       is in app/assets/css/pluto-base.css (`@plutocms/css/base`). -->
   <div
     ref="root"
     :aria-label="label"
@@ -186,9 +182,6 @@ onBeforeUnmount(() => cleanup?.())
 </template>
 
 <style>
-/* The layout of the 3D components. It loads with the component, also without
-   `@plutocms/css/base`. Zero specificity in the `components` layer, so a class
-   of the site wins. The look is in app/assets/css/pluto-base.css. */
 @layer theme, base, components, utilities;
 
 @layer components {

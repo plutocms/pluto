@@ -4,8 +4,9 @@ import { decodeEntitiesOnce } from '../../shared/markdown/url-safety'
 /**
  * A code highlighter of the public site: it colors the code blocks of the HTML of the public API
  * (a post body). Core has none: with none, a code block stays plain. An add-on layer registers
- * one in a Nitro plugin (`@plutocms/syntax-lowlight`), or the site does (Shiki). See the content-model
- * skill ("Code highlighters").
+ * one in a Nitro plugin (`@plutocms/syntax-lowlight`), or the site does (Shiki).
+ *
+ * @see https://pluto.vulmix.dev/docs/extend/code-highlighting
  */
 export interface PlutoHighlighter {
   /** The name to choose it with (`plutoApi.highlighter`): `lowlight`, `shiki`. */
@@ -26,8 +27,6 @@ export interface PlutoHighlighter {
 
 const highlighters = new Map<string, PlutoHighlighter>()
 
-// The highlighted blocks, by the chain, the language and the code. A post that the site serves
-// again reuses its blocks. The oldest go first past the limit.
 const CACHE_LIMIT = 500
 const cache = new Map<string, string>()
 const warned = new Set<string>()
@@ -45,7 +44,6 @@ export function listPlutoHighlighters(): PlutoHighlighter[] {
   )
 }
 
-/** For the tests: no highlighter, no cache. */
 export function resetPlutoHighlighters(): void {
   highlighters.clear()
   cache.clear()
@@ -84,9 +82,6 @@ function remember(key: string, html: string) {
   }
 }
 
-// A code block of the sanitized HTML: `<pre><code class="language-ts">…</code></pre>`. The text has
-// no `<` (the sanitizer escapes it), so the block ends at its own `</code></pre>`. A block with no
-// language stays plain: there is nothing to color it with.
 const CODE_BLOCK =
   /<pre><code class="language-([\w+#.-]+)">([\s\S]*?)<\/code><\/pre>/g
 
@@ -114,7 +109,6 @@ async function highlightBlock(
     if (!safe) {
       continue
     }
-    // A whole block (Shiki) keeps its `<pre>`. Spans go into the block of the sanitizer.
     return safe.startsWith('<pre')
       ? safe
       : `<pre><code class="language-${lang}">${safe}</code></pre>`
@@ -122,10 +116,6 @@ async function highlightBlock(
   return null
 }
 
-/**
- * The HTML with its code blocks colored by the highlighters (`chosen` first). With no
- * highlighter, the HTML as it is. A block that no highlighter knows stays plain.
- */
 export async function highlightPlutoHtml(
   html: string,
   chosen = ''

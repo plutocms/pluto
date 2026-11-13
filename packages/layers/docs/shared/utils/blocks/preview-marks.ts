@@ -1,13 +1,7 @@
-// Marks the blocks in the parsed body of the preview page, so a click in the
-// preview selects the block under the pointer, an inner block too. Pure: no
-// DOM, no Nuxt. The nodes are the MDC AST of `parseMarkdown`.
-
 import type { PlutoPreviewChild } from './preview-protocol'
 
-/** The attribute that holds the block id on an element of the preview. */
 export const PREVIEW_BLOCK_ATTRIBUTE = 'data-pluto-block'
 
-/** The part of an MDC node that the marks read and write. */
 export interface PlutoMarkNode {
   type: string
   tag?: string
@@ -15,7 +9,6 @@ export interface PlutoMarkNode {
   children?: PlutoMarkNode[]
 }
 
-/** `UPageSection` and `u-page-section` are the same component. */
 function normalize(name: string): string {
   return name
     .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
@@ -23,12 +16,6 @@ function normalize(name: string): string {
     .toLowerCase()
 }
 
-/**
- * The elements where an inner block of a component can be: its direct
- * children (the default slot) and the children of its `template` elements
- * (the named slots), in source order. An inline component inside a paragraph
- * is never here, so it cannot take the place of an inner block.
- */
 function slotElements(node: PlutoMarkNode): PlutoMarkNode[] {
   const elements: PlutoMarkNode[] = []
   for (const child of node.children ?? []) {
@@ -46,14 +33,6 @@ function slotElements(node: PlutoMarkNode): PlutoMarkNode[] {
   return elements
 }
 
-/**
- * Puts the ids of `children` on the matching component elements under `node`.
- * The children are in source order over all slots, so the match goes in
- * order, by component name. An element with another name (a paragraph, a
- * list) is skipped. It changes the props of the matched elements in place,
- * so call it on a body from a new parse. Returns the number of marked
- * elements, at all levels.
- */
 export function markPreviewChildren(
   node: PlutoMarkNode,
   children: PlutoPreviewChild[]
@@ -74,7 +53,6 @@ export function markPreviewChildren(
   return marked
 }
 
-/** The number of children in a tree, at all levels. */
 export function countPreviewChildren(
   children: PlutoPreviewChild[] | undefined
 ): number {
@@ -84,7 +62,6 @@ export function countPreviewChildren(
   )
 }
 
-/** The parent id of each child in a tree. A child of a top-level block has that block as parent. */
 export function previewParents(
   blockId: string,
   children: PlutoPreviewChild[] | undefined,

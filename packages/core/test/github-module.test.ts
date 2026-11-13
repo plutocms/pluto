@@ -173,22 +173,18 @@ describe('pluto-github module wiring', () => {
     )
   })
 
-  it('adds no public read route (core serves the public API), and adds the PlutoMarkdown and PlutoMarkdownSource components', async () => {
+  it('adds no public read route (core serves the public API), and adds the PlutoMarkdownSource component', async () => {
     await run({ enabled: true, github: repo })
 
     const posix = (value: unknown) => String(value).replaceAll('\\', '/')
 
     expect(handler('/api/_pluto/github/:type', 'get')).toBeUndefined()
     expect(handler('/api/_pluto/github/:type/:slug', 'get')).toBeUndefined()
-    expect(kitCalls.components).toHaveLength(2)
-    expect(kitCalls.components[0]).toMatchObject({ name: 'PlutoMarkdown' })
-    expect(posix(kitCalls.components[0]!.filePath)).toMatch(
-      /\/app\/components\/Pluto\/Github\/PlutoMarkdown\.vue$/
-    )
-    expect(kitCalls.components[1]).toMatchObject({
+    expect(kitCalls.components).toHaveLength(1)
+    expect(kitCalls.components[0]).toMatchObject({
       name: 'PlutoMarkdownSource',
     })
-    expect(posix(kitCalls.components[1]!.filePath)).toMatch(
+    expect(posix(kitCalls.components[0]!.filePath)).toMatch(
       /\/app\/components\/Pluto\/Github\/PlutoMarkdownSource\.vue$/
     )
   })

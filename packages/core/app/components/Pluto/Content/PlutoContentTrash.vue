@@ -5,15 +5,11 @@ import {
   restorePlutoTrashItem,
 } from '../../../composables/pluto-content-trash'
 
-// The Trash tab of a list: the trashed items of one type, the last trashed first, with Restore
-// and Delete forever (one item or the selected ones), and Empty the trash. A row list, not a
-// table, so it is the same on a phone. See the content-model skill ("Trash").
 const props = defineProps<{
   type: string
 }>()
 
 const emit = defineEmits<{
-  /** The trash changed: the count of the tab must load again. */
   changed: []
 }>()
 
@@ -84,7 +80,6 @@ async function afterChange() {
   await refresh().catch(() => {})
 }
 
-/** Restores the items, 4 at a time, and shows one toast. */
 async function restoreItems(ids: Array<string | number>) {
   busy.value = true
   try {
@@ -110,7 +105,6 @@ async function restoreItems(ids: Array<string | number>) {
   }
 }
 
-// Delete forever and Empty the trash ask first: they cannot be undone.
 const confirm = ref<null | {
   kind: 'purge' | 'empty'
   ids: Array<string | number>
@@ -207,7 +201,6 @@ defineExpose({ refresh })
       {{ t('pluto.list.trash.note') }}
     </p>
 
-    <!-- The selected rows. -->
     <div
       v-if="selectedItems.length > 0"
       class="bg-elevated flex shrink-0 flex-wrap items-center gap-2 rounded-lg px-3 py-1.5"
@@ -267,7 +260,6 @@ defineExpose({ refresh })
       icon="lucide:circle-alert"
     />
 
-    <!-- The first load: placeholder rows in the shape of the list. -->
     <div
       v-else-if="pending && items.length === 0"
       :aria-label="
@@ -314,7 +306,6 @@ defineExpose({ refresh })
       variant="naked"
     />
 
-    <!-- A new search or a change loads the list again: the rows dim until it arrives. -->
     <ul
       v-else
       :aria-busy="pending"

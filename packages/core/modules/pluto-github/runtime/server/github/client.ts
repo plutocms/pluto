@@ -18,17 +18,14 @@ export interface GithubFetchResponse {
   headers: {
     get: (name: string) => string | null
   }
-  /** The parsed JSON body, the text body for a `sha` accept, an `ArrayBuffer` for a `raw` accept. */
   data: unknown
 }
 
-/** The transport. Tests inject a stub. The default uses `ofetch`. */
 export type GithubFetch = (
   url: string,
   init: GithubFetchInit
 ) => Promise<GithubFetchResponse>
 
-/** The default transport. It never throws on an HTTP error status. */
 export const defaultGithubFetch: GithubFetch = async (url, init) => {
   const accept = init.headers.Accept ?? ''
   const wantsText = accept.includes('.sha')
@@ -93,7 +90,6 @@ function messageOf(data: unknown, fallback: string): string {
   return fallback
 }
 
-/** Maps a failed HTTP response to a typed error. */
 export function errorFromResponse(
   response: GithubFetchResponse
 ): PlutoGithubStoreError {
@@ -137,7 +133,6 @@ export function errorFromResponse(
   return new PlutoGithubStoreError('github', message, { status })
 }
 
-/** A REST call. A 304 returns `status: 304` and does not throw. */
 export async function githubRest<T = unknown>(
   path: string,
   options: GithubRestOptions = {}
@@ -175,7 +170,6 @@ export async function githubRest<T = unknown>(
   }
 }
 
-/** The GraphQL endpoint for an API URL. GitHub Enterprise uses `/api/v3` for REST. */
 export function graphqlUrl(apiUrl: string): string {
   const base = apiUrl.replace(/\/+$/, '')
   return base.endsWith('/api/v3')
@@ -190,7 +184,6 @@ interface GraphqlError {
 
 const STALE_PATTERN = /expectedHeadOid|is not the latest|STALE_DATA|stale/i
 
-/** Maps GraphQL `errors[]` to a typed error. */
 export function errorFromGraphql(
   errors: GraphqlError[]
 ): PlutoGithubStoreError {
@@ -227,7 +220,6 @@ export function errorFromGraphql(
   return new PlutoGithubStoreError('github', message)
 }
 
-/** A GraphQL call. A GraphQL error throws a typed error. */
 export async function githubGraphql<T = unknown>(
   query: string,
   variables: Record<string, unknown>,

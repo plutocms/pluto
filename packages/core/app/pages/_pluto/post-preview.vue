@@ -1,12 +1,4 @@
 <script setup lang="ts">
-// The post preview: the post editor (`post-canvas`) shows this page in an iframe. It is
-// a page of the app, outside the admin, so the site CSS and fonts apply. The editor sends
-// the item and the Markdown; the page renders the Markdown to sanitized HTML in the
-// browser and shows `PlutoPostPreview` (an app can override that component) with the
-// item in the shape of the public API (`toPreviewItem`): the records of its media fields
-// (read from the media library, the preview runs for a signed-in editor), and the dates
-// as `createdAt` and `publishedAt`. Only a message from the same origin and from the
-// parent window counts.
 import type { PlutoPreviewReference } from '../../../shared/utils/content-preview'
 import {
   referenceOptionsFromItems,
@@ -21,18 +13,14 @@ useHead({
   title: () => t('pluto.post.previewTitle'),
   meta: [{ name: 'robots', content: 'noindex, nofollow' }],
   style: [
-    // The preview is for reading the post, not for using the site: no link opens.
     { textContent: 'a { pointer-events: none; }' },
     {
-      // A thin scrollbar that fits the editor, in both color modes: a gray thumb on no track.
-      // The same as the page preview of the docs layer.
       textContent: [
         'html { scrollbar-width: thin; scrollbar-color: rgb(128 128 128 / 0.45) transparent; }',
         'html::-webkit-scrollbar { width: 10px; }',
         'html::-webkit-scrollbar-track { background: transparent; }',
         'html::-webkit-scrollbar-thumb { background: rgb(128 128 128 / 0.45); border: 3px solid transparent; border-radius: 9999px; background-clip: content-box; }',
         'html::-webkit-scrollbar-thumb:hover { background-color: rgb(128 128 128 / 0.7); }',
-        // The `inset` message sets the padding. It moves smoothly.
         'html { transition: padding-inline-end 200ms ease; }',
       ].join('\n'),
     },
@@ -47,15 +35,10 @@ const rendered = ref(false)
 const { byName } = usePlutoContentTypes()
 const type = computed(() => byName(contentType.value))
 
-// The items of the target types of the reference fields (tags, categories, authors), by id,
-// with the raw values of their `publicFields` (an author avatar and bio). The page reads each
-// target once.
 const referenceRecords = shallowRef(
   new Map<string, ReadonlyMap<string, PlutoPreviewReference>>()
 )
 
-// The media records, by id: the media fields of the item, and the media `publicFields` of the
-// referenced items. A record never changes, so each id is read once.
 const media = usePlutoMedia()
 const mediaRecords = shallowRef(new Map<string, PlutoMedia>())
 watch(
@@ -116,7 +99,6 @@ watch(
           referenceRecords.value = next
         })
         .catch(() => {
-          // The preview shows the item without these labels.
           referenceLoads.delete(target)
         })
     }
@@ -135,9 +117,6 @@ const preview = computed(() =>
   )
 )
 
-// The code blocks get the colors of the code highlighter of the site, from the server (the same as
-// the public API), 300 ms after the last change. A site with no highlighter answers so once, and the
-// preview stops asking. The plain HTML shows meanwhile.
 let siteHighlights = true
 let highlightTimer: ReturnType<typeof setTimeout> | undefined
 function highlightPreview() {
@@ -153,7 +132,6 @@ function highlightPreview() {
         { method: 'POST', body: { html: plain } }
       )
       siteHighlights = result.highlighted
-      // A newer render came meanwhile: it asks again.
       if (html.value === plain) {
         html.value = result.html
       }
@@ -187,14 +165,11 @@ function onMessage(event: MessageEvent) {
   } else if (message?.type === 'scroll-to') {
     scrollToHeading(message.heading)
   } else if (message?.type === 'color-mode') {
-    // The mode of the admin, on this page only: the class on <html>, not the stored preference,
-    // which the admin shares (same origin) and may keep as "system".
     const root = document.documentElement
     root.classList.remove('light', 'dark')
     root.classList.add(message.mode)
     root.style.colorScheme = message.mode
   } else if (message?.type === 'inset') {
-    // Space at the right of the page, for the open button of the closed right panel.
     document.documentElement.style.paddingInlineEnd = message.end
       ? `${message.end}px`
       : ''

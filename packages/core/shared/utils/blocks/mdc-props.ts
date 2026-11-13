@@ -1,7 +1,3 @@
-// Read and write the props of an MDC component: the inline form `{a="b" .c}`
-// and the YAML block. A prop that did not change keeps its source text, so a
-// small edit does not rewrite the other props.
-
 import type { PlutoPropValue } from './definition'
 import { parseDocument, stringify } from 'yaml'
 
@@ -25,7 +21,6 @@ export interface ParsedOpener {
 
 const OPENER = /^(:{2,})([a-z][\w-]*)(?:\{(.*)\})?[ \t]*$/i
 
-/** Reads the opening line of a container component. It returns `undefined` for a line it does not know. */
 export function parseOpener(line: string): ParsedOpener | undefined {
   const match = OPENER.exec(line)
   if (!match) {
@@ -64,9 +59,6 @@ export function isEqualValue(a: unknown, b: unknown): boolean {
   )
 }
 
-// Inline props
-
-/** Splits the text inside the braces into tokens. A quoted value can hold spaces. */
 function tokenize(body: string): string[] {
   const tokens: string[] = []
   let index = 0
@@ -112,12 +104,10 @@ function unquote(raw: string): { text: string; quoted: boolean } {
   return { text: raw, quoted: false }
 }
 
-/** Reads the text inside the braces: `center .big #id title="A b" :cols="3"`. */
 export function parseInlineProps(body: string): ParsedProps {
   const result: ParsedProps = { props: {}, order: [], source: {} }
   const add = (key: string, value: PlutoPropValue, text: string) => {
     if (key in result.props) {
-      // `.a` and `class="b"` both set the class: join them.
       if (
         key === 'class' &&
         typeof result.props[key] === 'string' &&
@@ -131,7 +121,6 @@ export function parseInlineProps(body: string): ParsedProps {
         }
         return
       }
-      // A repeated key: the last one wins, and the text of both stays.
       result.source[key] = {
         value,
         text: `${result.source[key]!.text} ${text}`,
@@ -161,9 +150,7 @@ export function parseInlineProps(body: string): ParsedProps {
         try {
           add(key.slice(1), JSON.parse(text), token)
           continue
-        } catch {
-          // Not JSON: keep the key with its colon, as plain text.
-        }
+        } catch {}
       }
       add(key, text, token)
     }
@@ -181,7 +168,6 @@ function quoteString(value: string): string {
   return `"${value.replaceAll('"', '&quot;')}"`
 }
 
-/** Writes one prop as an inline token. It returns `undefined` for a prop that must not show. */
 export function renderInlineToken(
   key: string,
   value: PlutoPropValue
@@ -201,7 +187,6 @@ export function renderInlineToken(
   return `:${key}='${JSON.stringify(value).replaceAll("'", '\\u0027')}'`
 }
 
-/** True when `props` still has the keys, the order and the values of the source. */
 export function isSameProps(
   props: Record<string, PlutoPropValue>,
   order: string[],
@@ -222,7 +207,6 @@ export function isSameProps(
   )
 }
 
-/** Writes the props as tokens, in order. An unchanged prop keeps its text. */
 export function renderInlineProps(
   props: Record<string, PlutoPropValue>,
   order: string[],
@@ -246,7 +230,6 @@ export function renderInlineProps(
   return tokens.join(' ')
 }
 
-/** The order to write: the old order, then the new keys. */
 export function completeOrder(
   props: Record<string, PlutoPropValue>,
   order: string[]
@@ -260,9 +243,6 @@ export function completeOrder(
   return out
 }
 
-// YAML props
-
-/** Reads the lines of a YAML block, without the `---` lines and without the indent. */
 export function parseYamlProps(text: string): ParsedProps | undefined {
   const document = parseDocument(text)
   if (document.errors.length > 0) {
@@ -298,7 +278,6 @@ export function parseYamlProps(text: string): ParsedProps | undefined {
   return result
 }
 
-/** Writes the YAML entries (no `---` lines), one text for each prop, without indent. */
 export function renderYamlProps(
   props: Record<string, PlutoPropValue>,
   order: string[],

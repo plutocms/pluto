@@ -5,14 +5,8 @@ export interface MarkdownFile {
   body: string
 }
 
-// The opening fence, then the shortest block up to the FIRST closing fence.
 const FRONTMATTER = /^---[ \t]*\n(?:([\s\S]*?)\n)?---[ \t]*(?:\n|$)/
 
-/**
- * Splits a Markdown file into frontmatter and body. The YAML uses the core
- * schema: no custom tags and no code execution. An unknown tag stays a plain
- * string. A file with no frontmatter gives `{}` and the whole text.
- */
 export function parseMarkdownFile(text: string): MarkdownFile {
   const normalized = (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text)
     .replaceAll('\r\n', '\n')
@@ -39,10 +33,6 @@ export function parseMarkdownFile(text: string): MarkdownFile {
   return { frontmatter: value as Record<string, unknown>, body }
 }
 
-/**
- * Writes frontmatter and body. Keys keep their insertion order. The YAML
- * writer quotes any string that needs it. Empty frontmatter writes no fence.
- */
 export function serializeMarkdownFile(
   frontmatter: Record<string, unknown>,
   body: string

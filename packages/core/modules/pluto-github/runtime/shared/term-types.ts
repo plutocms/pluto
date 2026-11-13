@@ -1,11 +1,5 @@
 import type { PlutoContentType } from '../../../../shared/types/content'
 
-/**
- * The Git CMS term types: `tag` and `category`. A term is a content type, so the admin, the
- * public API and the static index need no special case. The file is `content/<source>/<slug>.md`;
- * the slug (the file name) is the id that a post stores. A term has no status and no body.
- * Writing and deleting need `terms:manage`. See the tags-and-categories skill.
- */
 function termType(options: {
   name: 'tag' | 'category'
   label: string
@@ -47,8 +41,6 @@ function termType(options: {
       },
     ],
     slug: { field: 'slug' },
-    // The term page of the site. The core blog template has no term page: change this with
-    // `extendContentTypes` when the site uses another path.
     previewUrl: (item) =>
       typeof item.slug === 'string' && item.slug
         ? `${options.path}${item.slug}`
@@ -83,7 +75,6 @@ export const plutoGithubCategoryType: PlutoContentType = termType({
   path: '/categories/',
 })
 
-/** The term types that register with `post`. */
 export const plutoGithubTermTypes: PlutoContentType[] = [
   plutoGithubTagType,
   plutoGithubCategoryType,
