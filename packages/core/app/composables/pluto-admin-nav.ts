@@ -89,7 +89,7 @@ export function usePlutoAdminNav() {
     const canWrite = (type: PlutoContentType): boolean =>
       !type.capabilities?.write || can(type.capabilities.write)
     const newLink = (type: PlutoContentType) =>
-      canWrite(type)
+      canWrite(type) && !type.singleton
         ? {
             newTo: contentTypeNewPath(type),
             newLabel: contentTextFor(type, i18n).newLabel,
@@ -103,25 +103,28 @@ export function usePlutoAdminNav() {
       return {
         id: `content:${type.name}`,
         order: type.navOrder ?? 100,
-        label: text.labelPlural,
+        label: type.singleton ? text.label : text.labelPlural,
         icon: type.icon,
         to: basePath,
         ...newLink(type),
         enabled: () => isVisible(type),
-        children: [
-          {
-            label: t('pluto.content.all', {
-              labelPlural: text.labelPluralLower,
-            }),
-            to: basePath,
-            icon: PLUTO_NAV_LIST_ICON,
-          },
-          {
-            label: t('pluto.content.createNew', { label: text.labelLower }),
-            to: `${basePath}/new`,
-            icon: PLUTO_NAV_NEW_ICON,
-          },
-        ],
+        // A singleton type has one page: its form.
+        children: type.singleton
+          ? undefined
+          : [
+              {
+                label: t('pluto.content.all', {
+                  labelPlural: text.labelPluralLower,
+                }),
+                to: basePath,
+                icon: PLUTO_NAV_LIST_ICON,
+              },
+              {
+                label: t('pluto.content.createNew', { label: text.labelLower }),
+                to: `${basePath}/new`,
+                icon: PLUTO_NAV_NEW_ICON,
+              },
+            ],
       }
     }
 
@@ -137,7 +140,9 @@ export function usePlutoAdminNav() {
         label: tx(bucket.group.label),
         icon: bucket.group.icon,
         children: types.map((type) => ({
-          label: contentTextFor(type, i18n).labelPlural,
+          label: type.singleton
+            ? contentTextFor(type, i18n).label
+            : contentTextFor(type, i18n).labelPlural,
           to: basePathOf(type),
           icon: type.icon ?? PLUTO_NAV_TYPE_ICON,
           ...newLink(type),

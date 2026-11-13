@@ -15,10 +15,12 @@ if (!type) {
 }
 
 useHead({
-  title: () => text.labelPlural,
+  title: () => (type.singleton ? text.label : text.labelPlural),
 })
 </script>
 
 <template>
-  <PlutoContentList :type="type.name" />
+  <PlutoContentSingleton v-if="type.singleton" :type="type.name" />
+
+  <PlutoContentList v-else :type="type.name" />
 </template>

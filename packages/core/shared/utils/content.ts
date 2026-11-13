@@ -14,7 +14,9 @@ import type { PlutoContentType } from '../types/content'
  * generic list/form UI or server adapter, where it would fail silently or
  * confusingly instead.
  */
-export function defineContentType(type: PlutoContentType): PlutoContentType {
+export function defineContentType<const T extends PlutoContentType>(
+  type: T
+): T {
   if (import.meta.dev) {
     const prefix = `[pluto] content type "${type.name}":`
     const seen = new Set<string>()
@@ -78,6 +80,14 @@ export function defineContentType(type: PlutoContentType): PlutoContentType {
 
     if (type.status && type.status.values.length === 0) {
       console.warn(`${prefix} status has no values.`)
+    }
+
+    if (type.singleton) {
+      for (const option of ['trash', 'slug'] as const) {
+        if (type[option]) {
+          console.warn(`${prefix} a singleton type does not use ${option}.`)
+        }
+      }
     }
   }
 

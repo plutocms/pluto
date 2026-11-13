@@ -26,6 +26,11 @@ export function usePlutoAdminPages() {
         const basePath = type.basePath ?? `/admin/content/${type.name}`
         const navId = `content:${type.name}`
 
+        // A singleton type has one page: the form of its item.
+        if (type.singleton) {
+          return [{ id: `${navId}:list`, path: basePath, title: text.label }]
+        }
+
         return [
           { id: `${navId}:list`, path: basePath, title: text.labelPlural },
           {

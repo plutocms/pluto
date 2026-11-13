@@ -20,9 +20,11 @@ export function usePlutoContentActivity(weeks = 12) {
   return useAsyncData(
     `pluto-content-activity-${weeks}`,
     async () => {
+      // A singleton type has one item: no activity to chart.
       const series = await Promise.all(
-        contentTypes.value.map(
-          async ({ type }): Promise<PlutoContentActivitySeries | null> => {
+        contentTypes.value
+          .filter(({ type }) => !type.singleton)
+          .map(async ({ type }): Promise<PlutoContentActivitySeries | null> => {
             const activity = await $fetch<PlutoContentActivity>(
               `/api/_pluto/content-activity/${type.name}`,
               {
@@ -38,8 +40,7 @@ export function usePlutoContentActivity(weeks = 12) {
                   points: activity.points,
                 }
               : null
-          }
-        )
+          })
       )
       return series.filter(
         (entry): entry is PlutoContentActivitySeries => entry !== null

@@ -29,6 +29,7 @@ import {
   referenceFieldsTo,
   referenceValue,
 } from '../../../../shared/utils/content-reference'
+import { singletonItemId } from '../../../../shared/utils/content-singleton'
 import {
   contentStatusValues,
   isLiveStatus,
@@ -131,6 +132,8 @@ interface Plan {
 interface Layout {
   nested: boolean
   exclude: string[]
+  /** A singleton type: the one id that the type accepts (its file is `<source>/<id>.md`). */
+  singletonId?: string
   readFrontmatter?: (
     frontmatter: Record<string, unknown>
   ) => Record<string, unknown>
@@ -153,15 +156,18 @@ function layoutOf(type: PlutoContentType): Layout {
   const bodyField = type.fields.find(
     (field) => field.type === 'richtext' && !field.virtual
   )
-  const slugField = type.slug ? type.slug.field : undefined
+  const singletonId = type.singleton ? singletonItemId(type) : undefined
+  const slugField = type.slug && !singletonId ? type.slug.field : undefined
   const timestamps = type.timestamps
   const created =
     timestamps === false ? false : (timestamps?.created ?? 'createdAt')
   const updated =
     timestamps === false ? false : (timestamps?.updated ?? 'updatedAt')
   return {
-    nested: type.files?.nested === true,
-    exclude: type.files?.nested ? (type.files.exclude ?? []) : [],
+    nested: type.files?.nested === true && !singletonId,
+    exclude:
+      type.files?.nested && !singletonId ? (type.files.exclude ?? []) : [],
+    singletonId,
     readFrontmatter: type.files?.frontmatter?.read,
     writeFrontmatter: type.files?.frontmatter?.write,
     bodyField,
@@ -429,8 +435,14 @@ export function createMarkdownContentAdapter(
     )
   }
 
-  /** True when the id is a safe id for this type and is not excluded. */
+  /**
+   * True when the id is a safe id for this type and is not excluded. A singleton type accepts its
+   * own id only, so the other files of its folder are not its items.
+   */
   function isUsableId(layout: Layout, id: string): boolean {
+    if (layout.singletonId !== undefined && id !== layout.singletonId) {
+      return false
+    }
     try {
       assertSafeContentId(id, pathOptions(layout))
     } catch {
@@ -1122,9 +1134,10 @@ export function createMarkdownContentAdapter(
 
       const given = layout.slugField ? values[layout.slugField] : undefined
       const slug =
-        typeof given === 'string' && given !== ''
+        layout.singletonId ??
+        (typeof given === 'string' && given !== ''
           ? given
-          : slugifyTitle(String(values[type.titleField] ?? ''))
+          : slugifyTitle(String(values[type.titleField] ?? '')))
       if (!isUsableId(layout, slug)) {
         throw invalidSlugError()
       }

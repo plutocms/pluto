@@ -19,12 +19,21 @@ import {
   writeRemembered,
 } from '../../../composables/internal/form-initial-values'
 import { restorePlutoTrashItem } from '../../../composables/pluto-content-trash'
+import PlutoContentSingletonIntro from './PlutoContentSingletonIntro.vue'
 
 const props = defineProps<{
   /** A content type's `name` (not a registry entry id) — see `usePlutoContentTypes`. */
   type: string
   /** Present in edit mode. Absent in "new entry" mode. */
   id?: string | number
+}>()
+
+const emit = defineEmits<{
+  /**
+   * A singleton type: the first save created the item. The page shows the form of the item
+   * (`PlutoContentSingleton`), because the form has no other address to go to.
+   */
+  created: [id: string | number]
 }>()
 
 const { byName } = usePlutoContentTypes()
@@ -64,6 +73,7 @@ const canDelete = computed(
 )
 
 const editing = computed(() => props.id !== undefined)
+const singleton = computed(() => isSingletonType(contentType.value))
 const basePath = computed(
   () => contentType.value?.basePath ?? `/admin/content/${props.type}`
 )
@@ -731,6 +741,10 @@ async function onSave(statusOverride?: string, publishAt?: string) {
         description: t('pluto.form.createdDescription', { label: text.label }),
         color: 'success',
       })
+      if (singleton.value) {
+        emit('created', saved.id)
+        return
+      }
       bypass = true
       await navigateTo(editPath(saved.id))
       return
@@ -848,9 +862,11 @@ const itemTitle = computed(() => {
   return typeof value === 'string' ? value.trim() : ''
 })
 const heading = computed(() =>
-  editing.value
-    ? itemTitle.value || t('pluto.content.edit', { label: text.label })
-    : text.newLabel
+  singleton.value
+    ? text.label
+    : editing.value
+      ? itemTitle.value || t('pluto.content.edit', { label: text.label })
+      : text.newLabel
 )
 
 useHead({ title: () => heading.value })
@@ -1354,7 +1370,8 @@ const unpublishLabel = computed(() => {
   return isReview.value ? t('pluto.form.returnToDraft') : undefined
 })
 const canShowDelete = computed(
-  () => editing.value && canDelete.value && !loadFailed.value
+  () =>
+    editing.value && canDelete.value && !loadFailed.value && !singleton.value
 )
 
 const asideTitle = computed(() =>
@@ -1371,14 +1388,16 @@ const asideTitle = computed(() =>
     v-model:left-open="leftOpen"
     :aside-open="asideSlot && asideModel"
     :left-title="leftTitle"
-    :width="layout === 'default' ? 'container' : 'full'"
+    :width="
+      layout !== 'default' ? 'full' : singleton ? 'narrow' : 'container'
+    "
     :fill="isCanvas"
     panel-toggles
     @update:aside-open="asideModel = $event"
   >
     <template #toolbar>
       <PlutoContentFormHeader
-        :back-to="basePath"
+        :back-to="singleton ? undefined : basePath"
         :type-label="text.labelPlural"
         :title="heading"
         :status="headerStatus"
@@ -1404,6 +1423,14 @@ const asideTitle = computed(() =>
         @toggle-left="leftOpen = !leftOpen"
       />
     </template>
+
+    <!-- A singleton type: its title, description and last save, above its one form. -->
+    <PlutoContentSingletonIntro
+      v-if="singleton && !isCanvas && contentType"
+      :type="contentType"
+      :item="editing && !itemPending ? item : undefined"
+      :pending="itemPending"
+    />
 
     <!--
       The alerts of the form. In the canvas layout, a widget can show them in its own column
@@ -1545,6 +1572,19 @@ const asideTitle = computed(() =>
         @update:model-value="updateField(canvasFieldDef, $event)"
       />
     </div>
+
+    <!-- A singleton type: the fields in a card, like a settings page. -->
+    <UCard v-else-if="singleton" :ui="{ body: 'flex flex-col gap-6' }">
+      <PlutoContentField
+        v-for="field in mainFields"
+        :key="field.name"
+        :type="type"
+        :field="field"
+        :model-value="item[field.name]"
+        :disabled="!canWrite || saving"
+        @update:model-value="updateField(field, $event)"
+      />
+    </UCard>
 
     <template v-else>
       <PlutoContentField

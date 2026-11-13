@@ -67,7 +67,11 @@
       "typeNotFound": "Tipo de conteúdo não encontrado",
       "typeNotFoundDescription": "Nenhum tipo de conteúdo chamado \"{type}\" está registrado.",
       "removeConfirm": "Deseja mesmo remover este item?",
-      "untitled": "Sem título"
+      "untitled": "Sem título",
+      "singleton": {
+        "lastSaved": "Salvo pela última vez em {date}",
+        "notSaved": "Ainda não salvo. O site mostra o próprio texto até você salvar."
+      }
     },
     "form": {
       "slugEdit": "Editar o slug",
@@ -335,6 +339,8 @@
       "unauthorized": "Entre para continuar.",
       "crossOrigin": "Esta requisição não veio deste site.",
       "invalidQuery": "O parâmetro \"{name}\" da consulta não é válido.",
+      "singletonExists": "Este tipo tem um só item, e ele já existe. Edite-o.",
+      "singletonDelete": "O item de um tipo de item único não pode ser excluído.",
       "backupTooLarge": "As alterações não salvas são grandes demais para o backup no servidor.",
       "previewTooLarge": "O post é longo demais para a prévia com as cores do código.",
       "backupInvalid": "O backup não é válido.",

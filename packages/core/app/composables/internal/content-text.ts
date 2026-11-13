@@ -27,6 +27,8 @@ export interface PlutoContentText {
   readonly labelPluralLower: string
   /** The "New <label>" text: the key `content.<name>.new`, else the core phrase. */
   readonly newLabel: string
+  /** The description of the type: the key `content.<name>.description`, else `type.description`. */
+  readonly description: string | undefined
   /** The label of a field: the key `content.<name>.fields.<field>.label`, else `field.label`. */
   fieldLabel: (field: PlutoField) => string
   /** A copy of a field with translated label, description, placeholder and option labels. */
@@ -112,6 +114,9 @@ export function createContentText(
     },
     get labelPluralLower() {
       return lower(labelPlural())
+    },
+    get description() {
+      return pick(`${prefix()}.description`, getType()?.description)
     },
     get newLabel() {
       const key = `${prefix()}.new`

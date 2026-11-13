@@ -20,6 +20,11 @@ if (!type) {
   })
 }
 
+// A singleton type has one page: its form at the base path.
+if (type.singleton) {
+  await navigateTo(contentTypeBasePath(type), { replace: true })
+}
+
 useHead({
   title: () => t('pluto.content.edit', { label: text.label }),
 })

@@ -264,6 +264,12 @@ export interface PlutoContentType {
   name: string
   label: string
   labelPlural: string
+  /**
+   * One sentence about the type, for the editor: what it holds and where the site shows it. The
+   * page of a singleton type shows it under its title. A translation key
+   * (`content.<name>.description`) wins over it.
+   */
+  description?: string
   icon?: string
   /** Table or view name this content type reads and writes. */
   source: string
@@ -309,6 +315,14 @@ export interface PlutoContentType {
     field: string
     direction: 'asc' | 'desc'
   }
+  /**
+   * The type has one item (site info, contact data, a home page with fixed sections). The admin
+   * shows its form at `basePath`, with no list, and the site reads it with `usePlutoSingleton`.
+   * `id` is the id of the item in the Git CMS (default: the type `name`), so the file is
+   * `<dir>/<source>/<id>.md`. On Supabase the `source` table holds one row. See the content-model
+   * skill ("Singleton types").
+   */
+  singleton?: boolean | { id?: string }
   /** Whether nav/pages entries should be derived automatically for this content type. `false` when a layer keeps its own hand-declared `nav`/`pages` at its own URLs. */
   autoRoutes?: boolean
   /**
