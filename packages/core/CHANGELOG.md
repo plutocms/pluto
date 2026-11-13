@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.70.1](https://github.com/plutocms/pluto/compare/v0.70.0...v0.70.1) (2026-11-13)
+
+
+### Bug Fixes
+
+* **core:** keep the unset options of defineContentType typed ([#532](https://github.com/plutocms/pluto/issues/532)) ([b6e8d74](https://github.com/plutocms/pluto/commit/b6e8d740402501191416fe0956fe5a4ad0ba70a1))
+
 ## [0.70.0](https://github.com/plutocms/pluto/compare/v0.69.0...v0.70.0) (2026-11-13)
 
 
