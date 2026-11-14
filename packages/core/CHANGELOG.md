@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.71.0](https://github.com/plutocms/pluto/compare/v0.70.1...v0.71.0) (2026-11-14)
+
+
+### Features
+
+* **core:** typed i18n keys ([#535](https://github.com/plutocms/pluto/issues/535)) ([fb0bb22](https://github.com/plutocms/pluto/commit/fb0bb226271f841425e5e47213da62a22a2d9567))
+
 ## [0.70.1](https://github.com/plutocms/pluto/compare/v0.70.0...v0.70.1) (2026-11-13)
 
 
