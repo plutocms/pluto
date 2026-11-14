@@ -1,3 +1,8 @@
+import type {
+  PlutoMessageKey,
+  PlutoText,
+  PlutoTranslateFn,
+} from '../../../shared/types/i18n'
 import { shallowReactive } from 'vue'
 
 export interface MessageTree {
@@ -81,9 +86,9 @@ export interface TranslatorOptions {
 }
 
 export interface Translator {
-  t: (key: string, params?: MessageParams | number) => string
-  te: (key: string) => boolean
-  tx: (value: string, params?: MessageParams | number) => string
+  t: PlutoTranslateFn
+  te: (key: string) => key is PlutoMessageKey
+  tx: (value: PlutoText, params?: MessageParams | number) => string
 }
 
 export function createTranslator(options: TranslatorOptions): Translator {
@@ -138,7 +143,7 @@ export function createTranslator(options: TranslatorOptions): Translator {
     return interpolate(message, values)
   }
 
-  function te(key: string): boolean {
+  function te(key: string): key is PlutoMessageKey {
     return lookup(key) !== undefined
   }
 
@@ -146,7 +151,7 @@ export function createTranslator(options: TranslatorOptions): Translator {
     return isMessageKey(value) && te(value) ? t(value, params) : value
   }
 
-  return { t, te, tx }
+  return { t: t as PlutoTranslateFn, te, tx }
 }
 
 export function mergeMessageTrees(...trees: MessageTree[]): MessageTree {

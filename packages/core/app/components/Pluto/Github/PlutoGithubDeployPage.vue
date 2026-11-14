@@ -41,19 +41,19 @@ const repoUrl = computed(() =>
 
 const hosts = computed(() => [
   {
-    id: 'vercel',
+    id: 'vercel' as const,
     icon: 'i-lucide-triangle',
     to: repoUrl.value
       ? `https://vercel.com/new/import?s=${encodeURIComponent(repoUrl.value)}`
       : 'https://vercel.com/new',
   },
   {
-    id: 'netlify',
+    id: 'netlify' as const,
     icon: 'i-lucide-diamond',
     to: 'https://app.netlify.com/start',
   },
   {
-    id: 'node',
+    id: 'node' as const,
     icon: 'i-lucide-server',
     to: `${DOCS_URL}#a-node-host`,
   },

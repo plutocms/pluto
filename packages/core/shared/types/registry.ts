@@ -4,6 +4,7 @@ import type {
   PlutoContentTypeExtension,
   PlutoFieldType,
 } from './content'
+import type { PlutoText } from './i18n'
 
 /**
  * An embed provider: a URL alone on its line of a post becomes the player of the first provider
@@ -15,7 +16,7 @@ import type {
  */
 export interface PlutoEmbedProvider extends PlutoEntry {
   /** A translation key or literal: the name of the provider ("YouTube"). */
-  label: string
+  label: PlutoText
   match: (url: URL) => Record<string, string> | null
   component: Component
 }
@@ -29,7 +30,7 @@ export interface PlutoMediaKind extends PlutoEntry {
   /** MIME types or families: `['model/gltf-binary']`, `['image/*']`. */
   accept: string[]
   /** A translation key or literal: the name of the kind ("3D model"). */
-  label: string
+  label: PlutoText
   icon: string
   /** A short badge on a tile ("3D", "PDF"). None for images. */
   badge?: string
@@ -57,7 +58,7 @@ export interface PlutoMediaKind extends PlutoEntry {
  */
 export interface PlutoNavGroup extends PlutoEntry {
   /** A translation key or literal: the name of the group ("Pages"). */
-  label: string
+  label: PlutoText
   icon?: string
 }
 
@@ -75,7 +76,7 @@ export interface PlutoEntry {
 }
 
 export interface PlutoNavChild {
-  label: string
+  label: PlutoText
   to: string
   icon?: string
   /** The new page of a content type. The sidebar shows a "+" on hover. */
@@ -87,7 +88,7 @@ export interface PlutoNavChild {
 }
 
 export interface PlutoNavItem extends PlutoEntry {
-  label: string
+  label: PlutoText
   icon?: string
   /** Admin route path, for example '/admin/posts'. */
   to?: string
@@ -111,7 +112,7 @@ export interface PlutoNavbarComponentAction extends PlutoEntry {
 
 /** A navbar action that is a plain link. `label` is a key or a literal. `to` can be a function, for a target that depends on reactive state. */
 export interface PlutoNavbarLinkAction extends PlutoEntry {
-  label: string
+  label: PlutoText
   icon?: string
   to: string | (() => string)
   target?: string
@@ -122,14 +123,14 @@ export type PlutoNavbarAction =
 
 export interface PlutoDashboardWidget extends PlutoEntry {
   component: Component
-  title?: string
+  title?: PlutoText
   /** Grid columns on large screens. 1 to 3. Default 1. */
   colSpan?: 1 | 2 | 3
 }
 
 export interface PlutoSettingsPanel extends PlutoEntry {
-  title: string
-  description?: string
+  title: PlutoText
+  description?: PlutoText
   icon?: string
   component: Component
 }
@@ -141,7 +142,7 @@ export interface PlutoSettingsPanel extends PlutoEntry {
  */
 export interface PlutoSettingsPage extends PlutoEntry {
   /** Key-or-literal. */
-  label: string
+  label: PlutoText
   icon?: string
   /** Admin route path, for example '/admin/settings/users'. */
   to: string
@@ -151,8 +152,8 @@ export interface PlutoSettingsPage extends PlutoEntry {
 
 /** A section that a layer adds to the Email settings page (`/admin/settings/email`), below the core setup steps. */
 export interface PlutoMailPanel extends PlutoEntry {
-  title: string
-  description?: string
+  title: PlutoText
+  description?: PlutoText
   icon?: string
   component: Component
 }
@@ -180,8 +181,8 @@ export interface PlutoLocaleDriver extends PlutoEntry {
 export interface PlutoCapability extends PlutoEntry {
   /** Format: '<namespace>:<action>', lowercase, for example 'posts:publish'. */
   key: string
-  label: string
-  description?: string
+  label: PlutoText
+  description?: PlutoText
 }
 
 /** Loads the capabilities of the current user. `load` returns the capability keys. The single entry '*' means every capability. */
@@ -249,7 +250,7 @@ export interface PlutoContentActionContext {
 export interface PlutoContentAction extends PlutoEntry {
   /** Content type `name`, or '*' for every content type. */
   contentType: string | '*'
-  label: string
+  label: PlutoText
   icon?: string
   color?: string
   variant?: string
@@ -340,7 +341,7 @@ export interface PlutoAuthGuardTarget {
 /** An item a layer adds to the user menu of the admin navbar. */
 export interface PlutoAccountMenuItem extends PlutoEntry {
   /** Key-or-literal. */
-  label: string
+  label: PlutoText
   icon?: string
   to?: string
   target?: string
@@ -367,7 +368,7 @@ export interface PlutoBackendInfo extends PlutoEntry {
   /** `git`: Markdown files in a Git repo. `database`: rows in a database. */
   kind: 'git' | 'database'
   /** A translation key or literal: the name in the badge ("GitHub", "Supabase"). */
-  label: string
+  label: PlutoText
   /**
    * The icon of the provider, in the badge and the popover. The official backends use a Lucide
    * line icon (`i-lucide-github`, `i-lucide-git-branch`, `i-lucide-database-zap`); a community

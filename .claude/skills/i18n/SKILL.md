@@ -10,9 +10,10 @@ The message format stays vue-i18n compatible: `{name}` for values, and `|` for p
 
 - `modules/pluto-i18n/index.ts` — the Nuxt module (config key `plutoI18n`). It scans every layer
   and the app for `i18n/locales/<code>.json` and generates `#build/pluto-i18n.mjs` (and a
-  `.d.mts`).
+  `.d.mts`), and the message types `#build/types/pluto-i18n-messages.d.ts`.
 - `modules/pluto-i18n/locale-files.ts` — pure helpers: `findLayerLocaleFiles`,
-  `renderI18nTemplate`, `resolveNuxtUiLocaleFile`, `matchLocale`, `resolveI18nOptions`.
+  `renderI18nTemplate`, `renderMessageTypes`, `messagePlaceholders`, `resolveNuxtUiLocaleFile`,
+  `matchLocale`, `resolveI18nOptions`.
 - `app/composables/internal/i18n-core.ts` — the pure engine: `createTranslator`, `interpolate`,
   `selectPlural`, `isMessageKey`, `flattenMessages`, `formatNumber`, `formatDate`, and more. It
   sits under `internal/` so plain Vitest can import it.
@@ -28,6 +29,8 @@ The message format stays vue-i18n compatible: `{name}` for values, and `|` for p
 - `app/components/Pluto/Settings/PlutoSettingsLanguage.vue` — the language card on
   `/admin/settings`.
 - `i18n/locales/en.json`, `i18n/locales/pt-BR.json` — core's messages.
+- `shared/types/i18n.ts` — `PlutoMessages`, `PlutoMessageKey`, `PlutoMessageArgs`,
+  `PlutoTranslateFn`, `PlutoText` (see "Typed keys").
 - `shared/types/registry.ts` — `PlutoLocaleDriver`.
 - `test/i18n-core.test.ts`, `test/i18n-locale-files.test.ts`, `test/pluto-i18n-module.test.ts`,
   `test/fixtures/i18n-stub.ts`.
@@ -221,6 +224,34 @@ In a composable that loops over types, use `contentTextFor(type, usePlutoI18n())
 Server code, and any code that reads `type.label` directly, keeps the English text. Core declares
 no content type. The layer that declares a type adds the `content.<name>.*` keys to its own
 locale files. The locale-file test allows the top-level `content` namespace for this.
+
+## Typed keys
+
+The module writes `#build/types/pluto-i18n-messages.d.ts` (`renderMessageTypes`, in the nuxt, nitro
+and shared contexts). It merges the `en.json` of every layer and the app, like the runtime, and
+fills the global `PlutoMessages` interface: each key maps to the union of its `{placeholder}`
+names, plus `count` for a plural message, or `never`. The template updates when a locale file
+changes (`builder:watch`).
+
+The types are in `shared/types/i18n.ts`:
+
+- `PlutoMessageKey`: a key of `PlutoMessages`. Any `string` when the interface is empty (plain
+  Vitest, or before `nuxt prepare`).
+- `PlutoMessageArgs<K>`: the params of `t`. A message with placeholders needs an object with each
+  one (`string | number`); extra keys are allowed. A message whose only placeholder is `count`
+  also takes a number.
+- `PlutoTranslateFn`: the `t` of `usePlutoI18n`, `usePlutoSiteI18n` and
+  `usePlutoServerTranslator`. Type a helper that takes `t` with it, not `(key: string) => string`.
+- `te(key: string)` is a type guard (`key is PlutoMessageKey`): after `if (te(key))`, `t(key)`
+  type-checks. Use it for a convention key built at run time.
+- `PlutoText`: a key or plain text (`PlutoMessageKey | (string & {})`), for `tx` and the text
+  fields of the registry (`label`, `title`, `description`). The editor suggests the keys.
+
+A key built at run time must have a union type: `[1, 2, 3, 4] as const`, an `as const` map, or
+`'vercel' as const` in a list. A published layer depends on core with a wide range: until it raises
+its core range, it does not name `PlutoMessageKey` or `PlutoTranslateFn`; it uses
+`ReturnType<typeof usePlutoI18n>['t']` and `as const` maps, which work with every core.
+Test: `test/i18n-message-types.test.ts`.
 
 ## Registry text
 

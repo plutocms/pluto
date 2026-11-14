@@ -4,11 +4,11 @@ const props = defineProps<{
   disabled?: boolean
 }>()
 
-const { t } = usePlutoI18n()
+const { t, tx } = usePlutoI18n()
 
 const items = computed(() =>
   MDC_SNIPPETS.map((snippet) => ({
-    label: t(snippet.label),
+    label: tx(snippet.label),
     icon: snippet.icon,
     onSelect: () => props.insert(snippet.text, { block: snippet.block }),
   }))

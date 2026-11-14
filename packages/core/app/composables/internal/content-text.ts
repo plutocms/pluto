@@ -2,11 +2,14 @@ import type {
   PlutoContentType,
   PlutoField,
 } from '../../../shared/types/content'
-import type { MessageParams } from './i18n-core'
+import type {
+  PlutoMessageKey,
+  PlutoTranslateFn,
+} from '../../../shared/types/i18n'
 
 export interface ContentTextI18n {
-  t: (key: string, params?: MessageParams | number) => string
-  te: (key: string) => boolean
+  t: PlutoTranslateFn
+  te: (key: string) => key is PlutoMessageKey
   locale: {
     readonly value: string
   }

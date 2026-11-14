@@ -1,8 +1,10 @@
+import type { MessageTree } from '../../app/composables/internal/i18n-core'
 import type { PlutoI18nOptions } from './locale-files'
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import {
   addTemplate,
+  addTypeTemplate,
   defineNuxtModule,
   getLayerDirectories,
   resolvePath,
@@ -14,11 +16,14 @@ import {
   LOCALE_DIR,
   renderI18nTemplate,
   renderI18nTypes,
+  renderMessageTypes,
   renderServerI18nModule,
   resolveI18nOptions,
 } from './locale-files'
 
 export type { PlutoI18nOptions } from './locale-files'
+
+const MESSAGE_TYPES_FILE = 'types/pluto-i18n-messages.d.ts'
 
 export default defineNuxtModule<PlutoI18nOptions>({
   meta: { name: 'pluto-i18n', configKey: 'plutoI18n' },
@@ -80,6 +85,28 @@ export default defineNuxtModule<PlutoI18nOptions>({
       getContents: renderI18nTypes,
     })
 
+    function readMessageTree(file: string): MessageTree[] {
+      try {
+        return [JSON.parse(readFileSync(file, 'utf8')) as MessageTree]
+      } catch {
+        logger.warn(`Could not read ${file} for the message types.`)
+        return []
+      }
+    }
+
+    addTypeTemplate(
+      {
+        filename: MESSAGE_TYPES_FILE,
+        getContents: () =>
+          renderMessageTypes(
+            (files.en ?? files[resolved.defaultLocale] ?? []).flatMap(
+              readMessageTree
+            )
+          ),
+      },
+      { nuxt: true, nitro: true, shared: true }
+    )
+
     nuxt.hook('builder:watch', async (_event, path) => {
       const normalized = path.replaceAll('\\', '/')
       if (
@@ -90,7 +117,9 @@ export default defineNuxtModule<PlutoI18nOptions>({
       }
       files = findLayerLocaleFiles(layerRoots, listDir)
       await updateTemplates({
-        filter: (template) => template.filename.startsWith('pluto-i18n.'),
+        filter: (template) =>
+          template.filename.startsWith('pluto-i18n.') ||
+          template.filename === MESSAGE_TYPES_FILE,
       })
     })
   },
