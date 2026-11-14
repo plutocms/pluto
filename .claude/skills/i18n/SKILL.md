@@ -251,7 +251,10 @@ A key built at run time must have a union type: `[1, 2, 3, 4] as const`, an `as 
 `'vercel' as const` in a list. A published layer depends on core with a wide range: until it raises
 its core range, it does not name `PlutoMessageKey` or `PlutoTranslateFn`; it uses
 `ReturnType<typeof usePlutoI18n>['t']` and `as const` maps, which work with every core.
-Test: `test/i18n-message-types.test.ts`.
+A message whose `{name}` parts a component fills with slots (for example `SupabaseMessageParts`)
+is read with `tx(key)`, which keeps the placeholders: `t` would need a value for each one.
+Check a layer change with the typecheck of an app that uses the layer: the typecheck of the layer
+itself can miss an error in a component. Test: `test/i18n-message-types.test.ts`.
 
 ## Registry text
 
