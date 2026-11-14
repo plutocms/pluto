@@ -1,3 +1,4 @@
+import type { PlutoTranslateFn } from '../../shared/types/i18n'
 import type {
   PlutoMailConfig,
   PlutoMailDriver,
@@ -206,7 +207,7 @@ export interface RenderEmailOptions {
   siteName?: string
   /** Default: `usePlutoServerTranslator(locale)`. A test passes its own. */
   translator?: {
-    t: (key: string, params?: Record<string, unknown>) => string
+    t: PlutoTranslateFn
     locale: string
   }
 }

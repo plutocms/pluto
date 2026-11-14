@@ -578,7 +578,7 @@ const headingItems = computed<DropdownMenuItem[]>(() => [
     icon: 'i-lucide-type',
     onSelect: () => setHeading(0),
   },
-  ...[1, 2, 3, 4].map((level) => ({
+  ...([1, 2, 3, 4] as const).map((level) => ({
     label: t(`pluto.github.editor.heading${level}`),
     icon: `i-lucide-heading-${level}`,
     onSelect: () => setHeading(level),
@@ -625,7 +625,7 @@ const componentItems = computed<DropdownMenuItem[][]>(() => [
 function formatButton(
   kind: PlutoMarkdownFormat,
   icon: string,
-  label: string
+  label: PlutoMessageKey
 ): PlutoMarkdownToolbarItem {
   return {
     kind: 'button',

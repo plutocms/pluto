@@ -148,8 +148,7 @@ async function pageTranslator(event: H3Event) {
   )
   return {
     lang: translator.locale,
-    t: (key: string, params?: Record<string, string | number>) =>
-      translator.t(key, params),
+    t: translator.t,
   }
 }
 

@@ -1,7 +1,6 @@
-export type SetupTranslate = (
-  key: string,
-  params?: Record<string, string | number>
-) => string
+import type { PlutoTranslateFn } from '../../../../../shared/types/i18n'
+
+export type SetupTranslate = PlutoTranslateFn
 
 const ESCAPES: Record<string, string> = {
   '&': '&amp;',

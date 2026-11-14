@@ -47,8 +47,9 @@ function useLocaleScope(scope: 'admin' | 'site') {
     uiLocale: computed(
       () => uiLocaleCache.get(state.value) ?? uiLocaleCache.get('en')
     ),
-    t: (key: string, params?: MessageParams | number) => t(key, params),
-    tx: (value: string, params?: MessageParams | number) => tx(value, params),
+    t,
+    tx: (value: PlutoText, params?: MessageParams | number) =>
+      tx(value, params),
     te,
     n: (value: number, options?: Intl.NumberFormatOptions) =>
       formatNumber(state.value, value, options),

@@ -121,7 +121,7 @@ const columns = computed<TableColumn<PlutoGithubRepoUser>[]>(() => [
       v-else-if="answer?.reason"
       :title="t(`pluto.github.users.reason.${reasonKey}.title`)"
       :actions="
-        answer.reason !== 'no-repo'
+        reasonKey !== 'noRepo'
           ? [
               {
                 label: t(`pluto.github.users.reason.${reasonKey}.action`),

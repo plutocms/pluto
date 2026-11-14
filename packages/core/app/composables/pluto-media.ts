@@ -18,7 +18,7 @@ export interface PlutoMediaListQuery {
 /** A file that the browser refused before the upload. `key` is a `pluto.media.errors.*` text. */
 export class PlutoMediaUploadProblem extends Error {
   constructor(
-    readonly key: string,
+    readonly key: PlutoMessageKey,
     readonly params: Record<string, string | number>
   ) {
     super(key)

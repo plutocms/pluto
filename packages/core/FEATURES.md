@@ -134,6 +134,8 @@ policies shared by every project here.
   page and stored through a registered locale driver. The core admin UI, the registry entries, the
   content-type convention keys (`usePlutoContentText`), the validation codes, and the server errors
   (`createPlutoError`, `usePlutoErrorText`) are translated, in English and Brazilian Portuguese.
+  The keys are typed: the module generates `PlutoMessages` from the `en.json` files, so `t` takes
+  only a known key with the params its message needs, and `tx` and the registry text suggest keys.
   @.claude/skills/i18n/SKILL.md
 - Settings pages: `/admin/settings` is a section with tabs. A layer adds a tab with a `settingsPages` entry and a page file at `pages/admin/settings/<x>.vue`. The tabs show with 2 or more pages, the sidebar and the command palette list them, and a tab can need a capability (`'*'` is admin only). The capability picker groups by layer. @.claude/skills/extension-registry/SKILL.md
 - Mail: a mail driver contract (`sendPlutoMail`, `registerMailDriver`) with Resend, dev (console and Mailpit) and none drivers, plain-TypeScript email templates (test, invite) translated by a server translator, and a guided `Settings > Email` page (admin only) that checks the key, adds and verifies a domain, and tests the setup. Secrets stay in the environment. @.claude/skills/mail/SKILL.md

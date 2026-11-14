@@ -1,5 +1,6 @@
+import type { PlutoTranslateFn } from '../../../shared/types/i18n'
 export interface PlutoEmailContext {
-  t: (key: string, params?: Record<string, unknown>) => string
+  t: PlutoTranslateFn
   locale: string
   siteName: string
 }

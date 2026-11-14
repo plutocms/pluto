@@ -1,6 +1,10 @@
+import type {
+  PlutoMessageKey,
+  PlutoTranslateFn,
+} from '../../../shared/types/i18n'
 import type { MessageParams } from './i18n-core'
 
-export const DEFAULT_ERROR_KEY = 'pluto.errors.unknown'
+export const DEFAULT_ERROR_KEY: PlutoMessageKey = 'pluto.errors.unknown'
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return typeof value === 'object' && value !== null
@@ -35,10 +39,10 @@ export function errorKey(error: unknown): string | undefined {
 
 export function resolveErrorText(
   error: unknown,
-  fallbackKey: string,
+  fallbackKey: PlutoMessageKey,
   i18n: {
-    t: (key: string, params?: MessageParams) => string
-    te: (key: string) => boolean
+    t: PlutoTranslateFn
+    te: (key: string) => key is PlutoMessageKey
   }
 ): string {
   const source = asRecord(error)
