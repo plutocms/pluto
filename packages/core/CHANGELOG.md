@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [0.72.0](https://github.com/plutocms/pluto/compare/v0.71.0...v0.72.0) (2026-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** the block editor moves to core ([#543](https://github.com/plutocms/pluto/issues/543))
+
+### Features
+
+* **core:** pages with blocks, rendered with Comark ([#544](https://github.com/plutocms/pluto/issues/544)) ([d43d838](https://github.com/plutocms/pluto/commit/d43d838644278b69b8c8f0003cbbbb63491db868))
+
+
+### Code Refactoring
+
+* **core:** the block editor moves to core ([#543](https://github.com/plutocms/pluto/issues/543)) ([9bee2ee](https://github.com/plutocms/pluto/commit/9bee2ee3301656190455a7238ce06ecd03f16df9))
+
 ## [0.71.0](https://github.com/plutocms/pluto/compare/v0.70.1...v0.71.0) (2026-11-14)
 
 
