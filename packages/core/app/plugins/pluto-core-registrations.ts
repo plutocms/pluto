@@ -31,6 +31,9 @@ const PlutoEmbedVimeo = defineAsyncComponent(
 const PlutoFieldPostCanvas = defineAsyncComponent(
   () => import('../components/Pluto/Post/PlutoFieldPostCanvas.vue')
 )
+const PlutoFieldBlocks = defineAsyncComponent(
+  () => import('../components/Pluto/Content/fields/PlutoFieldBlocks.vue')
+)
 const PlutoDashboardContentActivity = defineAsyncComponent(
   () =>
     import('../components/Pluto/Dashboard/PlutoDashboardContentActivity.vue')
@@ -162,6 +165,11 @@ export default defineNuxtPlugin(() => {
         id: 'post-canvas',
         widget: 'post-canvas',
         component: PlutoFieldPostCanvas,
+      },
+      {
+        id: 'blocks',
+        widget: 'blocks',
+        component: PlutoFieldBlocks,
       },
     ],
     dashboardWidgets: [
