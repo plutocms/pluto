@@ -1,3 +1,4 @@
+import type { MarkdownDocument } from 'comark'
 import type { MaybeRefOrGetter } from 'vue'
 import type { PlutoPublicMedia } from './media'
 
@@ -8,6 +9,11 @@ import type { PlutoPublicMedia } from './media'
  */
 export type PlutoPublicItem = Record<string, unknown> & {
   id: string | number
+  /**
+   * The body as a Comark document, in the item view of a type whose body field has
+   * `widget: 'blocks'`. That item has no `html`. `PlutoBlocks` renders it.
+   */
+  blocks?: MarkdownDocument
   createdAt?: string
   updatedAt?: string
   publishedAt?: string
@@ -69,6 +75,23 @@ export interface PlutoPostSummary {
 /** One post of the public API (`usePost`), with its body as sanitized HTML. */
 export interface PlutoPost extends PlutoPostSummary {
   html: string
+}
+
+/**
+ * One page of the public API (`usePage`): a published item of the `page` type of the Git CMS
+ * (`plutoGithub.pageType`). `id` is the path, for example `about/team`. `blocks` is the body.
+ */
+export interface PlutoPage {
+  id: string
+  title: string
+  description?: string | null
+  /** The body as Markdown. */
+  body?: string
+  /** The body as a Comark document. `PlutoBlocks` renders it. */
+  blocks: MarkdownDocument
+  createdAt?: string
+  updatedAt?: string
+  publishedAt?: string
 }
 
 /** The answer of a list route. */

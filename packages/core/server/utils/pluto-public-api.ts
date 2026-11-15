@@ -10,6 +10,7 @@ import { setResponseHeader } from 'h3'
 import { withStandardPublicKeys } from '../../shared/utils/content-standard'
 import { isLiveItem } from '../../shared/utils/content-status'
 import { getPlutoApiConfig } from './pluto-api-config'
+import { parsePlutoBlocks } from './pluto-blocks'
 import { getContentType, listContentTypes } from './pluto-content'
 import { requireContentAdapter } from './pluto-content-handlers'
 import { createPlutoError } from './pluto-error'
@@ -164,6 +165,13 @@ export function isPublishedItem(
   return isLiveItem(type, item)
 }
 
+function blocksBodyField(type: PlutoContentType): PlutoField | undefined {
+  return type.fields.find(
+    (field) =>
+      field.type === 'richtext' && !field.virtual && field.widget === 'blocks'
+  )
+}
+
 export async function toPublicData(
   ctx: PlutoContentContext,
   item: PlutoContentItem,
@@ -197,6 +205,14 @@ export async function toPublicData(
   data = withStandardPublicKeys(ctx.type, data, item)
   if (ctx.type.hooks?.toPublic) {
     data = await ctx.type.hooks.toPublic(ctx, data, { view, item, batch })
+  }
+  if (view === 'item') {
+    const body = blocksBodyField(ctx.type)
+    if (body) {
+      const text = item[body.name]
+      data.blocks = await parsePlutoBlocks(typeof text === 'string' ? text : '')
+      delete data.html
+    }
   }
   if (view === 'item' && typeof data.html === 'string') {
     data.html = await highlightPlutoHtml(

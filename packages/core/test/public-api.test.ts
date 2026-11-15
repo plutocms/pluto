@@ -263,6 +263,74 @@ describe('the public answer', () => {
   })
 })
 
+describe('the blocks body', () => {
+  const body =
+    '::note{title="Hi"}\nText\n::\n\n<script>alert(1)</script>'
+
+  function blocksType(widget = 'blocks') {
+    return postType({
+      fields: [
+        { name: 'title', type: 'text', label: 'Title' },
+        { name: 'slug', type: 'slug', label: 'Slug' },
+        { name: 'body', type: 'richtext', label: 'Body', widget },
+      ],
+    })
+  }
+
+  const row = { ...ROWS[0]!, body }
+  const withHtml = {
+    toPublic: (_ctx: unknown, data: Record<string, unknown>) => ({
+      ...data,
+      html: '<p>marked</p>',
+    }),
+  }
+
+  it('adds blocks to the item view, drops html and keeps the Markdown', async () => {
+    const type = blocksType()
+    const api = await load(type, leakyAdapter(withHtml))
+
+    const data = await api.toPublicData({ event: event(), type }, row, 'item')
+
+    expect(data.html).toBeUndefined()
+    expect(data.body).toBe(body)
+    const blocks = data.blocks as { nodes: unknown[] }
+    expect(blocks.nodes[0]).toEqual(['note', { title: 'Hi' }, ['p', {}, 'Text']])
+    expect(JSON.stringify(blocks)).not.toContain('script')
+  })
+
+  it('adds nothing to the list view', async () => {
+    const type = blocksType()
+    const api = await load(type, leakyAdapter())
+
+    const data = await api.toPublicData({ event: event(), type }, row, 'list')
+
+    expect(data.blocks).toBeUndefined()
+  })
+
+  it('leaves html alone for a body with another widget', async () => {
+    const type = blocksType('markdown')
+    const api = await load(type, leakyAdapter(withHtml))
+
+    const data = await api.toPublicData({ event: event(), type }, row, 'item')
+
+    expect(data.blocks).toBeUndefined()
+    expect(data.html).toBe('<p>marked</p>')
+  })
+
+  it('gives an empty document for an empty body', async () => {
+    const type = blocksType()
+    const api = await load(type, leakyAdapter())
+
+    const data = await api.toPublicData(
+      { event: event(), type },
+      { ...row, body: undefined },
+      'item'
+    )
+
+    expect((data.blocks as { nodes: unknown[] }).nodes).toEqual([])
+  })
+})
+
 describe('listPublicContent and getPublicContent', () => {
   it('asks the adapter for published items, and drops a draft that it still returns', async () => {
     const adapter = leakyAdapter()

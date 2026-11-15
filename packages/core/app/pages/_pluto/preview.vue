@@ -14,14 +14,11 @@ import {
   parsePreviewMessage,
   previewMessage,
 } from '#layers/pluto/shared/utils/blocks/preview-protocol'
-import { coerceNodeProps } from '#layers/pluto/shared/utils/blocks/prop-types'
-import { resolveBlockDefinition } from '#layers/pluto/shared/utils/blocks/registry'
-import componentBlocks from '#pluto-blocks'
 
 definePageMeta({ layout: false, plutoAdminBar: false })
 
 const { t } = usePlutoI18n()
-const blockSources = usePlutoBlockSources(componentBlocks)
+const blocksRender = usePlutoBlocksRender()
 
 useHead({
   title: () => t('pluto.blocks.preview.title'),
@@ -100,13 +97,7 @@ async function bodyOf(
   }
   try {
     const parsed = await parseMarkdown(block.markdown, { autoUnwrap: false })
-    const typed = {
-      ...parsed,
-      nodes: coerceNodeProps(parsed.nodes, (tag) =>
-        resolveBlockDefinition(tag, { sources: blockSources() })
-      ),
-    }
-    const body = mark(typed, block)
+    const body = mark(blocksRender.coerce(parsed), block)
     if (cache.size >= CACHE_LIMIT) {
       cache.delete(cache.keys().next().value!)
     }

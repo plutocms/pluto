@@ -420,7 +420,10 @@ site in any framework or stack reads Pluto (headless), and how a Nuxt site does 
   `adapter.timestampKeys(type)` names. Core expands the public `reference` fields that have a public
   `target` to `{ id, label, slug? }` (a list for `multiple`), after the media. Then `adapter.toPublic` (the CMS Markdown adapter adds
   `excerpt` to a list item and `html` to one item), then `type.hooks.toPublic` (server only, for
-  relations and URLs). Both get `{ view: 'list' | 'item', item, batch }`: `batch` is every item of
+  relations and URLs). Last, for a type whose body field is `richtext` with `widget: 'blocks'`, the item
+  view gets `blocks` (`PlutoPublicItem.blocks`, a Comark `MarkdownDocument` from `parsePlutoBlocks` in
+  `server/utils/pluto-blocks.ts`) and loses `html`. The Markdown field stays. Every adapter gets this,
+  and the list view has neither. Both get `{ view: 'list' | 'item', item, batch }`: `batch` is every item of
   the answer, so a hook loads related rows once and keeps them on `ctx.event.context`.
 - Headers: `Cache-Control: public, s-maxage=<plutoApi.maxAge>, stale-while-revalidate=300`
   (`no-store` when `maxAge` is 0); no cookie. CORS from `server/middleware/pluto-api-cors.ts`:
