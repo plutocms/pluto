@@ -473,7 +473,10 @@
         "publish": "Create, edit and publish posts",
         "delete": "Delete posts",
         "manageTerms": "Create, edit and delete tags and categories",
-        "manageAuthors": "Create, edit and delete authors"
+        "manageAuthors": "Create, edit and delete authors",
+        "readPageDrafts": "Read draft pages",
+        "publishPages": "Create, edit and publish pages",
+        "deletePages": "Delete pages"
       },
       "setup": {
         "title": "Set up the GitHub sign-in",
@@ -1359,6 +1362,28 @@
           "label": "Tags"
         },
         "content": {
+          "label": "Content"
+        }
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published"
+      }
+    },
+    "page": {
+      "label": "Page",
+      "labelPlural": "Pages",
+      "fields": {
+        "title": {
+          "label": "Title"
+        },
+        "slug": {
+          "label": "Path"
+        },
+        "description": {
+          "label": "Description"
+        },
+        "body": {
           "label": "Content"
         }
       },

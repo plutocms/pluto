@@ -83,8 +83,11 @@ relative.
   `<buildDir>/cache/pluto-blocks`; it does not see a change in a file that the component imports.
   Delete that folder after such a change.
 - Two Vite virtual modules (the resolved ids have no `#`, because a browser URL stops at the `#`):
-  - `#pluto-blocks`: the definitions. Only the editors import it (the lazy chunks). The server build
-    gets `{}`. The parser loads with the first import, not at start-up.
+  - `#pluto-blocks`: the definitions. The editors and `usePlutoBlocksRender` (the preview and
+    `PlutoBlocks`) import it, on the server and the client. The parser loads with the first import, not at
+    start-up.
+  - `#pluto-content-components`: every component of `components/content/` plus the names of the
+    `pluto:blocks:components` hook. The preview and `PlutoBlocks` render with it.
   - `#pluto-block-components`: `{ 'promo-card': () => import('<file>') }` for the files with the macro
     (the text check, no parse), on the server and the client. `PlutoHtml` imports it.
   - A new, removed or changed component file loads both again.

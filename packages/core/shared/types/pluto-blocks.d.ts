@@ -15,7 +15,7 @@ declare module '#pluto-block-components' {
   export default components
 }
 
-declare module '#pluto-preview-components' {
+declare module '#pluto-content-components' {
   const components: Record<
     string,
     () => Promise<{ default: import('vue').Component }>

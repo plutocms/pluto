@@ -3,6 +3,7 @@ import type { ElementNode, MarkdownDocument, Node } from 'comark'
 import type { CSSProperties } from 'vue'
 import type { PlutoPreviewBlock as PreviewBlockData } from '#layers/pluto/shared/utils/blocks/preview-protocol'
 import { parseMarkdown } from 'comark'
+import { Fragment } from 'vue'
 import PlutoPreviewBlock from '#layers/pluto/app/components/Pluto/Block/PlutoPreviewBlock.vue'
 import {
   markPreviewChildren,
@@ -14,14 +15,11 @@ import {
   parsePreviewMessage,
   previewMessage,
 } from '#layers/pluto/shared/utils/blocks/preview-protocol'
-import { coerceNodeProps } from '#layers/pluto/shared/utils/blocks/prop-types'
-import { resolveBlockDefinition } from '#layers/pluto/shared/utils/blocks/registry'
-import componentBlocks from '#pluto-blocks'
 
 definePageMeta({ layout: false, plutoAdminBar: false })
 
 const { t } = usePlutoI18n()
-const blockSources = usePlutoBlockSources(componentBlocks)
+const blocksRender = usePlutoBlocksRender()
 
 useHead({
   title: () => t('pluto.blocks.preview.title'),
@@ -100,13 +98,7 @@ async function bodyOf(
   }
   try {
     const parsed = await parseMarkdown(block.markdown, { autoUnwrap: false })
-    const typed = {
-      ...parsed,
-      nodes: coerceNodeProps(parsed.nodes, (tag) =>
-        resolveBlockDefinition(tag, { sources: blockSources() })
-      ),
-    }
-    const body = mark(typed, block)
+    const body = mark(blocksRender.coerce(parsed), block)
     if (cache.size >= CACHE_LIMIT) {
       cache.delete(cache.keys().next().value!)
     }
@@ -462,15 +454,24 @@ const chipStyle: CSSProperties = {
 <template>
   <div>
     <PlutoContentPreview :frontmatter="frontmatter">
-      <PlutoPreviewBlock
-        v-for="block in blocks"
-        :id="block.id"
-        :key="block.id"
-        :body="block.body"
-        :label="block.label"
-        :error="block.error"
-        @error="onBlockError"
-      />
+      <component
+        :is="blocksRender.proseClass.value ? 'div' : Fragment"
+        v-bind="
+          blocksRender.proseClass.value
+            ? { class: blocksRender.proseClass.value }
+            : {}
+        "
+      >
+        <PlutoPreviewBlock
+          v-for="block in blocks"
+          :id="block.id"
+          :key="block.id"
+          :body="block.body"
+          :label="block.label"
+          :error="block.error"
+          @error="onBlockError"
+        />
+      </component>
     </PlutoContentPreview>
 
     <div

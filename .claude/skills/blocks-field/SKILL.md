@@ -11,6 +11,13 @@ Any content type can use it:
 
 There is no `mdc` widget name.
 
+## The public site
+
+A type whose body is a `blocks` field has the same body on the public site (the block model skill,
+"Public render"). In the item view, the public API gives `blocks` (a Comark document) and no `html`.
+`<PlutoBlocks :value="item.blocks" />` renders it. The page type (`plutoPages.enabled`) is such a
+type, and `usePage(path)` reads it.
+
 ## The two modes
 
 - The first mode is the `editor` option of the field: `visual` (or `auto`) or `source`. The docs type

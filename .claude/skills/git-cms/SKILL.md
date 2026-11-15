@@ -148,6 +148,28 @@ The storage layer is in `modules/pluto-github/runtime/server/`. The Nitro plugin
   `contentDirPath` and `slugifyTitle`. The path helpers take `{ nested }` as the last argument.
 - `test/fixtures/fake-github.ts` — an in-memory GitHub that counts calls by kind.
 
+## The page type
+
+The core option `plutoPages: { enabled: true }` (default `false`) makes the Git CMS register
+`plutoGithubPageType` (`runtime/shared/page-type.ts`), on the server (`registerGithubContent`, which
+reads `runtimeConfig.public.plutoPages.enabled`) and on the client (the `pluto-github` plugin). The
+default is `false`, so a site that does not use pages has no empty menu item. The type comes from
+`definePlutoPageType` in core `shared/utils/page-type.ts` (the content model skill, "Pages"). The Git CMS
+adds only its storage: `source: 'pages'`, `files: { nested: true }`, its columns and capabilities.
+
+- Name `page`, `source: 'pages'`, `files: { nested: true }`: the id is the path under
+  `content/pages` without `.md` (`about`, `about/team`). The `slug` field (label "Path") holds the whole id.
+- Fields: `title` (required), `slug`, `description`, `body` (`richtext`, `widget: 'blocks'`, canvas layout).
+- Status draft or published (`liveOnSave`, `trash`), `api: { public: true }`. No scheduling.
+- Capabilities `pages:read_drafts`, `pages:publish`, `pages:delete`. Push users get them through the
+  registered types (`mapRepoPermission`). The plugin lists them in the capability registry with the
+  keys `pluto.github.capabilities.readPageDrafts`, `publishPages` and `deletePages`.
+- The public item has `blocks` and no `html` (see the blocks-field skill). `usePage(path)` reads it.
+  Render it with `<PlutoBlocks :value="page.blocks" />`. A site adds a catch-all route
+  (`pages/[...path].vue`) for the paths.
+- Texts: `content.page.*` (the type) in the locale files, like `content.post.*`.
+- Tests: `test/github-page-type.test.ts`, `test/pluto-github-options.test.ts`, `test/github-client-rules.test.ts`.
+
 ## Adapter
 
 `runtime/server/adapter.ts` has `createMarkdownContentAdapter`. It is a `PlutoContentAdapter` over a
@@ -404,8 +426,9 @@ reads the session once.
 - Permission check: when `checkedAt` is older than 10 minutes, the session reads the repo again
   with the user token and updates the capabilities. If push access is gone, or GitHub rejects the
   token, the session clears and the answer is 401. If GitHub does not answer, the answer is 503.
-- Capabilities: admin and maintain give `['*']`. Push gives the post type keys
-  (`plutoGithubPostType.capabilities`: `posts:read_drafts`, `posts:publish`, `posts:delete`). The
+- Capabilities: admin and maintain give `['*']`. Push gives the keys of the registered types: the post type
+  (`plutoGithubPostType.capabilities`: `posts:read_drafts`, `posts:publish`, `posts:delete`) and the page type
+  when it is on. The
   adapter and `requireGithubCapability` treat `*` as every capability. GitHub still enforces the real
   permission on each commit, because the commit uses the user token.
 - Dev `fs` store: in dev with `storage: 'fs'`, a request from this machine gets a fixed user

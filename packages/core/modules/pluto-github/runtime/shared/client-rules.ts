@@ -11,6 +11,16 @@ export function isPostTypeOn(
   return config?.postType !== false
 }
 
+export function isPagesOn(
+  config:
+    | {
+        enabled?: boolean
+      }
+    | undefined
+): boolean {
+  return config?.enabled === true
+}
+
 export function showPublicRepoWarning(
   repoPrivate: boolean | undefined,
   types: readonly Pick<PlutoContentType, 'status'>[]

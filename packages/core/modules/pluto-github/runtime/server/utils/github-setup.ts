@@ -18,6 +18,7 @@ import {
 } from '../../../../../server/utils/pluto-public-read'
 import { isPlutoSystemEvent } from '../../../../../server/utils/pluto-system'
 import { plutoGithubAuthorType } from '../../shared/author-type'
+import { plutoGithubPageType } from '../../shared/page-type'
 import { plutoGithubPostType } from '../../shared/post-type'
 import { plutoGithubTermTypes } from '../../shared/term-types'
 import { createMarkdownContentAdapter } from '../adapter'
@@ -156,6 +157,9 @@ export function registerGithubContent(
       registerContentType(type)
     }
     registerContentType(plutoGithubAuthorType)
+  }
+  if (config.pages) {
+    registerContentType(plutoGithubPageType)
   }
   const store = createContentStore(config, cache, loadSnapshot)
   registeredStore = store

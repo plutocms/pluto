@@ -4,6 +4,7 @@ import type {
   PlutoContentDefaults,
   PlutoContentItemOptions,
   PlutoContentListOptions,
+  PlutoPage,
   PlutoPost,
   PlutoPostSummary,
   PlutoPublicItem,
@@ -326,6 +327,27 @@ export function useAdjacentPosts(slug: MaybeRefOrGetter<string | number>) {
     newer: result.previous,
     older: result.next,
   })
+}
+
+const pages = definePlutoContent<PlutoPage>('page')
+
+/**
+ * One published page, by path (`about` or `about/team`). A missing page shows the error page
+ * (404). It sets the SEO tags (the title and the description) and the admin bar "Edit Page".
+ * `page` is the page: render `page.blocks` with `PlutoBlocks`. The type exists when the option
+ * `plutoPages.enabled` is on.
+ *
+ * @example
+ * const { page } = await usePage(() => String(route.params.path))
+ *
+ * @see https://pluto.vulmix.dev/docs/build/public-api
+ */
+export function usePage(
+  path: MaybeRefOrGetter<string>,
+  options: PlutoContentItemOptions = {}
+) {
+  const result = pages.useItem(path, options)
+  return extendPlutoAsyncData(result, { page: result.item })
 }
 
 const tags = definePlutoContent<PlutoTerm>('tag', { list: { sort: 'title' } })

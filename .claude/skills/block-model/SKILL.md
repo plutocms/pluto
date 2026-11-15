@@ -166,9 +166,8 @@ TypeScript types, and gives the virtual module `#pluto-blocks`. See the content-
 pluto (`.claude/skills/content-components/SKILL.md`, "Discovery"). The post editor of core uses the
 same catalog for its content components.
 
-- Only `PlutoBlockEditor.vue` and `PlutoBlockMarkdownSplit.vue` import `#pluto-blocks`, and pass it
-  (and `PlutoBlockSnippetMenu.vue`) to `usePlutoBlockSources(componentBlocks)`. So it is in the lazy
-  editor chunk.
+- `PlutoBlockEditor.vue`, `PlutoBlockMarkdownSplit.vue` and `usePlutoBlocksRender` (the preview and the
+  public `PlutoBlocks`) import `#pluto-blocks` and pass it to `usePlutoBlockSources(componentBlocks)`.
 - The definition types (`PlutoBlockDefinition`, `PlutoBlockPatch`, the prop types...), `blockKey`,
   `humanizeName`, `mergeBlockPatch`, `BLOCK_COLORS`, the MDC props (`mdc-props.ts`) and the meta
   reader (`component-meta.ts`) sit next to the model in `shared/utils/blocks/`. App code and other
@@ -193,6 +192,38 @@ These tests are in `packages/core/test/`, except the ones that need presets (bel
   palette), `test/blocks-component-layer.test.ts` (the shared labels, the kebab props of a page,
   `false` slots), `test/blocks-image.test.ts`. They use `test/helpers/blocks.ts`, which passes the
   docs presets to the core functions.
+
+## Public render
+
+The public site renders the same Markdown with Comark, so what the editor preview shows is what the
+site shows.
+
+- `server/utils/pluto-blocks.ts`: `parsePlutoBlocks(text)` gives a Comark `MarkdownDocument`
+  (`parseMarkdown` with `autoUnwrap: false`, like the preview, and the `security()` plugin). It blocks
+  the tags that the post sanitizer drops (script, style, iframe, frame, frameset, object, embed, base,
+  link, meta, the form and its controls, svg, math, audio, video, canvas and more: `PLUTO_BLOCKED_TAGS`),
+  except `template`, which Comark uses for a slot. Allowed URL protocols: http, https, mailto, tel and
+  relative. Comark also removes `on*` attributes and `javascript:` URLs. An in-memory LRU cache (200
+  entries) keys the result by a hash of the text.
+- `toPublicData` calls it for the item view of a type whose body field has `widget: 'blocks'`, so every
+  backend gets `blocks` in the public API (see the content-model skill). The props in the document
+  are text: a React or Svelte site converts them itself.
+- `app/components/Pluto/PlutoBlocks.vue` (`<PlutoBlocks :value="item.blocks" />`) renders the document with
+  `MarkdownDocument` of `@comark/vue`, on the server too.
+- `app/composables/pluto-blocks-render.ts` (`usePlutoBlocksRender`) is shared by `PlutoBlocks` and the
+  preview: the component manifest (`#pluto-content-components`), the prop conversion (`coerce`, with the
+  block definitions of `#pluto-blocks`) and the tag map.
+- `#pluto-blocks` now loads on the server too, because the render converts props there. The public bundle
+  holds the definitions of the site components.
+- Text styles: `proseClass` is `pluto-prose` when the site has no `ProseP` component, else nothing.
+  `PlutoBlocks` puts it on its root (`tag`, default `article`, like `PlutoHtml`), and the preview wraps
+  its blocks in a `div` with it only when it is set. So a site with Prose components (a docs site)
+  keeps its markup, and a site without them styles the text of a page like a post.
+- Core's `nuxt.config.ts` has `build.transpile: ['@comark/vue']`. Without it, the server build keeps
+  `@comark/vue` external, it imports the full `vue` build (with the compiler) at run time, and the
+  built server does not start (`estree-walker` has no CommonJS export). A second Vue would also break
+  the SSR context.
+- Tests: `test/pluto-blocks-parse.test.ts`, `test/pluto-blocks-ssr.test.ts`, `test/public-api.test.ts`.
 
 ## Pinned versions
 

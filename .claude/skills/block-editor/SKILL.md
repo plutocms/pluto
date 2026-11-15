@@ -113,7 +113,7 @@ and renders it with `MarkdownDocument` of `@comark/vue` (`PlutoPreviewBlock`). A
 wrapper of each block has `display: contents`. It fetches nothing. The editor's own parser
 (`parse.ts`, remark) stays: it needs exact source positions.
 
-- The components come from `#pluto-preview-components` (see "Constraints"), through the
+- The components come from `#pluto-content-components` (see "Constraints"), through the
   `componentsManifest` of `MarkdownDocument`. A layer adds names with the hook `pluto:blocks:components`
   (the docs layer adds the Nuxt UI `u-*` components of its presets). `Prose*` components that the app
   registers as global components render the HTML tags. Any other tag renders as an unknown element.
@@ -261,6 +261,7 @@ These came from code comments. Keep them true when you change the code.
 - **Types of props:** the parser gives every prop as text. The preview converts each prop to the type of
   its definition before it renders (`coerceNodeProps`, `coerceBlockProps`): `number` and `boolean`
   props only. A bare attribute is `true`.
-- **Preview components:** `#pluto-preview-components` lists every component of a `components/content/`
-  folder, and the names that a layer adds with the build hook `pluto:blocks:components`. The public
-  `#pluto-block-components` lists only the components that call `definePlutoBlock`.
+- **Content components:** `#pluto-content-components` lists every component of a `components/content/`
+  folder, and the names that a layer adds with the build hook `pluto:blocks:components`. The preview and
+  the public `PlutoBlocks` both use it (through `usePlutoBlocksRender`). `#pluto-block-components` lists only
+  the components that call `definePlutoBlock`, for the post content components.
