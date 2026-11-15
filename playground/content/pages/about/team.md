@@ -4,7 +4,7 @@ status: published
 description: The people behind the playground.
 ---
 
-# Our team
+## Who we are
 
 A page of the Git CMS. It has a block body, and its path is `about/team`.
 

@@ -39,8 +39,9 @@ const PROSE_TAGS = [
 /**
  * What a render of blocks needs, for the preview of the editor and for `PlutoBlocks`: the site
  * components (`components/content/` and the names of the `pluto:blocks:components` hook), the
- * conversion of the props to the types of the block definitions, and the map of tags to
- * components. Both renders use it, so the editor shows what the site shows.
+ * conversion of the props to the types of the block definitions, the map of tags to
+ * components, and `pluto-prose` when the site has no Prose components. Both renders use it, so
+ * the editor shows what the site shows.
  */
 export function usePlutoBlocksRender(
   options: MaybeRefOrGetter<PlutoPreviewRenderOptions> = {}
@@ -80,5 +81,9 @@ export function usePlutoBlocksRender(
     return map
   })
 
-  return { manifest, coerce, components }
+  const proseClass = computed(() =>
+    vueApp.component('ProseP') ? undefined : 'pluto-prose'
+  )
+
+  return { manifest, coerce, components, proseClass }
 }

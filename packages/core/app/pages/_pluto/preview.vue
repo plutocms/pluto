@@ -3,6 +3,7 @@ import type { ElementNode, MarkdownDocument, Node } from 'comark'
 import type { CSSProperties } from 'vue'
 import type { PlutoPreviewBlock as PreviewBlockData } from '#layers/pluto/shared/utils/blocks/preview-protocol'
 import { parseMarkdown } from 'comark'
+import { Fragment } from 'vue'
 import PlutoPreviewBlock from '#layers/pluto/app/components/Pluto/Block/PlutoPreviewBlock.vue'
 import {
   markPreviewChildren,
@@ -453,15 +454,24 @@ const chipStyle: CSSProperties = {
 <template>
   <div>
     <PlutoContentPreview :frontmatter="frontmatter">
-      <PlutoPreviewBlock
-        v-for="block in blocks"
-        :id="block.id"
-        :key="block.id"
-        :body="block.body"
-        :label="block.label"
-        :error="block.error"
-        @error="onBlockError"
-      />
+      <component
+        :is="blocksRender.proseClass.value ? 'div' : Fragment"
+        v-bind="
+          blocksRender.proseClass.value
+            ? { class: blocksRender.proseClass.value }
+            : {}
+        "
+      >
+        <PlutoPreviewBlock
+          v-for="block in blocks"
+          :id="block.id"
+          :key="block.id"
+          :body="block.body"
+          :label="block.label"
+          :error="block.error"
+          @error="onBlockError"
+        />
+      </component>
     </PlutoContentPreview>
 
     <div

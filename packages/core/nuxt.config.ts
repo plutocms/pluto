@@ -72,6 +72,10 @@ export default defineNuxtConfig({
     },
   },
 
+  build: {
+    transpile: ['@comark/vue'],
+  },
+
   routeRules: {
     '/admin': {
       redirect: {

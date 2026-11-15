@@ -215,6 +215,14 @@ site shows.
   block definitions of `#pluto-blocks`) and the tag map.
 - `#pluto-blocks` now loads on the server too, because the render converts props there. The public bundle
   holds the definitions of the site components.
+- Text styles: `proseClass` is `pluto-prose` when the site has no `ProseP` component, else nothing.
+  `PlutoBlocks` puts it on its root (`tag`, default `article`, like `PlutoHtml`), and the preview wraps
+  its blocks in a `div` with it only when it is set. So a site with Prose components (a docs site)
+  keeps its markup, and a site without them styles the text of a page like a post.
+- Core's `nuxt.config.ts` has `build.transpile: ['@comark/vue']`. Without it, the server build keeps
+  `@comark/vue` external, it imports the full `vue` build (with the compiler) at run time, and the
+  built server does not start (`estree-walker` has no CommonJS export). A second Vue would also break
+  the SSR context.
 - Tests: `test/pluto-blocks-parse.test.ts`, `test/pluto-blocks-ssr.test.ts`, `test/public-api.test.ts`.
 
 ## Pinned versions
