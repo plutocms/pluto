@@ -33,7 +33,7 @@ the order of `order`.
 | `title`            | text, required                                | `title`              | side              |
 | `slug`             | slug, required                                | none (the file path) | side              |
 | `description`      | textarea                                      | `description`        | side              |
-| `body`             | richtext, `widget: 'mdc'`, `editor: 'visual'` | none (the file body) | main (the canvas) |
+| `body`             | richtext, `widget: 'blocks'`, `editor: 'visual'` | none (the file body) | main (the canvas) |
 | `navigationTitle`  | text                                          | `navigation.title`   | side              |
 | `navigationIcon`   | text                                          | `navigation.icon`    | side              |
 | `navigationHidden` | boolean                                       | `navigation: false`  | side              |

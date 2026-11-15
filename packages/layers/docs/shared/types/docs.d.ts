@@ -3,7 +3,6 @@ import type {
   PlutoDocsRender,
   PlutoDocsTypeOptions,
 } from '../../modules/pluto-docs/options'
-import type { PlutoBlocksConfig } from '../utils/blocks/types'
 
 declare module '@nuxt/schema' {
   interface NuxtConfig {
@@ -23,12 +22,6 @@ declare module '@nuxt/schema' {
     plutoDocs?: {
       toc?: { depth?: number; searchDepth?: number }
     }
-  }
-  interface AppConfigInput {
-    plutoBlocks?: PlutoBlocksConfig
-  }
-  interface AppConfig {
-    plutoBlocks?: PlutoBlocksConfig
   }
 }
 

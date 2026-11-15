@@ -1,0 +1,502 @@
+<script setup lang="ts">
+import type { ElementNode, MarkdownDocument, Node } from 'comark'
+import type { CSSProperties } from 'vue'
+import type { PlutoPreviewBlock as PreviewBlockData } from '#layers/pluto/shared/utils/blocks/preview-protocol'
+import { parseMarkdown } from 'comark'
+import PlutoPreviewBlock from '#layers/pluto/app/components/Pluto/Block/PlutoPreviewBlock.vue'
+import {
+  markPreviewChildren,
+  PREVIEW_BLOCK_ATTRIBUTE,
+  previewParents,
+} from '#layers/pluto/shared/utils/blocks/preview-marks'
+import {
+  isTrustedPreviewOrigin,
+  parsePreviewMessage,
+  previewMessage,
+} from '#layers/pluto/shared/utils/blocks/preview-protocol'
+import { coerceNodeProps } from '#layers/pluto/shared/utils/blocks/prop-types'
+import { resolveBlockDefinition } from '#layers/pluto/shared/utils/blocks/registry'
+import componentBlocks from '#pluto-blocks'
+
+definePageMeta({ layout: false, plutoAdminBar: false })
+
+const { t } = usePlutoI18n()
+const blockSources = usePlutoBlockSources(componentBlocks)
+
+useHead({
+  title: () => t('pluto.blocks.preview.title'),
+  meta: [{ name: 'robots', content: 'noindex, nofollow' }],
+  style: [
+    {
+      textContent:
+        '*, *::before, *::after { cursor: default !important; user-select: none !important; -webkit-user-select: none !important; -webkit-user-drag: none !important; }',
+    },
+    {
+      textContent: [
+        'html { scrollbar-width: thin; scrollbar-color: rgb(128 128 128 / 0.45) transparent; }',
+        'html::-webkit-scrollbar { width: 10px; }',
+        'html::-webkit-scrollbar-track { background: transparent; }',
+        'html::-webkit-scrollbar-thumb { background: rgb(128 128 128 / 0.45); border: 3px solid transparent; border-radius: 9999px; background-clip: content-box; }',
+        'html::-webkit-scrollbar-thumb:hover { background-color: rgb(128 128 128 / 0.7); }',
+      ].join('\n'),
+    },
+    {
+      textContent: '.comark-content { display: contents; }',
+    },
+  ],
+})
+
+interface RenderedBlock {
+  id: string
+  label: string
+  body?: MarkdownDocument
+  error?: string
+  children?: PreviewBlockData['children']
+}
+
+const frontmatter = ref<Record<string, unknown>>({})
+const blocks = shallowRef<RenderedBlock[]>([])
+const selectedId = ref<string | null>(null)
+
+const cache = new Map<string, MarkdownDocument>()
+const CACHE_LIMIT = 300
+let run = 0
+let wantedScroll: string | null = null
+
+function mark(
+  document: MarkdownDocument,
+  block: PreviewBlockData
+): MarkdownDocument {
+  const nodes = document.nodes.map((node): Node => {
+    if (!Array.isArray(node) || typeof node[0] !== 'string') {
+      return node
+    }
+    const element = node as ElementNode
+    if (block.children) {
+      markPreviewChildren(element, block.children)
+    }
+    return [
+      element[0],
+      { ...element[1], [PREVIEW_BLOCK_ATTRIBUTE]: block.id },
+      ...(element.slice(2) as Node[]),
+    ]
+  })
+  return { ...document, nodes }
+}
+
+function childIds(children: PreviewBlockData['children']): string {
+  return (children ?? [])
+    .map((child) => `${child.id}(${childIds(child.children)})`)
+    .join(',')
+}
+
+async function bodyOf(
+  block: PreviewBlockData
+): Promise<{ body?: MarkdownDocument; error?: string }> {
+  const key = `${block.id}\u0000${block.markdown}\u0000${childIds(block.children)}`
+  const cached = cache.get(key)
+  if (cached) {
+    return { body: cached }
+  }
+  try {
+    const parsed = await parseMarkdown(block.markdown, { autoUnwrap: false })
+    const typed = {
+      ...parsed,
+      nodes: coerceNodeProps(parsed.nodes, (tag) =>
+        resolveBlockDefinition(tag, { sources: blockSources() })
+      ),
+    }
+    const body = mark(typed, block)
+    if (cache.size >= CACHE_LIMIT) {
+      cache.delete(cache.keys().next().value!)
+    }
+    cache.set(key, body)
+    return { body }
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+async function render(message: {
+  frontmatter: Record<string, unknown>
+  blocks: PreviewBlockData[]
+  selectedId?: string | null
+}) {
+  const current = ++run
+  const next = await Promise.all(
+    message.blocks.map(async (block): Promise<RenderedBlock> => {
+      const label = block.label ?? ''
+      if (block.preview === false) {
+        return { id: block.id, label }
+      }
+      return {
+        id: block.id,
+        label,
+        children: block.children,
+        ...(await bodyOf(block)),
+      }
+    })
+  )
+  if (current !== run) {
+    return
+  }
+  frontmatter.value = message.frontmatter
+  blocks.value = next
+  if (message.selectedId !== undefined) {
+    selectedId.value = message.selectedId
+  }
+  await nextTick()
+  refreshOverlay()
+  if (wantedScroll) {
+    setTimeout(() => wantedScroll && scrollToBlock(wantedScroll), 80)
+  }
+}
+
+function post(message: ReturnType<typeof previewMessage>) {
+  window.parent?.postMessage(message, window.location.origin)
+}
+
+function onMessage(event: MessageEvent) {
+  if (
+    event.source !== window.parent ||
+    !isTrustedPreviewOrigin(event.origin, window.location.origin)
+  ) {
+    return
+  }
+  const message = parsePreviewMessage(event.data, 'to-frame')
+  if (!message) {
+    return
+  }
+  switch (message.type) {
+    case 'render':
+      void render(message)
+      break
+    case 'select':
+      selectedId.value = message.id
+      nextTick(refreshOverlay)
+      break
+    case 'scroll-to':
+      scrollToBlock(message.id)
+      break
+  }
+}
+
+const hoverId = ref<string | null>(null)
+const overlay = ref<{ selected: DOMRect | null; hover: DOMRect | null }>({
+  selected: null,
+  hover: null,
+})
+
+function elementsOf(id: string): HTMLElement[] {
+  return [
+    ...document.querySelectorAll<HTMLElement>(
+      `[${PREVIEW_BLOCK_ATTRIBUTE}="${CSS.escape(id)}"]`
+    ),
+  ].filter(
+    (element) => element.tagName !== 'STYLE' && element.tagName !== 'SCRIPT'
+  )
+}
+
+const parents = computed(() => {
+  const map = new Map<string, string>()
+  for (const block of blocks.value) {
+    previewParents(block.id, block.children, map)
+  }
+  return map
+})
+
+function shownId(id: string | null): string | null {
+  let current = id
+  while (current && !elementsOf(current).length) {
+    current = parents.value.get(current) ?? null
+  }
+  return current
+}
+
+function union(a: DOMRect | null, b: DOMRect | null): DOMRect | null {
+  if (!a || !b) {
+    return a ?? b
+  }
+  const left = Math.min(a.left, b.left)
+  const top = Math.min(a.top, b.top)
+  return new DOMRect(
+    left,
+    top,
+    Math.max(a.right, b.right) - left,
+    Math.max(a.bottom, b.bottom) - top
+  )
+}
+
+function elementBox(element: Element, depth = 0): DOMRect | null {
+  const rect = element.getBoundingClientRect()
+  if (rect.width > 0 && rect.height > 0) {
+    return rect
+  }
+  if (depth > 3) {
+    return null
+  }
+  let box: DOMRect | null = null
+  for (const child of element.children) {
+    box = union(box, elementBox(child, depth + 1))
+  }
+  return box
+}
+
+function boxOf(id: string | null): DOMRect | null {
+  const shown = shownId(id)
+  if (!shown) {
+    return null
+  }
+  let box: DOMRect | null = null
+  for (const element of elementsOf(shown)) {
+    box = union(box, elementBox(element))
+  }
+  return box
+    ? new DOMRect(
+        box.left + window.scrollX,
+        box.top + window.scrollY,
+        box.width,
+        box.height
+      )
+    : null
+}
+
+let frame = 0
+function refreshOverlay() {
+  cancelAnimationFrame(frame)
+  frame = requestAnimationFrame(() => {
+    overlay.value = {
+      selected: boxOf(selectedId.value),
+      hover: hoverId.value === selectedId.value ? null : boxOf(hoverId.value),
+    }
+  })
+}
+
+function scrollToBlock(id: string) {
+  const box = boxOf(id)
+  if (!box) {
+    wantedScroll = id
+    return
+  }
+  wantedScroll = null
+  const top = box.top - window.scrollY
+  const margin = 24
+  if (top < margin || top + box.height > window.innerHeight - margin) {
+    window.scrollTo({ top: Math.max(0, box.top - margin), behavior: 'smooth' })
+  }
+}
+
+const labels = computed(() => {
+  const map = new Map<string, string>()
+  const add = (children: RenderedBlock['children']) => {
+    for (const child of children ?? []) {
+      map.set(child.id, child.label ?? '')
+      add(child.children)
+    }
+  }
+  for (const block of blocks.value) {
+    map.set(block.id, block.label)
+    add(block.children)
+  }
+  return map
+})
+
+function blockIdAt(target: EventTarget | null): string | null {
+  return target instanceof Element
+    ? (target
+        .closest<HTMLElement>(`[${PREVIEW_BLOCK_ATTRIBUTE}]`)
+        ?.getAttribute(PREVIEW_BLOCK_ATTRIBUTE) ?? null)
+    : null
+}
+
+function selectBlock(id: string | null) {
+  selectedId.value = id
+  if (id) {
+    post(previewMessage('select', { id }))
+  }
+  refreshOverlay()
+}
+
+function onClick(event: MouseEvent) {
+  event.preventDefault()
+  event.stopPropagation()
+  selectBlock(blockIdAt(event.target))
+}
+
+function stopEvent(event: Event) {
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+function onPointerMove(event: PointerEvent) {
+  const id = blockIdAt(event.target)
+  if (id !== hoverId.value) {
+    hoverId.value = id
+    post(previewMessage('hover', { id }))
+    refreshOverlay()
+  }
+}
+
+function onPointerLeave() {
+  if (hoverId.value !== null) {
+    hoverId.value = null
+    post(previewMessage('hover', { id: null }))
+    refreshOverlay()
+  }
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    const id = blockIdAt(event.target)
+    if (id) {
+      selectBlock(id)
+    }
+  } else if (event.key === 'Escape' && selectedId.value) {
+    const parent = parents.value.get(selectedId.value)
+    if (parent) {
+      event.preventDefault()
+      selectBlock(parent)
+    }
+  }
+}
+
+function onBlockError(id: string, message: string) {
+  post(previewMessage('error', { id, message }))
+}
+
+let observer: ResizeObserver | undefined
+let mutations: MutationObserver | undefined
+
+onMounted(() => {
+  window.addEventListener('message', onMessage)
+  window.addEventListener('scroll', refreshOverlay, { passive: true })
+  window.addEventListener('resize', refreshOverlay)
+  document.addEventListener('click', onClick, true)
+  document.addEventListener('pointermove', onPointerMove, { passive: true })
+  document.addEventListener('pointerleave', onPointerLeave)
+  document.addEventListener('keydown', onKeydown, true)
+  document.addEventListener('auxclick', stopEvent, true)
+  document.addEventListener('dragstart', stopEvent, true)
+  document.addEventListener('selectstart', stopEvent, true)
+  observer = new ResizeObserver(refreshOverlay)
+  observer.observe(document.body)
+  mutations = new MutationObserver(refreshOverlay)
+  mutations.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class', 'style', 'open'],
+  })
+  post(previewMessage('ready', {}))
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('message', onMessage)
+  window.removeEventListener('scroll', refreshOverlay)
+  window.removeEventListener('resize', refreshOverlay)
+  document.removeEventListener('click', onClick, true)
+  document.removeEventListener('pointermove', onPointerMove)
+  document.removeEventListener('pointerleave', onPointerLeave)
+  document.removeEventListener('keydown', onKeydown, true)
+  document.removeEventListener('auxclick', stopEvent, true)
+  document.removeEventListener('dragstart', stopEvent, true)
+  document.removeEventListener('selectstart', stopEvent, true)
+  observer?.disconnect()
+  mutations?.disconnect()
+  cancelAnimationFrame(frame)
+})
+
+const hoverLabel = computed(
+  () => (hoverId.value ? labels.value.get(hoverId.value) : '') ?? ''
+)
+
+const PRIMARY_COLOR = 'var(--ui-primary, #6366f1)'
+
+function insetRing(kind: 'selected' | 'hover'): string {
+  return kind === 'selected'
+    ? `inset 0 0 0 2px ${PRIMARY_COLOR}`
+    : `inset 0 0 0 1px color-mix(in oklab, ${PRIMARY_COLOR} 70%, transparent)`
+}
+
+function boxStyle(
+  rect: DOMRect | null,
+  kind: 'selected' | 'hover'
+): CSSProperties {
+  if (!rect) {
+    return { display: 'none' }
+  }
+  const color = PRIMARY_COLOR
+  return {
+    position: 'absolute',
+    left: `${rect.left}px`,
+    top: `${rect.top}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+    pointerEvents: 'none',
+    zIndex: '2147483000',
+    borderRadius: '4px',
+    boxShadow: insetRing(kind),
+    background:
+      kind === 'selected'
+        ? `color-mix(in oklab, ${color} 8%, transparent)`
+        : 'transparent',
+  }
+}
+
+const chipStyle: CSSProperties = {
+  position: 'absolute',
+  top: '-22px',
+  left: '0',
+  padding: '1px 8px',
+  borderRadius: '6px 6px 0 0',
+  fontSize: '11px',
+  lineHeight: '20px',
+  fontFamily: 'system-ui, sans-serif',
+  background: 'var(--ui-primary, #6366f1)',
+  color: 'var(--ui-bg, #fff)',
+  whiteSpace: 'nowrap',
+}
+</script>
+
+<template>
+  <div>
+    <PlutoContentPreview :frontmatter="frontmatter">
+      <PlutoPreviewBlock
+        v-for="block in blocks"
+        :id="block.id"
+        :key="block.id"
+        :body="block.body"
+        :label="block.label"
+        :error="block.error"
+        @error="onBlockError"
+      />
+    </PlutoContentPreview>
+
+    <div
+      aria-hidden="true"
+      style="
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: visible;
+        height: 0;
+      "
+    >
+      <div :style="boxStyle(overlay.hover, 'hover')">
+        <span
+          v-if="overlay.hover && hoverLabel"
+          :style="{ ...chipStyle, opacity: '0.85' }"
+          >{{ hoverLabel }}</span
+        >
+      </div>
+      <div :style="boxStyle(overlay.selected, 'selected')">
+        <span
+          v-if="overlay.selected && selectedId && labels.get(selectedId)"
+          :style="chipStyle"
+          >{{ labels.get(selectedId) }}</span
+        >
+      </div>
+    </div>
+  </div>
+</template>

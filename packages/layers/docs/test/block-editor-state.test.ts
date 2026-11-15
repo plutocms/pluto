@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { nextTick, ref } from 'vue'
-import { createPlutoBlockEditor } from '../app/composables/pluto-block-editor'
-import { buildPalette } from '../shared/utils/blocks/editor'
-import { flatChildren } from '../shared/utils/blocks/tree'
-import { corpusBodies } from './helpers/corpus'
+import { createPlutoBlockEditor } from '#layers/pluto/app/composables/pluto-block-editor'
+import { flatChildren } from '#layers/pluto/shared/utils/blocks/tree'
+import { corpusBodies } from '../../../core/test/helpers/corpus'
+import { BLOCK_PRESETS, buildPalette } from './helpers/blocks'
 
 const SOURCE =
   '# Title\n\nFirst text.\n\n::note\nA note.\n::\n\n::card-group\n  :::card\n  ---\n  title: One\n  ---\n  First card.\n  :::\n\n  :::card\n  ---\n  title: Two\n  ---\n  Second card.\n  :::\n::\n\n## Last\n\nEnd.\n'
@@ -17,7 +17,7 @@ function create(source = SOURCE) {
       emitted.push(value)
       text.value = value
     },
-    sources: () => ({}),
+    sources: () => ({ presets: BLOCK_PRESETS }),
     now: () => 0,
   })
   return { editor, text, emitted }

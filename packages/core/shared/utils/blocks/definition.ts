@@ -97,11 +97,13 @@ export type PlutoBlockOverride = PlutoBlockPatch | false
 export type PlutoBlocksConfig = Record<string, PlutoBlockOverride>
 
 /**
- * The layers that join the preset into a block definition. The component layer comes from the
+ * The layers that join into a block definition. The presets come from the layers that register
+ * them with `definePlutoExtension({ blockPresets })`. The component layer comes from the
  * component files (it is empty until the build step fills it). The overrides are `plutoBlocks`
  * in `app.config.ts`, and they win.
  */
 export interface PlutoBlockSources {
+  presets?: Record<string, PlutoBlockDefinition>
   components?: PlutoBlocksConfig
   overrides?: PlutoBlocksConfig
 }

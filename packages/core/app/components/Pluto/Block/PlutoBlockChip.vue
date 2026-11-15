@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { NodeViewProps } from '@tiptap/vue-3'
-import type { PlutoMedia } from '../../../../shared/types/media'
 import type {
   PlutoBlockPropDefinition,
   PlutoPropValue,
-} from '../../../../shared/utils/blocks/definition'
+} from '#layers/pluto/shared/utils/blocks/definition'
+import type { PlutoMedia } from '../../../../shared/types/media'
 import { NodeViewWrapper } from '@tiptap/vue-3'
 import { camelKey } from '#layers/pluto/shared/utils/blocks/definition'
 import PlutoBlockPropControl from './PlutoBlockPropControl.vue'

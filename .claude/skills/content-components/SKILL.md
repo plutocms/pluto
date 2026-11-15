@@ -3,7 +3,7 @@
 An author can put a component of the site in the body of a post. The Visual editor shows it as a
 chip, a click opens its props form, and the site (and the live preview) renders the component. A
 component opts in with `definePlutoBlock(...)` in its file of `components/content/`: the same rule
-as the block editor of the docs layer, which uses the same catalog.
+as the visual block editor of core (the `blocks` field widget), which uses the same catalog.
 
 ## The Markdown
 
@@ -39,7 +39,8 @@ The MDC block form of Nuxt Content, with inline props and no content:
   no indent.
 - `shared/utils/blocks/`: `definition.ts` (the definition types, `blockKey`, `camelKey`,
   `humanizeName`, `sameKey`, `mergeBlockPatch`, `BLOCK_COLORS`), `define.ts` (`definePlutoBlock`),
-  `component-meta.ts` (`blockFromComponentMeta`), `mdc-props.ts`.
+  `component-meta.ts` (`blockFromComponentMeta`), `mdc-props.ts`. The block model of the visual editor
+  is in the same folder (see the block-model skill).
 - `shared/types/pluto-blocks.d.ts`: the types of the two virtual modules.
 - `modules/pluto-blocks/`: `index.ts` (the module) and `catalog.ts` (`findContentComponents`,
   `readBlockEntry`, `BlockCatalog`, `blockComponentFiles`, `blocksModuleSource`,
@@ -50,7 +51,8 @@ The MDC block form of Nuxt Content, with inline props and no content:
   `plutoContentComponentInfo(name)`, and the open-after-insert flag.
 - `app/components/Pluto/Block/`: `PlutoBlockChip.vue` (the node view), `PlutoBlockInsertMenu.vue`
   (the toolbar menu, a `slot: 'component'` item of `usePlutoMarkdownToolbar({ component: true })`),
-  `PlutoBlockPropControl.vue` (one setting; the docs layer uses it too).
+  `PlutoBlockPropControl.vue` (one setting; the visual block editor uses it too). The rest of the folder
+  is the visual block editor (see the block-editor skill).
 - Texts: `pluto.blocks.*`.
 
 **Imports from `shared/` in app code.** The server build keeps a `shared/` file external, and
@@ -75,8 +77,8 @@ relative.
 - `definePlutoBlock` is an auto-import. At run time it returns its argument. The parser reads the call
   as a statement: an object literal, with constants imported from a file. A local variable is not
   read. A parse error, or an argument that is not read, gives one warning and no block for that file.
-- The meta reader gives no prop label: an editor shows its own label (the docs layer adds the shared
-  labels of its presets), else the humanized name.
+- The meta reader gives no prop label: an editor shows its own label (the shared labels of the
+  presets that a layer registers with `blockPresets`), else the humanized name.
 - `BlockCatalog` caches by file text. The parser also keeps a disk cache in
   `<buildDir>/cache/pluto-blocks`; it does not see a change in a file that the component imports.
   Delete that folder after such a change.

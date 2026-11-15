@@ -1,11 +1,11 @@
 import type { PlutoDocsTypeOptions } from '../../modules/pluto-docs/options'
-import { defineAsyncComponent } from 'vue'
-
-const PlutoFieldMdc = defineAsyncComponent(
-  () => import('../components/Pluto/Docs/PlutoFieldMdc.vue')
-)
 
 export default defineNuxtPlugin(() => {
+  const blockPresets = Object.values(BLOCK_PRESETS).map((definition) => ({
+    id: definition.name,
+    definition,
+  }))
+
   const config = useRuntimeConfig().public.plutoDocs as unknown as
     | {
         types: PlutoDocsTypeOptions[]
@@ -13,6 +13,7 @@ export default defineNuxtPlugin(() => {
       }
     | undefined
   if (!config) {
+    definePlutoExtension({ id: 'docs', blockPresets })
     return
   }
 
@@ -38,8 +39,6 @@ export default defineNuxtPlugin(() => {
         label: 'docs.capabilities.delete',
       },
     ],
-    contentFieldWidgets: [
-      { id: 'mdc', widget: 'mdc', component: PlutoFieldMdc },
-    ],
+    blockPresets,
   })
 })
