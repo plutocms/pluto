@@ -63,7 +63,7 @@ function setup(patch: Parameters<typeof resetTestConfig>[1] = {}) {
   const config = resetTestConfig(fake, {
     appId: '12345',
     privateKey,
-    pageType: true,
+    pages: true,
     ...patch,
   })
   registerGithubContent(config, createGithubCache({ headTtl: 0 }))
@@ -99,7 +99,7 @@ describe('the page type', () => {
       await import('../modules/pluto-github/runtime/server/utils/github-setup')
 
     wiring.registerGithubContent(
-      { ...testConfig, pageType: false },
+      { ...testConfig, pages: false },
       createGithubCache({ headTtl: 0 })
     )
 

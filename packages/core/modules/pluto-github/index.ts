@@ -94,7 +94,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
       headTtl: resolved.cache.headTtl,
       cacheStorage: resolved.cache.storage,
       postType: resolved.postType,
-      pageType: resolved.pageType,
       fsRoot: resolved.storage === 'fs' ? nuxt.options.rootDir : '',
       rootDir: nuxt.options.dev ? nuxt.options.rootDir : '',
       host: deployHost.id,
@@ -111,7 +110,6 @@ export default defineNuxtModule<PlutoGithubOptions>({
       storage: resolved.storage,
       dir: resolved.dir,
       postType: resolved.postType,
-      pageType: resolved.pageType,
       skipDeploy: resolved.commit.skipDeploy,
       static: isStatic,
     }

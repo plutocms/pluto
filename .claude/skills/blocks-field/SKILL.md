@@ -15,7 +15,7 @@ There is no `mdc` widget name.
 
 A type whose body is a `blocks` field has the same body on the public site (the block model skill,
 "Public render"). In the item view, the public API gives `blocks` (a Comark document) and no `html`.
-`<PlutoBlocks :value="item.blocks" />` renders it. The Git CMS page type (`plutoGithub.pageType`) is such a
+`<PlutoBlocks :value="item.blocks" />` renders it. The page type (`plutoPages.enabled`) is such a
 type, and `usePage(path)` reads it.
 
 ## The two modes

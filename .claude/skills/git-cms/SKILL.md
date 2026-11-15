@@ -87,7 +87,6 @@ no shell command. Tests: `test/github-git-remote.test.ts`, `test/pluto-github-op
 | `commit.local`      | `true`                                  | Local mode (`fs`, dev only): commit each save to the local Git repo of the project. No repo: Pluto only writes the files.                                                                                                                                                                                                    |
 | `cache.headTtl`     | `60`                                    | Seconds. Zero or more.                                                                                                                                                                                                                                                                                                       |
 | `cache.storage`     | `'cache'`                               | The Nitro storage mount for the cache.                                                                                                                                                                                                                                                                                       |
-| `pageType`          | `false`                                 | Register the page content type (see "The page type"), on the server and on the client.
 | `postType`          | `true`                                  | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`.                                                                                                                                                                                                 |
 
 A bad option turns the CMS off and logs an error. The module does not throw.
@@ -110,7 +109,7 @@ Test: `test/pluto-github-options.test.ts` ("old env names").
 ## Runtime config
 
 When on, the module writes `runtimeConfig.plutoGithub` (the secrets) and
-`runtimeConfig.public.plutoGithub` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`, `postType`, `pageType`, `skipDeploy`).
+`runtimeConfig.public.plutoGithub` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`, `postType`, `skipDeploy`).
 
 ## Storage
 
@@ -151,10 +150,12 @@ The storage layer is in `modules/pluto-github/runtime/server/`. The Nitro plugin
 
 ## The page type
 
-`plutoGithub.pageType: true` registers `plutoGithubPageType` (`runtime/shared/page-type.ts`), on the
-server (`registerGithubContent`) and on the client (the `pluto-github` plugin, with the option
-copied to `runtimeConfig.public.plutoGithub.pageType`). The default is `false`, so a site that does not
-use pages has no empty menu item.
+The core option `plutoPages: { enabled: true }` (default `false`) makes the Git CMS register
+`plutoGithubPageType` (`runtime/shared/page-type.ts`), on the server (`registerGithubContent`, which
+reads `runtimeConfig.public.plutoPages.enabled`) and on the client (the `pluto-github` plugin). The
+default is `false`, so a site that does not use pages has no empty menu item. The type comes from
+`definePlutoPageType` in core `shared/utils/page-type.ts` (the content model skill, "Pages"). The Git CMS
+adds only its storage: `source: 'pages'`, `files: { nested: true }`, its columns and capabilities.
 
 - Name `page`, `source: 'pages'`, `files: { nested: true }`: the id is the path under
   `content/pages` without `.md` (`about`, `about/team`). The `slug` field (label "Path") holds the whole id.
@@ -357,7 +358,7 @@ the `/admin/login` page, the route guard and the navbar. The CMS is the referenc
 See the [admin shell](../admin-shell/SKILL.md) skill.
 
 The module puts the non-secret server settings in the private `runtimeConfig.plutoGithub`: `apiUrl`,
-`skipDeploy`, `headTtl`, `cacheStorage`, `postType`, `pageType`, `fsRoot`. `utils/github-config.ts` reads all
+`skipDeploy`, `headTtl`, `cacheStorage`, `postType`, `fsRoot`. `utils/github-config.ts` reads all
 config in one place (`getGithubConfig`). A test mocks that file.
 
 The `fs` store root is the project dir (the same layout as the repo), so a post is at

@@ -335,7 +335,7 @@ const pages = definePlutoContent<PlutoPage>('page')
  * One published page, by path (`about` or `about/team`). A missing page shows the error page
  * (404). It sets the SEO tags (the title and the description) and the admin bar "Edit Page".
  * `page` is the page: render `page.blocks` with `PlutoBlocks`. The type exists when the option
- * `plutoGithub.pageType` is on.
+ * `plutoPages.enabled` is on.
  *
  * @example
  * const { page } = await usePage(() => String(route.params.path))

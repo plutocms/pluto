@@ -833,6 +833,26 @@ text (the sanitizer keeps the `language-*` class). A highlighter is opt-in: an a
 - A new highlighter layer: a Nitro plugin with `definePlutoHighlighter`, its theme CSS, an entry in
   `PLUTO_LAYER_PATHS` (layers.ts) and in release-please-config.json.
 
+## Pages
+
+The core option `plutoPages: { enabled: true }` (module `modules/pluto-pages`, default `false`) turns on
+the `page` content type. It is a switch only: it sets `runtimeConfig.public.plutoPages.enabled`. Each
+backend registers its own variant of the type when the switch is on, on the server and on the client.
+
+`definePlutoPageType(storage)` in `shared/utils/page-type.ts` is the one definition. A layer imports it
+with `import { definePlutoPageType } from '@plutocms/core/shared/utils/page-type'`. It gives:
+
+- Name `page`. Fields: `title` (required), `slug` (labelled Path: it holds the whole path, such as
+  `about/team`), `description`, and `body` (`richtext`, `widget: 'blocks'`, canvas layout).
+- Status draft or published, `trash`, `adminBar`, `api: { public: true }`.
+- The storage parts come from the backend: `source`, `files`, `timestamps`, `capabilities`,
+  `defaultSort`, the column of the publish date (`publishedAtColumn`), and more status options
+  (`schedule`, `review`).
+
+`usePage(path)` reads one page on the public site. The item has `blocks`, which `PlutoBlocks` renders. The
+site needs a catch-all route (`pages/[...path].vue`). See the git-cms skill for the Git CMS variant, and
+the supabase-integration skill of `@plutocms/supabase` for the table.
+
 ## Scheduled publish and review
 
 Two opt-in options of `status`. The rules are in `shared/utils/content-status.ts` (auto-imported):

@@ -17,7 +17,7 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-07-15',
 
-  plutoGithub: {
-    pageType: true,
+  plutoPages: {
+    enabled: true,
   },
 })

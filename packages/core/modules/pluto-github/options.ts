@@ -53,11 +53,6 @@ export interface PlutoGithubOptions {
   }
   /** Register the fixed post content type. Default `true`. */
   postType?: boolean
-  /**
-   * Register the page type: pages with a block body, in `content/pages`, with nested paths
-   * (`about/team`). `usePage` reads them. Default `false`.
-   */
-  pageType?: boolean
 }
 
 export interface ResolvedPlutoGithubOptions {
@@ -78,7 +73,6 @@ export interface ResolvedPlutoGithubOptions {
     storage: string
   }
   postType: boolean
-  pageType: boolean
 }
 
 export interface PlutoGithubResolveContext {
@@ -165,7 +159,6 @@ export function resolvePlutoGithubOptions(
       storage: options.cache?.storage ?? 'cache',
     },
     postType: options.postType ?? true,
-    pageType: options.pageType ?? false,
   }
 
   const mode = options.enabled ?? 'auto'

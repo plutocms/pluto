@@ -11,14 +11,14 @@ export function isPostTypeOn(
   return config?.postType !== false
 }
 
-export function isPageTypeOn(
+export function isPagesOn(
   config:
     | {
-        pageType?: boolean
+        enabled?: boolean
       }
     | undefined
 ): boolean {
-  return config?.pageType === true
+  return config?.enabled === true
 }
 
 export function showPublicRepoWarning(

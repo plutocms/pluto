@@ -79,7 +79,7 @@ export interface PlutoPost extends PlutoPostSummary {
 
 /**
  * One page of the public API (`usePage`): a published item of the `page` type of the Git CMS
- * (`plutoGithub.pageType`). `id` is the path, for example `about/team`. `blocks` is the body.
+ * (`plutoPages.enabled`). `id` is the path, for example `about/team`. `blocks` is the body.
  */
 export interface PlutoPage {
   id: string

@@ -164,10 +164,11 @@ policies shared by every project here.
   in the item view of the public API, and no `html`, on every backend. `<PlutoBlocks :value="item.blocks" />`
   renders it, on the server too, with the components of `components/content/` (the same set as the
   editor preview). @.claude/skills/block-model/SKILL.md @.claude/skills/blocks-field/SKILL.md
-- Git CMS pages: the option `plutoGithub.pageType` (default `false`) registers the `page` type
-  (`content/pages/<path>.md`, nested paths such as `about/team`, a block body, draft or published, public
-  API on). `usePage(path)` reads one page (404, SEO tags, admin bar edit link).
-  @.claude/skills/git-cms/SKILL.md
+- Pages: the core option `plutoPages.enabled` (default `false`) turns on the `page` type for any backend. One
+  definition in core (`definePlutoPageType`, `shared/utils/page-type.ts`): title, path, description and a block
+  body, draft or published, public API on. The Git CMS stores `content/pages/<path>.md` (nested paths such as
+  `about/team`). `usePage(path)` reads one page (404, SEO tags, admin bar edit link).
+  @.claude/skills/content-model/SKILL.md @.claude/skills/git-cms/SKILL.md
 - Public components: the components for a public site (`PlutoHtml`, `PlutoImage`, `PlutoLogo`,
   `PlutoRoot`, `ColorModeButton`, and those of the layers) use only `pluto-*` classes and work with no Tailwind. Their
   look is plain CSS in each layer's `pluto-base.css`, which a site imports with the opt-in

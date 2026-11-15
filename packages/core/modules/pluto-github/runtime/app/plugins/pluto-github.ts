@@ -7,7 +7,7 @@ import { definePlutoExtension } from '../../../../../app/composables/pluto-exten
 import { usePlutoRegistry } from '../../../../../app/composables/pluto-registry'
 import { plutoGithubAuthorType } from '../../shared/author-type'
 import {
-  isPageTypeOn,
+  isPagesOn,
   isPostTypeOn,
   showBuildStatus,
   showPublicRepoWarning,
@@ -45,12 +45,8 @@ export default defineNuxtPlugin(() => {
       | undefined
   )
 
-  const pageType = isPageTypeOn(
-    useRuntimeConfig().public.plutoGithub as
-      | {
-          pageType?: boolean
-        }
-      | undefined
+  const pageType = isPagesOn(
+    useRuntimeConfig().public.plutoPages as { enabled?: boolean } | undefined
   )
 
   const buildStatus = showBuildStatus(

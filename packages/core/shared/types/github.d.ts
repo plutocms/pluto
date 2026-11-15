@@ -22,7 +22,6 @@ declare module '@nuxt/schema' {
       headTtl: number
       cacheStorage: string
       postType: boolean
-      pageType: boolean
       /** The project root, for the dev fs store. Empty otherwise. */
       fsRoot: string
     }
@@ -37,8 +36,6 @@ declare module '@nuxt/schema' {
       dir: string
       /** The client registers the built-in post type only when this is true. */
       postType: boolean
-      /** The client registers the page type only when this is true. */
-      pageType: boolean
       /** True when a save adds `[skip ci]`. The build status item shows only when this is false. */
       skipDeploy: boolean
       /** A static build (`nuxt generate`, `github_pages`): no server, so no session request. */

@@ -158,7 +158,7 @@ export function registerGithubContent(
     }
     registerContentType(plutoGithubAuthorType)
   }
-  if (config.pageType) {
+  if (config.pages) {
     registerContentType(plutoGithubPageType)
   }
   const store = createContentStore(config, cache, loadSnapshot)
