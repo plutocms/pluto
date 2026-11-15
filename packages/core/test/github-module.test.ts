@@ -234,6 +234,7 @@ describe('pluto-github module wiring', () => {
       headTtl: 30,
       cacheStorage: 'cache',
       postType: true,
+      pageType: false,
       fsRoot: '',
       // The setup writes `.env` in development only.
       rootDir: '',
@@ -247,6 +248,7 @@ describe('pluto-github module wiring', () => {
       'branch',
       'dir',
       'enabled',
+      'pageType',
       'postType',
       'repo',
       'skipDeploy',

@@ -473,7 +473,10 @@
         "publish": "Criar, editar e publicar posts",
         "delete": "Excluir posts",
         "manageTerms": "Criar, editar e excluir tags e categorias",
-        "manageAuthors": "Criar, editar e excluir autores"
+        "manageAuthors": "Criar, editar e excluir autores",
+        "readPageDrafts": "Ler páginas em rascunho",
+        "publishPages": "Criar, editar e publicar páginas",
+        "deletePages": "Excluir páginas"
       },
       "setup": {
         "title": "Configure o login com GitHub",
@@ -1359,6 +1362,28 @@
           "label": "Tags"
         },
         "content": {
+          "label": "Conteúdo"
+        }
+      },
+      "status": {
+        "draft": "Rascunho",
+        "published": "Publicado"
+      }
+    },
+    "page": {
+      "label": "Página",
+      "labelPlural": "Páginas",
+      "fields": {
+        "title": {
+          "label": "Título"
+        },
+        "slug": {
+          "label": "Caminho"
+        },
+        "description": {
+          "label": "Descrição"
+        },
+        "body": {
           "label": "Conteúdo"
         }
       },

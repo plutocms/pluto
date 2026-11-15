@@ -7,10 +7,12 @@ import { definePlutoExtension } from '../../../../../app/composables/pluto-exten
 import { usePlutoRegistry } from '../../../../../app/composables/pluto-registry'
 import { plutoGithubAuthorType } from '../../shared/author-type'
 import {
+  isPageTypeOn,
   isPostTypeOn,
   showBuildStatus,
   showPublicRepoWarning,
 } from '../../shared/client-rules'
+import { plutoGithubPageType } from '../../shared/page-type'
 import { plutoGithubPostType } from '../../shared/post-type'
 import { plutoGithubTermTypes } from '../../shared/term-types'
 import { usePlutoGithubLocalGit } from '../composables/pluto-github-local-git'
@@ -43,6 +45,14 @@ export default defineNuxtPlugin(() => {
       | undefined
   )
 
+  const pageType = isPageTypeOn(
+    useRuntimeConfig().public.plutoGithub as
+      | {
+          pageType?: boolean
+        }
+      | undefined
+  )
+
   const buildStatus = showBuildStatus(
     useRuntimeConfig().public.plutoGithub as
       | {
@@ -61,8 +71,9 @@ export default defineNuxtPlugin(() => {
   }
 
   const { read, write, delete: remove } = plutoGithubPostType.capabilities ?? {}
-  const capabilities = (
-    postType
+  const pageCapabilities = plutoGithubPageType.capabilities ?? {}
+  const capabilities = [
+    ...(postType
       ? [
           { key: read, label: 'pluto.github.capabilities.readDrafts' },
           { key: write, label: 'pluto.github.capabilities.publish' },
@@ -76,8 +87,24 @@ export default defineNuxtPlugin(() => {
             label: 'pluto.github.capabilities.manageAuthors',
           },
         ]
-      : []
-  ).flatMap((entry) =>
+      : []),
+    ...(pageType
+      ? [
+          {
+            key: pageCapabilities.read,
+            label: 'pluto.github.capabilities.readPageDrafts',
+          },
+          {
+            key: pageCapabilities.write,
+            label: 'pluto.github.capabilities.publishPages',
+          },
+          {
+            key: pageCapabilities.delete,
+            label: 'pluto.github.capabilities.deletePages',
+          },
+        ]
+      : []),
+  ].flatMap((entry) =>
     entry.key
       ? [
           {
@@ -162,13 +189,16 @@ export default defineNuxtPlugin(() => {
         to: '/admin/settings/deploy',
       },
     ],
-    contentTypes: postType
-      ? [
-          { id: 'post', type: plutoGithubPostType },
-          ...plutoGithubTermTypes.map((type) => ({ id: type.name, type })),
-          { id: 'author', type: plutoGithubAuthorType },
-        ]
-      : [],
+    contentTypes: [
+      ...(postType
+        ? [
+            { id: 'post', type: plutoGithubPostType },
+            ...plutoGithubTermTypes.map((type) => ({ id: type.name, type })),
+            { id: 'author', type: plutoGithubAuthorType },
+          ]
+        : []),
+      ...(pageType ? [{ id: 'page', type: plutoGithubPageType }] : []),
+    ],
     contentFieldWidgets: [
       {
         id: 'markdown',

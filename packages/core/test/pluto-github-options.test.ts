@@ -87,6 +87,7 @@ describe('resolvePlutoGithubOptions', () => {
       commit: { skipDeploy: false, local: true },
       cache: { headTtl: 60, storage: 'cache' },
       postType: true,
+      pageType: false,
     })
   })
 
@@ -104,6 +105,7 @@ describe('resolvePlutoGithubOptions', () => {
         commit: { skipDeploy: true },
         cache: { headTtl: 0, storage: 'redis' },
         postType: false,
+        pageType: true,
       },
       ctx
     )
@@ -114,6 +116,7 @@ describe('resolvePlutoGithubOptions', () => {
     expect(result.resolved.commit.skipDeploy).toBe(true)
     expect(result.resolved.cache).toEqual({ headTtl: 0, storage: 'redis' })
     expect(result.resolved.postType).toBe(false)
+    expect(result.resolved.pageType).toBe(true)
   })
 
   it('refuses to run with the supabase layer', () => {

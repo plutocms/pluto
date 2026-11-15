@@ -87,6 +87,7 @@ no shell command. Tests: `test/github-git-remote.test.ts`, `test/pluto-github-op
 | `commit.local`      | `true`                                  | Local mode (`fs`, dev only): commit each save to the local Git repo of the project. No repo: Pluto only writes the files.                                                                                                                                                                                                    |
 | `cache.headTtl`     | `60`                                    | Seconds. Zero or more.                                                                                                                                                                                                                                                                                                       |
 | `cache.storage`     | `'cache'`                               | The Nitro storage mount for the cache.                                                                                                                                                                                                                                                                                       |
+| `pageType`          | `false`                                 | Register the page content type (see "The page type"), on the server and on the client.
 | `postType`          | `true`                                  | Register the fixed post content type, on the server and on the client. A layer that brings its own types sets it to `false`.                                                                                                                                                                                                 |
 
 A bad option turns the CMS off and logs an error. The module does not throw.
@@ -109,7 +110,7 @@ Test: `test/pluto-github-options.test.ts` ("old env names").
 ## Runtime config
 
 When on, the module writes `runtimeConfig.plutoGithub` (the secrets) and
-`runtimeConfig.public.plutoGithub` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`, `postType`, `skipDeploy`).
+`runtimeConfig.public.plutoGithub` (`enabled`, `repo`, `branch`, `appSlug`, `storage`, `dir`, `postType`, `pageType`, `skipDeploy`).
 
 ## Storage
 
@@ -147,6 +148,26 @@ The storage layer is in `modules/pluto-github/runtime/server/`. The Nitro plugin
 - `utils/github-paths.ts` — `assertSafeSlug`, `assertSafeContentId`, `contentFilePath`,
   `contentDirPath` and `slugifyTitle`. The path helpers take `{ nested }` as the last argument.
 - `test/fixtures/fake-github.ts` — an in-memory GitHub that counts calls by kind.
+
+## The page type
+
+`plutoGithub.pageType: true` registers `plutoGithubPageType` (`runtime/shared/page-type.ts`), on the
+server (`registerGithubContent`) and on the client (the `pluto-github` plugin, with the option
+copied to `runtimeConfig.public.plutoGithub.pageType`). The default is `false`, so a site that does not
+use pages has no empty menu item.
+
+- Name `page`, `source: 'pages'`, `files: { nested: true }`: the id is the path under
+  `content/pages` without `.md` (`about`, `about/team`). The `slug` field (label "Path") holds the whole id.
+- Fields: `title` (required), `slug`, `description`, `body` (`richtext`, `widget: 'blocks'`, canvas layout).
+- Status draft or published (`liveOnSave`, `trash`), `api: { public: true }`. No scheduling.
+- Capabilities `pages:read_drafts`, `pages:publish`, `pages:delete`. Push users get them through the
+  registered types (`mapRepoPermission`). The plugin lists them in the capability registry with the
+  keys `pluto.github.capabilities.readPageDrafts`, `publishPages` and `deletePages`.
+- The public item has `blocks` and no `html` (see the blocks-field skill). `usePage(path)` reads it.
+  Render it with `<PlutoBlocks :value="page.blocks" />`. A site adds a catch-all route
+  (`pages/[...path].vue`) for the paths.
+- Texts: `content.page.*` (the type) in the locale files, like `content.post.*`.
+- Tests: `test/github-page-type.test.ts`, `test/pluto-github-options.test.ts`, `test/github-client-rules.test.ts`.
 
 ## Adapter
 
@@ -336,7 +357,7 @@ the `/admin/login` page, the route guard and the navbar. The CMS is the referenc
 See the [admin shell](../admin-shell/SKILL.md) skill.
 
 The module puts the non-secret server settings in the private `runtimeConfig.plutoGithub`: `apiUrl`,
-`skipDeploy`, `headTtl`, `cacheStorage`, `postType`, `fsRoot`. `utils/github-config.ts` reads all
+`skipDeploy`, `headTtl`, `cacheStorage`, `postType`, `pageType`, `fsRoot`. `utils/github-config.ts` reads all
 config in one place (`getGithubConfig`). A test mocks that file.
 
 The `fs` store root is the project dir (the same layout as the repo), so a post is at
@@ -404,8 +425,9 @@ reads the session once.
 - Permission check: when `checkedAt` is older than 10 minutes, the session reads the repo again
   with the user token and updates the capabilities. If push access is gone, or GitHub rejects the
   token, the session clears and the answer is 401. If GitHub does not answer, the answer is 503.
-- Capabilities: admin and maintain give `['*']`. Push gives the post type keys
-  (`plutoGithubPostType.capabilities`: `posts:read_drafts`, `posts:publish`, `posts:delete`). The
+- Capabilities: admin and maintain give `['*']`. Push gives the keys of the registered types: the post type
+  (`plutoGithubPostType.capabilities`: `posts:read_drafts`, `posts:publish`, `posts:delete`) and the page type
+  when it is on. The
   adapter and `requireGithubCapability` treat `*` as every capability. GitHub still enforces the real
   permission on each commit, because the commit uses the user token.
 - Dev `fs` store: in dev with `storage: 'fs'`, a request from this machine gets a fixed user

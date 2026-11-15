@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  isPageTypeOn,
   isPostTypeOn,
   isPublicItem,
   showPublicRepoWarning,
@@ -12,6 +13,15 @@ describe('isPostTypeOn', () => {
     expect(isPostTypeOn({})).toBe(true)
     expect(isPostTypeOn(undefined)).toBe(true)
     expect(isPostTypeOn({ postType: false })).toBe(false)
+  })
+})
+
+describe('isPageTypeOn', () => {
+  it('is off unless the option is true', () => {
+    expect(isPageTypeOn({ pageType: true })).toBe(true)
+    expect(isPageTypeOn({ pageType: false })).toBe(false)
+    expect(isPageTypeOn({})).toBe(false)
+    expect(isPageTypeOn(undefined)).toBe(false)
   })
 })
 
