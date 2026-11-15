@@ -13,12 +13,9 @@ import { renderBlock } from './serialize'
 import { findBlock, flatChildren, pathOf } from './tree'
 
 export interface PlutoBlockInfo {
-  /** A plain text or an i18n key. */
   label: string
   icon: string
-  /** A short plain text from the content of the block. */
   excerpt: string
-  /** The name of the component, for a component block. */
   name?: string
 }
 
@@ -126,7 +123,6 @@ export function resolveSlotMode(
   ) {
     return 'blocks'
   }
-  // The parser turns prose that the text editor would lose into a raw block. Markdown keeps it as it is.
   if (children.some((child) => child.kind === 'raw')) {
     return 'markdown'
   }

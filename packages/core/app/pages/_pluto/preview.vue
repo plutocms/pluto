@@ -14,10 +14,14 @@ import {
   parsePreviewMessage,
   previewMessage,
 } from '#layers/pluto/shared/utils/blocks/preview-protocol'
+import { coerceNodeProps } from '#layers/pluto/shared/utils/blocks/prop-types'
+import { resolveBlockDefinition } from '#layers/pluto/shared/utils/blocks/registry'
+import componentBlocks from '#pluto-blocks'
 
 definePageMeta({ layout: false, plutoAdminBar: false })
 
 const { t } = usePlutoI18n()
+const blockSources = usePlutoBlockSources(componentBlocks)
 
 useHead({
   title: () => t('pluto.blocks.preview.title'),
@@ -47,7 +51,6 @@ interface RenderedBlock {
   label: string
   body?: MarkdownDocument
   error?: string
-  /** The inner components, for the labels and the parents. */
   children?: PreviewBlockData['children']
 }
 
@@ -55,18 +58,11 @@ const frontmatter = ref<Record<string, unknown>>({})
 const blocks = shallowRef<RenderedBlock[]>([])
 const selectedId = ref<string | null>(null)
 
-// The parsed body of a block, by id and text. The same text gives the same
-// object, so Vue does not render a block that did not change.
 const cache = new Map<string, MarkdownDocument>()
 const CACHE_LIMIT = 300
 let run = 0
 let wantedScroll: string | null = null
 
-/**
- * Puts the id on each element at the top of a body, and the ids of the inner
- * components on their elements. A component passes the id to its root element.
- * The parse is new, so the inner marks change it in place.
- */
 function mark(
   document: MarkdownDocument,
   block: PreviewBlockData
@@ -88,7 +84,6 @@ function mark(
   return { ...document, nodes }
 }
 
-/** The ids of the inner components, for the cache key: the same text with other ids marks other elements. */
 function childIds(children: PreviewBlockData['children']): string {
   return (children ?? [])
     .map((child) => `${child.id}(${childIds(child.children)})`)
@@ -105,7 +100,13 @@ async function bodyOf(
   }
   try {
     const parsed = await parseMarkdown(block.markdown, { autoUnwrap: false })
-    const body = mark(parsed, block)
+    const typed = {
+      ...parsed,
+      nodes: coerceNodeProps(parsed.nodes, (tag) =>
+        resolveBlockDefinition(tag, { sources: blockSources() })
+      ),
+    }
+    const body = mark(typed, block)
     if (cache.size >= CACHE_LIMIT) {
       cache.delete(cache.keys().next().value!)
     }
@@ -186,7 +187,6 @@ const overlay = ref<{ selected: DOMRect | null; hover: DOMRect | null }>({
   hover: null,
 })
 
-/** The elements of a block. A style or a script has no box. */
 function elementsOf(id: string): HTMLElement[] {
   return [
     ...document.querySelectorAll<HTMLElement>(
@@ -197,7 +197,6 @@ function elementsOf(id: string): HTMLElement[] {
   )
 }
 
-/** The parent of each inner component: an inner component or a top-level block. */
 const parents = computed(() => {
   const map = new Map<string, string>()
   for (const block of blocks.value) {
@@ -206,11 +205,6 @@ const parents = computed(() => {
   return map
 })
 
-/**
- * The block that shows for an id: the block itself, or the nearest parent with
- * elements. A component with more than one root element drops the mark, and a
- * text block inside a component has no mark of its own.
- */
 function shownId(id: string | null): string | null {
   let current = id
   while (current && !elementsOf(current).length) {
@@ -219,7 +213,6 @@ function shownId(id: string | null): string | null {
   return current
 }
 
-/** The box around two boxes. */
 function union(a: DOMRect | null, b: DOMRect | null): DOMRect | null {
   if (!a || !b) {
     return a ?? b
@@ -234,12 +227,6 @@ function union(a: DOMRect | null, b: DOMRect | null): DOMRect | null {
   )
 }
 
-/**
- * The box of an element. An element with no area of its own gives the box of
- * its children: a linked card of Nuxt UI (`UPageCard` with `to`) puts the
- * attributes on an inline link of 0 px width, and a child of that link covers
- * the whole card.
- */
 function elementBox(element: Element, depth = 0): DOMRect | null {
   const rect = element.getBoundingClientRect()
   if (rect.width > 0 && rect.height > 0) {
@@ -255,7 +242,6 @@ function elementBox(element: Element, depth = 0): DOMRect | null {
   return box
 }
 
-/** The box around all elements of a block, in page coordinates. */
 function boxOf(id: string | null): DOMRect | null {
   const shown = shownId(id)
   if (!shown) {
@@ -300,7 +286,6 @@ function scrollToBlock(id: string) {
   }
 }
 
-/** The label of each block, the inner components too. */
 const labels = computed(() => {
   const map = new Map<string, string>()
   const add = (children: RenderedBlock['children']) => {
@@ -316,7 +301,6 @@ const labels = computed(() => {
   return map
 })
 
-/** The innermost block under an element: an inner component, else its top-level block. */
 function blockIdAt(target: EventTarget | null): string | null {
   return target instanceof Element
     ? (target
@@ -427,6 +411,14 @@ const hoverLabel = computed(
   () => (hoverId.value ? labels.value.get(hoverId.value) : '') ?? ''
 )
 
+const PRIMARY_COLOR = 'var(--ui-primary, #6366f1)'
+
+function insetRing(kind: 'selected' | 'hover'): string {
+  return kind === 'selected'
+    ? `inset 0 0 0 2px ${PRIMARY_COLOR}`
+    : `inset 0 0 0 1px color-mix(in oklab, ${PRIMARY_COLOR} 70%, transparent)`
+}
+
 function boxStyle(
   rect: DOMRect | null,
   kind: 'selected' | 'hover'
@@ -434,10 +426,7 @@ function boxStyle(
   if (!rect) {
     return { display: 'none' }
   }
-  // The box has the size of the block, and the ring is an inset box shadow. So a full-width block
-  // (a hero, a page section) gives no horizontal scroll (a border on a larger box did), and the
-  // four sides of the ring stay on screen.
-  const color = 'var(--ui-primary, #6366f1)'
+  const color = PRIMARY_COLOR
   return {
     position: 'absolute',
     left: `${rect.left}px`,
@@ -447,10 +436,7 @@ function boxStyle(
     pointerEvents: 'none',
     zIndex: '2147483000',
     borderRadius: '4px',
-    boxShadow:
-      kind === 'selected'
-        ? `inset 0 0 0 2px ${color}`
-        : `inset 0 0 0 1px color-mix(in oklab, ${color} 70%, transparent)`,
+    boxShadow: insetRing(kind),
     background:
       kind === 'selected'
         ? `color-mix(in oklab, ${color} 8%, transparent)`

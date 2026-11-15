@@ -17,7 +17,6 @@ const open = computed({
   },
 })
 
-/** A target inside a component that takes only some children shows only those blocks. */
 const accepts = computed(() => {
   const target = editor.palette.value.target
   if (target?.parentId === undefined) {

@@ -3,7 +3,7 @@ import type { Component } from 'vue'
 import { MarkdownDocument } from '@comark/vue'
 import { pascalCase } from 'comark/utils'
 import { blockKey } from '#layers/pluto/shared/utils/blocks/definition'
-import blockComponents from '#pluto-block-components'
+import previewComponents from '#pluto-preview-components'
 </script>
 
 <script setup lang="ts">
@@ -11,11 +11,8 @@ import type { MarkdownDocument as PlutoPreviewDocument } from 'comark'
 
 const props = defineProps<{
   id: string
-  /** The parsed body, or `undefined` for a block that the preview does not render. */
   body?: PlutoPreviewDocument
-  /** The name of the block, for the card. */
   label: string
-  /** A parse error of this block. */
   error?: string
 }>()
 
@@ -52,7 +49,7 @@ const PROSE_TAGS = [
 ]
 
 function componentManifest(tag: string) {
-  return blockComponents[blockKey(tag)]?.()
+  return previewComponents[blockKey(tag)]?.()
 }
 
 const { t } = usePlutoI18n()

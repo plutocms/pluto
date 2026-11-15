@@ -83,7 +83,6 @@ function unsafeReason(
     case 'footnoteDefinition':
       return 'footnote'
     case 'textComponent':
-      // The parser reads a footnote reference as a text span.
       return source.startsWith('[^', node.position!.start.offset!)
         ? 'footnote'
         : 'inline-mdc'
@@ -91,7 +90,6 @@ function unsafeReason(
     case 'leafComponent':
       return 'inline-mdc'
     case 'code':
-      // A fenced code inside a list or a quote: only a plain language is safe.
       return node.meta ? 'unknown' : undefined
   }
   if (!SAFE_TYPES.has(node.type)) {
@@ -280,8 +278,6 @@ function parseComponent(ctx: Context, node: MdNode): Entry {
       ...parsed.map((entry) => entry.block),
     ]
   }
-  // Content before the first `#name` is `default`. After a section, loose content
-  // is a `#default` section: the parser keeps no node for that marker.
   let loose: MdNode[] = []
   const flushLoose = () => {
     if (loose.length > 0) {
@@ -300,7 +296,6 @@ function parseComponent(ctx: Context, node: MdNode): Entry {
   }
   flushLoose()
 
-  // The children must be in source order, inside the component.
   const ordered = flatChildren({ slots } as PlutoComponentBlock)
   const sorted = ordered.map((block) =>
     entries.find((entry) => entry.block === block)!

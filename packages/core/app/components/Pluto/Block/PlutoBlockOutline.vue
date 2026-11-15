@@ -20,8 +20,6 @@ const emit = defineEmits<{
 const editor = usePlutoBlockEditor()
 const { t } = usePlutoI18n()
 
-// A block selected in the preview: scroll the list to its row. The editor opens the collapsed
-// parents first, so the watch runs after the render (`flush: 'post'`).
 watch(
   () => editor.selection.value,
   (selection) => {

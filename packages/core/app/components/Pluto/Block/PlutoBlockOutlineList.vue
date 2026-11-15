@@ -21,18 +21,13 @@ function info(block: PlutoBlock) {
   return { ...described, label: tx(described.label) }
 }
 
-/** One slot of a component, with its children, in the outline. */
 interface PlutoBlockChildList {
-  /** The slot name, for example `default`. */
   slot: string
   blocks: PlutoBlock[]
-  /** The label of the slot. */
   title: string
-  /** The label of the "Add" button of the slot. */
   add: string
 }
 
-/** The slots of a component that show their children in the outline. */
 const hasChevrons = computed(() =>
   props.blocks.some((block) => childLists(block).length > 0)
 )
@@ -137,7 +132,6 @@ function onKeydown(event: KeyboardEvent, block: PlutoBlock) {
   } else if (event.key === 'Delete') {
     event.preventDefault()
     editor.remove(block.id)
-    // The row is gone. The focus goes to the block that the editor selects next, so Undo keeps working.
     nextTick(() => {
       const next = editor.selectedId.value
       document
@@ -157,9 +151,6 @@ onMounted(async () => {
     return
   }
   sortable = Sortable.create(list.value, {
-    // The whole row is the handle. The buttons in it (the chevron, the menu) do not start a drag,
-    // and a click selects: a drag starts after a move of 4px. On touch, a short press starts it,
-    // so a swipe still scrolls the list.
     handle: '[data-block-drag]',
     filter: '[data-block-nodrag]',
     preventOnFilter: false,
@@ -169,7 +160,6 @@ onMounted(async () => {
     draggable: 'li',
     animation: 150,
     ghostClass: 'opacity-40',
-    // Mouse events instead of the browser drag and drop: the same on every browser and on touch.
     forceFallback: true,
     fallbackOnBody: true,
     group: `blocks:${props.parentId ?? 'root'}:${props.slotName ?? 'default'}`,
@@ -182,7 +172,6 @@ onMounted(async () => {
       ) {
         return
       }
-      // SortableJS moved the DOM node. Put it back and let Vue render the new order.
       item.remove()
       from.insertBefore(item, from.children[oldIndex] ?? null)
       const block = props.blocks[oldIndex]

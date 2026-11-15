@@ -3,11 +3,9 @@ export const HISTORY_LIMIT = 100
 const HISTORY_MERGE_MS = 600
 
 export interface PlutoHistory<T> {
-  /** Oldest first. */
   past: T[]
   present: T
   future: T[]
-  /** The key and the time of the last push, to join typing in one block. */
   last?: { key: string; at: number }
 }
 

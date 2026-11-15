@@ -25,7 +25,6 @@ function indentLines(text: string, indent: string): string {
 function renderCode(block: PlutoCodeBlock): string {
   const char = block.fence[0] ?? '`'
   let fence = block.fence.length >= 3 ? block.fence : char.repeat(3)
-  // A line of the code that looks like the fence needs a longer fence.
   for (const line of block.code.split('\n')) {
     const match = /^\s*([`~]{3,})\s*$/.exec(line)
     if (match && match[1]![0] === char && match[1]!.length >= fence.length) {

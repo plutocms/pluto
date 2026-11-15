@@ -4,7 +4,6 @@ const props = defineProps<{
   disabled?: boolean
   placeholder?: string
   label: string
-  /** A shorter box, for a slot such as the text of a note. */
   compact?: boolean
 }>()
 
@@ -14,9 +13,6 @@ const emit = defineEmits<{
 
 const { t } = usePlutoI18n()
 
-// The editor writes the Markdown in its own form when it loads a text (and when the text changes
-// from outside, for example on Undo). That is not an edit. Only an update that follows an action
-// of the author (a key, a click, a paste, a drop) goes up, so opening a block never changes it.
 const touched = ref(false)
 let echo = false
 
@@ -36,7 +32,6 @@ function onUpdate(value: string) {
   }
 }
 
-// The first group of the shared toolbar is Undo and Redo. The page has its own.
 const shared = usePlutoMarkdownToolbar({ link: true })
 const items = computed(() => shared.value.slice(1))
 </script>

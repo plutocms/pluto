@@ -54,8 +54,6 @@ watch(
   }
 )
 
-// One undo stack for the page: Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z (or Ctrl+Y). They act while the
-// focus is in the editor (a panel or the canvas). Elsewhere (the Page tab) the browser keeps its own undo.
 function onKeydown(event: KeyboardEvent) {
   if (props.disabled || !(event.ctrlKey || event.metaKey) || event.altKey) {
     return
@@ -82,7 +80,6 @@ function onKeydown(event: KeyboardEvent) {
   } else {
     return
   }
-  // A list row that moves in the DOM loses the focus. Give it back, so the next shortcut works.
   nextTick(() => {
     if (
       row &&

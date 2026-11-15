@@ -79,8 +79,6 @@ const coveredSlots = computed(
     )
 )
 
-// The field edits the slot when the block has text in it, else the prop. It is chosen when the
-// block is selected, so clearing the field does not move the text to the other place while typing.
 const slotBacked = ref(new Set<string>())
 watch(
   () => block.value?.id,
@@ -105,10 +103,6 @@ function propValue(name: string): PlutoPropValue | undefined {
     : component().props[name]
 }
 
-/**
- * A file chosen in the media library for a `media` prop: the URL, and the props of `fills` (the
- * size, and the alt text while it is empty), in one edit.
- */
 function setMedia(
   name: string,
   definitionOfProp: PlutoBlockPropDefinition,

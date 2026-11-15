@@ -29,8 +29,6 @@ const frameKey = ref(0)
 const frameError = ref<string | null>(null)
 
 const src = computed(() => router.resolve(PREVIEW_PATH).href)
-// The preview marks the top-level blocks and their inner components. So the selection it shows
-// is the deepest component on the path of the selected block (a text inside a card shows the card).
 const shownId = computed(() =>
   previewSelectionId(editor.doc.value, editor.selectedId.value)
 )
@@ -42,7 +40,6 @@ function send(message: ReturnType<typeof previewMessage>) {
   frame.value?.contentWindow?.postMessage(message, window.location.origin)
 }
 
-/** The inner components with a readable label. */
 function translateChildren(
   children: PlutoPreviewChild[] | undefined
 ): PlutoPreviewChild[] | undefined {
@@ -53,7 +50,6 @@ function translateChildren(
   }))
 }
 
-/** The blocks with a readable label: the label of a component is an i18n key or a plain text. */
 function messageBlocks() {
   return blocks.value.map((block) => {
     const source = editor.doc.value.blocks.find(
@@ -73,13 +69,12 @@ function messageBlocks() {
   })
 }
 
+function withoutReactiveProxies<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T
+}
+
 function sendRender() {
-  // A nested value of the form is a reactive proxy, and `postMessage` cannot clone a proxy.
-  // The front matter is YAML data, so a JSON copy is a plain copy.
-  const frontmatter = JSON.parse(JSON.stringify(props.frontmatter)) as Record<
-    string,
-    unknown
-  >
+  const frontmatter = withoutReactiveProxies(props.frontmatter)
   send(
     previewMessage('render', {
       frontmatter,

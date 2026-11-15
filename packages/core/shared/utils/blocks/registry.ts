@@ -20,9 +20,7 @@ import { BLOCK_GROUPS, HIDDEN_PROP_NAMES } from './labels'
 export { blockKey, camelKey, humanizeName, mergeBlockPatch }
 
 export interface ResolveOptions {
-  /** The layers: the component layer and the `plutoBlocks` value of the app config. */
   sources?: PlutoBlockSources
-  /** A block of the doc. Its props and slots fill what the definition does not list. */
   block?: PlutoComponentBlock
 }
 

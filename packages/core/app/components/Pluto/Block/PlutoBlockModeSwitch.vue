@@ -2,7 +2,6 @@
 const props = defineProps<{
   mode: 'visual' | 'markdown'
   disabled?: boolean
-  /** Visual is off, for example when the layout has no canvas. */
   visualDisabled?: boolean
 }>()
 

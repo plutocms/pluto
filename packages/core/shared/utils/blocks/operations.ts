@@ -18,12 +18,10 @@ export interface PlutoBlockTarget {
 
 export interface PlutoInsertResult {
   doc: PlutoBlockDoc
-  /** The ids of the new blocks. */
   ids: string[]
 }
 
 function cloneDoc(doc: PlutoBlockDoc): PlutoBlockDoc {
-  // A JSON copy also works for a reactive proxy.
   return JSON.parse(JSON.stringify(doc)) as PlutoBlockDoc
 }
 
@@ -95,12 +93,10 @@ function withIndent(block: PlutoBlock, indent: string): PlutoBlock {
 
 interface ListView {
   blocks: PlutoBlock[]
-  /** The gaps that belong to the list: `gaps[start]` is the gap before the first block. */
   gaps: string[]
   start: number
   parent?: PlutoComponentBlock
   slot?: string
-  /** The slot has no entry yet. */
   missing: boolean
 }
 
@@ -130,7 +126,6 @@ function viewOf(
     }
     start += children.length
   }
-  // A default slot with no entry goes first. Another missing slot goes last.
   return {
     blocks: [],
     gaps: parent.gaps,
@@ -429,7 +424,6 @@ export function moveBlock(
     if (index === located.index) {
       return doc
     }
-    // Only the order of the blocks changes. The gaps stay in place.
     const [block] = view.blocks.splice(located.index, 1)
     view.blocks.splice(index, 0, block!)
     if (target.parentId !== undefined) {

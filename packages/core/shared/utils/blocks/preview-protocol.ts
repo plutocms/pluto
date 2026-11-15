@@ -6,22 +6,16 @@ const PREVIEW_SOURCE = 'pluto-preview'
 
 export interface PlutoPreviewChild {
   id: string
-  /** The component name, as in the Markdown (`card`, `u-page-feature`). */
   name: string
-  /** The label for the outline in the preview. */
   label?: string
-  /** The inner components of this component, in source order over all slots. */
   children?: PlutoPreviewChild[]
 }
 
 export interface PlutoPreviewBlock {
   id: string
   markdown: string
-  /** `false` shows a placeholder card instead of the block. */
   preview?: boolean
-  /** The label for the placeholder card and the outline. */
   label?: string
-  /** The inner components of a component block, in source order over all slots. */
   children?: PlutoPreviewChild[]
 }
 
@@ -38,7 +32,6 @@ export interface PlutoPreviewRender extends Envelope<'render'> {
 }
 
 export interface PlutoPreviewSelect extends Envelope<'select'> {
-  /** `null` clears the selection. */
   id: string | null
 }
 
@@ -56,7 +49,6 @@ export interface PlutoPreviewHover extends Envelope<'hover'> {
 }
 
 export interface PlutoPreviewError extends Envelope<'error'> {
-  /** The block that failed, or none for an error of the whole page. */
   id?: string
   message: string
 }
@@ -88,7 +80,6 @@ function isNullableString(value: unknown): value is string | null {
   return value === null || typeof value === 'string'
 }
 
-// A real page nests a few levels. The limit stops a message that nests without end.
 const MAX_CHILD_DEPTH = 16
 
 function isChildList(

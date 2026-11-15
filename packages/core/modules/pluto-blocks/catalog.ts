@@ -189,26 +189,93 @@ export function blocksModuleSource(blocks: PlutoBlocksConfig): string {
   return `export default ${JSON.stringify(blocks)}\n`
 }
 
-export function blockComponentFiles(dirs: string[]): BlockFile[] {
-  const files: BlockFile[] = []
-  for (const item of findContentComponents(dirs)) {
+export interface ComponentLoader {
+  name: string
+  file: string
+  exportName?: string
+}
+
+export interface RegisteredComponent {
+  pascalName: string
+  filePath: string
+  export?: string
+}
+
+export function contentComponentLoaders(dirs: string[]): ComponentLoader[] {
+  return findContentComponents(dirs).map((item) => ({
+    name: componentBlockName(item.name),
+    file: item.file,
+  }))
+}
+
+export function blockComponentLoaders(dirs: string[]): ComponentLoader[] {
+  return findContentComponents(dirs).flatMap((item) => {
     let text: string
     try {
       text = readFileSync(item.file, 'utf8')
     } catch {
-      continue
+      return []
     }
-    if (hasBlockMacro(text)) {
-      files.push({ name: componentBlockName(item.name), file: item.file })
-    }
-  }
-  return files
+    return hasBlockMacro(text)
+      ? [{ name: componentBlockName(item.name), file: item.file }]
+      : []
+  })
 }
 
-export function componentsModuleSource(files: BlockFile[]): string {
-  const entries = files.map(
-    ({ name, file }) =>
-      `  ${JSON.stringify(name)}: () => import(${JSON.stringify(file)}),`
+export function extraComponentLoaders(
+  names: Iterable<string>,
+  registered: RegisteredComponent[],
+  warn: (message: string) => void
+): ComponentLoader[] {
+  const byKey = new Map(
+    registered.map((component) => [
+      componentBlockName(component.pascalName),
+      component,
+    ])
   )
+  const loaders: ComponentLoader[] = []
+  const unknown: string[] = []
+  for (const name of names) {
+    const key = componentBlockName(name)
+    const component = byKey.get(key)
+    if (!component) {
+      unknown.push(name)
+      continue
+    }
+    loaders.push({
+      name: key,
+      file: component.filePath,
+      exportName: component.export,
+    })
+  }
+  if (unknown.length > 0) {
+    warn(
+      `Block components not found, so the preview skips them: ${unknown.join(', ')}.`
+    )
+  }
+  return loaders
+}
+
+export function mergeComponentLoaders(
+  ...lists: ComponentLoader[][]
+): ComponentLoader[] {
+  const merged = new Map<string, ComponentLoader>()
+  for (const loader of lists.flat()) {
+    if (!merged.has(loader.name)) {
+      merged.set(loader.name, loader)
+    }
+  }
+  return [...merged.values()]
+}
+
+export function componentsModuleSource(loaders: ComponentLoader[]): string {
+  const entries = loaders.map(({ name, file, exportName }) => {
+    const load = `import(${JSON.stringify(file)})`
+    const body =
+      exportName && exportName !== 'default'
+        ? `${load}.then((module) => ({ default: module[${JSON.stringify(exportName)}] }))`
+        : load
+    return `  ${JSON.stringify(name)}: () => ${body},`
+  })
   return `export default {\n${entries.join('\n')}\n}\n`
 }

@@ -46,25 +46,19 @@ import { findBlock, flatChildren, pathOf } from '#layers/pluto/shared/utils/bloc
 
 export interface PlutoBlockSelection {
   id: string
-  /** `preview` when a click in the preview selected the block, so the preview needs no scroll. */
   source: 'ui' | 'preview'
 }
 
 export interface PlutoBlockEditorOptions {
-  /** The Markdown text of the field. */
   source: () => string
-  /** Called with the new text after each edit, undo and redo. Never called at the start. */
   emit: (value: string) => void
-  /** The layers of the block definitions: the component layer and the `plutoBlocks` of the app config. */
   sources?: () => PlutoBlockSources | undefined
   now?: () => number
 }
 
 export interface PlutoBlockEditor {
-  /** The layers of the block definitions. The palette, the preview and the labels read them here. */
   sources: ComputedRef<PlutoBlockSources>
   doc: ComputedRef<PlutoBlockDoc>
-  /** The message of a parse error. The editor then offers the Markdown mode only. */
   error: Ref<string | null>
   selection: Ref<PlutoBlockSelection | null>
   selectedId: ComputedRef<string | null>
@@ -72,12 +66,9 @@ export interface PlutoBlockEditor {
   hoverId: Ref<string | null>
   canUndo: ComputedRef<boolean>
   canRedo: ComputedRef<boolean>
-  /** True once a block was edited since the editor opened. */
   edited: ComputedRef<boolean>
-  /** The ids of the blocks that changed since the editor opened. A dot marks them in the outline. */
   editedIds: ComputedRef<Set<string>>
   palette: Ref<{ open: boolean; target: PlutoBlockTarget | null }>
-  /** The components whose children the outline hides. A selection inside one opens it. */
   collapsedIds: Ref<Set<string>>
   toggleCollapsed: (id: string) => void
   select: (id: string | null, source?: 'ui' | 'preview') => void
@@ -90,11 +81,9 @@ export interface PlutoBlockEditor {
   ) => string[]
   remove: (id: string) => void
   duplicate: (id: string) => void
-  /** Moves a block by `delta` places in its own list. */
   move: (id: string, delta: number) => void
   moveTo: (id: string, target: PlutoBlockTarget) => void
   setProp: (id: string, key: string, value: PlutoPropValue) => void
-  /** Sets some props in one edit (one undo step). */
   setProps: (id: string, patch: Record<string, PlutoPropValue>) => void
   setSlot: (id: string, slot: string, markdown: string) => void
   updateText: (id: string, markdown: string) => void
@@ -102,11 +91,9 @@ export interface PlutoBlockEditor {
     id: string,
     patch: Partial<Pick<PlutoCodeBlock, 'lang' | 'filename' | 'meta' | 'code'>>
   ) => void
-  /** Replaces a block with the blocks parsed from Markdown, and selects the first one. */
   replaceMarkdown: (id: string, markdown: string) => void
   definitionOf: (block: PlutoBlock) => PlutoBlockDefinition | undefined
   describe: (block: PlutoBlock) => ReturnType<typeof describeBlock>
-  /** The list that holds a block: the doc, or one slot. */
   siblings: (id: string) => PlutoBlock[]
 }
 
@@ -176,7 +163,6 @@ export function createPlutoBlockEditor(
   )
   const selectedId = computed(() => selected.value?.block.id ?? null)
 
-  // The text changed outside the editor (a reload, a switch from the Markdown mode).
   watch(options.source, (value) => {
     if (value === lastEmitted) {
       return
@@ -198,7 +184,6 @@ export function createPlutoBlockEditor(
     collapsedIds.value = next
   }
 
-  // A block selected in the preview or in the panel must show in the outline: open its parents.
   watch(selection, (current) => {
     if (!current) {
       return
@@ -383,7 +368,6 @@ export function createPlutoBlockEditor(
   }
 }
 
-// Nuxt types `useAppConfig()` from the literal config, where `'inline'` is a `string`: read `plutoBlocks` through this function.
 function usePlutoBlocksConfig(): () => PlutoBlocksConfig | undefined {
   const appConfig = useAppConfig()
   return () => appConfig.plutoBlocks as unknown as PlutoBlocksConfig | undefined

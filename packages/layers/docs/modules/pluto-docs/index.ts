@@ -8,9 +8,16 @@ import {
   defineNuxtModule,
   useLogger,
 } from '@nuxt/kit'
+import { PRESET_COMPONENT_NAMES } from '../../shared/utils/block-preset-components'
 import { collectionTypes } from './collections'
 import { buildContentManifest, manifestModuleSource } from './manifest'
 import { resolvePlutoDocsOptions } from './options'
+
+declare module '@nuxt/schema' {
+  interface NuxtHooks {
+    'pluto:blocks:components': (names: Set<string>) => void | Promise<void>
+  }
+}
 
 export type { PlutoDocsOptions, PlutoDocsTypeOptions } from './options'
 
@@ -41,6 +48,12 @@ export default defineNuxtModule<PlutoDocsOptions>({
     ).plutoGithub
     const cmsEnabled = cms?.enabled !== false
     const fromCollections = (options.types ?? []).length === 0
+
+    nuxt.hook('pluto:blocks:components', (names) => {
+      for (const name of PRESET_COMPONENT_NAMES) {
+        names.add(name)
+      }
+    })
 
     if (!cmsEnabled) {
       for (const error of resolvePlutoDocsOptions(options, { cmsEnabled })

@@ -113,10 +113,10 @@ and renders it with `MarkdownDocument` of `@comark/vue` (`PlutoPreviewBlock`). A
 wrapper of each block has `display: contents`. It fetches nothing. The editor's own parser
 (`parse.ts`, remark) stays: it needs exact source positions.
 
-- The components come from `#pluto-block-components` (the files of `components/content/` that call
-  `definePlutoBlock`), through the `componentsManifest` of `MarkdownDocument`. `Prose*` components that
-  the app registers as global components render the HTML tags. Any other tag renders as an unknown
-  element.
+- The components come from `#pluto-preview-components` (see "Constraints"), through the
+  `componentsManifest` of `MarkdownDocument`. A layer adds names with the hook `pluto:blocks:components`
+  (the docs layer adds the Nuxt UI `u-*` components of its presets). `Prose*` components that the app
+  registers as global components render the HTML tags. Any other tag renders as an unknown element.
 - Core's `nuxt.config.ts` has the route rules for `/_pluto/preview`: `ssr: false`, `prerender: false`,
   `x-robots-tag: noindex`. An app rule for the same path wins.
 - The page sets `layout: false` and `plutoAdminBar: false` (no admin bar in the frame).
@@ -212,3 +212,55 @@ Docs layer (`packages/layers/docs/test/`, they need the Nuxt UI presets): `block
 (no emit on open for the 48 pages, each action, Undo and Redo), `blocks-editor-helpers.test.ts` (labels,
 excerpts, slot editors, preview blocks, palette), `docs-type.test.ts` (the canvas layout and the View
 link). The locale tests check the keys of the UI.
+
+## Constraints that the code does not say
+
+These came from code comments. Keep them true when you change the code.
+
+- **Preview ring:** the highlight box has the size of the block, and the ring is an inset box shadow
+  (`insetRing`). A border on a larger box gives a horizontal scroll for a full-width block (a hero, a
+  page section), and the inset ring keeps all four sides on screen.
+- **Boxes of an element:** an element with no area gives the box of its children. A linked Nuxt UI card
+  (`UPageCard` with `to`) puts the attributes on an inline link of 0 px width, and a child of that link
+  covers the card.
+- **Marks:** a component with more than one root element drops the mark, so the nearest marked parent
+  shows. A text block inside a component has no mark, so the editor sends the deepest component on the
+  path of the selection.
+- **Parse cache:** the preview caches the parsed body by block id, text and inner ids. The same text gives
+  the same object, so Vue does not render a block that did not change. The inner marks change the new
+  parse in place, so never mark a cached body.
+- **`postMessage`:** the front matter of the form holds reactive proxies, and `postMessage` cannot clone
+  a proxy. `withoutReactiveProxies` makes a plain JSON copy.
+- **The preview frame:** a style or a script has no box. The pointer over the iframe goes to the frame
+  and the drag of the split stops, so the preview takes no pointer events while the handle moves. The
+  split saves its size when the drag ends. It reads the saved size once: a reactive `defaultSize` would
+  rebuild the panels on each save.
+- **The split handle:** a 1px line. A `::before` 2.5px wider on each side is the 6px grab area. The bar
+  fades in after 300ms of hover and shows at once while dragging. The `!` keeps the duration and the
+  delay against the no-transition rule of the admin (`pluto-layer.css`).
+- **Outline list:** SortableJS uses mouse events (not the browser drag and drop), the same on every
+  browser and on touch. It moves the DOM node, so the code puts it back and lets Vue render the new
+  order. When a row is gone, the focus goes to the block that the editor selects next, so Undo keeps
+  working. A list row that moves in the DOM loses the focus, so the editor gives it back.
+- **Selection:** a block selected in the preview scrolls its row after the render (`flush: 'post'`),
+  because the editor opens the collapsed parents first. A selection in the panel or the preview opens
+  the parents.
+- **Undo keys:** one undo stack for the page. Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z (or Ctrl+Y) act while the
+  focus is in the editor. In the Page tab the browser keeps its own undo. The text editor hides its
+  Undo and Redo group, because the page has its own.
+- **Text editor:** Tiptap writes the Markdown in its own form when it loads a text, and when the text
+  changes from outside (Undo). That is not an edit. Only an update after an action of the author goes
+  up, so opening a block never changes it.
+- **Props and slots:** a prop with `slot` is edited in the slot when the block has text in it, else in
+  the prop. The panel chooses when the block is selected, so clearing the field while typing does not
+  move the text to the other place.
+- **App config:** Nuxt types `useAppConfig()` from the literal config, where `'inline'` is a `string`, so
+  `plutoBlocks` is read through `usePlutoBlocksConfig`.
+- **Editor state:** it reads the text again, and clears the history, when the text changes from outside
+  (a reload, a switch from the Markdown mode).
+- **Types of props:** the parser gives every prop as text. The preview converts each prop to the type of
+  its definition before it renders (`coerceNodeProps`, `coerceBlockProps`): `number` and `boolean`
+  props only. A bare attribute is `true`.
+- **Preview components:** `#pluto-preview-components` lists every component of a `components/content/`
+  folder, and the names that a layer adds with the build hook `pluto:blocks:components`. The public
+  `#pluto-block-components` lists only the components that call `definePlutoBlock`.

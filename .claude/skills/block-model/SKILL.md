@@ -206,3 +206,25 @@ Comark. Change a pin only with a run of the corpus test.
   colons, is a raw block.
 - A YAML comment between props is lost when that component's props change.
 - An edited Text block uses `\n`. A page with `\r\n` keeps its bytes until a block is edited.
+
+## Constraints that the code does not say
+
+These came from code comments. Keep them true when you change the code.
+
+- The truth stays the Markdown string: a block with `original` is written back byte for byte.
+- The model copies a doc with a JSON copy, so a reactive proxy works too.
+- The parser reads a footnote reference as a text span, so a text span that starts with `[^` is a
+  `footnote` block, not an inline component.
+- A fenced code with a meta string inside a list or a quote is a raw `unknown` block: only a plain
+  language is safe there.
+- Content before the first `#name` is `default`. After a section, loose content is a `#default`
+  section, because the parser keeps no node for that marker. The children must be in source order,
+  inside the component.
+- A default slot with no entry goes first. Another missing slot goes last.
+- A move in one list changes only the order of the blocks. The gaps stay in place.
+- A line of code that looks like the fence needs a longer fence.
+- The parser turns prose that the text editor would lose into a raw block. Markdown keeps it as it is.
+- The preview messages limit the depth of `children` (16). A real page nests a few levels, and the limit
+  stops a message that nests without end.
+- `coerceBlockProps` and `coerceNodeProps` (`prop-types.ts`) are pure. They convert the text props of
+  a parsed component to the types of its definition, so the public render can reuse them.
