@@ -36,6 +36,7 @@ export function usePlutoRegistry(): PlutoRegistry {
       contentActions: createOwnedRegistry<PlutoContentAction>(),
       contentToolbarItems: createOwnedRegistry<PlutoContentToolbarItem>(),
       contentHead: createOwnedRegistry<PlutoContentHead>(),
+      blockPresets: createOwnedRegistry<PlutoBlockPreset>(),
       mediaKinds: createOwnedRegistry<PlutoMediaKind>(),
       navGroups: createOwnedRegistry<PlutoNavGroup>(),
       embedProviders: createOwnedRegistry<PlutoEmbedProvider>(),

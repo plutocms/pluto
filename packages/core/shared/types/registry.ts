@@ -1,4 +1,5 @@
 import type { Component, ComputedRef } from 'vue'
+import type { PlutoBlockDefinition } from '../utils/blocks/definition'
 import type {
   PlutoContentType,
   PlutoContentTypeExtension,
@@ -60,6 +61,17 @@ export interface PlutoNavGroup extends PlutoEntry {
   /** A translation key or literal: the name of the group ("Pages"). */
   label: PlutoText
   icon?: string
+}
+
+/**
+ * A block of the visual editor that a layer ships, like a prose component of a site kit. The
+ * definition takes the labels as translation keys or literals. The editor joins the presets with
+ * the component layer and the `plutoBlocks` of the app config, which win. With no preset, the
+ * editor still lists the components of the site.
+ * @see https://pluto.vulmix.dev/docs/extend/edit-pages-visually
+ */
+export interface PlutoBlockPreset extends PlutoEntry {
+  definition: PlutoBlockDefinition
 }
 
 /**
@@ -413,6 +425,7 @@ export interface PlutoExtension {
   contentActions?: PlutoContentAction[]
   contentToolbarItems?: PlutoContentToolbarItem[]
   contentHead?: PlutoContentHead[]
+  blockPresets?: PlutoBlockPreset[]
   mediaKinds?: PlutoMediaKind[]
   navGroups?: PlutoNavGroup[]
   embedProviders?: PlutoEmbedProvider[]
@@ -447,6 +460,7 @@ export interface PlutoRegistry {
   contentActions: PlutoRegistryBucket<PlutoContentAction>
   contentToolbarItems: PlutoRegistryBucket<PlutoContentToolbarItem>
   contentHead: PlutoRegistryBucket<PlutoContentHead>
+  blockPresets: PlutoRegistryBucket<PlutoBlockPreset>
   mediaKinds: PlutoRegistryBucket<PlutoMediaKind>
   navGroups: PlutoRegistryBucket<PlutoNavGroup>
   embedProviders: PlutoRegistryBucket<PlutoEmbedProvider>

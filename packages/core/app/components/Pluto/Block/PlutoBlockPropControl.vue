@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PlutoBlockPropDefinition } from '../../../../shared/utils/blocks/definition'
+import type { PlutoBlockPropDefinition } from '#layers/pluto/shared/utils/blocks/definition'
 import { parse, stringify } from 'yaml'
 import { humanizeName } from '#layers/pluto/shared/utils/blocks/definition'
 

@@ -1,37 +1,46 @@
 import type {
   PlutoBlocksConfig,
   PlutoComponentBlock,
-} from '../shared/utils/blocks/types'
+} from '#layers/pluto/shared/utils/blocks/types'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { definePlutoBlock } from '#layers/pluto/shared/utils/blocks/define'
-import { buildPalette } from '../shared/utils/blocks/editor'
-import { parseBlocks } from '../shared/utils/blocks/parse'
 import {
   BLOCK_GROUPS,
   BLOCK_KIND_LABELS,
-  BLOCK_PRESETS,
   groupLabelKey,
-} from '../shared/utils/blocks/presets'
+} from '#layers/pluto/shared/utils/blocks/labels'
+import { parseBlocks } from '#layers/pluto/shared/utils/blocks/parse'
 import {
   blockKey,
   humanizeName,
   insertTextFor,
+} from '#layers/pluto/shared/utils/blocks/registry'
+import { serializeBlocks } from '#layers/pluto/shared/utils/blocks/serialize'
+import { corpusBodies } from '../../../core/test/helpers/corpus'
+import {
+  BLOCK_PRESETS,
+  buildPalette,
   listPaletteBlocks,
   resolveBlockDefinition,
-} from '../shared/utils/blocks/registry'
-import { serializeBlocks } from '../shared/utils/blocks/serialize'
-import { corpusBodies } from './helpers/corpus'
+} from './helpers/blocks'
 
 const localeDir = join(__dirname, '..', 'i18n', 'locales')
+const coreLocaleDir = join(__dirname, '../../../core/i18n/locales')
 const locales: Record<string, Record<string, unknown>> = {
   en: JSON.parse(readFileSync(join(localeDir, 'en.json'), 'utf8')),
   'pt-BR': JSON.parse(readFileSync(join(localeDir, 'pt-BR.json'), 'utf8')),
 }
+const coreLocales: Record<string, Record<string, unknown>> = {
+  en: JSON.parse(readFileSync(join(coreLocaleDir, 'en.json'), 'utf8')),
+  'pt-BR': JSON.parse(readFileSync(join(coreLocaleDir, 'pt-BR.json'), 'utf8')),
+}
 
 function translated(code: string, key: string): string | undefined {
-  let value: unknown = locales[code]
+  let value: unknown = key.startsWith('pluto.')
+    ? coreLocales[code]
+    : locales[code]
   for (const part of key.split('.')) {
     value = (value as Record<string, unknown> | undefined)?.[part]
   }
@@ -89,19 +98,19 @@ describe('block presets', () => {
     )
   })
 
-  it('use i18n keys of the docs namespace for every label and description', () => {
+  it('use i18n keys of the docs or the block namespace for every label and description', () => {
     for (const definition of Object.values(BLOCK_PRESETS)) {
       for (const key of keysOf(definition)) {
-        expect(key, definition.name).toMatch(
-          /^docs.blocks\.[\w-]+(?:\.[\w-]+)+$/
-        )
+        expect(['docs', 'pluto'], definition.name).toContain(key.split('.')[0])
+        expect(key.split('.')[1], definition.name).toBe('blocks')
+        expect(key.split('.').length, definition.name).toBeGreaterThan(2)
       }
     }
     for (const key of [
       ...Object.values(BLOCK_KIND_LABELS),
       ...BLOCK_GROUPS.map((group) => groupLabelKey(group)),
     ]) {
-      expect(key).toMatch(/^docs.blocks\./)
+      expect(key.startsWith("pluto.blocks.")).toBe(true)
     }
   })
 
@@ -126,7 +135,7 @@ describe('block presets', () => {
     const used = new Set<string>([
       ...Object.values(BLOCK_KIND_LABELS),
       ...BLOCK_GROUPS.map((group) => groupLabelKey(group)),
-      'docs.blocks.kinds.table',
+      'pluto.blocks.kinds.table',
     ])
     for (const { entries } of buildPalette()) {
       for (const entry of entries.filter((item) => item.kind !== 'component')) {

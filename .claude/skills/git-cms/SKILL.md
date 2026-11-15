@@ -868,7 +868,7 @@ formats with their shortcuts (`formatMarkdown`, `shared/utils/markdown-format.ts
 #### Preview
 
 The preview is an iframe of `/_pluto/post-preview` (`PLUTO_POST_PREVIEW_PATH`), so the post shows
-with the CSS of the site. It is not under `/_pluto/preview`, because the docs layer owns
+with the CSS of the site. It is not under `/_pluto/preview`, because the visual block editor owns
 that page. `isPlutoPreviewPath` covers both paths (no admin bar, no index).
 
 - `PlutoPostPreviewFrame.vue` sends the text to the frame with `postMessage`. The frame renders it

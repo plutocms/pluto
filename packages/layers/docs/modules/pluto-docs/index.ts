@@ -8,7 +8,6 @@ import {
   defineNuxtModule,
   useLogger,
 } from '@nuxt/kit'
-import { PREVIEW_PATH } from '../../shared/utils/blocks/preview-protocol'
 import { collectionTypes } from './collections'
 import { buildContentManifest, manifestModuleSource } from './manifest'
 import { resolvePlutoDocsOptions } from './options'
@@ -134,16 +133,6 @@ export default defineNuxtModule<PlutoDocsOptions>({
           return manifestSource
         }
       })
-
-      // An app rule for the same path wins.
-      nuxt.options.routeRules = {
-        [PREVIEW_PATH]: {
-          ssr: false,
-          prerender: false,
-          headers: { 'x-robots-tag': 'noindex, nofollow' },
-        },
-        ...nuxt.options.routeRules,
-      }
 
       if (!nuxt.options._prepare) {
         logger.info(

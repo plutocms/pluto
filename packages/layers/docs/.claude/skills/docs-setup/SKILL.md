@@ -175,9 +175,9 @@ shared config.
   registers the adapter. The order of the two plugins does not matter, because the adapter looks
   up the type for each request.
 - The client plugin calls `definePlutoExtension` (extension id `docs`) with the
-  `contentTypes`, the `capabilities` (`docs:write`, `docs:delete`), the `mdc` field widget
-  (`defineAsyncComponent`), and the admin bar actions. The module also adds the route rules of the
-  preview page `/_pluto/preview` (see the block editor skill).
+  `contentTypes`, the `capabilities` (`docs:write`, `docs:delete`), the `blockPresets` of the
+  visual block editor, and the admin bar actions. The preview page `/_pluto/preview` and its route
+  rules are in core (see the block editor skill).
 
 ## Zero config
 

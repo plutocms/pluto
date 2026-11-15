@@ -157,7 +157,7 @@ policies shared by every project here.
 - Content components: a component of `components/content/` that calls `definePlutoBlock(...)` can go
   in a post (`::name{props}` then `::`). The Visual editor shows a chip with a props form and an
   **Insert a component** menu; the site and the preview render the component, with safe props only.
-  Core finds the components for the block editor of the docs layer too.
+  The visual block editor uses the same catalog.
   @.claude/skills/content-components/SKILL.md
 - Public components: the components for a public site (`PlutoHtml`, `PlutoImage`, `PlutoLogo`,
   `PlutoRoot`, `ColorModeButton`, and those of the layers) use only `pluto-*` classes and work with no Tailwind. Their

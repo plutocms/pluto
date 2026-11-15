@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { setProps } from '../shared/utils/blocks/operations'
-import { parseBlocks } from '../shared/utils/blocks/parse'
-import { resolveBlockDefinition } from '../shared/utils/blocks/registry'
-import { serializeBlocks } from '../shared/utils/blocks/serialize'
+import { setProps } from '#layers/pluto/shared/utils/blocks/operations'
+import { parseBlocks } from '#layers/pluto/shared/utils/blocks/parse'
+import { serializeBlocks } from '#layers/pluto/shared/utils/blocks/serialize'
+import { resolveBlockDefinition } from './helpers/blocks'
 
 describe('the Image block', () => {
   it('has a media prop that fills the size and the alt text', () => {

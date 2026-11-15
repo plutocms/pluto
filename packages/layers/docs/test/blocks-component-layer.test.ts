@@ -1,11 +1,11 @@
 import type { PlutoComponentMeta } from '#layers/pluto/shared/utils/blocks/component-meta'
-import type { PlutoComponentBlock } from '../shared/utils/blocks/types'
+import type { PlutoComponentBlock } from '#layers/pluto/shared/utils/blocks/types'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { blockFromComponentMeta } from '#layers/pluto/shared/utils/blocks/component-meta'
-import { parseBlocks } from '../shared/utils/blocks/parse'
-import { resolveBlockDefinition } from '../shared/utils/blocks/registry'
+import { parseBlocks } from '#layers/pluto/shared/utils/blocks/parse'
+import { resolveBlockDefinition } from './helpers/blocks'
 
 function fixture(name: string): PlutoComponentMeta {
   return JSON.parse(
@@ -31,11 +31,11 @@ describe('the component layer in the block editor', () => {
     })
     expect(resolved.props!.icon).toMatchObject({
       type: 'icon',
-      label: 'docs.blocks.props.icon',
+      label: 'pluto.blocks.props.icon',
     })
     expect(resolved.props!.center).not.toHaveProperty('label')
     expect(resolved.slots!.default).toMatchObject({
-      label: 'docs.blocks.slots.default',
+      label: 'pluto.blocks.slots.default',
       content: 'inline',
     })
   })

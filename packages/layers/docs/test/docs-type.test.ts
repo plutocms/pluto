@@ -54,7 +54,7 @@ describe('createDocsType', () => {
   it('makes the body a visual MDC field', () => {
     expect(type.fields.find((field) => field.name === 'body')).toMatchObject({
       type: 'richtext',
-      widget: 'mdc',
+      widget: 'blocks',
       editor: 'visual',
     })
   })
@@ -77,7 +77,7 @@ describe('createDocsType', () => {
       layout: 'canvas',
       canvasField: 'body',
       leftPanel: {
-        label: 'docs.editor.blocks',
+        label: 'pluto.blocks.editor.blocks',
         class: 'bg-pluto-panel',
       },
     })

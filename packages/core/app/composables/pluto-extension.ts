@@ -70,6 +70,7 @@ export function definePlutoExtension(definition: PlutoExtension): void {
     definition.contentToolbarItems ?? []
   )
   registry.contentHead.set(definition.id, definition.contentHead ?? [])
+  registry.blockPresets.set(definition.id, definition.blockPresets ?? [])
 }
 
 const warnedComponents = new Set<string>()

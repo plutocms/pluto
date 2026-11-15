@@ -165,7 +165,7 @@ export function createDocsType(options: DocsTypeOptions): PlutoContentType {
         name: 'body',
         type: 'richtext',
         label: 'Content',
-        widget: 'mdc',
+        widget: 'blocks',
         editor: 'visual',
         inList: false,
         order: 40,
@@ -228,7 +228,7 @@ export function createDocsType(options: DocsTypeOptions): PlutoContentType {
       layout: 'canvas',
       canvasField: 'body',
       leftPanel: {
-        label: 'docs.editor.blocks',
+        label: 'pluto.blocks.editor.blocks',
         class: 'bg-pluto-panel',
       },
     },

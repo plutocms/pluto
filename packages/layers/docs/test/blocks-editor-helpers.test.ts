@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
-  buildPalette,
-  describeBlock,
   plainExcerpt,
   resolveSlotMode,
   slotMarkdown,
-  toPreviewBlocks,
-} from '../shared/utils/blocks/editor'
-import { parseBlocks } from '../shared/utils/blocks/parse'
-import { findBlock } from '../shared/utils/blocks/tree'
+} from '#layers/pluto/shared/utils/blocks/editor'
+import { parseBlocks } from '#layers/pluto/shared/utils/blocks/parse'
+import { findBlock } from '#layers/pluto/shared/utils/blocks/tree'
+import { buildPalette, describeBlock, toPreviewBlocks } from './helpers/blocks'
 
 function first(source: string) {
   return parseBlocks(source).blocks[0]!
@@ -27,7 +25,7 @@ describe('describeBlock', () => {
   it('names a text block by its heading', () => {
     const info = describeBlock(first('## Install the thing\n\nText.'))
     expect(info).toMatchObject({
-      label: 'docs.blocks.kinds.text',
+      label: 'pluto.blocks.kinds.text',
       icon: 'i-lucide-heading',
       excerpt: 'Install the thing',
     })
@@ -42,7 +40,7 @@ describe('describeBlock', () => {
 
   it('names a table block', () => {
     expect(describeBlock(first('| a | b |\n| - | - |\n| 1 | 2 |')).label).toBe(
-      'docs.blocks.kinds.table'
+      'pluto.blocks.kinds.table'
     )
   })
 

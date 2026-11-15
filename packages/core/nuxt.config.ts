@@ -81,6 +81,11 @@ export default defineNuxtConfig({
     '/admin/**': {
       ssr: false,
     },
+    '/_pluto/preview': {
+      ssr: false,
+      prerender: false,
+      headers: { 'x-robots-tag': 'noindex, nofollow' },
+    },
   },
 
   experimental: {

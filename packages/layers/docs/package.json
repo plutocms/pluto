@@ -27,13 +27,6 @@
     "@nuxt/content": "^3.16.2",
     "@nuxtjs/mdc": "^0.23.2",
     "@plutocms/core": ">=0.69.0 <1.0.0",
-    "@types/sortablejs": "^1.15.9",
-    "reka-ui": "^2.11.0",
-    "remark-gfm": "4.0.1",
-    "remark-mdc": "3.11.1",
-    "remark-parse": "11.0.0",
-    "sortablejs": "^1.15.7",
-    "unified": "11.0.5",
     "yaml": "2.9.1"
   },
   "devDependencies": {
