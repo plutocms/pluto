@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.28.0](https://github.com/plutocms/pluto/compare/docs-v0.27.0...docs-v0.28.0) (2026-11-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** the block editor moves to core ([#543](https://github.com/plutocms/pluto/issues/543))
+
+### Bug Fixes
+
+* **docs:** require core 0.72, which holds the block editor ([#549](https://github.com/plutocms/pluto/issues/549)) ([4942116](https://github.com/plutocms/pluto/commit/4942116d492dc240b6e15dbcce04f509d2604c9f))
+
+
+### Code Refactoring
+
+* **core:** the block editor moves to core ([#543](https://github.com/plutocms/pluto/issues/543)) ([9bee2ee](https://github.com/plutocms/pluto/commit/9bee2ee3301656190455a7238ce06ecd03f16df9))
+
 ## [0.27.0](https://github.com/plutocms/pluto/compare/docs-v0.26.0...docs-v0.27.0) (2026-11-14)
 
 
