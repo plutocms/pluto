@@ -1,9 +1,11 @@
 import type { ComputedRef, MaybeRefOrGetter } from 'vue'
 import type {
+  PlutoArea,
   PlutoAuthor,
   PlutoContentDefaults,
   PlutoContentItemOptions,
   PlutoContentListOptions,
+  PlutoMenu,
   PlutoPage,
   PlutoPost,
   PlutoPostSummary,
@@ -11,6 +13,7 @@ import type {
   PlutoTerm,
 } from '../../shared/types/public-api'
 import { computed, onScopeDispose, ref, toValue, watch } from 'vue'
+import { plutoMenuItems } from '../../shared/utils/menu-items'
 import { usePlutoEditLink } from './pluto-edit-link'
 import { usePlutoAdminBar } from './pluto-navbar'
 import {
@@ -348,6 +351,54 @@ export function usePage(
 ) {
   const result = pages.useItem(path, options)
   return extendPlutoAsyncData(result, { page: result.item })
+}
+
+const menus = definePlutoContent<PlutoMenu>('menu')
+
+/**
+ * One menu, by handle (`main`). `items` is the tree of links (`{ label, to, target, children }`),
+ * and `menu` is the menu. A missing menu is not an error: `menu` is `null` and `items` is
+ * empty, so a template can fall back to its own links. The type exists when the option
+ * `plutoMenus.enabled` is on.
+ *
+ * @example
+ * const { items } = await usePlutoMenu('main')
+ *
+ * @see https://pluto.vulmix.dev/docs/build/menus
+ */
+export function usePlutoMenu(handle: MaybeRefOrGetter<string>) {
+  const result = menus.useItem(handle, {
+    notFound: 'null',
+    seo: false,
+    editLink: false,
+    drafts: false,
+  })
+  return extendPlutoAsyncData(result, {
+    menu: result.item,
+    items: computed(() => plutoMenuItems(result.item.value?.blocks)),
+  })
+}
+
+const areas = definePlutoContent<PlutoArea>('area')
+
+/**
+ * One area, by handle (`footer`). `area` is the area: render `area.blocks` with `PlutoBlocks`. A
+ * missing area is not an error: `area` is `null`, so a template can fall back to its own markup.
+ * The type exists when the option `plutoAreas.enabled` is on.
+ *
+ * @example
+ * const { area } = await usePlutoArea('footer')
+ *
+ * @see https://pluto.vulmix.dev/docs/build/areas
+ */
+export function usePlutoArea(handle: MaybeRefOrGetter<string>) {
+  const result = areas.useItem(handle, {
+    notFound: 'null',
+    seo: false,
+    editLink: false,
+    drafts: false,
+  })
+  return extendPlutoAsyncData(result, { area: result.item })
 }
 
 const tags = definePlutoContent<PlutoTerm>('tag', { list: { sort: 'title' } })

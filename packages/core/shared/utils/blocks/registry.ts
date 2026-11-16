@@ -234,7 +234,8 @@ export interface PaletteGroup {
 }
 
 export function listPaletteBlocks(
-  sources: PlutoBlockSources = {}
+  sources: PlutoBlockSources = {},
+  accepts?: string[]
 ): PaletteGroup[] {
   const names = new Set([
     ...Object.keys(sources.presets ?? {}),
@@ -244,7 +245,7 @@ export function listPaletteBlocks(
   const groups = new Map<string, PlutoBlockDefinition[]>()
   for (const name of names) {
     const definition = resolveBlockDefinition(name, { sources })
-    if (definition.hidden) {
+    if (definition.hidden && !accepts?.includes(definition.name)) {
       continue
     }
     groups.set(definition.group, [

@@ -9,6 +9,7 @@ const props = defineProps<{
   modelValue: string
   disabled?: boolean
   mode: 'visual' | 'markdown'
+  accepts?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -24,6 +25,7 @@ const editor = createPlutoBlockEditor({
   source: () => props.modelValue,
   emit: (value) => emit('update:modelValue', value),
   sources: blockSources,
+  accepts: () => props.accepts,
 })
 provide(plutoBlockEditorKey, editor)
 

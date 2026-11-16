@@ -96,6 +96,46 @@ export interface PlutoPage {
   publishedAt?: string
 }
 
+/**
+ * One menu of the public API (`usePlutoMenu`): an item of the `menu` type (`plutoMenus.enabled`).
+ * `id` is the handle, for example `main`. `blocks` is the tree of `menu-item` blocks.
+ */
+export interface PlutoMenu {
+  id: string
+  title: string
+  /** The body as Markdown. */
+  body?: string
+  /** The body as a Comark document. `plutoMenuItems` turns it into `PlutoMenuItem[]`. */
+  blocks: MarkdownDocument
+  createdAt?: string
+  updatedAt?: string
+}
+
+/** One link of a menu, with the links under it. */
+export interface PlutoMenuItem {
+  label: string
+  /** A page path or a URL. Empty when the item has no link. */
+  to: string
+  /** `_blank` opens the link in a new tab. */
+  target?: '_self' | '_blank'
+  children: PlutoMenuItem[]
+}
+
+/**
+ * One area of the public API (`usePlutoArea`): an item of the `area` type (`plutoAreas.enabled`).
+ * `id` is the handle, for example `footer`. `blocks` is the body.
+ */
+export interface PlutoArea {
+  id: string
+  title: string
+  /** The body as Markdown. */
+  body?: string
+  /** The body as a Comark document. `PlutoBlocks` renders it. */
+  blocks: MarkdownDocument
+  createdAt?: string
+  updatedAt?: string
+}
+
 /** The answer of a list route. */
 export interface PlutoPublicList<T = PlutoPublicItem> {
   data: T[]

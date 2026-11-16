@@ -53,11 +53,13 @@ export interface PlutoBlockEditorOptions {
   source: () => string
   emit: (value: string) => void
   sources?: () => PlutoBlockSources | undefined
+  accepts?: () => string[] | undefined
   now?: () => number
 }
 
 export interface PlutoBlockEditor {
   sources: ComputedRef<PlutoBlockSources>
+  accepts: ComputedRef<string[] | undefined>
   doc: ComputedRef<PlutoBlockDoc>
   error: Ref<string | null>
   selection: Ref<PlutoBlockSelection | null>
@@ -142,6 +144,7 @@ export function createPlutoBlockEditor(
 ): PlutoBlockEditor {
   const now = options.now ?? Date.now
   const sources = computed(() => options.sources?.() ?? {})
+  const accepts = computed(() => options.accepts?.())
 
   const initial = tryParse(options.source())
   const error = ref<string | null>(initial.error)
@@ -315,6 +318,7 @@ export function createPlutoBlockEditor(
 
   return {
     sources,
+    accepts,
     doc,
     error,
     selection,

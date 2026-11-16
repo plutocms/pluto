@@ -20,7 +20,7 @@ const open = computed({
 const accepts = computed(() => {
   const target = editor.palette.value.target
   if (target?.parentId === undefined) {
-    return undefined
+    return editor.accepts.value
   }
   const parent = editor.doc.value.blocks.length
     ? findBlockById(target.parentId)

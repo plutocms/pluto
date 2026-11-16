@@ -5,13 +5,17 @@ import PlutoGithubSignIn from '../../../../../app/components/Pluto/Github/PlutoG
 import { isAdminPath } from '../../../../../app/composables/internal/admin-shell'
 import { definePlutoExtension } from '../../../../../app/composables/pluto-extension'
 import { usePlutoRegistry } from '../../../../../app/composables/pluto-registry'
+import { plutoGithubAreaType } from '../../shared/area-type'
 import { plutoGithubAuthorType } from '../../shared/author-type'
 import {
+  isAreasOn,
+  isMenusOn,
   isPagesOn,
   isPostTypeOn,
   showBuildStatus,
   showPublicRepoWarning,
 } from '../../shared/client-rules'
+import { plutoGithubMenuType } from '../../shared/menu-type'
 import { plutoGithubPageType } from '../../shared/page-type'
 import { plutoGithubPostType } from '../../shared/post-type'
 import { plutoGithubTermTypes } from '../../shared/term-types'
@@ -49,6 +53,14 @@ export default defineNuxtPlugin(() => {
     useRuntimeConfig().public.plutoPages as { enabled?: boolean } | undefined
   )
 
+  const menuType = isMenusOn(
+    useRuntimeConfig().public.plutoMenus as { enabled?: boolean } | undefined
+  )
+
+  const areaType = isAreasOn(
+    useRuntimeConfig().public.plutoAreas as { enabled?: boolean } | undefined
+  )
+
   const buildStatus = showBuildStatus(
     useRuntimeConfig().public.plutoGithub as
       | {
@@ -68,6 +80,8 @@ export default defineNuxtPlugin(() => {
 
   const { read, write, delete: remove } = plutoGithubPostType.capabilities ?? {}
   const pageCapabilities = plutoGithubPageType.capabilities ?? {}
+  const menuWrite = plutoGithubMenuType.capabilities?.write
+  const areaWrite = plutoGithubAreaType.capabilities?.write
   const capabilities = [
     ...(postType
       ? [
@@ -99,6 +113,12 @@ export default defineNuxtPlugin(() => {
             label: 'pluto.github.capabilities.deletePages',
           },
         ]
+      : []),
+    ...(menuType
+      ? [{ key: menuWrite, label: 'pluto.github.capabilities.manageMenus' }]
+      : []),
+    ...(areaType
+      ? [{ key: areaWrite, label: 'pluto.github.capabilities.manageAreas' }]
       : []),
   ].flatMap((entry) =>
     entry.key
@@ -194,6 +214,8 @@ export default defineNuxtPlugin(() => {
           ]
         : []),
       ...(pageType ? [{ id: 'page', type: plutoGithubPageType }] : []),
+      ...(menuType ? [{ id: 'menu', type: plutoGithubMenuType }] : []),
+      ...(areaType ? [{ id: 'area', type: plutoGithubAreaType }] : []),
     ],
     contentFieldWidgets: [
       {

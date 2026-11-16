@@ -92,6 +92,12 @@ export interface PlutoTextField extends PlutoFieldBase {
    * disables Visual while the text has such syntax.
    */
   editor?: 'auto' | 'visual' | 'source'
+  /**
+   * Only for `richtext` with `widget: 'blocks'`. The component names that the top level of the block
+   * editor accepts, for example `['menu-item']`. The palette then lists only those, and no text, table
+   * or code block. A nested slot keeps the `accepts` of its own block.
+   */
+  blocks?: string[]
 }
 
 export interface PlutoSlugField extends PlutoFieldBase {

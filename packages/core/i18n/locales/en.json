@@ -476,7 +476,9 @@
         "manageAuthors": "Create, edit and delete authors",
         "readPageDrafts": "Read draft pages",
         "publishPages": "Create, edit and publish pages",
-        "deletePages": "Delete pages"
+        "deletePages": "Delete pages",
+        "manageMenus": "Create, edit and delete menus",
+        "manageAreas": "Create, edit and delete areas"
       },
       "setup": {
         "title": "Set up the GitHub sign-in",
@@ -1415,6 +1417,40 @@
         },
         "avatar": {
           "label": "Avatar"
+        }
+      }
+    },
+    "menu": {
+      "label": "Menu",
+      "labelPlural": "Menus",
+      "description": "The navigation of the site. A template shows a menu by its handle, for example main.",
+      "fields": {
+        "title": {
+          "label": "Title"
+        },
+        "slug": {
+          "label": "Handle",
+          "description": "The name that a template uses to find the menu, for example main."
+        },
+        "body": {
+          "label": "Items"
+        }
+      }
+    },
+    "area": {
+      "label": "Area",
+      "labelPlural": "Areas",
+      "description": "A part of the site that many pages share, such as the footer. A template shows an area by its handle, for example footer.",
+      "fields": {
+        "title": {
+          "label": "Title"
+        },
+        "slug": {
+          "label": "Handle",
+          "description": "The name that a template uses to find the area, for example footer."
+        },
+        "body": {
+          "label": "Content"
         }
       }
     }

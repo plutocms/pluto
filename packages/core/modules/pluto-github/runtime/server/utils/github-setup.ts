@@ -17,7 +17,9 @@ import {
   markPublicRead,
 } from '../../../../../server/utils/pluto-public-read'
 import { isPlutoSystemEvent } from '../../../../../server/utils/pluto-system'
+import { plutoGithubAreaType } from '../../shared/area-type'
 import { plutoGithubAuthorType } from '../../shared/author-type'
+import { plutoGithubMenuType } from '../../shared/menu-type'
 import { plutoGithubPageType } from '../../shared/page-type'
 import { plutoGithubPostType } from '../../shared/post-type'
 import { plutoGithubTermTypes } from '../../shared/term-types'
@@ -160,6 +162,12 @@ export function registerGithubContent(
   }
   if (config.pages) {
     registerContentType(plutoGithubPageType)
+  }
+  if (config.menus) {
+    registerContentType(plutoGithubMenuType)
+  }
+  if (config.areas) {
+    registerContentType(plutoGithubAreaType)
   }
   const store = createContentStore(config, cache, loadSnapshot)
   registeredStore = store
