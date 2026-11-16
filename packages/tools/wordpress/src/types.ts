@@ -46,6 +46,7 @@ export interface ThemeColors {
   secondary?: string
   text?: string
   accent?: string
+  background?: string
 }
 
 export interface BlocksTheme {

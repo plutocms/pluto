@@ -96,6 +96,18 @@ export function kitFromPost(post: WxrPost): Kit {
     }
   }
 
+  const globals = settings.__globals__ as Record<string, unknown> | undefined
+  const reference = String(globals?.body_background_color ?? '')
+  const referenced =
+    globalColors[
+      new URLSearchParams(reference.split('?')[1] ?? '').get('id') ?? ''
+    ]
+
+  colors.background =
+    referenced ??
+    normalizeColor(String(settings.body_background_color ?? '')) ??
+    '#ffffff'
+
   const typography = [
     ...listOf(settings.system_typography),
     ...listOf(settings.custom_typography),

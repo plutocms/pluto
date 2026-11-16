@@ -506,12 +506,27 @@ describe('gallery, video, divider and spacer', () => {
 })
 
 describe('html, shortcode and unknown widgets', () => {
-  it('keeps raw HTML without blank lines, and reports a script', () => {
+  it('keeps raw HTML without blank lines, and drops a script and a style', () => {
     const { mdc, ctx } = run('html', {
-      html: '<div>\n\n<p>Hi</p>\n\n<script>1</script></div>',
+      html: '<style>.a{color:red}</style><div>\n\n<p>Hi</p>\n\n<SCRIPT type="x">1</SCRIPT></div>',
     })
 
-    expect(mdc).toBe('<div>\n<p>Hi</p>\n<script>1</script></div>')
+    expect(mdc).toBe('<div>\n<p>Hi</p>\n</div>')
+    expect(ctx.report.notes).toEqual([
+      'CSS/JS from an HTML widget was not imported.',
+    ])
+  })
+
+  it('skips an HTML widget that holds only CSS or JS', () => {
+    const { nodes, ctx } = run('html', { html: '<style>.a{}</style>' })
+
+    expect(nodes).toEqual([])
+    expect(ctx.report.notes).toHaveLength(1)
+  })
+
+  it('reports an iframe in an HTML widget, which the renderer removes', () => {
+    const { ctx } = run('html', { html: '<iframe src="x"></iframe>' })
+
     expect(ctx.report.rawHtml[0]).toContain('renderer removes it')
   })
 

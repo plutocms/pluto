@@ -102,6 +102,7 @@ describe('the pages', () => {
       title: 'Welcome',
       status: 'published',
       description: 'The home page.',
+      layout: 'full',
       publishedAt: '2024-01-25T13:34:11.000Z',
       wordpress: { id: 10, link: 'https://old.example.test/' },
     })
@@ -195,6 +196,7 @@ describe('the pages', () => {
         secondary: '#51C9C0',
         text: '#222F3E',
         accent: '#1E90FF',
+        background: '#ffffff',
       },
       fonts: {
         heading: '"Playfair Display", serif',

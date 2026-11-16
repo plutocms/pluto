@@ -506,7 +506,13 @@ function topLevel(ctx: ConvertContext, element: ElementorElement): BlockNode[] {
     const children = widgetNodes(ctx, element)
 
     return children.length > 0
-      ? [{ name: 'block-section', props: { padding: 'none' }, children }]
+      ? [
+          {
+            name: 'block-section',
+            props: { bg: 'background', padding: 'none' },
+            children,
+          },
+        ]
       : []
   }
 
@@ -517,6 +523,10 @@ function topLevel(ctx: ConvertContext, element: ElementorElement): BlockNode[] {
 
   if (children.length === 0 && !visual) {
     return []
+  }
+
+  if (!props.bg && !props.image) {
+    props.bg = 'background'
   }
 
   return [{ name: 'block-section', props, children }]

@@ -78,6 +78,7 @@ wordpress:
 
 - `status`: `publish` is `published`. Any other status (draft, pending, private, future) is
   `draft`. An Elementor page JSON has no status, so it is `draft`.
+- `layout: full`: every imported page has no title and uses the full width (the page type field `layout`).
 - `description`: the SEO plugin meta (Yoast, Rank Math, All in One SEO), else the excerpt.
 - `publishedAt`: the GMT date, for a published page.
 - No `slug`: the path of the file is the id (see the git-cms skill, "The page type").
@@ -99,7 +100,7 @@ wordpress:
 
 Section props: `anchor` (`_element_id`), `bg`, `image`, `overlay`, `overlay-opacity`, `padding`
 (the vertical padding), `min-height`, `width` (`full` for `content_width: full` or a full width
-layout), `max-width` (a boxed width other than 1140 px), `align` and `valign`. A section with no
+layout), `max-width` (a boxed width other than 1140 px), `align` and `valign`. A top-level section with no `bg` and no `image` gets `bg="background"`: the Elementor page sits on the body background of the kit. A section with no
 padding gets `padding="none"`, because the default of the block is `lg`.
 
 - **Background.** `classic` gives `bg` and `image`. A gradient keeps its first color (a note in the
@@ -119,29 +120,29 @@ padding gets `padding="none"`, because the default of the block is `lg`.
 
 ### Widgets
 
-| Elementor                  | Block                           | Notes                                                                                                                                                                  |
-| -------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `heading`                  | `block-heading`                 | `level` from `header_size` (default `h2`), `align`, `color`, `size`. `div`, `span` and `p` give a `block-text`. The title is inline Markdown. A `link` wraps the text. |
-| `text-editor`              | `block-text`                    | HTML to Markdown. A table or an embed stays as HTML. `size`, `align`, `color`.                                                                                         |
-| `image`                    | `block-image`                   | `src`, `alt`, `caption`, `width`, `radius`, `align`, `link`. The placeholder image and an empty image are skipped.                                                     |
-| `button`                   | `block-button`                  | `label`, `link`, `target`, `size`, `align` (`justify` gives `full`), `color`, `icon`. A border with no fill gives `variant="outline"`.                                 |
-| `icon`                     | `block-icon`                    | `icon`, `size`, `color`, `align`, `link`. The default size is 50 px.                                                                                                   |
-| `icon-list`                | `block-icon-list` + items       | The most common icon is the icon of the list. An item keeps its own icon when it differs. `view: inline` gives `layout="inline"`.                                      |
-| `icon-box`                 | `block-icon-box`                | `title`, `level` (default 3), `position`, `align`, `color`. The description is the rich slot.                                                                          |
-| `image-box`                | `block-image-box`               | `src`, `alt` (else the title), `title`, `level`, `position`, `radius`.                                                                                                 |
-| `accordion`                | `block-accordion` + items       | `single` (one open item).                                                                                                                                              |
-| `toggle`                   | `block-accordion` + items       | Many items can be open.                                                                                                                                                |
-| `testimonial`              | `block-testimonial`             | `name`, `role`, `image`, `align` (`center`).                                                                                                                           |
-| `counter`                  | `block-counter`                 | `value` is `ending_number` (a thousands separator is removed), `prefix`, `suffix`, `title`. A value that is not a number gives a placeholder.                          |
-| `social-icons`             | `block-social-icons` + links    | The network comes from the icon class. A network that the kit has not gives `network="website"`, the default icon, and a report line.                                  |
-| `image-gallery`, `gallery` | `block-gallery` + `block-image` | `columns` (1 to 6).                                                                                                                                                    |
-| `video`                    | `block-video`                   | `url`, `ratio`. Only YouTube and Vimeo embed. Another source renders as a link (a note).                                                                               |
-| `divider`                  | `block-divider`                 | `line`, `color`, `thickness`, `width`, `align`, `spacing`.                                                                                                             |
-| `spacer`                   | `block-spacer`                  | `size` is the exact length in px (the block takes a length, so there is no rounding). The default is 50 px.                                                            |
-| `html`                     | raw HTML                        | Blank lines inside are removed, so the HTML stays one block. The renderer removes scripts, iframes, forms and styles (a report line).                                  |
-| `shortcode`                | a placeholder `block-text`      | `Not imported: the shortcode ...`. A report line.                                                                                                                      |
-| `menu-anchor`              | nothing                         | Counted as an unknown widget.                                                                                                                                          |
-| any other widget           | a placeholder `block-text`      | `Not imported: the Elementor widget "name"`. Pro widgets and add-on widgets too. A report line.                                                                        |
+| Elementor                  | Block                           | Notes                                                                                                                                                                                                                                                    |
+| -------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `heading`                  | `block-heading`                 | `level` from `header_size` (default `h2`), `align`, `color`, `size`. `div`, `span` and `p` give a `block-text`. The title is inline Markdown. A `link` wraps the text.                                                                                   |
+| `text-editor`              | `block-text`                    | HTML to Markdown. A table or an embed stays as HTML. `size`, `align`, `color`.                                                                                                                                                                           |
+| `image`                    | `block-image`                   | `src`, `alt`, `caption`, `width` (else the pixel width of `image_size`: thumbnail 150, medium 300, medium_large 768, large 1024, custom from its dimension, full none), `radius`, `align`, `link`. The placeholder image and an empty image are skipped. |
+| `button`                   | `block-button`                  | `label`, `link`, `target`, `size`, `align` (`justify` gives `full`), `color`, `icon`. A border with no fill gives `variant="outline"`.                                                                                                                   |
+| `icon`                     | `block-icon`                    | `icon`, `size`, `color`, `align`, `link`. The default size is 50 px.                                                                                                                                                                                     |
+| `icon-list`                | `block-icon-list` + items       | The most common icon is the icon of the list. An item keeps its own icon when it differs. `view: inline` gives `layout="inline"`.                                                                                                                        |
+| `icon-box`                 | `block-icon-box`                | `title`, `level` (default 3), `position`, `align`, `color`. The description is the rich slot.                                                                                                                                                            |
+| `image-box`                | `block-image-box`               | `src`, `alt` (else the title), `title`, `level`, `position`, `radius`.                                                                                                                                                                                   |
+| `accordion`                | `block-accordion` + items       | `single` (one open item).                                                                                                                                                                                                                                |
+| `toggle`                   | `block-accordion` + items       | Many items can be open.                                                                                                                                                                                                                                  |
+| `testimonial`              | `block-testimonial`             | `name`, `role`, `image`, `align` (`center`).                                                                                                                                                                                                             |
+| `counter`                  | `block-counter`                 | `value` is `ending_number` (a thousands separator is removed), `prefix`, `suffix`, `title`. A value that is not a number gives a placeholder.                                                                                                            |
+| `social-icons`             | `block-social-icons` + links    | The network comes from the icon class. A network that the kit has not gives `network="website"`, the default icon, and a report line.                                                                                                                    |
+| `image-gallery`, `gallery` | `block-gallery` + `block-image` | `columns` (1 to 6).                                                                                                                                                                                                                                      |
+| `video`                    | `block-video`                   | `url`, `ratio`. Only YouTube and Vimeo embed. Another source renders as a link (a note).                                                                                                                                                                 |
+| `divider`                  | `block-divider`                 | `line`, `color`, `thickness`, `width`, `align`, `spacing`.                                                                                                                                                                                               |
+| `spacer`                   | `block-spacer`                  | `size` is the exact length in px (the block takes a length, so there is no rounding). The default is 50 px.                                                                                                                                              |
+| `html`                     | raw HTML                        | Blank lines inside are removed, so the HTML stays one block. `<style>` and `<script>` blocks are dropped (report note: CSS/JS from an HTML widget was not imported). The renderer removes iframes and forms (a report line).                             |
+| `shortcode`                | a placeholder `block-text`      | `Not imported: the shortcode ...`. A report line.                                                                                                                                                                                                        |
+| `menu-anchor`              | nothing                         | Counted as an unknown widget.                                                                                                                                                                                                                            |
+| any other widget           | a placeholder `block-text`      | `Not imported: the Elementor widget "name"`. Pro widgets and add-on widgets too. A report line.                                                                                                                                                          |
 
 A shortcode in the text of a `text-editor` stays in the text, and the report lists it.
 
@@ -194,7 +195,7 @@ every target exists in the Lucide icon set. An unknown name, or an uploaded SVG 
 
 `kitFromPost` reads the kit. It gives:
 
-- `colors`: `primary`, `secondary`, `text` and `accent` from `system_colors`. A custom color is kept
+- `colors`: `primary`, `secondary`, `text` and `accent` from `system_colors`, and `background` from `body_background_color` (else `#ffffff`). A custom color is kept
   by its id for the references.
 - `fonts.heading`: the family of `system_typography` `primary`. `fonts.body`: `text`, else `secondary`.
   The stack is `"Family", serif` or `"Family", sans-serif` (a short list of serif names decides).

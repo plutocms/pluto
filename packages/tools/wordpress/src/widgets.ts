@@ -2,6 +2,7 @@ import type { BlockNode, ConvertContext, ElementorElement } from './types'
 import type { Settings } from './values'
 import { escapeInline, htmlToInline, htmlToMarkdown, stripTags } from './html'
 import { DEFAULT_ICON, mapIcon, networkOf } from './icons'
+import { imageWidth } from './image-size'
 import { RAW_HTML } from './types'
 import {
   absoluteUrl,
@@ -28,7 +29,9 @@ import {
 
 type Handler = (ctx: ConvertContext, settings: Settings) => BlockNode[]
 
-const DANGEROUS_HTML = /<(?:script|iframe|form|style|object|embed)\b/i
+const DANGEROUS_HTML = /<(?:iframe|form|object|embed)\b/i
+
+const CODE_BLOCKS = /<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi
 
 function node(
   name: string,
@@ -232,7 +235,7 @@ const imageWidget: Handler = (ctx, s) => {
     imageNode(ctx, image, {
       caption:
         text(s.caption_source) === 'custom' ? text(s.caption) : undefined,
-      width: lengthOf(s.width),
+      width: imageWidth(s),
       radius: radiusOf(ctx, s, 'image_border_radius'),
       align: alignOf(s.align),
       link: link?.url,
@@ -633,15 +636,25 @@ const htmlWidget: Handler = (ctx, s) => {
     return []
   }
 
-  const label = html.replace(/\s+/g, ' ').slice(0, 48)
+  const kept = html.replace(CODE_BLOCKS, '').trim()
+
+  if (kept !== html) {
+    note(ctx.report.notes, 'CSS/JS from an HTML widget was not imported.')
+  }
+
+  if (!kept) {
+    return []
+  }
+
+  const label = kept.replace(/\s+/g, ' ').slice(0, 48)
 
   ctx.report.rawHtml.push(
-    DANGEROUS_HTML.test(html)
+    DANGEROUS_HTML.test(kept)
       ? `${label} (has a script, an iframe, a form or a style: the renderer removes it)`
       : label
   )
 
-  return [node(RAW_HTML, {}, { text: html })]
+  return [node(RAW_HTML, {}, { text: kept })]
 }
 
 const shortcode: Handler = (ctx, s) => {

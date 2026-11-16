@@ -289,6 +289,7 @@ function frontmatterOf(page: SourcePage, status: 'published' | 'draft') {
     title: page.title,
     status,
     description: page.description,
+    layout: 'full',
     publishedAt: status === 'published' ? page.publishedAt : undefined,
     wordpress: {
       id: page.id,

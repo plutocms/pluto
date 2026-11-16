@@ -35,7 +35,24 @@ describe('the kit to the theme', () => {
       secondary: '#51C9C0',
       text: '#222F3E',
       accent: '#1E90FF',
+      background: '#ffffff',
     })
+  })
+
+  it('takes the page background from the body background of the kit', () => {
+    const settings = {
+      ...(KIT_SETTINGS as object),
+      body_background_color: '#FAF3E0',
+    }
+    const kit = kitFromPost({
+      ...kitPost,
+      meta: {
+        _elementor_template_type: 'kit',
+        _elementor_page_settings: phpSerialize(settings),
+      },
+    })
+
+    expect(kit.theme.colors.background).toBe('#FAF3E0')
   })
 
   it('keeps a custom color by its id', () => {
@@ -66,7 +83,10 @@ describe('the kit to the theme', () => {
       meta: { _elementor_template_type: 'kit' },
     })
 
-    expect(kit.theme).toEqual({ colors: {}, fonts: {} })
+    expect(kit.theme).toEqual({
+      colors: { background: '#ffffff' },
+      fonts: {},
+    })
   })
 
   it('reads settings that are JSON, and ignores text that is neither', () => {
