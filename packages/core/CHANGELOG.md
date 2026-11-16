@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.73.0](https://github.com/plutocms/pluto/compare/v0.72.0...v0.73.0) (2026-11-16)
+
+
+### Features
+
+* **blocks:** @plutocms/blocks, a landing kit of blocks ([#551](https://github.com/plutocms/pluto/issues/551)) ([2f257be](https://github.com/plutocms/pluto/commit/2f257be77e8fd5a612ef4c4b378272d583ce9f48))
+
 ## [0.72.0](https://github.com/plutocms/pluto/compare/v0.71.0...v0.72.0) (2026-11-15)
 
 
