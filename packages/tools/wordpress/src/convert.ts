@@ -1,5 +1,6 @@
 import type { BlockNode, ConvertContext, ElementorElement } from './types'
 import type { Settings } from './values'
+import { liftSectionColor } from './section-color'
 import {
   alignOf,
   boxOf,
@@ -529,7 +530,11 @@ function topLevel(ctx: ConvertContext, element: ElementorElement): BlockNode[] {
     props.bg = 'background'
   }
 
-  return [{ name: 'block-section', props, children }]
+  const section: BlockNode = { name: 'block-section', props, children }
+
+  liftSectionColor(section)
+
+  return [section]
 }
 
 /** Turns the elements of an Elementor page into block nodes: one section per top-level element. */

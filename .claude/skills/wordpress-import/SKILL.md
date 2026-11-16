@@ -107,6 +107,7 @@ padding gets `padding="none"`, because the default of the block is `lg`.
   report). An overlay image with no background image becomes the section image, and the background
   color becomes the overlay (`overlay-opacity` is `100 - opacity * 100`). An overlay color over an
   image gives `overlay` and `overlay-opacity`.
+- **Section text color.** When every heading, text and counter that sets a color sets the same one, and the section has a dark background (relative luminance below 0.4), or an image whose overlay is dark or missing, the color moves to the section (`color`) and leaves the blocks. A placeholder then inherits it (`src/section-color.ts`).
 - **Row props.** `gap` (`flex_gap`), `valign` (`flex_align_items`), `wrap` false when `flex_wrap` is
   `nowrap`, `stack="never"` when `flex_direction_mobile` is `row`. Columns stack by default.
 - **Column props.** `width` (`width`, in percent, or px; legacy: `_inline_size`, else
