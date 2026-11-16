@@ -4,7 +4,7 @@ import process from 'node:process'
 import { parseArgs } from 'node:util'
 import { runImport } from './import'
 
-const HELP = `pluto-wordpress: import Elementor pages from WordPress into a Pluto project
+const HELP = `pluto-wordpress: import Elementor pages, menus and the footer from WordPress into a Pluto project
 
 Usage:
   pluto-wordpress import <file.xml|page.json> [options]
@@ -13,7 +13,7 @@ Options:
   --out <dir>   The Pluto project folder (default: the current folder)
   --dry-run     Write nothing. Print the plan and the report
   --no-media    Keep the remote image URLs. Download nothing
-  --force       Write a page again, even when its file is already there
+  --force       Write a file again, even when it is already there
   -h, --help    Show this help
 `
 
@@ -31,6 +31,18 @@ function summary(result: ImportResult, dryRun: boolean): string[] {
   for (const page of result.pages) {
     lines.push(
       `  ${page.action.padEnd(8)} ${page.path} (${page.status})${page.reason ? `: ${page.reason}` : ''}`
+    )
+  }
+
+  for (const menu of result.menus) {
+    lines.push(
+      `  ${menu.action.padEnd(8)} menu ${menu.handle} (${menu.items} items)${menu.reason ? `: ${menu.reason}` : ''}`
+    )
+  }
+
+  if (result.footer) {
+    lines.push(
+      `  ${result.footer.action.padEnd(8)} footer area${result.footer.reason ? `: ${result.footer.reason}` : ''}`
     )
   }
 

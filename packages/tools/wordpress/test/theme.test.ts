@@ -14,6 +14,8 @@ const kitPost = {
   content: '',
   excerpt: '',
   attachmentUrl: '',
+  menuOrder: 0,
+  categories: [],
   meta: {
     _elementor_template_type: 'kit',
     _elementor_page_settings: phpSerialize(KIT_SETTINGS),

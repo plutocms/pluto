@@ -65,6 +65,7 @@ describe('the pages', () => {
     })
 
     expect(await files(out())).toEqual([
+      'content/areas/footer.md',
       'content/pages/about.md',
       'content/pages/about/our-team.md',
       'content/pages/home.md',
@@ -136,15 +137,13 @@ describe('the pages', () => {
     expect(page.frontmatter.description).toBe('The excerpt.')
   })
 
-  it('does not import a plain page, a trashed page, a template, a header, a footer or a post, and lists them', async () => {
+  it('does not import a plain page, a trashed page, a template or a post, and lists them', async () => {
     const result = await runImport({ input, out: out(), media: false })
     const kinds = result.others.map((item) => item.kind)
 
-    expect(kinds).toHaveLength(5)
+    expect(kinds).toHaveLength(3)
     expect(new Set(kinds)).toEqual(
       new Set([
-        'Header',
-        'Footer',
         'Elementor template (page)',
         'Elementor content of type "post"',
         'Pages',

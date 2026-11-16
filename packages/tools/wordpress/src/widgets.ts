@@ -27,7 +27,11 @@ import {
   TEXT_SCALE,
 } from './values'
 
-type Handler = (ctx: ConvertContext, settings: Settings) => BlockNode[]
+type Handler = (
+  ctx: ConvertContext,
+  settings: Settings,
+  type: string
+) => BlockNode[]
 
 const DANGEROUS_HTML = /<(?:iframe|form|object|embed)\b/i
 
@@ -665,7 +669,127 @@ const shortcode: Handler = (ctx, s) => {
   return placeholder(ctx, `shortcode ${code}`, `the shortcode \`${code}\``)
 }
 
+const NAV_ICON = 'i-lucide-chevron-right'
+
+const navMenu: Handler = (ctx, s, type) => {
+  const slug = text(s.menu)
+  const tree = slug ? ctx.site?.menus.get(slug) : undefined
+
+  if (!slug || !tree || tree.length === 0) {
+    return unknownWidget(ctx, type)
+  }
+
+  const nested = tree.reduce((sum, item) => sum + item.children.length, 0)
+
+  note(
+    ctx.report.notes,
+      `The menu "${slug}" became an icon list of its ${tree.length} top-level items (a copy, not linked to the menu).${nested > 0 ? ` ${nested} sub-items were left out.` : ''}`
+  )
+
+  return [
+    node(
+      'block-icon-list',
+      { icon: NAV_ICON, gap: 'sm' },
+      {
+        children: tree.map((item) =>
+          node(
+            'block-icon-list-item',
+            { link: item.link, target: item.target },
+            { text: escapeInline(item.label) }
+          )
+        ),
+      }
+    ),
+  ]
+}
+
+const siteLogo: Handler = (ctx, s) => {
+  const image = imageOf(ctx, s.custom_image) ?? (ctx.site?.logo ? imageOf(ctx, { url: ctx.site.logo }) : undefined)
+
+  if (image) {
+    return [
+      imageNode(ctx, image, {
+        width: imageWidth(s),
+        align: alignOf(s.align),
+        link: '/',
+      }),
+    ]
+  }
+
+  const title = ctx.site?.title
+
+  if (!title) {
+    return placeholder(ctx, 'widget site-logo (no logo in the export)', 'the site logo')
+  }
+
+  note(ctx.report.notes, 'The site logo has no image in the export. The site title replaced it.')
+
+  return [node('block-heading', { level: '2', align: alignOf(s.align) }, { text: escapeInline(title) })]
+}
+
+const siteTitle: Handler = (ctx, s) => {
+  const title = ctx.site?.title
+
+  if (!title) {
+    return placeholder(ctx, 'widget site-title (no site title in the export)', 'the site title')
+  }
+
+  const tag = (text(s.header_size) ?? 'h2').toLowerCase()
+  const level = /^h[1-6]$/.test(tag) ? tag.slice(1) : '2'
+
+  return [
+    node(
+      'block-heading',
+      {
+        level,
+        align: alignOf(s.align),
+        color: colorOf(ctx, s, 'title_color'),
+      },
+      { text: escapeInline(title) }
+    ),
+  ]
+}
+
+const copyright: Handler = (ctx, s) => {
+  const source = text(s.shortcode) ?? ''
+
+  if (!source) {
+    return []
+  }
+
+  const year = String(ctx.site?.year ?? new Date().getFullYear())
+  const title = ctx.site?.title ?? ''
+  const filled = source
+    .replaceAll('[hfe_current_year]', year)
+    .replaceAll('[hfe_site_title]', title)
+    .trim()
+  const left = filled.match(/\[[^\]]+\]/g)
+
+  for (const code of left ?? []) {
+    note(ctx.report.shortcodes, code)
+  }
+
+  return [
+    node(
+      'block-text',
+      {
+        align: alignOf(s.align),
+        color: colorOf(ctx, s, 'text_color'),
+        size: 'sm',
+      },
+      { text: inlineOf(filled) }
+    ),
+  ]
+}
+
 const HANDLERS: Record<string, Handler> = {
+  'nav-menu': navMenu,
+  'navigation-menu': navMenu,
+  'site-logo': siteLogo,
+  'site-title': siteTitle,
+  'theme-site-logo': siteLogo,
+  'theme-site-title': siteTitle,
+  copyright,
   heading,
   'text-editor': textEditor,
   image: imageWidget,
@@ -701,9 +825,13 @@ export function widgetNodes(
   const handler = HANDLERS[type]
 
   if (handler) {
-    return handler(ctx, element.settings ?? {})
+    return handler(ctx, element.settings ?? {}, type)
   }
 
+  return unknownWidget(ctx, type)
+}
+
+function unknownWidget(ctx: ConvertContext, type: string): BlockNode[] {
   ctx.report.unknownWidgets[type] = (ctx.report.unknownWidgets[type] ?? 0) + 1
 
   if (SILENT.has(type)) {

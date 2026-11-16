@@ -13,6 +13,48 @@ export interface PageResult {
   report: PageReport
 }
 
+export type WriteAction = 'written' | 'skipped' | 'conflict' | 'planned'
+
+export interface MenuResult {
+  handle: string
+  title: string
+  wordpressId?: number
+  action: WriteAction
+  reason?: string
+  items: number
+  main: boolean
+  unmapped: string[]
+}
+
+export interface MenusReport {
+  menus: MenuResult[]
+  empty: string[]
+  main?: {
+    handle: string
+    name: string
+    reason: string
+  }
+}
+
+export interface AreaResult {
+  handle: string
+  title: string
+  wordpressId?: number
+  source: string
+  action: WriteAction
+  reason?: string
+  blocks: number
+  report: PageReport
+}
+
+export interface HeaderSummary {
+  title: string
+  source: string
+  menu?: string
+  mappedTo?: string
+  widgets: Record<string, number>
+}
+
 export interface OtherItem {
   kind: string
   title: string
@@ -36,6 +78,9 @@ export interface ReportInput {
   media: MediaSummary
   theme?: BlocksTheme
   fonts: FontUse[]
+  menus: MenusReport
+  footer?: AreaResult
+  headers: HeaderSummary[]
 }
 
 function count(values: Record<string, number>): string {
@@ -44,7 +89,7 @@ function count(values: Record<string, number>): string {
     .join(', ')
 }
 
-function pageLines(page: PageResult): string[] {
+function pageLines(page: { report: PageReport }): string[] {
   const report = page.report
   const lines: string[] = []
 
@@ -111,6 +156,139 @@ function pageLines(page: PageResult): string[] {
   }
 
   return lines.length > 0 ? lines : ['- Nothing to report.']
+}
+
+function summaryLines(input: ReportInput): string[] {
+  const menus = input.menus.menus.filter(
+    (menu) => menu.action === 'written' || menu.action === 'planned'
+  )
+  const footer = input.footer
+    ? input.footer.action === 'planned'
+      ? 'to import'
+      : input.footer.action
+    : 'none found'
+
+  return [
+    input.dryRun
+      ? `- Menus to import: ${menus.length}`
+      : `- Menus imported: ${menus.length}`,
+    `- Footer area: ${footer}`,
+  ]
+}
+
+function menuSection(menus: MenusReport): string[] {
+  const lines = ['## Menus', '']
+
+  if (menus.menus.length === 0) {
+    lines.push('No menus were found.', '')
+
+    return lines
+  }
+
+  const total = menus.menus.reduce((sum, menu) => sum + menu.items, 0)
+
+  lines.push(`${menus.menus.length} menus, ${total} items.`, '')
+
+  if (menus.main) {
+    lines.push(
+      `The menu "${menus.main.name}" became \`main\`, because ${menus.main.reason}. The export does not say which menu the theme shows in its header, so check this choice.`,
+      ''
+    )
+  }
+
+  if (menus.empty.length > 0) {
+    lines.push(
+      `Menus with no item (not imported): ${menus.empty.map((name) => `"${name}"`).join(', ')}.`,
+      ''
+    )
+  }
+
+  for (const menu of menus.menus) {
+    const id =
+      menu.wordpressId === undefined ? '' : ` (WordPress ${menu.wordpressId})`
+
+    lines.push(`### ${menu.handle}`, '')
+    lines.push(
+      `"${menu.title}"${id}, ${menu.action}${menu.reason ? `: ${menu.reason}` : ''}, ${menu.items} items.`,
+      ''
+    )
+
+    if (menu.unmapped.length > 0) {
+      lines.push(`- Items with no Pluto equivalent: ${menu.unmapped.length}`)
+
+      for (const entry of menu.unmapped) {
+        lines.push(`  - ${entry}`)
+      }
+
+      lines.push('')
+    }
+  }
+
+  return lines
+}
+
+function footerSection(footer: AreaResult | undefined): string[] {
+  const lines = ['## Footer area', '']
+
+  if (!footer) {
+    lines.push('No footer was found in the export.', '')
+
+    return lines
+  }
+
+  const id =
+    footer.wordpressId === undefined
+      ? ''
+      : ` (WordPress ${footer.wordpressId})`
+
+  lines.push(
+    `"${footer.title}"${id} from ${footer.source}, ${footer.action}${footer.reason ? `: ${footer.reason}` : ''}, ${footer.blocks} top-level blocks. File: \`content/areas/${footer.handle}.md\`.`,
+    ''
+  )
+  lines.push(...pageLines(footer), '')
+
+  return lines
+}
+
+function headerSection(
+  headers: HeaderSummary[],
+  main: MenusReport["main"]
+): string[] {
+  if (headers.length === 0) {
+    return []
+  }
+
+  const lines = ['## Header', '']
+
+  for (const header of headers) {
+    lines.push(
+      `"${header.title}" (${header.source}) is not imported. A header layout is the job of the template.`
+    )
+
+    if (header.menu) {
+      lines.push(
+        header.mappedTo
+          ? `- Its navigation menu "${header.menu}" is the \`${header.mappedTo}\` menu.`
+          : `- Its navigation menu "${header.menu}" was not imported.`
+      )
+
+      if (main && header.mappedTo && header.mappedTo !== main.handle) {
+        lines.push(
+          `- The \`main\` menu is "${main.name}", not this one. To use the header menu as \`main\`, swap the files \`content/menus/main.md\` and \`content/menus/${header.mappedTo}.md\`.`
+        )
+      }
+    }
+
+    lines.push(
+      Object.keys(header.widgets).length > 0
+        ? `- Its widgets: ${count(header.widgets)}`
+        : '- It has no widget.'
+    )
+  }
+
+  lines.push('')
+
+  return lines
 }
 
 function groupOthers(items: OtherItem[]) {
@@ -182,6 +360,7 @@ export function buildReport(input: ReportInput): string {
       : `- Pages imported: ${written.length}`,
     `- Pages skipped (already imported): ${skipped.length}`,
     `- Pages not written (another file is there, use --force): ${conflicts.length}`,
+    ...summaryLines(input),
   ]
 
   if (input.media.enabled) {
@@ -211,6 +390,12 @@ export function buildReport(input: ReportInput): string {
   if (input.pages.length === 0) {
     lines.push('No pages were found.', '')
   }
+
+  lines.push(
+    ...menuSection(input.menus),
+    ...footerSection(input.footer),
+    ...headerSection(input.headers, input.menus.main)
+  )
 
   lines.push('## Not imported', '')
 

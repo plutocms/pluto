@@ -54,11 +54,29 @@ export interface PostInput {
   excerpt?: string
   content?: string
   attachmentUrl?: string
+  menuOrder?: number
+  categories?: { domain: string; slug: string; name: string }[]
   meta?: Record<string, string>
 }
 
 function cdata(value: string): string {
   return `<![CDATA[${value}]]>`
+}
+
+export interface TermInput {
+  id: number
+  taxonomy: string
+  slug: string
+  name: string
+}
+
+export function termsOf(terms: TermInput[]): string {
+  return terms
+    .map(
+      (term) =>
+        `<wp:term><wp:term_id>${term.id}</wp:term_id><wp:term_taxonomy>${term.taxonomy}</wp:term_taxonomy><wp:term_slug>${cdata(term.slug)}</wp:term_slug><wp:term_name>${cdata(term.name)}</wp:term_name></wp:term>`
+    )
+    .join('\n')
 }
 
 export function wxrOf(posts: PostInput[], channel = ''): string {
@@ -67,6 +85,13 @@ export function wxrOf(posts: PostInput[], channel = ''): string {
       .map(
         ([key, value]) =>
           `<wp:postmeta><wp:meta_key>${cdata(key)}</wp:meta_key><wp:meta_value>${cdata(value)}</wp:meta_value></wp:postmeta>`
+      )
+      .join('\n')
+
+    const categories = (post.categories ?? [])
+      .map(
+        (entry) =>
+          `<category domain="${entry.domain}" nicename="${entry.slug}">${cdata(entry.name)}</category>`
       )
       .join('\n')
 
@@ -80,8 +105,10 @@ export function wxrOf(posts: PostInput[], channel = ''): string {
 <wp:post_name>${cdata(post.slug ?? '')}</wp:post_name>
 <wp:status>${cdata(post.status ?? 'publish')}</wp:status>
 <wp:post_parent>${post.parent ?? 0}</wp:post_parent>
+<wp:menu_order>${post.menuOrder ?? 0}</wp:menu_order>
 <wp:post_type>${cdata(post.type)}</wp:post_type>
 ${post.attachmentUrl ? `<wp:attachment_url>${cdata(post.attachmentUrl)}</wp:attachment_url>` : ''}
+${categories}
 ${meta}
 </item>`
   })

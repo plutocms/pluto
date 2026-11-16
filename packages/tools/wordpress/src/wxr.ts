@@ -1,9 +1,9 @@
-import type { Wxr, WxrPost } from './types'
+import type { Wxr, WxrCategory, WxrPost, WxrTerm } from './types'
 import { XMLParser } from 'fast-xml-parser'
 
 type XmlNode = Record<string, unknown>
 
-const LISTS = new Set(['item', 'wp:postmeta'])
+const LISTS = new Set(['item', 'wp:postmeta', 'wp:term', 'category'])
 
 function text(value: unknown): string {
   if (value === undefined || value === null) {
@@ -25,6 +25,33 @@ function list(value: unknown): XmlNode[] {
   }
 
   return (Array.isArray(value) ? value : [value]) as XmlNode[]
+}
+
+function attribute(value: unknown, name: string): string {
+  if (typeof value !== 'object' || value === null) {
+    return ''
+  }
+
+  const found = (value as XmlNode)[`@_${name}`]
+
+  return found === undefined ? '' : String(found)
+}
+
+function readCategories(item: XmlNode): WxrCategory[] {
+  return list(item.category).map((entry) => ({
+    domain: attribute(entry, 'domain'),
+    slug: attribute(entry, 'nicename'),
+    name: text(entry),
+  }))
+}
+
+function readTerm(term: XmlNode): WxrTerm {
+  return {
+    id: Number(text(term['wp:term_id'])) || 0,
+    taxonomy: text(term['wp:term_taxonomy']),
+    slug: text(term['wp:term_slug']),
+    name: text(term['wp:term_name']),
+  }
 }
 
 function readPost(item: XmlNode): WxrPost {
@@ -50,6 +77,8 @@ function readPost(item: XmlNode): WxrPost {
     content: text(item['content:encoded']),
     excerpt: text(item['excerpt:encoded']),
     attachmentUrl: text(item['wp:attachment_url']),
+    menuOrder: Number(text(item['wp:menu_order'])) || 0,
+    categories: readCategories(item),
     meta,
   }
 }
@@ -60,7 +89,8 @@ function readPost(item: XmlNode): WxrPost {
  */
 export function readWxr(xml: string): Wxr {
   const parser = new XMLParser({
-    ignoreAttributes: true,
+    ignoreAttributes: false,
+    attributeNamePrefix: '@_',
     parseTagValue: false,
     trimValues: false,
     processEntities: {
@@ -85,6 +115,7 @@ export function readWxr(xml: string): Wxr {
     link: text(channel.link),
     baseUrl: text(channel['wp:base_site_url']) || text(channel.link),
     frontPageId: front > 0 ? front : undefined,
+    terms: list(channel['wp:term']).map(readTerm),
     posts: list(channel.item).map(readPost),
   }
 }

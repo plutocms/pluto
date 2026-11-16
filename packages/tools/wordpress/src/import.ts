@@ -1,4 +1,13 @@
-import type { MediaSummary, OtherItem, PageResult } from './report'
+import type { MenuPlan, SourceMenu } from './menus'
+import type {
+  AreaResult,
+  HeaderSummary,
+  MediaSummary,
+  MenuResult,
+  OtherItem,
+  PageResult,
+  WriteAction,
+} from './report'
 import type {
   Attachment,
   BlocksTheme,
@@ -6,6 +15,8 @@ import type {
   ElementorElement,
   FontUse,
   Kit,
+  MenuLink,
+  SiteContext,
   WxrPost,
 } from './types'
 import { readFile } from 'node:fs/promises'
@@ -19,6 +30,7 @@ import {
 } from './files'
 import { serializeBlocks } from './mdc'
 import { importMedia } from './media'
+import { menuNodes, readMenus } from './menus'
 import {
   descriptionOf,
   isPublished,
@@ -28,6 +40,7 @@ import {
   slugify,
 } from './pages'
 import { buildReport } from './report'
+import { navMenuOf, templateKind, widgetCounts } from './templates'
 import { cleanTheme, emptyKit, isKit, kitFromPost, themeSnippet } from './theme'
 import { emptyReport } from './types'
 import { SYSTEM_FONTS } from './values'
@@ -45,6 +58,9 @@ export interface ImportOptions {
 
 export interface ImportResult {
   pages: PageResult[]
+  menus: MenuResult[]
+  footer?: AreaResult
+  headers: HeaderSummary[]
   others: OtherItem[]
   media: MediaSummary
   theme?: BlocksTheme
@@ -65,8 +81,20 @@ interface SourcePage {
   elements: ElementorElement[]
 }
 
+interface SourceFooter {
+  id: number
+  title: string
+  source: string
+  elements: ElementorElement[]
+}
+
 interface Source {
   kit: Kit
+  siteTitle: string
+  logo?: string
+  menus: MenuPlan
+  footer?: SourceFooter
+  headers: HeaderSummary[]
   attachments: Map<number, Attachment>
   baseUrl: string
   pages: SourcePage[]
@@ -130,6 +158,9 @@ function readPageJson(source: string, input: string): Source {
 
   return {
     kit: emptyKit(),
+    siteTitle: '',
+    menus: { menus: [], empty: [] },
+    headers: [],
     attachments: new Map(),
     baseUrl: '',
     pages,
@@ -149,7 +180,7 @@ function templateDetail(post: WxrPost): OtherItem | undefined {
     return {
       kind: label,
       title: post.title,
-      detail: 'not imported. Headers and footers come in a later version.',
+      detail: 'not imported. Only the header and the footer are read.',
     }
   }
 
@@ -159,10 +190,7 @@ function templateDetail(post: WxrPost): OtherItem | undefined {
     return {
       kind: `Elementor template (${type})`,
       title: post.title,
-      detail:
-        type === 'header' || type === 'footer'
-          ? 'not imported. Theme builder templates come in a later version.'
-          : 'not imported. v1 imports pages only.',
+      detail: 'not imported. v1 imports pages only.',
     }
   }
 
@@ -190,9 +218,45 @@ function readWxrSource(xml: string): Source {
   const used = new Set<string>()
   const pages: SourcePage[] = []
   const others: OtherItem[] = []
+  const templates: { post: WxrPost; elements: ElementorElement[] }[] = []
+  let footer: SourceFooter | undefined
 
   for (const post of wxr.posts) {
     if (isKit(post) || post.type === 'attachment') {
+      continue
+    }
+
+    const kind = templateKind(post)
+
+    if (kind) {
+      if (SKIPPED_STATUSES.has(post.status)) {
+        continue
+      }
+
+      const elements = parseElements(post.meta._elementor_data)
+      const source =
+        post.type === 'elementor-hf'
+          ? 'a Header Footer Elementor template'
+          : 'an Elementor theme builder template'
+
+      if (kind === 'header') {
+        templates.push({ post, elements: elements ?? [] })
+      } else if (!elements) {
+        others.push({
+          kind: 'Footer',
+          title: post.title,
+          detail: 'the Elementor data could not be read.',
+        })
+      } else if (footer) {
+        others.push({
+          kind: 'Footer',
+          title: post.title,
+          detail: 'not imported. Only the first footer becomes the footer area.',
+        })
+      } else {
+        footer = { id: post.id, title: post.title, source, elements }
+      }
+
       continue
     }
 
@@ -256,8 +320,43 @@ function readWxrSource(xml: string): Source {
     })
   }
 
+  const headerMenu = templates
+    .map((template) => navMenuOf(template.elements))
+    .find(Boolean)
+  const menus = readMenus(
+    wxr,
+    paths,
+    new Set(pages.map((page) => page.id).filter((id) => id !== undefined)),
+    headerMenu
+  )
+  const headers = templates.map(({ post, elements }): HeaderSummary => {
+    const menu = navMenuOf(elements)
+
+    return {
+      title: post.title,
+      source:
+        post.type === 'elementor-hf'
+          ? 'Header Footer Elementor'
+          : 'Elementor theme builder',
+      menu,
+      mappedTo: menus.menus.find(
+        (entry) => entry.slug === menu || entry.name === menu
+      )?.handle,
+      widgets: widgetCounts(elements),
+    }
+  })
+
   return {
     kit: kitPost ? kitFromPost(kitPost) : emptyKit(),
+    siteTitle: wxr.title,
+    logo: wxr.posts.find(
+      (post) =>
+        post.type === 'attachment' &&
+        post.meta._wp_attachment_context === 'custom-logo'
+    )?.attachmentUrl,
+    menus,
+    footer,
+    headers,
     attachments,
     baseUrl: wxr.baseUrl,
     pages,
@@ -298,6 +397,51 @@ function frontmatterOf(page: SourcePage, status: 'published' | 'draft') {
   }
 }
 
+function siteMenus(plan: MenuPlan): Map<string, MenuLink[]> {
+  const menus = new Map<string, MenuLink[]>()
+
+  for (const menu of plan.menus) {
+    for (const key of [menu.slug, menu.name]) {
+      if (!menus.has(key)) {
+        menus.set(key, menu.tree)
+      }
+    }
+  }
+
+  return menus
+}
+
+interface Claim {
+  action: WriteAction
+  reason?: string
+  write: boolean
+}
+
+function claimOf(
+  existing: string | undefined,
+  id: number | undefined,
+  options: { force?: boolean; dryRun: boolean }
+): Claim {
+  if (existing !== undefined && !options.force) {
+    const known = (
+      parseMarkdownFile(existing).frontmatter.wordpress as
+        | { id?: unknown }
+        | undefined
+    )?.id
+    const same = id === undefined ? true : known === id
+
+    return {
+      action: same ? 'skipped' : 'conflict',
+      reason: same
+        ? 'a file with the same WordPress id is already there'
+        : 'a file that is not from this item is already there',
+      write: false,
+    }
+  }
+
+  return { action: options.dryRun ? 'planned' : 'written', write: true }
+}
+
 /** Reads a WordPress export (a WXR file) or an Elementor page JSON and writes a Pluto project. */
 export async function runImport(options: ImportOptions): Promise<ImportResult> {
   const now = options.now ?? (() => new Date())
@@ -316,6 +460,12 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
     file: string
   }[] = []
   const fonts = new Map<string, Set<string>>()
+  const site: SiteContext = {
+    title: source.siteTitle,
+    logo: source.logo,
+    year: now().getFullYear(),
+    menus: siteMenus(source.menus),
+  }
 
   for (const page of source.pages) {
     const status = isPublished(page.status) ? 'published' : 'draft'
@@ -355,6 +505,7 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
       attachments: source.attachments,
       baseUrl: source.baseUrl,
       fonts,
+      site,
     }
     const nodes = convertElements(ctx, page.elements)
 
@@ -362,9 +513,80 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
     toWrite.push({ page, result, nodes, images: ctx.images, file })
   }
 
+  let footer: AreaResult | undefined
+  let footerWrite:
+    | {
+        nodes: ReturnType<typeof convertElements>
+        images: Map<string, string>
+        file: string
+      }
+    | undefined
+
+  if (source.footer) {
+    const file = join(options.out, 'content/areas/footer.md')
+    const claim = claimOf(await readIfExists(file), source.footer.id, {
+      force: options.force,
+      dryRun,
+    })
+
+    footer = {
+      handle: 'footer',
+      title: 'Footer',
+      wordpressId: source.footer.id,
+      source: source.footer.source,
+      action: claim.action,
+      reason: claim.reason,
+      blocks: 0,
+      report: emptyReport(),
+    }
+
+    if (claim.write) {
+      const ctx: ConvertContext = {
+        kit: source.kit,
+        report: footer.report,
+        images: new Map(),
+        attachments: source.attachments,
+        baseUrl: source.baseUrl,
+        fonts,
+        site,
+      }
+      const nodes = convertElements(ctx, source.footer.elements)
+
+      footer.blocks = nodes.length
+      footerWrite = { nodes, images: ctx.images, file }
+    }
+  }
+
+  const menus: MenuResult[] = []
+  const menuWrites: { menu: SourceMenu; file: string }[] = []
+
+  for (const menu of source.menus.menus) {
+    const file = join(options.out, 'content/menus', `${menu.handle}.md`)
+    const claim = claimOf(
+      await readIfExists(file),
+      menu.id > 0 ? menu.id : undefined,
+      { force: options.force, dryRun }
+    )
+
+    menus.push({
+      handle: menu.handle,
+      title: menu.name,
+      wordpressId: menu.id > 0 ? menu.id : undefined,
+      action: claim.action,
+      reason: claim.reason,
+      items: menu.items,
+      main: menu.main,
+      unmapped: menu.unmapped,
+    })
+
+    if (claim.write) {
+      menuWrites.push({ menu, file })
+    }
+  }
+
   const images = new Map<string, string>()
 
-  for (const entry of toWrite) {
+  for (const entry of [...toWrite, ...(footerWrite ? [footerWrite] : [])]) {
     for (const [url, alt] of entry.images) {
       if (!images.get(url)) {
         images.set(url, alt)
@@ -411,6 +633,42 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
     written.push(entry.file)
   }
 
+  if (footerWrite && !dryRun) {
+    const body = serializeBlocks(rewriteMedia(footerWrite.nodes, map))
+    const text = serializeMarkdownFile(
+      {
+        title: 'Footer',
+        wordpress: { id: source.footer!.id },
+      },
+      body ? `
+${body}
+` : ''
+    )
+
+    await writeFileDeep(footerWrite.file, text)
+    written.push(footerWrite.file)
+  }
+
+  for (const { menu, file } of menuWrites) {
+    if (dryRun) {
+      continue
+    }
+
+    const body = serializeBlocks(menuNodes(menu.tree))
+    const text = serializeMarkdownFile(
+      {
+        title: menu.name,
+        wordpress: menu.id > 0 ? { id: menu.id } : undefined,
+      },
+      `
+${body}
+`
+    )
+
+    await writeFileDeep(file, text)
+    written.push(file)
+  }
+
   const theme =
     source.kit.theme.colors.primary || source.kit.theme.fonts.heading
       ? cleanTheme(source.kit.theme)
@@ -426,6 +684,13 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
     media,
     theme,
     fonts: mergedFonts,
+    menus: {
+      menus,
+      empty: source.menus.empty,
+      main: source.menus.main,
+    },
+    footer,
+    headers: source.headers,
   })
 
   if (!dryRun) {
@@ -444,6 +709,9 @@ export async function runImport(options: ImportOptions): Promise<ImportResult> {
 
   return {
     pages: results,
+    menus,
+    footer,
+    headers: source.headers,
     others: source.others,
     media,
     theme,
