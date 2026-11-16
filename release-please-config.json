@@ -42,6 +42,12 @@
       "component": "syntax-lowlight",
       "include-component-in-tag": true,
       "initial-version": "0.1.0"
+    },
+    "packages/tools/wordpress": {
+      "package-name": "@plutocms/wordpress",
+      "component": "wordpress",
+      "include-component-in-tag": true,
+      "initial-version": "0.1.0"
     }
   }
 }
