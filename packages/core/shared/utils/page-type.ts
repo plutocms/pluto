@@ -62,6 +62,20 @@ export function definePlutoPageType(
         region: 'side',
       },
       {
+        name: 'layout',
+        type: 'select',
+        label: 'Layout',
+        description:
+          'Default shows the title and a narrow text. Full width shows no title and uses the whole width.',
+        options: [
+          { label: 'Default', value: 'default' },
+          { label: 'Full width', value: 'full' },
+        ],
+        default: 'default',
+        order: 35,
+        region: 'side',
+      },
+      {
         name: 'body',
         type: 'richtext',
         label: 'Content',
@@ -73,8 +87,11 @@ export function definePlutoPageType(
     ],
     slug: { field: 'slug' },
     previewUrl: (item) => {
-      const path = typeof item.slug === 'string' && item.slug ? item.slug : item.id
-      return item.status === 'published' && path ? `/${String(path)}` : undefined
+      const path =
+        typeof item.slug === 'string' && item.slug ? item.slug : item.id
+      return item.status === 'published' && path
+        ? `/${String(path)}`
+        : undefined
     },
     status: {
       column: 'status',

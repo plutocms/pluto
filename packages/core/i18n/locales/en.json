@@ -1383,6 +1383,14 @@
         "description": {
           "label": "Description"
         },
+        "layout": {
+          "label": "Layout",
+          "description": "Default shows the title and a narrow text. Full width shows no title and uses the whole width.",
+          "options": {
+            "default": "Default",
+            "full": "Full width"
+          }
+        },
         "body": {
           "label": "Content"
         }

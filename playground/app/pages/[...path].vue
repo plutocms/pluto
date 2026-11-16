@@ -5,10 +5,18 @@ const { page } = await usePage(() =>
     ? route.params.path.join('/')
     : String(route.params.path)
 )
+
+const full = computed(() => page.value?.layout === 'full')
+
+if (full.value) {
+  setPageLayout('full')
+}
 </script>
 
 <template>
-  <article v-if="page">
+  <PlutoBlocks v-if="page && full" :value="page.blocks" />
+
+  <article v-else-if="page">
     <h1 class="text-highlighted text-3xl font-semibold">
       {{ page.title }}
     </h1>

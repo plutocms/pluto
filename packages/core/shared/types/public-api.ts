@@ -85,6 +85,8 @@ export interface PlutoPage {
   id: string
   title: string
   description?: string | null
+  /** `full` shows the page with no title and at full width. The default is `default`. */
+  layout?: 'default' | 'full'
   /** The body as Markdown. */
   body?: string
   /** The body as a Comark document. `PlutoBlocks` renders it. */

@@ -1383,6 +1383,14 @@
         "description": {
           "label": "Descrição"
         },
+        "layout": {
+          "label": "Layout",
+          "description": "Padrão mostra o título e um texto estreito. Largura total não mostra o título e usa toda a largura.",
+          "options": {
+            "default": "Padrão",
+            "full": "Largura total"
+          }
+        },
         "body": {
           "label": "Conteúdo"
         }
