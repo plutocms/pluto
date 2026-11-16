@@ -89,7 +89,7 @@
     },
     "packages/layers/addons/blocks": {
       "name": "@plutocms/blocks",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "peerDependencies": {
         "@plutocms/core": ">=0.72.0 <1.0.0",
       },
