@@ -2,6 +2,7 @@ import type { MarkdownDocument } from 'comark'
 import { createHash } from 'node:crypto'
 import { parseMarkdown } from 'comark'
 import security from 'comark/plugins/security'
+import { stripRawTextElements } from '../../shared/utils/blocks/strip-raw-text'
 
 export const PLUTO_BLOCKED_TAGS = [
   'script',
@@ -60,7 +61,7 @@ export async function parsePlutoBlocks(
     return cached
   }
 
-  const document = await parseMarkdown(text, {
+  const document = await parseMarkdown(stripRawTextElements(text), {
     autoUnwrap: false,
     plugins: [
       security({
