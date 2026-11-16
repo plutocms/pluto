@@ -1,4 +1,4 @@
-import type { BlockNode } from './types'
+import type { BlockNode, ThemeColors } from './types'
 
 const TEXT_BLOCKS = new Set(['block-heading', 'block-text', 'block-counter'])
 
@@ -46,18 +46,20 @@ export function luminanceOf(color: string): number | undefined {
   return 0.2126 * red + 0.7152 * green + 0.0722 * blue
 }
 
-function isDark(color: unknown): boolean {
-  const luminance = typeof color === 'string' ? luminanceOf(color) : undefined
+function isDark(color: unknown, theme: ThemeColors): boolean {
+  const own = typeof color === 'string' ? color : undefined
+  const resolved = own ? (theme[own as keyof ThemeColors] ?? own) : undefined
+  const luminance = resolved ? luminanceOf(resolved) : undefined
 
   return luminance !== undefined && luminance < DARK
 }
 
-function darkSurface(props: BlockNode['props']): boolean {
+function darkSurface(props: BlockNode['props'], theme: ThemeColors): boolean {
   if (props.image) {
-    return props.overlay ? isDark(props.overlay) : true
+    return props.overlay ? isDark(props.overlay, theme) : true
   }
 
-  return isDark(props.bg)
+  return isDark(props.bg, theme)
 }
 
 function textBlocks(nodes: BlockNode[]): BlockNode[] {
@@ -70,10 +72,14 @@ function textBlocks(nodes: BlockNode[]): BlockNode[] {
 /**
  * When every heading, text and counter of a section that sets a color sets the same one, and the
  * section has a dark background or an image, the color moves to the section. The blocks that set
- * no color (a placeholder) then inherit it too.
+ * no color (a placeholder) then inherit it too. A token background is read through the theme
+ * colors. A dark section that still holds text with no color gets white text.
  */
-export function liftSectionColor(section: BlockNode): void {
-  if (section.props.color || !darkSurface(section.props)) {
+export function liftSectionColor(
+  section: BlockNode,
+  theme: ThemeColors = {}
+): void {
+  if (section.props.color || !darkSurface(section.props, theme)) {
     return
   }
 
@@ -83,6 +89,10 @@ export function liftSectionColor(section: BlockNode): void {
   const colors = new Set(colored.map((node) => node.props.color))
 
   if (colors.size !== 1) {
+    if (textBlocks(section.children ?? []).some((node) => !node.props.color)) {
+      section.props.color = '#FFFFFF'
+    }
+
     return
   }
 

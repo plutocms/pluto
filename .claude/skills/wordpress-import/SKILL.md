@@ -2,7 +2,9 @@
 
 `@plutocms/wordpress` (`packages/tools/wordpress`) is a Node CLI. It imports the Elementor landing
 pages of a WordPress site into a Pluto Git CMS project. Each page becomes `content/pages/<path>.md`
-with a body of `@plutocms/blocks` blocks (see the blocks-kit skill, "MDC rules for an importer").
+with a body of `@plutocms/blocks` blocks (see the blocks-kit skill, "MDC rules for an importer"). It
+also imports the WordPress menus (`content/menus/<handle>.md`) and the Elementor footer
+(`content/areas/footer.md`). See "Menus", "The footer area" and "The header" below.
 The bin is `pluto-wordpress`. It is plain TypeScript, built with tsdown, with no Nuxt. It is not a
 layer.
 
@@ -30,6 +32,10 @@ pluto-wordpress import <file.xml|page.json> [--out <dir>] [--dry-run] [--no-medi
 - `src/mdc.ts`: `serializeBlocks(nodes)`. Writes the MDC and counts the colons.
 - `src/media.ts`: `importMedia(images, options)`. Downloads the images and writes the files.
 - `src/pages.ts`: paths, description, publish date, `rewriteMedia`.
+- `src/menus.ts`: `readMenus(wxr, paths, imported, headerMenu)` (the menu trees and the `main` choice) and
+  `menuNodes(tree)` (the `menu-item` blocks).
+- `src/templates.ts`: `templateKind(post)` (header or footer), `widgetCounts`, `navMenuOf` (the header and
+  footer templates).
 - `src/files.ts`: the frontmatter file format (the same as the Git CMS, with the `yaml` package).
 - `src/report.ts`: `buildReport(input)`. The text of `pluto-import-report.md`.
 - `src/types.ts`: `BlockNode`, `ConvertContext`, `PageReport`, `Kit`.
@@ -45,8 +51,11 @@ type }`). Any other file is a WXR.
    - The kit is the `elementor_library` post with `_elementor_template_type = kit`. Its
      `_elementor_page_settings` is PHP-serialized.
    - A `page` post with `_elementor_data` is imported. A trashed or auto-draft page is skipped.
-   - The header, footer, saved templates, Elementor posts of other types, and pages that are not
-     built with Elementor are listed in the report, not imported.
+   - The footer becomes the footer area, the header goes in the report, and the `nav_menu` terms and
+     `nav_menu_item` posts become menus (see below). `fast-xml-parser` reads the attributes of
+     `<category domain="nav_menu" nicename>`, which say the menu of an item.
+   - Saved templates, other footers, Elementor posts of other types, and pages that are not built
+     with Elementor are listed in the report, not imported.
    - An `attachment` gives the URL and the alt text of an image by its id.
 3. **Paths.** The slug of the page, with the slugs of its parents (`about/team`). The front page
    (`wp:page_on_front` of the channel, else the page with the slug `home`) is `home`. A second page
@@ -55,7 +64,10 @@ type }`). Any other file is a WXR.
    skipped, a file that is not from this page is a conflict (not written), unless `--force`.
 5. **Convert** each page that will be written, into block nodes, with a report for the page.
 6. **Media.** The images of the pages that will be written, unless `--no-media` or `--dry-run`.
-7. **Write** the pages, `pluto-import/theme.json` (when the file has a kit) and the report.
+7. **Menus and footer.** Decide and convert the same way: a file with the same `wordpress.id` is
+   skipped, another file is a conflict, unless `--force`. The footer images join the media step.
+8. **Write** the pages, the footer, the menus, `pluto-import/theme.json` (when the file has a kit) and
+   the report.
 
 `--dry-run` converts and reports, and writes nothing. It downloads nothing. It prints the plan, the
 report and the theme snippet.
@@ -142,10 +154,63 @@ padding gets `padding="none"`, because the default of the block is `lg`.
 | `spacer`                   | `block-spacer`                  | `size` is the exact length in px (the block takes a length, so there is no rounding). The default is 50 px.                                                                                                                                              |
 | `html`                     | raw HTML                        | Blank lines inside are removed, so the HTML stays one block. `<style>` and `<script>` blocks are dropped (report note: CSS/JS from an HTML widget was not imported). The renderer removes iframes and forms (a report line).                             |
 | `shortcode`                | a placeholder `block-text`      | `Not imported: the shortcode ...`. A report line.                                                                                                                                                                                                        |
+| `navigation-menu`, `nav-menu` | `block-icon-list` + items    | The `menu` setting is the slug of a menu in the export. The list has the top-level items as links, with the icon `i-lucide-chevron-right`. Sub-items are left out (a note). A menu that is not in the export gives a placeholder, like any unknown widget. |
+| `site-logo`, `theme-site-logo` | `block-image`               | The image of `custom_image`, else the logo attachment of the export (`_wp_attachment_context` `custom-logo`), else a `block-heading` with the site title (a note). It links to `/`. |
+| `site-title`, `theme-site-title` | `block-heading`           | The title of the WXR channel. `level` from `header_size` (default 2). |
+| `copyright`                | `block-text`                    | The Header Footer Elementor widget. `[hfe_current_year]` and `[hfe_site_title]` are filled in. Another shortcode stays and is reported. |
 | `menu-anchor`              | nothing                         | Counted as an unknown widget.                                                                                                                                                                                                                            |
 | any other widget           | a placeholder `block-text`      | `Not imported: the Elementor widget "name"`. Pro widgets and add-on widgets too. A report line.                                                                                                                                                          |
 
 A shortcode in the text of a `text-editor` stays in the text, and the report lists it.
+
+## Menus
+
+The targets are in core (see the content-model skill, "Menus and areas"): `content/menus/<handle>.md`
+with the frontmatter `title` and `wordpress: { id }` (the id of the `nav_menu` term), and a body of
+`menu-item` blocks only (`label`, `link`, `target`). A child item is inside its parent. The colons are
+counted by `serializeBlocks`.
+
+- **Read.** The menu of an item is its `<category domain="nav_menu">`. Items sort by `menu_order`, then id.
+  `_menu_item_menu_item_parent` nests. A menu with no item is not imported.
+- **Label.** The item title, else the title of the linked page, post or term. An item with no label is
+  dropped (a report line). Its children move up.
+- **Link.**
+  - `post_type` + `page`: the importer path of the page (`home` is `/`, a child is `about/team`). A page
+    that is in the export but not imported (it is not built with Elementor) still gets its path, and a
+    report line says the link leads nowhere. A page that is not in the export: no link, a report line.
+  - `post_type` + `post`: `/posts/<slug>`, the post route of the blog template. The importer does not
+    import posts, so the report says so.
+  - `custom`: the URL, as a path when it points to the site of the export (`localUrl`). `#` or empty: no link.
+  - `taxonomy`: Pluto has no page for an archive. The label is the term name. The URL stays when the export
+    has one (it usually has not). Always a report line.
+  - `target` is `_blank` when `_menu_item_target` is.
+- **The handle.** WordPress keeps the theme locations outside the export, so a heuristic picks `main`:
+  the first menu whose slug or name has `primary`, `main`, `header` or `menu-1` (in that order of words),
+  else the menu of the navigation widget of the header (its `menu` setting), else the largest menu. A
+  menu with no item cannot be `main`. The other menus keep the slugified name (a clash gets `-2`). The
+  report says the choice and its reason, and, when the header widget uses another menu, how to swap the
+  files.
+
+## The footer area
+
+`content/areas/footer.md`, frontmatter `title: Footer` and `wordpress: { id }` (the id of the template post).
+
+- **Find.** An `elementor-hf` post with `ehf_template_type` that has `footer` (but not `before`; with no type,
+  the title decides), or an `elementor_library` post with `_elementor_template_type: footer`. The first
+  one with readable `_elementor_data` wins. The others go in the "Not imported" list.
+- **Convert.** `convertElements`, the same as a page, with `ctx.site` set (the site title, the logo, the year
+  from `now`, and the menus by slug and by name). The page converter gets `ctx.site` too, so a navigation
+  widget in a page works the same.
+- **Navigation menu.** A `block-icon-list` with the top-level items. The kit has no navigation block. An
+  icon list has links, a vertical or an inline layout and no bullet that must be a check (the icon is
+  `i-lucide-chevron-right`). A list copies the menu at import time. The other choice, a placeholder, loses
+  the links and gains nothing.
+
+## The header
+
+Not imported: a header layout is the job of the template. The report has a "Header" section: the menu of
+its navigation widget (and the handle it has now), and the count of its widgets by type. The header can be
+an `elementor-hf` post or a theme builder template.
 
 ### Icons
 
@@ -237,7 +302,9 @@ has no theme. The block tokens still work, with the defaults of the blocks layer
 - for each page: placeholders, unknown widgets, shortcodes, raw HTML widgets, rounded values, dropped
   responsive values, ignored styles, icons with no match, add-on prefixes (`eael_`, `ha_`,
   `premium_`, `uael_`, `jet_`), images with no alt, and notes;
-- what was not imported, grouped: headers, footers, saved templates, Elementor posts of other types,
+- a "Menus" section (the counts, the `main` menu and why, each menu with its items that have no Pluto
+  equivalent), a "Footer area" section (like a page) and a "Header" section;
+- what was not imported, grouped: other footers, saved templates, Elementor posts of other types,
   pages that are not built with Elementor;
 - the images that were not downloaded, with the reason;
 - the theme snippet;
@@ -245,7 +312,8 @@ has no theme. The block tokens still work, with the defaults of the blocks layer
 
 ## Not in this version
 
-- Headers and footers, menus (they need a `block-nav` block), forms, redirects, posts, terms, users.
+- Headers, forms, redirects, posts, terms, users.
+- A `block-nav` block for the kit: a navigation widget is an icon list until then.
 - A page that is not built with Elementor.
 - A public URL as the input.
 - A Supabase target (it will be an admin wizard that writes through the content adapter).
@@ -255,6 +323,7 @@ has no theme. The block tokens still work, with the defaults of the blocks layer
 
 `bun run --cwd packages/tools/wordpress test` runs Vitest: `php`, `wxr`, `theme`, `values`, `icons`,
 `widgets`, `layout`, `mdc`, `media` (a fake `fetch`), `writer` (dry run, re-run, `--force`, media,
-JSON input) and `output` (the generated pages parse with core, and use only the blocks and the props
+JSON input), `menus` (the trees, the `main` choice, the footer from both template kinds, the header,
+re-runs, the dry run, and `parseBlocks` on every menu and area) and `output` (the generated pages parse with core, and use only the blocks and the props
 of the kit). `typecheck` is `tsc --noEmit`. No test uses the network, and no sample site is in the
 repo.

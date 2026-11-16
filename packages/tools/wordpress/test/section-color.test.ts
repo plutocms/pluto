@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { convertElements } from '../src/convert'
 import { luminanceOf } from '../src/section-color'
+import { emptyKit } from '../src/theme'
 import { container, context, widget } from './fixtures'
 
 const white = { title_color: '#FFFFFF' }
@@ -115,5 +116,56 @@ describe('the text color of a section', () => {
     ])[0]!
 
     expect(node.props.color).toBe('#FFFFFF')
+  })
+
+  it('reads a token background through the colors of the theme', () => {
+    const kit = {
+      ...emptyKit(),
+      theme: { colors: { accent: '#222F3E' }, fonts: {} },
+    }
+    const node = convertElements(context({ kit }), [
+      container(
+        {
+          background_background: 'classic',
+          __globals__: { background_color: 'globals/colors?id=accent' },
+        },
+        [widget('heading', { title: 'A', ...white })]
+      ),
+    ])[0]!
+
+    expect(node.props.bg).toBe('accent')
+    expect(node.props.color).toBe('#FFFFFF')
+  })
+
+  it('keeps a token background that the theme does not define', () => {
+    const node = convertElements(context(), [
+      container(
+        {
+          background_background: 'classic',
+          __globals__: { background_color: 'globals/colors?id=accent' },
+        },
+        [widget('shortcode', { shortcode: '[x]' })]
+      ),
+    ])[0]!
+
+    expect(node.props.color).toBeUndefined()
+  })
+
+  it('sets white text on a dark section whose only text is a placeholder', () => {
+    const node = section(
+      { background_background: 'classic', background_color: '#111111' },
+      [widget('shortcode', { shortcode: '[x]' })]
+    )
+
+    expect(node.props.color).toBe('#FFFFFF')
+  })
+
+  it('sets no color on a light section whose only text is a placeholder', () => {
+    const node = section(
+      { background_background: 'classic', background_color: '#FFFFFF' },
+      [widget('shortcode', { shortcode: '[x]' })]
+    )
+
+    expect(node.props.color).toBeUndefined()
   })
 })

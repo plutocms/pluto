@@ -532,7 +532,7 @@ function topLevel(ctx: ConvertContext, element: ElementorElement): BlockNode[] {
 
   const section: BlockNode = { name: 'block-section', props, children }
 
-  liftSectionColor(section)
+  liftSectionColor(section, ctx.kit.theme.colors)
 
   return [section]
 }

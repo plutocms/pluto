@@ -18,6 +18,19 @@ export interface BlockNode {
 
 export const RAW_HTML = '#html'
 
+export interface WxrCategory {
+  domain: string
+  slug: string
+  name: string
+}
+
+export interface WxrTerm {
+  id: number
+  taxonomy: string
+  slug: string
+  name: string
+}
+
 export interface WxrPost {
   id: number
   type: string
@@ -30,6 +43,8 @@ export interface WxrPost {
   content: string
   excerpt: string
   attachmentUrl: string
+  menuOrder: number
+  categories: WxrCategory[]
   meta: Record<string, string>
 }
 
@@ -38,6 +53,7 @@ export interface Wxr {
   link: string
   baseUrl: string
   frontPageId?: number
+  terms: WxrTerm[]
   posts: WxrPost[]
 }
 
@@ -89,6 +105,20 @@ export interface Attachment {
   alt: string
 }
 
+export interface MenuLink {
+  label: string
+  link?: string
+  target?: string
+  children: MenuLink[]
+}
+
+export interface SiteContext {
+  title: string
+  logo?: string
+  year: number
+  menus: Map<string, MenuLink[]>
+}
+
 export interface ConvertContext {
   kit: Kit
   report: PageReport
@@ -96,6 +126,7 @@ export interface ConvertContext {
   attachments: Map<number, Attachment>
   baseUrl: string
   fonts: Map<string, Set<string>>
+  site?: SiteContext
 }
 
 export function emptyReport(): PageReport {
