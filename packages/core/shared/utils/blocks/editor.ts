@@ -286,7 +286,7 @@ export function buildPalette(
       ],
     })
   }
-  for (const { group, items } of listPaletteBlocks(sources)) {
+  for (const { group, items } of listPaletteBlocks(sources, accepts)) {
     const entries = items
       .filter((item) => !accepts || accepts.includes(item.name))
       .map((item): PlutoPaletteEntry => ({

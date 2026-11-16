@@ -21,6 +21,10 @@ export function isPagesOn(
   return config?.enabled === true
 }
 
+export const isMenusOn = isPagesOn
+
+export const isAreasOn = isPagesOn
+
 export function showPublicRepoWarning(
   repoPrivate: boolean | undefined,
   types: readonly Pick<PlutoContentType, 'status'>[]

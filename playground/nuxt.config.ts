@@ -18,6 +18,14 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-07-15',
 
+  plutoAreas: {
+    enabled: true,
+  },
+
+  plutoMenus: {
+    enabled: true,
+  },
+
   plutoPages: {
     enabled: true,
   },

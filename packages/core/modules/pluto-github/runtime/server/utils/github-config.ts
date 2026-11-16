@@ -21,6 +21,8 @@ export interface GithubConfig {
   cacheStorage: string
   postType: boolean
   pages: boolean
+  menus: boolean
+  areas: boolean
   sessionPassword: string
   appId: string
   clientId: string
@@ -72,6 +74,12 @@ export function getGithubConfig(): GithubConfig {
     postType: secret.postType !== false && String(secret.postType) !== 'false',
     pages:
       (config.public.plutoPages as { enabled?: boolean } | undefined)
+        ?.enabled === true,
+    menus:
+      (config.public.plutoMenus as { enabled?: boolean } | undefined)
+        ?.enabled === true,
+    areas:
+      (config.public.plutoAreas as { enabled?: boolean } | undefined)
         ?.enabled === true,
     sessionPassword: text(secret.sessionPassword),
     appId: text(secret.appId),

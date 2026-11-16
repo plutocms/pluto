@@ -16,7 +16,18 @@ There is no `mdc` widget name.
 A type whose body is a `blocks` field has the same body on the public site (the block model skill,
 "Public render"). In the item view, the public API gives `blocks` (a Comark document) and no `html`.
 `<PlutoBlocks :value="item.blocks" />` renders it. The page type (`plutoPages.enabled`) is such a
-type, and `usePage(path)` reads it.
+type, and `usePage(path)` reads it. So are the menu and the area type (`plutoMenus`, `plutoAreas`): see the
+content model skill, "Menus and areas".
+
+## Limit the top level
+
+The field option `blocks: ['menu-item']` limits the top level of the block editor to the named components.
+`PlutoFieldBlocks` passes it to the editor (`accepts` prop, then the `accepts` option of
+`createPlutoBlockEditor`, then `editor.accepts`). `PlutoBlockPalette` uses it when the target is the top
+level, and `buildPalette(sources, accepts)` then lists only those blocks: no text, table or code entry, and
+a `hidden` block of the list shows. A slot keeps the `accepts` of its own block. Without the option the
+top level is open. The Markdown source mode and the Insert menu are not limited: the author can still type
+any block there.
 
 ## The two modes
 

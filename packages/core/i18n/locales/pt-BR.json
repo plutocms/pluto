@@ -476,7 +476,9 @@
         "manageAuthors": "Criar, editar e excluir autores",
         "readPageDrafts": "Ler páginas em rascunho",
         "publishPages": "Criar, editar e publicar páginas",
-        "deletePages": "Excluir páginas"
+        "deletePages": "Excluir páginas",
+        "manageMenus": "Criar, editar e excluir menus",
+        "manageAreas": "Criar, editar e excluir áreas"
       },
       "setup": {
         "title": "Configure o login com GitHub",
@@ -1415,6 +1417,40 @@
         },
         "avatar": {
           "label": "Avatar"
+        }
+      }
+    },
+    "menu": {
+      "label": "Menu",
+      "labelPlural": "Menus",
+      "description": "A navegação do site. Um template mostra um menu pelo seu identificador, por exemplo main.",
+      "fields": {
+        "title": {
+          "label": "Título"
+        },
+        "slug": {
+          "label": "Identificador",
+          "description": "O nome que um template usa para achar o menu, por exemplo main."
+        },
+        "body": {
+          "label": "Itens"
+        }
+      }
+    },
+    "area": {
+      "label": "Área",
+      "labelPlural": "Áreas",
+      "description": "Uma parte do site que várias páginas dividem, como o rodapé. Um template mostra uma área pelo seu identificador, por exemplo footer.",
+      "fields": {
+        "title": {
+          "label": "Título"
+        },
+        "slug": {
+          "label": "Identificador",
+          "description": "O nome que um template usa para achar a área, por exemplo footer."
+        },
+        "body": {
+          "label": "Conteúdo"
         }
       }
     }

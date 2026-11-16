@@ -89,10 +89,12 @@ Rules of the merge:
 - Prop keys: a prop of the definition takes the spelling of the block. If the page has
   `star-count` and the meta has `starCount`, the definition key is `star-count`. So an edit changes
   the prop of the page. It never adds a second one.
-- `listPaletteBlocks(sources)` lists the presets, then the names in `components`, then the names that
+- `listPaletteBlocks(sources, accepts)` lists the presets, then the names in `components`, then the names that
   only `overrides` has. A component shows in the palette only when it is in one of the layers
   (opt-in). Any other component keeps the automatic entry: it is not in the palette, and a page that
-  uses it edits in Advanced.
+  uses it edits in Advanced. A `hidden` block is not listed, unless its name is in `accepts` (the top level
+  of a field with `blocks`, or a slot with `accepts`): `menu-item` is hidden from page palettes and shows in
+  a menu.
 
 `definePlutoBlock(def)` is a typed identity helper (`shared/utils/blocks/define.ts`, a file with no
 other import). `definePlutoBlock<Props>({...})` checks that the keys of `props` are keys of `Props`. A label or a description is an i18n key

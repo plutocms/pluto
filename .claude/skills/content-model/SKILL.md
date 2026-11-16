@@ -853,6 +853,34 @@ with `import { definePlutoPageType } from '@plutocms/core/shared/utils/page-type
 site needs a catch-all route (`pages/[...path].vue`). See the git-cms skill for the Git CMS variant, and
 the supabase-integration skill of `@plutocms/supabase` for the table.
 
+## Menus and areas
+
+Two more switches work like the page switch: `plutoMenus: { enabled: true }` (module
+`modules/pluto-menus`) and `plutoAreas: { enabled: true }` (module `modules/pluto-areas`). Both default
+`false`. Each sets `runtimeConfig.public.<key>.enabled`, and each backend registers its variant of the
+type when the switch is on.
+
+- `definePlutoMenuType(storage)` (`shared/utils/menu-type.ts`): name `menu`. Fields `title` (required),
+  `slug` (labelled Handle: `main`, `footer-links`) and `body` (`richtext`, `widget: 'blocks'`,
+  `blocks: ['menu-item']`, so the editor offers only `menu-item` blocks). Nesting is a `menu-item` inside a
+  `menu-item`.
+- `definePlutoAreaType(storage)` (`shared/utils/area-type.ts`): name `area`. Fields `title`, `slug` (Handle:
+  `footer`) and `body` (`richtext`, `widget: 'blocks'`, any block).
+- Both: `status: false` (always live), `trash`, `api: { public: true }`, canvas form. The storage parts come
+  from the backend: `source`, `files`, `timestamps`, `capabilities`, `defaultSort`. The Git CMS uses
+  `menus:write` and `areas:write` (write and delete).
+- Core ships the `menu-item` content component (`app/components/content/MenuItem.vue`): props `label`,
+  `link`, `target`; its default slot accepts `menu-item`; it renders `<li><a>` and a nested `<ul>`. It is
+  `hidden: true`, so only a menu editor offers it (an `accepts` list shows hidden blocks). A site does not
+  render menus with it: it uses `usePlutoMenu`.
+- `usePlutoMenu(handle)` returns the async data with `menu` and `items`. `items` is `PlutoMenuItem[]`
+  (`{ label, to, target?, children }`), made by `plutoMenuItems(menu.blocks)` (`shared/utils/menu-items.ts`, a
+  pure function; it keeps the `menu-item` nodes and skips the rest). `usePlutoArea(handle)` returns `area`:
+  render `area.blocks` with `PlutoBlocks`. A missing menu or area is not a 404: the value is `null` (`items`
+  is empty), so the template falls back to its own links or footer. They set no SEO tags and no admin bar
+  link. Types: `PlutoMenu`, `PlutoMenuItem`, `PlutoArea` (`shared/types/public-api.ts`).
+- Tests: `test/pluto-menus-areas.test.ts`. The Supabase tables (`menus`, `areas`) are in the supabase repo.
+
 ## Scheduled publish and review
 
 Two opt-in options of `status`. The rules are in `shared/utils/content-status.ts` (auto-imported):

@@ -61,6 +61,7 @@ function setMode(next: Mode) {
     :model-value="value"
     :disabled="disabled"
     :mode="mode"
+    :accepts="field.blocks"
     @update:model-value="emit('update:modelValue', $event)"
     @update:mode="setMode"
   />
@@ -70,6 +71,7 @@ function setMode(next: Mode) {
     :model-value="value"
     :disabled="disabled"
     :mode="mode"
+    :accepts="field.blocks"
     :placeholder="field.placeholder ?? t('pluto.blocks.placeholder')"
     :label="field.label"
     @update:model-value="emit('update:modelValue', $event)"

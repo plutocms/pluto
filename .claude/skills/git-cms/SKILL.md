@@ -170,6 +170,22 @@ adds only its storage: `source: 'pages'`, `files: { nested: true }`, its columns
 - Texts: `content.page.*` (the type) in the locale files, like `content.post.*`.
 - Tests: `test/github-page-type.test.ts`, `test/pluto-github-options.test.ts`, `test/github-client-rules.test.ts`.
 
+## The menu and area types
+
+The core options `plutoMenus: { enabled: true }` and `plutoAreas: { enabled: true }` (default `false`) make the
+Git CMS register `plutoGithubMenuType` and `plutoGithubAreaType` (`runtime/shared/menu-type.ts`,
+`area-type.ts`), like the page type: on the server (`registerGithubContent`, with `config.menus` and
+`config.areas`) and on the client (the `pluto-github` plugin). The types come from `definePlutoMenuType` and
+`definePlutoAreaType` in core (the content model skill, "Menus and areas").
+
+- `source: 'menus'` and `source: 'areas'`: the files are `content/menus/<handle>.md` and
+  `content/areas/<handle>.md`. Flat, no status, `api: { public: true }`. The id is the handle.
+- Capabilities `menus:write` and `areas:write` (write and delete). Push users get them through the registered
+  types. The plugin lists them with the keys `pluto.github.capabilities.manageMenus` and `manageAreas`.
+- The public item has `blocks` and no `html`. `usePlutoMenu(handle)` and `usePlutoArea(handle)` read them.
+- Texts: `content.menu.*` and `content.area.*`.
+- Tests: `test/pluto-menus-areas.test.ts`.
+
 ## Adapter
 
 `runtime/server/adapter.ts` has `createMarkdownContentAdapter`. It is a `PlutoContentAdapter` over a
@@ -428,7 +444,7 @@ reads the session once.
   token, the session clears and the answer is 401. If GitHub does not answer, the answer is 503.
 - Capabilities: admin and maintain give `['*']`. Push gives the keys of the registered types: the post type
   (`plutoGithubPostType.capabilities`: `posts:read_drafts`, `posts:publish`, `posts:delete`) and the page type
-  when it is on. The
+  when it is on, and the menu and area types when they are on. The
   adapter and `requireGithubCapability` treat `*` as every capability. GitHub still enforces the real
   permission on each commit, because the commit uses the user token.
 - Dev `fs` store: in dev with `storage: 'fs'`, a request from this machine gets a fixed user
