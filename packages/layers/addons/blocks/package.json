@@ -1,0 +1,41 @@
+{
+  "name": "@plutocms/blocks",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "An add-on layer for Pluto: a landing kit of blocks for pages (section, columns, heading, button, accordion and more), with a theme in app config",
+  "author": "Victor Ribeiro",
+  "license": "MIT",
+  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/layers/addons/blocks#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutocms/pluto.git",
+    "directory": "packages/layers/addons/blocks"
+  },
+  "bugs": {
+    "url": "https://github.com/plutocms/pluto/issues"
+  },
+  "keywords": [
+    "nuxt",
+    "nuxt-layer",
+    "pluto",
+    "blocks",
+    "landing-page",
+    "page-builder"
+  ],
+  "main": "./nuxt.config.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "nuxt prepare ../../../../playground && vue-tsc --noEmit -p ../../../../playground/.nuxt/tsconfig.app.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@plutocms/core": ">=0.72.0 <1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@plutocms/core": {
+      "optional": true
+    }
+  }
+}
