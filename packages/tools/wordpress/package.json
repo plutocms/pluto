@@ -1,7 +1,7 @@
 {
   "name": "@plutocms/wordpress",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Import Elementor landing pages from WordPress into a Pluto Git CMS project, as pages made of @plutocms/blocks",
   "author": "Victor Ribeiro",
   "license": "MIT",

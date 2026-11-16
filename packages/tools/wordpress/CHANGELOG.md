@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/plutocms/pluto/compare/wordpress-v0.1.0...wordpress-v0.2.0) (2026-11-16)
+
+
+### Features
+
+* **wordpress:** import menus and the footer ([#565](https://github.com/plutocms/pluto/issues/565)) ([f2039bc](https://github.com/plutocms/pluto/commit/f2039bc8503b666f58861b4538508e7a87d5ef9c))
+
 ## [0.1.0](https://github.com/plutocms/pluto/compare/wordpress-v0.1.0...wordpress-v0.1.0) (2026-11-16)
 
 
