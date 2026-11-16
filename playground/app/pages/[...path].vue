@@ -1,5 +1,10 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: 'full',
+})
+
 const route = useRoute()
+
 const { page } = await usePage(() =>
   Array.isArray(route.params.path)
     ? route.params.path.join('/')
@@ -7,16 +12,12 @@ const { page } = await usePage(() =>
 )
 
 const full = computed(() => page.value?.layout === 'full')
-
-if (full.value) {
-  setPageLayout('full')
-}
 </script>
 
 <template>
-  <PlutoBlocks v-if="page && full" :value="page.blocks" />
+  <PlutoBlocks v-if="page && full" :value="page.blocks" tag="div" />
 
-  <article v-else-if="page">
+  <UContainer v-else-if="page" as="article" class="max-w-3xl py-10">
     <h1 class="text-highlighted text-3xl font-semibold">
       {{ page.title }}
     </h1>
@@ -28,5 +29,5 @@ if (full.value) {
     <div class="mt-8">
       <PlutoBlocks :value="page.blocks" />
     </div>
-  </article>
+  </UContainer>
 </template>
