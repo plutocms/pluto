@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.75.0](https://github.com/plutocms/pluto/compare/v0.74.0...v0.75.0) (2026-11-16)
+
+
+### Features
+
+* **core:** menus and areas ([#562](https://github.com/plutocms/pluto/issues/562)) ([cea349c](https://github.com/plutocms/pluto/commit/cea349c977dc73e3c78041a84844e1facd8d83b8))
+
 ## [0.74.0](https://github.com/plutocms/pluto/compare/v0.73.0...v0.74.0) (2026-11-16)
 
 
