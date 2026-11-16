@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.74.0](https://github.com/plutocms/pluto/compare/v0.73.0...v0.74.0) (2026-11-16)
+
+
+### Features
+
+* **wordpress:** import Elementor landing pages ([#555](https://github.com/plutocms/pluto/issues/555)) ([686ef70](https://github.com/plutocms/pluto/commit/686ef703e40a78d97ba3644df5d8b2eac4b51a41))
+
 ## [0.73.0](https://github.com/plutocms/pluto/compare/v0.72.0...v0.73.0) (2026-11-16)
 
 
