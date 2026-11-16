@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@plutocms/3d": "workspace:*",
+    "@plutocms/blocks": "workspace:*",
     "@plutocms/core": "workspace:*",
     "@plutocms/seo": "workspace:*",
     "@plutocms/shop": "workspace:*",

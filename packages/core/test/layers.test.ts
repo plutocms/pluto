@@ -84,6 +84,7 @@ describe('plutoLayer', () => {
     checkout('pluto/packages/layers/addons/3d')
     checkout('pluto/packages/layers/addons/shop')
     checkout('pluto/packages/layers/addons/seo')
+    checkout('pluto/packages/layers/addons/blocks')
     process.env.PLUTO_LOCAL_ROOT = root
 
     expect(plutoLayer('@plutocms/3d')).toBe(
@@ -94,6 +95,9 @@ describe('plutoLayer', () => {
     )
     expect(plutoLayer('@plutocms/seo')).toBe(
       resolve(root, 'pluto/packages/layers/addons/seo')
+    )
+    expect(plutoLayer('@plutocms/blocks')).toBe(
+      resolve(root, 'pluto/packages/layers/addons/blocks')
     )
     expect(process.env.PLUTO_CORE_PATH).toBe(
       resolve(root, 'pluto/packages/core')
