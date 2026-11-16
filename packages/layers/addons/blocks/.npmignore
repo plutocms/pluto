@@ -1,0 +1,9 @@
+node_modules
+.nuxt
+.output
+.playground
+test
+*.log
+.env
+.env.*
+vitest.config.ts

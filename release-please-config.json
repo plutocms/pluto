@@ -14,6 +14,12 @@
       "include-component-in-tag": true,
       "initial-version": "0.1.0"
     },
+    "packages/layers/addons/blocks": {
+      "package-name": "@plutocms/blocks",
+      "component": "blocks",
+      "include-component-in-tag": true,
+      "initial-version": "0.1.0"
+    },
     "packages/layers/addons/seo": {
       "package-name": "@plutocms/seo",
       "component": "seo",

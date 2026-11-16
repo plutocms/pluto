@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     '@plutocms/shop',
     '@plutocms/seo',
     '@plutocms/syntax-lowlight',
+    '@plutocms/blocks',
   ],
 
   css: ['~/assets/css/main.css'],
