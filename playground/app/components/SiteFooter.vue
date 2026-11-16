@@ -1,7 +1,9 @@
 <script setup lang="ts">
 const { area } = usePlutoArea('footer')
 
-const { item: contact } = usePlutoSingleton('contact')
+const { item: contact } = usePlutoSingleton('contact', {
+  editLink: false,
+})
 </script>
 
 <template>
