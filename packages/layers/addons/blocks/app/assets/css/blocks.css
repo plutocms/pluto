@@ -110,6 +110,12 @@
     font-family: var(--pluto-blocks-font-body, inherit);
   }
 
+  .pluto-blocks-section[data-surface] {
+    --pluto-blocks-color-text: currentColor;
+    --pluto-blocks-color-muted: color-mix(in oklab, currentColor 78%, transparent);
+    --pluto-blocks-color-border: color-mix(in oklab, currentColor 22%, transparent);
+  }
+
   .pluto-blocks-section[data-valign='center'] {
     justify-content: center;
   }
@@ -333,16 +339,11 @@
   }
 
   .pluto-blocks-button-wrap {
-    display: flex;
-    justify-content: flex-start;
+    display: block;
   }
 
-  .pluto-blocks-button-wrap[data-align='center'] {
-    justify-content: center;
-  }
-
-  .pluto-blocks-button-wrap[data-align='end'] {
-    justify-content: flex-end;
+  .pluto-blocks-button-wrap[data-align='start'] {
+    text-align: start;
   }
 
   .pluto-blocks-button {
@@ -768,6 +769,7 @@
 
   .pluto-blocks-counter__number {
     margin: 0;
+    white-space: nowrap;
     color: var(--pluto-blocks-color-primary);
     font-family: var(--pluto-blocks-font-heading, inherit);
     font-size: clamp(2.5rem, 6vw, 4rem);

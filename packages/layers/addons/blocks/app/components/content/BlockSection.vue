@@ -96,6 +96,10 @@ const style = computed(() => ({
   minHeight: blocksLength(props.minHeight),
 }))
 
+const hasOwnSurface = computed(() =>
+  Boolean(props.bg || props.image || props.color)
+)
+
 const overlayColor = computed(() => {
   const color = blocksColor(props.overlay)
   if (!color) {
@@ -122,6 +126,7 @@ const overlayStyle = computed(() => ({
     :data-width="props.width"
     :data-align="props.align"
     :data-valign="props.valign"
+    :data-surface="hasOwnSurface ? '' : undefined"
     class="pluto-blocks-section"
   >
     <div
