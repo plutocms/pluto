@@ -61,7 +61,7 @@ export default defineAppConfig({
   so it beats the defaults of `blocks.css`.
 - **Defaults** (in `blocks.css`, on `:where(:root)`): `primary` is `var(--ui-primary, #4f46e5)`,
   `secondary` `var(--ui-secondary, #64748b)`, `accent` `var(--ui-warning, #d97706)`, `text`
-  `currentColor`, `muted` `var(--ui-text-muted, color-mix(in oklab, currentColor 65%, transparent))`,
+  `currentColor`, `muted` `color-mix(in oklab, var(--pluto-blocks-color-text) 65%, transparent)` (a section with `color` sets text and muted from that color),
   `surface` `var(--ui-bg-elevated, color-mix(in oklab, currentColor 6%, transparent))`, `background`
   `transparent`, `on-primary` `var(--ui-bg, #fff)`. They work in light and dark mode on a Nuxt UI site
   (its variables change with the mode) and on a plain site (they follow the color of the page).

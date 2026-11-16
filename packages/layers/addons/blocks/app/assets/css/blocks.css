@@ -15,9 +15,10 @@
     --pluto-blocks-color-secondary: var(--ui-secondary, #64748b);
     --pluto-blocks-color-accent: var(--ui-warning, #d97706);
     --pluto-blocks-color-text: currentColor;
-    --pluto-blocks-color-muted: var(
-      --ui-text-muted,
-      color-mix(in oklab, currentColor 65%, transparent)
+    --pluto-blocks-color-muted: color-mix(
+      in oklab,
+      var(--pluto-blocks-color-text) 65%,
+      transparent
     );
     --pluto-blocks-color-surface: var(
       --ui-bg-elevated,
@@ -110,10 +111,18 @@
     font-family: var(--pluto-blocks-font-body, inherit);
   }
 
-  .pluto-blocks-section[data-surface] {
+  .pluto-blocks-section[data-color] {
     --pluto-blocks-color-text: currentColor;
-    --pluto-blocks-color-muted: color-mix(in oklab, currentColor 78%, transparent);
-    --pluto-blocks-color-border: color-mix(in oklab, currentColor 22%, transparent);
+    --pluto-blocks-color-muted: color-mix(
+      in oklab,
+      currentColor 78%,
+      transparent
+    );
+    --pluto-blocks-color-border: color-mix(
+      in oklab,
+      currentColor 22%,
+      transparent
+    );
   }
 
   .pluto-blocks-section[data-valign='center'] {
