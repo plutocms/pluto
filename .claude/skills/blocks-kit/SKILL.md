@@ -72,7 +72,7 @@ export default defineAppConfig({
 ## Values
 
 - **Scale** (`padding`, `gap`, `spacing`, `size` of a spacer): `none`, `xs`, `sm`, `md`, `lg`, `xl`,
-  `2xl`, or a CSS length. A bare number is pixels. `none` is `0`.
+  `2xl`, or a CSS length. A bare number is pixels. `none` is `0px` (a unitless `0` would break the `calc()` of the column widths).
 - **Color** (`bg`, `color`, `overlay`...): a token (`primary`, `secondary`, `text`, `accent`,
   `muted`, `surface`, `background`) or a safe CSS color. Anything else is ignored, so an imported
   color stays exact.

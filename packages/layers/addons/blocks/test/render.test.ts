@@ -383,4 +383,40 @@ describe('the MDC that the skill tells an importer to write', () => {
     expect(section.attributes!.style).toContain('min-height:40vh')
     expect(html).toContain('color-mix(in srgb, black 20%, transparent)')
   })
+
+  it('keeps the width of an empty column, which is a spacer', async () => {
+    const html = await render(
+      [
+        '::::block-columns{gap="none"}',
+        '::block-column{width="25"}',
+        '::',
+        '',
+        ':::block-column{width="50"}',
+        '::block-text',
+        'Centered',
+        '::',
+        ':::',
+        '',
+        '::block-column{width="25"}',
+        '::',
+        '::::',
+      ].join('\n')
+    )
+    const page = parse(html.replace(/<!--.*?-->/gs, '')) as HtmlNode
+    const columns = byClass(page, 'pluto-blocks-column')
+    const row = byClass(page, 'pluto-blocks-columns')[0]!
+
+    expect(row.attributes!.style).toContain('--pluto-blocks-gap:0px')
+    expect(columns).toHaveLength(3)
+    expect(columns.map((column) => column.attributes!['data-sized'])).toEqual([
+      '',
+      '',
+      '',
+    ])
+    expect(columns.map((column) => column.attributes!.style)).toEqual([
+      '--pluto-blocks-basis:calc(25% - var(--pluto-blocks-gap, 0px) * 0.75);padding:0px;',
+      '--pluto-blocks-basis:calc(50% - var(--pluto-blocks-gap, 0px) * 0.5);padding:0px;',
+      '--pluto-blocks-basis:calc(25% - var(--pluto-blocks-gap, 0px) * 0.75);padding:0px;',
+    ])
+  })
 })

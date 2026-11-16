@@ -136,7 +136,7 @@ describe('the values of the block props', () => {
   it('maps a step of the scale to its variable, and keeps a safe length', () => {
     expect(blocksSpace('md')).toBe('var(--pluto-blocks-space-md)')
     expect(blocksSpace('2xl')).toBe('var(--pluto-blocks-space-2xl)')
-    expect(blocksSpace('none')).toBe('0')
+    expect(blocksSpace('none')).toBe('0px')
     expect(blocksSpace('24')).toBe('24px')
     expect(blocksSpace('3rem')).toBe('3rem')
     expect(blocksSpace('3rem; x')).toBeUndefined()

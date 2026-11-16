@@ -60,7 +60,7 @@ export function blocksLength(value: unknown): string | undefined {
 export function blocksSpace(value: unknown): string | undefined {
   const space = text(value)
   if (space === 'none') {
-    return '0'
+    return '0px'
   }
   if (BLOCKS_SPACES.includes(space)) {
     return `var(--pluto-blocks-space-${space})`
