@@ -23,6 +23,8 @@ function baseConfig(): GithubConfig {
     cacheStorage: 'cache',
     postType: true,
     pages: false,
+    menus: false,
+    areas: false,
     sessionPassword: SESSION_PASSWORD,
     appId: '',
     clientId: 'client-id',
