@@ -159,7 +159,7 @@
     },
     "packages/tools/wordpress": {
       "name": "@plutocms/wordpress",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "bin": {
         "pluto-wordpress": "bin/cli.mjs",
       },
