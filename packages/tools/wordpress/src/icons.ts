@@ -1,0 +1,341 @@
+export const DEFAULT_ICON = 'i-lucide-circle'
+
+const TABLE: Record<string, string> = {
+  'angle-down': 'chevron-down',
+  'angle-left': 'chevron-left',
+  'angle-right': 'chevron-right',
+  'angle-up': 'chevron-up',
+  'angle-double-right': 'chevrons-right',
+  'angles-right': 'chevrons-right',
+  'angle-double-left': 'chevrons-left',
+  'angles-left': 'chevrons-left',
+  'arrow-circle-right': 'circle-arrow-right',
+  'arrow-down': 'arrow-down',
+  'arrow-left': 'arrow-left',
+  'arrow-right': 'arrow-right',
+  'arrow-up': 'arrow-up',
+  'long-arrow-alt-right': 'move-right',
+  award: 'award',
+  baby: 'baby',
+  bars: 'menu',
+  bath: 'bath',
+  bed: 'bed',
+  bell: 'bell',
+  bicycle: 'bike',
+  binoculars: 'binoculars',
+  bolt: 'zap',
+  book: 'book',
+  'book-open': 'book-open',
+  bookmark: 'bookmark',
+  briefcase: 'briefcase',
+  building: 'building',
+  bullhorn: 'megaphone',
+  bullseye: 'target',
+  bus: 'bus',
+  calendar: 'calendar',
+  'calendar-alt': 'calendar-days',
+  'calendar-check': 'calendar-check',
+  camera: 'camera',
+  campground: 'tent',
+  car: 'car',
+  'caret-down': 'chevron-down',
+  'caret-right': 'chevron-right',
+  certificate: 'badge-check',
+  'chart-bar': 'chart-bar',
+  'chart-line': 'chart-line',
+  'chart-pie': 'chart-pie',
+  check: 'check',
+  'check-circle': 'circle-check',
+  'check-double': 'check-check',
+  'check-square': 'square-check',
+  'chevron-down': 'chevron-down',
+  'chevron-left': 'chevron-left',
+  'chevron-right': 'chevron-right',
+  'chevron-up': 'chevron-up',
+  circle: 'circle',
+  clipboard: 'clipboard',
+  clock: 'clock',
+  cloud: 'cloud',
+  'cloud-download-alt': 'cloud-download',
+  'cloud-upload-alt': 'cloud-upload',
+  code: 'code',
+  cog: 'settings',
+  cogs: 'settings',
+  gear: 'settings',
+  coffee: 'coffee',
+  comment: 'message-circle',
+  'comment-alt': 'message-square',
+  'comment-dots': 'message-circle-more',
+  comments: 'messages-square',
+  compass: 'compass',
+  'credit-card': 'credit-card',
+  crown: 'crown',
+  cube: 'box',
+  cut: 'scissors',
+  database: 'database',
+  desktop: 'monitor',
+  'dollar-sign': 'dollar-sign',
+  download: 'download',
+  dumbbell: 'dumbbell',
+  edit: 'pencil',
+  pen: 'pen',
+  'pencil-alt': 'pencil',
+  envelope: 'mail',
+  'envelope-open': 'mail-open',
+  'euro-sign': 'euro',
+  'exclamation-circle': 'circle-alert',
+  'exclamation-triangle': 'triangle-alert',
+  'external-link-alt': 'external-link',
+  eye: 'eye',
+  facebook: 'facebook',
+  'facebook-f': 'facebook',
+  'facebook-square': 'facebook',
+  file: 'file',
+  'file-alt': 'file-text',
+  'file-pdf': 'file-text',
+  film: 'film',
+  fire: 'flame',
+  fish: 'fish',
+  flag: 'flag',
+  flask: 'flask-conical',
+  folder: 'folder',
+  'folder-open': 'folder-open',
+  futbol: 'trophy',
+  gem: 'gem',
+  gift: 'gift',
+  github: 'github',
+  gitlab: 'gitlab',
+  globe: 'globe',
+  'globe-americas': 'globe',
+  'graduation-cap': 'graduation-cap',
+  hammer: 'hammer',
+  handshake: 'handshake',
+  'hands-helping': 'hand-helping',
+  hashtag: 'hash',
+  headphones: 'headphones',
+  heart: 'heart',
+  heartbeat: 'heart-pulse',
+  hiking: 'footprints',
+  home: 'house',
+  hospital: 'hospital',
+  hotel: 'hotel',
+  hourglass: 'hourglass',
+  image: 'image',
+  images: 'images',
+  info: 'info',
+  'info-circle': 'info',
+  instagram: 'instagram',
+  key: 'key',
+  laptop: 'laptop',
+  leaf: 'leaf',
+  'life-ring': 'life-buoy',
+  lightbulb: 'lightbulb',
+  link: 'link',
+  linkedin: 'linkedin',
+  'linkedin-in': 'linkedin',
+  list: 'list',
+  'list-ul': 'list',
+  lock: 'lock',
+  'luggage-cart': 'luggage',
+  map: 'map',
+  'map-marked-alt': 'map-pin',
+  'map-marker': 'map-pin',
+  'map-marker-alt': 'map-pin',
+  'map-pin': 'map-pin',
+  'map-signs': 'signpost',
+  medal: 'medal',
+  microphone: 'mic',
+  minus: 'minus',
+  mobile: 'smartphone',
+  'mobile-alt': 'smartphone',
+  'money-bill': 'banknote',
+  'money-bill-wave': 'banknote',
+  moon: 'moon',
+  motorcycle: 'bike',
+  mountain: 'mountain',
+  music: 'music',
+  'paper-plane': 'send',
+  paw: 'paw-print',
+  percent: 'percent',
+  phone: 'phone',
+  'phone-alt': 'phone',
+  'phone-volume': 'phone-call',
+  pinterest: 'pin',
+  plane: 'plane',
+  'plane-departure': 'plane-takeoff',
+  play: 'play',
+  'play-circle': 'circle-play',
+  plus: 'plus',
+  'plus-circle': 'circle-plus',
+  print: 'printer',
+  'puzzle-piece': 'puzzle',
+  question: 'circle-help',
+  'question-circle': 'circle-help',
+  'quote-left': 'quote',
+  'quote-right': 'quote',
+  redo: 'redo',
+  rocket: 'rocket',
+  route: 'route',
+  rss: 'rss',
+  search: 'search',
+  seedling: 'sprout',
+  share: 'share',
+  'share-alt': 'share-2',
+  'shield-alt': 'shield',
+  ship: 'ship',
+  'shopping-bag': 'shopping-bag',
+  'shopping-basket': 'shopping-basket',
+  'shopping-cart': 'shopping-cart',
+  'shuttle-van': 'bus',
+  'sign-in-alt': 'log-in',
+  'sign-out-alt': 'log-out',
+  skiing: 'mountain-snow',
+  slack: 'slack',
+  smile: 'smile',
+  snowflake: 'snowflake',
+  spa: 'flower-2',
+  star: 'star',
+  'star-half-alt': 'star-half',
+  stethoscope: 'stethoscope',
+  suitcase: 'briefcase',
+  'suitcase-rolling': 'luggage',
+  sun: 'sun',
+  swimmer: 'waves',
+  'swimming-pool': 'waves',
+  tag: 'tag',
+  tags: 'tags',
+  taxi: 'car-taxi-front',
+  telegram: 'send',
+  'telegram-plane': 'send',
+  tent: 'tent',
+  'thumbs-up': 'thumbs-up',
+  'thumbs-down': 'thumbs-down',
+  'ticket-alt': 'ticket',
+  times: 'x',
+  'times-circle': 'circle-x',
+  train: 'train-front',
+  tree: 'tree-pine',
+  trophy: 'trophy',
+  truck: 'truck',
+  tv: 'tv',
+  twitch: 'twitch',
+  twitter: 'twitter',
+  umbrella: 'umbrella',
+  'umbrella-beach': 'umbrella',
+  user: 'user',
+  'user-circle': 'circle-user',
+  'user-friends': 'users',
+  users: 'users',
+  utensils: 'utensils',
+  video: 'video',
+  'volume-up': 'volume-2',
+  walking: 'footprints',
+  wallet: 'wallet',
+  wifi: 'wifi',
+  'wine-glass': 'wine',
+  wrench: 'wrench',
+  'x-twitter': 'twitter',
+  youtube: 'youtube',
+}
+
+const STYLE_WORDS = new Set([
+  'fa',
+  'fas',
+  'far',
+  'fab',
+  'fal',
+  'fad',
+  'fass',
+  'fa-solid',
+  'fa-regular',
+  'fa-brands',
+  'fa-light',
+  'fa-thin',
+  'fa-duotone',
+  'fa-fw',
+  'fa-lg',
+  'fa-2x',
+  'fa-3x',
+])
+
+const NETWORKS: Record<string, string> = {
+  facebook: 'facebook',
+  'facebook-f': 'facebook',
+  'facebook-square': 'facebook',
+  instagram: 'instagram',
+  linkedin: 'linkedin',
+  'linkedin-in': 'linkedin',
+  twitter: 'twitter',
+  'x-twitter': 'twitter',
+  youtube: 'youtube',
+  github: 'github',
+  gitlab: 'gitlab',
+  twitch: 'twitch',
+  dribbble: 'dribbble',
+  figma: 'figma',
+  slack: 'slack',
+  telegram: 'telegram',
+  'telegram-plane': 'telegram',
+  envelope: 'email',
+  phone: 'phone',
+  'phone-alt': 'phone',
+  rss: 'rss',
+  globe: 'website',
+}
+
+export interface IconResult {
+  icon: string
+  mapped: boolean
+  source: string
+}
+
+function iconSource(value: unknown): string {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    const inner = (value as { value?: unknown }).value
+
+    return typeof inner === 'string' ? inner : ''
+  }
+
+  return ''
+}
+
+/** The Font Awesome name of a class list: `fas fa-star` gives `star`. */
+export function iconName(value: string): string | undefined {
+  const word = value
+    .split(/\s+/)
+    .find(
+      (entry) => entry && !STYLE_WORDS.has(entry) && entry.startsWith('fa-')
+    )
+
+  return word?.slice(3)
+}
+
+/**
+ * Maps a Font Awesome class (`fas fa-star`) to a Lucide icon name (`i-lucide-star`).
+ * An unknown name gives the default icon, with `mapped: false`.
+ * @see https://lucide.dev/icons
+ */
+export function mapIcon(value: unknown): IconResult {
+  const source = iconSource(value)
+  const name = iconName(source)
+  const lucide = name ? TABLE[name] : undefined
+
+  return lucide
+    ? { icon: `i-lucide-${lucide}`, mapped: true, source }
+    : { icon: DEFAULT_ICON, mapped: false, source: source || 'a custom icon' }
+}
+
+/** The social network name of a Font Awesome class, or `undefined`. */
+export function networkOf(value: unknown): string | undefined {
+  const name = iconName(iconSource(value))
+
+  return name ? NETWORKS[name] : undefined
+}
+
+export function lucideIcons(): string[] {
+  return [...new Set(Object.values(TABLE).map((name) => `i-lucide-${name}`))]
+}
