@@ -1,0 +1,62 @@
+{
+  "name": "@plutocms/wordpress",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Import Elementor landing pages from WordPress into a Pluto Git CMS project, as pages made of @plutocms/blocks",
+  "author": "Victor Ribeiro",
+  "license": "MIT",
+  "homepage": "https://github.com/plutocms/pluto/tree/main/packages/tools/wordpress#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plutocms/pluto.git",
+    "directory": "packages/tools/wordpress"
+  },
+  "bugs": {
+    "url": "https://github.com/plutocms/pluto/issues"
+  },
+  "keywords": [
+    "pluto",
+    "plutocms",
+    "wordpress",
+    "elementor",
+    "migration",
+    "import",
+    "cli"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "bin": {
+    "pluto-wordpress": "bin/cli.mjs"
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.12.1",
+    "image-meta": "^0.3.0",
+    "turndown": "^7.2.5",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.144",
+    "@types/node": "^26.6.5",
+    "@types/turndown": "^5.0.6",
+    "tsdown": "^0.23.2",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

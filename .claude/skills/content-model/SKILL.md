@@ -843,7 +843,7 @@ backend registers its own variant of the type when the switch is on, on the serv
 with `import { definePlutoPageType } from '@plutocms/core/shared/utils/page-type'`. It gives:
 
 - Name `page`. Fields: `title` (required), `slug` (labelled Path: it holds the whole path, such as
-  `about/team`), `description`, and `body` (`richtext`, `widget: 'blocks'`, canvas layout).
+  `about/team`), `description`, `layout` (select: `default` for a title and a narrow body, `full` for no title and the full width; default `default`), and `body` (`richtext`, `widget: 'blocks'`, canvas layout).
 - Status draft or published, `trash`, `adminBar`, `api: { public: true }`.
 - The storage parts come from the backend: `source`, `files`, `timestamps`, `capabilities`,
   `defaultSort`, the column of the publish date (`publishedAtColumn`), and more status options

@@ -15,6 +15,7 @@ import {
   parsePreviewMessage,
   previewMessage,
 } from '#layers/pluto/shared/utils/blocks/preview-protocol'
+import { stripRawTextElements } from '#layers/pluto/shared/utils/blocks/strip-raw-text'
 
 definePageMeta({ layout: false, plutoAdminBar: false })
 
@@ -97,7 +98,9 @@ async function bodyOf(
     return { body: cached }
   }
   try {
-    const parsed = await parseMarkdown(block.markdown, { autoUnwrap: false })
+    const parsed = await parseMarkdown(stripRawTextElements(block.markdown), {
+      autoUnwrap: false,
+    })
     const body = mark(blocksRender.coerce(parsed), block)
     if (cache.size >= CACHE_LIMIT) {
       cache.delete(cache.keys().next().value!)

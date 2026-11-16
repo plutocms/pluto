@@ -85,6 +85,7 @@ describe('the page type', () => {
       'title',
       'slug',
       'description',
+      'layout',
       'body',
     ])
     expect(

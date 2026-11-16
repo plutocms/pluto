@@ -159,7 +159,7 @@ adds only its storage: `source: 'pages'`, `files: { nested: true }`, its columns
 
 - Name `page`, `source: 'pages'`, `files: { nested: true }`: the id is the path under
   `content/pages` without `.md` (`about`, `about/team`). The `slug` field (label "Path") holds the whole id.
-- Fields: `title` (required), `slug`, `description`, `body` (`richtext`, `widget: 'blocks'`, canvas layout).
+- Fields: `title` (required), `slug`, `description`, `layout` (select: `default` or `full`, written as frontmatter), `body` (`richtext`, `widget: 'blocks'`, canvas layout).
 - Status draft or published (`liveOnSave`, `trash`), `api: { public: true }`. No scheduling.
 - Capabilities `pages:read_drafts`, `pages:publish`, `pages:delete`. Push users get them through the
   registered types (`mapRepoPermission`). The plugin lists them in the capability registry with the

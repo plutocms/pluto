@@ -60,6 +60,7 @@ See [Public API](https://pluto.vulmix.dev/docs/build/public-api).
 | `@plutocms/seo`             | SEO fields, head tags, a sitemap, robots.txt and a feed. |
 | `@plutocms/syntax-lowlight` | Colors for the code blocks of the posts on the site.     |
 | `@plutocms/blocks`          | A landing kit of blocks for pages, with a theme.         |
+| `@plutocms/wordpress`       | A CLI that imports Elementor pages from WordPress.       |
 
 Read [Layers](https://pluto.vulmix.dev/docs/extend/layers) to see how they fit together.
 
@@ -74,6 +75,7 @@ Read [Layers](https://pluto.vulmix.dev/docs/extend/layers) to see how they fit t
 | `packages/layers/addons/seo`             | `@plutocms/seo`             |
 | `packages/layers/addons/shop`            | `@plutocms/shop`            |
 | `packages/layers/addons/syntax-lowlight` | `@plutocms/syntax-lowlight` |
+| `packages/tools/wordpress`               | `@plutocms/wordpress`       |
 
 ## Links
 
