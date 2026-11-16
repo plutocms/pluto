@@ -169,6 +169,15 @@ policies shared by every project here.
   body, draft or published, public API on. The Git CMS stores `content/pages/<path>.md` (nested paths such as
   `about/team`). `usePage(path)` reads one page (404, SEO tags, admin bar edit link).
   @.claude/skills/content-model/SKILL.md @.claude/skills/git-cms/SKILL.md
+- Menus and areas: the core options `plutoMenus.enabled` and `plutoAreas.enabled` (default `false`) turn on the
+  `menu` and `area` types for any backend, next to pages. A menu has a handle (`main`) and a body of
+  `menu-item` blocks (the field option `blocks` limits the editor palette to them; nested items are
+  sub-items). An area has a handle (`footer`) and a block body. No status, public API on. Core ships the
+  `menu-item` content component. `usePlutoMenu(handle)` gives `{ menu, items }` (`items` is a tree of
+  `{ label, to, target, children }`) and `usePlutoArea(handle)` gives `{ area }`; a missing one is `null`, not
+  a 404. The Git CMS stores `content/menus/<handle>.md` and `content/areas/<handle>.md` (capabilities
+  `menus:write`, `areas:write`).
+  @.claude/skills/content-model/SKILL.md @.claude/skills/git-cms/SKILL.md @.claude/skills/blocks-field/SKILL.md
 - Public components: the components for a public site (`PlutoHtml`, `PlutoImage`, `PlutoLogo`,
   `PlutoRoot`, `ColorModeButton`, and those of the layers) use only `pluto-*` classes and work with no Tailwind. Their
   look is plain CSS in each layer's `pluto-base.css`, which a site imports with the opt-in
