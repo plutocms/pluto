@@ -39,7 +39,11 @@ const CODE_MESSAGES: Record<string, string> = {
  */
 export function usePlutoForm(handle: MaybeRefOrGetter<string>) {
   const name = computed(() => toValue(handle))
-  const { t } = usePlutoSiteI18n()
+  const { t: translate } = usePlutoSiteI18n()
+  const t = translate as unknown as (
+    key: string,
+    params?: Record<string, unknown>
+  ) => string
 
   const fetched = useFetch<PlutoPublicForm>(
     () => `/api/pluto/v1/forms/${name.value}`,
@@ -93,7 +97,7 @@ export function usePlutoForm(handle: MaybeRefOrGetter<string>) {
     for (const [key, code] of Object.entries(codes.value)) {
       const field = fields.value.find((one) => one.name === key)
       const { key: messageKey, params } = plutoFormErrorMessage(field, code)
-      result[key] = messageKey ? t(messageKey as never, params as never) : code
+      result[key] = messageKey ? t(messageKey, params) : code
     }
     return result
   })
@@ -124,7 +128,7 @@ export function usePlutoForm(handle: MaybeRefOrGetter<string>) {
 
   function show(code: string, text: string | undefined) {
     const key = CODE_MESSAGES[code]
-    message.value = key ? t(key as never) : text || t('forms.status.failed')
+    message.value = key ? t(key) : text || t('forms.status.failed')
   }
 
   async function submit() {

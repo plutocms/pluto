@@ -4,13 +4,13 @@ import type { PlutoFormField } from '../../shared/types/forms'
 interface Props {
   field: PlutoFormField
   id: string
-  modelValue?: unknown
+  modelValue?: string
   error?: string
   disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: '',
+  modelValue: undefined,
   error: undefined,
   disabled: false,
 })

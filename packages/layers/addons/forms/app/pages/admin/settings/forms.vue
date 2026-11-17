@@ -239,8 +239,8 @@ const storeState = computed(() => {
             </h2>
 
             <UBadge
-              :color="status.mail.configured && !status.mail.logOnly ? 'success' : 'warning'"
-              :label="status.mail.configured && !status.mail.logOnly ? t('forms.settings.on') : t('forms.settings.needsSetup')"
+              :color="status!.mail.configured && !status!.mail.logOnly ? 'success' : 'warning'"
+              :label="status!.mail.configured && !status!.mail.logOnly ? t('forms.settings.on') : t('forms.settings.needsSetup')"
               variant="subtle"
             />
           </div>
@@ -249,11 +249,11 @@ const storeState = computed(() => {
         <div class="flex flex-col gap-y-3 text-sm">
           <p>{{ t('forms.settings.mail.why') }}</p>
 
-          <p v-if="status.mail.logOnly">
+          <p v-if="status!.mail.logOnly">
             {{ t('forms.settings.mail.logOnly') }}
           </p>
 
-          <p v-else-if="!status.mail.configured">
+          <p v-else-if="!status!.mail.configured">
             {{ t('forms.settings.mail.none') }}
           </p>
 
