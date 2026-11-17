@@ -101,7 +101,7 @@
       "name": "@plutocms/forms",
       "version": "0.1.0",
       "peerDependencies": {
-        "@plutocms/core": ">=0.75.0 <1.0.0",
+        "@plutocms/core": ">=0.75.1 <1.0.0",
       },
       "optionalPeers": [
         "@plutocms/core",

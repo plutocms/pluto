@@ -32,7 +32,7 @@ spam protection is built in (Cloudflare Turnstile is optional).
 - `server/utils/` (auto-imported in Nitro): `forms-config.ts`, `forms-token.ts`, `forms-spam.ts`,
   `forms-store.ts`, `forms-definitions.ts`, `forms-mail.ts`, `forms-submit.ts`, `forms-runtime.ts`,
   `forms-purge.ts`, `forms-public.ts`, `forms-admin.ts`.
-- `server/plugins/forms.ts`, `server/middleware/forms-guard.ts`, `server/tasks/pluto/forms/purge.ts`.
+- `server/plugins/forms.ts`, `server/tasks/pluto/forms/purge.ts`.
 - `server/api/pluto/v1/forms/[handle]/` (public): `index.get.ts`, `token.get.ts`,
   `submissions.post.ts`. `server/api/_pluto/forms/` (admin): `index.get.ts`, `status.get.ts`,
   `[handle]/submissions/index.get.ts`, `[handle]/submissions/[id].get.ts` and `.delete.ts`,
@@ -67,9 +67,9 @@ delete) and `forms:read_submissions`.
   and the `toPublic` hook (`createFormsToPublic`, set by the server plugin) adds `fields` and
   `submitLabel` from the body and drops `recipients`, `subject`, `redirect` and `retentionDays` again.
   `test/forms-public.test.ts` runs the real `getPublicContent` and `listPublicContent` of core.
-- **The admin content routes are anonymous for a type with no read capability.** A form item holds the
-  email addresses, so `server/middleware/forms-guard.ts` requires `forms:write` for every path of
-  `/api/_pluto/content*/form`. Do not remove it.
+- **The admin content routes need `forms:write`.** A form item holds the email addresses. The type has no
+  read capability, so core checks its write capability (`forms:write`) on every admin read. Keep
+  `capabilities.write` on every form type.
 
 ## The field blocks
 

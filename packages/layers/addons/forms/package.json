@@ -31,7 +31,7 @@
     "test": "vitest run"
   },
   "peerDependencies": {
-    "@plutocms/core": ">=0.75.0 <1.0.0"
+    "@plutocms/core": ">=0.75.1 <1.0.0"
   },
   "peerDependenciesMeta": {
     "@plutocms/core": {

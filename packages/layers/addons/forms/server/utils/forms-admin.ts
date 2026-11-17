@@ -55,14 +55,3 @@ export function resolveFormsStore() {
     storage: useStorage() as unknown as PlutoFormsStorage,
   })
 }
-
-const FORM_ADMIN_PATH = /\/api\/_pluto\/content[\w-]*\/form(?:\/|$)/
-
-/**
- * True for a path of the generic admin content routes that holds `form` items. Those routes let
- * an anonymous caller read the items of a type that has no read capability, and a form item holds
- * the email addresses of the recipients. The layer checks `forms:write` for these paths.
- */
-export function isFormsAdminPath(pathname: string): boolean {
-  return FORM_ADMIN_PATH.test(pathname)
-}

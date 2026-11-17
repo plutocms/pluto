@@ -10,7 +10,6 @@ import {
   listPublicContent,
   publicFieldNames,
 } from '../../../../core/server/utils/pluto-public-api'
-import { isFormsAdminPath } from '../server/utils/forms-admin'
 import {
   buildPublicFormData,
   createFormsToPublic,
@@ -178,30 +177,5 @@ describe('the real public API', () => {
     await expect(
       listPublicContent(fakeEvent(), 'form', { 'filter[recipients]': 'boss@example.com' })
     ).rejects.toMatchObject({ statusCode: 400 })
-  })
-})
-
-describe('the guard of the admin content routes', () => {
-  it('matches the routes that hold form items', () => {
-    for (const path of [
-      '/api/_pluto/content/form',
-      '/api/_pluto/content/form/contact',
-      '/api/_pluto/content-revisions/form/contact',
-      '/api/_pluto/content-trash/form',
-      '/site/api/_pluto/content/form/contact',
-    ]) {
-      expect(isFormsAdminPath(path)).toBe(true)
-    }
-  })
-
-  it('leaves the other routes alone', () => {
-    for (const path of [
-      '/api/_pluto/content/page',
-      '/api/_pluto/content/formula',
-      '/api/pluto/v1/content/form',
-      '/api/pluto/v1/forms/contact',
-    ]) {
-      expect(isFormsAdminPath(path)).toBe(false)
-    }
   })
 })
