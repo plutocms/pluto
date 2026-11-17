@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.75.1](https://github.com/plutocms/pluto/compare/v0.75.0...v0.75.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* **core:** refuse anonymous callers on the admin read routes ([#569](https://github.com/plutocms/pluto/issues/569)) ([7edc315](https://github.com/plutocms/pluto/commit/7edc315cc2b6f2435f0095be853d66437f5d58ca))
+
 ## [0.75.0](https://github.com/plutocms/pluto/compare/v0.74.0...v0.75.0) (2026-11-16)
 
 
