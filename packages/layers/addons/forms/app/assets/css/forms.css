@@ -2,14 +2,14 @@
  * The look of the forms of @plutocms/forms. Plain CSS in the `components` layer, so any CSS of
  * the site (and any Tailwind utility) wins. Every selector has zero specificity (`:where()`).
  *
- * Set a variable on `.pluto-form`, or on `:root`, to change the look. Each default reads the
+ * Set a variable on `.pluto-form`, or on `:root` (the field blocks in the form editor have no `.pluto-form`), to change the look. Each default reads the
  * variable of the blocks kit (`--pluto-blocks-*`) when the site has it, then the Nuxt UI
  * variable (`--ui-*`), then a neutral value that works in light and dark mode.
  */
 @layer theme, base, components, utilities;
 
 @layer components {
-  :where(.pluto-form) {
+  :where(:root) {
     --pluto-form-gap: var(--pluto-blocks-space-sm, 1rem);
     --pluto-form-radius: var(--pluto-blocks-radius-md, 0.5rem);
     --pluto-form-border: var(
@@ -30,7 +30,9 @@
     );
     --pluto-form-error: var(--ui-error, #dc2626);
     --pluto-form-surface: var(--ui-bg, Canvas);
+  }
 
+  :where(.pluto-form) {
     display: grid;
     gap: var(--pluto-form-gap);
     max-width: 40rem;
