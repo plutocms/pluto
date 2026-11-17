@@ -151,6 +151,19 @@ Core wires the list into two places:
 Both callers share one request. `@plutocms/supabase` is the reference implementation of a
 permissions driver, and the enforcement side.
 
+## Server-side: who can read the admin API
+
+`can()` is a UI convenience. The server rule for the admin read routes is in the
+[content-model](../content-model/SKILL.md) skill ("the admin API is for signed-in staff"). In short:
+
+- A type with `capabilities.read` needs it. Else a type with `capabilities.write` needs that.
+- A type with neither needs a signed-in caller: `adapter.requireSignedIn(event)`. No capability
+  works for this, because no one capability is held by every staff user. A Supabase role can be
+  narrow, and a signed-in Supabase user can be a customer with no capability at all.
+- Media and mail reads keep their own checks: `media:manage` and `*`.
+- Anonymous readers use the public API (`/api/pluto/v1`). Never build a site page on an
+  `/api/_pluto` route.
+
 ## Known limits, out of scope for this pass
 
 - No roles or capabilities admin UI. No role-picker component.

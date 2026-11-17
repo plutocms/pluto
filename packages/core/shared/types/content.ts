@@ -594,6 +594,12 @@ export interface PlutoContentAdapter {
   remove: (ctx: PlutoContentContext, id: string | number) => Promise<void>
   /** Throws when the caller of `event` does not hold `capability`. Optional. */
   authorize?: (event: H3Event, capability: string) => Promise<void>
+  /**
+   * Throws a 401 when `event` has no signed-in staff user. Optional. The admin read routes call it
+   * for a type that sets neither `capabilities.read` nor `capabilities.write`. An adapter whose
+   * backend protects the rows itself (row-level security) can leave it out.
+   */
+  requireSignedIn?: (event: H3Event) => Promise<void>
   describe?: (ctx: PlutoContentContext) => Promise<string[] | null>
   /**
    * Counts the items created from `range.from` (inclusive) to `range.to`
