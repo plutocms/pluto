@@ -525,33 +525,44 @@ item, ogType }) }`. `useItem` calls each matching `setup` right after its own `u
   item is not among them.
 - Tests: `test/public-api.test.ts`, `test/reference-public.test.ts` and `test/github-public.test.ts`.
 
-## Capability enforcement: read is never checked here
+## Capability enforcement: the admin API is for signed-in staff
 
-`type.capabilities.read` is **never enforced by these generic routes.** Read that twice — it is
-the single easiest thing to get wrong here.
+The admin API (`/api/_pluto/**`) is for signed-in staff only. An anonymous reader uses the public
+API (`/api/pluto/v1`, below). The admin read routes never answer an anonymous caller, on any
+backend. The rule has one helper: `authorizeContentRead(ctx)` in
+`server/utils/pluto-content-handlers.ts`.
 
-`read` gates the admin nav/list _UI_ in a later wave, nothing in this wave. The generic list and
-get routes never throw 401/403 for a missing `read` capability, and never call
-`adapter.authorize` for list or get, under any circumstance. The reason: for a type like `posts`,
-"read" is not all-or-nothing — an anonymous visitor can read _published_ posts, and only reading
-_drafts_ needs a capability. That distinction already lives in the adapter's backing store (RLS,
-for the one adapter that exists so far: `status = 'published' OR has_capability('posts:read_drafts')`),
-which is the real enforcement point regardless of what this route does.
+1. The type sets `capabilities.read` → `adapter.authorize(event, read)`.
+2. Else the type sets `capabilities.write` → `adapter.authorize(event, write)`.
+3. Else the type sets neither → `adapter.requireSignedIn(event)`: a 401 for a caller with no
+   session. The Git CMS adapter implements it. An adapter whose backend protects the rows itself
+   (`@plutocms/supabase`: row-level security) may leave it out, and then no check runs.
 
-So: **the generic list/get routes always request `includeUnpublished: true` from the adapter, on
-every call, with no capability check.** The adapter's own backing store decides what actually
-comes back for whoever is asking. This is safe specifically because these generic routes are
-admin-surface-only in intent — a later wave's admin UI is the only consumer. A public-facing read
-path is a layer's own hand-written endpoint (as blog's and shop's already are, unchanged), never
-this generic one.
+These handlers call it first, before they touch the adapter: `listContentItems`,
+`getContentItem`, `contentActivity`, `listContentRevisions`, `getContentRevision`,
+`getContentBackup` and `listTrashItems`. The revision, backup and trash reads also keep their old
+check (`write`, `delete`) after it. A new admin read handler must call `authorizeContentRead`.
+
+Why a helper and not the adapter alone: the Git CMS adapter has no row-level security. For an
+anonymous caller it answers `list` and `get` with every item of a type that has no `status`, with
+every field. A type that holds private fields (the recipients of a form) leaked this way. The public
+API is the only anonymous read path: `markPublicRead`, published items only, public fields only.
+
+`read` still decides who sees drafts in the adapter (`posts:read_drafts`). The generic list route
+still asks for `includeUnpublished: true`, and the adapter decides what the signed-in caller sees.
+
+The tests: `test/github-admin-read-access.test.ts` (anonymous 401 on every read route, push user
+200, public API 200, over the Git CMS adapter and the fake GitHub), `test/content-handlers.test.ts`
+and `test/admin-route-guards.test.ts` (a static walk of every route file under
+`server/api/_pluto` and of the Git CMS module routes: a route with no authorization path fails).
 
 ## Capability enforcement: write and delete
 
 Write and delete **are** enforced, via `type.capabilities.write` / `type.capabilities.delete`,
 by this rule:
 
-1. The type declares no capability for the operation → no check happens. Open to anyone who can
-   reach the route.
+1. The type declares no capability for the operation → the handler runs no check. The Git CMS
+   adapter still needs a session for every write (401).
 2. The type declares one, but the registered adapter has no `authorize` method → no check
    happens either. This is the same fail-open rule already documented for
    `usePlutoPermissions().can()` in the permissions skill: with no permissions backend registered

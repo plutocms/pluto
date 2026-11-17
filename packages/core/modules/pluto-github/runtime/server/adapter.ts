@@ -1634,6 +1634,12 @@ export function createMarkdownContentAdapter(
     })
   }
 
+  async function requireSignedIn(event: H3Event): Promise<void> {
+    await guard(event, async () => {
+      await requireAccess(event, undefined)
+    })
+  }
+
   async function countCreated(
     ctx: PlutoContentContext,
     range: {
@@ -1806,6 +1812,7 @@ export function createMarkdownContentAdapter(
     },
     publishDue,
     authorize,
+    requireSignedIn,
     countCreated,
     readFile,
     timestampKeys,

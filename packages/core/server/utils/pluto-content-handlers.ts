@@ -64,7 +64,23 @@ export async function authorizeContentOperation(
   await adapter.authorize(event, capability)
 }
 
-// No read capability check here: the adapter decides what an anonymous caller sees.
+export async function authorizeContentRead(
+  ctx: PlutoContentContext
+): Promise<void> {
+  const capability = ctx.type.capabilities?.read ?? ctx.type.capabilities?.write
+
+  if (capability) {
+    await authorizeContentOperation(ctx.event, capability)
+    return
+  }
+
+  const adapter = requireContentAdapter()
+
+  if (adapter.requireSignedIn) {
+    await adapter.requireSignedIn(ctx.event)
+  }
+}
+
 export async function listContentItems(
   ctx: PlutoContentContext,
   query: PlutoAdminListQuery & {
@@ -73,6 +89,8 @@ export async function listContentItems(
     published?: boolean
   }
 ): Promise<PlutoContentListResult> {
+  await authorizeContentRead(ctx)
+
   if (query.published !== true) {
     await publishDueOnOpen(ctx)
   }
@@ -113,6 +131,8 @@ export async function getContentItem(
   ctx: PlutoContentContext,
   idOrSlug: string | number
 ): Promise<PlutoContentItem> {
+  await authorizeContentRead(ctx)
+
   const item = await requireContentAdapter().get(ctx, idOrSlug)
 
   if (!item) {
@@ -284,6 +304,7 @@ export async function listTrashItems(
     search?: string
   }
 ): Promise<PlutoContentListResult> {
+  await authorizeContentRead(ctx)
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.delete)
   const trash = requireTrash(ctx)
   try {
@@ -394,6 +415,8 @@ export async function contentActivity(
     now?: Date
   }
 ): Promise<PlutoContentActivity> {
+  await authorizeContentRead(ctx)
+
   const adapter = requireContentAdapter()
   const unsupported: PlutoContentActivity = {
     supported: false,
@@ -439,6 +462,7 @@ export async function contentActivity(
 export const CONTENT_REVISIONS_MAX_LIMIT = 50
 
 async function authorizeRevisions(ctx: PlutoContentContext): Promise<void> {
+  await authorizeContentRead(ctx)
   await authorizeContentOperation(ctx.event, ctx.type.capabilities?.write)
 }
 
@@ -451,10 +475,10 @@ export async function listContentRevisions(
   } = {}
 ): Promise<PlutoContentRevisionList> {
   const adapter = requireContentAdapter()
+  await authorizeRevisions(ctx)
   if (!adapter.listRevisions || !adapter.getRevision) {
     return { supported: false, data: [] }
   }
-  await authorizeRevisions(ctx)
   const limit = Math.min(
     CONTENT_REVISIONS_MAX_LIMIT,
     Math.max(1, Math.trunc(query.limit ?? 20) || 20)
@@ -472,6 +496,7 @@ export async function getContentRevision(
   revisionId: string
 ): Promise<PlutoContentItem> {
   const adapter = requireContentAdapter()
+  await authorizeRevisions(ctx)
   if (!adapter.getRevision) {
     throw createPlutoError({
       statusCode: 404,
@@ -479,7 +504,6 @@ export async function getContentRevision(
       key: 'pluto.errors.notFound',
     })
   }
-  await authorizeRevisions(ctx)
   const item = await adapter.getRevision(ctx, id, revisionId)
   if (!item) {
     throw createPlutoError({
@@ -503,11 +527,12 @@ export async function getContentBackup(
   ctx: PlutoContentContext,
   id?: string
 ): Promise<PlutoContentBackupAnswer> {
+  await authorizeContentRead(ctx)
+  await authorizeBackup(ctx)
   const backups = requireContentAdapter().backups
   if (!backups) {
     return { supported: false }
   }
-  await authorizeBackup(ctx)
   return { supported: true, backup: await backups.get(ctx, backupKeyOf(id)) }
 }
 
