@@ -20,6 +20,12 @@
       "include-component-in-tag": true,
       "initial-version": "0.1.0"
     },
+    "packages/layers/addons/forms": {
+      "package-name": "@plutocms/forms",
+      "component": "forms",
+      "include-component-in-tag": true,
+      "initial-version": "0.1.0"
+    },
     "packages/layers/addons/seo": {
       "package-name": "@plutocms/seo",
       "component": "seo",

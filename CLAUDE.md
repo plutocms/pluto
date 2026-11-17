@@ -2,7 +2,7 @@
 
 This repo holds the core layer of Pluto, `@plutocms/core` (`packages/core`), the feature layers
 (`packages/layers/<name>`: `@plutocms/docs`), and the add-on layers (`packages/layers/addons/*`,
-for example `@plutocms/3d`, `@plutocms/shop`, `@plutocms/seo`, `@plutocms/syntax-lowlight` and `@plutocms/blocks`), and the tools (`packages/tools/*`: `@plutocms/wordpress`, a CLI
+for example `@plutocms/3d`, `@plutocms/shop`, `@plutocms/seo`, `@plutocms/syntax-lowlight`, `@plutocms/blocks` and `@plutocms/forms`), and the tools (`packages/tools/*`: `@plutocms/wordpress`, a CLI
 that is not a layer). The other layers move here one by one (see
 `.claude/plan/monorepo-layers.md` in the workspace). Each layer keeps its own skills
 (`packages/layers/<name>/.claude/skills/`), its own ESLint config (ESLint finds the nearest one)

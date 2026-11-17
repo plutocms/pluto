@@ -1,0 +1,172 @@
+{
+  "forms": {
+    "capabilities": {
+      "group": "Forms",
+      "write": "Manage forms",
+      "readSubmissions": "Read form submissions"
+    },
+    "nav": {
+      "submissions": "Submissions"
+    },
+    "summary": {
+      "title": "Check these fields before you send:"
+    },
+    "honeypot": "Leave this field empty",
+    "consent": {
+      "read": "Read more"
+    },
+    "status": {
+      "sending": "Sending...",
+      "failed": "The form could not be sent. Try again later.",
+      "rateLimit": "Too many submissions. Try again in a moment.",
+      "token": "The form could not be checked. Wait a moment and send it again.",
+      "turnstile": "The check against robots failed. Try again.",
+      "unavailable": "This form is not available now.",
+      "tooLarge": "The form is too large to send."
+    },
+    "errors": {
+      "required": "{label} is required.",
+      "consentRequired": "Accept this to send the form.",
+      "invalid": "{label} is not valid.",
+      "tooShort": "{label} needs at least {min} characters.",
+      "tooLong": "{label} is too long.",
+      "tooSmall": "{label} must be {min} or more.",
+      "tooBig": "{label} must be {max} or less.",
+      "option": "Choose one of the options for {label}.",
+      "unknown": "{label} is not a field of this form.",
+      "notFound": "This form does not exist.",
+      "noSecret": "The site has no signing secret for forms.",
+      "noStore": "The site has no store for form submissions yet.",
+      "tooLarge": "The request is too large."
+    },
+    "admin": {
+      "title": "Submissions",
+      "intro": "What visitors sent through the forms of the site.",
+      "noAccess": "You do not have access to the submissions.",
+      "loading": "Loading...",
+      "empty": "No forms yet",
+      "emptyHint": "Make a form in the Forms section, or define one in code.",
+      "inCode": "In code",
+      "export": "Export CSV",
+      "back": "All forms",
+      "noStore": "No place to keep submissions",
+      "noStoreHint": "The site needs a store before a form can take submissions. The setup page shows the steps.",
+      "openSetup": "Open the setup",
+      "noSubmissions": "No submissions yet.",
+      "date": "Date",
+      "open": "Open",
+      "detail": "Submission",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this submission for ever?",
+      "deleteYes": "Yes, delete",
+      "cancel": "Cancel",
+      "deleteFailed": "The submission was not deleted.",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "settings": {
+      "tab": "Forms",
+      "title": "Forms",
+      "intro": "A form needs a place to keep its submissions, a secret to sign its token, and an email setup to tell you about each one. Cloudflare Turnstile is optional.",
+      "on": "On",
+      "optional": "Optional",
+      "needsSetup": "Needs setup",
+      "store": {
+        "title": "Store for submissions",
+        "state": {
+          "ok": "Ready",
+          "dev": "Development only",
+          "missing": "Not set"
+        },
+        "why": "Submissions hold personal data, so they never go in the Git repository. They go in a store that you choose.",
+        "mount": "The store is the storage \"{name}\".",
+        "missingMount": "The setting names the storage \"{name}\", but the site does not define it.",
+        "devHint": "In development the submissions go in the folder .data/pluto-forms. A site in production needs a real store.",
+        "pick": "Where does the site run?",
+        "stepConfig": "Paste this in nuxt.config.ts.",
+        "stepDeploy": "Deploy the site again."
+      },
+      "hosts": {
+        "vercel": {
+          "name": "Vercel",
+          "step1": "In the Vercel dashboard, open the Storage tab of the project and add Upstash Redis from the Marketplace.",
+          "step2": "Check that the project has the variables UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN. The integration adds them."
+        },
+        "netlify": {
+          "name": "Netlify",
+          "step1": "Netlify Blobs is part of every Netlify site. You do not need to create anything.",
+          "step2": "Do nothing here. The next step gives the name of the store."
+        },
+        "cloudflare": {
+          "name": "Cloudflare",
+          "step1": "In the Cloudflare dashboard, open Storage and databases, then KV, and create a namespace called forms.",
+          "step2": "Open your Pages or Workers project, then Settings, then Bindings, and add a KV binding named FORMS for that namespace."
+        },
+        "server": {
+          "name": "My own server",
+          "step1": "Pick a folder that the server keeps between deploys, for example /var/lib/my-site/forms.",
+          "step2": "Make sure that the user of the site can write to it. Use that folder as the base in the next step."
+        }
+      },
+      "secret": {
+        "title": "Signing secret",
+        "why": "The form gets a signed token when it loads. A robot that sends the form at once has no valid token.",
+        "fromGithub": "The site uses a key made from the session password of the CMS. Nothing to do.",
+        "set": "Set the variable NUXT_PLUTO_FORMS_SECRET in the settings of your host to a long random text, and deploy again."
+      },
+      "turnstile": {
+        "title": "Cloudflare Turnstile",
+        "why": "The built-in checks (a hidden field, a minimum fill time and a rate limit) stop most robots. Turnstile adds a check from Cloudflare. It is free and has no puzzles for most visitors.",
+        "half": "Only one of the two Turnstile variables is set. Set both, or Turnstile stays off.",
+        "step1": "In the Cloudflare dashboard, open Turnstile and add a widget for the domain of the site.",
+        "step2": "Copy the site key to the variable NUXT_PLUTO_FORMS_TURNSTILE_SITE_KEY in the settings of your host.",
+        "step3": "Copy the secret key to the variable NUXT_PLUTO_FORMS_TURNSTILE_SECRET, and deploy again.",
+        "open": "Open Cloudflare Turnstile"
+      },
+      "mail": {
+        "title": "Email",
+        "why": "The form sends an email to the addresses of the form for each submission.",
+        "logOnly": "Emails only show in the server log, because email is in development mode.",
+        "none": "The site has no email provider. Submissions are stored, but nobody gets an email.",
+        "open": "Open the email setup"
+      }
+    }
+  },
+  "content": {
+    "form": {
+      "label": "Form",
+      "labelPlural": "Forms",
+      "description": "A form for the site: fields, who gets the email, and what the visitor sees after sending. A page shows it with the form block.",
+      "fields": {
+        "title": {
+          "label": "Title"
+        },
+        "slug": {
+          "label": "Handle",
+          "description": "The name that a page uses to find the form, for example contact."
+        },
+        "recipients": {
+          "label": "Send the email to",
+          "description": "One address, or more separated by commas. Empty: no email, the submissions stay in the store."
+        },
+        "subject": {
+          "label": "Email subject"
+        },
+        "successMessage": {
+          "label": "Message after sending"
+        },
+        "redirect": {
+          "label": "Open this page after sending",
+          "description": "A path (/thanks) or a URL. Empty: show the message."
+        },
+        "retentionDays": {
+          "label": "Keep submissions (days)",
+          "description": "The store deletes older submissions. 0 keeps them for ever."
+        },
+        "body": {
+          "label": "Fields"
+        }
+      }
+    }
+  }
+}

@@ -19,6 +19,7 @@ export const PLUTO_LAYER_PATHS: Readonly<Record<string, string>> = {
   shop: 'pluto/packages/layers/addons/shop',
   seo: 'pluto/packages/layers/addons/seo',
   blocks: 'pluto/packages/layers/addons/blocks',
+  forms: 'pluto/packages/layers/addons/forms',
   'syntax-lowlight': 'pluto/packages/layers/addons/syntax-lowlight',
 }
 

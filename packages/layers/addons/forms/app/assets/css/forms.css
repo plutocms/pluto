@@ -1,0 +1,230 @@
+/*
+ * The look of the forms of @plutocms/forms. Plain CSS in the `components` layer, so any CSS of
+ * the site (and any Tailwind utility) wins. Every selector has zero specificity (`:where()`).
+ *
+ * Set a variable on `.pluto-form`, or on `:root` (the field blocks in the form editor have no `.pluto-form`), to change the look. Each default reads the
+ * variable of the blocks kit (`--pluto-blocks-*`) when the site has it, then the Nuxt UI
+ * variable (`--ui-*`), then a neutral value that works in light and dark mode.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+  :where(:root) {
+    --pluto-form-gap: var(--pluto-blocks-space-sm, 1rem);
+    --pluto-form-radius: var(--pluto-blocks-radius-md, 0.5rem);
+    --pluto-form-border: var(
+      --pluto-blocks-color-border,
+      var(--ui-border, color-mix(in oklab, currentColor 25%, transparent))
+    );
+    --pluto-form-primary: var(
+      --pluto-blocks-color-primary,
+      var(--ui-primary, #4f46e5)
+    );
+    --pluto-form-on-primary: var(
+      --pluto-blocks-color-on-primary,
+      var(--ui-bg, #fff)
+    );
+    --pluto-form-muted: var(
+      --pluto-blocks-color-muted,
+      var(--ui-text-muted, color-mix(in oklab, currentColor 65%, transparent))
+    );
+    --pluto-form-error: var(--ui-error, #dc2626);
+    --pluto-form-surface: var(--ui-bg, Canvas);
+  }
+
+  :where(.pluto-form) {
+    display: grid;
+    gap: var(--pluto-form-gap);
+    max-width: 40rem;
+  }
+
+  :where(.pluto-form__title) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  :where(.pluto-form__fields) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--pluto-form-gap);
+  }
+
+  :where(.pluto-form__field) {
+    display: grid;
+    grid-column: 1 / -1;
+    align-content: start;
+    gap: 0.375rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  :where(.pluto-form__field--half) {
+    grid-column: span 1;
+  }
+
+  @media (max-width: 32rem) {
+    :where(.pluto-form__field--half) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  :where(.pluto-form__label) {
+    font-weight: 600;
+    padding: 0;
+  }
+
+  :where(.pluto-form__required) {
+    color: var(--pluto-form-error);
+  }
+
+  :where(.pluto-form__input) {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--pluto-form-border);
+    border-radius: var(--pluto-form-radius);
+    background: var(--pluto-form-surface);
+    color: inherit;
+    font: inherit;
+  }
+
+  :where(.pluto-form__textarea) {
+    min-height: 6rem;
+    resize: vertical;
+  }
+
+  :where(.pluto-form__input:focus-visible),
+  :where(.pluto-form__checkbox:focus-visible),
+  :where(.pluto-form__radio:focus-visible),
+  :where(.pluto-form__submit:focus-visible) {
+    outline: 2px solid var(--pluto-form-primary);
+    outline-offset: 2px;
+  }
+
+  :where(.pluto-form__field--invalid .pluto-form__input) {
+    border-color: var(--pluto-form-error);
+  }
+
+  :where(.pluto-form__options) {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  :where(.pluto-form__option) {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  :where(.pluto-form__checkbox),
+  :where(.pluto-form__radio) {
+    flex: none;
+    margin-top: 0.25rem;
+    accent-color: var(--pluto-form-primary);
+  }
+
+  :where(.pluto-form__link) {
+    margin-inline-start: 0.375rem;
+    color: var(--pluto-form-primary);
+    text-decoration: underline;
+  }
+
+  :where(.pluto-form__help) {
+    margin: 0;
+    color: var(--pluto-form-muted);
+    font-size: 0.875rem;
+  }
+
+  :where(.pluto-form__error) {
+    margin: 0;
+    color: var(--pluto-form-error);
+    font-size: 0.875rem;
+  }
+
+  :where(.pluto-form__actions) {
+    grid-column: 1 / -1;
+  }
+
+  :where(.pluto-form__submit) {
+    padding: 0.625rem 1.25rem;
+    border: 0;
+    border-radius: var(--pluto-form-radius);
+    background: var(--pluto-form-primary);
+    color: var(--pluto-form-on-primary);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  :where(.pluto-form__submit:disabled) {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  :where(.pluto-form__hp) {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  :where(.pluto-form__summary) {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--pluto-form-error);
+    border-radius: var(--pluto-form-radius);
+  }
+
+  :where(.pluto-form__summary[hidden]) {
+    display: none;
+  }
+
+  :where(.pluto-form__summary-title) {
+    margin: 0 0 0.25rem;
+    font-weight: 600;
+  }
+
+  :where(.pluto-form__summary-list) {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+  }
+
+  :where(.pluto-form__summary-list a) {
+    color: var(--pluto-form-error);
+  }
+
+  :where(.pluto-form__result:empty) {
+    display: none;
+  }
+
+  :where(.pluto-form__result) {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--pluto-form-border);
+    border-radius: var(--pluto-form-radius);
+  }
+
+  :where(.pluto-form__result--success) {
+    border-color: var(--ui-success, #16a34a);
+  }
+
+  :where(.pluto-form__result--error) {
+    border-color: var(--pluto-form-error);
+  }
+
+  :where(.pluto-form__hidden-note) {
+    margin: 0;
+    color: var(--pluto-form-muted);
+    font-size: 0.875rem;
+    font-style: italic;
+  }
+
+  :where(.pluto-form__turnstile) {
+    grid-column: 1 / -1;
+  }
+}

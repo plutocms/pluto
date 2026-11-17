@@ -1,0 +1,172 @@
+{
+  "forms": {
+    "capabilities": {
+      "group": "Formulários",
+      "write": "Gerenciar formulários",
+      "readSubmissions": "Ler os envios dos formulários"
+    },
+    "nav": {
+      "submissions": "Envios"
+    },
+    "summary": {
+      "title": "Confira estes campos antes de enviar:"
+    },
+    "honeypot": "Deixe este campo vazio",
+    "consent": {
+      "read": "Saiba mais"
+    },
+    "status": {
+      "sending": "Enviando...",
+      "failed": "Não foi possível enviar o formulário. Tente de novo mais tarde.",
+      "rateLimit": "Muitos envios. Tente de novo em instantes.",
+      "token": "Não foi possível verificar o formulário. Espere um instante e envie de novo.",
+      "turnstile": "A verificação contra robôs falhou. Tente de novo.",
+      "unavailable": "Este formulário não está disponível agora.",
+      "tooLarge": "O formulário é grande demais para enviar."
+    },
+    "errors": {
+      "required": "{label} é obrigatório.",
+      "consentRequired": "Aceite isto para enviar o formulário.",
+      "invalid": "{label} não é válido.",
+      "tooShort": "{label} precisa ter pelo menos {min} caracteres.",
+      "tooLong": "{label} é longo demais.",
+      "tooSmall": "{label} deve ser {min} ou mais.",
+      "tooBig": "{label} deve ser {max} ou menos.",
+      "option": "Escolha uma das opções de {label}.",
+      "unknown": "{label} não é um campo deste formulário.",
+      "notFound": "Este formulário não existe.",
+      "noSecret": "O site não tem um segredo de assinatura para formulários.",
+      "noStore": "O site ainda não tem onde guardar os envios dos formulários.",
+      "tooLarge": "A requisição é grande demais."
+    },
+    "admin": {
+      "title": "Envios",
+      "intro": "O que os visitantes enviaram pelos formulários do site.",
+      "noAccess": "Você não tem acesso aos envios.",
+      "loading": "Carregando...",
+      "empty": "Nenhum formulário ainda",
+      "emptyHint": "Crie um formulário na seção Formulários, ou defina um no código.",
+      "inCode": "No código",
+      "export": "Exportar CSV",
+      "back": "Todos os formulários",
+      "noStore": "Sem lugar para guardar os envios",
+      "noStoreHint": "O site precisa de um armazenamento antes que um formulário receba envios. A página de configuração mostra os passos.",
+      "openSetup": "Abrir a configuração",
+      "noSubmissions": "Nenhum envio ainda.",
+      "date": "Data",
+      "open": "Abrir",
+      "detail": "Envio",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir este envio para sempre?",
+      "deleteYes": "Sim, excluir",
+      "cancel": "Cancelar",
+      "deleteFailed": "O envio não foi excluído.",
+      "yes": "Sim",
+      "no": "Não"
+    },
+    "settings": {
+      "tab": "Formulários",
+      "title": "Formulários",
+      "intro": "Um formulário precisa de um lugar para guardar os envios, de um segredo para assinar o token e de um e-mail configurado para avisar você de cada envio. O Cloudflare Turnstile é opcional.",
+      "on": "Ativo",
+      "optional": "Opcional",
+      "needsSetup": "Precisa de configuração",
+      "store": {
+        "title": "Armazenamento dos envios",
+        "state": {
+          "ok": "Pronto",
+          "dev": "Só em desenvolvimento",
+          "missing": "Não configurado"
+        },
+        "why": "Os envios têm dados pessoais, então nunca vão para o repositório Git. Eles vão para um armazenamento que você escolhe.",
+        "mount": "O armazenamento é o \"{name}\".",
+        "missingMount": "A configuração indica o armazenamento \"{name}\", mas o site não o define.",
+        "devHint": "Em desenvolvimento os envios vão para a pasta .data/pluto-forms. Um site em produção precisa de um armazenamento de verdade.",
+        "pick": "Onde o site roda?",
+        "stepConfig": "Cole isto no nuxt.config.ts.",
+        "stepDeploy": "Publique o site de novo."
+      },
+      "hosts": {
+        "vercel": {
+          "name": "Vercel",
+          "step1": "No painel da Vercel, abra a aba Storage do projeto e adicione o Upstash Redis pelo Marketplace.",
+          "step2": "Confira se o projeto tem as variáveis UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN. A integração as adiciona."
+        },
+        "netlify": {
+          "name": "Netlify",
+          "step1": "O Netlify Blobs já faz parte de todo site da Netlify. Você não precisa criar nada.",
+          "step2": "Não faça nada aqui. O próximo passo dá o nome do armazenamento."
+        },
+        "cloudflare": {
+          "name": "Cloudflare",
+          "step1": "No painel da Cloudflare, abra Storage e bancos de dados, depois KV, e crie um namespace chamado forms.",
+          "step2": "Abra o projeto do Pages ou do Workers, depois Settings, depois Bindings, e adicione um binding de KV chamado FORMS para esse namespace."
+        },
+        "server": {
+          "name": "Meu próprio servidor",
+          "step1": "Escolha uma pasta que o servidor mantenha entre as publicações, por exemplo /var/lib/meu-site/forms.",
+          "step2": "Garanta que o usuário do site possa escrever nela. Use essa pasta como base no próximo passo."
+        }
+      },
+      "secret": {
+        "title": "Segredo de assinatura",
+        "why": "O formulário recebe um token assinado quando carrega. Um robô que envia o formulário de imediato não tem um token válido.",
+        "fromGithub": "O site usa uma chave feita da senha de sessão do CMS. Nada a fazer.",
+        "set": "Defina a variável NUXT_PLUTO_FORMS_SECRET nas configurações da sua hospedagem com um texto aleatório longo, e publique de novo."
+      },
+      "turnstile": {
+        "title": "Cloudflare Turnstile",
+        "why": "As verificações embutidas (um campo oculto, um tempo mínimo de preenchimento e um limite de envios) barram a maioria dos robôs. O Turnstile soma uma verificação da Cloudflare. É grátis e, para a maioria dos visitantes, não tem desafios.",
+        "half": "Só uma das duas variáveis do Turnstile está definida. Defina as duas, ou o Turnstile fica desligado.",
+        "step1": "No painel da Cloudflare, abra o Turnstile e adicione um widget para o domínio do site.",
+        "step2": "Copie a chave do site para a variável NUXT_PLUTO_FORMS_TURNSTILE_SITE_KEY nas configurações da sua hospedagem.",
+        "step3": "Copie a chave secreta para a variável NUXT_PLUTO_FORMS_TURNSTILE_SECRET e publique de novo.",
+        "open": "Abrir o Cloudflare Turnstile"
+      },
+      "mail": {
+        "title": "E-mail",
+        "why": "O formulário envia um e-mail aos endereços do formulário a cada envio.",
+        "logOnly": "Os e-mails só aparecem no log do servidor, porque o e-mail está em modo de desenvolvimento.",
+        "none": "O site não tem um provedor de e-mail. Os envios são guardados, mas ninguém recebe um e-mail.",
+        "open": "Abrir a configuração de e-mail"
+      }
+    }
+  },
+  "content": {
+    "form": {
+      "label": "Formulário",
+      "labelPlural": "Formulários",
+      "description": "Um formulário para o site: os campos, quem recebe o e-mail e o que o visitante vê depois de enviar. Uma página o mostra com o bloco de formulário.",
+      "fields": {
+        "title": {
+          "label": "Título"
+        },
+        "slug": {
+          "label": "Identificador",
+          "description": "O nome que uma página usa para achar o formulário, por exemplo contato."
+        },
+        "recipients": {
+          "label": "Enviar o e-mail para",
+          "description": "Um endereço, ou mais separados por vírgula. Vazio: sem e-mail, os envios ficam só no armazenamento."
+        },
+        "subject": {
+          "label": "Assunto do e-mail"
+        },
+        "successMessage": {
+          "label": "Mensagem depois de enviar"
+        },
+        "redirect": {
+          "label": "Abrir esta página depois de enviar",
+          "description": "Um caminho (/obrigado) ou uma URL. Vazio: mostra a mensagem."
+        },
+        "retentionDays": {
+          "label": "Guardar os envios (dias)",
+          "description": "O armazenamento apaga os envios mais antigos. 0 guarda para sempre."
+        },
+        "body": {
+          "label": "Campos"
+        }
+      }
+    }
+  }
+}

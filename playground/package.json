@@ -11,6 +11,7 @@
     "@plutocms/3d": "workspace:*",
     "@plutocms/blocks": "workspace:*",
     "@plutocms/core": "workspace:*",
+    "@plutocms/forms": "workspace:*",
     "@plutocms/seo": "workspace:*",
     "@plutocms/shop": "workspace:*",
     "@plutocms/syntax-lowlight": "workspace:*"
