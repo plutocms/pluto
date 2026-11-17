@@ -29,6 +29,7 @@ export default defineNuxtModule<PlutoFormsOptions>({
       turnstileSecret: '',
       minFillSeconds: options.minFillSeconds ?? 3,
       rateLimit: options.rateLimit ?? 5,
+      ...(nuxt.options.runtimeConfig.plutoForms as object | undefined),
     }
     nuxt.options.runtimeConfig.public.plutoForms = { enabled: true }
 
