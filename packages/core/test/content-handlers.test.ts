@@ -82,23 +82,49 @@ describe('listContentItems', () => {
     expect(result.data[0]?.title).toBe('Hello')
   })
 
-  it('never calls adapter.authorize, even when the adapter would throw', async () => {
+  it('authorizes the read capability of the type', async () => {
     const { registerContentAdapter, listContentItems } = await loadHandlers()
 
     const authorize = vi.fn(async () => {
-      throw new Error('authorize should not be called for list')
+      throw new Error('forbidden')
     })
-    const adapter = createMemoryContentAdapter({ authorize })
-    registerContentAdapter(adapter)
+    registerContentAdapter(createMemoryContentAdapter({ authorize }))
 
-    const type = contentType({ capabilities: { read: 'posts:read' } })
-    const ctx = ctxFor(type)
+    const ctx = ctxFor(contentType({ capabilities: { read: 'posts:read' } }))
 
-    await expect(listContentItems(ctx, {})).resolves.toEqual({
-      data: [],
-      total: 0,
+    await expect(listContentItems(ctx, {})).rejects.toThrow('forbidden')
+    expect(authorize).toHaveBeenCalledWith(fakeEvent, 'posts:read')
+  })
+
+  it('authorizes the write capability when the type has no read capability', async () => {
+    const { registerContentAdapter, listContentItems } = await loadHandlers()
+
+    const authorize = vi.fn(async () => {
+      throw new Error('forbidden')
     })
-    expect(authorize).not.toHaveBeenCalled()
+    registerContentAdapter(createMemoryContentAdapter({ authorize }))
+
+    const ctx = ctxFor(contentType({ capabilities: { write: 'posts:write' } }))
+
+    await expect(listContentItems(ctx, {})).rejects.toThrow('forbidden')
+    expect(authorize).toHaveBeenCalledWith(fakeEvent, 'posts:write')
+  })
+
+  it('requires a signed-in caller when the type has no capability', async () => {
+    const { registerContentAdapter, listContentItems } = await loadHandlers()
+
+    const requireSignedIn = vi.fn(async () => {
+      throw new Error('sign in')
+    })
+    registerContentAdapter({
+      ...createMemoryContentAdapter(),
+      requireSignedIn,
+    })
+
+    await expect(listContentItems(ctxFor(contentType()), {})).rejects.toThrow(
+      'sign in'
+    )
+    expect(requireSignedIn).toHaveBeenCalledWith(fakeEvent)
   })
 
   it('narrows to published rows when published is true', async () => {
@@ -200,12 +226,10 @@ describe('getContentItem', () => {
     )
   })
 
-  it('never calls adapter.authorize', async () => {
+  it('authorizes the read capability of the type', async () => {
     const { registerContentAdapter, getContentItem } = await loadHandlers()
 
-    const authorize = vi.fn(async () => {
-      throw new Error('authorize should not be called for get')
-    })
+    const authorize = vi.fn(async () => {})
     const adapter = createMemoryContentAdapter({ authorize })
     registerContentAdapter(adapter)
 
@@ -214,7 +238,23 @@ describe('getContentItem', () => {
     const created = await adapter.create(ctx, { title: 'Hello' })
 
     await expect(getContentItem(ctx, created.id)).resolves.toEqual(created)
-    expect(authorize).not.toHaveBeenCalled()
+    expect(authorize).toHaveBeenCalledWith(fakeEvent, 'posts:read')
+  })
+
+  it('does not read the item when the caller is refused', async () => {
+    const { registerContentAdapter, getContentItem } = await loadHandlers()
+
+    const authorize = vi.fn(async () => {
+      throw new Error('forbidden')
+    })
+    const adapter = createMemoryContentAdapter({ authorize })
+    const get = vi.spyOn(adapter, 'get')
+    registerContentAdapter(adapter)
+
+    const ctx = ctxFor(contentType({ capabilities: { read: 'posts:read' } }))
+
+    await expect(getContentItem(ctx, 1)).rejects.toThrow('forbidden')
+    expect(get).not.toHaveBeenCalled()
   })
 })
 
@@ -724,7 +764,7 @@ describe('content backups', () => {
     ({ context: { userId } }) as unknown as H3Event
   const ctxOf = (event: H3Event, type = contentType()) => ({ event, type })
 
-  it('answers supported: false before any check when the adapter has no backups', async () => {
+  it('checks the caller before it answers supported: false for a read', async () => {
     const {
       registerContentAdapter,
       getContentBackup,
@@ -739,12 +779,11 @@ describe('content backups', () => {
     const ctx = ctxFor(
       contentType({ capabilities: { write: 'posts:publish' } })
     )
-    expect(await getContentBackup(ctx, 'a')).toEqual({ supported: false })
+    await expect(getContentBackup(ctx, 'a')).rejects.toThrow('forbidden')
     expect(await putContentBackup(ctx, 'a', body)).toEqual({
       supported: false,
     })
     expect(await removeContentBackup(ctx, 'a')).toEqual({ supported: false })
-    expect(authorize).not.toHaveBeenCalled()
   })
 
   it('needs the write capability of the type', async () => {
@@ -1140,7 +1179,7 @@ describe('the scheduled publish', () => {
     await listContentItems(ctxFor(type), {})
     await listContentItems(ctxFor(type), { published: true })
     allowed = false
-    await listContentItems(ctxFor(type), {})
+    await expect(listContentItems(ctxFor(type), {})).rejects.toThrow('no')
     await listContentItems(ctxFor(contentType()), {})
 
     expect(publishDue).toHaveBeenCalledOnce()

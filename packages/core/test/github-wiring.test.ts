@@ -14,6 +14,10 @@ import {
   listContentItems,
   requireContentType,
 } from '../server/utils/pluto-content-handlers'
+import {
+  getPublicContent,
+  listPublicContent,
+} from '../server/utils/pluto-public-api'
 import { createFakeGithub } from './fixtures/fake-github'
 import {
   createAuthApp,
@@ -29,6 +33,10 @@ vi.mock(
     return { getGithubConfig: () => testConfig }
   }
 )
+
+vi.mock('../server/utils/pluto-api-config', () => ({
+  getPlutoApiConfig: () => ({ cors: true, maxAge: 60 }),
+}))
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -75,6 +83,26 @@ function setup(patch: Parameters<typeof resetTestConfig>[1] = {}) {
           getRouterParam(event, 'id') ?? ''
         )
       })
+    )
+    router.get(
+      '/api/pluto/v1/content/:type',
+      defineEventHandler((event) =>
+        listPublicContent(
+          event,
+          getRouterParam(event, 'type') ?? '',
+          getQuery(event)
+        )
+      )
+    )
+    router.get(
+      '/api/pluto/v1/content/:type/:id',
+      defineEventHandler((event) =>
+        getPublicContent(
+          event,
+          getRouterParam(event, 'type') ?? '',
+          getRouterParam(event, 'id') ?? ''
+        )
+      )
     )
     router.post(
       '/api/_pluto/content/:type',
@@ -202,23 +230,32 @@ describe('anonymous callers', () => {
   it('see published posts only, even when the list asks for drafts', async () => {
     const { app } = setup()
 
-    const list = await (await app.request('/api/_pluto/content/post')).json()
+    const list = await (
+      await app.request('/api/pluto/v1/content/post?drafts=1')
+    ).json()
 
-    expect(list.data.map((item: { slug: string }) => item.slug)).toEqual([
-      'live',
-    ])
-    expect((await app.request('/api/_pluto/content/post/secret')).status).toBe(
-      404
-    )
-    expect((await app.request('/api/_pluto/content/post/live')).status).toBe(
+    expect(list.data.map((item: { id: string }) => item.id)).toEqual(['live'])
+    expect(
+      (await app.request('/api/pluto/v1/content/post/secret')).status
+    ).toBe(404)
+    expect((await app.request('/api/pluto/v1/content/post/live')).status).toBe(
       200
+    )
+  })
+
+  it('cannot read the admin list or the admin item: 401', async () => {
+    const { app } = setup()
+
+    expect((await app.request('/api/_pluto/content/post')).status).toBe(401)
+    expect((await app.request('/api/_pluto/content/post/live')).status).toBe(
+      401
     )
   })
 
   it('read with an installation token of the App', async () => {
     const { app, fake } = setup()
 
-    await app.request('/api/_pluto/content/post')
+    await app.request('/api/pluto/v1/content/post')
 
     const tokens = new Set(fake.calls.graphqlTokens)
     expect(tokens.size).toBe(1)
@@ -231,7 +268,7 @@ describe('anonymous callers', () => {
   it('read with the read token when it is set, and never ask the App', async () => {
     const { app, fake } = setup({ readToken: 'github_pat_ro' })
 
-    await app.request('/api/_pluto/content/post')
+    await app.request('/api/pluto/v1/content/post')
 
     expect(new Set(fake.calls.graphqlTokens)).toEqual(
       new Set(['github_pat_ro'])
@@ -242,7 +279,7 @@ describe('anonymous callers', () => {
   it('get a 503 "not set up" when no read credentials are set and the build bundled nothing', async () => {
     const { app } = setup({ appId: '', privateKey: '' })
 
-    const response = await app.request('/api/_pluto/content/post')
+    const response = await app.request('/api/pluto/v1/content/post')
 
     expect(response.status).toBe(503)
     expect((await response.json()).data.i18n.key).toBe(

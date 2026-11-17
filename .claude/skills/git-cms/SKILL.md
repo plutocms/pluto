@@ -240,6 +240,11 @@ Access rules:
   `markGithubAnonymous` is the same call inside the module). The test is `test/github-adapter-read-file.test.ts`.
 - An anonymous caller sees published items only. This holds for `list`, `get` and `countCreated`,
   even when the query asks for drafts.
+- The adapter itself does not refuse an anonymous `list` or `get` of a type with no `status`:
+  every item is visible. The admin routes of core refuse the anonymous caller before they call the
+  adapter (`authorizeContentRead`, see the content-model skill). The adapter has
+  `requireSignedIn(event)` for this: a 401 when `getAccess` is `null`. Public reads go through the
+  public API, which marks the request as public.
 - A signed-in caller sees drafts only with the type read capability (`posts:read_drafts`). The
   capability `*` counts as every capability.
 - Every write needs access (401). It needs the write or delete capability (403). A change of the
@@ -510,7 +515,9 @@ logout }`. It uses `useFetch` with the key `pluto-github-session` and `server: f
 
 `test/github-auth.test.ts` (flow, redirect check, session, refresh, re-check, logout, dev user),
 `test/github-origin.test.ts`, `test/github-app-token.test.ts`, `test/github-wiring.test.ts` (the adapter
-registered as the Nitro plugin does it, anonymous 401, drafts hidden, a push user creates) and
+registered as the Nitro plugin does it, anonymous 401, drafts hidden, a push user creates),
+`test/github-admin-read-access.test.ts` (the admin read routes refuse an anonymous caller, a push user
+reads, the public API still answers) and
 `test/github-module.test.ts`. The fixtures are `test/fixtures/fake-github.ts` (it also fakes `/user`,
 `/repos/{o}/{r}`, the OAuth token endpoint and the App endpoints), `github-auth-harness.ts` (an h3
 app with a cookie jar), `github-test-config.ts` and `kit-mock.ts`.
