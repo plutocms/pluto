@@ -26,6 +26,7 @@
     },
     "errors": {
       "required": "{label} é obrigatório.",
+      "consentRequired": "Aceite isto para enviar o formulário.",
       "invalid": "{label} não é válido.",
       "tooShort": "{label} precisa ter pelo menos {min} caracteres.",
       "tooLong": "{label} é longo demais.",

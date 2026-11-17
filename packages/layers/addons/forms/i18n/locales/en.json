@@ -26,6 +26,7 @@
     },
     "errors": {
       "required": "{label} is required.",
+      "consentRequired": "Accept this to send the form.",
       "invalid": "{label} is not valid.",
       "tooShort": "{label} needs at least {min} characters.",
       "tooLong": "{label} is too long.",

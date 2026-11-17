@@ -15,9 +15,10 @@ export function plutoFormErrorMessage(
   field: PlutoFormField | undefined,
   code: string
 ): PlutoFormErrorMessage {
+  const consent = field?.type === 'consent' && code === 'required'
   const known = (PLUTO_FORM_ERROR_CODES as readonly string[]).includes(code)
   return {
-    key: known ? `forms.errors.${code}` : '',
+    key: consent ? 'forms.errors.consentRequired' : known ? `forms.errors.${code}` : '',
     params: {
       label: field?.label || field?.name || '',
       min: field?.minLength ?? field?.min ?? '',
