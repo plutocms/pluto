@@ -41,10 +41,12 @@ export function usePlutoForm(handle: MaybeRefOrGetter<string>) {
   const name = computed(() => toValue(handle))
   const { t } = usePlutoSiteI18n()
 
-  const { data: definition, error: loadError } = useFetch<PlutoPublicForm>(
+  const fetched = useFetch<PlutoPublicForm>(
     () => `/api/pluto/v1/forms/${name.value}`,
     { key: computed(() => `pluto-form:${name.value}`) }
   )
+
+  const { data: definition, error: loadError } = fetched
 
   const fields = computed(() => definition.value?.fields ?? [])
   const values = reactive<Record<string, unknown>>({})
@@ -187,6 +189,7 @@ export function usePlutoForm(handle: MaybeRefOrGetter<string>) {
   }
 
   return {
+    ready: fetched.then(() => undefined),
     definition,
     loadError,
     fields,

@@ -63,6 +63,8 @@ function componentOf(field: PlutoFormField) {
 function focusField(name: string) {
   document.getElementById(`${base}-${name}`)?.focus()
 }
+
+await form.ready
 </script>
 
 <template>
