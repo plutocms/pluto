@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.76.0](https://github.com/plutocms/pluto/compare/v0.75.1...v0.76.0) (2026-11-17)
+
+
+### Features
+
+* **forms:** @plutocms/forms, forms for any site ([#568](https://github.com/plutocms/pluto/issues/568)) ([adfb59b](https://github.com/plutocms/pluto/commit/adfb59b267e81d999b6c259005cdb0de3484557f))
+
 ## [0.75.1](https://github.com/plutocms/pluto/compare/v0.75.0...v0.75.1) (2026-11-17)
 
 
