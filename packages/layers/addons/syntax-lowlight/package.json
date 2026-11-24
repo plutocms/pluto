@@ -39,7 +39,7 @@
     }
   },
   "dependencies": {
-    "hast-util-to-html": "^9.0.6",
+    "hast-util-to-html": "^9.0.7",
     "lowlight": "^3.3.0"
   }
 }
